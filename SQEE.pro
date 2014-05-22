@@ -18,3 +18,6 @@ HEADERS += \
     scene.hpp \
     eventhandler.hpp
 
+OTHER_FILES += \
+    DroidSans.ttf
+
