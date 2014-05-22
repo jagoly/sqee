@@ -1,15 +1,19 @@
 #include <iostream>
 
-#include <application.hpp>
-
-#include "simplehandlers.cpp"
+#include <libsqee/libsqee.hpp>
+#include <simplehandlers.hpp>
 
 using namespace std;
 
 int main()
 {
     sq::Application app;
-    app.attach_handler(sqe::HandlerClose());
+
+    sqe::HandlerClose handler;
+    app.attach_handler(&handler);
+
+    sf::Event ev;
+    handler.handle(ev);
 
     app.run();
 

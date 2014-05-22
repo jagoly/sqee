@@ -2,6 +2,7 @@
 #define APPLICATION_HPP
 
 #include <vector>
+#include <memory>
 
 #include <SFML/Graphics.hpp>
 
@@ -18,9 +19,9 @@ public:
 
     sf::RenderWindow* window;
     void run();
-    void attach_handler(EventHandler);
+    void attach_handler(EventHandler*);
 private:
-    std::vector<EventHandler>* handlerVector;
+    std::vector<EventHandler*> handlerVector;
     Scene* scene;
 };
 

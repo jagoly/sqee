@@ -7,16 +7,19 @@ QMAKE_CXXFLAGS += -std=c++11
 
 LIBS += -lsfml-audio -lsfml-graphics -lsfml-network -lsfml-window -lsfml-system
 
-SOURCES += main.cpp \
-    application.cpp \
-    eventhandler.cpp \
-    scene.cpp \
-    simplehandlers.cpp
+SOURCES += \
+    main.cpp \
+    simplehandlers.cpp \
+    libsqee/application.cpp \
+    libsqee/eventhandler.cpp \
+    libsqee/scene.cpp
 
 HEADERS += \
-    application.hpp \
-    scene.hpp \
-    eventhandler.hpp
+    simplehandlers.hpp \
+    libsqee/application.hpp \
+    libsqee/eventhandler.hpp \
+    libsqee/libsqee.hpp \
+    libsqee/scene.hpp
 
 OTHER_FILES += \
     DroidSans.ttf

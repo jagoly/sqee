@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include <scene.hpp>
+#include "scene.hpp"
 
 using namespace sq;
 

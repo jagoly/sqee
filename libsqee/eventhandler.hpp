@@ -2,6 +2,7 @@
 #define EVENTMANAGER_HPP
 
 #include <string>
+#include <iostream>
 
 #include <SFML/Graphics.hpp>
 
@@ -14,7 +15,7 @@ public:
     EventHandler();
     Application* application;
 
-    bool handle(sf::Event&);
+    virtual bool handle(sf::Event&);
 };
 
 }
