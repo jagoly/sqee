@@ -1,7 +1,7 @@
 #include <iostream>
 
-#include "eventhandler.hpp"
-#include "application.hpp"
+#include <libsqee/app/eventhandler.hpp>
+#include <libsqee/app/application.hpp>
 
 using namespace sq;
 

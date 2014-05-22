@@ -2,6 +2,7 @@
 #define SCENE_HPP
 
 #include <vector>
+#include <string>
 
 #include <SFML/Graphics.hpp>
 
@@ -14,9 +15,10 @@ public:
     const sf::Texture& get_tex();
 
     void set_size(sf::Vector2u);
+    void overlay(const sf::Texture&);
 
-    void render();
-private:
+    virtual void render();
+protected:
     sf::RenderTexture renderTex;
     std::vector<sf::Font> fontVector;
 };

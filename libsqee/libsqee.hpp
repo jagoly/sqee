@@ -1,8 +1,8 @@
 #ifndef LIBSQEE_HPP
 #define LIBSQEE_HPP
 
-#include "application.hpp"
-#include "eventhandler.hpp"
-#include "scene.hpp"
+#include "app/application.hpp"
+#include "app/eventhandler.hpp"
+#include "scenes/scene.hpp"
 
 #endif // LIBSQEE_HPP

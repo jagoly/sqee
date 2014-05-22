@@ -1,7 +1,6 @@
 #include <iostream>
 
-#include <simplehandlers.hpp>
-#include <libsqee/application.hpp>
+#include <libsqee/basics/handlers.hpp>
 
 using namespace sqe;
 

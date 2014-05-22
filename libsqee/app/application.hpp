@@ -6,23 +6,28 @@
 
 #include <SFML/Graphics.hpp>
 
+#include <libsqee/scenes/scene.hpp>
+
+
 namespace sq {
 
 class EventHandler;
-class Scene;
 
 class Application {
 public:
     Application();
 
     bool running;
+    sf::Vector2u windowSize;
 
     sf::RenderWindow* window;
     void run();
     void attach_handler(EventHandler*);
+    void append_scene(Scene*);
+    void set_size(sf::Vector2u);
 private:
-    std::vector<EventHandler*> handlerVector;
-    Scene* scene;
+    std::vector<std::unique_ptr<EventHandler>> handlerVector;
+    std::vector<std::unique_ptr<Scene>> sceneVector;
 };
 
 }

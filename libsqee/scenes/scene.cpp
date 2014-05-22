@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "scene.hpp"
+#include <libsqee/scenes/scene.hpp>
 
 using namespace sq;
 
@@ -17,9 +17,14 @@ void Scene::set_size(sf::Vector2u size) {
     renderTex.create(size.x, size.y);
 }
 
+void Scene::overlay(const sf::Texture& tex) {
+    static sf::Sprite sprite(tex);
+    renderTex.draw(sprite);
+}
+
 void Scene::render() {
-    renderTex.clear(sf::Color::Black);
-    static sf::Text text(" You need to subclass sq::Scene, then\n assign it to your sq::Application.scene", fontVector[0], 40);
+    renderTex.clear(sf::Color::Transparent);
+    static sf::Text text(" Default Scene \n :)", fontVector[0], 40);
     renderTex.draw(text);
     renderTex.display();
 }
