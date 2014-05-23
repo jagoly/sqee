@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include <libsqee/app/application.hpp>
-#include <libsqee/app/eventhandler.hpp>
+#include <libsqee/app/handler.hpp>
 #include <libsqee/scenes/scene.hpp>
 
 using namespace sq;
@@ -11,13 +11,21 @@ Application::Application() {
 }
 
 void Application::run() {
-    window = new sf::RenderWindow(sf::VideoMode(windowSize.x, windowSize.y), "SQEE DEMO");
+    sf::ContextSettings settings;
+    settings.depthBits = 24;
+    settings.stencilBits = 8;
+    settings.antialiasingLevel = 4;
+    settings.majorVersion = 3;
+    settings.minorVersion = 3;
+
+    window = new sf::RenderWindow(sf::VideoMode(windowSize.x, windowSize.y),
+                                  "SQEE DEMO", sf::Style::Default, settings);
     window->setVerticalSyncEnabled(true);
 
     while (true) {
         sf::Event event;
         while (window->pollEvent(event)) {
-            for (auto& handler : handlerVector) {
+            for (auto& handler : handlerFList) {
                 if (handler->handle(event)) {
                     break;
                 }
@@ -40,16 +48,21 @@ void Application::run() {
         window->draw(sprite);
         window->display();
     }
-    delete window;
 }
 
-void Application::attach_handler(EventHandler* handler) {
-    handlerVector.push_back(std::unique_ptr<EventHandler>(std::move(handler)));
+void Application::attach_handler(Handler* handler) {
+    handlerFList.push_front(std::unique_ptr<Handler>(std::move(handler)));
     handler->application = this;
 }
 
 void Application::append_scene(Scene* scene) {
     sceneVector.push_back(std::unique_ptr<Scene>(std::move(scene)));
+}
+
+void Application::add_entity(std::string strid, Entity* entity) {
+    entityMap.insert(std::pair<std::string, std::unique_ptr<Entity>>
+                     (strid, std::unique_ptr<Entity>(std::move(entity))));
+    entity->application = this;
 }
 
 void Application::set_size(sf::Vector2u size) {

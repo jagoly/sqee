@@ -2,16 +2,18 @@
 #define APPLICATION_HPP
 
 #include <vector>
+#include <forward_list>
 #include <memory>
 
 #include <SFML/Graphics.hpp>
 
 #include <libsqee/scenes/scene.hpp>
+#include <libsqee/logic/entity.hpp>
 
 
 namespace sq {
 
-class EventHandler;
+class Handler;
 
 class Application {
 public:
@@ -22,11 +24,13 @@ public:
 
     sf::RenderWindow* window;
     void run();
-    void attach_handler(EventHandler*);
+    void attach_handler(Handler*);
     void append_scene(Scene*);
+    void add_entity(std::string, Entity*);
     void set_size(sf::Vector2u);
-private:
-    std::vector<std::unique_ptr<EventHandler>> handlerVector;
+
+    std::forward_list<std::unique_ptr<Handler>> handlerFList;
+    std::map<std::string, std::unique_ptr<Entity>> entityMap;
     std::vector<std::unique_ptr<Scene>> sceneVector;
 };
 

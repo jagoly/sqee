@@ -10,17 +10,21 @@ LIBS += -lsfml-audio -lsfml-graphics -lsfml-network -lsfml-window -lsfml-system
 SOURCES += \
     main.cpp \
     libsqee/app/application.cpp \
-    libsqee/app/eventhandler.cpp \
     libsqee/scenes/scene.cpp \
-    libsqee/basics/handlers.cpp
+    libsqee/basics/handlers.cpp \
+    libsqee/logic/entity.cpp \
+    libsqee/logic/component.cpp \
+    libsqee/app/handler.cpp
 
 HEADERS += \
     libsqee/libsqee.hpp \
     libsqee/app/application.hpp \
-    libsqee/app/eventhandler.hpp \
     libsqee/scenes/scene.hpp \
     libsqee/basics/handlers.hpp \
-    libsqee/extra.hpp
+    libsqee/extra.hpp \
+    libsqee/logic/entity.hpp \
+    libsqee/app/handler.hpp \
+    libsqee/logic/component.hpp
 
 OTHER_FILES += \
     DroidSans.ttf

@@ -7,12 +7,16 @@
 
 namespace sqe {
 
-class HandlerClose : public sq::EventHandler {
+class HandlerClose : public sq::Handler {
+public:
+    bool handle(sf::Event& event);
+};
+
+class HandlerDebug : public sq::Handler {
 public:
     bool handle(sf::Event& event);
 };
 
 }
-
 
 #endif // SIMPLEHANDLERS_HPP

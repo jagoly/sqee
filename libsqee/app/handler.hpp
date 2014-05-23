@@ -10,9 +10,9 @@ namespace sq {
 
 class Application;
 
-class EventHandler {
+class Handler {
 public:
-    EventHandler();
+    Handler();
     Application* application;
 
     virtual bool handle(sf::Event&);
