@@ -1,41 +1,39 @@
 #include <iostream>
 
-#include <libsqee/libsqee.hpp>
-#include <libsqee/extra.hpp>
-
-using namespace std;
-
-class TestScene : public sq::Scene {
-public:
-    void render() {
-        renderTex.clear(sf::Color::Blue);
-        renderTex.display();
-    }
-};
+#include <libsqee/tests/suite.hpp>
 
 int main()
 {
-    sq::Application app;
+    sqt::TestApp app;
 
-    sqe::HandlerClose handler1;
-    app.attach_handler(&handler1);
+    sqe::HandlerClose hc;
+    sqe::HandlerDebug hd;
+    sqt::HandlerGame hg;
 
-    sqe::HandlerDebug handler2;
-    app.attach_handler(&handler2);
+    sqt::StageMain stM;
+    sqt::StageHud stH;
 
-    TestScene scene1;
-    app.append_scene(&scene1);
+    sqt::SceneBack scB;
+    sqt::SceneFore scF;
+    sqt::SceneHud scH;
 
-    sq::Scene scene2;
-    app.append_scene(&scene2);
+    scB.stage = &stM;
+    scF.stage = &stM;
+    scH.stage = &stH;
 
-    sq::Entity ent1;
-    app.add_entity("ent1", &ent1);
+    app.attach_handler(&hc);
+    app.attach_handler(&hd);
+    app.attach_handler(&hg);
 
-    sq::Component comp1;
-    ent1.add_component("comp1", &comp1);
+    app.add_stage("main", &stM);
+    app.add_stage("hud", &stH);
+
+    app.append_scene(&scB);
+    app.append_scene(&scF);
+    app.append_scene(&scH);
 
     app.set_size({800, 600});
+
     app.run();
 
     return 0;

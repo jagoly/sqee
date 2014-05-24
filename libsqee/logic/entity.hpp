@@ -2,27 +2,22 @@
 #define ENTITY_HPP
 
 #include <string>
-#include <map>
+#include <set>
 #include <memory>
-
-#include <libsqee/logic/component.hpp>
 
 namespace sq {
 
-class Application;
+class Stage;
 
 class Entity {
 public:
     Entity();
-    Application* application;
+    Stage* stage;
 
     std::string name;
+    std::set<std::string> providesMap;
 
-    void add_component(std::string, Component*);
-    void remove_component(std::string);
-    Component& get_component_for_action(std::string);
-protected:
-    std::map<std::string, std::unique_ptr<Component>> componentMap;
+    std::string actionDebug();
 };
 
 }

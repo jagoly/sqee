@@ -3,7 +3,7 @@
 
 #include <SFML/Graphics.hpp>
 
-#include <libsqee/libsqee.hpp>
+#include <libsqee/app/handler.hpp>
 
 namespace sqe {
 

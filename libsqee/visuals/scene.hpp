@@ -3,8 +3,12 @@
 
 #include <vector>
 #include <string>
+#include <memory>
 
 #include <SFML/Graphics.hpp>
+
+#include <libsqee/visuals/textureholder.hpp>
+#include <libsqee/logic/stage.hpp>
 
 namespace sq {
 
@@ -12,10 +16,12 @@ class Scene {
 public:
     Scene();
 
+    TextureHolder* textureHolder;
+    Stage* stage;
+
     const sf::Texture& get_tex();
 
     void set_size(sf::Vector2u);
-    void overlay(const sf::Texture&);
 
     virtual void render();
 protected:

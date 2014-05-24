@@ -2,7 +2,8 @@
 
 #include <libsqee/app/application.hpp>
 #include <libsqee/app/handler.hpp>
-#include <libsqee/scenes/scene.hpp>
+#include <libsqee/visuals/scene.hpp>
+#include <libsqee/logic/stage.hpp>
 
 using namespace sq;
 
@@ -22,6 +23,7 @@ void Application::run() {
                                   "SQEE DEMO", sf::Style::Default, settings);
     window->setVerticalSyncEnabled(true);
 
+    clock.restart();
     while (true) {
         sf::Event event;
         while (window->pollEvent(event)) {
@@ -34,18 +36,19 @@ void Application::run() {
 
         if (!running) break;
 
-        for (auto& scene : sceneVector) {
-            scene->render();
+        for (auto& stage : stageMap) {
+            stage.second->update();
         }
-
-        for (int s = sceneVector.size() - 1; s--;) {
-            sceneVector[s]->overlay(sceneVector[s+1]->get_tex());
-        }
-
-        static sf::Sprite sprite(sceneVector.front()->get_tex());
 
         window->clear(sf::Color::Black);
-        window->draw(sprite);
+
+        static sf::Sprite sprite;
+        for (auto& scene : sceneVector) {           // TRY OVERLAY METHOD
+            scene->render();
+            sprite.setTexture(scene->get_tex());
+            window->draw(sprite);
+        }
+
         window->display();
     }
 }
@@ -57,12 +60,13 @@ void Application::attach_handler(Handler* handler) {
 
 void Application::append_scene(Scene* scene) {
     sceneVector.push_back(std::unique_ptr<Scene>(std::move(scene)));
+    scene->textureHolder = &textureHolder;
 }
 
-void Application::add_entity(std::string strid, Entity* entity) {
-    entityMap.insert(std::pair<std::string, std::unique_ptr<Entity>>
-                     (strid, std::unique_ptr<Entity>(std::move(entity))));
-    entity->application = this;
+void Application::add_stage(std::string strId, Stage* stage) {
+    stageMap.insert(std::pair<std::string, std::unique_ptr<Stage>>
+                     (strId, std::unique_ptr<Stage>(std::move(stage))));
+    stage->application = this;
 }
 
 void Application::set_size(sf::Vector2u size) {

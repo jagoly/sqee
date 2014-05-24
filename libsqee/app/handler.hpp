@@ -1,9 +1,6 @@
 #ifndef EVENTMANAGER_HPP
 #define EVENTMANAGER_HPP
 
-#include <string>
-#include <iostream>
-
 #include <SFML/Graphics.hpp>
 
 namespace sq {
