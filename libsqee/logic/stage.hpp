@@ -19,6 +19,10 @@ public:
 
     Application* application;
 
+    double accum = 0.f;
+    int tickRate;
+    double dt;
+
     std::map<std::string, boost::variant<int, float, std::string>> stateMap;
     std::map<std::string, std::unique_ptr<Entity>> entityMap;
 
