@@ -19,8 +19,7 @@ public:
 
     Application* application;
 
-    typedef boost::variant<int, float, std::string> State;
-    std::map<std::string, State> stateMap;
+    std::map<std::string, boost::variant<int, float, std::string>> stateMap;
     std::map<std::string, std::unique_ptr<Entity>> entityMap;
 
     virtual void update();

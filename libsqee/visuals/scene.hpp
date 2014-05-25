@@ -23,7 +23,7 @@ public:
 
     void set_size(sf::Vector2u);
 
-    virtual void render();
+    virtual void render(float);
 protected:
     sf::RenderTexture renderTex;
     std::vector<sf::Font> fontVector;

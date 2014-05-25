@@ -9,6 +9,7 @@ using namespace sq;
 
 Application::Application() {
     running = true;
+    tickRate = 60;
 }
 
 void Application::run() {
@@ -22,9 +23,34 @@ void Application::run() {
     window = new sf::RenderWindow(sf::VideoMode(windowSize.x, windowSize.y),
                                   "SQEE DEMO", sf::Style::Default, settings);
     window->setVerticalSyncEnabled(true);
+    //window->setFramerateLimit(30);
+
+    sf::Clock DT;
+    int queue = 0;
+    float add = 0.f;
 
     clock.restart();
     while (true) {
+        float dt = DT.restart().asSeconds();
+
+        window->clear(sf::Color::Black);
+
+        static sf::Sprite sprite;
+        std::cout << "render" << std::endl;
+        for (auto& scene : sceneVector) {           // TRY OVERLAY METHOD
+            scene->render(dt);
+            sprite.setTexture(scene->get_tex());
+            window->draw(sprite);
+        }
+
+        window->display();
+
+        add += tickRate * dt;
+        if (add > 1.f) {
+            queue++;
+            add -= 1.f;
+        }
+
         sf::Event event;
         while (window->pollEvent(event)) {
             for (auto& handler : handlerFList) {
@@ -36,20 +62,13 @@ void Application::run() {
 
         if (!running) break;
 
-        for (auto& stage : stageMap) {
-            stage.second->update();
+        while (queue) {
+            std::cout << "tick" << std::endl;
+            for (auto& stage : stageMap) {
+                stage.second->update();
+            }
+            queue--;
         }
-
-        window->clear(sf::Color::Black);
-
-        static sf::Sprite sprite;
-        for (auto& scene : sceneVector) {           // TRY OVERLAY METHOD
-            scene->render();
-            sprite.setTexture(scene->get_tex());
-            window->draw(sprite);
-        }
-
-        window->display();
     }
 }
 

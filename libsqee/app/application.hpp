@@ -20,6 +20,7 @@ public:
     Application();
 
     bool running;
+    int tickRate;
     sf::Vector2u windowSize;
 
     sf::RenderWindow* window;

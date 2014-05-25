@@ -17,7 +17,7 @@ void Scene::set_size(sf::Vector2u size) {
     renderTex.create(size.x, size.y);
 }
 
-void Scene::render() {
+void Scene::render(float) {
     renderTex.clear(sf::Color::Yellow);
     renderTex.display();
 }

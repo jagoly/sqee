@@ -19,6 +19,7 @@ public:
 class StageMain : public sq::Stage {
 public:
     StageMain();
+    void update();
 };
 class StageHud : public sq::Stage {
 public:
@@ -29,16 +30,16 @@ public:
 
 class SceneBack : public sq::Scene {
 public:
-    void render();
+    void render(float);
 };
 class SceneFore : public sq::Scene {
 public:
-    void render();
+    void render(float);
 };
 class SceneHud : public sq::Scene {
 public:
     SceneHud();
-    void render();
+    void render(float);
 };
 
 }
