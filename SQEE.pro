@@ -14,10 +14,12 @@ SOURCES += \
     libsqee/basics/handlers.cpp \
     libsqee/logic/entity.cpp \
     libsqee/app/handler.cpp \
-    libsqee/tests/suite.cpp \
     libsqee/visuals/textureholder.cpp \
     libsqee/logic/stage.cpp \
-    libsqee/helpers/get_key_dir.cpp
+    libsqee/tests/soko/stages.cpp \
+    libsqee/tests/soko/scenes.cpp \
+    libsqee/tests/soko/app.cpp \
+    libsqee/tests/soko/helpers.cpp
 
 HEADERS += \
     libsqee/app/application.hpp \
@@ -26,12 +28,17 @@ HEADERS += \
     libsqee/extra.hpp \
     libsqee/logic/entity.hpp \
     libsqee/app/handler.hpp \
-    libsqee/tests/suite.hpp \
     libsqee/base.hpp \
     libsqee/visuals/textureholder.hpp \
     libsqee/logic/stage.hpp \
-    libsqee/helpers/get_key_dir.hpp
+    libsqee/tests/soko.hpp \
+    libsqee/tests/soko/stages.hpp \
+    libsqee/tests/soko/scenes.hpp \
+    libsqee/tests/soko/app.hpp \
+    libsqee/tests/soko/helpers.hpp
 
 OTHER_FILES += \
-    DroidSans.ttf
+    DroidSans.ttf \
+    test_soko/DroidSans.ttf \
+    test_soko/playerStill.png
 

@@ -1,8 +1,8 @@
 #include <SFML/Graphics.hpp>
 
-#include <libsqee/helpers/get_key_dir.hpp>
+#include <libsqee/tests/soko/helpers.hpp>
 
-int sq::get_key_dir() {
+int sqt::get_key_dir() {
    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
        return 0;
    } else
@@ -17,3 +17,4 @@ int sq::get_key_dir() {
    }
    return -1;
 }
+

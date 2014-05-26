@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include <libsqee/tests/suite.hpp>
+#include <libsqee/tests/soko.hpp>
 
 int main()
 {
