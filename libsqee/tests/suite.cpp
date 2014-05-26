@@ -10,51 +10,26 @@ TestApp::TestApp() {
 }
 
 bool HandlerGame::handle(sf::Event& event) {
-    if (event.type == sf::Event::KeyPressed) {
-        bool pMoveAllow = get<int>(application->stageMap["main"]->stateMap["pDir"]) == -1;
-        if (event.key.code == sf::Keyboard::Up) {
-            if (pMoveAllow) {
-                application->stageMap["main"]->stateMap["pDir"] = 0;
-            }
-            return true;
-        } else
-        if (event.key.code == sf::Keyboard::Right) {
-            if (pMoveAllow) {
-                application->stageMap["main"]->stateMap["pDir"] = 1;
-            }
-            return true;
-        } else
-        if (event.key.code == sf::Keyboard::Down) {
-            if (pMoveAllow) {
-                application->stageMap["main"]->stateMap["pDir"] = 2;
-            }
-            return true;
-        } else
-        if (event.key.code == sf::Keyboard::Left) {
-            if (pMoveAllow) {
-                application->stageMap["main"]->stateMap["pDir"] = 3;
-            }
-            return true;
-        }
-    }
     return false;
 }
 
 StageMain::StageMain() {
-    tickRate = 2;
-    dt = 0.5f;
+    tickRate = 32;
+    dt = 0.03125f;
     stateMap.emplace(std::pair<std::string, int>("pDir", -1));
     stateMap.emplace(std::pair<std::string, int>("pX", 4));
     stateMap.emplace(std::pair<std::string, int>("pY", 4));
-    stateMap.emplace(std::pair<std::string, float>("pMSpeed", 1.f));
+    stateMap.emplace(std::pair<std::string, float>("pMSpeed", 2.f));
     stateMap.emplace(std::pair<std::string, int>("pMoved", 0));
 }
 
 void StageMain::update() {
-    std::cout << "called" << std::endl;
-    int pDir = get<int>(stateMap["pDir"]);
-    if (pDir != -1) {
-        std::cout << stateMap["pMoved"] << std::endl;
+    if (get<int>(stateMap["pDir"]) == -1) {
+        stateMap["pDir"] = sq::get_key_dir();
+    } else {
+        int pDir = get<int>(stateMap["pDir"]);
+        stateMap["pMoved"] = get<int>(stateMap["pMoved"]) + 1;
+
         if (get<int>(stateMap["pMoved"]) == int(tickRate / get<float>(stateMap["pMSpeed"]))) {
             if (pDir == 0) {
                 stateMap["pY"] = get<int>(stateMap["pY"]) - 1;
@@ -69,9 +44,9 @@ void StageMain::update() {
                 stateMap["pX"] = get<int>(stateMap["pX"]) - 1;
             }
             stateMap["pMoved"] = 0;
-            stateMap["pDir"] = -1;
+            stateMap["pDir"] = sq::get_key_dir();
+            return;
         }
-        stateMap["pMoved"] = get<int>(stateMap["pMoved"]) + 1;
     }
 }
 
@@ -92,34 +67,34 @@ void SceneFore::render(float ft) {
 
     static sf::Sprite playerSprite(textureHolder->get_texture("playerStill"), {0,0,64,64});
 
-    static int part = stage->dt * 64;
+    float portion = get<float>(stage->stateMap["pMSpeed"]) / stage->tickRate * 64.f;
+    int pDir = get<int>(stage->stateMap["pDir"]);
 
     double posX = get<int>(stage->stateMap["pX"]) * 64.f;
     double posY = get<int>(stage->stateMap["pY"]) * 64.f;
-
-    int pDir = get<int>(stage->stateMap["pDir"]);
 
     if (pDir != -1) {
         int frac = get<int>(stage->stateMap["pMoved"]);
         if (pDir == 0) {
             playerSprite.setTextureRect({0,0,64,64});
-            posY -= (frac*32.f) * ((stage->dt - stage->accum) / stage->dt)
-                  + ((frac+1)*32.f) * (stage->accum / stage->dt);
+            posY -= (frac*portion) * ((stage->dt - stage->accum) / stage->dt)
+                  + ((frac+1)*portion) * (stage->accum / stage->dt);
         } else
         if (pDir == 1) {
-            playerSprite.setTextureRect({0,64,64,64});
-            posX += 64.f * stage->accum / 0.1;
+            playerSprite.setTextureRect({64,0,64,64});
+            posX += (frac*portion) * ((stage->dt - stage->accum) / stage->dt)
+                  + ((frac+1)*portion) * (stage->accum / stage->dt);
         } else
         if (pDir == 2) {
-            playerSprite.setTextureRect({64,0,64,64});
-            posY += 64.f * stage->accum / 0.1;
+            playerSprite.setTextureRect({0,64,64,64});
+            posY += (frac*portion) * ((stage->dt - stage->accum) / stage->dt)
+                  + ((frac+1)*portion) * (stage->accum / stage->dt);
         } else
         if (pDir == 3) {
             playerSprite.setTextureRect({64,64,64,64});
-            posX -= 64.f * stage->accum / 0.1;
+            posX -= (frac*portion) * ((stage->dt - stage->accum) / stage->dt)
+                  + ((frac+1)*portion) * (stage->accum / stage->dt);
         }
-        std::cout << "extra: " << std::endl;
-        std::cout << posX << " " << posY << std::endl;
     }
 
     playerSprite.setPosition(posX, posY);

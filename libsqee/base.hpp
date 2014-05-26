@@ -10,4 +10,6 @@
 #include "logic/entity.hpp"
 #include "logic/stage.hpp"
 
+#include "helpers/get_key_dir.hpp"
+
 #endif // LIBSQEE_HPP

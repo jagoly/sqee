@@ -22,14 +22,14 @@ void Application::run() {
     window = new sf::RenderWindow(sf::VideoMode(windowSize.x, windowSize.y),
                                   "SQEE DEMO", sf::Style::Default, settings);
     window->setVerticalSyncEnabled(true);
-    //window->setFramerateLimit(60);
+    //window->setFramerateLimit(30);
 
     sf::Clock FT;
 
     clock.restart();
     while (true) {
+        //std::cout << "\nrender" << std::endl;
 
-        std::cout << "\nrender" << std::endl;
         sf::Event event;
         while (window->pollEvent(event)) {
             for (auto& handler : handlerFList) {
@@ -45,9 +45,6 @@ void Application::run() {
         for (auto& stage : stageMap) {
             stage.second->accum += ft;
             while (stage.second->accum >= 1.f / stage.second->tickRate) {
-                std::cout << "calling" << std::endl;
-
-                std::cout << stage.second->accum << std::endl;
                 stage.second->update();
                 stage.second->accum -= 1.f / stage.second->tickRate;
             }

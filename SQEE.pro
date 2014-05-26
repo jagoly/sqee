@@ -16,7 +16,8 @@ SOURCES += \
     libsqee/app/handler.cpp \
     libsqee/tests/suite.cpp \
     libsqee/visuals/textureholder.cpp \
-    libsqee/logic/stage.cpp
+    libsqee/logic/stage.cpp \
+    libsqee/helpers/get_key_dir.cpp
 
 HEADERS += \
     libsqee/app/application.hpp \
@@ -28,7 +29,8 @@ HEADERS += \
     libsqee/tests/suite.hpp \
     libsqee/base.hpp \
     libsqee/visuals/textureholder.hpp \
-    libsqee/logic/stage.hpp
+    libsqee/logic/stage.hpp \
+    libsqee/helpers/get_key_dir.hpp
 
 OTHER_FILES += \
     DroidSans.ttf
