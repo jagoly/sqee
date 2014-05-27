@@ -4,7 +4,7 @@ using namespace sqt;
 using boost::get;
 
 void SceneBack::render(float ft) {
-    renderTex.clear(sf::Color::Color(70, 20, 90));
+    renderTex.clear(sf::Color(70, 20, 90));
     renderTex.display();
 }
 
