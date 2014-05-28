@@ -5,7 +5,7 @@ CONFIG -= qt
 
 QMAKE_CXXFLAGS += -std=c++11
 
-LIBS += -lsfml-audio -lsfml-graphics -lsfml-network -lsfml-window -lsfml-system
+LIBS += -lsfml-audio -lsfml-graphics -lsfml-network -lsfml-window -lsfml-system -ljsoncpp
 
 SOURCES += \
     main.cpp \
@@ -19,7 +19,8 @@ SOURCES += \
     libsqee/tests/soko/stages.cpp \
     libsqee/tests/soko/scenes.cpp \
     libsqee/tests/soko/app.cpp \
-    libsqee/tests/soko/helpers.cpp
+    libsqee/tests/soko/helpers.cpp \
+    libsqee/tests/soko/level.cpp
 
 HEADERS += \
     libsqee/app/application.hpp \
@@ -35,10 +36,17 @@ HEADERS += \
     libsqee/tests/soko/stages.hpp \
     libsqee/tests/soko/scenes.hpp \
     libsqee/tests/soko/app.hpp \
-    libsqee/tests/soko/helpers.hpp
+    libsqee/tests/soko/helpers.hpp \
+    libsqee/tests/soko/level.hpp
 
 OTHER_FILES += \
     DroidSans.ttf \
     test_soko/DroidSans.ttf \
-    test_soko/playerStill.png
+    test_soko/playerStill.png \
+    test_soko/level1.json \
+    test_soko/bg_blue.png \
+    test_soko/bg_green.png \
+    test_soko/goal.png \
+    test_soko/hole.png \
+    test_soko/rock.png
 

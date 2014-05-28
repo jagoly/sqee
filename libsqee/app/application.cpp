@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iterator>
 
 #include <libsqee/app/application.hpp>
 #include <libsqee/app/handler.hpp>
@@ -53,7 +54,7 @@ void Application::run() {
         window->clear(sf::Color::Black);
 
         static sf::Sprite sprite;
-        for (auto& scene : sceneVector) {           // TRY OVERLAY METHOD
+        for (auto& scene : sceneList) {           // TRY OVERLAY METHOD
             scene->render(ft);
             sprite.setTexture(scene->get_tex());
             window->draw(sprite);
@@ -65,7 +66,7 @@ void Application::run() {
 
 void Application::set_size(sf::Vector2u size) {
     windowSize = size;
-    for (auto& scene : sceneVector) {
+    for (auto& scene : sceneList) {
         scene->set_size(size);
     }
 }
@@ -74,12 +75,12 @@ Stage& Application::get_stage(std::string strId) {
     return *stageMap[strId];
 }
 
-Scene& Application::get_scene(int index) {
-    return *sceneVector[index];
-}
+//Scene& Application::get_scene(int index) {
+//    return *sceneList.begin();
+//}
 
 Scene& Application::get_scene() {
-    return *sceneVector.back();
+    return *sceneList.back();
 }
 
 void Application::attach_handler(std::unique_ptr<Handler> handler) {
@@ -90,9 +91,20 @@ void Application::attach_handler(std::unique_ptr<Handler> handler) {
 
 void Application::append_scene(std::unique_ptr<Scene> scene) {
     scene->textureHolder = &textureHolder;
-    sceneVector.push_back(std::move(scene));
+    sceneList.push_back(std::move(scene));
 }
 
+void Application::prepend_scene(std::unique_ptr<Scene> scene) {
+    scene->textureHolder = &textureHolder;
+    sceneList.push_front(std::move(scene));
+}
+
+void Application::insert_scene(int index, std::unique_ptr<Scene> scene) {
+    scene->textureHolder = &textureHolder;
+    std::list<std::unique_ptr<Scene>>::iterator iter = sceneList.begin();
+    std::advance(iter, index);
+    sceneList.insert(iter, std::move(scene));
+}
 
 void Application::add_stage(std::string strId, std::unique_ptr<Stage> stage) {
     stage->application = this;

@@ -1,7 +1,7 @@
 #ifndef APPLICATION_HPP
 #define APPLICATION_HPP
 
-#include <vector>
+#include <list>
 #include <forward_list>
 #include <memory>
 
@@ -31,6 +31,8 @@ public:
 
     void attach_handler(std::unique_ptr<Handler>);
     void append_scene(std::unique_ptr<Scene>);
+    void prepend_scene(std::unique_ptr<Scene>);
+    void insert_scene(int, std::unique_ptr<Scene>);
     void add_stage(std::string, std::unique_ptr<Stage>);
 
     Stage& get_stage(std::string);
@@ -40,8 +42,7 @@ public:
 protected:
     std::forward_list<std::unique_ptr<Handler>> handlerFList;
     std::map<std::string, std::unique_ptr<Stage>> stageMap;
-    std::vector<std::unique_ptr<Scene>> sceneVector;
-
+    std::list<std::unique_ptr<Scene>> sceneList;
 };
 
 }

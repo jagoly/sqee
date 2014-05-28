@@ -1,24 +1,49 @@
+#include <iostream>
+
 #include <libsqee/tests/soko/scenes.hpp>
 
 using namespace sqt;
 
-SceneBack::SceneBack(sq::Stage& sta) {
+SceneBack::SceneBack(sq::Stage& sta, sq::TextureHolder& texHolder) {
     stage = static_cast<StageMain*>(&sta);
+    textureHolder = &texHolder;
+
+    for (auto path : stage->texPathVec) {
+        textureHolder->add_texture("bg_" + std::to_string(path.first), path.second);
+    }
 }
 
 void SceneBack::render(float ft) {
     renderTex.clear(sf::Color(70, 20, 90));
+    static std::vector<sf::Texture*> texVec;
+    for (auto texPair : stage->texPathVec) {
+        texVec.push_back(&textureHolder->get_texture("bg_" + std::to_string(texPair.first)));
+    }
+    static sf::Sprite sprite;
+    int x = 0;
+    int y = 0;
+    for (auto& row : stage->levelTexVec) {
+        for (auto& val : row) {
+            sprite.setTexture(*texVec[val]);
+            sprite.setPosition(x*64, y*64);
+            renderTex.draw(sprite);
+            x++;
+        }
+        x = 0;
+        y++;
+    }
     renderTex.display();
 }
 
-SceneFore::SceneFore(sq::Stage& sta) {
+SceneFore::SceneFore(sq::Stage& sta, sq::TextureHolder& texHolder) {
     stage = static_cast<StageMain*>(&sta);
+    textureHolder = &texHolder;
 }
 
 void SceneFore::render(float ft) {
     renderTex.clear(sf::Color::Transparent);
 
-    static sf::Sprite playerSprite(textureHolder->get_texture("playerStill"), {0,0,64,64});
+    static sf::Sprite playerSprite(textureHolder->get_texture("player_still"), {0,0,64,64});
 
     float portion = stage->pSpeed / stage->tickRate * 64.f;
     int pDir = stage->pDir;
@@ -56,10 +81,11 @@ void SceneFore::render(float ft) {
     renderTex.display();
 }
 
-SceneHud::SceneHud(sq::Stage& sta) {
+SceneHud::SceneHud(sq::Stage& sta, sq::TextureHolder& texHolder) {
     stage = static_cast<StageHud*>(&sta);
+    textureHolder = & texHolder;
     fontVector.push_back(sf::Font());
-    fontVector[0].loadFromFile("test_soko/DroidSans.ttf");
+    fontVector.back().loadFromFile("test_soko/DroidSans.ttf");
 }
 
 void SceneHud::render(float ft) {
@@ -68,7 +94,7 @@ void SceneHud::render(float ft) {
     renderTex.clear(sf::Color::Transparent);
 
     std::string time = std::to_string(1.f / ft);
-    timeDisplay.setString("FPS: "+time);
+    timeDisplay.setString(" FPS: "+time);
     renderTex.draw(timeDisplay);
 
     renderTex.display();

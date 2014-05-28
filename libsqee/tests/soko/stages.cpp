@@ -42,6 +42,14 @@ void StageMain::update() {
     }
 }
 
+void StageMain::load_level(Level& level) {
+    size = {level.width, level.height};
+    for (auto& path : level.paths) {
+        texPathVec.push_back(path);
+    }
+    levelTexVec = level.textures;
+}
+
 StageHud::StageHud() {
     tickRate = 2;
 }
