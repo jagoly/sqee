@@ -9,6 +9,9 @@ class StageMain : public sq::Stage {
 public:
     StageMain();
     void update();
+
+    int pDir, pX, pY, pMoved;
+    float pSpeed;
 };
 class StageHud : public sq::Stage {
 public:

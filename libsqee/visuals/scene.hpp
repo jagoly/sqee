@@ -17,7 +17,6 @@ public:
     Scene();
 
     TextureHolder* textureHolder;
-    Stage* stage;
 
     const sf::Texture& get_tex();
 

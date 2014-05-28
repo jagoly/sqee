@@ -6,7 +6,6 @@
 using namespace sq;
 
 Scene::Scene() {
-
 }
 
 const sf::Texture& Scene::get_tex() {

@@ -1,11 +1,18 @@
 #include <libsqee/tests/soko/scenes.hpp>
 
 using namespace sqt;
-using boost::get;
+
+SceneBack::SceneBack(sq::Stage& sta) {
+    stage = static_cast<StageMain*>(&sta);
+}
 
 void SceneBack::render(float ft) {
     renderTex.clear(sf::Color(70, 20, 90));
     renderTex.display();
+}
+
+SceneFore::SceneFore(sq::Stage& sta) {
+    stage = static_cast<StageMain*>(&sta);
 }
 
 void SceneFore::render(float ft) {
@@ -13,14 +20,14 @@ void SceneFore::render(float ft) {
 
     static sf::Sprite playerSprite(textureHolder->get_texture("playerStill"), {0,0,64,64});
 
-    float portion = get<float>(stage->stateMap["pSpeed"]) / stage->tickRate * 64.f;
-    int pDir = get<int>(stage->stateMap["pDir"]);
+    float portion = stage->pSpeed / stage->tickRate * 64.f;
+    int pDir = stage->pDir;
 
-    double posX = get<int>(stage->stateMap["pX"]) * 64.f;
-    double posY = get<int>(stage->stateMap["pY"]) * 64.f;
+    double posX = stage->pX * 64.f;
+    double posY = stage->pY * 64.f;
 
     if (pDir != -1) {
-        int frac = get<int>(stage->stateMap["pMoved"]);
+        int frac = stage->pMoved;
         if (pDir == 0) {
             playerSprite.setTextureRect({0,0,64,64});
             posY -= (frac*portion) * ((stage->dt - stage->accum) / stage->dt)
@@ -49,18 +56,18 @@ void SceneFore::render(float ft) {
     renderTex.display();
 }
 
-SceneHud::SceneHud() {
+SceneHud::SceneHud(sq::Stage& sta) {
+    stage = static_cast<StageHud*>(&sta);
     fontVector.push_back(sf::Font());
     fontVector[0].loadFromFile("test_soko/DroidSans.ttf");
 }
 
 void SceneHud::render(float ft) {
     static sf::Text timeDisplay("", fontVector[0], 24);
-    static float pt = 0.f;
 
     renderTex.clear(sf::Color::Transparent);
 
-    std::string time = std::to_string(1/(ft-pt));
+    std::string time = std::to_string(1.f / ft);
     timeDisplay.setString("FPS: "+time);
     renderTex.draw(timeDisplay);
 

@@ -27,14 +27,21 @@ public:
     sf::Clock clock;
 
     virtual void run();
-    void attach_handler(Handler*);
-    void append_scene(Scene*);
-    void add_stage(std::string, Stage*);
-    void set_size(sf::Vector2u);
+    virtual void set_size(sf::Vector2u);
 
+    void attach_handler(std::unique_ptr<Handler>);
+    void append_scene(std::unique_ptr<Scene>);
+    void add_stage(std::string, std::unique_ptr<Stage>);
+
+    Stage& get_stage(std::string);
+    Scene& get_scene(int);
+    Scene& get_scene();
+
+protected:
     std::forward_list<std::unique_ptr<Handler>> handlerFList;
     std::map<std::string, std::unique_ptr<Stage>> stageMap;
     std::vector<std::unique_ptr<Scene>> sceneVector;
+
 };
 
 }

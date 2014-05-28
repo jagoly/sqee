@@ -6,7 +6,6 @@
 using namespace sq;
 
 Handler::Handler() {
-
 }
 
 bool Handler::handle(sf::Event&) {
