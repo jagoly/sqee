@@ -6,17 +6,11 @@
 
 namespace sqt {
 
-class SceneBack : public sq::Scene {
+class SceneMain : public sq::Scene {
 public:
-    SceneBack(sq::Stage&, sq::TextureHolder&);
+    SceneMain(sq::Stage&, sq::TextureHolder&);
     StageMain* stage;
     void render(float);    
-};
-class SceneFore : public sq::Scene {
-public:
-    SceneFore(sq::Stage&, sq::TextureHolder&);
-    StageMain* stage;
-    void render(float);
 };
 class SceneHud : public sq::Scene {
 public:

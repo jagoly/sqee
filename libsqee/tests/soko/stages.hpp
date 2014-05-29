@@ -25,6 +25,8 @@ class StageHud : public sq::Stage {
 public:
     StageHud();
 
+    int pX, pY;
+
     void update();
 };
 

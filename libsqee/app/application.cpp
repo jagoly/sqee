@@ -20,7 +20,7 @@ void Application::run() {
     settings.majorVersion = 3;
     settings.minorVersion = 3;
 
-    window = new sf::RenderWindow(sf::VideoMode(800, 600),
+    window = new sf::RenderWindow(sf::VideoMode(400, 300),
                                   "SQEE DEMO", sf::Style::Default, settings);
 
     window->setVerticalSyncEnabled(true);
@@ -111,4 +111,3 @@ void Application::add_stage(std::string strId, std::unique_ptr<Stage> stage) {
     stageMap.insert(std::pair<std::string, std::unique_ptr<Stage>>
                      (strId, std::move(stage)));
 }
-

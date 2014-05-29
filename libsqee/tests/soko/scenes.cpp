@@ -4,44 +4,16 @@
 
 using namespace sqt;
 
-SceneBack::SceneBack(sq::Stage& sta, sq::TextureHolder& texHolder) {
+SceneMain::SceneMain(sq::Stage& sta, sq::TextureHolder& texHolder) {
     stage = static_cast<StageMain*>(&sta);
     textureHolder = &texHolder;
-
-    for (auto path : stage->texPathVec) {
+    for (auto& path : stage->texPathVec) {
         textureHolder->add_texture("bg_" + std::to_string(path.first), path.second);
     }
 }
 
-void SceneBack::render(float ft) {
+void SceneMain::render(float ft) {
     renderTex.clear(sf::Color(70, 20, 90));
-    static std::vector<sf::Texture*> texVec;
-    for (auto texPair : stage->texPathVec) {
-        texVec.push_back(&textureHolder->get_texture("bg_" + std::to_string(texPair.first)));
-    }
-    static sf::Sprite sprite;
-    int x = 0;
-    int y = 0;
-    for (auto& row : stage->levelTexVec) {
-        for (auto& val : row) {
-            sprite.setTexture(*texVec[val]);
-            sprite.setPosition(x * 64, y * 64);
-            renderTex.draw(sprite);
-            x++;
-        }
-        x = 0;
-        y++;
-    }
-    renderTex.display();
-}
-
-SceneFore::SceneFore(sq::Stage& sta, sq::TextureHolder& texHolder) {
-    stage = static_cast<StageMain*>(&sta);
-    textureHolder = &texHolder;
-}
-
-void SceneFore::render(float ft) {
-    renderTex.clear(sf::Color::Transparent);
 
     static sf::Sprite playerSprite(textureHolder->get_texture("player_still"), {0,0,64,64});
 
@@ -75,9 +47,55 @@ void SceneFore::render(float ft) {
         }
     }
 
-    playerSprite.setPosition(posX, posY);
+    sf::Vector2u realSize {stage->size.x * 64, stage->size.y * 64};
 
+    bool rightSide  = realSize.x - posX < renderTex.getSize().x / 2 + 32.f;
+    bool bottomSide = realSize.y - posY < renderTex.getSize().y / 2 + 32.f;
+
+    float xOffset = renderTex.getSize().x / 2.f - 32.f;
+    float yOffset = renderTex.getSize().y / 2.f - 32.f;
+
+    std::vector<sf::Texture*> texVec;
+    for (auto texPair : stage->texPathVec) {
+        texVec.push_back(&textureHolder->get_texture("bg_" + std::to_string(texPair.first)));
+    }
+
+    static sf::Sprite sprite;
+    int x, y = 0;
+    for (auto& row : stage->levelTexVec) {
+        for (auto& val : row) {
+            sprite.setTexture(*texVec[val]);
+            if (rightSide && bottomSide) {
+                sprite.setPosition(renderTex.getSize().x - (realSize.x - x * 64),
+                                   renderTex.getSize().y - (realSize.y - y * 64));
+            } else
+            if (rightSide) {
+                sprite.setPosition(renderTex.getSize().x - (realSize.x - x* 64),
+                                   y * 64 - posY + yOffset);
+            } else
+            if (bottomSide) {
+                sprite.setPosition(x * 64 - posX + xOffset,
+                                   renderTex.getSize().y - (realSize.y - y * 64));
+            } else {
+                sprite.setPosition(x * 64 - posX + xOffset,
+                                   y * 64 - posY + yOffset);
+            }
+            renderTex.draw(sprite);
+            x++;
+        }
+        x = 0;
+        y++;
+    }
+
+    if (!rightSide) x = xOffset;
+    else x = renderTex.getSize().x - (realSize.x - posX);
+
+    if (!bottomSide) y = yOffset;
+    else y = renderTex.getSize().y - (realSize.y - posY);
+
+    playerSprite.setPosition(x, y);
     renderTex.draw(playerSprite);
+
     renderTex.display();
 }
 
@@ -89,12 +107,17 @@ SceneHud::SceneHud(sq::Stage& sta, sq::TextureHolder& texHolder) {
 }
 
 void SceneHud::render(float ft) {
-    static sf::Text timeDisplay("", fontVector[0], 24);
+    static sf::Text textDisplay("", fontVector[0], 24);
 
     renderTex.clear(sf::Color::Transparent);
 
-    timeDisplay.setString(" FPS: " + std::to_string(1.f / ft));
-    renderTex.draw(timeDisplay);
+    static float fps = 60.f;
+    fps = fps * 0.9f + 1.f / ft * 0.1f;
+
+    textDisplay.setString(" FPS: " + std::to_string(fps) +
+                          "\n X: " + std::to_string(stage->pX) +
+                          "\n Y: " + std::to_string(stage->pY));
+    renderTex.draw(textDisplay);
 
     renderTex.display();
 }

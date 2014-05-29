@@ -25,8 +25,7 @@ void TestApp::load_level(std::string filePath) {
     add_stage("main", std::unique_ptr<sq::Stage>(new StageMain));
     static_cast<StageMain*>(&get_stage("main"))->load_level(new Level(filePath));
 
-    prepend_scene(std::unique_ptr<sq::Scene>(new SceneFore(get_stage("main"), textureHolder)));
-    prepend_scene(std::unique_ptr<sq::Scene>(new SceneBack(get_stage("main"), textureHolder)));
+    prepend_scene(std::unique_ptr<sq::Scene>(new SceneMain(get_stage("main"), textureHolder)));
 }
 
 bool HandlerGame::handle(sf::Event& event) {

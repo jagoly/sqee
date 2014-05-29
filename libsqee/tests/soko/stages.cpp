@@ -51,8 +51,12 @@ void StageMain::load_level(Level* level) {
 }
 
 StageHud::StageHud() {
-    tickRate = 2;
+    tickRate = 16;
+    pX = 0;
+    pY = 0;
 }
 
 void StageHud::update() {
+    pX = static_cast<StageMain*>(&application->get_stage("main"))->pX;
+    pY = static_cast<StageMain*>(&application->get_stage("main"))->pY;
 }
