@@ -20,8 +20,9 @@ void Application::run() {
     settings.majorVersion = 3;
     settings.minorVersion = 3;
 
-    window = new sf::RenderWindow(sf::VideoMode(windowSize.x, windowSize.y),
+    window = new sf::RenderWindow(sf::VideoMode(800, 600),
                                   "SQEE DEMO", sf::Style::Default, settings);
+
     window->setVerticalSyncEnabled(true);
     //window->setFramerateLimit(30);
 
@@ -52,11 +53,10 @@ void Application::run() {
         }
 
         window->clear(sf::Color::Black);
-
         static sf::Sprite sprite;
         for (auto& scene : sceneList) {           // TRY OVERLAY METHOD
             scene->render(ft);
-            sprite.setTexture(scene->get_tex());
+            sprite.setTexture(scene->get_tex(), true);
             window->draw(sprite);
         }
 
@@ -65,8 +65,7 @@ void Application::run() {
 }
 
 void Application::set_size(sf::Vector2u size) {
-    windowSize = size;
-    window->setView(sf::View({0, 0, size.x, size.y}));        // CRASHES HERE
+    window->setView(sf::View({0, 0, static_cast<float>(size.x), static_cast<float>(size.y)}));        // CRASHES HERE
     for (auto& scene : sceneList) {
         scene->set_size(size);
     }

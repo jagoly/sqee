@@ -19,9 +19,7 @@ public:
     TextureHolder* textureHolder;
 
     const sf::Texture& get_tex();
-
     virtual void set_size(sf::Vector2u);
-
     virtual void render(float);
 protected:
     sf::RenderTexture renderTex;

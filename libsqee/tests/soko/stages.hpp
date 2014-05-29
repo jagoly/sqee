@@ -9,7 +9,6 @@ namespace sqt {
 class StageMain : public sq::Stage {
 public:
     StageMain();
-    void update();
 
     int pDir, pX, pY, pMoved;
     float pSpeed;
@@ -18,12 +17,14 @@ public:
     std::vector<std::vector<unsigned short int>> levelTexVec;
     std::vector<std::vector<unsigned short int>> levelObjVec;
 
-    void load_level(Level&);
+    void load_level(Level*);
+    void update();
 };
 
 class StageHud : public sq::Stage {
 public:
     StageHud();
+
     void update();
 };
 

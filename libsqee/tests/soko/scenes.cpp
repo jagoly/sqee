@@ -25,7 +25,7 @@ void SceneBack::render(float ft) {
     for (auto& row : stage->levelTexVec) {
         for (auto& val : row) {
             sprite.setTexture(*texVec[val]);
-            sprite.setPosition(x*64, y*64);
+            sprite.setPosition(x * 64, y * 64);
             renderTex.draw(sprite);
             x++;
         }
@@ -83,7 +83,7 @@ void SceneFore::render(float ft) {
 
 SceneHud::SceneHud(sq::Stage& sta, sq::TextureHolder& texHolder) {
     stage = static_cast<StageHud*>(&sta);
-    textureHolder = & texHolder;
+    textureHolder = &texHolder;
     fontVector.push_back(sf::Font());
     fontVector.back().loadFromFile("test_soko/DroidSans.ttf");
 }
@@ -93,8 +93,7 @@ void SceneHud::render(float ft) {
 
     renderTex.clear(sf::Color::Transparent);
 
-    std::string time = std::to_string(1.f / ft);
-    timeDisplay.setString(" FPS: "+time);
+    timeDisplay.setString(" FPS: " + std::to_string(1.f / ft));
     renderTex.draw(timeDisplay);
 
     renderTex.display();

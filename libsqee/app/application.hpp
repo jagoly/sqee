@@ -20,7 +20,6 @@ public:
     Application();
 
     bool running;
-    sf::Vector2u windowSize;
 
     sf::RenderWindow* window;
     TextureHolder textureHolder;

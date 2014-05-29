@@ -20,18 +20,13 @@ TestApp::TestApp() {
 }
 
 void TestApp::load_level(std::string filePath) {
-    level = new Level(filePath);
     attach_handler(std::unique_ptr<sq::Handler>(new HandlerGame));
 
-    StageMain* stageMain = new StageMain;
-    stageMain->load_level(*level);
-
-    add_stage("main", std::unique_ptr<sq::Stage>(stageMain));
+    add_stage("main", std::unique_ptr<sq::Stage>(new StageMain));
+    static_cast<StageMain*>(&get_stage("main"))->load_level(new Level(filePath));
 
     prepend_scene(std::unique_ptr<sq::Scene>(new SceneFore(get_stage("main"), textureHolder)));
     prepend_scene(std::unique_ptr<sq::Scene>(new SceneBack(get_stage("main"), textureHolder)));
-
-   // get_stage("main").load_level(&level);
 }
 
 bool HandlerGame::handle(sf::Event& event) {
