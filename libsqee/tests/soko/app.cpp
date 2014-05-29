@@ -11,6 +11,7 @@ TestApp::TestApp() {
 
     attach_handler(std::unique_ptr<sq::Handler>(new sqe::HandlerClose));
     attach_handler(std::unique_ptr<sq::Handler>(new sqe::HandlerDebug));
+    attach_handler(std::unique_ptr<sq::Handler>(new sqe::HandlerResize));
 
     add_stage("hud", std::unique_ptr<sq::Stage>(new StageHud));
     append_scene(std::unique_ptr<sq::Scene>(new SceneHud(get_stage("hud"), textureHolder)));

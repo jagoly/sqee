@@ -20,7 +20,7 @@ public:
 
     const sf::Texture& get_tex();
 
-    void set_size(sf::Vector2u);
+    virtual void set_size(sf::Vector2u);
 
     virtual void render(float);
 protected:

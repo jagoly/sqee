@@ -9,5 +9,4 @@ Stage::Stage() {
 }
 
 void Stage::update() {
-
 }

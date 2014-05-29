@@ -9,12 +9,16 @@ namespace sqe {
 
 class HandlerClose : public sq::Handler {
 public:
-    bool handle(sf::Event& event);
+    bool handle(sf::Event&);
 };
 
 class HandlerDebug : public sq::Handler {
 public:
-    bool handle(sf::Event& event);
+    bool handle(sf::Event&);
+};
+
+class HandlerResize : public sq::Handler {
+    bool handle(sf::Event&);
 };
 
 }

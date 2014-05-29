@@ -13,6 +13,7 @@ const sf::Texture& Scene::get_tex() {
 }
 
 void Scene::set_size(sf::Vector2u size) {
+    std::cout << "resizing scene" << std::endl;
     renderTex.create(size.x, size.y);
 }
 

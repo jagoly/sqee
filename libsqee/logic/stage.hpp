@@ -5,6 +5,8 @@
 #include <memory>
 #include <map>
 
+#include <SFML/Graphics.hpp>
+
 #include <libsqee/logic/entity.hpp>
 
 namespace sq {

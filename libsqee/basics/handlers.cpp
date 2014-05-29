@@ -21,3 +21,11 @@ bool HandlerDebug::handle(sf::Event& event) {
     }
     return false;
 }
+
+bool HandlerResize::handle(sf::Event& event) {
+    if (event.type == sf::Event::Resized) {
+        application->set_size({event.size.width, event.size.height});
+        return true;
+    }
+    return false;
+}

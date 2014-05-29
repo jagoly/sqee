@@ -66,6 +66,7 @@ void Application::run() {
 
 void Application::set_size(sf::Vector2u size) {
     windowSize = size;
+    window->setView(sf::View({0, 0, size.x, size.y}));        // CRASHES HERE
     for (auto& scene : sceneList) {
         scene->set_size(size);
     }

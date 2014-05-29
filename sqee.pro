@@ -48,5 +48,6 @@ OTHER_FILES += \
     test_soko/bg_green.png \
     test_soko/goal.png \
     test_soko/hole.png \
-    test_soko/rock.png
+    test_soko/rock.png \
+    test_soko/player_still.png
 
