@@ -10,7 +10,7 @@ class StageMain : public sq::Stage {
 public:
     StageMain();
 
-    int pDir, pX, pY, pMoved;
+    short int pDir, pX, pY, pMoved;
     float pSpeed;
     sf::Vector2u size;
     std::vector<std::pair<unsigned short int, std::string>> texPathVec;
@@ -25,7 +25,7 @@ class StageHud : public sq::Stage {
 public:
     StageHud();
 
-    int pX, pY;
+    short int pX, pY;
 
     void update();
 };

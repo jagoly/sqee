@@ -17,71 +17,80 @@ void SceneMain::render(float ft) {
 
     static sf::Sprite playerSprite(textureHolder->get_texture("player_still"), {0,0,64,64});
 
+    short int pDir = stage->pDir;
     float portion = stage->pSpeed / stage->tickRate * 64.f;
-    int pDir = stage->pDir;
-
-    double posX = stage->pX * 64.f;
-    double posY = stage->pY * 64.f;
+    float xPos = stage->pX * 64.f;
+    float yPos = stage->pY * 64.f;
 
     if (pDir != -1) {
-        int frac = stage->pMoved;
+        float frac = stage->pMoved;
         if (pDir == 0) {
             playerSprite.setTextureRect({0,0,64,64});
-            posY -= (frac*portion) * ((stage->dt - stage->accum) / stage->dt)
-                  + ((frac+1)*portion) * (stage->accum / stage->dt);
+            yPos -= (frac*portion) * ((stage->dt - stage->accum) / stage->dt)
+                  + ((frac+1.f)*portion) * (stage->accum / stage->dt);
         } else
         if (pDir == 1) {
             playerSprite.setTextureRect({0,64,64,64});
-            posX += (frac*portion) * ((stage->dt - stage->accum) / stage->dt)
-                  + ((frac+1)*portion) * (stage->accum / stage->dt);
+            xPos += (frac*portion) * ((stage->dt - stage->accum) / stage->dt)
+                  + ((frac+1.f)*portion) * (stage->accum / stage->dt);
         } else
         if (pDir == 2) {
             playerSprite.setTextureRect({64,0,64,64});
-            posY += (frac*portion) * ((stage->dt - stage->accum) / stage->dt)
-                  + ((frac+1)*portion) * (stage->accum / stage->dt);
+            yPos += (frac*portion) * ((stage->dt - stage->accum) / stage->dt)
+                  + ((frac+1.f)*portion) * (stage->accum / stage->dt);
         } else
         if (pDir == 3) {
             playerSprite.setTextureRect({64,64,64,64});
-            posX -= (frac*portion) * ((stage->dt - stage->accum) / stage->dt)
-                  + ((frac+1)*portion) * (stage->accum / stage->dt);
+            xPos -= (frac*portion) * ((stage->dt - stage->accum) / stage->dt)
+                  + ((frac+1.f)*portion) * (stage->accum / stage->dt);
         }
     }
 
-    sf::Vector2u realSize {stage->size.x * 64, stage->size.y * 64};
+    sf::Vector2f realSize {stage->size.x * 64.f, stage->size.y * 64.f};
 
-    bool rightSide  = realSize.x - posX < renderTex.getSize().x / 2 + 32.f;
-    bool bottomSide = realSize.y - posY < renderTex.getSize().y / 2 + 32.f;
-
-    float xOffset = renderTex.getSize().x / 2.f - 32.f;
-    float yOffset = renderTex.getSize().y / 2.f - 32.f;
+    bool xFit       = realSize.x < renderTex.getSize().x;
+    bool yFit       = realSize.y < renderTex.getSize().y;
+    bool topSide    = yPos < renderTex.getSize().y / 2.f - 32.f;
+    bool rightSide  = realSize.x - xPos < renderTex.getSize().x / 2.f + 32.f;
+    bool bottomSide = realSize.y - yPos < renderTex.getSize().y / 2.f + 32.f;
+    bool leftSide   = xPos < renderTex.getSize().x / 2.f - 32.f;
 
     std::vector<sf::Texture*> texVec;
     for (auto texPair : stage->texPathVec) {
         texVec.push_back(&textureHolder->get_texture("bg_" + std::to_string(texPair.first)));
     }
 
-    static sf::Sprite sprite;
-    int x = 0;
-    int y = 0;
+    float xOff;
+    float yOff;
 
+    if (xFit) {
+        xOff = (renderTex.getSize().x - realSize.x) / 2.f;
+    } else if (leftSide) {
+        xOff = 0.f;
+    } else if (rightSide) {
+        xOff = renderTex.getSize().x - realSize.x;
+    } else {
+        xOff = 0.f - xPos + renderTex.getSize().x / 2.f - 32.f;
+    }
+
+    if (yFit) {
+        yOff = (renderTex.getSize().y - realSize.y) / 2.f;
+    } else if (topSide) {
+        yOff = 0.f;
+    } else if (bottomSide) {
+        yOff = renderTex.getSize().y - realSize.y;
+    } else {
+        yOff = 0.f - yPos + renderTex.getSize().y / 2.f - 32.f;
+    }
+
+    static sf::Sprite sprite;
+
+    unsigned short int x = 0;
+    unsigned short int y = 0;
     for (auto& row : stage->levelTexVec) {
         for (auto& val : row) {
             sprite.setTexture(*texVec[val]);
-            if (rightSide && bottomSide) {
-                sprite.setPosition(renderTex.getSize().x - (realSize.x - x * 64),
-                                   renderTex.getSize().y - (realSize.y - y * 64));
-            } else
-            if (rightSide) {
-                sprite.setPosition(renderTex.getSize().x - (realSize.x - x * 64),
-                                   y * 64 - posY + yOffset);
-            } else
-            if (bottomSide) {
-                sprite.setPosition(x * 64 - posX + xOffset,
-                                   renderTex.getSize().y - (realSize.y - y * 64));
-            } else {
-                sprite.setPosition(x * 64 - posX + xOffset,
-                                   y * 64 - posY + yOffset);
-            }
+            sprite.setPosition(x * 64.f + xOff, y * 64.f + yOff);
             renderTex.draw(sprite);
             x++;
         }
@@ -89,13 +98,7 @@ void SceneMain::render(float ft) {
         y++;
     }
 
-    if (!rightSide) x = xOffset;
-    else x = renderTex.getSize().x - (realSize.x - posX);
-
-    if (!bottomSide) y = yOffset;
-    else y = renderTex.getSize().y - (realSize.y - posY);
-
-    playerSprite.setPosition(x, y);
+    playerSprite.setPosition(xPos + xOff, yPos + yOff);
     renderTex.draw(playerSprite);
 
     renderTex.display();
@@ -109,12 +112,12 @@ SceneHud::SceneHud(sq::Stage& sta, sq::TextureHolder& texHolder) {
 }
 
 void SceneHud::render(float ft) {
-    static sf::Text textDisplay("", fontVector[0], 24);
-
     renderTex.clear(sf::Color::Transparent);
 
     static float fps = 60.f;
     fps = fps * 0.9f + 1.f / ft * 0.1f;
+
+    static sf::Text textDisplay("", fontVector[0], 24);
 
     textDisplay.setString(" FPS: " + std::to_string(fps) +
                           "\n X: " + std::to_string(stage->pX) +
