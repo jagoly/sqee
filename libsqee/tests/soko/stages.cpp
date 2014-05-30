@@ -48,6 +48,7 @@ void StageMain::load_level(Level* level) {
         texPathVec.push_back(path);
     }
     levelTexVec = level->textures;
+    levelObjVec = level->objects;
 }
 
 StageHud::StageHud() {

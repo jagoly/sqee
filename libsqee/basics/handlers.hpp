@@ -21,6 +21,14 @@ class HandlerResize : public sq::Handler {
     bool handle(sf::Event&);
 };
 
+class HandlerFramelimit : public sq::Handler {
+    bool handle(sf::Event&);
+};
+
+//class HandlerFreeze : public sq::Handler {      // Needs Git SFML
+//    bool handle(sf::Event&);
+//};
+
 }
 
 #endif // SIMPLEHANDLERS_HPP

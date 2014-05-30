@@ -10,6 +10,10 @@ SceneMain::SceneMain(sq::Stage& sta, sq::TextureHolder& texHolder) {
     for (auto& path : stage->texPathVec) {
         textureHolder->add_texture("bg_" + std::to_string(path.first), path.second);
     }
+    textureHolder->add_texture("wall", "test_soko/wall.png");
+    textureHolder->add_texture("hole", "test_soko/hole.png");
+    textureHolder->add_texture("rock", "test_soko/rock.png");
+    textureHolder->add_texture("goal", "test_soko/goal.png");
 }
 
 void SceneMain::render(float ft) {
@@ -55,11 +59,6 @@ void SceneMain::render(float ft) {
     bool bottomSide = realSize.y - yPos < renderTex.getSize().y / 2.f + 32.f;
     bool leftSide   = xPos < renderTex.getSize().x / 2.f - 32.f;
 
-    std::vector<sf::Texture*> texVec;
-    for (auto texPair : stage->texPathVec) {
-        texVec.push_back(&textureHolder->get_texture("bg_" + std::to_string(texPair.first)));
-    }
-
     float xOff;
     float yOff;
 
@@ -84,14 +83,43 @@ void SceneMain::render(float ft) {
     }
 
     static sf::Sprite sprite;
-
+    static std::vector<sf::Texture*> texVec;
     unsigned short int x = 0;
     unsigned short int y = 0;
+
+    texVec.clear();
+    for (auto texPair : stage->texPathVec) {
+        texVec.push_back(&textureHolder->get_texture("bg_" + std::to_string(texPair.first)));
+    }
     for (auto& row : stage->levelTexVec) {
         for (auto& val : row) {
             sprite.setTexture(*texVec[val]);
             sprite.setPosition(x * 64.f + xOff, y * 64.f + yOff);
             renderTex.draw(sprite);
+            x++;
+        }
+        x = 0;
+        y++;
+    }
+
+    static std::vector<sf::Texture*> texVecObj {
+        nullptr,
+        &textureHolder->get_texture("wall"),
+        &textureHolder->get_texture("hole"),
+        &textureHolder->get_texture("rock"),
+        &textureHolder->get_texture("goal"),
+        nullptr
+    };
+
+    x = 0;
+    y = 0;
+    for (auto& row : stage->levelObjVec) {
+        for (auto& val : row) {
+            if (val && val != 5) {
+                sprite.setTexture(*texVecObj[val]);
+                sprite.setPosition(x * 64.f + xOff, y * 64.f + yOff);
+                renderTex.draw(sprite);
+            }
             x++;
         }
         x = 0;

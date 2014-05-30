@@ -10,6 +10,7 @@ using namespace sq;
 
 Application::Application() {
     running = true;
+    vsync = true;
 }
 
 void Application::run() {
@@ -20,10 +21,10 @@ void Application::run() {
     settings.majorVersion = 3;
     settings.minorVersion = 3;
 
-    window = new sf::RenderWindow(sf::VideoMode(400, 300),
+    window = new sf::RenderWindow(sf::VideoMode(800, 600),
                                   "SQEE DEMO", sf::Style::Default, settings);
 
-    window->setVerticalSyncEnabled(true);
+    window->setVerticalSyncEnabled(vsync);
     //window->setFramerateLimit(30);
 
     sf::Clock FT;

@@ -5,7 +5,7 @@ CONFIG -= qt
 
 QMAKE_CXXFLAGS += -std=c++11
 
-LIBS += -lsfml-audio -lsfml-graphics -lsfml-network -lsfml-window -lsfml-system -ljsoncpp
+LIBS += -lsfml-graphics -lsfml-window -lsfml-system -ljsoncpp
 
 SOURCES += \
     main.cpp \
@@ -49,5 +49,5 @@ OTHER_FILES += \
     test_soko/goal.png \
     test_soko/hole.png \
     test_soko/rock.png \
-    test_soko/player_still.png
-
+    test_soko/player_still.png \
+    test_soko/wall.png

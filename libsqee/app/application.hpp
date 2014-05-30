@@ -20,6 +20,7 @@ public:
     Application();
 
     bool running;
+    bool vsync;
 
     sf::RenderWindow* window;
     TextureHolder textureHolder;

@@ -29,3 +29,22 @@ bool HandlerResize::handle(sf::Event& event) {
     }
     return false;
 }
+
+bool HandlerFramelimit::handle(sf::Event& event) {
+    if (event.type == sf::Event::KeyPressed) {
+        if (event.key.code == sf::Keyboard::V) {
+            application->window->setVerticalSyncEnabled(!application->vsync);
+            application->vsync = !application->vsync;
+            return true;
+        }
+    }
+    return false;
+}
+
+//bool HandlerFreeze::handle(sf::Event& event) {    // Needs Git SFML
+//    if (event.type == sf::Event::LostFocus) {
+//        application->freeze = true;
+//        return true;
+//    }
+//    return false;
+//}
