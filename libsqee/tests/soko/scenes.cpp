@@ -61,7 +61,9 @@ void SceneMain::render(float ft) {
     }
 
     static sf::Sprite sprite;
-    int x, y = 0;
+    int x = 0;
+    int y = 0;
+
     for (auto& row : stage->levelTexVec) {
         for (auto& val : row) {
             sprite.setTexture(*texVec[val]);
@@ -70,7 +72,7 @@ void SceneMain::render(float ft) {
                                    renderTex.getSize().y - (realSize.y - y * 64));
             } else
             if (rightSide) {
-                sprite.setPosition(renderTex.getSize().x - (realSize.x - x* 64),
+                sprite.setPosition(renderTex.getSize().x - (realSize.x - x * 64),
                                    y * 64 - posY + yOffset);
             } else
             if (bottomSide) {
