@@ -2,7 +2,7 @@
 
 #include <libsqee/tests/soko/helpers.hpp>
 
-int sqt::get_key_dir() {
+short int sqt::get_key_dir() {
    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
        return 0;
    } else
@@ -18,3 +18,8 @@ int sqt::get_key_dir() {
    return -1;
 }
 
+bool sqt::check_go(short int& dir, short int& X, short int& Y, sf::Vector2i& size,
+                   std::vector<std::vector<unsigned short int>>& objs) {
+
+
+}

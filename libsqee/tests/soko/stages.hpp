@@ -12,7 +12,8 @@ public:
 
     short int pDir, pX, pY, pMoved;
     float pSpeed;
-    sf::Vector2u size;
+    sf::Vector2i size;
+    sf::Vector2i pushing;
     std::vector<std::pair<unsigned short int, std::string>> texPathVec;
     std::vector<std::vector<unsigned short int>> levelTexVec;
     std::vector<std::vector<unsigned short int>> levelObjVec;
