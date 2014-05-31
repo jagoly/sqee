@@ -32,22 +32,24 @@ void SceneMain::render(float ft) {
         else                        playerSprite.setTextureRect({64,64,64,64});
     }
 
+    int xPor = 0;
+    int yPor = 0;
     if (stage->pDir != -1) {
         float frac = stage->pMoved;
         if (stage->pDir == 0) {
-            yPos -= (frac*portion) * ((stage->dt - stage->accum) / stage->dt)
+            yPor -= (frac*portion) * ((stage->dt - stage->accum) / stage->dt)
                   + ((frac+1.f)*portion) * (stage->accum / stage->dt);
         } else
         if (stage->pDir == 1) {
-            xPos += (frac*portion) * ((stage->dt - stage->accum) / stage->dt)
+            xPor += (frac*portion) * ((stage->dt - stage->accum) / stage->dt)
                   + ((frac+1.f)*portion) * (stage->accum / stage->dt);
         } else
         if (stage->pDir == 2) {
-            yPos += (frac*portion) * ((stage->dt - stage->accum) / stage->dt)
+            yPor += (frac*portion) * ((stage->dt - stage->accum) / stage->dt)
                   + ((frac+1.f)*portion) * (stage->accum / stage->dt);
         } else
         if (stage->pDir == 3) {
-            xPos -= (frac*portion) * ((stage->dt - stage->accum) / stage->dt)
+            xPor -= (frac*portion) * ((stage->dt - stage->accum) / stage->dt)
                   + ((frac+1.f)*portion) * (stage->accum / stage->dt);
         }
     }
@@ -56,10 +58,10 @@ void SceneMain::render(float ft) {
 
     bool xFit       = realSize.x < renderTex.getSize().x;
     bool yFit       = realSize.y < renderTex.getSize().y;
-    bool topSide    = yPos < renderTex.getSize().y / 2.f - 32.f;
-    bool rightSide  = realSize.x - xPos < renderTex.getSize().x / 2.f + 32.f;
-    bool bottomSide = realSize.y - yPos < renderTex.getSize().y / 2.f + 32.f;
-    bool leftSide   = xPos < renderTex.getSize().x / 2.f - 32.f;
+    bool topSide    = yPos + yPor < renderTex.getSize().y / 2.f - 32.f;
+    bool rightSide  = realSize.x - (xPos + xPor) < renderTex.getSize().x / 2.f + 32.f;
+    bool bottomSide = realSize.y - (yPos + yPor) < renderTex.getSize().y / 2.f + 32.f;
+    bool leftSide   = xPos + xPor < renderTex.getSize().x / 2.f - 32.f;
 
     float xOff;
     float yOff;
@@ -67,12 +69,12 @@ void SceneMain::render(float ft) {
     if (xFit)           xOff = (renderTex.getSize().x - realSize.x) / 2.f;
     else if (leftSide)  xOff = 0.f;
     else if (rightSide) xOff = renderTex.getSize().x - realSize.x;
-    else                xOff = 0.f - xPos + renderTex.getSize().x / 2.f - 32.f;
+    else                xOff = 0.f - (xPos + xPor) + renderTex.getSize().x / 2.f - 32.f;
 
     if (yFit)            yOff = (renderTex.getSize().y - realSize.y) / 2.f;
     else if (topSide)    yOff = 0.f;
     else if (bottomSide) yOff = renderTex.getSize().y - realSize.y;
-    else                 yOff = 0.f - yPos + renderTex.getSize().y / 2.f - 32.f;
+    else                 yOff = 0.f - (yPos + yPor) + renderTex.getSize().y / 2.f - 32.f;
 
     static sf::Sprite sprite;
     static std::vector<sf::Texture*> texVec;
@@ -109,8 +111,10 @@ void SceneMain::render(float ft) {
         for (auto& val : row) {
             if (val && val != 5) {
                 sprite.setTexture(*texVecObj[val]);
-                sprite.setPosition(x * 64.f + xOff, y * 64.f + yOff);
-                renderTex.draw(sprite);
+                if (x != stage->pushing.x || y != stage->pushing.y) {
+                    sprite.setPosition(x * 64.f + xOff, y * 64.f + yOff);
+                    renderTex.draw(sprite);
+                }
             }
             x++;
         }
@@ -118,7 +122,14 @@ void SceneMain::render(float ft) {
         y++;
     }
 
-    playerSprite.setPosition(xPos + xOff, yPos + yOff);
+    if (stage->pushing.x != -1) {
+        sprite.setTexture(*texVecObj[3]);
+        sprite.setPosition(stage->pushing.x * 64.f + xOff + xPor,
+                           stage->pushing.y * 64.f + yOff + yPor);
+        renderTex.draw(sprite);
+    }
+
+    playerSprite.setPosition(xPos + xPor + xOff, yPos + yPor + yOff);
     renderTex.draw(playerSprite);
 
     renderTex.display();

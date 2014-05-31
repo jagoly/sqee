@@ -15,6 +15,7 @@ StageMain::StageMain() {
     pY = 0;
     pSpeed = 4.f;
     pMoved = 0;
+    pushing = {-1, -1};
 }
 
 void StageMain::update() {
@@ -26,6 +27,14 @@ void StageMain::update() {
         if (check_go(temp, pX, pY, size, levelObjVec))
             pDir = temp;
         else return;
+
+        sf::Vector2i c;
+        if      (pDir == 0) c = {pX, pY-1};
+        else if (pDir == 1) c = {pX+1, pY};
+        else if (pDir == 2) c = {pX, pY+1};
+        else                c = {pX-1, pY};
+
+        if (levelObjVec[c.y][c.x] == 3) pushing = c;
 
     }
 
@@ -61,9 +70,19 @@ void StageMain::update() {
 
         pMoved = 0;
         pDir = -1;
+        pushing = {-1, -1};
         pFace = get_key_dir();
-        if (check_go(pFace, pX, pY, size, levelObjVec))
+        if (pFace != -1 && check_go(pFace, pX, pY, size, levelObjVec)) {
             pDir = pFace;
+
+            sf::Vector2i c;
+            if      (pDir == 0) c = {pX, pY-1};
+            else if (pDir == 1) c = {pX+1, pY};
+            else if (pDir == 2) c = {pX, pY+1};
+            else                c = {pX-1, pY};
+
+            if (levelObjVec[c.y][c.x] == 3) pushing = c;
+        }
     }
 }
 
