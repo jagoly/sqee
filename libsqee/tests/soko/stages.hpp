@@ -10,7 +10,7 @@ class StageMain : public sq::Stage {
 public:
     StageMain();
 
-    short int pDir, pX, pY, pMoved;
+    short int pFace, pDir, pX, pY, pMoved;
     float pSpeed;
     sf::Vector2i size;
     sf::Vector2i pushing;
