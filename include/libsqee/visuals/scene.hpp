@@ -1,0 +1,31 @@
+#ifndef SCENE_HPP
+#define SCENE_HPP
+
+#include <vector>
+#include <string>
+#include <memory>
+
+#include <SFML/Graphics.hpp>
+
+#include <visuals/textureholder.hpp>
+#include <logic/stage.hpp>
+
+namespace sq {
+
+class Scene {
+public:
+    Scene();
+
+    TextureHolder* textureHolder;
+
+    const sf::Texture& get_tex();
+    virtual void set_size(sf::Vector2u);
+    virtual void render(float);
+protected:
+    sf::RenderTexture renderTex;
+    std::vector<sf::Font> fontVector;
+};
+
+}
+
+#endif // SCENE_HPP

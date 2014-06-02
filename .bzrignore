@@ -1,1 +1,9 @@
-sqee.pro.user
+CMakeLists.txt.user
+CMakeCache.txt
+Makefile
+cmake_install.cmake
+tests/soko/Makefile
+tests/soko/cmake_install.cmake
+build
+CMakeFiles
+tests/soko/CMakeFiles

@@ -1,0 +1,16 @@
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build/tests/soko")
+
+set(SOURCES
+    "app.cpp" "helpers.cpp" "level.cpp" "scenes.cpp" "stages.cpp" "main.cpp" 
+    "app.hpp" "helpers.hpp" "level.hpp" "scenes.hpp" "stages.hpp"
+)
+
+add_executable(soko ${SOURCES})
+target_link_libraries(soko libsqee jsoncpp)
+include_directories("${PROJECT_SOURCE_DIR}/include")
+
+add_custom_command(TARGET soko COMMAND mkdir -p "${CMAKE_BINARY_DIR}/build/tests/soko/res") 
+file(GLOB RESOURCES "res/*")
+foreach(res ${RESOURCES})
+    add_custom_command(TARGET soko COMMAND ${CMAKE_COMMAND} -E copy ${res} "${CMAKE_BINARY_DIR}/build/tests/soko/res")
+endforeach()
