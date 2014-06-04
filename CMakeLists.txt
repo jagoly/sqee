@@ -8,7 +8,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build/lib")
 set(SRCDIR "${PROJECT_SOURCE_DIR}/src")
 set(INCDIR "${PROJECT_SOURCE_DIR}/include")
 
-set(SFML_LIBS sfml-window sfml-graphics sfml-system)
+set(SFML_LIBS sfml-window sfml-graphics sfml-system )
 
 set(SOURCES
     "${SRCDIR}/libsqee/application.cpp"
@@ -28,7 +28,7 @@ set(SOURCES
 )
 
 add_library(libsqee SHARED ${SOURCES})
-link_libraries(${SFML_LIBS})
+link_libraries(${SFML_LIBS} sfgui)
 include_directories("${PROJECT_SOURCE_DIR}/include/libsqee")
 set_target_properties(libsqee PROPERTIES PREFIX "")
 
