@@ -3,11 +3,9 @@
 
 #include <SFML/Graphics.hpp>
 
-#include "app/application.hpp"
-#include "app/handler.hpp"
-#include "visuals/scene.hpp"
-#include "visuals/textureholder.hpp"
-#include "logic/entity.hpp"
-#include "logic/stage.hpp"
+#include "application.hpp"
+#include "handler.hpp"
+#include "scene.hpp"
+#include "textureholder.hpp"
 
 #endif // LIBSQEE_HPP

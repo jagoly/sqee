@@ -7,22 +7,27 @@
 
 #include <SFML/Graphics.hpp>
 
-#include <visuals/textureholder.hpp>
-#include <logic/stage.hpp>
+#include <textureholder.hpp>
 
 namespace sq {
 
+class Application;
+
 class Scene {
 public:
-    Scene();
+    Scene(Application*);
 
-    TextureHolder* textureHolder;
+    Application* app;
+
+    double accum = 0.f;
+    int tickRate;
+    double dt;
 
     const sf::Texture& get_tex();
-    virtual void set_size(sf::Vector2u);
-    virtual void render(float);
+
+    virtual void update();
+    virtual void render(sf::RenderTarget&, float);
 protected:
-    sf::RenderTexture renderTex;
     std::vector<sf::Font> fontVector;
 };
 

@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include <visuals/textureholder.hpp>
+#include <textureholder.hpp>
 
 using namespace sq;
 

@@ -1,7 +1,6 @@
 #include <iostream>
 
-#include <logic/entity.hpp>
-#include <logic/stage.hpp>
+#include <entity.hpp>
 
 using namespace sq;
 

@@ -16,6 +16,7 @@ public:
 
 class HandlerGame : public sq::Handler {
 public:
+    using sq::Handler::Handler;
     bool handle(sf::Event&);
 };
 

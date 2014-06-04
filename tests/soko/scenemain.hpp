@@ -1,14 +1,14 @@
-#ifndef SUITE_HPP
-#define SUITE_HPP
+#ifndef SCENEMAIN_HPP
+#define SCENEMAIN_HPP
 
 #include <libsqee/extra.hpp>
 #include "level.hpp"
 
 namespace sqt {
 
-class StageMain : public sq::Stage {
+class SceneMain : public sq::Scene {
 public:
-    StageMain();
+    SceneMain(sq::Application*);
 
     short int pFace, pDir, pX, pY, pMoved;
     float pSpeed;
@@ -18,19 +18,12 @@ public:
     std::vector<std::vector<unsigned short int>> levelTexVec;
     std::vector<std::vector<unsigned short int>> levelObjVec;
 
-    void load_level(Level*);
-    void update();
-};
+    void load_level(Level&);
 
-class StageHud : public sq::Stage {
-public:
-    StageHud();
-
-    short int pX, pY;
-
+    void render(sf::RenderTarget&, float);
     void update();
 };
 
 }
 
-#endif // SUITE_HPP
+#endif // SCENEMAIN_HPP

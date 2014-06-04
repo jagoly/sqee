@@ -1,8 +1,8 @@
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build/tests/soko")
 
 set(SOURCES
-    "app.cpp" "helpers.cpp" "level.cpp" "scenes.cpp" "stages.cpp" "main.cpp" 
-    "app.hpp" "helpers.hpp" "level.hpp" "scenes.hpp" "stages.hpp"
+    "app.cpp" "helpers.cpp" "level.cpp" "scenemain.cpp" "scenehud.cpp" "main.cpp"
+    "app.hpp" "helpers.hpp" "level.hpp" "scenemain.hpp" "scenehud.hpp"
 )
 
 add_executable(soko ${SOURCES})

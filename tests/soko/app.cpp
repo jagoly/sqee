@@ -1,32 +1,31 @@
 #include <libsqee/extra.hpp>
 
 #include "app.hpp"
-#include "stages.hpp"
-#include "scenes.hpp"
+#include "scenemain.hpp"
+#include "scenehud.hpp"
 
 using namespace sqt;
 
 TestApp::TestApp() {
-    textureHolder.add_texture("player_still", "res/player_still.png");
+    texHolder.add_texture("player_still", "res/player_still.png");
 
-    attach_handler(std::unique_ptr<sq::Handler>(new sqe::HandlerClose));
-    attach_handler(std::unique_ptr<sq::Handler>(new sqe::HandlerDebug));
-    attach_handler(std::unique_ptr<sq::Handler>(new sqe::HandlerResize));
-    attach_handler(std::unique_ptr<sq::Handler>(new sqe::HandlerFramelimit));
+    attach_handler(std::unique_ptr<sq::Handler>(new sqe::HandlerClose(this)));
+    attach_handler(std::unique_ptr<sq::Handler>(new sqe::HandlerDebug(this)));
+    attach_handler(std::unique_ptr<sq::Handler>(new sqe::HandlerResize(this)));
+    attach_handler(std::unique_ptr<sq::Handler>(new sqe::HandlerFramelimit(this)));
 
-    add_stage("hud", std::unique_ptr<sq::Stage>(new StageHud));
-    append_scene(std::unique_ptr<sq::Scene>(new SceneHud(get_stage("hud"), textureHolder)));
+    append_scene("hud", std::shared_ptr<sq::Scene>(new SceneHud(this)));
 
     load_level("res/level1.json");
 }
 
 void TestApp::load_level(std::string filePath) {
-    attach_handler(std::unique_ptr<sq::Handler>(new HandlerGame));
+    attach_handler(std::unique_ptr<sq::Handler>(new HandlerGame(this)));
 
-    add_stage("main", std::unique_ptr<sq::Stage>(new StageMain));
-    static_cast<StageMain*>(&get_stage("main"))->load_level(new Level(filePath));
+    prepend_scene("main", std::shared_ptr<sq::Scene>(new SceneMain(this)));
 
-    prepend_scene(std::unique_ptr<sq::Scene>(new SceneMain(get_stage("main"), textureHolder)));
+    Level level(filePath);
+    static_cast<SceneMain*>(&get_scene("main"))->load_level(level);
 }
 
 bool HandlerGame::handle(sf::Event& event) {

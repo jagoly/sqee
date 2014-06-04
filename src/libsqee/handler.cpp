@@ -1,11 +1,11 @@
 #include <iostream>
 
-#include <app/handler.hpp>
-#include <app/application.hpp>
+#include <handler.hpp>
 
 using namespace sq;
 
-Handler::Handler() {
+Handler::Handler(Application* _app) {
+    app = _app;
 }
 
 bool Handler::handle(sf::Event&) {

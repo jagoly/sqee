@@ -7,13 +7,13 @@
 
 #include <SFML/Graphics.hpp>
 
-#include <visuals/scene.hpp>
-#include <visuals/textureholder.hpp>
+#include <scene.hpp>
+#include <textureholder.hpp>
+#include <handler.hpp>
 
 namespace sq {
 
 class Handler;
-class Stage;
 
 class Application {
 public:
@@ -23,26 +23,27 @@ public:
     bool vsync;
 
     sf::RenderWindow* window;
-    TextureHolder textureHolder;
+    TextureHolder texHolder;
     sf::Clock clock;
 
     virtual void run();
     virtual void set_size(sf::Vector2u);
 
     void attach_handler(std::unique_ptr<Handler>);
-    void append_scene(std::unique_ptr<Scene>);
-    void prepend_scene(std::unique_ptr<Scene>);
-    void insert_scene(int, std::unique_ptr<Scene>);
-    void add_stage(std::string, std::unique_ptr<Stage>);
 
-    Stage& get_stage(std::string);
-    Scene& get_scene(int);
+    void append_scene(std::string, std::shared_ptr<Scene>);
+    void prepend_scene(std::string, std::shared_ptr<Scene>);
+    void insert_scene(std::string, int, std::shared_ptr<Scene>);
+
     Scene& get_scene();
+    Scene& get_scene(int);
+    Scene& get_scene(std::string);
+
 
 protected:
     std::forward_list<std::unique_ptr<Handler>> handlerFList;
-    std::map<std::string, std::unique_ptr<Stage>> stageMap;
-    std::list<std::unique_ptr<Scene>> sceneList;
+    std::map<std::string, std::shared_ptr<Scene>> sceneMap;
+    std::list<std::shared_ptr<Scene>> sceneList;
 };
 
 }

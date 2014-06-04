@@ -11,20 +11,18 @@ set(INCDIR "${PROJECT_SOURCE_DIR}/include")
 set(SFML_LIBS sfml-window sfml-graphics sfml-system)
 
 set(SOURCES
-    "${SRCDIR}/libsqee/app/application.cpp"
-    "${SRCDIR}/libsqee/app/handler.cpp"
-    "${SRCDIR}/libsqee/basics/handlers.cpp"
-    "${SRCDIR}/libsqee/logic/entity.cpp"
-    "${SRCDIR}/libsqee/logic/stage.cpp"
-    "${SRCDIR}/libsqee/visuals/scene.cpp"
-    "${SRCDIR}/libsqee/visuals/textureholder.cpp"
-    "${INCDIR}/libsqee/app/application.hpp"
-    "${INCDIR}/libsqee/app/handler.hpp"
-    "${INCDIR}/libsqee/basics/handlers.hpp"
-    "${INCDIR}/libsqee/logic/entity.hpp"
-    "${INCDIR}/libsqee/logic/stage.hpp"
-    "${INCDIR}/libsqee/visuals/scene.hpp"
-    "${INCDIR}/libsqee/visuals/textureholder.hpp"
+    "${SRCDIR}/libsqee/application.cpp"
+    "${SRCDIR}/libsqee/handler.cpp"
+    "${SRCDIR}/libsqee/extra/handlers.cpp"
+    "${SRCDIR}/libsqee/entity.cpp"
+    "${SRCDIR}/libsqee/scene.cpp"
+    "${SRCDIR}/libsqee/textureholder.cpp"
+    "${INCDIR}/libsqee/application.hpp"
+    "${INCDIR}/libsqee/handler.hpp"
+    "${INCDIR}/libsqee/extra/handlers.hpp"
+    "${INCDIR}/libsqee/entity.hpp"
+    "${INCDIR}/libsqee/scene.hpp"
+    "${INCDIR}/libsqee/textureholder.hpp"
 )
 
 add_library(libsqee SHARED ${SOURCES})
