@@ -1,5 +1,4 @@
-#ifndef ENTITY_HPP
-#define ENTITY_HPP
+#pragma once
 
 #include <string>
 #include <set>
@@ -21,5 +20,3 @@ public:
 };
 
 }
-
-#endif // ENTITY_HPP

@@ -10,6 +10,7 @@ using namespace sq;
 Application::Application() {
     running = true;
     vsync = true;
+    freeze = false;
 }
 
 void Application::run() {
@@ -52,7 +53,6 @@ void Application::run() {
             }
         }
 
-        window->clear(sf::Color::Black);
         static sf::Sprite sprite;
         for (auto& scene : sceneList) {           // TRY OVERLAY METHOD
             scene->render(*window, ft);
@@ -80,7 +80,6 @@ Scene& Application::get_scene(std::string strId) {
 
 void Application::attach_handler(std::unique_ptr<Handler> handler) {
     handlerFList.push_front(std::move(handler));
-
 }
 
 void Application::append_scene(std::string strId, std::shared_ptr<Scene> scene) {
@@ -93,7 +92,7 @@ void Application::prepend_scene(std::string strId, std::shared_ptr<Scene> scene)
     sceneMap.insert(std::make_pair(strId, scene));
 }
 
-void Application::insert_scene(std::string strId, int index, std::shared_ptr<Scene> scene) {
+void Application::insert_scene(int index, std::string strId, std::shared_ptr<Scene> scene) {
     std::list<std::shared_ptr<Scene>>::iterator iter = sceneList.begin();
     std::advance(iter, index);
     sceneList.insert(iter, scene);

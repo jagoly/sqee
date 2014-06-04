@@ -1,14 +1,14 @@
 #pragma once
 
+#include <SFGUI/SFGUI.hpp>
+
 #include <libsqee/base.hpp>
 
 namespace sqt {
 
-class SceneHud : public sq::Scene {
+class SceneMainMenu : public sq::Scene {
 public:
-    SceneHud(sq::Application*);
-
-    short int pX, pY;
+    SceneMainMenu(sq::Application*);
 
     void update();
     void render(sf::RenderTarget&, float);

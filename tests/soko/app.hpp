@@ -1,5 +1,4 @@
-#ifndef APP_HPP
-#define APP_HPP
+#pragma once
 
 #include <libsqee/extra.hpp>
 #include "level.hpp"
@@ -21,5 +20,3 @@ public:
 };
 
 }
-
-#endif // APP_HPP

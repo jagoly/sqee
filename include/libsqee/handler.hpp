@@ -1,5 +1,4 @@
-#ifndef HANDLER_HPP
-#define HANDLER_HPP
+#pragma once
 
 #include <SFML/Graphics.hpp>
 
@@ -16,5 +15,3 @@ public:
 };
 
 }
-
-#endif // HANDLER_HPP

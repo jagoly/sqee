@@ -1,5 +1,4 @@
-#ifndef TEXTUREHOLDER_HPP
-#define TEXTUREHOLDER_HPP
+#pragma once
 
 #include <string>
 #include <map>
@@ -21,5 +20,3 @@ private:
 };
 
 }
-
-#endif // TEXTUREHOLDER_HPP

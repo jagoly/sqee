@@ -1,5 +1,4 @@
-#ifndef APPLICATION_HPP
-#define APPLICATION_HPP
+#pragma once
 
 #include <list>
 #include <forward_list>
@@ -20,6 +19,7 @@ public:
     Application();
 
     bool running;
+    bool freeze;
     bool vsync;
 
     sf::RenderWindow* window;
@@ -33,7 +33,7 @@ public:
 
     void append_scene(std::string, std::shared_ptr<Scene>);
     void prepend_scene(std::string, std::shared_ptr<Scene>);
-    void insert_scene(std::string, int, std::shared_ptr<Scene>);
+    void insert_scene(int, std::string, std::shared_ptr<Scene>);
 
     Scene& get_scene();
     Scene& get_scene(int);
@@ -47,5 +47,3 @@ protected:
 };
 
 }
-
-#endif // APPLICATION_HPP

@@ -1,6 +1,7 @@
 #include <libsqee/extra.hpp>
 
 #include "app.hpp"
+#include "scenemainmenu.hpp"
 #include "scenemain.hpp"
 #include "scenehud.hpp"
 
@@ -14,6 +15,7 @@ TestApp::TestApp() {
     attach_handler(std::unique_ptr<sq::Handler>(new sqe::HandlerResize(this)));
     attach_handler(std::unique_ptr<sq::Handler>(new sqe::HandlerFramelimit(this)));
 
+    append_scene("menu", std::shared_ptr<sq::Scene>(new SceneMainMenu(this)));
     append_scene("hud", std::shared_ptr<sq::Scene>(new SceneHud(this)));
 
     load_level("res/level1.json");

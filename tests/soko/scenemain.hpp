@@ -1,7 +1,6 @@
-#ifndef SCENEMAIN_HPP
-#define SCENEMAIN_HPP
+#pragma once
 
-#include <libsqee/extra.hpp>
+#include <libsqee/base.hpp>
 #include "level.hpp"
 
 namespace sqt {
@@ -25,5 +24,3 @@ public:
 };
 
 }
-
-#endif // SCENEMAIN_HPP

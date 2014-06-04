@@ -1,5 +1,4 @@
-#ifndef SCENE_HPP
-#define SCENE_HPP
+#pragma once
 
 #include <vector>
 #include <string>
@@ -32,5 +31,3 @@ protected:
 };
 
 }
-
-#endif // SCENE_HPP

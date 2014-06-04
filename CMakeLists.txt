@@ -23,6 +23,8 @@ set(SOURCES
     "${INCDIR}/libsqee/entity.hpp"
     "${INCDIR}/libsqee/scene.hpp"
     "${INCDIR}/libsqee/textureholder.hpp"
+    "${INCDIR}/libsqee/base.hpp"
+    "${INCDIR}/libsqee/extra.hpp"
 )
 
 add_library(libsqee SHARED ${SOURCES})

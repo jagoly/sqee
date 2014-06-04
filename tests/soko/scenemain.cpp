@@ -40,7 +40,6 @@ void SceneMain::update() {
         else                c = {pX-1, pY};
 
         if (levelObjVec[c.y][c.x] == 3) pushing = c;
-
     }
 
     pMoved += 1;
@@ -88,19 +87,6 @@ void SceneMain::update() {
 
             if (levelObjVec[c.y][c.x] == 3) pushing = c;
         }
-    }
-}
-
-void SceneMain::load_level(Level& level) {
-    size = {level.width, level.height};
-    for (auto& path : level.paths) {
-        texPathVec.push_back(path);
-    }
-    levelTexVec = level.textures;
-    levelObjVec = level.objects;
-
-    for (auto& path : texPathVec) {
-        app->texHolder.add_texture("bg_" + std::to_string(path.first), path.second);
     }
 }
 
@@ -218,4 +204,17 @@ void SceneMain::render(sf::RenderTarget& target, float ft) {
 
     playerSprite.setPosition(xPos + xPor + xOff, yPos + yPor + yOff);
     target.draw(playerSprite);
+}
+
+void SceneMain::load_level(Level& level) {
+    size = {level.width, level.height};
+    for (auto& path : level.paths) {
+        texPathVec.push_back(path);
+    }
+    levelTexVec = level.textures;
+    levelObjVec = level.objects;
+
+    for (auto& path : texPathVec) {
+        app->texHolder.add_texture("bg_" + std::to_string(path.first), path.second);
+    }
 }

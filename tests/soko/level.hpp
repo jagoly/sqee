@@ -1,5 +1,4 @@
-#ifndef LEVEL_HPP
-#define LEVEL_HPP
+#pragma once
 
 #include <string>
 #include <vector>
@@ -17,5 +16,3 @@ struct Level {
 };
 
 }
-
-#endif // LEVEL_HPP

@@ -1,5 +1,4 @@
-#ifndef HELPERS_HPP
-#define HELPERS_HPP
+#pragma once
 
 #include <vector>
 
@@ -13,5 +12,3 @@ bool check_go(short int&, short int&, short int&, sf::Vector2i&,
               std::vector<std::vector<unsigned short int>>&);
 
 }
-
-#endif // HELPERS_HPP

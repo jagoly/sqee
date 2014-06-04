@@ -1,5 +1,4 @@
-#ifndef SIMPLEHANDLERS_HPP
-#define SIMPLEHANDLERS_HPP
+#pragma once
 
 #include <SFML/Graphics.hpp>
 
@@ -36,5 +35,3 @@ public:
 //};
 
 }
-
-#endif // SIMPLEHANDLERS_HPP

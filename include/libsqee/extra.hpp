@@ -1,8 +1,5 @@
-#ifndef EXTRA_HPP
-#define EXTRA_HPP
+#pragma once
 
 #include "base.hpp"
 
 #include "extra/handlers.hpp"
-
-#endif // EXTRA_HPP
