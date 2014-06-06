@@ -24,6 +24,8 @@ SceneMain::SceneMain(sq::Application* _app) : sq::Scene(_app) {
 }
 
 void SceneMain::update() {
+    app->pop_scene("menu");
+    app->remove_handler("mainmenu");
     pFace = -1;
     if (pDir == -1) {
         short int temp = get_key_dir();
@@ -208,6 +210,9 @@ void SceneMain::render(sf::RenderTarget& target, float ft) {
 
 void SceneMain::load_level(Level& level) {
     size = {level.width, level.height};
+    pX = level.pX;
+    pY = level.pY;
+
     for (auto& path : level.paths) {
         texPathVec.push_back(path);
     }

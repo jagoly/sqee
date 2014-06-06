@@ -8,7 +8,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build/lib")
 set(SRCDIR "${PROJECT_SOURCE_DIR}/src")
 set(INCDIR "${PROJECT_SOURCE_DIR}/include")
 
-set(SFML_LIBS sfml-window sfml-graphics sfml-system )
+set(SFML_LIBS sfml-window sfml-graphics sfml-system)
 
 set(SOURCES
     "${SRCDIR}/libsqee/application.cpp"
@@ -17,18 +17,20 @@ set(SOURCES
     "${SRCDIR}/libsqee/entity.cpp"
     "${SRCDIR}/libsqee/scene.cpp"
     "${SRCDIR}/libsqee/textureholder.cpp"
+    "${SRCDIR}/libsqee/extra/helpers.cpp"
     "${INCDIR}/libsqee/application.hpp"
     "${INCDIR}/libsqee/handler.hpp"
     "${INCDIR}/libsqee/extra/handlers.hpp"
     "${INCDIR}/libsqee/entity.hpp"
     "${INCDIR}/libsqee/scene.hpp"
     "${INCDIR}/libsqee/textureholder.hpp"
+    "${INCDIR}/libsqee/extra/helpers.hpp"
     "${INCDIR}/libsqee/base.hpp"
     "${INCDIR}/libsqee/extra.hpp"
 )
 
 add_library(libsqee SHARED ${SOURCES})
-link_libraries(${SFML_LIBS} sfgui)
+link_libraries(${SFML_LIBS} sfgui jsoncpp boost_filesystem boost_system)
 include_directories("${PROJECT_SOURCE_DIR}/include/libsqee")
 set_target_properties(libsqee PROPERTIES PREFIX "")
 

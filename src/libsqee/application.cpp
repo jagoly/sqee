@@ -54,7 +54,9 @@ void Application::run() {
         }
 
         static sf::Sprite sprite;
-        for (auto& scene : sceneList) {           // TRY OVERLAY METHOD
+        window->resetGLStates();
+        window->clear();
+        for (auto& scene : sceneList) {
             scene->render(*window, ft);
         }
 
@@ -66,7 +68,11 @@ void Application::set_size(sf::Vector2u size) {
     window->setView(sf::View({0, 0, static_cast<float>(size.x), static_cast<float>(size.y)}));        // CRASHES HERE
 }
 
-Scene& Application::get_scene() {
+Scene& Application::get_scene_first() {
+    return *sceneList.front();
+}
+
+Scene& Application::get_scene_last() {
     return *sceneList.back();
 }
 
@@ -78,23 +84,34 @@ Scene& Application::get_scene(std::string strId) {
     return *sceneMap[strId];
 }
 
-void Application::attach_handler(std::unique_ptr<Handler> handler) {
-    handlerFList.push_front(std::move(handler));
+void Application::pop_scene(std::string strId) {
+    sceneList.remove(sceneMap[strId]);
+    sceneMap.erase(strId);
+}
+
+void Application::attach_handler(std::string strId, std::shared_ptr<Handler> handler) {
+    handlerMap.insert(std::make_pair(strId, handler));
+    handlerFList.push_front(handler);
+}
+
+void Application::remove_handler(std::string strId) {
+    handlerFList.remove(handlerMap[strId]);
+    handlerMap.erase(strId);
 }
 
 void Application::append_scene(std::string strId, std::shared_ptr<Scene> scene) {
-    sceneList.push_back(scene);
     sceneMap.insert(std::make_pair(strId, scene));
+    sceneList.push_back(scene);
 }
 
 void Application::prepend_scene(std::string strId, std::shared_ptr<Scene> scene) {
-    sceneList.push_front(scene);
     sceneMap.insert(std::make_pair(strId, scene));
+    sceneList.push_front(scene);
 }
 
 void Application::insert_scene(int index, std::string strId, std::shared_ptr<Scene> scene) {
     std::list<std::shared_ptr<Scene>>::iterator iter = sceneList.begin();
     std::advance(iter, index);
-    sceneList.insert(iter, scene);
     sceneMap.insert(std::make_pair(strId, scene));
+    sceneList.insert(iter, scene);
 }

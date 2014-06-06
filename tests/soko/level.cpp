@@ -1,58 +1,62 @@
 #include <iostream>
 #include <fstream>
 
-#include <jsoncpp/json/json.h>
+#include <libsqee/extra/helpers.hpp>
 
 #include "level.hpp"
 
 using namespace sqt;
 
 Level::Level(std::string filePath) {
-    std::ifstream src(filePath);
-
-    Json::Value root;
-    Json::Reader reader;
-    if (!reader.parse(src, root)) {
-        std::cout << "level load failed:" << std::endl << reader.getFormattedErrorMessages();
-    }
-    src.close();
+    Json::Value root = sqe::load_json_file(filePath);
 
     width = root["width"].asInt();
     height = root["height"].asInt();
 
-    unsigned short int i = 0;
+    unsigned short int x = 0;
+    unsigned short int y = 0;
     std::vector<unsigned short int> vec;
 
     for (auto val : root["textures"]) {
-        i++;
-        if (i < width) {
-            vec.push_back(val.asInt());
+        vec.push_back(val.asInt());
+        if (x < width - 1) {
+            x++;
         } else {
-            vec.push_back(val.asInt());
             textures.push_back(vec);
             vec.clear();
-            i = 0;
+            x = 0;
+            y++;
         }
     }
 
-    i = 0;
-    vec.clear();
+    y = 0;
     for (auto val : root["objects"]) {
-        i++;
-        if (i < width) {
-            vec.push_back(val.asInt());
+        if (val.asInt() == 5) {
+            pX = x;
+            pY = y;
+            vec.push_back(0);
         } else {
             vec.push_back(val.asInt());
+        }
+        if (x < width - 1) {
+            x++;
+        } else {
             objects.push_back(vec);
             vec.clear();
-            i = 0;
+            x = 0;
+            y++;
         }
     }
 
-    i = 0;
+    x = 0;
     for (auto val : root["paths"]) {
-        paths.push_back(std::pair<unsigned short int, std::string>(i++, val.asString()));
+        paths.push_back(std::pair<unsigned short int, std::string>(x++, val.asString()));
     }
+
+    // Debugging Info
+    std::cout << "Loading level \"" << root["name"].asString() << "\"\nfrom file \"" << filePath << "\"" << std::endl;
+
+    std::cout << "Start: (" << pX << ", " << pY << ")\n" << std::endl;
 
     std::cout << "Textures:" << std::endl;
     for (auto row : textures) {

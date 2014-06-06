@@ -9,8 +9,8 @@ SceneHud::SceneHud(sq::Application* _app) : sq::Scene(_app){
 }
 
 void SceneHud::update() {
-    pX = static_cast<SceneMain*>(&app->get_scene("main"))->pX;
-    pY = static_cast<SceneMain*>(&app->get_scene("main"))->pY;
+    //pX = static_cast<SceneMain*>(&app->get_scene("main"))->pX;
+    //pY = static_cast<SceneMain*>(&app->get_scene("main"))->pY;
 }
 
 void SceneHud::render(sf::RenderTarget& target, float ft) {
@@ -19,8 +19,9 @@ void SceneHud::render(sf::RenderTarget& target, float ft) {
 
     static sf::Text textDisplay("", fontVector[0], 24);
 
-    textDisplay.setString(" FPS: " + std::to_string(fps) +
-                          "\n X: " + std::to_string(pX) +
-                          "\n Y: " + std::to_string(pY));
+    textDisplay.setString(" FPS: " + std::to_string(fps));
+    //textDisplay.setString(" FPS: " + std::to_string(fps) +
+    //                      "\n X: " + std::to_string(pX) +
+    //                      "\n Y: " + std::to_string(pY));
     target.draw(textDisplay);
 }

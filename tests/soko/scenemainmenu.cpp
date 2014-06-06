@@ -1,6 +1,14 @@
+#include <boost/filesystem.hpp>
+
+#include <libsqee/extra/helpers.hpp>
+
 #include "scenemainmenu.hpp"
+#include "scenemain.hpp"
+#include "scenehud.hpp"
 
 using namespace sqt;
+
+namespace fs = boost::filesystem;
 
 SceneMainMenu::SceneMainMenu(sq::Application* _app) : sq::Scene(_app) {
     desktop.SetProperty("Label#titlelabel", "FontSize", 32);
@@ -17,7 +25,8 @@ SceneMainMenu::SceneMainMenu(sq::Application* _app) : sq::Scene(_app) {
         wHeaderSepRight = sfg::Separator::Create(sfg::Separator::Orientation::HORIZONTAL);
         wHeaderSepRight->SetClass("blanksep");
       wLevelsHBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
-        wLevelListVBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);
+        wLevelsVBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);
+          wLevelListVBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);
           wLevelListSep = sfg::Separator::Create(sfg::Separator::Orientation::VERTICAL);
           wLevelListSep->SetClass("blanksep");
       wFooterHBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
@@ -31,8 +40,8 @@ SceneMainMenu::SceneMainMenu(sq::Application* _app) : sq::Scene(_app) {
       wHeaderHBox->Pack(wTitleLabel, false);
       wHeaderHBox->Pack(wHeaderSepRight);
     wMainVBox->Pack(wLevelsHBox);
-      wLevelsHBox->Pack(wLevelListVBox, false);
-        // list levels
+      wLevelsHBox->Pack(wLevelsVBox, false);
+        wLevelsVBox->Pack(wLevelListVBox, false);
         wLevelListVBox->Pack(wLevelListSep);
     wMainVBox->Pack(wFooterHBox, false);
       wFooterHBox->Pack(wFooterSep);
@@ -40,13 +49,50 @@ SceneMainMenu::SceneMainMenu(sq::Application* _app) : sq::Scene(_app) {
 
     window->Add(wMainVBox);
     desktop.Add(window);
+
+    reload_level_list("res/levels");
+    //start_game("res/levels/2.json");
+}
+
+void SceneMainMenu::reload_level_list(std::string dirPath) {
+    std::vector<std::string> pathVec;
+    for (fs::directory_iterator it(dirPath); it != fs::directory_iterator(); ++it) {
+        pathVec.push_back(it->path().string());
+    }
+    std::sort(std::begin(pathVec), std::end(pathVec));
+
+    for (auto& path : pathVec) {
+        auto root = sqe::load_json_file(path);
+
+        auto btn = sfg::Button::Create(root["name"].asString());
+        btn->GetSignal(sfg::Button::OnLeftClick).Connect( [this, path] {
+            start_game(path);
+        });
+
+        wLevelListVBox->Pack(btn);
+    }
+}
+
+void SceneMainMenu::start_game(std::string filePath) {
+    app->attach_handler("main", std::shared_ptr<sq::Handler>(new HandlerGame(app)));
+
+    app->prepend_scene("main", std::shared_ptr<sq::Scene>(new SceneMain(app)));
+
+    Level level(filePath);
+    static_cast<SceneMain*>(&app->get_scene("main"))->load_level(level);
 }
 
 void SceneMainMenu::update() {
-    window->SetAllocation({0, 0, app->window->getSize().x, app->window->getSize().y});
+    window->SetAllocation({0, 0,
+                           static_cast<float>(app->window->getSize().x),
+                           static_cast<float>(app->window->getSize().y)});
 }
 
 void SceneMainMenu::render(sf::RenderTarget& target, float ft) {
     desktop.Update(ft);
     sfgui.Display(static_cast<sf::RenderWindow&>(target));
+}
+
+bool HandlerGame::handle(sf::Event& event) {
+    return false;
 }

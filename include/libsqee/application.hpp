@@ -29,19 +29,24 @@ public:
     virtual void run();
     virtual void set_size(sf::Vector2u);
 
-    void attach_handler(std::unique_ptr<Handler>);
+    void attach_handler(std::string, std::shared_ptr<Handler>);
+    void remove_handler(std::string);
 
     void append_scene(std::string, std::shared_ptr<Scene>);
     void prepend_scene(std::string, std::shared_ptr<Scene>);
     void insert_scene(int, std::string, std::shared_ptr<Scene>);
 
-    Scene& get_scene();
-    Scene& get_scene(int);
+    Scene& get_scene_first();
+    Scene& get_scene_last();
+    //Scene& get_scene(int);
     Scene& get_scene(std::string);
+
+    void pop_scene(std::string);
 
 
 protected:
-    std::forward_list<std::unique_ptr<Handler>> handlerFList;
+    std::map<std::string, std::shared_ptr<Handler>> handlerMap;
+    std::forward_list<std::shared_ptr<Handler>> handlerFList;
     std::map<std::string, std::shared_ptr<Scene>> sceneMap;
     std::list<std::shared_ptr<Scene>> sceneList;
 };
