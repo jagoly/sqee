@@ -18,6 +18,7 @@ public:
     std::vector<std::vector<unsigned short int>> levelObjVec;
 
     void load_level(Level&);
+    void win_level();
 
     void render(sf::RenderTarget&, float);
     void update();

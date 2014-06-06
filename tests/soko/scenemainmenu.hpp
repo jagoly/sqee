@@ -20,10 +20,10 @@ public:
         sfg::Label::Ptr wTitleLabel;
         sfg::Separator::Ptr wHeaderSepRight;
       sfg::Box::Ptr wLevelsHBox;
-        sfg::Box::Ptr wLevelsVBox;
+        sfg::ScrolledWindow::Ptr wLevelsScrollWin;
           sfg::Box::Ptr wLevelListVBox;
             std::vector<sfg::Box::Ptr> levelButtonVec;
-          sfg::Separator::Ptr wLevelListSep;
+        sfg::Box::Ptr wLevelInfoVBox;
       sfg::Box::Ptr wFooterHBox;
         sfg::Separator::Ptr wFooterSep;
         sfg::Label::Ptr wAuthorLabel;

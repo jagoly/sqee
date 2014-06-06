@@ -1,6 +1,8 @@
 #include <iostream>
 
 #include "scenemain.hpp"
+#include "scenemainmenu.hpp"
+#include "handlermainmenu.hpp"
 #include "helpers.hpp"
 
 using namespace sqt;
@@ -24,8 +26,6 @@ SceneMain::SceneMain(sq::Application* _app) : sq::Scene(_app) {
 }
 
 void SceneMain::update() {
-    app->pop_scene("menu");
-    app->remove_handler("mainmenu");
     pFace = -1;
     if (pDir == -1) {
         short int temp = get_key_dir();
@@ -53,6 +53,11 @@ void SceneMain::update() {
         else                cOne = {pX-1, pY};
 
         unsigned short int oOne = levelObjVec[cOne.y][cOne.x];
+
+        if (oOne == 4) {
+            win_level();
+            return;
+        }
 
         if (oOne == 3) {
             levelObjVec[cOne.y][cOne.x] = 0;
@@ -222,4 +227,12 @@ void SceneMain::load_level(Level& level) {
     for (auto& path : texPathVec) {
         app->texHolder.add_texture("bg_" + std::to_string(path.first), path.second);
     }
+}
+
+void SceneMain::win_level() {
+    app->attach_handler("mainmenu", std::shared_ptr<sq::Handler>(new HandlerMainMenu(app)));
+    app->prepend_scene("mainmenu", std::shared_ptr<sq::Scene>(new SceneMainMenu(app)));
+
+    app->sweep_handler("main");
+    app->sweep_scene("main");
 }

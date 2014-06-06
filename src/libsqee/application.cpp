@@ -32,6 +32,15 @@ void Application::run() {
     clock.restart();
     while (true) {
         //std::cout << "\nrender" << std::endl;
+        for (auto& strId : sceneSweep) {
+            sceneList.remove(sceneMap[strId]);
+            sceneMap.erase(strId);
+        } sceneSweep.clear();
+
+        for (auto& strId : handlerSweep) {
+            handlerFList.remove(handlerMap[strId]);
+            handlerMap.erase(strId);
+        } handlerSweep.clear();
 
         sf::Event event;
         while (window->pollEvent(event)) {
@@ -84,9 +93,8 @@ Scene& Application::get_scene(std::string strId) {
     return *sceneMap[strId];
 }
 
-void Application::pop_scene(std::string strId) {
-    sceneList.remove(sceneMap[strId]);
-    sceneMap.erase(strId);
+void Application::sweep_scene(std::string strId) {
+    sceneSweep.emplace(strId);
 }
 
 void Application::attach_handler(std::string strId, std::shared_ptr<Handler> handler) {
@@ -94,9 +102,8 @@ void Application::attach_handler(std::string strId, std::shared_ptr<Handler> han
     handlerFList.push_front(handler);
 }
 
-void Application::remove_handler(std::string strId) {
-    handlerFList.remove(handlerMap[strId]);
-    handlerMap.erase(strId);
+void Application::sweep_handler(std::string strId) {
+    handlerSweep.emplace(strId);
 }
 
 void Application::append_scene(std::string strId, std::shared_ptr<Scene> scene) {

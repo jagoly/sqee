@@ -16,8 +16,7 @@ TestApp::TestApp() {
     attach_handler("resize", std::shared_ptr<sq::Handler>(new sqe::HandlerResize(this)));
     attach_handler("framelimit", std::shared_ptr<sq::Handler>(new sqe::HandlerFramelimit(this)));
 
-    //prepend_scene("main", std::shared_ptr<sq::Scene>(new SceneMain(this)));
-    append_scene("menu", std::shared_ptr<sq::Scene>(new SceneMainMenu(this)));
+    append_scene("mainmenu", std::shared_ptr<sq::Scene>(new SceneMainMenu(this)));
     append_scene("hud", std::shared_ptr<sq::Scene>(new SceneHud(this)));
     attach_handler("mainmenu", std::shared_ptr<sq::Handler>(new HandlerMainMenu(this)));
 }
