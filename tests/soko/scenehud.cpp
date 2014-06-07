@@ -1,7 +1,5 @@
-#include <sstream>
-
 #include "scenehud.hpp"
-#include "scenemain.hpp"
+#include "scenegame.hpp"
 
 using namespace sqt;
 

@@ -1,9 +1,7 @@
 #include <libsqee/extra.hpp>
 
 #include "app.hpp"
-#include "scenemainmenu.hpp"
-#include "handlermainmenu.hpp"
-#include "scenemain.hpp"
+#include "mainmenu.hpp"
 #include "scenehud.hpp"
 
 using namespace sqt;
@@ -16,7 +14,7 @@ TestApp::TestApp() {
     attach_handler("resize", std::shared_ptr<sq::Handler>(new sqe::HandlerResize(this)));
     attach_handler("framelimit", std::shared_ptr<sq::Handler>(new sqe::HandlerFramelimit(this)));
 
+    attach_handler("mainmenu", std::shared_ptr<sq::Handler>(new HandlerMainMenu(this)));
     append_scene("mainmenu", std::shared_ptr<sq::Scene>(new SceneMainMenu(this)));
     append_scene("hud", std::shared_ptr<sq::Scene>(new SceneHud(this)));
-    attach_handler("mainmenu", std::shared_ptr<sq::Handler>(new HandlerMainMenu(this)));
 }

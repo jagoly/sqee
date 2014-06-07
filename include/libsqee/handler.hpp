@@ -2,9 +2,9 @@
 
 #include <SFML/Graphics.hpp>
 
-#include <application.hpp>
-
 namespace sq {
+
+class Application;
 
 class Handler {
 public:

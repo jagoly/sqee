@@ -1,13 +1,12 @@
 #include <iostream>
 
-#include "scenemain.hpp"
-#include "scenemainmenu.hpp"
-#include "handlermainmenu.hpp"
+#include "scenegame.hpp"
+#include "mainmenu.hpp"
 #include "helpers.hpp"
 
 using namespace sqt;
 
-SceneMain::SceneMain(sq::Application* _app) : sq::Scene(_app) {
+SceneGame::SceneGame(sq::Application* _app) : sq::Scene(_app) {
     tickRate = 32;
     dt = 0.03125f;
 
@@ -25,7 +24,7 @@ SceneMain::SceneMain(sq::Application* _app) : sq::Scene(_app) {
     app->texHolder.add_texture("goal", "res/goal.png");
 }
 
-void SceneMain::update() {
+void SceneGame::update() {
     pFace = -1;
     if (pDir == -1) {
         short int temp = get_key_dir();
@@ -97,7 +96,7 @@ void SceneMain::update() {
     }
 }
 
-void SceneMain::render(sf::RenderTarget& target, float ft) {
+void SceneGame::render(sf::RenderTarget& target, float ft) {
     target.clear(sf::Color(70, 20, 90));
     static sf::Sprite playerSprite(app->texHolder.get_texture("player_still"), {0,0,64,64});
 
@@ -213,7 +212,7 @@ void SceneMain::render(sf::RenderTarget& target, float ft) {
     target.draw(playerSprite);
 }
 
-void SceneMain::load_level(Level& level) {
+void SceneGame::load_level(Level& level) {
     size = {level.width, level.height};
     pX = level.pX;
     pY = level.pY;
@@ -229,10 +228,11 @@ void SceneMain::load_level(Level& level) {
     }
 }
 
-void SceneMain::win_level() {
+void SceneGame::win_level() {
     app->attach_handler("mainmenu", std::shared_ptr<sq::Handler>(new HandlerMainMenu(app)));
     app->prepend_scene("mainmenu", std::shared_ptr<sq::Scene>(new SceneMainMenu(app)));
 
-    app->sweep_handler("main");
-    app->sweep_scene("main");
+    app->sweep_handler("gamemenus");
+    app->sweep_scene("gamemenus");
+    app->sweep_scene("game");
 }

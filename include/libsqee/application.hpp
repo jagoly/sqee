@@ -6,14 +6,13 @@
 #include <memory>
 
 #include <SFML/Graphics.hpp>
+#include <SFGUI/SFGUI.hpp>
 
 #include <scene.hpp>
 #include <textureholder.hpp>
 #include <handler.hpp>
 
 namespace sq {
-
-class Handler;
 
 class Application {
 public:
@@ -26,6 +25,8 @@ public:
     sf::RenderWindow* window;
     TextureHolder texHolder;
     sf::Clock clock;
+
+    sfg::SFGUI sfgui;
 
     virtual void run();
     virtual void set_size(sf::Vector2u);

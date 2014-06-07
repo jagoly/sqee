@@ -22,7 +22,7 @@ public:
     int tickRate;
     double dt;
 
-    const sf::Texture& get_tex();
+    //const sf::Texture& get_tex();
 
     virtual void update();
     virtual void render(sf::RenderTarget&, float);

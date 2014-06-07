@@ -6,9 +6,9 @@ set(SOURCES
     "app.cpp"             "app.hpp"
     "level.cpp"           "level.hpp"
     "scenehud.cpp"        "scenehud.hpp"
-    "scenemain.cpp"       "scenemain.hpp"
-    "scenemainmenu.cpp"   "scenemainmenu.hpp"
-    "handlermainmenu.cpp" "handlermainmenu.hpp"
+    "scenegame.cpp"       "scenegame.hpp"
+    "gamemenus.cpp"       "gamemenus.hpp"
+    "mainmenu.cpp"        "mainmenu.hpp"
 )
 
 add_executable(soko ${SOURCES})

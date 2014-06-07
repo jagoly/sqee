@@ -5,9 +5,9 @@
 
 namespace sqt {
 
-class SceneMain : public sq::Scene {
+class SceneGame : public sq::Scene {
 public:
-    SceneMain(sq::Application*);
+    SceneGame(sq::Application*);
 
     short int pFace, pDir, pX, pY, pMoved;
     float pSpeed;

@@ -2,14 +2,14 @@
 
 #include <libsqee/extra/helpers.hpp>
 
-#include "scenemainmenu.hpp"
-#include "scenemain.hpp"
-#include "scenehud.hpp"
+#include "mainmenu.hpp"
+#include "gamemenus.hpp"
+#include "scenegame.hpp"
 
 using namespace sqt;
 namespace fs = boost::filesystem;
 
-SceneMainMenu::SceneMainMenu(sq::Application* _app) : sq::Scene(_app) {
+SceneMainMenu::SceneMainMenu(sq::Application* _app) : sqe::SceneMenu(_app) {
     desktop.SetProperty("Label#titlelabel", "FontSize", 32);
 
     desktop.SetProperty("Separator.blanksep", "Color", sf::Color::Transparent);
@@ -19,8 +19,6 @@ SceneMainMenu::SceneMainMenu(sq::Application* _app) : sq::Scene(_app) {
     desktop.SetProperty("Button.levelbutton:PRELIGHT", "BackgroundColor", sf::Color({85, 50, 95}));
     desktop.SetProperty("Button.levelbutton:ACTIVE", "BackgroundColor", sf::Color({50, 20, 60}));
     desktop.SetProperty("Button.levelbutton:ACTIVE", "Color", sf::Color::White);
-
-    window = sfg::Window::Create(sfg::Window::Style::NO_STYLE);
 
     wMainVBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);
       wHeaderHBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
@@ -53,8 +51,8 @@ SceneMainMenu::SceneMainMenu(sq::Application* _app) : sq::Scene(_app) {
       wFooterHBox->Pack(wFooterSep);
       wFooterHBox->Pack(wAuthorLabel, false);
 
-    window->Add(wMainVBox);
-    desktop.Add(window);
+    rootWindow->Add(wMainVBox);
+    desktop.Add(rootWindow);
 
     reload_level_list("res/levels");
 }
@@ -80,27 +78,22 @@ void SceneMainMenu::reload_level_list(std::string dirPath) {
 }
 
 void SceneMainMenu::start_game(std::string filePath) {
-    app->attach_handler("main", std::shared_ptr<sq::Handler>(new HandlerGame(app)));
-    app->prepend_scene("main", std::shared_ptr<sq::Scene>(new SceneMain(app)));
+    app->attach_handler("gamemenus", std::shared_ptr<sq::Handler>(new HandlerGameMenus(app)));
+    app->prepend_scene("gamemenus", std::shared_ptr<sq::Scene>(new SceneGameMenus(app)));
+    app->prepend_scene("game", std::shared_ptr<sq::Scene>(new SceneGame(app)));
 
     Level level(filePath);
-    static_cast<SceneMain*>(&app->get_scene("main"))->load_level(level);
+    static_cast<SceneGame*>(&app->get_scene("game"))->load_level(level);
 
     app->sweep_handler("mainmenu");
     app->sweep_scene("mainmenu");
 }
 
-void SceneMainMenu::update() {
-    window->SetAllocation({0, 0,
-                           static_cast<float>(app->window->getSize().x),
-                           static_cast<float>(app->window->getSize().y)});
-}
-
-void SceneMainMenu::render(sf::RenderTarget& target, float ft) {
-    desktop.Update(ft);
-    sfgui.Display(static_cast<sf::RenderWindow&>(target));
-}
-
-bool HandlerGame::handle(sf::Event& event) {
+bool HandlerMainMenu::handle(sf::Event& event) {
+    if (event.type == sf::Event::MouseMoved ||
+        event.type == sf::Event::MouseButtonPressed ||
+        event.type == sf::Event::MouseButtonReleased) {
+        static_cast<SceneMainMenu&>(app->get_scene("mainmenu")).rootWindow->HandleEvent(event);
+    }
     return false;
 }

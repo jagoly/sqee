@@ -3,6 +3,7 @@
 #include <SFML/Graphics.hpp>
 
 #include <handler.hpp>
+#include <application.hpp>
 
 namespace sqe {
 

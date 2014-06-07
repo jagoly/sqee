@@ -3,16 +3,13 @@
 #include <SFGUI/SFGUI.hpp>
 
 #include <libsqee/base.hpp>
+#include <libsqee/extra/basicmenu.hpp>
 
 namespace sqt {
 
-class SceneMainMenu : public sq::Scene {
+class SceneMainMenu : public sqe::SceneMenu {
 public:
     SceneMainMenu(sq::Application*);
-
-    sfg::SFGUI sfgui;
-    sfg::Desktop desktop;
-    sfg::Window::Ptr window;
 
     sfg::Box::Ptr wMainVBox;
       sfg::Box::Ptr wHeaderHBox;
@@ -30,12 +27,9 @@ public:
 
     void reload_level_list(std::string);
     void start_game(std::string);
-
-    void update();
-    void render(sf::RenderTarget&, float);
 };
 
-class HandlerGame : public sq::Handler {
+class HandlerMainMenu : public sq::Handler {
 public:
     using sq::Handler::Handler;
     bool handle(sf::Event&);
