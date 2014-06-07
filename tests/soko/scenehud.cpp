@@ -1,3 +1,5 @@
+#include <sstream>
+
 #include "scenehud.hpp"
 #include "scenemain.hpp"
 
@@ -20,8 +22,6 @@ void SceneHud::render(sf::RenderTarget& target, float ft) {
     static sf::Text textDisplay("", fontVector[0], 24);
 
     textDisplay.setString(" FPS: " + std::to_string(fps));
-    //textDisplay.setString(" FPS: " + std::to_string(fps) +
-    //                      "\n X: " + std::to_string(pX) +
-    //                      "\n Y: " + std::to_string(pY));
+
     target.draw(textDisplay);
 }

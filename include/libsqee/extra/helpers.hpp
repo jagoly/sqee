@@ -1,5 +1,7 @@
 #pragma once
 
+#include <sstream>
+
 #include <jsoncpp/json/json.h>
 
 namespace sqe {
