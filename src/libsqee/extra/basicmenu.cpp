@@ -4,6 +4,7 @@ using namespace sqe;
 
 SceneMenu::SceneMenu(sq::Application* _app) : sq::Scene(_app) {
     rootWindow = sfg::Window::Create(sfg::Window::Style::NO_STYLE);
+    desktop.Add(rootWindow);
 }
 
 void SceneMenu::update() {

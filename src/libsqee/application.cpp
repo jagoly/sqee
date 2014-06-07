@@ -29,7 +29,6 @@ void Application::run() {
 
     sf::Clock FT;
 
-    clock.restart();
     while (true) {
         //std::cout << "\nrender" << std::endl;
         for (auto& strId : sceneSweep) {

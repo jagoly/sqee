@@ -24,7 +24,6 @@ public:
 
     sf::RenderWindow* window;
     TextureHolder texHolder;
-    sf::Clock clock;
 
     sfg::SFGUI sfgui;
 

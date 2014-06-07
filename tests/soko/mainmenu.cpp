@@ -12,8 +12,6 @@ namespace fs = boost::filesystem;
 SceneMainMenu::SceneMainMenu(sq::Application* _app) : sqe::SceneMenu(_app) {
     desktop.SetProperty("Label#titlelabel", "FontSize", 32);
 
-    desktop.SetProperty("Separator.blanksep", "Color", sf::Color::Transparent);
-
     desktop.SetProperty("Button.levelbutton", "FontSize", 20);
     desktop.SetProperty("Button.levelbutton", "BackgroundColor", sf::Color({80, 40, 90}));
     desktop.SetProperty("Button.levelbutton:PRELIGHT", "BackgroundColor", sf::Color({85, 50, 95}));
@@ -22,37 +20,29 @@ SceneMainMenu::SceneMainMenu(sq::Application* _app) : sqe::SceneMenu(_app) {
 
     wMainVBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);
       wHeaderHBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
-        wHeaderSepLeft = sfg::Separator::Create(sfg::Separator::Orientation::HORIZONTAL);
-        wHeaderSepLeft->SetClass("blanksep");
         wTitleLabel = sfg::Label::Create("Sokoban Test (SQEE)");
         wTitleLabel->SetId("titlelabel");
-        wHeaderSepRight = sfg::Separator::Create(sfg::Separator::Orientation::HORIZONTAL);
-        wHeaderSepRight->SetClass("blanksep");
+        wTitleLabel->SetAlignment({0.5f, 0.f});
       wLevelsHBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
         wLevelsScrollWin = sfg::ScrolledWindow::Create();
         wLevelsScrollWin->SetScrollbarPolicy(sfg::ScrolledWindow::HORIZONTAL_NEVER | sfg::ScrolledWindow::VERTICAL_ALWAYS);
           wLevelListVBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);
         wLevelInfoVBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);
       wFooterHBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
-        wFooterSep = sfg::Separator::Create(sfg::Separator::Orientation::HORIZONTAL);
-        wFooterSep->SetClass("blanksep");
         wAuthorLabel = sfg::Label::Create("Jagoly and the SQEE Team");
         wAuthorLabel->SetId("authorlabel");
+        wAuthorLabel->SetAlignment({1.f, 0.f});
 
     wMainVBox->Pack(wHeaderHBox, false);
-      wHeaderHBox->Pack(wHeaderSepLeft);
-      wHeaderHBox->Pack(wTitleLabel, false);
-      wHeaderHBox->Pack(wHeaderSepRight);
+      wHeaderHBox->Pack(wTitleLabel);
     wMainVBox->Pack(wLevelsHBox);
       wLevelsHBox->Pack(wLevelsScrollWin, false);
         wLevelsScrollWin->AddWithViewport(wLevelListVBox);
       wLevelsHBox->Pack(wLevelInfoVBox);
     wMainVBox->Pack(wFooterHBox, false);
-      wFooterHBox->Pack(wFooterSep);
-      wFooterHBox->Pack(wAuthorLabel, false);
+      wFooterHBox->Pack(wAuthorLabel);
 
     rootWindow->Add(wMainVBox);
-    desktop.Add(rootWindow);
 
     reload_level_list("res/levels");
 }
@@ -82,8 +72,8 @@ void SceneMainMenu::start_game(std::string filePath) {
     app->prepend_scene("gamemenus", std::shared_ptr<sq::Scene>(new SceneGameMenus(app)));
     app->prepend_scene("game", std::shared_ptr<sq::Scene>(new SceneGame(app)));
 
-    Level level(filePath);
-    static_cast<SceneGame*>(&app->get_scene("game"))->load_level(level);
+    static_cast<SceneGame*>(&app->get_scene("game"))->load_level(filePath);
+    static_cast<SceneGame*>(&app->get_scene("game"))->start_level();
 
     app->sweep_handler("mainmenu");
     app->sweep_scene("mainmenu");

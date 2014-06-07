@@ -10,6 +10,8 @@ SceneGame::SceneGame(sq::Application* _app) : sq::Scene(_app) {
     tickRate = 32;
     dt = 0.03125f;
 
+    active = true;
+
     pDir = -1;
     pFace = 0;
     pX = 0;
@@ -25,6 +27,7 @@ SceneGame::SceneGame(sq::Application* _app) : sq::Scene(_app) {
 }
 
 void SceneGame::update() {
+    if (active) {
     pFace = -1;
     if (pDir == -1) {
         short int temp = get_key_dir();
@@ -93,6 +96,7 @@ void SceneGame::update() {
 
             if (levelObjVec[c.y][c.x] == 3) pushing = c;
         }
+    }
     }
 }
 
@@ -212,16 +216,20 @@ void SceneGame::render(sf::RenderTarget& target, float ft) {
     target.draw(playerSprite);
 }
 
-void SceneGame::load_level(Level& level) {
-    size = {level.width, level.height};
-    pX = level.pX;
-    pY = level.pY;
+void SceneGame::load_level(std::string filePath) {
+    level.reset(new Level(filePath));
+}
 
-    for (auto& path : level.paths) {
+void SceneGame::start_level() {
+    size = {level->width, level->height};
+    pX = level->pX;
+    pY = level->pY;
+
+    for (auto& path : level->paths) {
         texPathVec.push_back(path);
     }
-    levelTexVec = level.textures;
-    levelObjVec = level.objects;
+    levelTexVec = level->textures;
+    levelObjVec = level->objects;
 
     for (auto& path : texPathVec) {
         app->texHolder.add_texture("bg_" + std::to_string(path.first), path.second);

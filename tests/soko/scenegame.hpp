@@ -9,6 +9,8 @@ class SceneGame : public sq::Scene {
 public:
     SceneGame(sq::Application*);
 
+    bool active;
+    std::unique_ptr<Level> level;
     short int pFace, pDir, pX, pY, pMoved;
     float pSpeed;
     sf::Vector2i size;
@@ -17,7 +19,8 @@ public:
     std::vector<std::vector<unsigned short int>> levelTexVec;
     std::vector<std::vector<unsigned short int>> levelObjVec;
 
-    void load_level(Level&);
+    void load_level(std::string);
+    void start_level();
     void win_level();
 
     void render(sf::RenderTarget&, float);
