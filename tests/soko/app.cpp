@@ -1,4 +1,4 @@
-#include <libsqee/extra.hpp>
+#include <libsqee/extra/handlers.hpp>
 
 #include "app.hpp"
 #include "mainmenu.hpp"

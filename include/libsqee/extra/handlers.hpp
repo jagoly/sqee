@@ -31,8 +31,4 @@ public:
     bool handle(sf::Event&);
 };
 
-//class HandlerFreeze : public sq::Handler {      // Needs Git SFML
-//    bool handle(sf::Event&);
-//};
-
 }

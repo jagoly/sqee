@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include <handler.hpp>
 #include <application.hpp>
 

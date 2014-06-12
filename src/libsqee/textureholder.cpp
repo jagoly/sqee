@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include <textureholder.hpp>
 
 using namespace sq;

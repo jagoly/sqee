@@ -40,11 +40,3 @@ bool HandlerFramelimit::handle(sf::Event& event) {
     }
     return false;
 }
-
-//bool HandlerFreeze::handle(sf::Event& event) {    // Needs Git SFML
-//    if (event.type == sf::Event::LostFocus) {
-//        application->freeze = true;
-//        return true;
-//    }
-//    return false;
-//}

@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include <scene.hpp>
 #include <application.hpp>
 

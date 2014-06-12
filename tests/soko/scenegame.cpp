@@ -8,7 +8,7 @@ using namespace sqt;
 
 SceneGame::SceneGame(sq::Application* _app) : sq::Scene(_app) {
     tickRate = 32;
-    dt = 0.03125f;
+    dt = 1.f/32.f;
 
     active = true;
 

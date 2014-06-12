@@ -4,11 +4,13 @@
 
 namespace sqt {
 
-class SceneHud : public sq::Scene {
+class SceneGame : public sq::Scene {
 public:
-    SceneHud(sq::Application*);
+    SceneGame(sq::Application*);
 
+    bool active;
     void render(sf::RenderTarget&, float);
+    void update();
 };
 
 }
