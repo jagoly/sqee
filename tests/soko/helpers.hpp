@@ -7,23 +7,15 @@
 
 namespace sqt {
 
-short int get_key_dir() {
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
-        return 0;
-    } else
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
-        return 1;
-    } else
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
-        return 2;
-    } else
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
-        return 3;
-    }
+int get_key_dir() {
+    if      (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))    return 0;
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) return 1;
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))  return 2;
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))  return 3;
     return -1;
 }
 
-bool check_go(short int& dir, short int& X, short int& Y, sf::Vector2i& size,
+bool check_go(int& dir, int& X, int& Y, sf::Vector2i& size,
               std::vector<std::vector<unsigned short int>>& objVec) {
     sf::Vector2i cOne;
     if      (dir == 0) cOne = {X, Y-1};
@@ -35,7 +27,7 @@ bool check_go(short int& dir, short int& X, short int& Y, sf::Vector2i& size,
         cOne.x >= size.x || cOne.y >= size.y)
         return false;
 
-    unsigned short int oOne = objVec[cOne.y][cOne.x];
+    auto oOne = objVec[cOne.y][cOne.x];
     if (oOne == 1 || oOne == 2) return false;
 
     sf::Vector2i cTwo;
@@ -49,7 +41,7 @@ bool check_go(short int& dir, short int& X, short int& Y, sf::Vector2i& size,
             cTwo.x == size.x || cTwo.y == size.y)
             return false;
 
-        unsigned short int oTwo = objVec[cTwo.y][cTwo.x];
+        auto oTwo = objVec[cTwo.y][cTwo.x];
         if (oTwo == 1 || oTwo == 3 || oTwo == 4) return false;
     }
     return true;

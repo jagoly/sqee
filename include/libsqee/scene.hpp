@@ -16,18 +16,21 @@ class Scene {
 public:
     Scene(Application*);
 
-    Application* app;
-
-    double accum = 0.f;
+    double accum;
     int tickRate;
     double dt;
-
-    //const sf::Texture& get_tex();
 
     virtual void update();
     virtual void render(sf::RenderTarget&, float);
 protected:
+    Application* app;
+
     std::vector<sf::Font> fontVector;
+
+    template<typename T>
+    T interpolate(T, T);
 };
+
+typedef std::shared_ptr<Scene> ScenePtr;
 
 }

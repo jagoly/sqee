@@ -4,10 +4,7 @@
 
 using namespace sqt;
 
-SceneGameMenus::SceneGameMenus(sq::Application* _app) : sqe::SceneMenu(_app) {
-    active = false;
-    rootWindow->Show(false);
-
+SceneGameMenus::SceneGameMenus(sq::Application* _app) : sqe::SceneMenu(_app, false) {
     desktop.SetProperty("Separator", "Color", sf::Color::Transparent);
     desktop.SetProperty("Button", "BackgroundColor", sf::Color(30, 30, 30, 60));
     desktop.SetProperty("Button:PRELIGHT", "BackgroundColor", sf::Color(50, 50, 50, 60));
@@ -56,15 +53,13 @@ SceneGameMenus::SceneGameMenus(sq::Application* _app) : sqe::SceneMenu(_app) {
 }
 
 void SceneGameMenus::activate() {
-    active = true;
+    sqe::SceneMenu::activate();
     static_cast<SceneGame&>(app->get_scene("game")).active = false;
-    rootWindow->Show(true);
 }
 
 void SceneGameMenus::deactivate() {
-    active = false;
+    sqe::SceneMenu::deactivate();
     static_cast<SceneGame&>(app->get_scene("game")).active = true;
-    rootWindow->Show(false);
 }
 
 void SceneGameMenus::restart() {
@@ -73,8 +68,8 @@ void SceneGameMenus::restart() {
 }
 
 void SceneGameMenus::quit() {
-    app->attach_handler("mainmenu", std::shared_ptr<sq::Handler>(new HandlerMainMenu(app)));
-    app->prepend_scene("mainmenu", std::shared_ptr<sq::Scene>(new SceneMainMenu(app)));
+    app->attach_handler("mainmenu", sq::HandlerPtr(new sqe::HandlerMenu(app, "mainmenu")));
+    app->prepend_scene("mainmenu", sq::ScenePtr(new SceneMainMenu(app)));
 
     app->sweep_handler("gamemenus");
     app->sweep_scene("gamemenus");
@@ -82,20 +77,12 @@ void SceneGameMenus::quit() {
 }
 
 bool HandlerGameMenus::handle(sf::Event& event) {
-    if (static_cast<SceneGameMenus&>(app->get_scene("gamemenus")).active) {
-        if (event.type == sf::Event::MouseMoved ||
-            event.type == sf::Event::MouseButtonPressed ||
-            event.type == sf::Event::MouseButtonReleased) {
-            static_cast<SceneGameMenus&>(app->get_scene("gamemenus")).rootWindow->HandleEvent(event);
-            return true;
-        }
-    }
-    if (event.type == sf::Event::LostFocus) {
-        static_cast<SceneGameMenus&>(app->get_scene("gamemenus")).activate();
-        return true;
-    }
-    if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) {
-        static_cast<SceneGameMenus&>(app->get_scene("gamemenus")).activate();
+    bool bRet = sqe::HandlerMenu::handle(event);
+    if (bRet) return true;
+    if (event.type == sf::Event::LostFocus ||
+        (event.type == sf::Event::KeyPressed &&
+         event.key.code == sf::Keyboard::Escape)) {
+        static_cast<SceneGameMenus&>(app->get_scene(menuId)).activate();
         return true;
     }
     return false;

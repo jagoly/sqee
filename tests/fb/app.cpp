@@ -2,6 +2,7 @@
 #include "app.hpp"
 #include "menus.hpp"
 #include "scenehud.hpp"
+#include "scenegame.hpp"
 
 using namespace sqt;
 
@@ -20,10 +21,12 @@ TestApp::TestApp() {
     texHolder.add_texture("playbutton", "res/playbutton.png");
     texHolder.add_texture("scorebutton", "res/scorebutton.png");
 
-    attach_handler("close", std::shared_ptr<sq::Handler>(new sqe::HandlerClose(this)));
-    attach_handler("debug", std::shared_ptr<sq::Handler>(new sqe::HandlerDebug(this)));
-    attach_handler("resize", std::shared_ptr<sq::Handler>(new sqe::HandlerResize(this)));
-    attach_handler("framelimit", std::shared_ptr<sq::Handler>(new sqe::HandlerFramelimit(this)));
+    attach_handler("close", sq::HandlerPtr(new sqe::HandlerClose(this)));
+    attach_handler("debug", sq::HandlerPtr(new sqe::HandlerDebug(this)));
+    attach_handler("resize", sq::HandlerPtr(new sqe::HandlerResize(this)));
+    attach_handler("framelimit", sq::HandlerPtr(new sqe::HandlerFramelimit(this)));
 
-    append_scene("hud", std::shared_ptr<sq::Scene>(new SceneHud(this)));
+    append_scene("game", sq::ScenePtr(new SceneGame(this)));
+    attach_handler("game", sq::HandlerPtr(new HandlerGame(this)));
+    append_scene("hud", sq::ScenePtr(new SceneHud(this)));
 }

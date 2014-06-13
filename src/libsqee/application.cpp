@@ -55,9 +55,9 @@ void Application::run() {
 
         for (auto& scene : sceneList) {
             scene->accum += ft;
-            while (scene->accum >= 1.f / scene->tickRate) {
+            while (scene->accum >= 1 / double(scene->tickRate)) {
                 scene->update();
-                scene->accum -= 1.f / scene->tickRate;
+                scene->accum -= 1 / double(scene->tickRate);
             }
         }
 
@@ -84,10 +84,6 @@ Scene& Application::get_scene_last() {
     return *sceneList.back();
 }
 
-//Scene& Application::get_scene(int index) {
-//    return *sceneList.begin();
-//}
-
 Scene& Application::get_scene(std::string strId) {
     return *sceneMap[strId];
 }
@@ -96,7 +92,7 @@ void Application::sweep_scene(std::string strId) {
     sceneSweep.emplace(strId);
 }
 
-void Application::attach_handler(std::string strId, std::shared_ptr<Handler> handler) {
+void Application::attach_handler(std::string strId, HandlerPtr handler) {
     handlerMap.insert(std::make_pair(strId, handler));
     handlerFList.push_front(handler);
 }
@@ -105,18 +101,18 @@ void Application::sweep_handler(std::string strId) {
     handlerSweep.emplace(strId);
 }
 
-void Application::append_scene(std::string strId, std::shared_ptr<Scene> scene) {
+void Application::append_scene(std::string strId, ScenePtr scene) {
     sceneMap.insert(std::make_pair(strId, scene));
     sceneList.push_back(scene);
 }
 
-void Application::prepend_scene(std::string strId, std::shared_ptr<Scene> scene) {
+void Application::prepend_scene(std::string strId, ScenePtr scene) {
     sceneMap.insert(std::make_pair(strId, scene));
     sceneList.push_front(scene);
 }
 
-void Application::insert_scene(int index, std::string strId, std::shared_ptr<Scene> scene) {
-    std::list<std::shared_ptr<Scene>>::iterator iter = sceneList.begin();
+void Application::insert_scene(int index, std::string strId, ScenePtr scene) {
+    std::list<ScenePtr>::iterator iter = sceneList.begin();
     std::advance(iter, index);
     sceneMap.insert(std::make_pair(strId, scene));
     sceneList.insert(iter, scene);

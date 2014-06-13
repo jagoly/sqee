@@ -8,7 +8,7 @@ using namespace sqt;
 
 SceneGame::SceneGame(sq::Application* _app) : sq::Scene(_app) {
     tickRate = 32;
-    dt = 1.f/32.f;
+    dt = 1 / 32.d;
 
     active = true;
 
@@ -30,7 +30,7 @@ void SceneGame::update() {
     if (active) {
     pFace = -1;
     if (pDir == -1) {
-        short int temp = get_key_dir();
+        auto temp = get_key_dir();
         if (temp != -1) pFace = temp;
         else return;
         if (check_go(temp, pX, pY, size, levelObjVec))
@@ -104,7 +104,7 @@ void SceneGame::render(sf::RenderTarget& target, float ft) {
     target.clear(sf::Color(70, 20, 90));
     static sf::Sprite playerSprite(app->texHolder.get_texture("player_still"), {0,0,64,64});
 
-    float portion = pSpeed / tickRate * 64.f;
+    float portion = pSpeed / float(tickRate) * 64.f;
     float xPos = pX * 64.f;
     float yPos = pY * 64.f;
 
@@ -120,8 +120,7 @@ void SceneGame::render(sf::RenderTarget& target, float ft) {
     if (pDir != -1) {
         float frac = pMoved;
         if (pDir == 0) {
-            yPor -= (frac*portion) * ((dt - accum) / dt)
-                  + ((frac+1.f)*portion) * (accum / dt);
+            //yPor -= interpolate(frac*portion, (frac+1.f)*portion);
         } else
         if (pDir == 1) {
             xPor += (frac*portion) * ((dt - accum) / dt)
@@ -161,8 +160,8 @@ void SceneGame::render(sf::RenderTarget& target, float ft) {
 
     static sf::Sprite sprite;
     static std::vector<sf::Texture*> texVec;
-    unsigned short int x = 0;
-    unsigned short int y = 0;
+    int x = 0;
+    int y = 0;
 
     texVec.clear();
     for (auto texPair : texPathVec) {
@@ -237,8 +236,8 @@ void SceneGame::start_level() {
 }
 
 void SceneGame::win_level() {
-    app->attach_handler("mainmenu", std::shared_ptr<sq::Handler>(new HandlerMainMenu(app)));
-    app->prepend_scene("mainmenu", std::shared_ptr<sq::Scene>(new SceneMainMenu(app)));
+    app->attach_handler("mainmenu", sq::HandlerPtr(new sqe::HandlerMenu(app, "mainmenu")));
+    app->prepend_scene("mainmenu", sq::ScenePtr(new SceneMainMenu(app)));
 
     app->sweep_handler("gamemenus");
     app->sweep_scene("gamemenus");

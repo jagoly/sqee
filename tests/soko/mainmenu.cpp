@@ -9,7 +9,7 @@
 using namespace sqt;
 namespace fs = boost::filesystem;
 
-SceneMainMenu::SceneMainMenu(sq::Application* _app) : sqe::SceneMenu(_app) {
+SceneMainMenu::SceneMainMenu(sq::Application* _app) : sqe::SceneMenu(_app, true) {
     desktop.SetProperty("Label#titlelabel", "FontSize", 32);
 
     desktop.SetProperty("Button.levelbutton", "FontSize", 20);
@@ -68,22 +68,13 @@ void SceneMainMenu::reload_level_list(std::string dirPath) {
 }
 
 void SceneMainMenu::start_game(std::string filePath) {
-    app->attach_handler("gamemenus", std::shared_ptr<sq::Handler>(new HandlerGameMenus(app)));
-    app->prepend_scene("gamemenus", std::shared_ptr<sq::Scene>(new SceneGameMenus(app)));
-    app->prepend_scene("game", std::shared_ptr<sq::Scene>(new SceneGame(app)));
+    app->attach_handler("gamemenus", sq::HandlerPtr(new HandlerGameMenus(app, "gamemenus")));
+    app->prepend_scene("gamemenus", sq::ScenePtr(new SceneGameMenus(app)));
+    app->prepend_scene("game", sq::ScenePtr(new SceneGame(app)));
 
     static_cast<SceneGame*>(&app->get_scene("game"))->load_level(filePath);
     static_cast<SceneGame*>(&app->get_scene("game"))->start_level();
 
     app->sweep_handler("mainmenu");
     app->sweep_scene("mainmenu");
-}
-
-bool HandlerMainMenu::handle(sf::Event& event) {
-    if (event.type == sf::Event::MouseMoved ||
-        event.type == sf::Event::MouseButtonPressed ||
-        event.type == sf::Event::MouseButtonReleased) {
-        static_cast<SceneMainMenu&>(app->get_scene("mainmenu")).rootWindow->HandleEvent(event);
-    }
-    return false;
 }

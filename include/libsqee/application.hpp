@@ -27,28 +27,28 @@ public:
 
     sfg::SFGUI sfgui;
 
-    virtual void run();
+    void run();
+
     virtual void set_size(sf::Vector2u);
 
-    void attach_handler(std::string, std::shared_ptr<Handler>);
+    void attach_handler(std::string, HandlerPtr);
 
-    void append_scene(std::string, std::shared_ptr<Scene>);
-    void prepend_scene(std::string, std::shared_ptr<Scene>);
-    void insert_scene(int, std::string, std::shared_ptr<Scene>);
+    void append_scene(std::string, ScenePtr);
+    void prepend_scene(std::string, ScenePtr);
+    void insert_scene(int, std::string, ScenePtr);
 
     Scene& get_scene_first();
     Scene& get_scene_last();
-    //Scene& get_scene(int);
     Scene& get_scene(std::string);
 
     void sweep_handler(std::string);
     void sweep_scene(std::string);
 
 protected:
-    std::map<std::string, std::shared_ptr<Handler>> handlerMap;
-    std::forward_list<std::shared_ptr<Handler>> handlerFList;
-    std::map<std::string, std::shared_ptr<Scene>> sceneMap;
-    std::list<std::shared_ptr<Scene>> sceneList;
+    std::map<std::string, HandlerPtr> handlerMap;
+    std::forward_list<HandlerPtr> handlerFList;
+    std::map<std::string, ScenePtr> sceneMap;
+    std::list<ScenePtr> sceneList;
 
     std::set<std::string> handlerSweep;
     std::set<std::string> sceneSweep;

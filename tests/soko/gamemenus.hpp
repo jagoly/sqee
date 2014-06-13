@@ -31,9 +31,9 @@ public:
     void quit();
 };
 
-class HandlerGameMenus : public sq::Handler {
+class HandlerGameMenus : public sqe::HandlerMenu {
 public:
-    using sq::Handler::Handler;
+    using sqe::HandlerMenu::HandlerMenu;
     bool handle(sf::Event&);
 };
 

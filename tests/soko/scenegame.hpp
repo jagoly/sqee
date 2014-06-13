@@ -11,7 +11,7 @@ public:
 
     bool active;
     std::unique_ptr<Level> level;
-    short int pFace, pDir, pX, pY, pMoved;
+    int pFace, pDir, pX, pY, pMoved;
     float pSpeed;
     sf::Vector2i size;
     sf::Vector2i pushing;
