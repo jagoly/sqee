@@ -1,4 +1,5 @@
 #include <random>
+#include <ctime>
 
 #include "scenegame.hpp"
 #include "menus.hpp"
@@ -7,7 +8,8 @@
 using namespace sqt;
 
 SceneGame::SceneGame(sq::Application* _app) : sq::Scene(_app) {
-    gen = std::minstd_rand(123456789);
+    gen = std::minstd_rand(std::time(NULL));
+    gen();
 
     tickRate = 120;
     dt = 1/120.d;
@@ -32,7 +34,7 @@ void SceneGame::update() {
     dist += speed;
 
     pY += pVel;
-    pVel += 0.08f;
+    pVel += 0.07f;
 
     static float flapCount = 0.f;
     flapCount += abs(pVel);
@@ -44,7 +46,7 @@ void SceneGame::update() {
 
     static uint newPipeCount = 0;
     newPipeCount += 1;
-    if (newPipeCount == 180) {
+    if (newPipeCount == 150) {
         newPipeCount = 0;
         add_pipe();
     }
@@ -59,12 +61,12 @@ void SceneGame::render(sf::RenderTarget& target, float ft) {
     static sf::Sprite sprPipe(app->texHolder.get_texture("pipe"));
     static bool first = true;
     if (first) {
-        sprFlappy.setScale(4, 4);
-        sprFloor.setScale(4, 4);
-        sprBg.setScale(4, 4);
-        sprCaptop.setScale(4, 4);
-        sprCapbottom.setScale(4, 4);
-        sprPipe.setScale(4, 4);
+        sprFlappy.setScale(3, 3);
+        sprFloor.setScale(3, 3);
+        sprBg.setScale(3, 3);
+        sprCaptop.setScale(3, 3);
+        sprCapbottom.setScale(3, 3);
+        sprPipe.setScale(3, 3);
 
         sprFlappy.setTextureRect({17, 0, 17, 12});
         sprFlappy.setOrigin(8.5f, 6.f);
@@ -78,26 +80,26 @@ void SceneGame::render(sf::RenderTarget& target, float ft) {
     else if (flap == 0) sprFlappy.setTextureRect({0, 0, 17, 12});
     else if (flap == 2) sprFlappy.setTextureRect({34, 0, 17, 12});
 
-    int offset = dist % (688);
-    for (int i = 0; i <= 28; i++) {
-        sprFloor.setPosition(float(48 * i) - interpolate(offset, offset + 2), 640);
+    int offset = dist % (612);
+    for (int i = 0; i <= 34; i++) {
+        sprFloor.setPosition(float(36 * i) - interpolate(offset, offset + 2), 666);
         target.draw(sprFloor);
     }
 
     for (auto pipe : pipes) {
         if (pipe.first > dist - 800) {
-            int xPos = 688 - dist + pipe.first;
+            int xPos = 612 - dist + pipe.first;
             xPos = interpolate(xPos, xPos - 2);
 
             sprPipe.setPosition(xPos, 0);
-            sprPipe.setScale(4, pipe.second - 172);
-            sprCaptop.setPosition(xPos, pipe.second - 172);
+            sprPipe.setScale(3, pipe.second - 139);
+            sprCaptop.setPosition(xPos, pipe.second - 139);
             target.draw(sprPipe);
             target.draw(sprCaptop);
 
-            sprPipe.setPosition(xPos, pipe.second + 172);
-            sprPipe.setScale(4, 468 - pipe.second);
-            sprCapbottom.setPosition(xPos, pipe.second + 120);
+            sprPipe.setPosition(xPos, pipe.second + 139);
+            sprPipe.setScale(3, 527 - pipe.second);
+            sprCapbottom.setPosition(xPos, pipe.second + 100);
             target.draw(sprPipe);
             target.draw(sprCapbottom);
         }
@@ -110,20 +112,36 @@ void SceneGame::render(sf::RenderTarget& target, float ft) {
 }
 
 void SceneGame::setup_game() {
-    app->texHolder.add_texture("flappy", "res/flappy_brown.png");
-    app->texHolder.add_texture("captop", "res/captop_green.png");
-    app->texHolder.add_texture("capbottom", "res/capbottom_green.png");
-    app->texHolder.add_texture("pipe", "res/pipe_green.png");
-    app->texHolder.add_texture("captop", "res/captop_green.png");
-    app->texHolder.add_texture("background", "res/background_day.png");
+    std::uniform_int_distribution<> dist3(0, 2);
+    std::uniform_int_distribution<> dist2(0, 1);
+    int val;
+
+    val = dist3(gen);
+    std::cout << val << std::endl;
+    if      (val == 0) app->texHolder.add_texture("flappy", "res/flappy_brown.png");
+    else if (val == 1) app->texHolder.add_texture("flappy", "res/flappy_blue.png");
+    else if (val == 2) app->texHolder.add_texture("flappy", "res/flappy_red.png");
+
+    if (dist2(gen)) {
+        app->texHolder.add_texture("captop", "res/captop_green.png");
+        app->texHolder.add_texture("capbottom", "res/capbottom_green.png");
+        app->texHolder.add_texture("pipe", "res/pipe_green.png");
+    } else {
+        app->texHolder.add_texture("captop", "res/captop_red.png");
+        app->texHolder.add_texture("capbottom", "res/capbottom_red.png");
+        app->texHolder.add_texture("pipe", "res/pipe_red.png");
+    }
+
+    if (dist2(gen)) app->texHolder.add_texture("background", "res/background_day.png");
+    else            app->texHolder.add_texture("background", "res/background_night.png");
 }
 
 void SceneGame::add_pipe() {
-    static std::uniform_int_distribution<> ints(176, 464);
-    static int previous = 320;
+    static std::uniform_int_distribution<> ints(142, 524);
+    static int previous = 336;
 
     int current = ints(gen) * 3;
-    pipes.push_back({dist, (previous + current) / 4});
+    pipes.push_back({dist+600, (previous + current) / 4});
     previous = (previous + current) / 4;
 }
 

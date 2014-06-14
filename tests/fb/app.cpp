@@ -6,7 +6,7 @@
 
 using namespace sqt;
 
-TestApp::TestApp() : sq::Application(688, 688, 0, true, false, "SQEE Flappy Test") {
+TestApp::TestApp() : sq::Application(612, 714, 0, true, false, "SQEE Flappy Test") {
     texHolder.add_texture("digitssmall", "res/digitssmall.png");
     texHolder.add_texture("digitsmedium", "res/digitsmedium.png");
     texHolder.add_texture("digitslarge", "res/digitslarge.png");
