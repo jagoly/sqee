@@ -16,20 +16,21 @@ namespace sq {
 
 class Application {
 public:
-    Application();
+    Application(uint, uint, uint, bool, bool, std::string);
 
     bool running;
-    bool freeze;
-    bool vsync;
 
-    sf::RenderWindow* window;
     TextureHolder texHolder;
 
     sfg::SFGUI sfgui;
 
     void run();
 
-    virtual void set_size(sf::Vector2u);
+    virtual void set_size(uint width, uint height);
+    sf::Vector2u get_size();
+
+    void set_vsync(bool);
+    bool get_vsync();
 
     void attach_handler(std::string, HandlerPtr);
 
@@ -45,6 +46,8 @@ public:
     void sweep_scene(std::string);
 
 protected:
+    sf::RenderWindow* window;
+
     std::map<std::string, HandlerPtr> handlerMap;
     std::forward_list<HandlerPtr> handlerFList;
     std::map<std::string, ScenePtr> sceneMap;
@@ -52,6 +55,8 @@ protected:
 
     std::set<std::string> handlerSweep;
     std::set<std::string> sceneSweep;
+
+    bool vsync;
 };
 
 }

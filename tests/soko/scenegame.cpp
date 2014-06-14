@@ -115,25 +115,14 @@ void SceneGame::render(sf::RenderTarget& target, float ft) {
         else                 playerSprite.setTextureRect({64,64,64,64});
     }
 
-    int xPor = 0;
-    int yPor = 0;
+    float xPor = 0.f;
+    float yPor = 0.f;
     if (pDir != -1) {
         float frac = pMoved;
-        if (pDir == 0) {
-            //yPor -= interpolate(frac*portion, (frac+1.f)*portion);
-        } else
-        if (pDir == 1) {
-            xPor += (frac*portion) * ((dt - accum) / dt)
-                  + ((frac+1.f)*portion) * (accum / dt);
-        } else
-        if (pDir == 2) {
-            yPor += (frac*portion) * ((dt - accum) / dt)
-                  + ((frac+1.f)*portion) * (accum / dt);
-        } else
-        if (pDir == 3) {
-            xPor -= (frac*portion) * ((dt - accum) / dt)
-                  + ((frac+1.f)*portion) * (accum / dt);
-        }
+        if      (pDir == 0) yPor -= interpolate(frac*portion, (frac+1.f)*portion);
+        else if (pDir == 1) xPor += interpolate(frac*portion, (frac+1.f)*portion);
+        else if (pDir == 2) yPor += interpolate(frac*portion, (frac+1.f)*portion);
+        else if (pDir == 3) xPor -= interpolate(frac*portion, (frac+1.f)*portion);
     }
 
     sf::Vector2f realSize {size.x * 64.f, size.y * 64.f};

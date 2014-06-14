@@ -6,7 +6,7 @@
 
 using namespace sqt;
 
-TestApp::TestApp() {
+TestApp::TestApp() : sq::Application(800, 600, 0, true, true, "SQEE Sokoban Demo") {
     texHolder.add_texture("player_still", "res/player_still.png");
 
     attach_handler("close", sq::HandlerPtr(new sqe::HandlerClose(this)));

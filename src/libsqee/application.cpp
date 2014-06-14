@@ -7,26 +7,46 @@
 
 using namespace sq;
 
-Application::Application() {
-    running = true;
-    vsync = true;
-    freeze = false;
-}
-
-void Application::run() {
+Application::Application(uint _width, uint _height, uint _AA,
+                         bool _vsync, bool _resizable, std::string _title) {
     sf::ContextSettings settings;
     settings.depthBits = 24;
     settings.stencilBits = 8;
-    settings.antialiasingLevel = 4;
+    settings.antialiasingLevel = _AA;
     settings.majorVersion = 3;
     settings.minorVersion = 3;
 
-    window = new sf::RenderWindow(sf::VideoMode(800, 600),
-                                  "SQEE DEMO", sf::Style::Default, settings);
+    if (_resizable)
+        window = new sf::RenderWindow({_width, _height}, _title,
+                                      sf::Style::Default, settings);
+    else
+        window = new sf::RenderWindow({_width, _height}, _title,
+                                      sf::Style::Close | sf::Style::Titlebar, settings);
 
-    window->setVerticalSyncEnabled(vsync);
-    //window->setFramerateLimit(30);
+    set_vsync(_vsync);
+}
 
+
+void Application::set_size(uint width, uint height) {
+    window->setView(sf::View({0, 0, float(width), float(height)}));
+    for (auto& scene : sceneList) {
+        scene->resize(width, height);
+    }
+}
+sf::Vector2u Application::get_size() {
+    return window->getSize();
+}
+
+void Application::set_vsync(bool _vsync) {
+    window->setVerticalSyncEnabled(_vsync);
+    vsync = _vsync;
+}
+bool Application::get_vsync() {
+    return vsync;
+}
+
+void Application::run() {
+    running = true;
     sf::Clock FT;
 
     while (true) {
@@ -70,10 +90,6 @@ void Application::run() {
 
         window->display();
     }
-}
-
-void Application::set_size(sf::Vector2u size) {
-    window->setView(sf::View({0, 0, static_cast<float>(size.x), static_cast<float>(size.y)}));        // CRASHES HERE
 }
 
 Scene& Application::get_scene_first() {

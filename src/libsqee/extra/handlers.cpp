@@ -24,7 +24,7 @@ bool HandlerDebug::handle(sf::Event& event) {
 
 bool HandlerResize::handle(sf::Event& event) {
     if (event.type == sf::Event::Resized) {
-        app->set_size({event.size.width, event.size.height});
+        app->set_size(event.size.width, event.size.height);
         return true;
     }
     return false;
@@ -33,8 +33,7 @@ bool HandlerResize::handle(sf::Event& event) {
 bool HandlerFramelimit::handle(sf::Event& event) {
     if (event.type == sf::Event::KeyPressed) {
         if (event.key.code == sf::Keyboard::V) {
-            app->window->setVerticalSyncEnabled(!app->vsync);
-            app->vsync = !app->vsync;
+            app->set_vsync(!app->get_vsync());
             return true;
         }
     }

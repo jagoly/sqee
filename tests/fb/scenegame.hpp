@@ -8,23 +8,24 @@ class SceneGame : public sq::Scene {
 public:
     SceneGame(sq::Application*);
 
-    int seed;
+    uint seed;
+    std::minstd_rand gen;
 
     float pX, pY;
     float pVel;
     float pRot;
-    int sSpeed;
-    unsigned int dist;
+    int speed;
+    int dist;
 
-    int newPipeCount;
+    uint flap;
 
-    int flap;
-    float flapCount;
+    float fOffset;
+    uint fOffsetCount;
 
     std::list<std::pair<int, int>> pipes;
 
-    void setup_game(int);
-    void add_pipe(int);
+    void setup_game();
+    void add_pipe();
 
     void render(sf::RenderTarget&, float);
     void update();

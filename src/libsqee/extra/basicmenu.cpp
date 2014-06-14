@@ -11,9 +11,7 @@ SceneMenu::SceneMenu(sq::Application* _app, bool startActive) : sq::Scene(_app) 
 }
 
 void SceneMenu::update() {
-    rootWindow->SetAllocation({0, 0,
-                           static_cast<float>(app->window->getSize().x),
-                           static_cast<float>(app->window->getSize().y)});
+    rootWindow->SetAllocation({0, 0, float(app->get_size().x), float(app->get_size().y)});
 }
 
 void SceneMenu::render(sf::RenderTarget& target, float ft) {
