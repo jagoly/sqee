@@ -37,7 +37,7 @@ void SceneGame::update() {
         return;
     }
 
-    ORect bBox(pX-25.5f, pY-18.f, 51.f, 36.f);
+    ORect bBox(pX-23.5f, pY-16.f, 45.f, 32.f);
     bBox.rotate(pRot, pX, pY);
 
     pRot = atan2(pVel, speed);
