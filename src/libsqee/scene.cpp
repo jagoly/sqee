@@ -1,7 +1,7 @@
 #include <scene.hpp>
 #include <application.hpp>
 
-using namespace sq;
+namespace sq {
 
 Scene::Scene(Application* _app) {
     app = _app;
@@ -20,4 +20,6 @@ void Scene::update() {
 
 float Scene::interpolate(float a, float b) {
     return a * ((dt - accum) / dt) + b * (accum / dt);
+}
+
 }

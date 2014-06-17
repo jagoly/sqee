@@ -2,7 +2,7 @@
 #include "scenegame.hpp"
 #include "mainmenu.hpp"
 
-using namespace sqt;
+namespace sqt {
 
 SceneGameMenus::SceneGameMenus(sq::Application* _app) : sqe::SceneMenu(_app, false) {
     desktop.SetProperty("Separator", "Color", sf::Color::Transparent);
@@ -80,10 +80,11 @@ bool HandlerGameMenus::handle(sf::Event& event) {
     bool bRet = sqe::HandlerMenu::handle(event);
     if (bRet) return true;
     if (event.type == sf::Event::LostFocus ||
-        (event.type == sf::Event::KeyPressed &&
-         event.key.code == sf::Keyboard::Escape)) {
+        (SQ_KEYPRESS(Escape))) {
         static_cast<SceneGameMenus&>(app->get_scene(menuId)).activate();
         return true;
     }
     return false;
+}
+
 }

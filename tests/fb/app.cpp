@@ -1,12 +1,11 @@
 #include <libsqee/extra/handlers.hpp>
 #include "app.hpp"
 #include "menus.hpp"
-#include "scenehud.hpp"
 #include "scenegame.hpp"
 
-using namespace sqt;
+namespace sqt {
 
-TestApp::TestApp() : sq::Application(612, 714, 0, true, false, "SQEE Flappy Test") {
+TestApp::TestApp() : sq::Application(612, 714, 0, true, true, false, "SQEE Flappy Test") {
     texHolder.add_texture("digitssmall", "res/digitssmall.png");
     texHolder.add_texture("digitsmedium", "res/digitsmedium.png");
     texHolder.add_texture("digitslarge", "res/digitslarge.png");
@@ -28,5 +27,6 @@ TestApp::TestApp() : sq::Application(612, 714, 0, true, false, "SQEE Flappy Test
 
     append_scene("game", sq::ScenePtr(new SceneGame(this)));
     attach_handler("game", sq::HandlerPtr(new HandlerGame(this)));
-    append_scene("hud", sq::ScenePtr(new SceneHud(this)));
+}
+
 }

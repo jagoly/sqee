@@ -10,17 +10,19 @@
 
 #include <scene.hpp>
 #include <textureholder.hpp>
+#include <fontholder.hpp>
 #include <handler.hpp>
 
 namespace sq {
 
 class Application {
 public:
-    Application(uint, uint, uint, bool, bool, std::string);
+    Application(uint, uint, uint, bool, bool, bool, std::string);
 
     bool running;
 
     TextureHolder texHolder;
+    FontHolder fontHolder;
 
     sfg::SFGUI sfgui;
 
@@ -31,6 +33,9 @@ public:
 
     void set_vsync(bool);
     bool get_vsync();
+
+    void set_showfps(bool);
+    bool get_showfps();
 
     void attach_handler(std::string, HandlerPtr);
 
@@ -57,6 +62,7 @@ protected:
     std::set<std::string> sceneSweep;
 
     bool vsync;
+    bool showfps;
 };
 
 }

@@ -2,9 +2,9 @@
 
 #include <extra/helpers.hpp>
 
-using namespace sqe;
+namespace sqe {
 
-Json::Value sqe::load_json_file(std::string filePath) {
+Json::Value load_json_file(std::string filePath) {
     std::ifstream src(filePath);
 
     Json::Reader reader;
@@ -15,4 +15,6 @@ Json::Value sqe::load_json_file(std::string filePath) {
     src.close();
 
     return root;
+}
+
 }

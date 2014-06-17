@@ -1,7 +1,7 @@
 #include <handler.hpp>
 #include <application.hpp>
 
-using namespace sq;
+namespace sq {
 
 Handler::Handler(Application* _app) {
     app = _app;
@@ -9,4 +9,6 @@ Handler::Handler(Application* _app) {
 
 bool Handler::handle(sf::Event&) {
     return false;
+}
+
 }

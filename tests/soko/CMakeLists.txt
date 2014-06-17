@@ -5,7 +5,6 @@ set(SOURCES
     "helpers.hpp"
     "app.cpp"             "app.hpp"
     "level.cpp"           "level.hpp"
-    "scenehud.cpp"        "scenehud.hpp"
     "scenegame.cpp"       "scenegame.hpp"
     "gamemenus.cpp"       "gamemenus.hpp"
     "mainmenu.cpp"        "mainmenu.hpp"

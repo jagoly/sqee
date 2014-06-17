@@ -1,6 +1,6 @@
 #include <extra/basicmenu.hpp>
 
-using namespace sqe;
+namespace sqe {
 
 SceneMenu::SceneMenu(sq::Application* _app, bool startActive) : sq::Scene(_app) {
     rootWindow = sfg::Window::Create(sfg::Window::Style::NO_STYLE);
@@ -47,4 +47,6 @@ bool HandlerMenu::handle(sf::Event& event) {
         }
     }
     return false;
+}
+
 }

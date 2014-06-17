@@ -5,7 +5,7 @@
 
 #include "level.hpp"
 
-using namespace sqt;
+namespace sqt {
 
 Level::Level(std::string filePath) {
     Json::Value root = sqe::load_json_file(filePath);
@@ -79,4 +79,6 @@ Level::Level(std::string filePath) {
         std::cout << path.first << ": " << path.second;
         std::cout << std::endl;
     }
+}
+
 }

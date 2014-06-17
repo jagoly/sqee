@@ -11,11 +11,15 @@ public:
     uint seed;
     std::minstd_rand gen;
 
+    bool crashed;
+
     float pX, pY;
     float pVel;
     float pRot;
     int speed;
     int dist;
+
+    uint score;
 
     uint flap;
 
@@ -26,6 +30,8 @@ public:
 
     void setup_game();
     void add_pipe();
+    void update_crashed();
+    void end_game();
 
     void render(sf::RenderTarget&, float);
     void update();

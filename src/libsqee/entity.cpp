@@ -2,7 +2,7 @@
 
 #include <entity.hpp>
 
-using namespace sq;
+namespace sq {
 
 Entity::Entity() {
     name = "default";
@@ -12,4 +12,6 @@ Entity::Entity() {
 std::string Entity::actionDebug() {
     std::cout << sizeof(this);
     return "Default Entity. Does nothing.";
+}
+
 }

@@ -4,7 +4,7 @@
 #include "mainmenu.hpp"
 #include "helpers.hpp"
 
-using namespace sqt;
+namespace sqt {
 
 SceneGame::SceneGame(sq::Application* _app) : sq::Scene(_app) {
     tickRate = 32;
@@ -27,8 +27,8 @@ SceneGame::SceneGame(sq::Application* _app) : sq::Scene(_app) {
 }
 
 void SceneGame::update() {
-    if (active) {
-    pFace = -1;
+    if (!active) return;
+
     if (pDir == -1) {
         auto temp = get_key_dir();
         if (temp != -1) pFace = temp;
@@ -97,10 +97,9 @@ void SceneGame::update() {
             if (levelObjVec[c.y][c.x] == 3) pushing = c;
         }
     }
-    }
 }
 
-void SceneGame::render(sf::RenderTarget& target, float ft) {
+void SceneGame::render(sf::RenderTarget& target, float) {
     target.clear(sf::Color(70, 20, 90));
     static sf::Sprite playerSprite(app->texHolder.get_texture("player_still"), {0,0,64,64});
 
@@ -231,4 +230,6 @@ void SceneGame::win_level() {
     app->sweep_handler("gamemenus");
     app->sweep_scene("gamemenus");
     app->sweep_scene("game");
+}
+
 }

@@ -26,8 +26,6 @@ public:
 protected:
     Application* app;
 
-    std::vector<sf::Font> fontVector;
-
     float interpolate(float, float);
 };
 

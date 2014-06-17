@@ -5,9 +5,9 @@
 #include <handler.hpp>
 #include <scene.hpp>
 
-using namespace sq;
+namespace sq {
 
-Application::Application(uint _width, uint _height, uint _AA,
+Application::Application(uint _width, uint _height, uint _AA, bool _showfps,
                          bool _vsync, bool _resizable, std::string _title) {
     sf::ContextSettings settings;
     settings.depthBits = 24;
@@ -24,6 +24,7 @@ Application::Application(uint _width, uint _height, uint _AA,
                                       sf::Style::Close | sf::Style::Titlebar, settings);
 
     set_vsync(_vsync);
+    set_showfps(_showfps);
 }
 
 
@@ -45,12 +46,18 @@ bool Application::get_vsync() {
     return vsync;
 }
 
+void Application::set_showfps(bool _showfps) {
+    showfps = _showfps;
+}
+bool Application::get_showfps() {
+    return showfps;
+}
+
 void Application::run() {
     running = true;
     sf::Clock FT;
 
     while (true) {
-        //std::cout << "\nrender" << std::endl;
         for (auto& strId : sceneSweep) {
             sceneList.remove(sceneMap[strId]);
             sceneMap.erase(strId);
@@ -75,17 +82,26 @@ void Application::run() {
 
         for (auto& scene : sceneList) {
             scene->accum += ft;
-            while (scene->accum >= 1 / double(scene->tickRate)) {
+            while (scene->accum >= 1.d / double(scene->tickRate)) {
                 scene->update();
-                scene->accum -= 1 / double(scene->tickRate);
+                scene->accum -= 1.d / double(scene->tickRate);
             }
         }
 
-        static sf::Sprite sprite;
         window->resetGLStates();
         window->clear();
         for (auto& scene : sceneList) {
             scene->render(*window, ft);
+        }
+
+        if (showfps) {
+            static float fps = 60.f;
+            fps = fps * 0.9f + 1.f / ft * 0.1f;
+            static sf::Text textDisplay("", fontHolder.get_font("static"), 24);
+
+            textDisplay.setString(" FPS: " + std::to_string(fps));
+
+            window->draw(textDisplay);
         }
 
         window->display();
@@ -132,4 +148,6 @@ void Application::insert_scene(int index, std::string strId, ScenePtr scene) {
     std::advance(iter, index);
     sceneMap.insert(std::make_pair(strId, scene));
     sceneList.insert(iter, scene);
+}
+
 }

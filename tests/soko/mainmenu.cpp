@@ -6,7 +6,7 @@
 #include "gamemenus.hpp"
 #include "scenegame.hpp"
 
-using namespace sqt;
+namespace sqt {
 namespace fs = boost::filesystem;
 
 SceneMainMenu::SceneMainMenu(sq::Application* _app) : sqe::SceneMenu(_app, true) {
@@ -77,4 +77,6 @@ void SceneMainMenu::start_game(std::string filePath) {
 
     app->sweep_handler("mainmenu");
     app->sweep_scene("mainmenu");
+}
+
 }

@@ -5,11 +5,13 @@
 #include "menus.hpp"
 #include "helpers.hpp"
 
-using namespace sqt;
+namespace sqt {
 
 SceneGame::SceneGame(sq::Application* _app) : sq::Scene(_app) {
     gen = std::minstd_rand(std::time(NULL));
     gen();
+
+    crashed = false;
 
     tickRate = 120;
     dt = 1/120.d;
@@ -30,11 +32,33 @@ SceneGame::SceneGame(sq::Application* _app) : sq::Scene(_app) {
 }
 
 void SceneGame::update() {
+    if (crashed) {
+        update_crashed();
+        return;
+    }
+
+    ORect bBox(pX-25.5f, pY-18.f, 51.f, 36.f);
+    bBox.rotate(pRot, pX, pY);
+
     pRot = atan2(pVel, speed);
     dist += speed;
 
     pY += pVel;
     pVel += 0.07f;
+
+    std::cout << std::endl;
+    for (auto pipe : pipes) {
+        int xPos = 612 - dist + pipe.first;
+        if (xPos > 0 && xPos < 180) {
+            if (oRect_intersects_rect(bBox,
+                    {float(xPos), 0, 78, float(pipe.second-100)}) ||
+                oRect_intersects_rect(bBox,
+                    {float(xPos), float(pipe.second+100), 78, float(605-pipe.second)})) {
+                crashed = true;
+                return;
+            }
+        }
+    }
 
     static float flapCount = 0.f;
     flapCount += abs(pVel);
@@ -49,16 +73,20 @@ void SceneGame::update() {
     if (newPipeCount == 150) {
         newPipeCount = 0;
         add_pipe();
+    } else
+    if (newPipeCount == 114 && pipes.size() > 3) {
+        score += 1;
     }
 }
 
-void SceneGame::render(sf::RenderTarget& target, float ft) {
+void SceneGame::render(sf::RenderTarget& target, float) {
     static sf::Sprite sprFlappy(app->texHolder.get_texture("flappy"));
     static sf::Sprite sprFloor(app->texHolder.get_texture("floor"));
     static sf::Sprite sprBg(app->texHolder.get_texture("background"));
     static sf::Sprite sprCaptop(app->texHolder.get_texture("captop"));
     static sf::Sprite sprCapbottom(app->texHolder.get_texture("capbottom"));
     static sf::Sprite sprPipe(app->texHolder.get_texture("pipe"));
+
     static bool first = true;
     if (first) {
         sprFlappy.setScale(3, 3);
@@ -80,16 +108,17 @@ void SceneGame::render(sf::RenderTarget& target, float ft) {
     else if (flap == 0) sprFlappy.setTextureRect({0, 0, 17, 12});
     else if (flap == 2) sprFlappy.setTextureRect({34, 0, 17, 12});
 
-    int offset = dist % (612);
+    float offset = dist % (612);
+    if (!crashed) offset = interpolate(offset, offset + 2.f);
     for (int i = 0; i <= 34; i++) {
-        sprFloor.setPosition(float(36 * i) - interpolate(offset, offset + 2), 666);
+        sprFloor.setPosition(float(36 * i) - offset, 666);
         target.draw(sprFloor);
     }
 
     for (auto pipe : pipes) {
         if (pipe.first > dist - 800) {
             int xPos = 612 - dist + pipe.first;
-            xPos = interpolate(xPos, xPos - 2);
+            if (!crashed) xPos = interpolate(xPos, xPos - 2);
 
             sprPipe.setPosition(xPos, 0);
             sprPipe.setScale(3, pipe.second - 139);
@@ -105,7 +134,7 @@ void SceneGame::render(sf::RenderTarget& target, float ft) {
         }
     }
 
-    sprFlappy.setPosition(pX, interpolate(pY, pY + pVel));
+    sprFlappy.setPosition(pX, pY);
     sprFlappy.setRotation(pRot * 57.3f);
 
     target.draw(sprFlappy);
@@ -145,12 +174,17 @@ void SceneGame::add_pipe() {
     previous = (previous + current) / 4;
 }
 
+void SceneGame::update_crashed() {
+
+}
+
 bool HandlerGame::handle(sf::Event& event) {
-    if (event.type == sf::Event::KeyPressed) {
-        if (event.key.code == sf::Keyboard::Space) {
-            static_cast<SceneGame*>(&app->get_scene("game"))->pVel = -4.f;
-            return true;
-        }
+    if ((SQ_KEYPRESS(Space) | SQ_LEFTMPRESS) &&
+        static_cast<SceneGame*>(&app->get_scene("game"))->pY > 20) {
+        static_cast<SceneGame*>(&app->get_scene("game"))->pVel = -4.f;
+        return true;
     }
     return false;
+}
+
 }
