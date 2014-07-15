@@ -16,6 +16,7 @@ set(SOURCES
     "${SRCDIR}/libsqee/entity.cpp"
     "${SRCDIR}/libsqee/scene.cpp"
     "${SRCDIR}/libsqee/textureholder.cpp"
+    "${SRCDIR}/libsqee/soundmanager.cpp"
     "${SRCDIR}/libsqee/fontholder.cpp"
     "${SRCDIR}/libsqee/staticfont.cpp"
     "${SRCDIR}/libsqee/extra/handlers.cpp"
@@ -26,6 +27,7 @@ set(SOURCES
     "${INCDIR}/libsqee/entity.hpp"
     "${INCDIR}/libsqee/scene.hpp"
     "${INCDIR}/libsqee/textureholder.hpp"
+    "${INCDIR}/libsqee/soundmanager.hpp"
     "${INCDIR}/libsqee/fontholder.hpp"
     "${INCDIR}/libsqee/staticfont.hpp"
     "${INCDIR}/libsqee/extra/handlers.hpp"
@@ -52,7 +54,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     )
 else ()
     target_link_libraries(libsqee
-        sfml-window sfml-graphics sfml-system
+        sfml-window sfml-graphics sfml-system sfml-audio
         sfgui jsoncpp
         boost_filesystem boost_system
     )

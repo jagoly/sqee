@@ -1,5 +1,6 @@
 #include <random>
 #include <ctime>
+#include <algorithm>
 
 #include "scenegame.hpp"
 #include "menus.hpp"
@@ -55,8 +56,15 @@ void SceneGame::update() {
                 oRect_intersects_rect(bBox,
                     {float(xPos), float(pipe.second+100), 78, float(605-pipe.second)})) {
                 crashed = true;
+                pVel = std::max<float>(pVel, 0.f);
+                app->soundManager.play_sound("hit");
                 return;
             }
+        }
+        if (pY > 650.f) {
+            crashed = true;
+            app->soundManager.play_sound("hit");
+            return;
         }
     }
 
@@ -76,6 +84,7 @@ void SceneGame::update() {
     } else
     if (newPipeCount == 114 && pipes.size() > 3) {
         score += 1;
+        app->soundManager.play_sound("point");
     }
 }
 
@@ -175,14 +184,29 @@ void SceneGame::add_pipe() {
 }
 
 void SceneGame::update_crashed() {
+    if (pY >= 650.f) {
+        pY = 650.f;
+        pRot = 1.57f;
+        return;
+    }
+    static float rSpeed = speed;
+    pY += pVel;
+    pVel += 0.08f;
 
+    pRot = atan2(pVel, rSpeed);
+
+    rSpeed -= 0.02f;
+    rSpeed = std::max<float>(rSpeed, 0);
 }
 
 bool HandlerGame::handle(sf::Event& event) {
-    if ((SQ_KEYPRESS(Space) | SQ_LEFTMPRESS) &&
-        static_cast<SceneGame*>(&app->get_scene("game"))->pY > 20) {
-        static_cast<SceneGame*>(&app->get_scene("game"))->pVel = -4.f;
-        return true;
+    if (!static_cast<SceneGame*>(&app->get_scene("game"))->crashed) {
+        if ((SQ_KEYPRESS(Space) | SQ_LEFTMPRESS) &&
+            static_cast<SceneGame*>(&app->get_scene("game"))->pY > 20) {
+            static_cast<SceneGame*>(&app->get_scene("game"))->pVel = -4.f;
+            app->soundManager.play_sound("wing");
+            return true;
+        }
     }
     return false;
 }

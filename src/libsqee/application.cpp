@@ -68,6 +68,8 @@ void Application::run() {
             handlerMap.erase(strId);
         } handlerSweep.clear();
 
+        soundManager.clean();
+
         sf::Event event;
         while (window->pollEvent(event)) {
             for (auto& handler : handlerFList) {

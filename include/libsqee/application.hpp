@@ -11,6 +11,7 @@
 #include <scene.hpp>
 #include <textureholder.hpp>
 #include <fontholder.hpp>
+#include <soundmanager.hpp>
 #include <handler.hpp>
 
 namespace sq {
@@ -23,6 +24,7 @@ public:
 
     TextureHolder texHolder;
     FontHolder fontHolder;
+    SoundManager soundManager;
 
     sfg::SFGUI sfgui;
 
