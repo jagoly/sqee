@@ -62,3 +62,4 @@ endif ()
 	
 add_subdirectory("tests/soko")
 add_subdirectory("tests/fb")
+add_subdirectory("tests/gl")

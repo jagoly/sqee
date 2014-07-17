@@ -31,7 +31,6 @@ void SceneMenus::render(sf::RenderTarget& target, float ft) {
     }
 }
 
-
 bool HandlerMenus::handle(sf::Event& event) {
     return false;
 }
