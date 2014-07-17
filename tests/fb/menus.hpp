@@ -7,6 +7,17 @@
 
 namespace sqt {
 
+class SceneMenus : public sqe::SceneMenu {
+public:
+    SceneMenus(sq::Application*);
 
+    sfg::Box::Ptr wHBox;
+};
+
+class HandlerMenus : public sqe::HandlerMenu {
+public:
+    using sqe::HandlerMenu::HandlerMenu;
+    bool handle(sf::Event&);
+};
 
 }

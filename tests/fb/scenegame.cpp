@@ -38,8 +38,8 @@ void SceneGame::update() {
         return;
     }
 
-    ORect bBox(pX-23.5f, pY-16.f, 45.f, 32.f);
-    bBox.rotate(pRot, pX, pY);
+    Rect bBox(pX-22.5f, pY-15.f, 42.f, 33.f);
+    bBox.rotate_fresh(pRot, pX, pY);
 
     pRot = atan2(pVel, speed);
     dist += speed;
@@ -195,8 +195,7 @@ void SceneGame::update_crashed() {
 
     pRot = atan2(pVel, rSpeed);
 
-    rSpeed -= 0.02f;
-    rSpeed = std::max<float>(rSpeed, 0);
+    rSpeed = std::max<float>(rSpeed - 0.02f, 0);
 }
 
 bool HandlerGame::handle(sf::Event& event) {

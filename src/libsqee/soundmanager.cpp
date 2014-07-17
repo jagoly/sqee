@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-using namespace sq;
+namespace sq {
 
 SoundManager::SoundManager() {
 }
@@ -44,4 +44,6 @@ void SoundManager::clean() {
             soundQueue.pop();
         }
     }
+}
+
 }
