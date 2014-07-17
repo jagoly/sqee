@@ -69,8 +69,6 @@ struct Rect {
             for (int y = 0; y < 4; y++)
                 ct[x][y] = co[x][y];
 
-        std::cout << _xo << " " << _yo << std::endl;
-
         for (float* p : ct) {
             p[0] -= _xo;
             p[1] -= _yo;
@@ -80,12 +78,6 @@ struct Rect {
 
             p[0] = xnew + _xo;
             p[1] = ynew + _yo;
-
-            //p[0] = p[0] * rc - p[1] * rs + _xo;
-            //p[1] = p[0] * rs + p[1] * rc + _yo;
-
-            //p[0] = (p[0] - _xo) * rc - (p[1] - _yo) * rs + _xo;
-            //p[1] = (p[0] - _xo) * rs + (p[1] - _yo) * rc + _yo;
         }
     }
 

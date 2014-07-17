@@ -30,6 +30,7 @@ TestApp::TestApp() : sq::Application(612, 714, 0, true, true, false, "SQEE Flapp
     attach_handler("framelimit", sq::HandlerPtr(new sqe::HandlerFramelimit(this)));
 
     append_scene("game", sq::ScenePtr(new SceneGame(this)));
+    append_scene("menu", sq::ScenePtr(new SceneMenus(this)));
     attach_handler("game", sq::HandlerPtr(new HandlerGame(this)));
 }
 

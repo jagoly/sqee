@@ -17,9 +17,9 @@ public:
     virtual void activate();
     virtual void deactivate();
 
-    void update();
-    void render(sf::RenderTarget&, float);
-    bool handleEvent(sf::Event&);
+    virtual void update();
+    virtual void render(sf::RenderTarget&, float);
+    virtual bool handleEvent(sf::Event&);
 
 protected:
     sfg::Desktop desktop;

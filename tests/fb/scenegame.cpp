@@ -29,6 +29,8 @@ SceneGame::SceneGame(sq::Application* _app) : sq::Scene(_app) {
     fOffset = 0.f;
     fOffsetCount = 0;
 
+    score = 0;
+
     setup_game();
 }
 
@@ -47,7 +49,6 @@ void SceneGame::update() {
     pY += pVel;
     pVel += 0.07f;
 
-    std::cout << std::endl;
     for (auto pipe : pipes) {
         int xPos = 612 - dist + pipe.first;
         if (xPos > 0 && xPos < 180) {
@@ -155,7 +156,6 @@ void SceneGame::setup_game() {
     int val;
 
     val = dist3(gen);
-    std::cout << val << std::endl;
     if      (val == 0) app->texHolder.add_texture("flappy", "res/flappy_brown.png");
     else if (val == 1) app->texHolder.add_texture("flappy", "res/flappy_blue.png");
     else if (val == 2) app->texHolder.add_texture("flappy", "res/flappy_red.png");
