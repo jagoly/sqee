@@ -1,7 +1,5 @@
 #pragma once
 
-#include <SFGUI/SFGUI.hpp>
-
 #include <application.hpp>
 #include <scene.hpp>
 #include <handler.hpp>

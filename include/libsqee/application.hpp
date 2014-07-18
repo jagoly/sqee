@@ -5,7 +5,9 @@
 #include <set>
 #include <memory>
 
+#include <GL/glew.h>
 #include <SFML/Graphics.hpp>
+#include <SFML/OpenGL.hpp>
 #include <SFGUI/SFGUI.hpp>
 
 #include <scene.hpp>
@@ -18,7 +20,7 @@ namespace sq {
 
 class Application {
 public:
-    Application(uint, uint, uint, bool, bool, bool, std::string);
+    Application(unsigned int, unsigned int, unsigned int, bool, bool, bool, std::string);
 
     bool running;
 
@@ -30,7 +32,7 @@ public:
 
     void run();
 
-    virtual void set_size(uint width, uint height);
+    virtual void set_size(unsigned int width, unsigned int height);
     sf::Vector2u get_size();
 
     void set_vsync(bool);

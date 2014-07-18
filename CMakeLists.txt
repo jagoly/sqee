@@ -55,7 +55,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 else ()
     target_link_libraries(libsqee
         sfml-window sfml-graphics sfml-system sfml-audio
-        sfgui jsoncpp
+        sfgui jsoncpp GL GLEW
         boost_filesystem boost_system
     )
 endif ()

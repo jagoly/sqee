@@ -8,6 +8,9 @@ class SceneGame : public sq::Scene {
 public:
     SceneGame(sq::Application*);
 
+    float position;
+    float nextPos;
+
     void render(sf::RenderTarget&, float);
     void update();
 };

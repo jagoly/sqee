@@ -20,7 +20,7 @@ public:
     int tickRate;
     double dt;
 
-    virtual void resize(uint, uint);
+    virtual void resize(unsigned int, unsigned int);
     virtual void update();
     virtual void render(sf::RenderTarget&, float);
 protected:

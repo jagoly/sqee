@@ -77,7 +77,7 @@ void SceneGame::update() {
     else if (flapCount > 16) flap = 1;
     else                     flap = 0;
 
-    static uint newPipeCount = 0;
+    static unsigned int newPipeCount = 0;
     newPipeCount += 1;
     if (newPipeCount == 150) {
         newPipeCount = 0;

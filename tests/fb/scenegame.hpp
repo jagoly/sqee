@@ -8,7 +8,7 @@ class SceneGame : public sq::Scene {
 public:
     SceneGame(sq::Application*);
 
-    uint seed;
+    unsigned int seed;
     std::minstd_rand gen;
 
     bool crashed;
@@ -19,12 +19,12 @@ public:
     int speed;
     int dist;
 
-    uint score;
+    unsigned int score;
 
-    uint flap;
+    unsigned int flap;
 
     float fOffset;
-    uint fOffsetCount;
+    unsigned int fOffsetCount;
 
     std::list<std::pair<int, int>> pipes;
 
