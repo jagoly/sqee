@@ -9,7 +9,7 @@ Scene::Scene(Application* _app) {
     dt = 1.d / 60.d;
 }
 
-void Scene::resize(uint, uint) {
+void Scene::resize(unsigned int, unsigned int) {
 }
 
 void Scene::render(sf::RenderTarget&, float) {

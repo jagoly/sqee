@@ -51,16 +51,16 @@ void SceneGame::render(sf::RenderTarget& target, float) {
         0.5f, 0.f, 0.f, 1.f
     };
 
-    static GLunsigned int vboPoints = 0;
-    static GLunsigned int vboColours = 0;
+    static GLuint vboPoints = 0;
+    static GLuint vboColours = 0;
 
-    static GLunsigned int vao = 0;
+    static GLuint vao = 0;
 
-    static GLunsigned int vert = glCreateShader(GL_VERTEX_SHADER);
-    static GLunsigned int frag = glCreateShader(GL_FRAGMENT_SHADER);
-    static GLunsigned int prog = glCreateProgram();
+    static GLuint vert = glCreateShader(GL_VERTEX_SHADER);
+    static GLuint frag = glCreateShader(GL_FRAGMENT_SHADER);
+    static GLuint prog = glCreateProgram();
 
-    static GLunsigned int loc_matrix;
+    static GLuint loc_matrix;
 
     if (first) {
         glGenBuffers(1, &vboPoints);

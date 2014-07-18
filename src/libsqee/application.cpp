@@ -7,7 +7,7 @@
 
 namespace sq {
 
-Application::Application(uint _width, uint _height, uint _AA, bool _showfps,
+Application::Application(unsigned int _width, unsigned int _height, unsigned int _AA, bool _showfps,
                          bool _vsync, bool _resizable, std::string _title) {
     sf::ContextSettings settings;
     settings.depthBits = 24;
@@ -29,7 +29,7 @@ Application::Application(uint _width, uint _height, uint _AA, bool _showfps,
 }
 
 
-void Application::set_size(uint width, uint height) {
+void Application::set_size(unsigned int width, unsigned int height) {
     window->setView(sf::View({0, 0, float(width), float(height)}));
     for (auto& scene : sceneList) {
         scene->resize(width, height);
