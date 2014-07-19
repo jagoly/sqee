@@ -62,12 +62,12 @@ void SceneGame::render(sf::RenderTarget& target, float) {
     };
 
     static GLfloat coloursBG[] = {
+        0.5f, 0.f, 0.5f,
+        1.f, 0.f, 1.f,
+        1.f, 0.f, 1.f,
         0.f, 0.f, 0.f,
-        0.7f, 0.f, 0.7f,
-        0.7f, 0.f, 0.7f,
-        0.7f, 0.f, 0.7f,
-        0.7f, 0.f, 0.7f,
-        1.f, 1.f, 1.f
+        0.f, 0.f, 0.f,
+        0.5f, 0.f, 0.5f,
     };
 
     static GLuint bgVboPoints = 0;
@@ -81,6 +81,7 @@ void SceneGame::render(sf::RenderTarget& target, float) {
     if (first) {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glEnable(GL_BLEND);
+        //glDepthMask(false);
 
         glGenBuffers(1, &bgVboPoints);
         glBindBuffer(GL_ARRAY_BUFFER, bgVboPoints);
