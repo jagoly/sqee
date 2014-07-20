@@ -5,6 +5,7 @@
 namespace sqt {
 
 TestApp::TestApp() : sq::Application(640, 480, 0, true, true, false, "SQEE GL Test") {
+    texHolder.add_texture("dice", "res/dice.png");
 
     ////////////////////
     /// GL STUFF     ///

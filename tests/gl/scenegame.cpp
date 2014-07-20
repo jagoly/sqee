@@ -52,84 +52,80 @@ void SceneGame::update() {
 void SceneGame::render(sf::RenderTarget& target, float) {
     static bool first = true;
 
-    static GLfloat pointsBG[] = {
-        -0.8f, -0.8f, 0.f,
-        -0.8f, 0.8f, 0.f,
-        0.8f, -0.8f, 0.f,
-        -0.8f, 0.8f, 0.f,
-        0.8f, -0.8f, 0.f,
-        0.8f, 0.8f, 0.f
-    };
+    static GLuint vert = glCreateShader(GL_VERTEX_SHADER);
+    static GLuint frag = glCreateShader(GL_FRAGMENT_SHADER);
+    static GLuint prog = glCreateProgram();
 
-    static GLfloat coloursBG[] = {
-        0.5f, 0.f, 0.5f,
-        1.f, 0.f, 1.f,
-        1.f, 0.f, 1.f,
-        0.f, 0.f, 0.f,
-        0.f, 0.f, 0.f,
-        0.5f, 0.f, 0.5f,
-    };
+    static GLuint u_projMatrix, u_viewMatrix, u_transformMatrix,
+                  u_lightWorldPos, u_lightSpec, u_lightDiff, u_lightAmbi,
+                  u_reflSpec, u_reflDiff, u_reflAmbi,
+                  u_basicTex;
 
-    static GLuint bgVboPoints = 0;
-    static GLuint bgVboColours = 0;
-    static GLuint bgVao = 0;
-
-    static GLuint bgVert = glCreateShader(GL_VERTEX_SHADER);
-    static GLuint bgFrag = glCreateShader(GL_FRAGMENT_SHADER);
-    static GLuint bgProg = glCreateProgram();
+    static GLuint texture = 0;
 
     if (first) {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glEnable(GL_BLEND);
-        //glDepthMask(false);
 
-        glGenBuffers(1, &bgVboPoints);
-        glBindBuffer(GL_ARRAY_BUFFER, bgVboPoints);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(pointsBG), pointsBG, GL_STATIC_DRAW);
+        sf::Image image;
+        image.loadFromFile("res/dice.png");
+        glGenTextures(1, &texture);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.getSize().x, image.getSize().y, 0, GL_RGBA,
+                     GL_UNSIGNED_BYTE, image.getPixelsPtr());
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-        glGenBuffers(1, &bgVboColours);
-        glBindBuffer(GL_ARRAY_BUFFER, bgVboColours);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(coloursBG), coloursBG, GL_STATIC_DRAW);
+        std::string vertStr = load_from_file("res/shaders/cube_vs.glsl");
+        int vertSize = vertStr.size();
+        const char* vertSrc = vertStr.c_str();
+        glShaderSource(vert, 1, &vertSrc, &vertSize);
+        glCompileShader(vert);
+        log_shader_error(vert);
 
-        glGenVertexArrays(1, &bgVao);
-        glBindVertexArray(bgVao);
-        glEnableVertexAttribArray(0);
-        glEnableVertexAttribArray(1);
-        glBindBuffer(GL_ARRAY_BUFFER, bgVboPoints);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-        glBindBuffer(GL_ARRAY_BUFFER, bgVboColours);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+        std::string fragStr = load_from_file("res/shaders/cube_fs.glsl");
+        const char* fragSrc = fragStr.c_str();
+        int fragSize = fragStr.size();
+        glShaderSource(frag, 1, &fragSrc, &fragSize);
+        glCompileShader(frag);
+        log_shader_error(frag);
 
-        std::string bgVertStr = load_from_file("res/shaders/bg_vs.glsl");
-        int bgVertSize = bgVertStr.size();
-        const char* bgVertSrc = bgVertStr.c_str();
-        glShaderSource(bgVert, 1, &bgVertSrc, &bgVertSize);
-        glCompileShader(bgVert);
-        log_shader_error(bgVert);
+        glAttachShader(prog, vert);
+        glAttachShader(prog, frag);
+        glLinkProgram(prog);
+        log_shader_error(prog);
 
-        std::string bgFragStr = load_from_file("res/shaders/bg_fs.glsl");
-        const char* bgFragSrc = bgFragStr.c_str();
-        int bgFragSize = bgFragStr.size();
-        glShaderSource(bgFrag, 1, &bgFragSrc, &bgFragSize);
-        glCompileShader(bgFrag);
-        log_shader_error(bgFrag);
-
-        glAttachShader(bgProg, bgVert);
-        glAttachShader(bgProg, bgFrag);
-        glLinkProgram(bgProg);
-        log_shader_error(bgProg);
+        u_projMatrix = glGetUniformLocation(prog, "projMatrix");
+        u_viewMatrix = glGetUniformLocation(prog, "viewMatrix");
+        u_transformMatrix = glGetUniformLocation(prog, "transformMatrix");
+        u_lightWorldPos = glGetUniformLocation(prog, "lightWorldPos");
+        u_lightSpec = glGetUniformLocation(prog, "lightSpec");
+        u_lightDiff = glGetUniformLocation(prog, "lightDiff");
+        u_lightAmbi = glGetUniformLocation(prog, "lightAmbi");
+        u_reflSpec = glGetUniformLocation(prog, "reflSpec");
+        u_reflDiff = glGetUniformLocation(prog, "reflDiff");
+        u_reflAmbi = glGetUniformLocation(prog, "reflAmbi");
+        u_basicTex = glGetUniformLocation(prog, "basicTex");
 
         first = false;
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
-    glUseProgram(bgProg);
-    glBindVertexArray(bgVao);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glUseProgram(prog);
 
-    glUseProgram(cube.prog);
+    glUniformMatrix4fv(u_projMatrix, 1, GL_FALSE, glm::value_ptr(camera.projMatrix));
+    glUniformMatrix4fv(u_viewMatrix, 1, GL_FALSE, glm::value_ptr(camera.viewMatrix));
+    glUniformMatrix4fv(u_transformMatrix, 1, GL_FALSE, glm::value_ptr(cube.transformMatrix));
 
-    glUniformMatrix4fv(cube.u_transformMatrix, 1, GL_FALSE, glm::value_ptr(cube.transformMatrix));
+    glUniform3fv(u_lightSpec, 1, glm::value_ptr(light.lightSpec));
+    glUniform3fv(u_lightDiff, 1, glm::value_ptr(light.lightDiff));
+    glUniform3fv(u_lightAmbi, 1, glm::value_ptr(light.lightAmbi));
+
+    glUniform1i(u_basicTex, 0);
+
     glBindVertexArray(cube.vao);
     glDrawArrays(GL_TRIANGLES, 0, 36);
 
@@ -143,50 +139,38 @@ bool HandlerGame::handle(sf::Event& event) {
 
 Cube::Cube() {
     vboPoints = 0;
-    vboColours = 0;
+    vboTexcoords = 0;
+    vboNormals = 0;
     vao = 0;
-
-    vert = glCreateShader(GL_VERTEX_SHADER);
-    frag = glCreateShader(GL_FRAGMENT_SHADER);
-    prog = glCreateProgram();
 
     glGenBuffers(1, &vboPoints);
     glBindBuffer(GL_ARRAY_BUFFER, vboPoints);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(pointsCube), pointsCube, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW);
 
-    glGenBuffers(1, &vboColours);
-    glBindBuffer(GL_ARRAY_BUFFER, vboColours);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(coloursCube), coloursCube, GL_STATIC_DRAW);
+    glGenBuffers(1, &vboTexcoords);
+    glBindBuffer(GL_ARRAY_BUFFER, vboTexcoords);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(texcoords), texcoords, GL_STATIC_DRAW);
+
+    glGenBuffers(1, &vboNormals);
+    glBindBuffer(GL_ARRAY_BUFFER, vboNormals);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(normals), normals, GL_STATIC_DRAW);
 
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
     glBindBuffer(GL_ARRAY_BUFFER, vboPoints);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-    glBindBuffer(GL_ARRAY_BUFFER, vboColours);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    glBindBuffer(GL_ARRAY_BUFFER, vboTexcoords);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+    glBindBuffer(GL_ARRAY_BUFFER, vboNormals);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+}
 
-    std::string vertStr = load_from_file("res/shaders/cube_vs.glsl");
-    int vertSize = vertStr.size();
-    const char* vertSrc = vertStr.c_str();
-    glShaderSource(vert, 1, &vertSrc, &vertSize);
-    glCompileShader(vert);
-    log_shader_error(vert);
-
-    std::string fragStr = load_from_file("res/shaders/cube_fs.glsl");
-    const char* fragSrc = fragStr.c_str();
-    int fragSize = fragStr.size();
-    glShaderSource(frag, 1, &fragSrc, &fragSize);
-    glCompileShader(frag);
-    log_shader_error(frag);
-
-    glAttachShader(prog, vert);
-    glAttachShader(prog, frag);
-    glLinkProgram(prog);
-    log_shader_error(prog);
-
-    u_transformMatrix = glGetUniformLocation(prog, "transformMatrix");
+Camera::Camera() {
+    viewMatrix = glm::lookAt(glm::vec3(pos[0], pos[1], pos[2]), glm::vec3(), glm::vec3(0.f, 1.f, 0.f));
+    projMatrix = glm::perspective(1.17f, 4.f/3.f, 0.1f, 100.f);
 }
 
 }
