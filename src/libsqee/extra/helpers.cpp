@@ -1,4 +1,5 @@
 #include <fstream>
+#include <sstream>
 
 #include <extra/helpers.hpp>
 
@@ -15,6 +16,15 @@ Json::Value load_json_file(std::string filePath) {
     src.close();
 
     return root;
+}
+
+std::string load_from_file(std::string filePath) {
+    std::ifstream src;
+    src.open(filePath);
+    std::stringstream sstr;
+    sstr << src.rdbuf();
+    src.close();
+    return sstr.str();
 }
 
 }

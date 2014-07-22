@@ -1,10 +1,11 @@
 #pragma once
 
 #define GLM_FORCE_RADIANS
-
 #include <glm/glm.hpp>
 
-#include <libsqee/base.hpp>
+#include <libsqee/scene.hpp>
+#include <libsqee/handler.hpp>
+#include <libsqee/extra/gl.hpp>
 
 namespace sqt {
 

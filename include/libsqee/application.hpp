@@ -5,9 +5,7 @@
 #include <set>
 #include <memory>
 
-#include <GL/glew.h>
-#include <SFML/Graphics.hpp>
-#include <SFML/OpenGL.hpp>
+#include <extra/gl.hpp>
 #include <SFGUI/SFGUI.hpp>
 
 #include <scene.hpp>

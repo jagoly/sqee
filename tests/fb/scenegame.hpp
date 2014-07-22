@@ -1,6 +1,9 @@
 #pragma once
 
-#include <libsqee/base.hpp>
+#include <list>
+
+#include <libsqee/scene.hpp>
+#include <libsqee/handler.hpp>
 
 namespace sqt {
 

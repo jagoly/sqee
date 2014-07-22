@@ -22,6 +22,7 @@ set(SOURCES
     "${SRCDIR}/libsqee/extra/handlers.cpp"
     "${SRCDIR}/libsqee/extra/helpers.cpp"
     "${SRCDIR}/libsqee/extra/basicmenu.cpp"
+    "${SRCDIR}/libsqee/extra/gl.cpp"
     "${INCDIR}/libsqee/application.hpp"
     "${INCDIR}/libsqee/handler.hpp"
     "${INCDIR}/libsqee/entity.hpp"
@@ -33,7 +34,7 @@ set(SOURCES
     "${INCDIR}/libsqee/extra/handlers.hpp"
     "${INCDIR}/libsqee/extra/helpers.hpp"
     "${INCDIR}/libsqee/extra/basicmenu.hpp"
-    "${INCDIR}/libsqee/base.hpp"
+    "${INCDIR}/libsqee/extra/gl.hpp"
 )
 
 add_library(libsqee SHARED ${SOURCES})
@@ -55,7 +56,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 else ()
     target_link_libraries(libsqee
         sfml-window sfml-graphics sfml-system sfml-audio
-        sfgui jsoncpp GL GLEW
+        sfgui jsoncpp GL GLEW assimp
         boost_filesystem boost_system
     )
 endif ()
@@ -63,3 +64,4 @@ endif ()
 add_subdirectory("tests/soko")
 add_subdirectory("tests/fb")
 add_subdirectory("tests/gl")
+add_subdirectory("tests/gl2")

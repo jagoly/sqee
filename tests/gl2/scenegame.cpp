@@ -1,10 +1,9 @@
 #include "scenegame.hpp"
 
+#include <iostream>
+
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
-#include <libsqee/extra/gl.hpp>
-#include <libsqee/extra/helpers.hpp>
 
 #include "helpers.hpp"
 
@@ -54,6 +53,8 @@ void SceneGame::update() {
 void SceneGame::render(sf::RenderTarget& target, float) {
     static bool first = true;
 
+    static GLuint vert = glCreateShader(GL_VERTEX_SHADER);
+    static GLuint frag = glCreateShader(GL_FRAGMENT_SHADER);
     static GLuint prog = glCreateProgram();
 
     static GLuint u_projMatrix, u_viewMatrix, u_transformMatrix,
@@ -62,9 +63,7 @@ void SceneGame::render(sf::RenderTarget& target, float) {
                   u_basicTex;
 
     static GLuint texture = 0;
-
     static int pointCount;
-
     static GLuint monkeyVao = 0;
 
     if (first) {
@@ -115,9 +114,6 @@ void SceneGame::render(sf::RenderTarget& target, float) {
 
     glUniform1i(u_basicTex, 0);
 
-    //glBindVertexArray(cube.vao);
-    //glDrawArrays(GL_TRIANGLES, 0, 36);
-
     glBindVertexArray(monkeyVao);
     glDrawArrays(GL_TRIANGLES, 0, pointCount);
 
@@ -127,42 +123,6 @@ void SceneGame::render(sf::RenderTarget& target, float) {
 
 bool HandlerGame::handle(sf::Event& event) {
     return false;
-}
-
-Cube::Cube() {
-    vboPoints = 0;
-    vboTexcoords = 0;
-    vboNormals = 0;
-    vao = 0;
-
-    glGenBuffers(1, &vboPoints);
-    glBindBuffer(GL_ARRAY_BUFFER, vboPoints);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW);
-
-    glGenBuffers(1, &vboTexcoords);
-    glBindBuffer(GL_ARRAY_BUFFER, vboTexcoords);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(texcoords), texcoords, GL_STATIC_DRAW);
-
-    glGenBuffers(1, &vboNormals);
-    glBindBuffer(GL_ARRAY_BUFFER, vboNormals);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(normals), normals, GL_STATIC_DRAW);
-
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-    glEnableVertexAttribArray(2);
-    glBindBuffer(GL_ARRAY_BUFFER, vboPoints);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-    glBindBuffer(GL_ARRAY_BUFFER, vboTexcoords);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
-    glBindBuffer(GL_ARRAY_BUFFER, vboNormals);
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-}
-
-Camera::Camera() {
-    viewMatrix = glm::lookAt(glm::vec3(pos[0], pos[1], pos[2]), glm::vec3(), glm::vec3(0.f, 1.f, 0.f));
-    projMatrix = glm::perspective(1.17f, 4.f/3.f, 0.1f, 100.f);
 }
 
 }
