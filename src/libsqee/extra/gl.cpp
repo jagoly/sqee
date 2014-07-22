@@ -1,6 +1,8 @@
 #include <fstream>
 
 #include <extra/gl.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -17,7 +19,6 @@ std::string get_shader_error(const GLuint& shader) {
     glGetShaderInfoLog(shader, max_length, &actual_length, log);
     return log;
 }
-
 
 bool create_shader(std::string vertPath, std::string fragPath, GLuint& prog) {
     GLuint vert = glCreateShader(GL_VERTEX_SHADER);
@@ -112,5 +113,42 @@ bool load_mesh(std::string filePath, GLuint& vao, int& pointCount) {
 
     return true;
 }
+
+Camera::Camera(sf::Vector3f _pos, float _xRot, float _yRot,
+               float _width, float _height, float _yFov, float _zNear, float _zFar) {
+    pos.x = _pos.x;
+    pos.y = _pos.y;
+    pos.z = _pos.z;
+
+    xRot = _xRot;
+    yRot = _yRot;
+
+    width = _width;
+    height = _height;
+    yFov = _yFov;
+    zNear = _zNear;
+    zFar = _zFar;
+}
+
+Camera::Camera() {
+
+}
+
+void Camera::update_viewMatrix() {
+    glm::mat4 rotMat;
+    rotMat = glm::rotate(rotMat, xRot, glm::vec3(1.f, 0.f, 0.f));
+    rotMat = glm::rotate(rotMat, yRot, glm::vec3(0.f, 1.f, 0.f));
+
+    glm::vec4 forward(0.f, 0.f, -1.f, 0.f);
+    forward = rotMat * forward;
+    glm::vec3 target = pos + glm::vec3(forward.x, forward.y, forward.z);
+
+    viewMat = glm::lookAt(pos, target, glm::vec3(rotMat * glm::vec4(0.f, 1.f, 0.f, 0.f)));
+}
+
+void Camera::update_projMatrix() {
+    projMat = glm::perspective(yFov, width / height, zNear, zFar);
+}
+
 
 }

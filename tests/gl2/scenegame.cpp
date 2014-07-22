@@ -88,7 +88,7 @@ void SceneGame::render(sf::RenderTarget& target, float) {
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-        sqe::create_shader("res/shaders/cube_vs.glsl", "res/shaders/cube_fs.glsl", prog);
+        sqe::create_shader("res/shaders/main_vs.glsl", "res/shaders/main_fs.glsl", prog);
 
         u_projMatrix = glGetUniformLocation(prog, "projMatrix");
         u_viewMatrix = glGetUniformLocation(prog, "viewMatrix");

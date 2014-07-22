@@ -7,17 +7,6 @@
 
 namespace sqt {
 
-class Camera {
-public:
-    Camera();
-
-    glm::mat4 viewMatrix;
-    glm::mat4 projMatrix;
-
-    float pos[3] = {0.f, 0.f, 2.f};
-    float yaw = 0.f;
-};
-
 class Light {
 public:
     glm::vec3 worldPos = {0.f, 100.f, 10.f};
