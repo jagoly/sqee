@@ -29,19 +29,19 @@ bool create_shader(std::string vertPath, std::string fragPath, GLuint& prog) {
     int vertSize = vertStr.size();
     glShaderSource(vert, 1, &vertSrc, &vertSize);
     glCompileShader(vert);
-    std::cout << sqe::get_shader_error(vert) << std::endl;
+    std::cout << sqe::get_shader_error(vert);
 
-    std::string fragStr = sqe::load_from_file("res/shaders/cube_fs.glsl");
+    std::string fragStr = sqe::load_from_file(fragPath);
     const char* fragSrc = fragStr.c_str();
     int fragSize = fragStr.size();
     glShaderSource(frag, 1, &fragSrc, &fragSize);
     glCompileShader(frag);
-    std::cout << sqe::get_shader_error(frag) << std::endl;
+    std::cout << sqe::get_shader_error(frag);
 
     glAttachShader(prog, vert);
     glAttachShader(prog, frag);
     glLinkProgram(prog);
-    std::cout << sqe::get_shader_error(prog) << std::endl;
+    std::cout << sqe::get_shader_error(prog);
 }
 
 bool load_mesh(std::string filePath, GLuint& vao, int& pointCount) {

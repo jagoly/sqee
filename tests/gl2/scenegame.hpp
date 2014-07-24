@@ -8,6 +8,7 @@
 #include <libsqee/extra/gl.hpp>
 
 #include "rendergeneral.hpp"
+#include "maps.hpp"
 
 namespace sqt {
 
@@ -15,8 +16,9 @@ class SceneGame : public sq::Scene {
 public:
     SceneGame(sq::Application*);
 
-    Camera camera;
-    Light light;
+    sqe::Camera camera;
+    SkyLight light;
+    Floor floor;
 
     void render(sf::RenderTarget&, float);
     void update();

@@ -12,69 +12,53 @@ namespace sqt {
 SceneGame::SceneGame(sq::Application* _app) : sq::Scene(_app) {
     tickRate = 120;
     dt = 1/120.d;
+
+    floor.load_map("res/maps/test.json");
+
+    camera = sqe::Camera({0.f, 1.f, 6.f}, 0.5f, 0.f, 4, 3, 1.17f, 0.1f, 100.f);
+    //camera = sqe::Camera({0.f, 1.f, 10.f}, 0.f, 0.f, 4, 3, 1.17f, 0.1f, 100.f);
+    camera.update_projMatrix();
+    camera.update_viewMatrix();
 }
 
 void SceneGame::update() {
-    int X = 0;
-    int Y = 0;
-    int Z = 0;
     int NS = 0;
     int EW = 0;
-    int FB = 0;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) X += 1;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) X -= 1;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) Y += 1;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) Y -= 1;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::E)) Z += 1;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) Z -= 1;
-
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) EW += 1;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) EW -= 1;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) NS += 1;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) NS -= 1;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::PageUp)) FB += 1;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::PageDown)) FB -= 1;
 
-    cube.rot[0] += X * 0.01f;
-    cube.rot[1] += Y * 0.01f;
-    cube.rot[2] += Z * 0.01f;
+    camera.pos.x += EW * 0.01667f;
+    camera.pos.y += NS * 0.01667f;
 
-    cube.pos[0] += EW * 0.01f;
-    cube.pos[1] += NS * 0.01f;
-    cube.pos[2] += FB * 0.01f;
-
-    cube.transformMatrix = glm::mat4();
-    cube.transformMatrix = glm::translate(cube.transformMatrix, glm::vec3(cube.pos[0], cube.pos[1], cube.pos[2]));
-    cube.transformMatrix = glm::rotate(cube.transformMatrix, cube.rot[0], glm::vec3(1, 0, 0));
-    cube.transformMatrix = glm::rotate(cube.transformMatrix, cube.rot[1], glm::vec3(0, 1, 0));
-    cube.transformMatrix = glm::rotate(cube.transformMatrix, cube.rot[2], glm::vec3(0, 0, 1));
+    camera.update_projMatrix();
+    camera.update_viewMatrix();
 }
 
 void SceneGame::render(sf::RenderTarget& target, float) {
     static bool first = true;
 
-    static GLuint vert = glCreateShader(GL_VERTEX_SHADER);
-    static GLuint frag = glCreateShader(GL_FRAGMENT_SHADER);
     static GLuint prog = glCreateProgram();
 
-    static GLuint u_projMatrix, u_viewMatrix, u_transformMatrix,
-                  u_lightWorldPos, u_lightSpec, u_lightDiff, u_lightAmbi,
-                  u_reflSpec, u_reflDiff, u_reflAmbi,
+    static GLuint u_projMatrix, u_viewMatrix,
+                  u_w_lightPos, u_lightSpec, u_lightDiff, u_lightAmbi,
                   u_basicTex;
 
     static GLuint texture = 0;
-    static int pointCount;
-    static GLuint monkeyVao = 0;
+
+    static int pCount;
+
+    static GLuint vaoFloor = 0;
+
+    static GLuint vboPoints = 0;
+    static GLuint vboNormals = 0;
 
     if (first) {
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
-        glEnable (GL_CULL_FACE); // cull face
-        glCullFace (GL_BACK); // cull back face
-        glFrontFace (GL_CCW); // set counter-clock-wise vertex order to mean the front
 
-        sqe::load_mesh("res/models/monkey.dae", monkeyVao, pointCount);
-        std::cout << pointCount << std::endl;
+        floor.get_models(vaoFloor, pCount);
 
         sf::Image image;
         image.loadFromFile("res/dice.png");
@@ -92,8 +76,7 @@ void SceneGame::render(sf::RenderTarget& target, float) {
 
         u_projMatrix = glGetUniformLocation(prog, "projMatrix");
         u_viewMatrix = glGetUniformLocation(prog, "viewMatrix");
-        u_transformMatrix = glGetUniformLocation(prog, "transformMatrix");
-        u_lightWorldPos = glGetUniformLocation(prog, "lightWorldPos");
+        u_w_lightPos = glGetUniformLocation(prog, "w_lightPos");
         u_lightSpec = glGetUniformLocation(prog, "lightSpec");
         u_lightDiff = glGetUniformLocation(prog, "lightDiff");
         u_lightAmbi = glGetUniformLocation(prog, "lightAmbi");
@@ -104,18 +87,17 @@ void SceneGame::render(sf::RenderTarget& target, float) {
 
     glUseProgram(prog);
 
-    glUniformMatrix4fv(u_projMatrix, 1, GL_FALSE, glm::value_ptr(camera.projMatrix));
-    glUniformMatrix4fv(u_viewMatrix, 1, GL_FALSE, glm::value_ptr(camera.viewMatrix));
-    glUniformMatrix4fv(u_transformMatrix, 1, GL_FALSE, glm::value_ptr(cube.transformMatrix));
+    glUniformMatrix4fv(u_projMatrix, 1, GL_FALSE, glm::value_ptr(camera.projMat));
+    glUniformMatrix4fv(u_viewMatrix, 1, GL_FALSE, glm::value_ptr(camera.viewMat));
 
-    glUniform3fv(u_lightSpec, 1, glm::value_ptr(light.lightSpec));
     glUniform3fv(u_lightDiff, 1, glm::value_ptr(light.lightDiff));
     glUniform3fv(u_lightAmbi, 1, glm::value_ptr(light.lightAmbi));
+    glUniform3fv(u_w_lightPos, 1, glm::value_ptr(light.pos));
 
     glUniform1i(u_basicTex, 0);
 
-    glBindVertexArray(monkeyVao);
-    glDrawArrays(GL_TRIANGLES, 0, pointCount);
+    glBindVertexArray(vaoFloor);
+    glDrawArrays(GL_TRIANGLES, 0, pCount);
 
     glUseProgram(0);
     glBindVertexArray(0);

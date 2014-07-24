@@ -52,8 +52,8 @@ void SceneGame::render(sf::RenderTarget& target, float) {
 
     static GLuint prog = glCreateProgram();
 
-    static GLuint u_projMatrix, u_viewMatrix, u_transformMatrix,
-                  u_lightWorldPos, u_lightSpec, u_lightDiff, u_lightAmbi,
+    static GLuint u_projMatrix, u_viewMatrix,
+                  u_w_lightPos, u_lightSpec, u_lightDiff, u_lightAmbi,
                   u_basicTex;
 
     static GLuint texture = 0;
@@ -81,11 +81,11 @@ void SceneGame::render(sf::RenderTarget& target, float) {
 
         u_projMatrix = glGetUniformLocation(prog, "projMatrix");
         u_viewMatrix = glGetUniformLocation(prog, "viewMatrix");
-        u_transformMatrix = glGetUniformLocation(prog, "transformMatrix");
-        u_lightWorldPos = glGetUniformLocation(prog, "lightWorldPos");
+        u_w_lightPos = glGetUniformLocation(prog, "w_lightPos");
         u_lightSpec = glGetUniformLocation(prog, "lightSpec");
         u_lightDiff = glGetUniformLocation(prog, "lightDiff");
         u_lightAmbi = glGetUniformLocation(prog, "lightAmbi");
+        u_basicTex = glGetUniformLocation(prog, "basicTex");
 
         first = false;
         glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -99,8 +99,9 @@ void SceneGame::render(sf::RenderTarget& target, float) {
     glUniform3fv(u_lightSpec, 1, glm::value_ptr(light.lightSpec));
     glUniform3fv(u_lightDiff, 1, glm::value_ptr(light.lightDiff));
     glUniform3fv(u_lightAmbi, 1, glm::value_ptr(light.lightAmbi));
+    glUniform3fv(u_w_lightPos, 1, glm::value_ptr(light.worldPos));
 
-    //glUniform1i(u_basicTex, 0);
+    glUniform1i(u_basicTex, 0);
 
     glBindVertexArray(cube.vao);
     glDrawArrays(GL_TRIANGLES, 0, 36);

@@ -7,12 +7,11 @@
 
 namespace sqt {
 
-class Light {
+class SkyLight {
 public:
-    glm::vec3 worldPos = {0.f, 100.f, 10.f};
-    glm::vec3 lightSpec = {1.f, 1.f, 1.f};
-    glm::vec3 lightDiff = {0.7f, 0.7f, 0.7f};
-    glm::vec3 lightAmbi = {0.2f, 0.2f, 0.2f};
+    glm::vec3 pos = {0.f, 2.f, 8.f};
+    glm::vec3 lightDiff = {0.8f, 0.8f, 0.8f};
+    glm::vec3 lightAmbi = {0.1f, 0.1f, 0.1f};
 };
 
 }

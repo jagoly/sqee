@@ -3,6 +3,8 @@
 #include <vector>
 #include <string>
 
+#include <libsqee/extra/gl.hpp>
+
 namespace sqt {
 
 class Floor {
@@ -11,13 +13,14 @@ public:
 
     bool load_map(std::string filePath);
 
-    short int* get_tilesModels;
-    short int* get_tilesCollisions;
-    short int* get_tilesSwitches;
+    int width, height;
+
+    void get_models(GLuint& vao, int& pCount);
+
 private:
-    std::vector<short int> tilesModels;
-    std::vector<short int> tilesCollisions;
-    std::vector<short int> tilesSwitches;
+    std::vector<int> tilesModels;
+    std::vector<int> tilesCollisions;
+    std::vector<int> tilesSwitches;
 };
 
 }
