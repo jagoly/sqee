@@ -2,13 +2,13 @@
 
 layout(location = 0) in vec3 v_w_pos;
 layout(location = 1) in vec3 v_w_norm;
-layout(location = 2) in vec2 v_texCoords;
+layout(location = 2) in vec3 v_texCoords;
 
 uniform mat4 projMatrix, viewMatrix;
 
 out vec3 w_norm;
 out vec3 e_pos, e_norm;
-out vec2 texCoords;
+out vec3 texCoords;
 
 void main() {
     texCoords = v_texCoords;

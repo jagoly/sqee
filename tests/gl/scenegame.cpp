@@ -47,7 +47,9 @@ void SceneGame::update() {
     camera.update_projMatrix();
 }
 
-void SceneGame::render(sf::RenderTarget&, float) {
+void SceneGame::render(sf::RenderTarget& target, float) {
+    target.popGLStates();
+
     static bool first = true;
 
     static GLuint prog = glCreateProgram();
@@ -91,6 +93,9 @@ void SceneGame::render(sf::RenderTarget&, float) {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
+    glClearColor(0.3f, 0.3f, 0.3f, 1.f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     glUseProgram(prog);
 
     glUniformMatrix4fv(u_projMatrix, 1, GL_FALSE, glm::value_ptr(camera.projMat));
@@ -108,6 +113,8 @@ void SceneGame::render(sf::RenderTarget&, float) {
 
     glUseProgram(0);
     glBindVertexArray(0);
+
+    target.pushGLStates();
 }
 
 bool HandlerGame::handle(sf::Event&) {

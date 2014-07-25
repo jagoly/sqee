@@ -43,6 +43,7 @@ bool create_shader(std::string vertPath, std::string fragPath, GLuint& prog) {
     glLinkProgram(prog);
     std::cout << sqe::get_shader_error(prog);
 
+    std::cout << std::endl;
     return false;
 }
 

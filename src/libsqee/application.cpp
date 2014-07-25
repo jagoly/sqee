@@ -91,9 +91,6 @@ void Application::run() {
             }
         }
 
-        glClearColor(0.5f, 0.5f, 0.5f, 1.f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
         for (auto& scene : sceneList) {
             scene->render(*window, ft);
         }
@@ -105,9 +102,7 @@ void Application::run() {
 
             textDisplay.setString(" FPS: " + std::to_string(fps));
 
-            window->pushGLStates();
             window->draw(textDisplay);
-            window->popGLStates();
         }
 
         window->display();

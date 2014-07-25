@@ -15,10 +15,9 @@ SceneGame::SceneGame(sq::Application* _app) : sq::Scene(_app) {
     tickRate = 120;
     dt = 1/120.d;
 
-    ground.load_map("res/maps/test.json", _app->texHolder);
+    ground.load_map("res/maps/test.json");
 
     camera = sqe::Camera({0.f, 1.f, 6.f}, 0.5f, 0.f, 4, 3, 1.17f, 0.1f, 100.f);
-    //camera = sqe::Camera({0.f, 1.f, 10.f}, 0.f, 0.f, 4, 3, 1.17f, 0.1f, 100.f);
     camera.update_projMatrix();
     camera.update_viewMatrix();
 }
@@ -38,38 +37,25 @@ void SceneGame::update() {
     camera.update_viewMatrix();
 }
 
-void SceneGame::render(sf::RenderTarget&, float) {
+void SceneGame::render(sf::RenderTarget& target, float) {
+    target.popGLStates();
+
     static bool first = true;
 
     static GLuint prog = glCreateProgram();
-
     static GLuint u_projMatrix, u_viewMatrix,
                   u_w_lightPos, u_lightDiff, u_lightAmbi,
-                  u_basicTex;
+                  u_texArray;
 
-    static GLuint texture = 0;
-
+    static GLuint groundTexArray = 0;
     static int pCount;
-
     static GLuint vaoGround = 0;
 
     if (first) {
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
 
-        ground.get_models(vaoGround, pCount);
-
-        sf::Image image;
-        image.loadFromFile("res/greenthing.png");
-        glGenTextures(1, &texture);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.getSize().x, image.getSize().y, 0, GL_RGBA,
-                     GL_UNSIGNED_BYTE, image.getPixelsPtr());
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        ground.get_models(vaoGround, groundTexArray, pCount);
 
         sqe::create_shader("res/shaders/main_vs.glsl", "res/shaders/main_fs.glsl", prog);
 
@@ -78,11 +64,14 @@ void SceneGame::render(sf::RenderTarget&, float) {
         u_w_lightPos = glGetUniformLocation(prog, "w_lightPos");
         u_lightDiff = glGetUniformLocation(prog, "lightDiff");
         u_lightAmbi = glGetUniformLocation(prog, "lightAmbi");
-        u_basicTex = glGetUniformLocation(prog, "basicTex");
+        u_texArray = glGetUniformLocation(prog, "texArray");
 
         first = false;
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
+
+    glClearColor(0.3f, 0.3f, 0.3f, 1.f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glUseProgram(prog);
 
@@ -92,13 +81,16 @@ void SceneGame::render(sf::RenderTarget&, float) {
     glUniform3fv(u_lightDiff, 1, glm::value_ptr(light.lightDiff));
     glUniform3fv(u_lightAmbi, 1, glm::value_ptr(light.lightAmbi));
     glUniform3fv(u_w_lightPos, 1, glm::value_ptr(light.pos));
-    glUniform1i(u_basicTex, 0);
+
+    glUniform1i(u_texArray, 0);
 
     glBindVertexArray(vaoGround);
     glDrawArrays(GL_TRIANGLES, 0, pCount);
 
     glUseProgram(0);
     glBindVertexArray(0);
+
+    target.pushGLStates();
 }
 
 bool HandlerGame::handle(sf::Event&) {

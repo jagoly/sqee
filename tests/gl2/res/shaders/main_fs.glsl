@@ -2,16 +2,16 @@
 
 in vec3 w_norm;
 in vec3 e_pos, e_norm;
-in vec2 texCoords;
+in vec3 texCoords;
 
 uniform vec3 w_lightPos, lightDiff, lightAmbi;
 uniform mat4 viewMatrix;
-uniform sampler2D basicTex;
+uniform sampler2DArray texArray;
 
 out vec4 fragColour;
 
 void main() {
-    vec4 texel = texture2D(basicTex, texCoords);
+    vec4 texel = texture(texArray, texCoords);
 
     vec3 reflDiff = vec3(1.f, 1.f, 1.f);
     vec3 reflAmbi = vec3(1.f, 1.f, 1.f);

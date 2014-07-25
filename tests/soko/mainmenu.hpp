@@ -22,6 +22,8 @@ public:
 
     void reload_level_list(std::string dirPath);
     void start_game(std::string filePath);
+
+    void render(sf::RenderTarget& target, float ft);
 };
 
 }

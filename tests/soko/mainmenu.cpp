@@ -79,4 +79,9 @@ void SceneMainMenu::start_game(std::string filePath) {
     app->sweep_scene("mainmenu");
 }
 
+void SceneMainMenu::render(sf::RenderTarget& target, float ft) {
+    target.clear();
+    sqe::SceneMenu::render(target, ft);
+}
+
 }
