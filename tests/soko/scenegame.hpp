@@ -19,11 +19,11 @@ public:
     std::vector<std::vector<unsigned short int>> levelTexVec;
     std::vector<std::vector<unsigned short int>> levelObjVec;
 
-    void load_level(std::string);
+    void load_level(std::string filePath);
     void start_level();
     void win_level();
 
-    void render(sf::RenderTarget&, float);
+    void render(sf::RenderTarget& target, float ft);
     void update();
 };
 

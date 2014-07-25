@@ -6,7 +6,7 @@
 namespace sqt {
 
 struct Level {
-    Level(std::string);
+    Level(std::string filePath);
 
     unsigned short int width, height;
     unsigned short int pX, pY;

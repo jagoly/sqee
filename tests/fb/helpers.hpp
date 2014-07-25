@@ -105,6 +105,7 @@ struct Rect {
         case SIDE::west:
             return LineSeg(ct[3][0], ct[3][1], ct[0][0], ct[0][1]); break;
         }
+    throw;
     }
 };
 

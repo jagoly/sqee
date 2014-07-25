@@ -18,7 +18,8 @@ namespace sq {
 
 class Application {
 public:
-    Application(unsigned int, unsigned int, unsigned int, bool, bool, bool, std::string);
+    Application(unsigned int _width, unsigned int _height, unsigned int _AA, bool _showfps,
+                bool _vsync, bool _resizable, std::string _title);
 
     bool running;
 
@@ -30,27 +31,27 @@ public:
 
     void run();
 
-    virtual void set_size(unsigned int width, unsigned int height);
+    virtual void set_size(unsigned int _width, unsigned int _height);
     sf::Vector2u get_size();
 
-    void set_vsync(bool);
+    void set_vsync(bool _vsync);
     bool get_vsync();
 
-    void set_showfps(bool);
+    void set_showfps(bool _showfps);
     bool get_showfps();
 
-    void attach_handler(std::string, HandlerPtr);
+    void attach_handler(std::string strId, HandlerPtr handler);
 
-    void append_scene(std::string, ScenePtr);
-    void prepend_scene(std::string, ScenePtr);
-    void insert_scene(int, std::string, ScenePtr);
+    void append_scene(std::string strId, ScenePtr scene);
+    void prepend_scene(std::string strId, ScenePtr scene);
+    void insert_scene(int index, std::string strId, ScenePtr scene);
 
     Scene& get_scene_first();
     Scene& get_scene_last();
-    Scene& get_scene(std::string);
+    Scene& get_scene(std::string strId);
 
-    void sweep_handler(std::string);
-    void sweep_scene(std::string);
+    void sweep_handler(std::string strId);
+    void sweep_scene(std::string strId);
 
 protected:
     sf::RenderWindow* window;

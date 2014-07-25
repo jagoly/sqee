@@ -18,9 +18,9 @@ class Application;
 
 class Handler {
 public:
-    Handler(Application*);
+    Handler(Application* _app);
 
-    virtual bool handle(sf::Event&);
+    virtual bool handle(sf::Event& event);
 
 protected:
     Application* app;

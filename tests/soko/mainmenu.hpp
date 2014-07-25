@@ -7,7 +7,7 @@ namespace sqt {
 
 class SceneMainMenu : public sqe::SceneMenu {
 public:
-    SceneMainMenu(sq::Application*);
+    SceneMainMenu(sq::Application* _app);
 
     sfg::Box::Ptr wMainVBox;
       sfg::Box::Ptr wHeaderHBox;
@@ -20,8 +20,8 @@ public:
       sfg::Box::Ptr wFooterHBox;
         sfg::Label::Ptr wAuthorLabel;
 
-    void reload_level_list(std::string);
-    void start_game(std::string);
+    void reload_level_list(std::string dirPath);
+    void start_game(std::string filePath);
 };
 
 }

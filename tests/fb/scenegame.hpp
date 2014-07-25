@@ -9,7 +9,7 @@ namespace sqt {
 
 class SceneGame : public sq::Scene {
 public:
-    SceneGame(sq::Application*);
+    SceneGame(sq::Application* _app);
 
     unsigned int seed;
     std::minstd_rand gen;
@@ -36,14 +36,14 @@ public:
     void update_crashed();
     void end_game();
 
-    void render(sf::RenderTarget&, float);
+    void render(sf::RenderTarget& target, float ft);
     void update();
 };
 
 class HandlerGame : public sq::Handler {
 public:
     using sq::Handler::Handler;
-    bool handle(sf::Event&);
+    bool handle(sf::Event& event);
 };
 
 }

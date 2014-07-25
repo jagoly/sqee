@@ -42,6 +42,8 @@ bool create_shader(std::string vertPath, std::string fragPath, GLuint& prog) {
     glAttachShader(prog, frag);
     glLinkProgram(prog);
     std::cout << sqe::get_shader_error(prog);
+
+    return false;
 }
 
 bool load_mesh(std::string filePath, GLuint& vao, int& pointCount) {

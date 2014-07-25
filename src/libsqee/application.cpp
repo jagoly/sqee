@@ -29,10 +29,10 @@ Application::Application(unsigned int _width, unsigned int _height, unsigned int
 }
 
 
-void Application::set_size(unsigned int width, unsigned int height) {
-    window->setView(sf::View({0, 0, float(width), float(height)}));
+void Application::set_size(unsigned int _width, unsigned int _height) {
+    window->setView(sf::View({0, 0, float(_width), float(_height)}));
     for (auto& scene : sceneList) {
-        scene->resize(width, height);
+        scene->resize(_width, _height);
     }
 }
 sf::Vector2u Application::get_size() {
@@ -114,29 +114,9 @@ void Application::run() {
     }
 }
 
-Scene& Application::get_scene_first() {
-    return *sceneList.front();
-}
-
-Scene& Application::get_scene_last() {
-    return *sceneList.back();
-}
-
-Scene& Application::get_scene(std::string strId) {
-    return *sceneMap[strId];
-}
-
-void Application::sweep_scene(std::string strId) {
-    sceneSweep.emplace(strId);
-}
-
 void Application::attach_handler(std::string strId, HandlerPtr handler) {
     handlerMap.insert(std::make_pair(strId, handler));
     handlerFList.push_front(handler);
-}
-
-void Application::sweep_handler(std::string strId) {
-    handlerSweep.emplace(strId);
 }
 
 void Application::append_scene(std::string strId, ScenePtr scene) {
@@ -154,6 +134,26 @@ void Application::insert_scene(int index, std::string strId, ScenePtr scene) {
     std::advance(iter, index);
     sceneMap.insert(std::make_pair(strId, scene));
     sceneList.insert(iter, scene);
+}
+
+Scene& Application::get_scene_first() {
+    return *sceneList.front();
+}
+
+Scene& Application::get_scene_last() {
+    return *sceneList.back();
+}
+
+Scene& Application::get_scene(std::string strId) {
+    return *sceneMap[strId];
+}
+
+void Application::sweep_handler(std::string strId) {
+    handlerSweep.emplace(strId);
+}
+
+void Application::sweep_scene(std::string strId) {
+    sceneSweep.emplace(strId);
 }
 
 }

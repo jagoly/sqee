@@ -4,14 +4,15 @@
 #include <string>
 
 #include <libsqee/extra/gl.hpp>
+#include <libsqee/textureholder.hpp>
 
 namespace sqt {
 
-class Floor {
+class Ground {
 public:
-    Floor();
+    Ground();
 
-    bool load_map(std::string filePath);
+    bool load_map(std::string filePath, sq::TextureHolder& texHolder);
 
     int width, height;
 
@@ -21,6 +22,7 @@ private:
     std::vector<int> tilesModels;
     std::vector<int> tilesCollisions;
     std::vector<int> tilesSwitches;
+    std::vector<int> tilesTextures;
 };
 
 }

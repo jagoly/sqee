@@ -8,7 +8,7 @@ namespace sqe {
 
 class SceneMenu : public sq::Scene {
 public:
-    SceneMenu(sq::Application*, bool);
+    SceneMenu(sq::Application* _app, bool startActive);
 
     bool active;
 
@@ -16,8 +16,8 @@ public:
     virtual void deactivate();
 
     virtual void update();
-    virtual void render(sf::RenderTarget&, float);
-    virtual bool handleEvent(sf::Event&);
+    virtual void render(sf::RenderTarget& target, float ft);
+    virtual bool handleEvent(sf::Event& event);
 
 protected:
     sfg::Desktop desktop;
@@ -26,8 +26,8 @@ protected:
 
 class HandlerMenu : public sq::Handler {
 public:
-    HandlerMenu(sq::Application*, std::string);
-    bool handle(sf::Event&);
+    HandlerMenu(sq::Application* _app, std::string strId);
+    bool handle(sf::Event& event);
 protected:
     std::string menuId;
 };

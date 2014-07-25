@@ -158,20 +158,20 @@ public:
 
 class SceneGame : public sq::Scene {
 public:
-    SceneGame(sq::Application*);
+    SceneGame(sq::Application* _app);
 
     Cube cube;
     sqe::Camera camera;
     Light light;
 
-    void render(sf::RenderTarget&, float);
+    void render(sf::RenderTarget& target, float ft);
     void update();
 };
 
 class HandlerGame : public sq::Handler {
 public:
     using sq::Handler::Handler;
-    bool handle(sf::Event&);
+    bool handle(sf::Event& event);
 };
 
 }

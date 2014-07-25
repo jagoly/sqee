@@ -7,7 +7,7 @@ namespace sqt {
 
 class SceneGameMenus : public sqe::SceneMenu {
 public:
-    SceneGameMenus(sq::Application*);
+    SceneGameMenus(sq::Application* _app);
 
     bool active;
 

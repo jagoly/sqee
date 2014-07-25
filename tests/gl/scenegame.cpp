@@ -47,7 +47,7 @@ void SceneGame::update() {
     camera.update_projMatrix();
 }
 
-void SceneGame::render(sf::RenderTarget& target, float) {
+void SceneGame::render(sf::RenderTarget&, float) {
     static bool first = true;
 
     static GLuint prog = glCreateProgram();
@@ -110,7 +110,7 @@ void SceneGame::render(sf::RenderTarget& target, float) {
     glBindVertexArray(0);
 }
 
-bool HandlerGame::handle(sf::Event& event) {
+bool HandlerGame::handle(sf::Event&) {
     return false;
 }
 

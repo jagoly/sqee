@@ -12,15 +12,15 @@ class SoundManager {
 public:
     SoundManager();
 
-    void add_sound(std::string, std::string);
-    void remove_sound(std::string);
+    void add_sound(std::string strId, std::string strPath);
+    void remove_sound(std::string strId);
 
-    void play_sound(std::string);
-    void play_managed_sound(std::string, std::string, bool);
+    void play_sound(std::string strId);
+    void play_managed_sound(std::string strId, std::string instId, bool notSureWhatThisWasGonnaDo);
 
-    void stop_managed_sound(std::string);
-    void pause_managed_sound(std::string);
-    void resume_managed_sound(std::string);
+    void stop_managed_sound(std::string instId);
+    void pause_managed_sound(std::string instId);
+    void resume_managed_sound(std::string instId);
 
     void clean();
 

@@ -14,19 +14,19 @@ class Application;
 
 class Scene {
 public:
-    Scene(Application*);
+    Scene(Application* _app);
 
     double accum;
     int tickRate;
     double dt;
 
-    virtual void resize(unsigned int, unsigned int);
+    virtual void resize(unsigned int width, unsigned int height);
     virtual void update();
-    virtual void render(sf::RenderTarget&, float);
+    virtual void render(sf::RenderTarget& target, float ft);
 protected:
     Application* app;
 
-    float interpolate(float, float);
+    float interpolate(float a, float b);
 };
 
 typedef std::shared_ptr<Scene> ScenePtr;

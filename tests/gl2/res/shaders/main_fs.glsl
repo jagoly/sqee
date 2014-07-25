@@ -11,7 +11,7 @@ uniform sampler2D basicTex;
 out vec4 fragColour;
 
 void main() {
-    //vec4 texel = texture2D(basicTex, texCoords);
+    vec4 texel = texture2D(basicTex, texCoords);
 
     vec3 reflDiff = vec3(1.f, 1.f, 1.f);
     vec3 reflAmbi = vec3(1.f, 1.f, 1.f);
@@ -28,8 +28,8 @@ void main() {
 
     vec3 diff = lightDiff * reflDiff * dotProd;
 
-    fragColour = vec4(diff+ambi, 1.f);
-    //fragColour = texel * vec4(diff+ambi, 1.f);
+    //fragColour = vec4(diff+ambi, 1.f);
+    fragColour = texel * vec4(diff+ambi, 1.f);
     //fragColour = vec4(1.f, 1.f, 1.f, 1.f);
     //fragColour = vec4(w_norm, 1.f);
 }

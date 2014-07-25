@@ -8,11 +8,11 @@
 
 namespace sqt {
 
-Floor::Floor() {
+Ground::Ground() {
 
 }
 
-bool Floor::load_map(std::string filePath) {
+bool Ground::load_map(std::string filePath, sq::TextureHolder& texHolder) {
     Json::Value root = sqe::load_json_file(filePath);
 
     width = root["width"].asInt();
@@ -21,12 +21,24 @@ bool Floor::load_map(std::string filePath) {
     for (int i = 0; i < width*height; i++) {
         tilesModels.push_back(root["tilesModels"][i].asInt());
     }
+
+    for (int i = 0; i < int(root["textures"].size()); i++) {
+        texHolder.add_texture("ground_"+std::to_string(i),
+                              "res/textures/ground/" + root["textures"][i].asString());
+    }
+
+    for (int i = 0; i < width*height; i++) {
+        tilesTextures.push_back(root["tilesTextures"][i].asInt());
+    }
+
+    return false;
 }
 
-void Floor::get_models(GLuint& vao, int& pCount) {
+void Ground::get_models(GLuint& vao, int& pCount) {
     pCount = width * height * 6;
     float points[width * height * 18];
     float normals[width * height * 18];
+    float texcoords[width * height * 12];
 
     float angleNormals[9][2][2] = {
         {{0.f, 0.25f},  {0.f, 0.25f}},  // 0
@@ -100,8 +112,6 @@ void Floor::get_models(GLuint& vao, int& pCount) {
             bool sloped = slopeds[pos];
             bool corner = corners[pos];
             bool incline = inclines[pos];
-            bool v1 = v1s[pos];
-            bool v2 = v2s[pos];
 
             int angle = angles[pos];
 
@@ -120,6 +130,20 @@ void Floor::get_models(GLuint& vao, int& pCount) {
                     points[start+13] = bottom;
                     points[start+15] = right;
                     points[start+16] = top;
+
+                    texcoords[pos*12+0] = 0.f;
+                    texcoords[pos*12+1] = 0.f;
+                    texcoords[pos*12+2] = 0.f;
+                    texcoords[pos*12+3] = 1.f;
+                    texcoords[pos*12+4] = 1.f;
+                    texcoords[pos*12+5] = 1.f;
+
+                    texcoords[pos*12+6] = 0.f;
+                    texcoords[pos*12+7] = 0.f;
+                    texcoords[pos*12+8] = 1.f;
+                    texcoords[pos*12+9] = 0.f;
+                    texcoords[pos*12+10] = 1.f;
+                    texcoords[pos*12+11] = 1.f;
                 } else
                 if (angle == 3) {
                     points[start+0] = left;
@@ -135,6 +159,20 @@ void Floor::get_models(GLuint& vao, int& pCount) {
                     points[start+13] = bottom;
                     points[start+15] = right;
                     points[start+16] = bottom;
+
+                    texcoords[pos*12+0] = 0.f;
+                    texcoords[pos*12+1] = 1.f;
+                    texcoords[pos*12+2] = 1.f;
+                    texcoords[pos*12+3] = 1.f;
+                    texcoords[pos*12+4] = 1.f;
+                    texcoords[pos*12+5] = 0.f;
+
+                    texcoords[pos*12+6] = 0.f;
+                    texcoords[pos*12+7] = 1.f;
+                    texcoords[pos*12+8] = 0.f;
+                    texcoords[pos*12+9] = 0.f;
+                    texcoords[pos*12+10] = 1.f;
+                    texcoords[pos*12+11] = 0.f;
                 } else
                 if (angle == 5) {
                     points[start+0] = right;
@@ -150,6 +188,20 @@ void Floor::get_models(GLuint& vao, int& pCount) {
                     points[start+13] = top;
                     points[start+15] = left;
                     points[start+16] = bottom;
+
+                    texcoords[pos*12+0] = 1.f;
+                    texcoords[pos*12+1] = 1.f;
+                    texcoords[pos*12+2] = 1.f;
+                    texcoords[pos*12+3] = 0.f;
+                    texcoords[pos*12+4] = 0.f;
+                    texcoords[pos*12+5] = 0.f;
+
+                    texcoords[pos*12+6] = 1.f;
+                    texcoords[pos*12+7] = 1.f;
+                    texcoords[pos*12+8] = 0.f;
+                    texcoords[pos*12+9] = 1.f;
+                    texcoords[pos*12+10] = 0.f;
+                    texcoords[pos*12+11] = 0.f;
                 } else
                 if (angle == 7) {
                     points[start+0] = right;
@@ -165,6 +217,20 @@ void Floor::get_models(GLuint& vao, int& pCount) {
                     points[start+13] = top;
                     points[start+15] = left;
                     points[start+16] = top;
+
+                    texcoords[pos*12+0] = 1.f;
+                    texcoords[pos*12+1] = 0.f;
+                    texcoords[pos*12+2] = 0.f;
+                    texcoords[pos*12+3] = 0.f;
+                    texcoords[pos*12+4] = 0.f;
+                    texcoords[pos*12+5] = 1.f;
+
+                    texcoords[pos*12+6] = 1.f;
+                    texcoords[pos*12+7] = 0.f;
+                    texcoords[pos*12+8] = 1.f;
+                    texcoords[pos*12+9] = 1.f;
+                    texcoords[pos*12+10] = 0.f;
+                    texcoords[pos*12+11] = 1.f;
                 }
             } else {
                 points[start+0] = left;
@@ -180,6 +246,20 @@ void Floor::get_models(GLuint& vao, int& pCount) {
                 points[start+13] = top;
                 points[start+15] = right;
                 points[start+16] = top;
+
+                texcoords[pos*12+0] = 0.f;
+                texcoords[pos*12+1] = 0.f;
+                texcoords[pos*12+2] = 1.f;
+                texcoords[pos*12+3] = 0.f;
+                texcoords[pos*12+4] = 1.f;
+                texcoords[pos*12+5] = 1.f;
+
+                texcoords[pos*12+6] = 0.f;
+                texcoords[pos*12+7] = 0.f;
+                texcoords[pos*12+8] = 0.f;
+                texcoords[pos*12+9] = 1.f;
+                texcoords[pos*12+10] = 1.f;
+                texcoords[pos*12+11] = 1.f;
             }
 
             for (int p = 0; p < 6; p++) {
@@ -198,7 +278,7 @@ void Floor::get_models(GLuint& vao, int& pCount) {
                         }
                     }
                 }
-                points[start + p*3 +2] = double(zBase) / 2.d;
+                points[start + p*3 +2] = float(zBase) / 2.f;
             }
         }
     }
@@ -209,12 +289,7 @@ void Floor::get_models(GLuint& vao, int& pCount) {
             int pos = y * width + x;
             int start = pos * 18;
 
-            int zBase = zBases[pos];
-            bool sloped = slopeds[pos];
-            bool corner = corners[pos];
             bool incline = inclines[pos];
-            bool v1 = v1s[pos];
-            bool v2 = v2s[pos];
             bool smooth = smooths[pos];
             int angle = angles[pos];
 
@@ -373,103 +448,33 @@ void Floor::get_models(GLuint& vao, int& pCount) {
                 neSum.x += norm.x;
                 neSum.y += norm.y;
             }
-            neSum.x /= 10.f;
-            neSum.y /= 10.f;
+
+            neSum.x /= 8.f;
+            neSum.y /= 8.f;
 
             glm::vec2 esSum;
             for (glm::vec2& norm : esNorms) {
                 esSum.x += norm.x;
                 esSum.y += norm.y;
             }
-            esSum.x /= 10.f;
-            esSum.y /= 10.f;
+            esSum.x /= 8.f;
+            esSum.y /= 8.f;
 
             glm::vec2 swSum;
             for (glm::vec2& norm : swNorms) {
                 swSum.x += norm.x;
                 swSum.y += norm.y;
             }
-            swSum.x /= 10.f;
-            swSum.y /= 10.f;
+            swSum.x /= 8.f;
+            swSum.y /= 8.f;
 
             glm::vec2 wnSum;
             for (glm::vec2& norm : wnNorms) {
                 wnSum.x += norm.x;
                 wnSum.y += norm.y;
             }
-            wnSum.x /= 10.f;
-            wnSum.y /= 10.f;
-
-/*
-            if (nSmooth) {
-                if (!corner) {
-                    glm::vec2 own;
-                    if (sloped) {
-                        own = glm::vec2(angleNormals[angle][0][0] * (1+incline),
-                                        angleNormals[angle][0][1] * (1+incline));
-                    } else own = glm::vec2(0.f, 0.f);
-
-                    normals[start+6+0] = (own.x + nNormals.x) / 2.f;
-                    normals[start+6+1] = (own.y + nNormals.y) / 2.f;
-                    normals[start+15+0] = (own.x + nNormals.x) / 2.f;
-                    normals[start+15+1] = (own.y + nNormals.y) / 2.f;
-                    normals[start+12+0] = (own.x + nNormals.x) / 2.f;
-                    normals[start+12+1] = (own.y + nNormals.y) / 2.f;
-                }
-            }
-
-            if (eSmooth) {
-                if (!corner) {
-                    glm::vec2 own;
-                    if (sloped) {
-                        own = glm::vec2(angleNormals[angle][0][0] * (1+incline),
-                                        angleNormals[angle][0][1] * (1+incline));
-                    } else own = glm::vec2(0.f, 0.f);
-
-                    normals[start+6+0] = (own.x + eNormals.x) / 2.f;
-                    normals[start+6+1] = (own.y + eNormals.y) / 2.f;
-                    normals[start+15+0] = (own.x + eNormals.x) / 2.f;
-                    normals[start+15+1] = (own.y + eNormals.y) / 2.f;
-                    normals[start+3+0] = (own.x + eNormals.x) / 2.f;
-                    normals[start+3+1] = (own.y + eNormals.y) / 2.f;
-                }
-            }
-
-            if (sSmooth) {
-                if (!corner) {
-                    glm::vec2 own;
-                    if (sloped) {
-                        own = glm::vec2(angleNormals[angle][0][0] * (1+incline),
-                                        angleNormals[angle][0][1] * (1+incline));
-                    } else own = glm::vec2(0.f, 0.f);
-
-                    normals[start+0+0] = (own.x + sNormals.x) / 2.f;
-                    normals[start+0+1] = (own.y + sNormals.y) / 2.f;
-                    normals[start+9+0] = (own.x + sNormals.x) / 2.f;
-                    normals[start+9+1] = (own.y + sNormals.y) / 2.f;
-                    normals[start+3+0] = (own.x + sNormals.x) / 2.f;
-                    normals[start+3+1] = (own.y + sNormals.y) / 2.f;
-                }
-            }
-
-
-            if (wSmooth) {
-                if (!corner) {
-                    glm::vec2 own;
-                    if (sloped) {
-                        own = glm::vec2(angleNormals[angle][0][0] * (1+incline),
-                                        angleNormals[angle][0][1] * (1+incline));
-                    } else own = glm::vec2(0.f, 0.f);
-
-                    normals[start+0+0] = (own.x + wNormals.x) / 2.f;
-                    normals[start+0+1] = (own.y + wNormals.y) / 2.f;
-                    normals[start+9+0] = (own.x + wNormals.x) / 2.f;
-                    normals[start+9+1] = (own.y + wNormals.y) / 2.f;
-                    normals[start+12+0] = (own.x + wNormals.x) / 2.f;
-                    normals[start+12+1] = (own.y + wNormals.y) / 2.f;
-                }
-            }
-*/
+            wnSum.x /= 8.f;
+            wnSum.y /= 8.f;
 
             if (nSmooth && eSmooth) {
                 if (angle==0 || angle==2 || angle==4 || angle==6 || angle==8) {
@@ -587,6 +592,7 @@ void Floor::get_models(GLuint& vao, int& pCount) {
 
     GLuint vboPoints = 0;
     GLuint vboNormals = 0;
+    GLuint vboTexcoords = 0;
 
     glGenBuffers(1, &vboPoints);
     glBindBuffer(GL_ARRAY_BUFFER, vboPoints);
@@ -596,14 +602,21 @@ void Floor::get_models(GLuint& vao, int& pCount) {
     glBindBuffer(GL_ARRAY_BUFFER, vboNormals);
     glBufferData(GL_ARRAY_BUFFER, sizeof(normals), normals, GL_STATIC_DRAW);
 
+    glGenBuffers(1, &vboTexcoords);
+    glBindBuffer(GL_ARRAY_BUFFER, vboTexcoords);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(texcoords), texcoords, GL_STATIC_DRAW);
+
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
     glBindBuffer(GL_ARRAY_BUFFER, vboPoints);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
     glBindBuffer(GL_ARRAY_BUFFER, vboNormals);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    glBindBuffer(GL_ARRAY_BUFFER, vboTexcoords);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 }
 
 }

@@ -14,20 +14,20 @@ namespace sqt {
 
 class SceneGame : public sq::Scene {
 public:
-    SceneGame(sq::Application*);
+    SceneGame(sq::Application* _app);
 
     sqe::Camera camera;
     SkyLight light;
-    Floor floor;
+    Ground ground;
 
-    void render(sf::RenderTarget&, float);
+    void render(sf::RenderTarget& target, float ft);
     void update();
 };
 
 class HandlerGame : public sq::Handler {
 public:
     using sq::Handler::Handler;
-    bool handle(sf::Event&);
+    bool handle(sf::Event& event);
 };
 
 }
