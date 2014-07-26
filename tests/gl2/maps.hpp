@@ -17,7 +17,7 @@ public:
     int width, height;
     int texCount;
 
-    void get_models(GLuint& vao, GLuint& texArray, int& pCount);
+    void get_models(GLuint& vao, GLuint& texArray, GLuint& nMapArray, int& pCount);
 
 private:
     std::vector<int> tilesModels;

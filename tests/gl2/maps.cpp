@@ -31,7 +31,7 @@ bool Ground::load_map(std::string filePath) {
     return false;
 }
 
-void Ground::get_models(GLuint& vao, GLuint& texArray, int& pCount) {
+void Ground::get_models(GLuint& vao, GLuint& texArray, GLuint& nMapArray, int& pCount) {
     pCount = width * height * 6;
     float points[width * height * 18];
     float normals[width * height * 18];
@@ -135,18 +135,18 @@ void Ground::get_models(GLuint& vao, GLuint& texArray, int& pCount) {
                     points[pos*18+16] = top;
 
                     texcoords[pos*18+0] = 0;
-                    texcoords[pos*18+1] = 0;
+                    texcoords[pos*18+1] = 1;
                     texcoords[pos*18+3] = 0;
-                    texcoords[pos*18+4] = 1;
+                    texcoords[pos*18+4] = 0;
                     texcoords[pos*18+6] = 1;
-                    texcoords[pos*18+7] = 1;
+                    texcoords[pos*18+7] = 0;
 
                     texcoords[pos*18+9] = 0;
-                    texcoords[pos*18+10] = 0;
+                    texcoords[pos*18+10] = 1;
                     texcoords[pos*18+12] = 1;
-                    texcoords[pos*18+13] = 0;
+                    texcoords[pos*18+13] = 1;
                     texcoords[pos*18+15] = 1;
-                    texcoords[pos*18+16] = 1;
+                    texcoords[pos*18+16] = 0;
                 } else
                 if (angle == 3) {
                     points[pos*18+0] = left;
@@ -164,18 +164,18 @@ void Ground::get_models(GLuint& vao, GLuint& texArray, int& pCount) {
                     points[pos*18+16] = bottom;
 
                     texcoords[pos*18+0] = 0;
-                    texcoords[pos*18+1] = 1;
+                    texcoords[pos*18+1] = 0;
                     texcoords[pos*18+3] = 1;
-                    texcoords[pos*18+4] = 1;
+                    texcoords[pos*18+4] = 0;
                     texcoords[pos*18+6] = 1;
-                    texcoords[pos*18+7] = 0;
+                    texcoords[pos*18+7] = 1;
 
                     texcoords[pos*18+9] = 0;
-                    texcoords[pos*18+10] = 1;
+                    texcoords[pos*18+10] = 0;
                     texcoords[pos*18+12] = 0;
-                    texcoords[pos*18+13] = 0;
+                    texcoords[pos*18+13] = 1;
                     texcoords[pos*18+15] = 1;
-                    texcoords[pos*18+16] = 0;
+                    texcoords[pos*18+16] = 1;
                 } else
                 if (angle == 5) {
                     points[pos*18+0] = right;
@@ -193,18 +193,18 @@ void Ground::get_models(GLuint& vao, GLuint& texArray, int& pCount) {
                     points[pos*18+16] = bottom;
 
                     texcoords[pos*18+0] = 1;
-                    texcoords[pos*18+1] = 1;
+                    texcoords[pos*18+1] = 0;
                     texcoords[pos*18+3] = 1;
-                    texcoords[pos*18+4] = 0;
+                    texcoords[pos*18+4] = 1;
                     texcoords[pos*18+6] = 0;
-                    texcoords[pos*18+7] = 0;
+                    texcoords[pos*18+7] = 1;
 
                     texcoords[pos*18+9] = 1;
-                    texcoords[pos*18+10] = 1;
+                    texcoords[pos*18+10] = 0;
                     texcoords[pos*18+12] = 0;
-                    texcoords[pos*18+13] = 1;
+                    texcoords[pos*18+13] = 0;
                     texcoords[pos*18+15] = 0;
-                    texcoords[pos*18+16] = 0;
+                    texcoords[pos*18+16] = 1;
                 } else
                 if (angle == 7) {
                     points[pos*18+0] = right;
@@ -222,18 +222,18 @@ void Ground::get_models(GLuint& vao, GLuint& texArray, int& pCount) {
                     points[pos*18+16] = top;
 
                     texcoords[pos*18+0] = 1;
-                    texcoords[pos*18+1] = 0;
+                    texcoords[pos*18+1] = 1;
                     texcoords[pos*18+3] = 0;
-                    texcoords[pos*18+4] = 0;
+                    texcoords[pos*18+4] = 1;
                     texcoords[pos*18+6] = 0;
-                    texcoords[pos*18+7] = 1;
+                    texcoords[pos*18+7] = 0;
 
                     texcoords[pos*18+9] = 1;
-                    texcoords[pos*18+10] = 0;
+                    texcoords[pos*18+10] = 1;
                     texcoords[pos*18+12] = 1;
-                    texcoords[pos*18+13] = 1;
+                    texcoords[pos*18+13] = 0;
                     texcoords[pos*18+15] = 0;
-                    texcoords[pos*18+16] = 1;
+                    texcoords[pos*18+16] = 0;
                 }
             } else {
                 points[pos*18+0] = left;
@@ -251,18 +251,18 @@ void Ground::get_models(GLuint& vao, GLuint& texArray, int& pCount) {
                 points[pos*18+16] = top;
 
                 texcoords[pos*18+0] = 0;
-                texcoords[pos*18+1] = 0;
+                texcoords[pos*18+1] = 1;
                 texcoords[pos*18+3] = 1;
-                texcoords[pos*18+4] = 0;
+                texcoords[pos*18+4] = 1;
                 texcoords[pos*18+6] = 1;
-                texcoords[pos*18+7] = 1;
+                texcoords[pos*18+7] = 0;
 
                 texcoords[pos*18+9] = 0;
-                texcoords[pos*18+10] = 0;
+                texcoords[pos*18+10] = 1;
                 texcoords[pos*18+12] = 0;
-                texcoords[pos*18+13] = 1;
+                texcoords[pos*18+13] = 0;
                 texcoords[pos*18+15] = 1;
-                texcoords[pos*18+16] = 1;
+                texcoords[pos*18+16] = 0;
             }
 
             for (int p = 0; p < 6; p++) {
@@ -623,15 +623,32 @@ void Ground::get_models(GLuint& vao, GLuint& texArray, int& pCount) {
     // Load Textures
     sf::Image image;
     glGenTextures(1, &texArray);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D_ARRAY, texArray);
     glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, 64, 64, texCount, 0,
                  GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     for (int i = 0; i < texCount ; i++) {
         image.loadFromFile("res/textures/ground/"+texPaths[i]);
+        glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, 64, 64, 1,
+                        GL_RGBA, GL_UNSIGNED_BYTE, image.getPixelsPtr());
+    }
+
+    glGenTextures(1, &nMapArray);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, nMapArray);
+    glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, 64, 64, texCount, 0,
+                 GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    for (int i = 0; i < texCount ; i++) {
+        if (!image.loadFromFile("res/normalmaps/ground/"+texPaths[i]))
+            image.loadFromFile("res/normalmaps/ground/blank.png");
         glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, 64, 64, 1,
                         GL_RGBA, GL_UNSIGNED_BYTE, image.getPixelsPtr());
     }

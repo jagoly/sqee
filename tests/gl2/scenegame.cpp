@@ -45,9 +45,10 @@ void SceneGame::render(sf::RenderTarget& target, float) {
     static GLuint prog = glCreateProgram();
     static GLuint u_projMatrix, u_viewMatrix,
                   u_w_lightPos, u_lightDiff, u_lightAmbi,
-                  u_texArray;
+                  u_texArray, u_nMapArray;
 
     static GLuint groundTexArray = 0;
+    static GLuint groundNMapArray = 0;
     static int pCount;
     static GLuint vaoGround = 0;
 
@@ -55,7 +56,7 @@ void SceneGame::render(sf::RenderTarget& target, float) {
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
 
-        ground.get_models(vaoGround, groundTexArray, pCount);
+        ground.get_models(vaoGround, groundTexArray, groundNMapArray, pCount);
 
         sqe::create_shader("res/shaders/main_vs.glsl", "res/shaders/main_fs.glsl", prog);
 
@@ -65,6 +66,7 @@ void SceneGame::render(sf::RenderTarget& target, float) {
         u_lightDiff = glGetUniformLocation(prog, "lightDiff");
         u_lightAmbi = glGetUniformLocation(prog, "lightAmbi");
         u_texArray = glGetUniformLocation(prog, "texArray");
+        u_nMapArray = glGetUniformLocation(prog, "nMapArray");
 
         first = false;
         glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -83,6 +85,7 @@ void SceneGame::render(sf::RenderTarget& target, float) {
     glUniform3fv(u_w_lightPos, 1, glm::value_ptr(light.pos));
 
     glUniform1i(u_texArray, 0);
+    glUniform1i(u_nMapArray, 1);
 
     glBindVertexArray(vaoGround);
     glDrawArrays(GL_TRIANGLES, 0, pCount);
