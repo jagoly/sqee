@@ -17,7 +17,7 @@ SceneGame::SceneGame(sq::Application* _app) : sq::Scene(_app) {
 
     ground.load_map("res/maps/test.json");
 
-    camera = sqe::Camera({0.f, 1.f, 6.f}, 0.5f, 0.f, 4, 3, 1.17f, 0.1f, 100.f);
+    camera = sqe::Camera({0.f, -3.f, 8.f}, 0.5f, 0.f, 16, 9, 1.17f, 0.1f, 100.f);
     camera.update_projMatrix();
     camera.update_viewMatrix();
 }
@@ -72,7 +72,7 @@ void SceneGame::render(sf::RenderTarget& target, float) {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
-    glClearColor(0.3f, 0.3f, 0.3f, 1.f);
+    glClearColor(0.f, 0.f, 0.f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glUseProgram(prog);
