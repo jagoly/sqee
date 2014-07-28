@@ -50,7 +50,7 @@ bool create_shader(std::string vertPath, std::string fragPath, GLuint& prog) {
 bool load_mesh(std::string filePath, GLuint& vao, int& pointCount) {
     Assimp::Importer importer;
 
-    const aiScene* scene = importer.ReadFile(filePath, aiProcess_Triangulate);
+    const aiScene* scene = importer.ReadFile(filePath, 0);
     const aiMesh* mesh = scene->mMeshes[0];
 
     pointCount = mesh->mNumVertices;
@@ -79,7 +79,7 @@ bool load_mesh(std::string filePath, GLuint& vao, int& pointCount) {
         free(points);
     }
 
-    if (1) {
+    if (mesh->HasNormals()) {
         normals = (GLfloat*)malloc(pointCount * 3 * sizeof(GLfloat));
         for (int i = 0; i < pointCount; i++) {
             const aiVector3D* vn = &(mesh->mNormals[i]);

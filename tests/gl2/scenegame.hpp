@@ -18,7 +18,7 @@ public:
 
     sqe::Camera camera;
     SkyLight light;
-    Ground ground;
+    LevelMap levelMap;
 
     void render(sf::RenderTarget& target, float ft);
     void update();

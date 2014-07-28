@@ -8,23 +8,37 @@
 
 namespace sqt {
 
-class Ground {
-public:
-    Ground();
-
-    bool load_map(std::string filePath);
-
+struct Ground {
     int width, height;
-    int texCount;
+    int texCount, pCount;
 
-    void get_models(GLuint& vao, GLuint& texArray, GLuint& nMapArray, int& pCount);
+    GLuint vao, texArray, nMapArray;
+};
 
+struct StaticModel {
+    GLuint vao, texture, nMap;
+    int pCount;
+};
+
+struct ModelInstance {
+    ModelInstance(glm::vec3 _pos, glm::vec3 _scale, int _index);
+    glm::vec3 pos, scale;
+    int index;
+    glm::mat4 modelMatrix;
+};
+
+class LevelMap {
+public:
+    Ground ground;
+    std::vector<StaticModel> modelVec;
+    std::vector<ModelInstance> mapModelVec;
+
+    bool load_map(std::string dirPath);
+
+    bool load_ground();
+    bool load_models();
 private:
-    std::vector<int> tilesModels;
-    std::vector<int> tilesCollisions;
-    std::vector<int> tilesSwitches;
-    std::vector<int> tilesTextures;
-    std::vector<std::string> texPaths;
+    std::string mapDirPath;
 };
 
 }

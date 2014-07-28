@@ -9,19 +9,36 @@
 
 namespace sqt {
 
-Ground::Ground() {
-
+ModelInstance::ModelInstance(glm::vec3 _pos, glm::vec3 _scale, int _index) {
+    pos = _pos;
+    scale = _scale;
+    index = _index;
+    modelMatrix = glm::translate(glm::mat4(), pos) * glm::scale(glm::mat4(), scale);
 }
 
-bool Ground::load_map(std::string filePath) {
-    Json::Value root = sqe::load_json_file(filePath);
+bool LevelMap::load_map(std::string dirPath) {
+    mapDirPath = dirPath;
+    // Put some kind of checks here
+    return false;
+}
 
-    width = root["width"].asInt();
-    height = root["height"].asInt();
-    texCount = root["textures"].size();
+bool LevelMap::load_ground() {
+    Json::Value root = sqe::load_json_file(mapDirPath+"/ground.json");
+
+    std::vector<int> tilesGeometry;
+    std::vector<int> tilesTextures;
+    std::vector<std::string> texPaths;
+
+    ground.width = root["width"].asInt();
+    ground.height = root["height"].asInt();
+    ground.texCount = root["textures"].size();
+
+    int width = ground.width;
+    int height = ground.height;
+    int texCount = ground.texCount;
 
     for (int i = 0; i < width*height; i++) {
-        tilesModels.push_back(root["tilesModels"][i].asInt());
+        tilesGeometry.push_back(root["tilesGeometry"][i].asInt());
         tilesTextures.push_back(root["tilesTextures"][i].asInt());
     }
 
@@ -29,11 +46,7 @@ bool Ground::load_map(std::string filePath) {
         texPaths.push_back(root["textures"][i].asString());
     }
 
-    return false;
-}
-
-void Ground::get_models(GLuint& vao, GLuint& texArray, GLuint& nMapArray, int& pCount) {
-    pCount = width * height * 6;
+    ground.pCount = width * height * 6;
     float points[width * height * 18];
     float normals[width * height * 18];
     int texcoords[width * height * 18];
@@ -57,6 +70,7 @@ void Ground::get_models(GLuint& vao, GLuint& texArray, GLuint& nMapArray, int& p
 
     // Working Arrays
     int zBases[width * height];
+    float zNormals[width * height];
     bool corners[width * height];
     bool v0s[width * height];
     bool v1s[width * height];
@@ -70,7 +84,7 @@ void Ground::get_models(GLuint& vao, GLuint& texArray, GLuint& nMapArray, int& p
         int y = height - y_ - 1;
         for (int x = 0; x < width; x++) {
             int pos = y * width + x;
-            int val = tilesModels[width*y_ + x];
+            int val = tilesGeometry[width*y_ + x];
 
             zBases[pos]      = (val >> 8) % 128;
             corners[pos]     = CHECK_BIT(val, 5);
@@ -101,7 +115,7 @@ void Ground::get_models(GLuint& vao, GLuint& texArray, GLuint& nMapArray, int& p
         }
     }
 
-    // Calculate Points
+    // Calculate Points and Base Z Normals
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
             int pos = y * width + x;
@@ -264,10 +278,7 @@ void Ground::get_models(GLuint& vao, GLuint& texArray, GLuint& nMapArray, int& p
             for (int p = 0; p < 6; p++) {
                 int zBase = zBases[pos];
                 if (corner) {
-                    if (p==0 || p==3) {
-                        zBase += 1 + incline;
-                    } else
-                    if (v0s[pos] && (p==1 || p==4)) {
+                    if (p==0 || p==3 || (v0s[pos] && (p==1 || p==4))) {
                         zBase += 1 + incline;
                     }
                 } else if ((angle == 0 && (p==0 || p==1 || p==3)) ||
@@ -278,6 +289,11 @@ void Ground::get_models(GLuint& vao, GLuint& texArray, GLuint& nMapArray, int& p
                 }
                 points[pos*18 + p*3 +2] = float(zBase) / 2.f;
             }
+
+            if (corners[pos] || (!corners[pos] && v0s[pos])) {
+                if (incline) zNormals[pos] = 0.5f;
+                else         zNormals[pos] = 0.75f;
+            } else zNormals[pos] = 1.f;
         }
     }
 
@@ -295,7 +311,7 @@ void Ground::get_models(GLuint& vao, GLuint& texArray, GLuint& nMapArray, int& p
             for (int p = 0; p < 6; p++) {
                 normals[pos*18 + p*3 +0] = angleNormals [angle] [v0s[pos]] [1*(p>2)] [0] * (1+incline);
                 normals[pos*18 + p*3 +1] = angleNormals [angle] [v0s[pos]] [1*(p>2)] [1] * (1+incline);
-                normals[pos*18 + p*3 +2] = 1.f;
+                normals[pos*18 + p*3 +2] = zNormals[pos];
             }
 
             // No Smoothing
@@ -339,10 +355,10 @@ void Ground::get_models(GLuint& vao, GLuint& texArray, GLuint& nMapArray, int& p
             glm::vec2 eNorms;
             glm::vec2 sNorms;
             glm::vec2 wNorms;
-            std::vector<glm::vec2> neNorms; neNorms.resize(8);
-            std::vector<glm::vec2> esNorms; esNorms.resize(8);
-            std::vector<glm::vec2> swNorms; swNorms.resize(8);
-            std::vector<glm::vec2> wnNorms; wnNorms.resize(8);
+            std::vector<glm::vec3> neNorms; neNorms.resize(8);
+            std::vector<glm::vec3> esNorms; esNorms.resize(8);
+            std::vector<glm::vec3> swNorms; swNorms.resize(8);
+            std::vector<glm::vec3> wnNorms; wnNorms.resize(8);
 
             // check edges
             if (y == height-1) nSmooth = false;
@@ -374,140 +390,171 @@ void Ground::get_models(GLuint& vao, GLuint& texArray, GLuint& nMapArray, int& p
             }
 
             if (nSmooth && eSmooth) {
-                neNorms[0] = glm::vec2(angleNormals [angle] [v0] [0] [0] * (1+incline),
-                                       angleNormals [angle] [v0] [0] [1] * (1+incline));
-                neNorms[1] = glm::vec2(angleNormals [angle] [v0] [1] [0] * (1+incline),
-                                       angleNormals [angle] [v0] [1] [1] * (1+incline));
-                neNorms[2] = glm::vec2(angleNormals [nAngle] [nV0] [eAngleInd[nAngle]] [0] * (1+nIncline),
-                                       angleNormals [nAngle] [nV0] [eAngleInd[nAngle]] [1] * (1+nIncline));
-                neNorms[3] = glm::vec2(angleNormals [nAngle] [nV0] [sAngleInd[nAngle]] [0] * (1+nIncline),
-                                       angleNormals [nAngle] [nV0] [sAngleInd[nAngle]] [1] * (1+nIncline));
-                neNorms[4] = glm::vec2(angleNormals [neAngle] [neV0] [sAngleInd[neAngle]] [0] * (1+neIncline),
-                                       angleNormals [neAngle] [neV0] [sAngleInd[neAngle]] [1] * (1+neIncline));
-                neNorms[5] = glm::vec2(angleNormals [neAngle] [neV0] [wAngleInd[neAngle]] [0] * (1+neIncline),
-                                       angleNormals [neAngle] [neV0] [wAngleInd[neAngle]] [1] * (1+neIncline));
-                neNorms[6] = glm::vec2(angleNormals [eAngle] [eV0] [wAngleInd[eAngle]] [0] * (1+eIncline),
-                                       angleNormals [eAngle] [eV0] [wAngleInd[eAngle]] [1] * (1+eIncline));
-                neNorms[7] = glm::vec2(angleNormals [eAngle] [eV0] [nAngleInd[eAngle]] [0] * (1+eIncline),
-                                       angleNormals [eAngle] [eV0] [nAngleInd[eAngle]] [1] * (1+eIncline));
+                neNorms[0] = glm::vec3(angleNormals [angle] [v0] [0] [0] * (1+incline),
+                                       angleNormals [angle] [v0] [0] [1] * (1+incline),
+                                       zNormals [pos]);
+                neNorms[1] = glm::vec3(angleNormals [angle] [v0] [1] [0] * (1+incline),
+                                       angleNormals [angle] [v0] [1] [1] * (1+incline),
+                                       zNormals [pos]);
+                neNorms[2] = glm::vec3(angleNormals [nAngle] [nV0] [eAngleInd[nAngle]] [0] * (1+nIncline),
+                                       angleNormals [nAngle] [nV0] [eAngleInd[nAngle]] [1] * (1+nIncline),
+                                       zNormals [nPos]);
+                neNorms[3] = glm::vec3(angleNormals [nAngle] [nV0] [sAngleInd[nAngle]] [0] * (1+nIncline),
+                                       angleNormals [nAngle] [nV0] [sAngleInd[nAngle]] [1] * (1+nIncline),
+                                       zNormals [nPos]);
+                neNorms[4] = glm::vec3(angleNormals [neAngle] [neV0] [sAngleInd[neAngle]] [0] * (1+neIncline),
+                                       angleNormals [neAngle] [neV0] [sAngleInd[neAngle]] [1] * (1+neIncline),
+                                       zNormals [nePos]);
+                neNorms[5] = glm::vec3(angleNormals [neAngle] [neV0] [wAngleInd[neAngle]] [0] * (1+neIncline),
+                                       angleNormals [neAngle] [neV0] [wAngleInd[neAngle]] [1] * (1+neIncline),
+                                       zNormals [nePos]);
+                neNorms[6] = glm::vec3(angleNormals [eAngle] [eV0] [wAngleInd[eAngle]] [0] * (1+eIncline),
+                                       angleNormals [eAngle] [eV0] [wAngleInd[eAngle]] [1] * (1+eIncline),
+                                       zNormals [ePos]);
+                neNorms[7] = glm::vec3(angleNormals [eAngle] [eV0] [nAngleInd[eAngle]] [0] * (1+eIncline),
+                                       angleNormals [eAngle] [eV0] [nAngleInd[eAngle]] [1] * (1+eIncline),
+                                       zNormals [ePos]);
             }
 
             if (eSmooth && sSmooth) {
-                esNorms[0] = glm::vec2(angleNormals [angle] [v0] [0] [0] * (1+incline),
-                                       angleNormals [angle] [v0] [0] [1] * (1+incline));
-                esNorms[1] = glm::vec2(angleNormals [angle] [v0] [1] [0] * (1+incline),
-                                       angleNormals [angle] [v0] [1] [1] * (1+incline));
-                esNorms[2] = glm::vec2(angleNormals [eAngle] [eV0] [sAngleInd[eAngle]] [0] * (1+eIncline),
-                                       angleNormals [eAngle] [eV0] [sAngleInd[eAngle]] [1] * (1+eIncline));
-                esNorms[3] = glm::vec2(angleNormals [eAngle] [eV0] [wAngleInd[eAngle]] [0] * (1+eIncline),
-                                       angleNormals [eAngle] [eV0] [wAngleInd[eAngle]] [1] * (1+eIncline));
-                esNorms[4] = glm::vec2(angleNormals [esAngle] [esV0] [wAngleInd[esAngle]] [0] * (1+esIncline),
-                                       angleNormals [esAngle] [esV0] [wAngleInd[esAngle]] [1] * (1+esIncline));
-                esNorms[5] = glm::vec2(angleNormals [esAngle] [esV0] [nAngleInd[esAngle]] [0] * (1+esIncline),
-                                       angleNormals [esAngle] [esV0] [nAngleInd[esAngle]] [1] * (1+esIncline));
-                esNorms[6] = glm::vec2(angleNormals [sAngle] [sV0] [nAngleInd[sAngle]] [0] * (1+sIncline),
-                                       angleNormals [sAngle] [sV0] [nAngleInd[sAngle]] [1] * (1+sIncline));
-                esNorms[7] = glm::vec2(angleNormals [sAngle] [sV0] [eAngleInd[sAngle]] [0] * (1+sIncline),
-                                       angleNormals [sAngle] [sV0] [eAngleInd[sAngle]] [1] * (1+sIncline));
+                esNorms[0] = glm::vec3(angleNormals [angle] [v0] [0] [0] * (1+incline),
+                                       angleNormals [angle] [v0] [0] [1] * (1+incline),
+                                       zNormals [pos]);
+                esNorms[1] = glm::vec3(angleNormals [angle] [v0] [1] [0] * (1+incline),
+                                       angleNormals [angle] [v0] [1] [1] * (1+incline),
+                                       zNormals [pos]);
+                esNorms[2] = glm::vec3(angleNormals [eAngle] [eV0] [sAngleInd[eAngle]] [0] * (1+eIncline),
+                                       angleNormals [eAngle] [eV0] [sAngleInd[eAngle]] [1] * (1+eIncline),
+                                       zNormals [ePos]);
+                esNorms[3] = glm::vec3(angleNormals [eAngle] [eV0] [wAngleInd[eAngle]] [0] * (1+eIncline),
+                                       angleNormals [eAngle] [eV0] [wAngleInd[eAngle]] [1] * (1+eIncline),
+                                       zNormals [ePos]);
+                esNorms[4] = glm::vec3(angleNormals [esAngle] [esV0] [wAngleInd[esAngle]] [0] * (1+esIncline),
+                                       angleNormals [esAngle] [esV0] [wAngleInd[esAngle]] [1] * (1+esIncline),
+                                       zNormals [esPos]);
+                esNorms[5] = glm::vec3(angleNormals [esAngle] [esV0] [nAngleInd[esAngle]] [0] * (1+esIncline),
+                                       angleNormals [esAngle] [esV0] [nAngleInd[esAngle]] [1] * (1+esIncline),
+                                       zNormals [esPos]);
+                esNorms[6] = glm::vec3(angleNormals [sAngle] [sV0] [nAngleInd[sAngle]] [0] * (1+sIncline),
+                                       angleNormals [sAngle] [sV0] [nAngleInd[sAngle]] [1] * (1+sIncline),
+                                       zNormals [sPos]);
+                esNorms[7] = glm::vec3(angleNormals [sAngle] [sV0] [eAngleInd[sAngle]] [0] * (1+sIncline),
+                                       angleNormals [sAngle] [sV0] [eAngleInd[sAngle]] [1] * (1+sIncline),
+                                       zNormals [sPos]);
             }
 
             if (sSmooth && wSmooth) {
-                swNorms[0] = glm::vec2(angleNormals [angle] [v0] [0] [0] * (1+incline),
-                                       angleNormals [angle] [v0] [0] [1] * (1+incline));
-                swNorms[1] = glm::vec2(angleNormals [angle] [v0] [1] [0] * (1+incline),
-                                       angleNormals [angle] [v0] [1] [1] * (1+incline));
-                swNorms[2] = glm::vec2(angleNormals [sAngle] [sV0] [wAngleInd[sAngle]] [0] * (1+sIncline),
-                                       angleNormals [sAngle] [sV0] [wAngleInd[sAngle]] [1] * (1+sIncline));
-                swNorms[3] = glm::vec2(angleNormals [sAngle] [sV0] [nAngleInd[sAngle]] [0] * (1+sIncline),
-                                       angleNormals [sAngle] [sV0] [nAngleInd[sAngle]] [1] * (1+sIncline));
-                swNorms[4] = glm::vec2(angleNormals [swAngle] [swV0] [nAngleInd[swAngle]] [0] * (1+swIncline),
-                                       angleNormals [swAngle] [swV0] [nAngleInd[swAngle]] [1] * (1+swIncline));
-                swNorms[5] = glm::vec2(angleNormals [swAngle] [swV0] [eAngleInd[swAngle]] [0] * (1+swIncline),
-                                       angleNormals [swAngle] [swV0] [eAngleInd[swAngle]] [1] * (1+swIncline));
-                swNorms[6] = glm::vec2(angleNormals [wAngle] [wV0] [eAngleInd[wAngle]] [0] * (1+wIncline),
-                                       angleNormals [wAngle] [wV0] [eAngleInd[wAngle]] [1] * (1+wIncline));
-                swNorms[7] = glm::vec2(angleNormals [wAngle] [wV0] [sAngleInd[wAngle]] [0] * (1+wIncline),
-                                       angleNormals [wAngle] [wV0] [sAngleInd[wAngle]] [1] * (1+wIncline));
+                swNorms[0] = glm::vec3(angleNormals [angle] [v0] [0] [0] * (1+incline),
+                                       angleNormals [angle] [v0] [0] [1] * (1+incline),
+                                       zNormals [pos]);
+                swNorms[1] = glm::vec3(angleNormals [angle] [v0] [1] [0] * (1+incline),
+                                       angleNormals [angle] [v0] [1] [1] * (1+incline),
+                                       zNormals [pos]);
+                swNorms[2] = glm::vec3(angleNormals [sAngle] [sV0] [wAngleInd[sAngle]] [0] * (1+sIncline),
+                                       angleNormals [sAngle] [sV0] [wAngleInd[sAngle]] [1] * (1+sIncline),
+                                       zNormals [sPos]);
+                swNorms[3] = glm::vec3(angleNormals [sAngle] [sV0] [nAngleInd[sAngle]] [0] * (1+sIncline),
+                                       angleNormals [sAngle] [sV0] [nAngleInd[sAngle]] [1] * (1+sIncline),
+                                       zNormals [sPos]);
+                swNorms[4] = glm::vec3(angleNormals [swAngle] [swV0] [nAngleInd[swAngle]] [0] * (1+swIncline),
+                                       angleNormals [swAngle] [swV0] [nAngleInd[swAngle]] [1] * (1+swIncline),
+                                       zNormals [swPos]);
+                swNorms[5] = glm::vec3(angleNormals [swAngle] [swV0] [eAngleInd[swAngle]] [0] * (1+swIncline),
+                                       angleNormals [swAngle] [swV0] [eAngleInd[swAngle]] [1] * (1+swIncline),
+                                       zNormals [swPos]);
+                swNorms[6] = glm::vec3(angleNormals [wAngle] [wV0] [eAngleInd[wAngle]] [0] * (1+wIncline),
+                                       angleNormals [wAngle] [wV0] [eAngleInd[wAngle]] [1] * (1+wIncline),
+                                       zNormals [wPos]);
+                swNorms[7] = glm::vec3(angleNormals [wAngle] [wV0] [sAngleInd[wAngle]] [0] * (1+wIncline),
+                                       angleNormals [wAngle] [wV0] [sAngleInd[wAngle]] [1] * (1+wIncline),
+                                       zNormals [wPos]);
             }
 
             if (wSmooth && nSmooth) {
-                wnNorms[0] = glm::vec2(angleNormals [angle] [v0] [0] [0] * (1+incline),
-                                       angleNormals [angle] [v0] [0] [1] * (1+incline));
-                wnNorms[1] = glm::vec2(angleNormals [angle] [v0] [1] [0] * (1+incline),
-                                       angleNormals [angle] [v0] [1] [1] * (1+incline));
-                wnNorms[2] = glm::vec2(angleNormals [wAngle] [wV0] [nAngleInd[wAngle]] [0] * (1+wIncline),
-                                       angleNormals [wAngle] [wV0] [nAngleInd[wAngle]] [1] * (1+wIncline));
-                wnNorms[3] = glm::vec2(angleNormals [wAngle] [wV0] [eAngleInd[wAngle]] [0] * (1+wIncline),
-                                       angleNormals [wAngle] [wV0] [eAngleInd[wAngle]] [1] * (1+wIncline));
-                wnNorms[4] = glm::vec2(angleNormals [wnAngle] [wnV0] [eAngleInd[wnAngle]] [0] * (1+wnIncline),
-                                       angleNormals [wnAngle] [wnV0] [eAngleInd[wnAngle]] [1] * (1+wnIncline));
-                wnNorms[5] = glm::vec2(angleNormals [wnAngle] [wnV0] [sAngleInd[wnAngle]] [0] * (1+wnIncline),
-                                       angleNormals [wnAngle] [wnV0] [sAngleInd[wnAngle]] [1] * (1+wnIncline));
-                wnNorms[6] = glm::vec2(angleNormals [nAngle] [nV0] [sAngleInd[nAngle]] [0] * (1+nIncline),
-                                       angleNormals [nAngle] [nV0] [sAngleInd[nAngle]] [1] * (1+nIncline));
-                wnNorms[7] = glm::vec2(angleNormals [nAngle] [nV0] [wAngleInd[nAngle]] [0] * (1+nIncline),
-                                       angleNormals [nAngle] [nV0] [wAngleInd[nAngle]] [1] * (1+nIncline));
+                wnNorms[0] = glm::vec3(angleNormals [angle] [v0] [0] [0] * (1+incline),
+                                       angleNormals [angle] [v0] [0] [1] * (1+incline),
+                                       zNormals [pos]);
+                wnNorms[1] = glm::vec3(angleNormals [angle] [v0] [1] [0] * (1+incline),
+                                       angleNormals [angle] [v0] [1] [1] * (1+incline),
+                                       zNormals [pos]);
+                wnNorms[2] = glm::vec3(angleNormals [wAngle] [wV0] [nAngleInd[wAngle]] [0] * (1+wIncline),
+                                       angleNormals [wAngle] [wV0] [nAngleInd[wAngle]] [1] * (1+wIncline),
+                                       zNormals [wPos]);
+                wnNorms[3] = glm::vec3(angleNormals [wAngle] [wV0] [eAngleInd[wAngle]] [0] * (1+wIncline),
+                                       angleNormals [wAngle] [wV0] [eAngleInd[wAngle]] [1] * (1+wIncline),
+                                       zNormals [wPos]);
+                wnNorms[4] = glm::vec3(angleNormals [wnAngle] [wnV0] [eAngleInd[wnAngle]] [0] * (1+wnIncline),
+                                       angleNormals [wnAngle] [wnV0] [eAngleInd[wnAngle]] [1] * (1+wnIncline),
+                                       zNormals [wnPos]);
+                wnNorms[5] = glm::vec3(angleNormals [wnAngle] [wnV0] [sAngleInd[wnAngle]] [0] * (1+wnIncline),
+                                       angleNormals [wnAngle] [wnV0] [sAngleInd[wnAngle]] [1] * (1+wnIncline),
+                                       zNormals [wnPos]);
+                wnNorms[6] = glm::vec3(angleNormals [nAngle] [nV0] [sAngleInd[nAngle]] [0] * (1+nIncline),
+                                       angleNormals [nAngle] [nV0] [sAngleInd[nAngle]] [1] * (1+nIncline),
+                                       zNormals [nPos]);
+                wnNorms[7] = glm::vec3(angleNormals [nAngle] [nV0] [wAngleInd[nAngle]] [0] * (1+nIncline),
+                                       angleNormals [nAngle] [nV0] [wAngleInd[nAngle]] [1] * (1+nIncline),
+                                       zNormals [nPos]);
             }
 
-            glm::vec2 neSum;
-            for (glm::vec2& norm : neNorms) {
-                neSum.x += norm.x;
-                neSum.y += norm.y;
+            glm::vec3 neSum;
+            for (glm::vec3& norm : neNorms) {
+                neSum += norm;
             }
+            neSum = glm::normalize(neSum);
 
-            neSum.x /= 8.f;
-            neSum.y /= 8.f;
-
-            glm::vec2 esSum;
-            for (glm::vec2& norm : esNorms) {
-                esSum.x += norm.x;
-                esSum.y += norm.y;
+            glm::vec3 esSum;
+            for (glm::vec3& norm : esNorms) {
+                esSum += norm;
             }
-            esSum.x /= 8.f;
-            esSum.y /= 8.f;
+            esSum = glm::normalize(esSum);
 
-            glm::vec2 swSum;
-            for (glm::vec2& norm : swNorms) {
-                swSum.x += norm.x;
-                swSum.y += norm.y;
+            glm::vec3 swSum;
+            for (glm::vec3& norm : swNorms) {
+                swSum += norm;
             }
-            swSum.x /= 8.f;
-            swSum.y /= 8.f;
+            swSum = glm::normalize(swSum);
 
-            glm::vec2 wnSum;
-            for (glm::vec2& norm : wnNorms) {
-                wnSum.x += norm.x;
-                wnSum.y += norm.y;
+            glm::vec3 wnSum;
+            for (glm::vec3& norm : wnNorms) {
+                wnSum += norm;
             }
-            wnSum.x /= 8.f;
-            wnSum.y /= 8.f;
+            wnSum = glm::normalize(wnSum);
 
             if (nSmooth && eSmooth) {
                 if (angle==0 || angle==2 || angle==4 || angle==6 || angle==8) {
                     normals[pos*18+6+0] = neSum.x;
                     normals[pos*18+6+1] = neSum.y;
+                    normals[pos*18+6+2] = neSum.z;
                     normals[pos*18+15+0] = neSum.x;
                     normals[pos*18+15+1] = neSum.y;
+                    normals[pos*18+15+2] = neSum.z;
                 } else
                 if (angle == 1) {
                     normals[pos*18+6+0] = neSum.x;
                     normals[pos*18+6+1] = neSum.y;
+                    normals[pos*18+6+2] = neSum.z;
                     normals[pos*18+15+0] = neSum.x;
                     normals[pos*18+15+1] = neSum.y;
+                    normals[pos*18+15+2] = neSum.z;
                 } else
                 if (angle == 3) {
                     normals[pos*18+3+0] = neSum.x;
                     normals[pos*18+3+1] = neSum.y;
+                    normals[pos*18+3+2] = neSum.z;
                 } else
                 if (angle == 5) {
                     normals[pos*18+0+0] = neSum.x;
                     normals[pos*18+0+1] = neSum.y;
+                    normals[pos*18+0+2] = neSum.z;
                     normals[pos*18+9+0] = neSum.x;
                     normals[pos*18+9+1] = neSum.y;
+                    normals[pos*18+9+2] = neSum.z;
                 } else
                 if (angle == 7) {
                     normals[pos*18+12+0] = neSum.x;
                     normals[pos*18+12+1] = neSum.y;
+                    normals[pos*18+12+2] = neSum.z;
                 }
             }
 
@@ -515,26 +562,33 @@ void Ground::get_models(GLuint& vao, GLuint& texArray, GLuint& nMapArray, int& p
                 if (angle==0 || angle==2 || angle==4 || angle==6 || angle==8) {
                     normals[pos*18+3+0] = esSum.x;
                     normals[pos*18+3+1] = esSum.y;
+                    normals[pos*18+3+2] = esSum.z;
                 } else
                 if (angle == 1) {
                     normals[pos*18+12+0] = esSum.x;
                     normals[pos*18+12+1] = esSum.y;
+                    normals[pos*18+12+2] = esSum.z;
                 } else
                 if (angle == 3) {
                     normals[pos*18+6+0] = esSum.x;
                     normals[pos*18+6+1] = esSum.y;
+                    normals[pos*18+6+2] = esSum.z;
                     normals[pos*18+15+0] = esSum.x;
                     normals[pos*18+15+1] = esSum.y;
+                    normals[pos*18+15+2] = esSum.z;
                 } else
                 if (angle == 5) {
                     normals[pos*18+3+0] = esSum.x;
                     normals[pos*18+3+1] = esSum.y;
+                    normals[pos*18+3+2] = esSum.z;
                 } else
                 if (angle == 7) {
                     normals[pos*18+0+0] = esSum.x;
                     normals[pos*18+0+1] = esSum.y;
+                    normals[pos*18+0+2] = esSum.z;
                     normals[pos*18+9+0] = esSum.x;
                     normals[pos*18+9+1] = esSum.y;
+                    normals[pos*18+9+2] = esSum.z;
                 }
             }
 
@@ -542,28 +596,36 @@ void Ground::get_models(GLuint& vao, GLuint& texArray, GLuint& nMapArray, int& p
                 if (angle==0 || angle==2 || angle==4 || angle==6 || angle==8) {
                     normals[pos*18+0+0] = swSum.x;
                     normals[pos*18+0+1] = swSum.y;
+                    normals[pos*18+0+2] = swSum.z;
                     normals[pos*18+9+0] = swSum.x;
                     normals[pos*18+9+1] = swSum.y;
+                    normals[pos*18+9+2] = swSum.z;
                 } else
                 if (angle == 1) {
                     normals[pos*18+0+0] = swSum.x;
                     normals[pos*18+0+1] = swSum.y;
+                    normals[pos*18+0+2] = swSum.z;
                     normals[pos*18+9+0] = swSum.x;
                     normals[pos*18+9+1] = swSum.y;
+                    normals[pos*18+9+2] = swSum.z;
                 } else
                 if (angle == 3) {
                     normals[pos*18+12+0] = swSum.x;
                     normals[pos*18+12+1] = swSum.y;
+                    normals[pos*18+12+2] = swSum.z;
                 } else
                 if (angle == 5) {
                     normals[pos*18+6+0] = swSum.x;
                     normals[pos*18+6+1] = swSum.y;
+                    normals[pos*18+6+2] = swSum.z;
                     normals[pos*18+15+0] = swSum.x;
                     normals[pos*18+15+1] = swSum.y;
+                    normals[pos*18+15+2] = swSum.z;
                 } else
                 if (angle == 7) {
                     normals[pos*18+3+0] = swSum.x;
                     normals[pos*18+3+1] = swSum.y;
+                    normals[pos*18+3+2] = swSum.z;
                 }
             }
 
@@ -571,26 +633,33 @@ void Ground::get_models(GLuint& vao, GLuint& texArray, GLuint& nMapArray, int& p
                 if (angle==0 || angle==2 || angle==4 || angle==6 || angle==8) {
                     normals[pos*18+12+0] = wnSum.x;
                     normals[pos*18+12+1] = wnSum.y;
+                    normals[pos*18+12+2] = wnSum.z;
                 } else
                 if (angle == 1) {
                     normals[pos*18+3+0] = wnSum.x;
                     normals[pos*18+3+1] = wnSum.y;
+                    normals[pos*18+3+2] = wnSum.z;
                 } else
                 if (angle == 3) {
                     normals[pos*18+0+0] = wnSum.x;
                     normals[pos*18+0+1] = wnSum.y;
+                    normals[pos*18+0+2] = wnSum.z;
                     normals[pos*18+9+0] = wnSum.x;
                     normals[pos*18+9+1] = wnSum.y;
+                    normals[pos*18+9+2] = wnSum.z;
                 } else
                 if (angle == 5) {
                     normals[pos*18+12+0] = wnSum.x;
                     normals[pos*18+12+1] = wnSum.y;
+                    normals[pos*18+12+2] = wnSum.z;
                 } else
                 if (angle == 7) {
                     normals[pos*18+6+0] = wnSum.x;
                     normals[pos*18+6+1] = wnSum.y;
+                    normals[pos*18+6+2] = wnSum.z;
                     normals[pos*18+15+0] = wnSum.x;
                     normals[pos*18+15+1] = wnSum.y;
+                    normals[pos*18+15+2] = wnSum.z;
                 }
             }
         }
@@ -612,8 +681,8 @@ void Ground::get_models(GLuint& vao, GLuint& texArray, GLuint& nMapArray, int& p
     glBindBuffer(GL_ARRAY_BUFFER, vboTexcoords);
     glBufferData(GL_ARRAY_BUFFER, sizeof(texcoords), texcoords, GL_STATIC_DRAW);
 
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
+    glGenVertexArrays(1, &ground.vao);
+    glBindVertexArray(ground.vao);
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
@@ -626,9 +695,9 @@ void Ground::get_models(GLuint& vao, GLuint& texArray, GLuint& nMapArray, int& p
 
     // Load Textures
     sf::Image image;
-    glGenTextures(1, &texArray);
+    glGenTextures(1, &ground.texArray);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, texArray);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, ground.texArray);
     glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, 64, 64, texCount, 0,
                  GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -642,9 +711,9 @@ void Ground::get_models(GLuint& vao, GLuint& texArray, GLuint& nMapArray, int& p
     }
 
     // Load Normal Maps
-    glGenTextures(1, &nMapArray);
+    glGenTextures(1, &ground.nMapArray);
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, nMapArray);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, ground.nMapArray);
     glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, 64, 64, texCount, 0,
                  GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -657,6 +726,34 @@ void Ground::get_models(GLuint& vao, GLuint& texArray, GLuint& nMapArray, int& p
         glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, 64, 64, 1,
                         GL_RGBA, GL_UNSIGNED_BYTE, image.getPixelsPtr());
     }
+
+    return false;
+}
+
+bool LevelMap::load_models() {
+    Json::Value root = sqe::load_json_file(mapDirPath+"/models.json");
+
+    int modelCount = root["models"].size();
+
+    for (int i = 0; i < modelCount; i++) {
+        modelVec.push_back(StaticModel());
+        sqe::load_mesh("res/models/"+root["models"][i].asString()+"/model.dae", modelVec.back().vao, modelVec.back().pCount);
+    }
+
+    for (Json::Value& valA : root["mapModels"]) {
+        for (Json::Value& valB : valA["locations"]) {
+            mapModelVec.push_back(
+                ModelInstance(glm::vec3(valB[0].asFloat(),
+                                        valB[1].asFloat(),
+                                        valB[2].asFloat()),
+                              glm::vec3(valA["scale"][0].asFloat(),
+                                        valA["scale"][1].asFloat(),
+                                        valA["scale"][2].asFloat()),
+                              valA["index"].asInt()));
+        }
+    }
+
+    return false;
 }
 
 }

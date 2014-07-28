@@ -15,7 +15,7 @@ SceneGame::SceneGame(sq::Application* _app) : sq::Scene(_app) {
     tickRate = 120;
     dt = 1/120.d;
 
-    ground.load_map("res/maps/test.json");
+    levelMap.load_map("res/maps/test");
 
     camera = sqe::Camera({0.f, -3.f, 8.f}, 0.5f, 0.f, 16, 9, 1.17f, 0.1f, 100.f);
     camera.update_projMatrix();
@@ -30,8 +30,8 @@ void SceneGame::update() {
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) NS += 1;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) NS -= 1;
 
-    camera.pos.x += EW * 0.01667f;
-    camera.pos.y += NS * 0.01667f;
+    camera.pos.x += EW * 0.02f;
+    camera.pos.y += NS * 0.02f;
 
     camera.update_projMatrix();
     camera.update_viewMatrix();
@@ -42,53 +42,91 @@ void SceneGame::render(sf::RenderTarget& target, float) {
 
     static bool first = true;
 
-    static GLuint prog = glCreateProgram();
-    static GLuint u_projMatrix, u_viewMatrix,
-                  u_w_lightPos, u_lightDiff, u_lightAmbi,
-                  u_texArray, u_nMapArray;
+    static GLuint groundProg = glCreateProgram();
+    static GLuint mapModelsProg = glCreateProgram();
 
-    static GLuint groundTexArray = 0;
-    static GLuint groundNMapArray = 0;
-    static int pCount;
-    static GLuint vaoGround = 0;
+    static GLuint groundU_projMatrix, groundU_viewMatrix,
+                  groundU_w_lightPos, groundU_lightDiff, groundU_lightAmbi,
+                  groundU_texArray, groundU_nMapArray;
+
+    static GLuint mapModelsU_modelMatrix, mapModelsU_projMatrix, mapModelsU_viewMatrix,
+                  mapModelsU_w_lightPos, mapModelsU_lightDiff, mapModelsU_lightAmbi;
+                  //groundU_tex, groundU_nMap;
 
     if (first) {
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
 
-        ground.get_models(vaoGround, groundTexArray, groundNMapArray, pCount);
+        levelMap.load_ground();
+        levelMap.load_models();
 
-        sqe::create_shader("res/shaders/main_vs.glsl", "res/shaders/main_fs.glsl", prog);
+        sqe::create_shader("res/shaders/ground_vs.glsl",
+                           "res/shaders/ground_fs.glsl", groundProg);
+        sqe::create_shader("res/shaders/mapmodel_vs.glsl",
+                           "res/shaders/mapmodel_fs.glsl", mapModelsProg);
 
-        u_projMatrix = glGetUniformLocation(prog, "projMatrix");
-        u_viewMatrix = glGetUniformLocation(prog, "viewMatrix");
-        u_w_lightPos = glGetUniformLocation(prog, "w_lightPos");
-        u_lightDiff = glGetUniformLocation(prog, "lightDiff");
-        u_lightAmbi = glGetUniformLocation(prog, "lightAmbi");
-        u_texArray = glGetUniformLocation(prog, "texArray");
-        u_nMapArray = glGetUniformLocation(prog, "nMapArray");
+        groundU_projMatrix = glGetUniformLocation(groundProg, "projMatrix");
+        groundU_viewMatrix = glGetUniformLocation(groundProg, "viewMatrix");
+        groundU_w_lightPos = glGetUniformLocation(groundProg, "w_lightPos");
+        groundU_lightDiff = glGetUniformLocation(groundProg, "lightDiff");
+        groundU_lightAmbi = glGetUniformLocation(groundProg, "lightAmbi");
+        groundU_texArray = glGetUniformLocation(groundProg, "texArray");
+        groundU_nMapArray = glGetUniformLocation(groundProg, "nMapArray");
 
-        first = false;
+        mapModelsU_modelMatrix = glGetUniformLocation(mapModelsProg, "modelMatrix");
+        mapModelsU_projMatrix = glGetUniformLocation(mapModelsProg, "projMatrix");
+        mapModelsU_viewMatrix = glGetUniformLocation(mapModelsProg, "viewMatrix");
+        mapModelsU_w_lightPos = glGetUniformLocation(mapModelsProg, "w_lightPos");
+        mapModelsU_lightDiff = glGetUniformLocation(mapModelsProg, "lightDiff");
+        mapModelsU_lightAmbi = glGetUniformLocation(mapModelsProg, "lightAmbi");
+        //mapModelsU_tex = glGetUniformLocation(mapModelsProg, "tex");
+        //mapModelsU_nMap = glGetUniformLocation(mapModelsProg, "nMap");
+
         glBindBuffer(GL_ARRAY_BUFFER, 0);
+        first = false;
     }
 
     glClearColor(0.f, 0.f, 0.f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glUseProgram(prog);
+    /// Ground ///
 
-    glUniformMatrix4fv(u_projMatrix, 1, GL_FALSE, glm::value_ptr(camera.projMat));
-    glUniformMatrix4fv(u_viewMatrix, 1, GL_FALSE, glm::value_ptr(camera.viewMat));
+    glUseProgram(groundProg);
 
-    glUniform3fv(u_lightDiff, 1, glm::value_ptr(light.lightDiff));
-    glUniform3fv(u_lightAmbi, 1, glm::value_ptr(light.lightAmbi));
-    glUniform3fv(u_w_lightPos, 1, glm::value_ptr(light.pos));
+    glUniformMatrix4fv(groundU_projMatrix, 1, GL_FALSE, glm::value_ptr(camera.projMat));
+    glUniformMatrix4fv(groundU_viewMatrix, 1, GL_FALSE, glm::value_ptr(camera.viewMat));
 
-    glUniform1i(u_texArray, 0);
-    glUniform1i(u_nMapArray, 1);
+    glUniform3fv(groundU_lightDiff, 1, glm::value_ptr(light.lightDiff));
+    glUniform3fv(groundU_lightAmbi, 1, glm::value_ptr(light.lightAmbi));
+    glUniform3fv(groundU_w_lightPos, 1, glm::value_ptr(light.pos));
 
-    glBindVertexArray(vaoGround);
-    glDrawArrays(GL_TRIANGLES, 0, pCount);
+    glUniform1i(groundU_texArray, 0);
+    glUniform1i(groundU_nMapArray, 1);
+
+    glBindVertexArray(levelMap.ground.vao);
+    glDrawArrays(GL_TRIANGLES, 0, levelMap.ground.pCount);
+
+    /// Map Models ///
+
+    glUseProgram(mapModelsProg);
+
+    glUniformMatrix4fv(mapModelsU_projMatrix, 1, GL_FALSE, glm::value_ptr(camera.projMat));
+    glUniformMatrix4fv(mapModelsU_viewMatrix, 1, GL_FALSE, glm::value_ptr(camera.viewMat));
+
+    glUniform3fv(mapModelsU_lightDiff, 1, glm::value_ptr(light.lightDiff));
+    glUniform3fv(mapModelsU_lightAmbi, 1, glm::value_ptr(light.lightAmbi));
+    glUniform3fv(mapModelsU_w_lightPos, 1, glm::value_ptr(light.pos));
+
+    for (int i = 0; i < levelMap.modelVec.size(); i++) {
+        // bind texture here
+        for (ModelInstance& m : levelMap.mapModelVec) {
+            if (m.index == i) {
+                glUniformMatrix4fv(mapModelsU_modelMatrix, 1, GL_FALSE, glm::value_ptr(m.modelMatrix));
+                glBindVertexArray(levelMap.modelVec[m.index].vao);
+                glDrawArrays(GL_TRIANGLES, 0, levelMap.modelVec[m.index].pCount);
+            }
+        }
+    }
 
     glUseProgram(0);
     glBindVertexArray(0);
