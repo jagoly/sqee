@@ -1,6 +1,6 @@
 #include <extra/basicmenu.hpp>
 
-namespace sqe {
+namespace sq {
 
 SceneMenu::SceneMenu(sq::Application* _app, bool startActive) : sq::Scene(_app) {
     rootWindow = sfg::Window::Create(sfg::Window::Style::NO_STYLE);

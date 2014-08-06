@@ -5,7 +5,7 @@
 #include <handler.hpp>
 #include <application.hpp>
 
-namespace sqe {
+namespace sq {
 
 class HandlerClose : public sq::Handler {
 public:

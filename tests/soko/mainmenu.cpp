@@ -9,7 +9,7 @@
 namespace sqt {
 namespace fs = boost::filesystem;
 
-SceneMainMenu::SceneMainMenu(sq::Application* _app) : sqe::SceneMenu(_app, true) {
+SceneMainMenu::SceneMainMenu(sq::Application* _app) : sq::SceneMenu(_app, true) {
     desktop.SetProperty("Label#titlelabel", "FontSize", 32);
 
     desktop.SetProperty("Button.levelbutton", "FontSize", 20);
@@ -55,7 +55,7 @@ void SceneMainMenu::reload_level_list(std::string dirPath) {
     std::sort(std::begin(pathVec), std::end(pathVec));
 
     for (auto& path : pathVec) {
-        auto root = sqe::load_json_file(path);
+        auto root = sq::load_json_file(path);
 
         auto btn = sfg::Button::Create(root["name"].asString());\
         btn->SetClass("levelbutton");
@@ -81,7 +81,7 @@ void SceneMainMenu::start_game(std::string filePath) {
 
 void SceneMainMenu::render(sf::RenderTarget& target, float ft) {
     target.clear();
-    sqe::SceneMenu::render(target, ft);
+    sq::SceneMenu::render(target, ft);
 }
 
 }

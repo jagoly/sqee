@@ -5,7 +5,7 @@
 
 namespace sqt {
 
-class SceneMainMenu : public sqe::SceneMenu {
+class SceneMainMenu : public sq::SceneMenu {
 public:
     SceneMainMenu(sq::Application* _app);
 

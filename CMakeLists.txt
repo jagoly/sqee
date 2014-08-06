@@ -20,7 +20,8 @@ set(SOURCES
     "${SRCDIR}/libsqee/extra/handlers.cpp"
     "${SRCDIR}/libsqee/extra/helpers.cpp"
     "${SRCDIR}/libsqee/extra/basicmenu.cpp"
-    "${SRCDIR}/libsqee/extra/gl.cpp"
+    "${SRCDIR}/libsqee/gl/gl.cpp"
+    "${SRCDIR}/libsqee/gl/mesh.cpp"
     "${INCDIR}/libsqee/application.hpp"
     "${INCDIR}/libsqee/handler.hpp"
     "${INCDIR}/libsqee/entity.hpp"
@@ -32,7 +33,8 @@ set(SOURCES
     "${INCDIR}/libsqee/extra/handlers.hpp"
     "${INCDIR}/libsqee/extra/helpers.hpp"
     "${INCDIR}/libsqee/extra/basicmenu.hpp"
-    "${INCDIR}/libsqee/extra/gl.hpp"
+    "${INCDIR}/libsqee/gl/gl.hpp"
+    "${INCDIR}/libsqee/gl/mesh.hpp"
 )
 
 add_library(libsqee SHARED ${SOURCES})

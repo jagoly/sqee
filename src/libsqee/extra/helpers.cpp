@@ -3,7 +3,7 @@
 
 #include <extra/helpers.hpp>
 
-namespace sqe {
+namespace sq {
 
 Json::Value load_json_file(std::string filePath) {
     std::ifstream src(filePath);

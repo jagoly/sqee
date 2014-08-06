@@ -8,9 +8,11 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <SFML/OpenGL.hpp>
-#include <SFML/System.hpp>
+#include <SFML/Graphics.hpp>
 
-namespace sqe {
+namespace sq {
+
+glm::vec4 get_tangent(glm::vec3 normal);
 
 std::string get_shader_error(const GLuint& shader);
 

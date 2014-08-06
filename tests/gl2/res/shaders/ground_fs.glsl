@@ -1,37 +1,41 @@
 #version 330
 
-in vec3 texCoords, w_norm, e_pos;
+in vec3 texCoord, t_viewDir, t_lightDir;
 
-uniform vec3 w_lightPos, lightDiff, lightAmbi;
-uniform mat4 viewMatrix;
+uniform vec3 lightDiff, lightAmbi;
 uniform sampler2DArray texArray;
 uniform sampler2DArray nMapArray;
 
 out vec4 fragColour;
 
 void main() {
-    vec4 texel = texture(texArray, texCoords);
-    vec3 nMNorm = normalize(texture(nMapArray, texCoords).rgb*2.f - 1.f);
-    vec3 adj_w_norm = vec3(w_norm.x + nMNorm.x, w_norm.y + nMNorm.y, w_norm.z);
-    vec3 e_norm = vec3(viewMatrix * vec4(adj_w_norm, 0.f));
+    vec3 lightSpec = vec3(1.f, 1.f, 1.f);
 
-    vec3 reflDiff = vec3(1.f, 1.f, 1.f);
+    vec4 texel = texture(texArray, texCoord);
+
+    vec3 t_norm = texture(nMapArray, texCoord).rgb;
+    t_norm = normalize(t_norm * 2.f - 1.f);
+
+    // ambient
     vec3 reflAmbi = vec3(1.f, 1.f, 1.f);
-
     vec3 ambi = lightAmbi * reflAmbi;
 
-    vec3 e_lightPos = vec3(viewMatrix * vec4(w_lightPos, 1.f));
-    vec3 lightDistToEye = e_lightPos - e_pos;
-
-    vec3 lightDirToEye = normalize(lightDistToEye);
-
-    float dotProd = dot(lightDirToEye, e_norm);
+    // diffuse
+    vec3 reflDiff = vec3(1.f, 1.f, 1.f);
+    vec3 t_dirToLight = normalize(-t_lightDir);
+    float dotProd = dot(t_dirToLight, t_norm);
     dotProd = max(dotProd, 0.f);
-
     vec3 diff = lightDiff * reflDiff * dotProd;
 
-    //fragColour = vec4(diff+ambi, 1.f);
-    fragColour = texel * vec4(diff+ambi, 1.f);
-    //fragColour = vec4(1.f, 1.f, 1.f, 1.f);
-    //fragColour = vec4(w_norm, 1.f);
+    // specular
+    //vec3 reflSpec = vec3(1.f, 1.f, 1.f);
+    //vec3 t_reflection = reflect(normalize(t_lightDir), t_norm);
+    //dotProd = dot(t_reflection, normalize(t_viewDir));
+    //dotProd = max(dotProd, 0.f);
+    //float factor = pow(dotProd, 300.f);
+    //vec3 spec = lightSpec * reflSpec * factor;
+
+    // set
+    fragColour = texel * vec4(ambi + diff, 1.f);
+    //fragColour = vec4(t_norm, 1.f);
 }

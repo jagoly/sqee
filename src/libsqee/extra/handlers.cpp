@@ -2,7 +2,7 @@
 
 #include <extra/handlers.hpp>
 
-namespace sqe {
+namespace sq {
 
 bool HandlerClose::handle(sf::Event& event) {
     if (event.type == sf::Event::Closed) {

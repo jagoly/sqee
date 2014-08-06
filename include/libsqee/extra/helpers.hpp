@@ -2,7 +2,7 @@
 
 #include <jsoncpp/json/json.h>
 
-namespace sqe {
+namespace sq {
 
 Json::Value load_json_file(std::string filePath);
 

@@ -8,7 +8,7 @@
 namespace sqt {
 
 Level::Level(std::string filePath) {
-    Json::Value root = sqe::load_json_file(filePath);
+    Json::Value root = sq::load_json_file(filePath);
 
     width = root["width"].asInt();
     height = root["height"].asInt();

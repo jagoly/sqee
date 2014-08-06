@@ -5,7 +5,7 @@
 
 namespace sqt {
 
-class SceneGameMenus : public sqe::SceneMenu {
+class SceneGameMenus : public sq::SceneMenu {
 public:
     SceneGameMenus(sq::Application* _app);
 
@@ -29,9 +29,9 @@ public:
     void quit();
 };
 
-class HandlerGameMenus : public sqe::HandlerMenu {
+class HandlerGameMenus : public sq::HandlerMenu {
 public:
-    using sqe::HandlerMenu::HandlerMenu;
+    using sq::HandlerMenu::HandlerMenu;
     bool handle(sf::Event&);
 };
 

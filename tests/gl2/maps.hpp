@@ -3,7 +3,8 @@
 #include <vector>
 #include <string>
 
-#include <libsqee/extra/gl.hpp>
+#include <libsqee/gl/gl.hpp>
+#include <libsqee/gl/mesh.hpp>
 #include <libsqee/textureholder.hpp>
 
 namespace sqt {
@@ -13,11 +14,6 @@ struct Ground {
     int texCount, pCount;
 
     GLuint vao, texArray, nMapArray;
-};
-
-struct StaticModel {
-    GLuint vao, texture, nMap;
-    int pCount;
 };
 
 struct ModelInstance {
@@ -30,7 +26,7 @@ struct ModelInstance {
 class LevelMap {
 public:
     Ground ground;
-    std::vector<StaticModel> modelVec;
+    std::vector<sq::Mesh> modelVec;
     std::vector<ModelInstance> mapModelVec;
 
     bool load_map(std::string dirPath);

@@ -3,7 +3,7 @@
 
 namespace sqt {
 
-SceneMenus::SceneMenus(sq::Application* _app) : sqe::SceneMenu(_app, false) {
+SceneMenus::SceneMenus(sq::Application* _app) : sq::SceneMenu(_app, false) {
     wHBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
 
     showScore = true;

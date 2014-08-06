@@ -4,7 +4,7 @@
 #include <scene.hpp>
 #include <handler.hpp>
 
-namespace sqe {
+namespace sq {
 
 class SceneMenu : public sq::Scene {
 public:

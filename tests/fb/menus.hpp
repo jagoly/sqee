@@ -5,7 +5,7 @@
 
 namespace sqt {
 
-class SceneMenus : public sqe::SceneMenu {
+class SceneMenus : public sq::SceneMenu {
 public:
     SceneMenus(sq::Application* _app);
 
@@ -17,9 +17,9 @@ public:
     void render(sf::RenderTarget& target, float ft);
 };
 
-class HandlerMenus : public sqe::HandlerMenu {
+class HandlerMenus : public sq::HandlerMenu {
 public:
-    using sqe::HandlerMenu::HandlerMenu;
+    using sq::HandlerMenu::HandlerMenu;
     bool handle(sf::Event& event);
 };
 

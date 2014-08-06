@@ -5,9 +5,10 @@
 
 #include <libsqee/scene.hpp>
 #include <libsqee/handler.hpp>
-#include <libsqee/extra/gl.hpp>
+#include <libsqee/gl/gl.hpp>
 
 #include "rendergeneral.hpp"
+#include "player.hpp"
 #include "maps.hpp"
 
 namespace sqt {
@@ -16,9 +17,10 @@ class SceneGame : public sq::Scene {
 public:
     SceneGame(sq::Application* _app);
 
-    sqe::Camera camera;
+    sq::Camera camera;
     SkyLight light;
     LevelMap levelMap;
+    Player player;
 
     void render(sf::RenderTarget& target, float ft);
     void update();

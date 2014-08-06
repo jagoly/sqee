@@ -4,7 +4,7 @@
 
 namespace sqt {
 
-SceneGameMenus::SceneGameMenus(sq::Application* _app) : sqe::SceneMenu(_app, false) {
+SceneGameMenus::SceneGameMenus(sq::Application* _app) : sq::SceneMenu(_app, false) {
     desktop.SetProperty("Separator", "Color", sf::Color::Transparent);
     desktop.SetProperty("Button", "BackgroundColor", sf::Color(30, 30, 30, 60));
     desktop.SetProperty("Button:PRELIGHT", "BackgroundColor", sf::Color(50, 50, 50, 60));
@@ -53,12 +53,12 @@ SceneGameMenus::SceneGameMenus(sq::Application* _app) : sqe::SceneMenu(_app, fal
 }
 
 void SceneGameMenus::activate() {
-    sqe::SceneMenu::activate();
+    sq::SceneMenu::activate();
     static_cast<SceneGame&>(app->get_scene("game")).active = false;
 }
 
 void SceneGameMenus::deactivate() {
-    sqe::SceneMenu::deactivate();
+    sq::SceneMenu::deactivate();
     static_cast<SceneGame&>(app->get_scene("game")).active = true;
 }
 
@@ -68,7 +68,7 @@ void SceneGameMenus::restart() {
 }
 
 void SceneGameMenus::quit() {
-    app->attach_handler("mainmenu", sq::HandlerPtr(new sqe::HandlerMenu(app, "mainmenu")));
+    app->attach_handler("mainmenu", sq::HandlerPtr(new sq::HandlerMenu(app, "mainmenu")));
     app->prepend_scene("mainmenu", sq::ScenePtr(new SceneMainMenu(app)));
 
     app->sweep_handler("gamemenus");
@@ -77,7 +77,7 @@ void SceneGameMenus::quit() {
 }
 
 bool HandlerGameMenus::handle(sf::Event& event) {
-    bool bRet = sqe::HandlerMenu::handle(event);
+    bool bRet = sq::HandlerMenu::handle(event);
     if (bRet) return true;
     if (event.type == sf::Event::LostFocus ||
         (SQ_KEYPRESS(Escape))) {

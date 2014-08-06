@@ -5,7 +5,7 @@
 #include <set>
 #include <memory>
 
-#include <extra/gl.hpp>
+#include <gl/gl.hpp>
 #include <SFGUI/SFGUI.hpp>
 
 #include <scene.hpp>

@@ -224,7 +224,7 @@ void SceneGame::start_level() {
 }
 
 void SceneGame::win_level() {
-    app->attach_handler("mainmenu", sq::HandlerPtr(new sqe::HandlerMenu(app, "mainmenu")));
+    app->attach_handler("mainmenu", sq::HandlerPtr(new sq::HandlerMenu(app, "mainmenu")));
     app->prepend_scene("mainmenu", sq::ScenePtr(new SceneMainMenu(app)));
 
     app->sweep_handler("gamemenus");

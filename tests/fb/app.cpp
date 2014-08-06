@@ -24,10 +24,10 @@ TestApp::TestApp() : sq::Application(612, 714, 0, true, true, false, "SQEE Flapp
     soundManager.add_sound("wing", "res/sound/wing.ogg");
     soundManager.add_sound("point", "res/sound/point.ogg");
 
-    attach_handler("close", sq::HandlerPtr(new sqe::HandlerClose(this)));
-    attach_handler("debug", sq::HandlerPtr(new sqe::HandlerDebug(this)));
-    attach_handler("resize", sq::HandlerPtr(new sqe::HandlerResize(this)));
-    attach_handler("framelimit", sq::HandlerPtr(new sqe::HandlerFramelimit(this)));
+    attach_handler("close", sq::HandlerPtr(new sq::HandlerClose(this)));
+    attach_handler("debug", sq::HandlerPtr(new sq::HandlerDebug(this)));
+    attach_handler("resize", sq::HandlerPtr(new sq::HandlerResize(this)));
+    attach_handler("framelimit", sq::HandlerPtr(new sq::HandlerFramelimit(this)));
 
     append_scene("game", sq::ScenePtr(new SceneGame(this)));
     append_scene("menu", sq::ScenePtr(new SceneMenus(this)));

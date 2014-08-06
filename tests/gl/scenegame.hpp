@@ -3,7 +3,7 @@
 
 #include <libsqee/scene.hpp>
 #include <libsqee/handler.hpp>
-#include <libsqee/extra/gl.hpp>
+#include <libsqee/gl/gl.hpp>
 
 namespace sqt {
 
@@ -161,7 +161,7 @@ public:
     SceneGame(sq::Application* _app);
 
     Cube cube;
-    sqe::Camera camera;
+    sq::Camera camera;
     Light light;
 
     void render(sf::RenderTarget& target, float ft);

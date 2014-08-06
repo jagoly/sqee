@@ -7,6 +7,7 @@ set(SOURCES
     "scenegame.cpp"     "scenegame.hpp"
     "maps.cpp"          "maps.hpp"
     "rendergeneral.cpp" "rendergeneral.hpp"
+    "player.cpp"        "player.hpp"
 )
 
 add_executable(gl2 ${SOURCES})

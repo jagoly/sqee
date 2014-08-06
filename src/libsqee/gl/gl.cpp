@@ -1,6 +1,6 @@
 #include <fstream>
 
-#include <extra/gl.hpp>
+#include <gl/gl.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 
@@ -10,7 +10,29 @@
 
 #include <extra/helpers.hpp>
 
-namespace sqe {
+namespace sq {
+
+glm::vec4 get_tangent(glm::vec3 normal) {
+    glm::vec3 tangent;
+    glm::vec3 t1 = glm::cross(normal, glm::vec3(0, 1, 0));
+    glm::vec3 t2 = glm::cross(normal, glm::vec3(0, 0, 1));
+
+    if (glm::length(t1) > glm::length(t2)) {
+        tangent = t1;
+    } else {
+        tangent = t2;
+    }
+    tangent = glm::normalize(tangent);
+
+    glm::vec3 bitangent(glm::cross(normal, tangent));
+    bitangent = glm::normalize(bitangent);
+
+    float det = glm::dot(glm::cross(normal, tangent), bitangent);
+    if (det < 0.f) det = -1.f;
+    else           det = 1.f;
+
+    return glm::vec4(tangent, det);
+}
 
 std::string get_shader_error(const GLuint& shader) {
     int max_length = 2048;
@@ -24,24 +46,24 @@ bool create_shader(std::string vertPath, std::string fragPath, GLuint& prog) {
     GLuint vert = glCreateShader(GL_VERTEX_SHADER);
     GLuint frag = glCreateShader(GL_FRAGMENT_SHADER);
 
-    std::string vertStr = sqe::load_from_file(vertPath);
+    std::string vertStr = sq::load_from_file(vertPath);
     const char* vertSrc = vertStr.c_str();
     int vertSize = vertStr.size();
     glShaderSource(vert, 1, &vertSrc, &vertSize);
     glCompileShader(vert);
-    std::cout << sqe::get_shader_error(vert);
+    std::cout << get_shader_error(vert);
 
-    std::string fragStr = sqe::load_from_file(fragPath);
+    std::string fragStr = sq::load_from_file(fragPath);
     const char* fragSrc = fragStr.c_str();
     int fragSize = fragStr.size();
     glShaderSource(frag, 1, &fragSrc, &fragSize);
     glCompileShader(frag);
-    std::cout << sqe::get_shader_error(frag);
+    std::cout << get_shader_error(frag);
 
     glAttachShader(prog, vert);
     glAttachShader(prog, frag);
     glLinkProgram(prog);
-    std::cout << sqe::get_shader_error(prog);
+    std::cout << get_shader_error(prog);
 
     std::cout << std::endl;
     return false;

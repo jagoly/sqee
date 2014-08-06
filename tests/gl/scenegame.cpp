@@ -2,7 +2,7 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
-#include <libsqee/extra/gl.hpp>
+#include <libsqee/gl/gl.hpp>
 #include <libsqee/extra/helpers.hpp>
 
 #include "helpers.hpp"
@@ -13,7 +13,7 @@ SceneGame::SceneGame(sq::Application* _app) : sq::Scene(_app) {
     tickRate = 120;
     dt = 1/120.d;
 
-    camera = sqe::Camera({0.f, 0.f, 2.f}, 0.f, 0.f, 4, 3, 1.17f, 0.1f, 100.f);
+    camera = sq::Camera({0.f, 0.f, 2.f}, 0.f, 0.f, 4, 3, 1.17f, 0.1f, 100.f);
     camera.update_projMatrix();
     camera.update_viewMatrix();
 }
@@ -79,7 +79,7 @@ void SceneGame::render(sf::RenderTarget& target, float) {
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-        sqe::create_shader("res/shaders/cube_vs.glsl", "res/shaders/cube_fs.glsl", prog);
+        sq::create_shader("res/shaders/cube_vs.glsl", "res/shaders/cube_fs.glsl", prog);
 
         u_projMatrix = glGetUniformLocation(prog, "projMatrix");
         u_viewMatrix = glGetUniformLocation(prog, "viewMatrix");
