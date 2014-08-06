@@ -17,8 +17,8 @@ SceneGame::SceneGame(sq::Application* _app) : sq::Scene(_app) {
 
     levelMap.load_map("res/maps/test");
 
-    camera = sq::Camera({2.5f, -1.5f, 8.5f}, 0.375f, 0.f, 16, 9, 1.17f, 0.1f, 100.f);
-    //camera = sqe::Camera({0.f, 0.f, 4.f}, 0.f, 0.f, 16, 9, 1.17f, 0.1f, 100.f);
+    //camera = sq::Camera({2.5f, -1.5f, 8.5f}, 0.375f, 0.f, 16, 9, 1.17f, 0.1f, 100.f);
+    camera = sq::Camera({2.5f, -1.5f, 2.5f}, 0.75f, 0.f, 16, 9, 1.17f, 0.1f, 100.f);
     camera.update_projMatrix();
     camera.update_viewMatrix();
 }
@@ -63,9 +63,9 @@ void SceneGame::render(sf::RenderTarget& target, float) {
 
     if (first) {
         glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LEQUAL);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glDepthFunc(GL_LESS);
 
         levelMap.load_ground();
         levelMap.load_models();
@@ -153,23 +153,32 @@ void SceneGame::render(sf::RenderTarget& target, float) {
     glUniformMatrix4fv(modelShadowU_projMatrix, 1, GL_FALSE, glm::value_ptr(camera.projMat));
     glUniformMatrix4fv(modelShadowU_viewMatrix, 1, GL_FALSE, glm::value_ptr(camera.viewMat));
 
-    glActiveTexture(GL_TEXTURE0); // used throughout models
+    glActiveTexture(GL_TEXTURE0);
+
+    // Shadow
+    glUseProgram(modelShadowProg);
+    glDepthFunc(GL_ALWAYS);
     for (int i = 0; i < levelMap.modelVec.size(); i++) {
-        glUseProgram(mapModelsProg);
-        glBindTexture(GL_TEXTURE_2D_ARRAY, levelMap.modelVec[i].texArray);
-        glUseProgram(modelShadowProg);
         glBindTexture(GL_TEXTURE_2D, levelMap.modelVec[i].shadTex);
         for (ModelInstance& m : levelMap.mapModelVec) {
             if (m.index == i) {
-                glUseProgram(mapModelsProg);
-                glUniformMatrix4fv(mapModelsU_modelMatrix, 1, GL_FALSE, glm::value_ptr(m.modelMatrix));
-                glBindVertexArray(levelMap.modelVec[i].vao);
-                glDrawArrays(GL_TRIANGLES, 0, levelMap.modelVec[m.index].vCount);
-
-                glUseProgram(modelShadowProg);
                 glBindVertexArray(levelMap.modelVec[i].shadVao);
                 glUniformMatrix4fv(modelShadowU_modelMatrix, 1, GL_FALSE, glm::value_ptr(m.modelMatrix));
                 glDrawArrays(GL_TRIANGLES, 0, 6);
+            }
+        }
+    }
+
+    // Model
+    glUseProgram(mapModelsProg);
+    glDepthFunc(GL_LEQUAL);
+    for (int i = 0; i < levelMap.modelVec.size(); i++) {
+        glBindTexture(GL_TEXTURE_2D_ARRAY, levelMap.modelVec[i].texArray);
+        for (ModelInstance& m : levelMap.mapModelVec) {
+            if (m.index == i) {
+                glUniformMatrix4fv(mapModelsU_modelMatrix, 1, GL_FALSE, glm::value_ptr(m.modelMatrix));
+                glBindVertexArray(levelMap.modelVec[i].vao);
+                glDrawArrays(GL_TRIANGLES, 0, levelMap.modelVec[m.index].vCount);
             }
         }
     }

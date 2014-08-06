@@ -9,11 +9,17 @@
     "locations": [[1.0, 2.0, 0.5]],
     "scale": [1.0, 1.0, 1.0],
     "index": 1
+  },
+  {
+    "locations": [[3.0, 2.0, 0.5]],
+    "scale": [1.0, 1.0, 1.0],
+    "index": 2
   }
 ],
 
 "models": [
   "dice",
-  "stairseast"
+  "stairseast",
+  "stairswest"
 ]
 }
