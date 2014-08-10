@@ -5,8 +5,6 @@ namespace sq {
 
 Scene::Scene(Application* _app) {
     app = _app;
-    tickRate = 60;
-    dt = 1.d / 60.d;
 }
 
 void Scene::resize(unsigned int, unsigned int) {

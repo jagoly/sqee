@@ -4,7 +4,7 @@
 
 namespace sqt {
 
-TestApp::TestApp() : sq::Application(1280, 720, 4, true, true, false, "SQEE GL Test Two") {
+TestApp::TestApp() : sq::Application(1280, 720, 0, true, true, false, "SQEE GL Test Two") {
     ////////////////////
     /// GL STUFF     ///
     ////////////////////

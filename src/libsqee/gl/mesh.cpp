@@ -10,19 +10,18 @@ bool Mesh::load_from_dir(std::string dirPath) {
     Json::Value root = load_json_file(dirPath+"/model.json");
 
     vCount = root["vCount"].asInt();
+    hasNorm = root["hasNorm"].asBool();
+    hasAmbi = root["hasAmbi"].asBool();
+    hasSpec = root["hasSpec"].asBool();
+    hasShadow = root["castShadow"].asBool();
     texWidth = root["texWidth"].asInt();
     texHeight = root["texHeight"].asInt();
 
-    shadN = root["shadN"].asFloat();
-    shadE = root["shadE"].asFloat();
-    shadS = root["shadS"].asFloat();
-    shadW = root["shadW"].asFloat();
-
     for (int i = 0; i < vCount; i++) {
-        positionsVec.push_back(glm::vec3(
-            root["positions"][i*3 +0].asFloat(),
-            root["positions"][i*3 +1].asFloat(),
-            root["positions"][i*3 +2].asFloat()
+        pointsVec.push_back(glm::vec3(
+            root["points"][i*3 +0].asFloat(),
+            root["points"][i*3 +1].asFloat(),
+            root["points"][i*3 +2].asFloat()
         ));
 
         normalsVec.push_back(glm::vec3(
@@ -37,25 +36,48 @@ bool Mesh::load_from_dir(std::string dirPath) {
         ));
     }
 
+    float shadowPoints[18];
+    if (hasShadow) {
+        shadowVec.push_back(glm::vec3(
+            root["P0"][0].asFloat(), root["P0"][1].asFloat(), root["P0"][2].asFloat()));
+        shadowVec.push_back(glm::vec3(
+            root["P1"][0].asFloat(), root["P1"][1].asFloat(), root["P1"][2].asFloat()));
+        shadowVec.push_back(glm::vec3(
+            root["P2"][0].asFloat(), root["P2"][1].asFloat(), root["P2"][2].asFloat()));
+        shadowVec.push_back(glm::vec3(
+            root["P3"][0].asFloat(), root["P3"][1].asFloat(), root["P3"][2].asFloat()));
+
+        shadowPoints[0] = shadowPoints[9]  = shadowVec[2].x;
+        shadowPoints[1] = shadowPoints[10] = shadowVec[2].y;
+        shadowPoints[2] = shadowPoints[11] = shadowVec[2].z;
+        shadowPoints[3] = shadowPoints[12] = shadowVec[0].x;
+        shadowPoints[4] = shadowPoints[13] = shadowVec[0].y;
+        shadowPoints[5] = shadowPoints[14] = shadowVec[0].z;
+        shadowPoints[6]                    = shadowVec[3].x;
+        shadowPoints[7]                    = shadowVec[3].y;
+        shadowPoints[8]                    = shadowVec[3].z;
+                          shadowPoints[15] = shadowVec[1].x;
+                          shadowPoints[16] = shadowVec[1].y;
+                          shadowPoints[17] = shadowVec[1].z;
+    }
+
+
+
     glActiveTexture(GL_TEXTURE0); // used for all textures
-    diffImg.loadFromFile(dirPath+"/diff.png");
-    specImg.loadFromFile(dirPath+"/spec.png");
-    normImg.loadFromFile(dirPath+"/norm.png");
-    shadImg.loadFromFile(dirPath+"/shad.png");
 
     /// MODEL ///
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
-    GLfloat positions[vCount * 3];
+    GLfloat points[vCount * 3];
     GLfloat normals[vCount * 3];
     GLfloat texcoords[vCount * 2];
     GLfloat tangents[vCount * 4];
 
     for (int i = 0; i < vCount; i++) {
-        positions[i*3 +0] = positionsVec[i].x;
-        positions[i*3 +1] = positionsVec[i].y;
-        positions[i*3 +2] = positionsVec[i].z;
+        points[i*3 +0] = pointsVec[i].x;
+        points[i*3 +1] = pointsVec[i].y;
+        points[i*3 +2] = pointsVec[i].z;
 
         normals[i*3 +0] = normalsVec[i].x;
         normals[i*3 +1] = normalsVec[i].y;
@@ -72,11 +94,11 @@ bool Mesh::load_from_dir(std::string dirPath) {
     }
 
     // Buffers
-    GLuint vboP, vboN, vboUV, vboT;
+    GLuint vboP, vboN, vboTc, vboT;
 
     glGenBuffers(1, &vboP);
     glBindBuffer(GL_ARRAY_BUFFER, vboP);
-    glBufferData(GL_ARRAY_BUFFER, 3 * vCount * sizeof(GLfloat), positions, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 3 * vCount * sizeof(GLfloat), points, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
     glEnableVertexAttribArray(0);
 
@@ -86,8 +108,8 @@ bool Mesh::load_from_dir(std::string dirPath) {
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
     glEnableVertexAttribArray(1);
 
-    glGenBuffers(1, &vboUV);
-    glBindBuffer(GL_ARRAY_BUFFER, vboUV);
+    glGenBuffers(1, &vboTc);
+    glBindBuffer(GL_ARRAY_BUFFER, vboTc);
     glBufferData(GL_ARRAY_BUFFER, 2 * vCount * sizeof(GLfloat), texcoords, GL_STATIC_DRAW);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, NULL);
     glEnableVertexAttribArray(2);
@@ -98,67 +120,91 @@ bool Mesh::load_from_dir(std::string dirPath) {
     glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 0, NULL);
     glEnableVertexAttribArray(3);
 
-    // Textures
-    glGenTextures(1, &texArray);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, texArray);
-    glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, texWidth, texHeight, 3, 0,
-                 GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, texWidth, texHeight, 1,
-                    GL_RGBA, GL_UNSIGNED_BYTE, diffImg.getPixelsPtr());
-    glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 1, texWidth, texHeight, 1,
-                    GL_RGBA, GL_UNSIGNED_BYTE, specImg.getPixelsPtr());
-    glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 2, texWidth, texHeight, 1,
-                    GL_RGBA, GL_UNSIGNED_BYTE, normImg.getPixelsPtr());
+    /// Textures ///
+
+    // Normals
+    if (hasNorm) {
+        normImg.loadFromFile(dirPath+"/norm.png");
+        glGenTextures(1, &texNorm);
+        glBindTexture(GL_TEXTURE_2D, texNorm);
+        glTexImage2D(texNorm, 0, GL_RGB16F, texWidth, texHeight, 0,
+                     GL_RGB, GL_UNSIGNED_BYTE, normImg.getPixelsPtr());
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    }
+
+    // Diffuse
+    {
+        diffImg.loadFromFile(dirPath+"/diff.png");
+        glGenTextures(1, &texDiff);
+        glBindTexture(GL_TEXTURE_2D, texDiff);
+        glTexImage2D(texNorm, 0, GL_RGBA16F, texWidth, texHeight, 0,
+                     GL_RGBA, GL_UNSIGNED_BYTE, diffImg.getPixelsPtr());
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    }
+
+    // Ambient
+    if (hasAmbi) {
+        ambiImg.loadFromFile(dirPath+"/ambi.png");
+        glGenTextures(1, &texAmbi);
+        glBindTexture(GL_TEXTURE_2D, texAmbi);
+        glTexImage2D(texNorm, 0, GL_RGBA16F, texWidth, texHeight, 0,
+                     GL_RGBA, GL_UNSIGNED_BYTE, ambiImg.getPixelsPtr());
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    }
+
+    // Specular
+    if (hasSpec) {
+        specImg.loadFromFile(dirPath+"/spec.png");
+        glGenTextures(1, &texSpec);
+        glBindTexture(GL_TEXTURE_2D, texSpec);
+        glTexImage2D(texNorm, 0, GL_RGBA16F, texWidth, texHeight, 0,
+                     GL_RGBA, GL_UNSIGNED_BYTE, specImg.getPixelsPtr());
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    }
+
 
     /// SHADOW ///
-    GLfloat shadPositions[18] = {
-        shadW, shadS, 0.001f,
-        shadE, shadN, 0.001f,
-        shadW, shadN, 0.001f,
-        shadW, shadS, 0.001f,
-        shadE, shadN, 0.001f,
-        shadE, shadS, 0.001f
-    };
 
-    GLfloat shadTexcoords[12] = {
-        0.0, 1.0,
-        1.0, 0.0,
-        0.0, 0.0,
-        0.0, 1.0,
-        1.0, 0.0,
-        1.0, 1.0
-    };
+    if (hasShadow) {
+        glGenVertexArrays(1, &vaoShadow);
+        glBindVertexArray(vaoShadow);
+        GLuint vboShadowPoints, vboShadowTexcoords;
 
-    glGenVertexArrays(1, &shadVao);
-    glBindVertexArray(shadVao);
-    GLuint vboShadP, vboShadUV;
+        glGenBuffers(1, &vboShadowPoints);
+        glBindBuffer(GL_ARRAY_BUFFER, vboShadowPoints);
+        glBufferData(GL_ARRAY_BUFFER, 3 * vCount * sizeof(GLfloat), shadowPoints, GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+        glEnableVertexAttribArray(0);
 
-    glGenBuffers(1, &vboShadP);
-    glBindBuffer(GL_ARRAY_BUFFER, vboShadP);
-    glBufferData(GL_ARRAY_BUFFER, 18 * sizeof(GLfloat), shadPositions, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-    glEnableVertexAttribArray(0);
+        glGenBuffers(1, &vboShadowTexcoords);
+        glBindBuffer(GL_ARRAY_BUFFER, vboShadowTexcoords);
+        glBufferData(GL_ARRAY_BUFFER, 12 * sizeof(GLfloat), shadowTexcoords, GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+        glEnableVertexAttribArray(1);
 
-    glGenBuffers(1, &vboShadUV);
-    glBindBuffer(GL_ARRAY_BUFFER, vboShadUV);
-    glBufferData(GL_ARRAY_BUFFER, 12 * sizeof(GLfloat), shadTexcoords, GL_STATIC_DRAW);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
-    glEnableVertexAttribArray(1);
-
-    glGenTextures(1, &shadTex);
-    glBindTexture(GL_TEXTURE_2D, shadTex);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, shadImg.getSize().x, shadImg.getSize().y, 0, GL_RGBA,
-                 GL_UNSIGNED_BYTE, shadImg.getPixelsPtr());
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
+        shadowImg.loadFromFile(dirPath+"/shadow.png");
+        glGenTextures(1, &texShadow);
+        glBindTexture(GL_TEXTURE_2D, texShadow);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, shadowImg.getSize().x, shadowImg.getSize().y, 0,
+                     GL_RGBA, GL_UNSIGNED_BYTE, shadowImg.getPixelsPtr());
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    }
     return true;
 }
 

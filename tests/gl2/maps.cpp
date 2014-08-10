@@ -17,9 +17,10 @@
 
 namespace sqt {
 
-ModelInstance::ModelInstance(glm::vec3 _pos, glm::vec3 _scale, int _index) {
+ModelInstance::ModelInstance(glm::vec3 _pos, glm::vec3 _scale, bool _hasShadow, int _index) {
     pos = _pos;
     scale = _scale;
+    hasShadow = _hasShadow;
     index = _index;
     modelMatrix = glm::translate(glm::mat4(), pos) * glm::scale(glm::mat4(), scale);
 }
@@ -615,9 +616,9 @@ bool LevelMap::load_ground() {
 
     // Load Textures
     sf::Image image;
-    glGenTextures(1, &ground.texArray);
+    glGenTextures(1, &ground.texDiffArray);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, ground.texArray);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, ground.texDiffArray);
     glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, 64, 64, texCount, 0,
                  GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -631,9 +632,9 @@ bool LevelMap::load_ground() {
     }
 
     // Load Normal Maps
-    glGenTextures(1, &ground.nMapArray);
+    glGenTextures(1, &ground.texNormArray);
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, ground.nMapArray);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, ground.texNormArray);
     glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, 64, 64, texCount, 0,
                  GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -669,6 +670,7 @@ bool LevelMap::load_models() {
                               glm::vec3(val["scale"][0].asFloat(),
                                         val["scale"][1].asFloat(),
                                         val["scale"][2].asFloat()),
+                              val["shadow"].asBool(),
                               val["index"].asInt()));
         }
     }

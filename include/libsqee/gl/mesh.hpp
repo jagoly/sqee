@@ -6,28 +6,41 @@
 
 namespace sq {
 
+const GLfloat shadowTexcoords[12] = {
+    0.f, 0.f,  1.f, 1.f,  0.f, 1.f,
+    0.f, 0.f,  1.f, 1.f,  1.f, 0.f
+};
+
 class Mesh {
 public:
     bool load_from_dir(std::string dirPath);
 
     GLuint vao;
-    GLuint texArray;
+    GLuint texNorm;
+    GLuint texDiff;
+    GLuint texAmbi;
+    GLuint texSpec;
 
-    GLuint shadVao;
-    GLuint shadTex;
+    GLuint vaoShadow;
+    GLuint texShadow;
 
     int vCount;
+    bool hasNorm;
+    bool hasAmbi;
+    bool hasSpec;
+    bool hasShadow;
     int texWidth, texHeight;
-    float shadN, shadE, shadS, shadW;
 private:
-    std::vector<glm::vec3> positionsVec;
+    std::vector<glm::vec3> pointsVec;
     std::vector<glm::vec3> normalsVec;
     std::vector<glm::vec2> texcoordsVec;
+    std::vector<glm::vec3> shadowVec;
 
-    sf::Image diffImg;
-    sf::Image specImg;
     sf::Image normImg;
-    sf::Image shadImg;
+    sf::Image diffImg;
+    sf::Image ambiImg;
+    sf::Image specImg;
+    sf::Image shadowImg;
 };
 
 }

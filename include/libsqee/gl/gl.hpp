@@ -28,6 +28,7 @@ public:
 
     glm::mat4 viewMat;
     glm::mat4 projMat;
+    glm::mat4 invProjMat;
 
     glm::vec3 pos;
 

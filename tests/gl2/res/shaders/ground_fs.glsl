@@ -6,7 +6,8 @@ uniform vec3 lightDiff, lightAmbi;
 uniform sampler2DArray texArray;
 uniform sampler2DArray nMapArray;
 
-out vec4 fragColour;
+
+layout(location = 0) out vec4 fragColour;
 
 void main() {
     vec3 lightSpec = vec3(1.f, 1.f, 1.f);

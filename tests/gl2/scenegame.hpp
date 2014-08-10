@@ -18,12 +18,17 @@ public:
     SceneGame(sq::Application* _app);
 
     sq::Camera camera;
-    SkyLight light;
+    SkyLight skyLight;
     LevelMap levelMap;
     Player player;
 
     void render(sf::RenderTarget& target, float ft);
+    void resize(unsigned int width, unsigned int height);
     void update();
+private:
+    bool updateFramebuffers = true;
+    bool updateSkyLight = true;
+    bool updateCamera = true;
 };
 
 class HandlerGame : public sq::Handler {

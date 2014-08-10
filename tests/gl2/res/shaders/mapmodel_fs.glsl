@@ -4,21 +4,22 @@ in vec2 texCoord;
 in vec3 t_viewDir, t_lightDir;
 
 uniform vec3 lightDiff, lightAmbi;
-uniform sampler2DArray texArray;
+uniform sampler2D texDiff;
 
-out vec4 fragColour;
+layout(location = 0) out vec4 fragColour;
 
 void main() {
     vec3 lightSpec = vec3(1.f, 1.f, 1.f);
-    vec4 texel = texture(texArray, vec3(texCoord, 0));
+    vec3 ambiTexel = texture(texArray, vec3(texCoord, 0)).rgb;
+    vec3 diffTexel = texture(texArray, vec3(texCoord, 1)).rgb;
+    vec3 specTexel = texture(texArray, vec3(texCoord, 2)).rgb;
+    float alpha = texture(texArray, vec3(texCoord, 1)).a;
 
-    vec3 specTexel = texture(texArray, vec3(texCoord, 1)).rgb;
-
-    vec3 t_norm = texture(texArray, vec3(texCoord, 2)).rgb;
+    vec3 t_norm = texture(texArray, vec3(texCoord, 3)).rgb;
     t_norm = normalize(t_norm * 2.f - 1.f);
 
     // ambient
-    vec3 ambi = lightAmbi;
+    vec3 ambi = lightAmbi * ambiTexel;
 
     // diffuse
     vec3 t_dirToLight = normalize(-t_lightDir);
@@ -34,7 +35,7 @@ void main() {
     vec3 spec = lightSpec * specTexel * factor;
 
     // set
-    fragColour = texel * vec4(ambi + diff, 1.f) + vec4(spec, 0.f);
+    fragColour = vec4(diffTexel * (diff + ambi) + spec, alpha);
     //fragColour = vec4(t_norm, 1.f);
     //fragColour = vec4(specTexel, 1.f);
     //fragColour = vec4(1.f, 1.f, 1.f, 1.f);

@@ -17,8 +17,8 @@ public:
     Scene(Application* _app);
 
     double accum;
-    int tickRate;
-    double dt;
+    int tickRate = 60;
+    double dt = 1.d/60.d;
 
     virtual void resize(unsigned int width, unsigned int height);
     virtual void update();

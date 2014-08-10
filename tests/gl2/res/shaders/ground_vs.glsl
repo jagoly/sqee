@@ -8,7 +8,8 @@ layout(location = 3) in vec4 v_tangent;
 uniform mat4 projMatrix, viewMatrix;
 uniform vec3 w_camPos, w_lightDir;
 
-out vec3 texCoord, t_viewDir, t_lightDir;
+out vec3 texCoord;
+out vec3 t_viewDir, t_lightDir;
 
 void main() {
     texCoord = v_texCoord;

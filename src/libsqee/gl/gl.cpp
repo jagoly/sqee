@@ -173,6 +173,7 @@ void Camera::update_viewMatrix() {
 
 void Camera::update_projMatrix() {
     projMat = glm::perspective(yFov, width / height, zNear, zFar);
+    invProjMat = glm::inverse(projMat);
 }
 
 
