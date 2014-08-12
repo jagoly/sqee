@@ -14,7 +14,7 @@ struct Ground {
     int texCount, pCount;
 
     GLuint vao;
-    GLuint texNormArray, texDiffArray;
+    GLuint texNormArray, texDiffArray, texSpecArray;
 };
 
 struct ModelInstance {

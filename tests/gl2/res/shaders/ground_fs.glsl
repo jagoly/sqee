@@ -1,42 +1,32 @@
 #version 330
 
-in vec3 texCoord, t_viewDir, t_lightDir;
+in vec3 texCoord;
+in vec3 normal, tangent, bitangent;
 
-uniform vec3 lightDiff, lightAmbi;
-uniform sampler2DArray texArray;
-uniform sampler2DArray nMapArray;
+uniform sampler2DArray texNormArray;
+uniform sampler2DArray texDiffArray;
+uniform sampler2DArray texSpecArray;
 
-
-layout(location = 0) out vec4 fragColour;
+layout(location = 0) out vec4 norm;
+layout(location = 1) out vec4 diff;
+layout(location = 2) out vec4 ambi;
+layout(location = 3) out vec4 spec;
 
 void main() {
-    vec3 lightSpec = vec3(1.f, 1.f, 1.f);
+//    vec3 lightSpec = vec3(1.f, 1.f, 1.f);
 
-    vec4 texel = texture(texArray, texCoord);
+//    vec4 texel = texture(texArray, texCoord);
 
-    vec3 t_norm = texture(nMapArray, texCoord).rgb;
-    t_norm = normalize(t_norm * 2.f - 1.f);
+    vec3 t_norm = texture(texNormArray, texCoord).rgb * 2.f - 1.f;
 
-    // ambient
-    vec3 reflAmbi = vec3(1.f, 1.f, 1.f);
-    vec3 ambi = lightAmbi * reflAmbi;
+    vec3 fragNorm = (tangent * t_norm.x + bitangent * t_norm.y + normal * t_norm.z) / 2.f + 0.5f;
 
-    // diffuse
-    vec3 reflDiff = vec3(1.f, 1.f, 1.f);
-    vec3 t_dirToLight = normalize(-t_lightDir);
-    float dotProd = dot(t_dirToLight, t_norm);
-    dotProd = max(dotProd, 0.f);
-    vec3 diff = lightDiff * reflDiff * dotProd;
+    vec4 fragDiff = texture(texDiffArray, texCoord);
+    vec4 fragAmbi = texture(texDiffArray, texCoord);
+    vec4 fragSpec = texture(texSpecArray, texCoord);
 
-    // specular
-    //vec3 reflSpec = vec3(1.f, 1.f, 1.f);
-    //vec3 t_reflection = reflect(normalize(t_lightDir), t_norm);
-    //dotProd = dot(t_reflection, normalize(t_viewDir));
-    //dotProd = max(dotProd, 0.f);
-    //float factor = pow(dotProd, 300.f);
-    //vec3 spec = lightSpec * reflSpec * factor;
-
-    // set
-    fragColour = texel * vec4(ambi + diff, 1.f);
-    //fragColour = vec4(t_norm, 1.f);
+    norm = vec4(fragNorm, 1.f);
+    diff = fragDiff;
+    ambi = fragAmbi;
+    spec = fragSpec;
 }

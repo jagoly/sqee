@@ -14,8 +14,9 @@ SceneGame::SceneGame(sq::Application* _app) : sq::Scene(_app) {
     dt = 1/120.d;
 
     camera = sq::Camera({0.f, 0.f, 2.f}, 0.f, 0.f, 4, 3, 1.17f, 0.1f, 100.f);
-    camera.update_projMatrix();
-    camera.update_viewMatrix();
+    camera.update_projMat();
+    camera.update_viewMat();
+    camera.update_invProjViewMat();
 }
 
 void SceneGame::update() {
@@ -43,8 +44,9 @@ void SceneGame::update() {
     camera.xRot += xR * 0.01f;
     camera.yRot += yR * 0.01f;
 
-    camera.update_viewMatrix();
-    camera.update_projMatrix();
+    camera.update_projMat();
+    camera.update_viewMat();
+    camera.update_invProjViewMat();
 }
 
 void SceneGame::render(sf::RenderTarget& target, float) {

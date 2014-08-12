@@ -159,7 +159,7 @@ Camera::Camera() {
 
 }
 
-void Camera::update_viewMatrix() {
+void Camera::update_viewMat() {
     glm::mat4 rotMat;
     rotMat = glm::rotate(rotMat, xRot, glm::vec3(1.f, 0.f, 0.f));
     rotMat = glm::rotate(rotMat, yRot, glm::vec3(0.f, 1.f, 0.f));
@@ -171,9 +171,12 @@ void Camera::update_viewMatrix() {
     viewMat = glm::lookAt(pos, target, glm::vec3(rotMat * glm::vec4(0.f, 1.f, 0.f, 0.f)));
 }
 
-void Camera::update_projMatrix() {
+void Camera::update_projMat() {
     projMat = glm::perspective(yFov, width / height, zNear, zFar);
-    invProjMat = glm::inverse(projMat);
+}
+
+void Camera::update_invProjViewMat() {
+    invProjViewMat = glm::inverse(projMat * viewMat);
 }
 
 

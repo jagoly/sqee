@@ -26,9 +26,10 @@ SceneGame::SceneGame(sq::Application* _app) : sq::Scene(_app) {
     levelMap.load_map("res/maps/test");
 
     camera = sq::Camera({2.5f, -1.5f, 8.5f}, 0.375f, 0.f, 16, 9, 1.17f, 0.1f, 64.f);
-    //camera = sq::Camera({2.5f, -1.5f, 2.5f}, 0.75f, 0.f, 16, 9, 1.17f, 0.1f, 64.f);
-    camera.update_projMatrix();
-    camera.update_viewMatrix();
+    //camera = sq::Camera({2.5f, 2.5f, 8.5f}, 0.f, 0.f, 16, 9, 1.17f, 0.1f, 64.f);
+    camera.update_projMat();
+    camera.update_viewMat();
+    camera.update_invProjViewMat();
 }
 
 void SceneGame::resize(unsigned int width, unsigned int height) {
@@ -47,8 +48,9 @@ void SceneGame::update() {
     if (update) {
         camera.pos.x += EW * 0.02f;
         camera.pos.y += NS * 0.02f;
-        camera.update_projMatrix();
-        camera.update_viewMatrix();
+        camera.update_projMat();
+        camera.update_viewMat();
+        camera.update_invProjViewMat();
 
         updateCamera = true;
     }
@@ -79,12 +81,10 @@ void SceneGame::render(sf::RenderTarget& target, float) {
     static GLuint mapModelsProg = glCreateProgram();
     static GLuint constructProg = glCreateProgram();
 
-    static GLuint groundU_projMatrix, groundU_viewMatrix,
-                  groundU_camPos, groundU_skyLightDir,
-                  groundU_skyLightDiff, groundU_skyLightAmbi, groundU_skyLightSpec,
-                  groundU_texDiffArray, groundU_texNormArray;
+    static GLuint groundU_projMat, groundU_viewMat,
+                  groundU_texNormArray, groundU_texDiffArray, groundU_texSpecArray;
 
-    static GLuint mapModelsU_modelMatrix, mapModelsU_projMatrix, mapModelsU_viewMatrix,
+    static GLuint mapModelsU_modelMat, mapModelsU_projMat, mapModelsU_viewMat,
                   mapModelsU_camPos, mapModelsU_skyLightDir,
                   mapModelsU_skyLightDiff, mapModelsU_skyLightAmbi, mapModelsU_skyLightSpec,
                   mapModelsU_texNorm, mapModelsU_texShadow,
@@ -92,8 +92,11 @@ void SceneGame::render(sf::RenderTarget& target, float) {
                   mapModelsU_hasNorm, mapModelsU_hasShadow,
                   mapModelsU_hasAmbi, mapModelsU_hasSpec;
 
-    static GLuint constructU_texNorm, constructU_texDiff,
-                  constructU_texAmbi, constructU_texSpec;
+    static GLuint constructU_invProjViewMat,
+                  constructU_camPos, constructU_skyLightDir,
+                  constructU_skyLightDiff, constructU_skyLightAmbi, constructU_skyLightSpec,
+                  constructU_texNorm, constructU_texDiff,
+                  constructU_texAmbi, constructU_texSpec, constructU_texDepth;
 
     if (first) {
         glEnable(GL_DEPTH_TEST);
@@ -156,19 +159,15 @@ void SceneGame::render(sf::RenderTarget& target, float) {
         sq::create_shader("res/shaders/construct_vs.glsl",
                           "res/shaders/construct_fs.glsl", constructProg);
 
-        groundU_projMatrix      = glGetUniformLocation(groundProg, "projMatrix");
-        groundU_viewMatrix      = glGetUniformLocation(groundProg, "viewMatrix");
-        groundU_camPos          = glGetUniformLocation(groundProg, "camPos");
-        groundU_skyLightDir     = glGetUniformLocation(groundProg, "skyLightDir");
-        groundU_skyLightDiff    = glGetUniformLocation(groundProg, "skyLightDiff");
-        groundU_skyLightAmbi    = glGetUniformLocation(groundProg, "skyLightAmbi");
-        groundU_skyLightSpec    = glGetUniformLocation(groundProg, "skyLightSpec");
-        groundU_texNormArray    = glGetUniformLocation(groundProg, "texNormArray");
-        groundU_texDiffArray    = glGetUniformLocation(groundProg, "texDiffArray");
+        groundU_projMat      = glGetUniformLocation(groundProg, "projMat");
+        groundU_viewMat      = glGetUniformLocation(groundProg, "viewMat");
+        groundU_texNormArray = glGetUniformLocation(groundProg, "texNormArray");
+        groundU_texDiffArray = glGetUniformLocation(groundProg, "texDiffArray");
+        groundU_texSpecArray = glGetUniformLocation(groundProg, "texSpecArray");
 
-        mapModelsU_modelMatrix  = glGetUniformLocation(mapModelsProg, "modelMatrix");
-        mapModelsU_projMatrix   = glGetUniformLocation(mapModelsProg, "projMatrix");
-        mapModelsU_viewMatrix   = glGetUniformLocation(mapModelsProg, "viewMatrix");
+        mapModelsU_modelMat     = glGetUniformLocation(mapModelsProg, "modelMat");
+        mapModelsU_projMat      = glGetUniformLocation(mapModelsProg, "projMat");
+        mapModelsU_viewMat      = glGetUniformLocation(mapModelsProg, "viewMat");
         mapModelsU_camPos       = glGetUniformLocation(mapModelsProg, "camPos");
         mapModelsU_skyLightDir  = glGetUniformLocation(mapModelsProg, "skyLightDir");
         mapModelsU_skyLightDiff = glGetUniformLocation(mapModelsProg, "skyLightDiff");
@@ -184,14 +183,22 @@ void SceneGame::render(sf::RenderTarget& target, float) {
         mapModelsU_hasAmbi      = glGetUniformLocation(mapModelsProg, "hasAmbi");
         mapModelsU_hasSpec      = glGetUniformLocation(mapModelsProg, "hasSpec");
 
-        constructU_texNorm      = glGetUniformLocation(constructProg, "texNorm");
-        constructU_texDiff      = glGetUniformLocation(constructProg, "texDiff");
-        constructU_texAmbi      = glGetUniformLocation(constructProg, "texAmbi");
-        constructU_texSpec      = glGetUniformLocation(constructProg, "texSpec");
+        constructU_invProjViewMat = glGetUniformLocation(constructProg, "invProjViewMat");
+        constructU_camPos         = glGetUniformLocation(constructProg, "camPos");
+        constructU_skyLightDir    = glGetUniformLocation(constructProg, "skyLightDir");
+        constructU_skyLightDiff   = glGetUniformLocation(constructProg, "skyLightDiff");
+        constructU_skyLightAmbi   = glGetUniformLocation(constructProg, "skyLightAmbi");
+        constructU_skyLightSpec   = glGetUniformLocation(constructProg, "skyLightSpec");
+        constructU_texNorm        = glGetUniformLocation(constructProg, "texNorm");
+        constructU_texDiff        = glGetUniformLocation(constructProg, "texDiff");
+        constructU_texAmbi        = glGetUniformLocation(constructProg, "texAmbi");
+        constructU_texSpec        = glGetUniformLocation(constructProg, "texSpec");
+        constructU_texDepth       = glGetUniformLocation(constructProg, "texDepth");
 
         glUseProgram(groundProg);
         glUniform1i(groundU_texNormArray, 0);
         glUniform1i(groundU_texDiffArray, 1);
+        glUniform1i(groundU_texSpecArray, 2);
 
         glUseProgram(mapModelsProg);
         glUniform1i(mapModelsU_texNorm, 0);
@@ -205,6 +212,7 @@ void SceneGame::render(sf::RenderTarget& target, float) {
         glUniform1i(constructU_texDiff, 1);
         glUniform1i(constructU_texAmbi, 2);
         glUniform1i(constructU_texSpec, 3);
+        glUniform1i(constructU_texDepth, 4);
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glUseProgram(0);
@@ -220,8 +228,8 @@ void SceneGame::render(sf::RenderTarget& target, float) {
         glBindFramebuffer(GL_FRAMEBUFFER, mainFb);
 
         glBindTexture(GL_TEXTURE_2D, mainFbTexNorm);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height,
-                     0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height,
+                     0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                                GL_TEXTURE_2D, mainFbTexNorm, 0);
 
@@ -258,30 +266,34 @@ void SceneGame::render(sf::RenderTarget& target, float) {
     }
 
     if (updateSkyLight) {
-        glUseProgram(groundProg);
-        glUniform3fv(groundU_skyLightDir, 1, glm::value_ptr(skyLight.dir));
-        glUniform3fv(groundU_skyLightDiff, 1, glm::value_ptr(skyLight.diff));
-        glUniform3fv(groundU_skyLightAmbi, 1, glm::value_ptr(skyLight.ambi));
-        glUniform3fv(groundU_skyLightSpec, 1, glm::value_ptr(skyLight.spec));
-
+        glUseProgram(mapModelsProg);
         glUniform3fv(mapModelsU_skyLightDir, 1, glm::value_ptr(skyLight.dir));
         glUniform3fv(mapModelsU_skyLightDiff, 1, glm::value_ptr(skyLight.diff));
         glUniform3fv(mapModelsU_skyLightAmbi, 1, glm::value_ptr(skyLight.ambi));
         glUniform3fv(mapModelsU_skyLightAmbi, 1, glm::value_ptr(skyLight.spec));
+
+        glUseProgram(constructProg);
+        glUniform3fv(constructU_skyLightDir, 1, glm::value_ptr(skyLight.dir));
+        glUniform3fv(constructU_skyLightDiff, 1, glm::value_ptr(skyLight.diff));
+        glUniform3fv(constructU_skyLightAmbi, 1, glm::value_ptr(skyLight.ambi));
+        glUniform3fv(constructU_skyLightSpec, 1, glm::value_ptr(skyLight.spec));
 
         updateSkyLight = false;
     }
 
     if (updateCamera) {
         glUseProgram(groundProg);
-        glUniformMatrix4fv(groundU_projMatrix, 1, GL_FALSE, glm::value_ptr(camera.projMat));
-        glUniformMatrix4fv(groundU_viewMatrix, 1, GL_FALSE, glm::value_ptr(camera.viewMat));
-        glUniform3fv(groundU_camPos, 1, glm::value_ptr(camera.pos));
+        glUniformMatrix4fv(groundU_projMat, 1, GL_FALSE, glm::value_ptr(camera.projMat));
+        glUniformMatrix4fv(groundU_viewMat, 1, GL_FALSE, glm::value_ptr(camera.viewMat));
 
         glUseProgram(mapModelsProg);
-        glUniformMatrix4fv(mapModelsU_projMatrix, 1, GL_FALSE, glm::value_ptr(camera.projMat));
-        glUniformMatrix4fv(mapModelsU_viewMatrix, 1, GL_FALSE, glm::value_ptr(camera.viewMat));
+        glUniformMatrix4fv(mapModelsU_projMat, 1, GL_FALSE, glm::value_ptr(camera.projMat));
+        glUniformMatrix4fv(mapModelsU_viewMat, 1, GL_FALSE, glm::value_ptr(camera.viewMat));
         glUniform3fv(mapModelsU_camPos, 1, glm::value_ptr(camera.pos));
+
+        glUseProgram(constructProg);
+        glUniformMatrix4fv(constructU_invProjViewMat, 1, GL_FALSE, glm::value_ptr(camera.invProjViewMat));
+        glUniform3fv(constructU_camPos, 1, glm::value_ptr(camera.pos));
 
         updateCamera = false;
     }
@@ -292,19 +304,21 @@ void SceneGame::render(sf::RenderTarget& target, float) {
 
     /// Ground ///
 
+    glUseProgram(groundProg);
+
     // Textures
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D_ARRAY, levelMap.ground.texNormArray);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D_ARRAY, levelMap.ground.texDiffArray);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, levelMap.ground.texSpecArray);
 
     // Draw
     glBindVertexArray(levelMap.ground.vao);
     glDrawArrays(GL_TRIANGLES, 0, levelMap.ground.pCount);
 
     /// Map Models ///
-
-
 
     // Model
 //    glUseProgram(mapModelsProg);
@@ -359,6 +373,12 @@ void SceneGame::render(sf::RenderTarget& target, float) {
     glBindTexture(GL_TEXTURE_2D, mainFbTexNorm);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, mainFbTexDiff);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, mainFbTexAmbi);
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, mainFbTexSpec);
+    glActiveTexture(GL_TEXTURE4);
+    glBindTexture(GL_TEXTURE_2D, mainFbTexDepth);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 
 

@@ -28,7 +28,7 @@ public:
 
     glm::mat4 viewMat;
     glm::mat4 projMat;
-    glm::mat4 invProjMat;
+    glm::mat4 invProjViewMat;
 
     glm::vec3 pos;
 
@@ -40,8 +40,9 @@ public:
     float zNear;
     float zFar;
 
-    void update_viewMatrix();
-    void update_projMatrix();
+    void update_viewMat();
+    void update_projMat();
+    void update_invProjViewMat();
 };
 
 }

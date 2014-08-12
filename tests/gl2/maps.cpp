@@ -3,19 +3,53 @@
 #include <libsqee/extra/helpers.hpp>
 
 #define CHECK_BIT(_v, _p) bool((_v) & (1<<(_p)))
-#define GET_NORM(_t, _n, _a) angleNormals [_t##Angle] [_t##V0] [_n##AngleInd[_t##Angle]] [_a] * (1+_t##Incline)
-#define GET_OWN_NORM(_n, _a) angleNormals [angle] [v0] [_n##AngleInd[angle]] [_a] * (1+incline)
-#define SET_NORMAL(_p, _v, _n) \
-    normals[(_p) * 18 + ((_v) * 3) + 0] = _n.x; \
-    normals[(_p) * 18 + ((_v) * 3) + 1] = _n.y; \
-    normals[(_p) * 18 + ((_v) * 3) + 2] = _n.z;
-#define SET_TANGENT(_p, _v, _t) \
-    tangents[_p * 24 + (_v * 4) + 0] = _t.x;\
-    tangents[_p * 24 + (_v * 4) + 1] = _t.y;\
-    tangents[_p * 24 + (_v * 4) + 2] = _t.z;\
-    tangents[_p * 24 + (_v * 4) + 3] = _t.w;
 
 namespace sqt {
+
+const float xyTiles[24] = {
+    0.f, 1.f,  1.f, 1.f,  0.5f, 0.5f,
+    1.f, 1.f,  1.f, 0.f,  0.5f, 0.5f,
+    1.f, 0.f,  0.f, 0.f,  0.5f, 0.5f,
+    0.f, 0.f,  0.f, 1.f,  0.5f, 0.5f
+};
+
+const float typeNormals[13][4][2] = {
+    {{0.f, 0.f},     {0.f, 0.f},     {0.f, 0.f},     {0.f, 0.f}},    // 0
+
+    {{0.f, 0.25f},   {0.f, 0.25f},   {0.f, 0.25f},   {0.f, 0.25f}},  // 1
+    {{0.25f, 0.f},   {0.25f, 0.f},   {0.25f, 0.f},   {0.25f, 0.f}},  // 2
+    {{0.f, -0.25f},  {0.f, -0.25f},  {0.f, -0.25f},  {0.f, -0.25f}}, // 3
+    {{-0.25f, 0.f},  {-0.25f, 0.f},  {-0.25f, 0.f},  {-0.25f, 0.f}}, // 4
+
+    {{0.f, 0.25f},   {0.25f, 0.f},   {0.25f, 0.f},   {0.f, 0.25f}},  // 5
+    {{0.25f, 0.f},   {0.25f, 0.f},   {0.f, -0.25f},  {0.f, -0.25f}}, // 6
+    {{-0.25f, 0.f},  {0.f, -0.25f},  {0.f, -0.25f},  {-0.25f, 0.f}}, // 7
+    {{0.f, 0.25f},   {0.f, 0.25f},   {-0.25f, 0.f},  {-0.25f, 0.f}}, // 8
+
+    {{0.f, -0.25f},  {-0.25f, 0.f},  {-0.25f, 0.f},  {0.f, -0.25f}}, // 9
+    {{-0.25f, 0.f},  {-0.25f, 0.f},  {0.f, 0.25f},   {0.f, 0.25f}},  // 10
+    {{0.25f, 0.f},   {0.f, 0.25f},   {0.f, 0.25f},   {0.25f, 0.f}},  // 11
+    {{0.f, -0.25f},  {0.f, -0.25f},  {0.25f, 0.f},   {0.25f, 0.f}}   // 12
+};
+
+const float typeZCoords[13][5] = {
+    {0.f,   0.f,  0.f,  0.f,  0.f},
+
+    {0.25f, 0.f,  0.5f, 0.5f, 0.f},
+    {0.25f, 0.f,  0.f,  0.5f, 0.5f},
+    {0.25f, 0.5f, 0.f,  0.f,  0.5f},
+    {0.25f, 0.5f, 0.5f, 0.f,  0.f},
+
+    {0.25f, 0.f,  0.f,  0.5f, 0.f},
+    {0.25f, 0.f,  0.f,  0.f,  0.5f},
+    {0.25f, 0.5f, 0.f,  0.f,  0.f},
+    {0.25f, 0.f,  0.5f, 0.f,  0.f},
+
+    {0.25f, 0.5f, 0.5f, 0.f,  0.5f},
+    {0.25f, 0.5f, 0.5f, 0.5f, 0.f},
+    {0.25f, 0.f,  0.5f, 0.5f, 0.5f},
+    {0.25f, 0.5f, 0.f,  0.5f, 0.5f}
+};
 
 ModelInstance::ModelInstance(glm::vec3 _pos, glm::vec3 _scale, bool _hasShadow, int _index) {
     pos = _pos;
@@ -55,40 +89,20 @@ bool LevelMap::load_ground() {
         texPaths.push_back(root["textures"][i].asString());
     }
 
-    ground.pCount = width * height * 6;
-    float points[width * height * 18];
-    float normals[width * height * 18];
-    int texcoords[width * height * 18];
-    float tangents[width * height * 24];
+    ground.pCount = width * height * 12;
 
-    float angleNormals[9][2][2][2] = {
-        {{{0.f, 0.25f},  {0.f, 0.25f}},  {{0.f, 0.25f},  {0.f, 0.25f}}},   // 0
-        {{{0.f, 0.25f},  {0.25f, 0.f}},  {{0.25f, 0.f},  {0.f, 0.25f}}},   // 1
-        {{{0.25f, 0.f},  {0.25f, 0.f}},  {{0.25f, 0.f},  {0.25f, 0.f}}},   // 2
-        {{{0.25f, 0.f},  {0.f, -0.25f}}, {{0.f, -0.25f}, {0.25f, 0.f}}},   // 3
-        {{{0.f, -0.25f}, {0.f, -0.25f}}, {{0.f, -0.25f}, {0.f, -0.25f}}},  // 4
-        {{{0.f, -0.25f}, {-0.25f, 0.f}}, {{-0.25f, 0.f}, {0.f, -0.25f}}},  // 5
-        {{{-0.25f, 0.f}, {-0.25f, 0.f}}, {{-0.25f, 0.f}, {-0.25f, 0.f}}},  // 6
-        {{{-0.25f, 0.f}, {0.f, 0.25f}},  {{0.f, 0.25f},  {-0.25f, 0.f}}},  // 7
-        {{{0.f, 0.f},    {0.f, 0.f}},    {{0.f, 0.f},    {0.f, 0.f}}}      // 8
-    };
-
-    bool nAngleInd[9] = {0, 0, 0, 0, 0, 1, 0, 1, 0};
-    bool eAngleInd[9] = {0, 1, 0, 0, 0, 0, 0, 1, 0};
-    bool sAngleInd[9] = {0, 1, 0, 1, 0, 0, 0, 0, 0};
-    bool wAngleInd[9] = {0, 0, 0, 1, 0, 1, 0, 0, 0};
+    float points[width * height * 36];
+    float normalsFlat[width * height * 36];
+    float normals[width * height * 36];
+    float texcoords[width * height * 36];
+    float tangents[width * height * 48];
 
     // Working Arrays
     int zBases[width * height];
-    float zNormals[width * height];
     bool invisibles[width * height];
-    bool corners[width * height];
-    bool v0s[width * height];
-    bool v1s[width * height];
-    bool v2s[width * height];
+    int types[width * height];
     bool inclines[width * height];
     bool smooths[width * height];
-    int angles[width * height];
 
     // Fill working arrays and set textures (Z texcoord)
     for (int y_ = 0; y_ < height; y_++) {
@@ -98,34 +112,17 @@ bool LevelMap::load_ground() {
             int val = tilesGeometry[width*y_ + x];
 
             // Get all properties from tile's 16bit int
-            zBases[pos]      = (val >> 8) % 128;
+            zBases[pos]      = (val >> 8) % 256;
             invisibles[pos]  = CHECK_BIT(val, 6);
-            corners[pos]     = CHECK_BIT(val, 5);
-            v0s[pos]         = CHECK_BIT(val, 4);
-            v1s[pos]         = CHECK_BIT(val, 3);
-            v2s[pos]         = CHECK_BIT(val, 2);
+            types[pos]       = (val >> 2) % 16;
             inclines[pos]    = CHECK_BIT(val, 1);
             smooths[pos]     = CHECK_BIT(val, 0);
 
-            // Work out angles for each tile
-            if (corners[pos]) {
-                if      (!v1s[pos] && !v2s[pos]) angles[pos] = 1;
-                else if (!v1s[pos] &&  v2s[pos]) angles[pos] = 3;
-                else if ( v1s[pos] &&  v2s[pos]) angles[pos] = 5;
-                else if ( v1s[pos] && !v2s[pos]) angles[pos] = 7;
-            } else if (v0s[pos]) {
-                if      ( v1s[pos] && !v2s[pos]) angles[pos] = 0;
-                else if (!v1s[pos] && !v2s[pos]) angles[pos] = 2;
-                else if ( v1s[pos] &&  v2s[pos]) angles[pos] = 4;
-                else if (!v1s[pos] &&  v2s[pos]) angles[pos] = 6;
-            } else angles[pos] = 8;
 
-            texcoords[pos*18+2] = tilesTextures[width*y_ + x];
-            texcoords[pos*18+5] = tilesTextures[width*y_ + x];
-            texcoords[pos*18+8] = tilesTextures[width*y_ + x];
-            texcoords[pos*18+11] = tilesTextures[width*y_ + x];
-            texcoords[pos*18+14] = tilesTextures[width*y_ + x];
-            texcoords[pos*18+17] = tilesTextures[width*y_ + x];
+            // Set Textures
+            for (int p = 0; p < 12; p++) {
+                texcoords[pos*36 + p*3 +2] = tilesTextures[width*y_ + x];
+            }
         }
     }
 
@@ -133,184 +130,54 @@ bool LevelMap::load_ground() {
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
             int pos = y * width + x;
-            float left   = x;
-            float right  = x+1;
-            float top    = y+1;
-            float bottom = y;
 
-            bool corner = corners[pos];
-            bool v0 = v0s[pos];
-            bool incline = inclines[pos];
-            int angle = angles[pos];
-
-            // Set X and Y coords and set texcoords
-            if (angle == 1) {
-                points[pos*18+0] = left;
-                points[pos*18+1] = bottom;
-                points[pos*18+3] = left;
-                points[pos*18+4] = top;
-                points[pos*18+6] = right;
-                points[pos*18+7] = top;
-
-                points[pos*18+9] = left;
-                points[pos*18+10] = bottom;
-                points[pos*18+12] = right;
-                points[pos*18+13] = bottom;
-                points[pos*18+15] = right;
-                points[pos*18+16] = top;
-
-                texcoords[pos*18+0] = 0;
-                texcoords[pos*18+1] = 1;
-                texcoords[pos*18+3] = 0;
-                texcoords[pos*18+4] = 0;
-                texcoords[pos*18+6] = 1;
-                texcoords[pos*18+7] = 0;
-
-                texcoords[pos*18+9] = 0;
-                texcoords[pos*18+10] = 1;
-                texcoords[pos*18+12] = 1;
-                texcoords[pos*18+13] = 1;
-                texcoords[pos*18+15] = 1;
-                texcoords[pos*18+16] = 0;
-            } else
-            if (angle == 3) {
-                points[pos*18+0] = left;
-                points[pos*18+1] = top;
-                points[pos*18+3] = right;
-                points[pos*18+4] = top;
-                points[pos*18+6] = right;
-                points[pos*18+7] = bottom;
-
-                points[pos*18+9] = left;
-                points[pos*18+10] = top;
-                points[pos*18+12] = left;
-                points[pos*18+13] = bottom;
-                points[pos*18+15] = right;
-                points[pos*18+16] = bottom;
-
-                texcoords[pos*18+0] = 0;
-                texcoords[pos*18+1] = 0;
-                texcoords[pos*18+3] = 1;
-                texcoords[pos*18+4] = 0;
-                texcoords[pos*18+6] = 1;
-                texcoords[pos*18+7] = 1;
-
-                texcoords[pos*18+9] = 0;
-                texcoords[pos*18+10] = 0;
-                texcoords[pos*18+12] = 0;
-                texcoords[pos*18+13] = 1;
-                texcoords[pos*18+15] = 1;
-                texcoords[pos*18+16] = 1;
-            } else
-            if (angle == 5) {
-                points[pos*18+0] = right;
-                points[pos*18+1] = top;
-                points[pos*18+3] = right;
-                points[pos*18+4] = bottom;
-                points[pos*18+6] = left;
-                points[pos*18+7] = bottom;
-
-                points[pos*18+9] = right;
-                points[pos*18+10] = top;
-                points[pos*18+12] = left;
-                points[pos*18+13] = top;
-                points[pos*18+15] = left;
-                points[pos*18+16] = bottom;
-
-                texcoords[pos*18+0] = 1;
-                texcoords[pos*18+1] = 0;
-                texcoords[pos*18+3] = 1;
-                texcoords[pos*18+4] = 1;
-                texcoords[pos*18+6] = 0;
-                texcoords[pos*18+7] = 1;
-
-                texcoords[pos*18+9] = 1;
-                texcoords[pos*18+10] = 0;
-                texcoords[pos*18+12] = 0;
-                texcoords[pos*18+13] = 0;
-                texcoords[pos*18+15] = 0;
-                texcoords[pos*18+16] = 1;
-            } else
-            if (angle == 7) {
-                points[pos*18+0] = right;
-                points[pos*18+1] = bottom;
-                points[pos*18+3] = left;
-                points[pos*18+4] = bottom;
-                points[pos*18+6] = left;
-                points[pos*18+7] = top;
-
-                points[pos*18+9] = right;
-                points[pos*18+10] = bottom;
-                points[pos*18+12] = right;
-                points[pos*18+13] = top;
-                points[pos*18+15] = left;
-                points[pos*18+16] = top;
-
-                texcoords[pos*18+0] = 1;
-                texcoords[pos*18+1] = 1;
-                texcoords[pos*18+3] = 0;
-                texcoords[pos*18+4] = 1;
-                texcoords[pos*18+6] = 0;
-                texcoords[pos*18+7] = 0;
-
-                texcoords[pos*18+9] = 1;
-                texcoords[pos*18+10] = 1;
-                texcoords[pos*18+12] = 1;
-                texcoords[pos*18+13] = 0;
-                texcoords[pos*18+15] = 0;
-                texcoords[pos*18+16] = 0;
-            } else {
-                points[pos*18+0] = left;
-                points[pos*18+1] = bottom;
-                points[pos*18+3] = right;
-                points[pos*18+4] = bottom;
-                points[pos*18+6] = right;
-                points[pos*18+7] = top;
-
-                points[pos*18+9] = left;
-                points[pos*18+10] = bottom;
-                points[pos*18+12] = left;
-                points[pos*18+13] = top;
-                points[pos*18+15] = right;
-                points[pos*18+16] = top;
-
-                texcoords[pos*18+0] = 0;
-                texcoords[pos*18+1] = 1;
-                texcoords[pos*18+3] = 1;
-                texcoords[pos*18+4] = 1;
-                texcoords[pos*18+6] = 1;
-                texcoords[pos*18+7] = 0;
-
-                texcoords[pos*18+9] = 0;
-                texcoords[pos*18+10] = 1;
-                texcoords[pos*18+12] = 0;
-                texcoords[pos*18+13] = 0;
-                texcoords[pos*18+15] = 1;
-                texcoords[pos*18+16] = 0;
-            };
-
-            // Set Z coords
-            for (int p = 0; p < 6; p++) {
-                int zBase = zBases[pos];
-                if (corner) {
-                    if (p==0 || p==3 || (v0 && (p==1 || p==4))) {
-                        zBase += 1 + incline;
-                    }
-                } else if ((angle == 0 && (p==0 || p==1 || p==3)) ||
-                           (angle == 2 && (p==0 || p==3 || p==4)) ||
-                           (angle == 4 && (p==2 || p==4 || p==5)) ||
-                           (angle == 6 && (p==1 || p==2 || p==5))) {
-                    zBase += 1 + incline;
-                }
-                points[pos*18 + p*3 +2] = float(zBase) / 2.f;
+            // Set X and Y Points and Texcoords
+            for (int p = 0; p < 12; p++) {
+                points[pos*36 + p*3 +0] = float(x) + xyTiles[p*2 +0];
+                points[pos*36 + p*3 +1] = float(y) + xyTiles[p*2 +1];
+                texcoords[pos*36 + p*3 +0] = xyTiles[p*2 +0];
+                texcoords[pos*36 + p*3 +1] = xyTiles[p*2 +1];
             }
 
-            // Set flat Z normals
-            if (corner || (!corner && v0)) {
-                if (incline) zNormals[pos] = 0.5f;
-                else         zNormals[pos] = 0.75f;
-            } else zNormals[pos] = 1.f;
+            // Set Z coords
+            points[pos*36 + 0*3  +2] = 0.5f * zBases[pos] + typeZCoords[types[pos]][4] * (1 + inclines[pos]);
+            points[pos*36 + 1*3  +2] = 0.5f * zBases[pos] + typeZCoords[types[pos]][1] * (1 + inclines[pos]);
+            points[pos*36 + 2*3  +2] = 0.5f * zBases[pos] + typeZCoords[types[pos]][0] * (1 + inclines[pos]);
+            points[pos*36 + 3*3  +2] = 0.5f * zBases[pos] + typeZCoords[types[pos]][1] * (1 + inclines[pos]);
+            points[pos*36 + 4*3  +2] = 0.5f * zBases[pos] + typeZCoords[types[pos]][2] * (1 + inclines[pos]);
+            points[pos*36 + 5*3  +2] = 0.5f * zBases[pos] + typeZCoords[types[pos]][0] * (1 + inclines[pos]);
+            points[pos*36 + 6*3  +2] = 0.5f * zBases[pos] + typeZCoords[types[pos]][2] * (1 + inclines[pos]);
+            points[pos*36 + 7*3  +2] = 0.5f * zBases[pos] + typeZCoords[types[pos]][3] * (1 + inclines[pos]);
+            points[pos*36 + 8*3  +2] = 0.5f * zBases[pos] + typeZCoords[types[pos]][0] * (1 + inclines[pos]);
+            points[pos*36 + 9*3  +2] = 0.5f * zBases[pos] + typeZCoords[types[pos]][3] * (1 + inclines[pos]);
+            points[pos*36 + 10*3 +2] = 0.5f * zBases[pos] + typeZCoords[types[pos]][4] * (1 + inclines[pos]);
+            points[pos*36 + 11*3 +2] = 0.5f * zBases[pos] + typeZCoords[types[pos]][0] * (1 + inclines[pos]);
+
+            // Set flat normals and tangents
+            for (int f = 0; f < 4; f++) {
+                for (int p = 0; p < 3; p++) {
+                    normalsFlat[pos*36 + f*9 + p*3 +0] = typeNormals[types[pos]][f][0] * (1 + inclines[pos]);
+                    normalsFlat[pos*36 + f*9 + p*3 +1] = typeNormals[types[pos]][f][1] * (1 + inclines[pos]);
+                    if (types[pos]) normalsFlat[pos*36 + f*9 + p*3 +2] = 1.f - 0.25f * (1 + inclines[pos]);
+                    else normalsFlat[pos*36 + f*9 + p*3 +2] = 1.f;
+
+                    glm::vec3 normal(normalsFlat[pos*36 + f*9 + p*3 +0],
+                                     normalsFlat[pos*36 + f*9 + p*3 +1],
+                                     normalsFlat[pos*36 + f*9 + p*3 +2]);
+
+                    glm::vec4 tangent = sq::get_tangent(normal);
+
+                    tangents[pos*48 + f*12 + p*4 +0] = tangent.x;
+                    tangents[pos*48 + f*12 + p*4 +1] = tangent.y;
+                    tangents[pos*48 + f*12 + p*4 +2] = tangent.z;
+                    tangents[pos*48 + f*12 + p*4 +3] = tangent.w;
+                }
+            }
         }
+    }
+
+    for (int i = 0; i < width * height * 36; i++) {
+        normals[i] = normalsFlat[i];
     }
 
     // Calculate smooth normals and set normals
@@ -318,30 +185,8 @@ bool LevelMap::load_ground() {
         for (int x = 0; x < width; x++) {
             int pos = y * width + x;
 
-            bool v0 = v0s[pos];
-            bool incline = inclines[pos];
-            bool smooth = smooths[pos];
-            int angle = angles[pos];
-
-            // Copy flat normals and set tangents
-            for (int p = 0; p < 6; p++) {
-                normals[pos*18 + p*3 +0] = angleNormals [angle] [v0] [1*(p>2)] [0] * (1+incline);
-                normals[pos*18 + p*3 +1] = angleNormals [angle] [v0] [1*(p>2)] [1] * (1+incline);
-                normals[pos*18 + p*3 +2] = zNormals[pos];
-
-                glm::vec3 normal(normals[pos*18 + p*3 +0],
-                                 normals[pos*18 + p*3 +1],
-                                 normals[pos*18 + p*3 +2]);
-                glm::vec4 tangent = sq::get_tangent(normal);
-
-                tangents[pos*24 + p*4 +0] = tangent.x;
-                tangents[pos*24 + p*4 +1] = tangent.y;
-                tangents[pos*24 + p*4 +2] = tangent.z;
-                tangents[pos*24 + p*4 +3] = tangent.w;
-            }
-
             // No smoothing
-            if (!smooth) continue;
+            if (!smooths[pos]) continue;
 
             // Set up just a few variables
             int nPos = pos + width;
@@ -352,82 +197,183 @@ bool LevelMap::load_ground() {
             int esPos = pos + 1 - width;
             int swPos = pos - width - 1;
             int wnPos = pos - 1 + width;
-            bool nV0 = v0s[nPos];
-            bool eV0 = v0s[ePos];
-            bool sV0 = v0s[sPos];
-            bool wV0 = v0s[wPos];
-            bool neV0 = v0s[nePos];
-            bool esV0 = v0s[esPos];
-            bool swV0 = v0s[swPos];
-            bool wnV0 = v0s[wnPos];
-            int nAngle = angles[nPos];
-            int eAngle = angles[ePos];
-            int sAngle = angles[sPos];
-            int wAngle = angles[wPos];
-            int neAngle = angles[nePos];
-            int esAngle = angles[esPos];
-            int swAngle = angles[swPos];
-            int wnAngle = angles[wnPos];
-            bool nIncline = inclines[nPos];
-            bool eIncline = inclines[ePos];
-            bool sIncline = inclines[sPos];
-            bool wIncline = inclines[wPos];
-            bool neIncline = inclines[nePos];
-            bool esIncline = inclines[esPos];
-            bool swIncline = inclines[swPos];
-            bool wnIncline = inclines[wnPos];
+
             std::vector<glm::vec3> neNorms; neNorms.resize(8);
             std::vector<glm::vec3> esNorms; esNorms.resize(8);
             std::vector<glm::vec3> swNorms; swNorms.resize(8);
             std::vector<glm::vec3> wnNorms; wnNorms.resize(8);
 
             // Check map edges
-            bool nSmooth = (y != height-1);
-            bool eSmooth = (x != width-1);
-            bool sSmooth = (y != 0);
-            bool wSmooth = (x != 0);
-            if (!(nSmooth || eSmooth || sSmooth || wSmooth)) continue;
+            bool nEdge = (y == height-1);
+            bool eEdge = (x == width-1);
+            bool sEdge = (y == 0);
+            bool wEdge = (x == 0);
 
-            // Fill Vectors of adjacent face normals
-            if (nSmooth && eSmooth) {
-                neNorms[0] = glm::vec3(GET_OWN_NORM(n, 0), GET_OWN_NORM(n, 1), zNormals [pos]);
-                neNorms[1] = glm::vec3(GET_OWN_NORM(e, 0), GET_OWN_NORM(e, 1), zNormals [pos]);
-                neNorms[2] = glm::vec3(GET_NORM(n, e, 0),  GET_NORM(n, e, 1),  zNormals [nPos]);
-                neNorms[3] = glm::vec3(GET_NORM(n, s, 0),  GET_NORM(n, s, 1),  zNormals [nPos]);
-                neNorms[4] = glm::vec3(GET_NORM(ne, s, 0), GET_NORM(ne, s, 1), zNormals [nePos]);
-                neNorms[5] = glm::vec3(GET_NORM(ne, w, 0), GET_NORM(ne, w, 1), zNormals [nePos]);
-                neNorms[6] = glm::vec3(GET_NORM(e, w, 0),  GET_NORM(e, w, 1),  zNormals [ePos]);
-                neNorms[7] = glm::vec3(GET_NORM(e, n, 0),  GET_NORM(e, n, 1),  zNormals [ePos]);
+
+            // North East
+            neNorms[0] = glm::vec3(normalsFlat[pos*36 + 1*3 +0],
+                                   normalsFlat[pos*36 + 1*3 +1],
+                                   normalsFlat[pos*36 + 1*3 +2]);
+            neNorms[1] = glm::vec3(normalsFlat[pos*36 + 3*3 +0],
+                                   normalsFlat[pos*36 + 3*3 +1],
+                                   normalsFlat[pos*36 + 3*3 +2]);
+
+            if (nEdge) {
+                neNorms[2] = neNorms[0]; neNorms[3] = neNorms[1];
+            } else {
+                neNorms[2] = glm::vec3(normalsFlat[nPos*36 + 4*3 +0],
+                                       normalsFlat[nPos*36 + 4*3 +1],
+                                       normalsFlat[nPos*36 + 4*3 +2]);
+                neNorms[3] = glm::vec3(normalsFlat[nPos*36 + 6*3 +0],
+                                       normalsFlat[nPos*36 + 6*3 +1],
+                                       normalsFlat[nPos*36 + 6*3 +2]);
             }
-            if (eSmooth && sSmooth) {
-                esNorms[0] = glm::vec3(GET_OWN_NORM(e, 0), GET_OWN_NORM(e, 1), zNormals [pos]);
-                esNorms[1] = glm::vec3(GET_OWN_NORM(s, 0), GET_OWN_NORM(s, 1), zNormals [pos]);
-                esNorms[2] = glm::vec3(GET_NORM(e, s, 0),  GET_NORM(e, s, 1),  zNormals [ePos]);
-                esNorms[3] = glm::vec3(GET_NORM(e, w, 0),  GET_NORM(e, w, 1),  zNormals [ePos]);
-                esNorms[4] = glm::vec3(GET_NORM(es, w, 0), GET_NORM(es, w, 1), zNormals [esPos]);
-                esNorms[5] = glm::vec3(GET_NORM(es, n, 0), GET_NORM(es, n, 1), zNormals [esPos]);
-                esNorms[6] = glm::vec3(GET_NORM(s, n, 0),  GET_NORM(s, n, 1),  zNormals [sPos]);
-                esNorms[7] = glm::vec3(GET_NORM(s, e, 0),  GET_NORM(s, e, 1),  zNormals [sPos]);
+
+            if (eEdge) {
+                neNorms[4] = neNorms[0]; neNorms[5] = neNorms[1];
+            } else {
+                neNorms[4] = glm::vec3(normalsFlat[ePos*36 + 10*3 +0],
+                                       normalsFlat[ePos*36 + 10*3 +1],
+                                       normalsFlat[ePos*36 + 10*3 +2]);
+                neNorms[5] = glm::vec3(normalsFlat[ePos*36 + 0*3  +0],
+                                       normalsFlat[ePos*36 + 0*3  +1],
+                                       normalsFlat[ePos*36 + 0*3  +2]);
             }
-            if (sSmooth && wSmooth) {
-                swNorms[0] = glm::vec3(GET_OWN_NORM(s, 0), GET_OWN_NORM(s, 1), zNormals [pos]);
-                swNorms[1] = glm::vec3(GET_OWN_NORM(w, 0), GET_OWN_NORM(w, 1), zNormals [pos]);
-                swNorms[2] = glm::vec3(GET_NORM(s, w, 0),  GET_NORM(s, w, 1),  zNormals [sPos]);
-                swNorms[3] = glm::vec3(GET_NORM(s, n, 0),  GET_NORM(s, n, 1),  zNormals [sPos]);
-                swNorms[4] = glm::vec3(GET_NORM(sw, n, 0), GET_NORM(sw, n, 1), zNormals [swPos]);
-                swNorms[5] = glm::vec3(GET_NORM(sw, e, 0), GET_NORM(sw, e, 1), zNormals [swPos]);
-                swNorms[6] = glm::vec3(GET_NORM(w, e, 0),  GET_NORM(w, e, 1),  zNormals [wPos]);
-                swNorms[7] = glm::vec3(GET_NORM(w, s, 0),  GET_NORM(w, s, 1),  zNormals [wPos]);
+
+            if (nEdge | eEdge) {
+                neNorms[6] = neNorms[0]; neNorms[7] = neNorms[1];
+            } else {
+                neNorms[6] = glm::vec3(normalsFlat[nePos*36 + 7*3 +0],
+                                       normalsFlat[nePos*36 + 7*3 +1],
+                                       normalsFlat[nePos*36 + 7*3 +2]);
+                neNorms[7] = glm::vec3(normalsFlat[nePos*36 + 9*3 +0],
+                                       normalsFlat[nePos*36 + 9*3 +1],
+                                       normalsFlat[nePos*36 + 9*3 +2]);
             }
-            if (wSmooth && nSmooth) {
-                wnNorms[0] = glm::vec3(GET_OWN_NORM(w, 0), GET_OWN_NORM(w, 1), zNormals [pos]);
-                wnNorms[1] = glm::vec3(GET_OWN_NORM(n, 0), GET_OWN_NORM(n, 1), zNormals [pos]);
-                wnNorms[2] = glm::vec3(GET_NORM(w, n, 0),  GET_NORM(w, n, 1),  zNormals [wPos]);
-                wnNorms[3] = glm::vec3(GET_NORM(w, e, 0),  GET_NORM(w, e, 1),  zNormals [wPos]);
-                wnNorms[4] = glm::vec3(GET_NORM(wn, e, 0), GET_NORM(wn, e, 1), zNormals [wnPos]);
-                wnNorms[5] = glm::vec3(GET_NORM(wn, s, 0), GET_NORM(wn, s, 1), zNormals [wnPos]);
-                wnNorms[6] = glm::vec3(GET_NORM(n, s, 0),  GET_NORM(n, s, 1),  zNormals [nPos]);
-                wnNorms[7] = glm::vec3(GET_NORM(n, w, 0),  GET_NORM(n, w, 1),  zNormals [nPos]);
+
+            // East South
+            esNorms[0] = glm::vec3(normalsFlat[pos*36 + 4*3 +0],
+                                   normalsFlat[pos*36 + 4*3 +1],
+                                   normalsFlat[pos*36 + 4*3 +2]);
+            esNorms[1] = glm::vec3(normalsFlat[pos*36 + 6*3 +0],
+                                   normalsFlat[pos*36 + 6*3 +1],
+                                   normalsFlat[pos*36 + 6*3 +2]);
+
+            if (eEdge) {
+                esNorms[2] = esNorms[0]; esNorms[3] = esNorms[1];
+            } else {
+                esNorms[2] = glm::vec3(normalsFlat[ePos*36 + 7*3 +0],
+                                       normalsFlat[ePos*36 + 7*3 +1],
+                                       normalsFlat[ePos*36 + 7*3 +2]);
+                esNorms[3] = glm::vec3(normalsFlat[ePos*36 + 9*3 +0],
+                                       normalsFlat[ePos*36 + 9*3 +1],
+                                       normalsFlat[ePos*36 + 9*3 +2]);
+            }
+
+            if (sEdge) {
+                esNorms[4] = esNorms[0]; esNorms[5] = esNorms[1];
+            } else {
+                esNorms[4] = glm::vec3(normalsFlat[sPos*36 + 1*3 +0],
+                                       normalsFlat[sPos*36 + 1*3 +1],
+                                       normalsFlat[sPos*36 + 1*3 +2]);
+                esNorms[5] = glm::vec3(normalsFlat[sPos*36 + 3*3 +0],
+                                       normalsFlat[sPos*36 + 3*3 +1],
+                                       normalsFlat[sPos*36 + 3*3 +2]);
+            }
+
+            if (eEdge | sEdge) {
+                esNorms[6] = esNorms[0]; esNorms[7] = esNorms[1];
+            } else {
+                esNorms[6] = glm::vec3(normalsFlat[esPos*36 + 10*3 +0],
+                                       normalsFlat[esPos*36 + 10*3 +1],
+                                       normalsFlat[esPos*36 + 10*3 +2]);
+                esNorms[7] = glm::vec3(normalsFlat[esPos*36 + 0*3  +0],
+                                       normalsFlat[esPos*36 + 0*3  +1],
+                                       normalsFlat[esPos*36 + 0*3  +2]);
+            }
+
+
+            // South West
+            swNorms[0] = glm::vec3(normalsFlat[pos*36 + 7*3 +0],
+                                   normalsFlat[pos*36 + 7*3 +1],
+                                   normalsFlat[pos*36 + 7*3 +2]);
+            swNorms[1] = glm::vec3(normalsFlat[pos*36 + 9*3 +0],
+                                   normalsFlat[pos*36 + 9*3 +1],
+                                   normalsFlat[pos*36 + 9*3 +2]);
+
+            if (sEdge) {
+                swNorms[2] = swNorms[0]; swNorms[3] = swNorms[1];
+            } else {
+                swNorms[2] = glm::vec3(normalsFlat[sPos*36 + 10*3 +0],
+                                       normalsFlat[sPos*36 + 10*3 +1],
+                                       normalsFlat[sPos*36 + 10*3 +2]);
+                swNorms[3] = glm::vec3(normalsFlat[sPos*36 + 0*3  +0],
+                                       normalsFlat[sPos*36 + 0*3  +1],
+                                       normalsFlat[sPos*36 + 0*3  +2]);
+            }
+
+            if (wEdge) {
+                swNorms[4] = swNorms[0]; swNorms[5] = swNorms[1];
+            } else {
+                swNorms[4] = glm::vec3(normalsFlat[wPos*36 + 4*3 +0],
+                                       normalsFlat[wPos*36 + 4*3 +1],
+                                       normalsFlat[wPos*36 + 4*3 +2]);
+                swNorms[5] = glm::vec3(normalsFlat[wPos*36 + 6*3 +0],
+                                       normalsFlat[wPos*36 + 6*3 +1],
+                                       normalsFlat[wPos*36 + 6*3 +2]);
+            }
+
+            if (sEdge | wEdge) {
+                swNorms[6] = swNorms[0]; swNorms[7] = swNorms[1];
+            } else {
+                swNorms[6] = glm::vec3(normalsFlat[swPos*36 + 1*3 +0],
+                                       normalsFlat[swPos*36 + 1*3 +1],
+                                       normalsFlat[swPos*36 + 1*3 +2]);
+                swNorms[7] = glm::vec3(normalsFlat[swPos*36 + 3*3 +0],
+                                       normalsFlat[swPos*36 + 3*3 +1],
+                                       normalsFlat[swPos*36 + 3*3 +2]);
+            }
+
+
+            // West North
+            wnNorms[0] = glm::vec3(normalsFlat[pos*36 + 10*3 +0],
+                                   normalsFlat[pos*36 + 10*3 +1],
+                                   normalsFlat[pos*36 + 10*3 +2]);
+            wnNorms[1] = glm::vec3(normalsFlat[pos*36 + 0*3  +0],
+                                   normalsFlat[pos*36 + 0*3  +1],
+                                   normalsFlat[pos*36 + 0*3  +2]);
+
+            if (wEdge) {
+                wnNorms[2] = wnNorms[0]; wnNorms[3] = wnNorms[1];
+            } else {
+                wnNorms[2] = glm::vec3(normalsFlat[wPos*36 + 1*3 +0],
+                                       normalsFlat[wPos*36 + 1*3 +1],
+                                       normalsFlat[wPos*36 + 1*3 +2]);
+                wnNorms[3] = glm::vec3(normalsFlat[wPos*36 + 3*3 +0],
+                                       normalsFlat[wPos*36 + 3*3 +1],
+                                       normalsFlat[wPos*36 + 3*3 +2]);
+            }
+
+            if (nEdge) {
+                wnNorms[4] = wnNorms[0]; wnNorms[5] = wnNorms[1];
+            } else {
+                wnNorms[4] = glm::vec3(normalsFlat[nPos*36 + 7*3 +0],
+                                       normalsFlat[nPos*36 + 7*3 +1],
+                                       normalsFlat[nPos*36 + 7*3 +2]);
+                wnNorms[5] = glm::vec3(normalsFlat[nPos*36 + 9*3 +0],
+                                       normalsFlat[nPos*36 + 9*3 +1],
+                                       normalsFlat[nPos*36 + 9*3 +2]);
+            }
+
+            if (wEdge | nEdge) {
+                wnNorms[6] = wnNorms[0]; wnNorms[7] = wnNorms[1];
+            } else {
+                wnNorms[6] = glm::vec3(normalsFlat[wnPos*36 + 4*3 +0],
+                                       normalsFlat[wnPos*36 + 4*3 +1],
+                                       normalsFlat[wnPos*36 + 4*3 +2]);
+                wnNorms[7] = glm::vec3(normalsFlat[wnPos*36 + 6*3 +0],
+                                       normalsFlat[wnPos*36 + 6*3 +1],
+                                       normalsFlat[wnPos*36 + 6*3 +2]);
             }
 
             // Work out smoothed vertex normals
@@ -439,140 +385,50 @@ bool LevelMap::load_ground() {
             for (glm::vec3& norm : esNorms) esSum += norm;
             for (glm::vec3& norm : swNorms) swSum += norm;
             for (glm::vec3& norm : wnNorms) wnSum += norm;
+
             neSum = glm::normalize(neSum);
             esSum = glm::normalize(esSum);
             swSum = glm::normalize(swSum);
             wnSum = glm::normalize(wnSum);
 
-            // Set north-east normals
-            if (nSmooth && eSmooth) {
-                glm::vec4 tangent = sq::get_tangent(neSum);
-                if (angle==0 || angle==2 || angle==4 || angle==6 || angle==8) {
-                    SET_NORMAL(pos, 2, neSum);
-                    SET_NORMAL(pos, 5, neSum);
-                    SET_TANGENT(pos, 2, tangent);
-                    SET_TANGENT(pos, 5, tangent);
-                } else
-                if (angle == 1) {
-                    SET_NORMAL(pos, 2, neSum);
-                    SET_NORMAL(pos, 5, neSum);
-                    SET_TANGENT(pos, 2, tangent);
-                    SET_TANGENT(pos, 5, tangent);
-                } else
-                if (angle == 3) {
-                    SET_NORMAL(pos, 1, neSum);
-                    SET_TANGENT(pos, 1, tangent);
-                } else
-                if (angle == 5) {
-                    SET_NORMAL(pos, 0, neSum);
-                    SET_NORMAL(pos, 3, neSum);
-                    SET_TANGENT(pos, 0, tangent);
-                    SET_TANGENT(pos, 3, tangent);
-                } else
-                if (angle == 7) {
-                    SET_NORMAL(pos, 4, neSum);
-                    SET_TANGENT(pos, 4, tangent);
-                }
-            }
+            normals[pos*36 + 1*3 +0] = neSum.x;
+            normals[pos*36 + 1*3 +1] = neSum.y;
+            normals[pos*36 + 1*3 +2] = neSum.z;
+            normals[pos*36 + 3*3 +0] = neSum.x;
+            normals[pos*36 + 3*3 +1] = neSum.y;
+            normals[pos*36 + 3*3 +2] = neSum.z;
 
-            // Set east-south normals
-            if (eSmooth && sSmooth) {
-                glm::vec4 tangent = sq::get_tangent(esSum);
-                if (angle==0 || angle==2 || angle==4 || angle==6 || angle==8) {
-                    SET_NORMAL(pos, 1, esSum);
-                    SET_TANGENT(pos, 1, tangent);
-                } else
-                if (angle == 1) {
-                    SET_NORMAL(pos, 4, esSum);
-                    SET_TANGENT(pos, 4, tangent);
-                } else
-                if (angle == 3) {
-                    SET_NORMAL(pos, 2, esSum);
-                    SET_NORMAL(pos, 5, esSum);
-                    SET_TANGENT(pos, 2, tangent);
-                    SET_TANGENT(pos, 5, tangent);
-                } else
-                if (angle == 5) {
-                    SET_NORMAL(pos, 1, esSum);
-                    SET_TANGENT(pos, 1, tangent);
-                } else
-                if (angle == 7) {
-                    SET_NORMAL(pos, 0, esSum);
-                    SET_NORMAL(pos, 3, esSum);
-                    SET_TANGENT(pos, 0, tangent);
-                    SET_TANGENT(pos, 3, tangent);
-                }
-            }
+            normals[pos*36 + 4*3 +0] = esSum.x;
+            normals[pos*36 + 4*3 +1] = esSum.y;
+            normals[pos*36 + 4*3 +2] = esSum.z;
+            normals[pos*36 + 6*3 +0] = esSum.x;
+            normals[pos*36 + 6*3 +1] = esSum.y;
+            normals[pos*36 + 6*3 +2] = esSum.z;
 
-            // Set south-west normals
-            if (sSmooth && wSmooth) {
-                glm::vec4 tangent = sq::get_tangent(swSum);
-                if (angle==0 || angle==2 || angle==4 || angle==6 || angle==8) {
-                    SET_NORMAL(pos, 0, swSum);
-                    SET_NORMAL(pos, 3, swSum);
-                    SET_TANGENT(pos, 0, tangent);
-                    SET_TANGENT(pos, 3, tangent);
-                } else
-                if (angle == 1) {
-                    SET_NORMAL(pos, 0, swSum);
-                    SET_NORMAL(pos, 3, swSum);
-                    SET_TANGENT(pos, 0, tangent);
-                    SET_TANGENT(pos, 3, tangent);
-                } else
-                if (angle == 3) {
-                    SET_NORMAL(pos, 4, swSum);
-                    SET_TANGENT(pos, 4, tangent);
-                } else
-                if (angle == 5) {
-                    SET_NORMAL(pos, 2, swSum);
-                    SET_NORMAL(pos, 5, swSum);
-                    SET_TANGENT(pos, 2, tangent);
-                    SET_TANGENT(pos, 5, tangent);
-                } else
-                if (angle == 7) {
-                    SET_NORMAL(pos, 1, swSum);
-                    SET_TANGENT(pos, 1, tangent);
-                }
-            }
+            normals[pos*36 + 7*3 +0] = swSum.x;
+            normals[pos*36 + 7*3 +1] = swSum.y;
+            normals[pos*36 + 7*3 +2] = swSum.z;
+            normals[pos*36 + 9*3 +0] = swSum.x;
+            normals[pos*36 + 9*3 +1] = swSum.y;
+            normals[pos*36 + 9*3 +2] = swSum.z;
 
-            // Set west-north normals
-            if (wSmooth && nSmooth) {
-                glm::vec4 tangent = sq::get_tangent(wnSum);
-                if (angle==0 || angle==2 || angle==4 || angle==6 || angle==8) {
-                    SET_NORMAL(pos, 4, wnSum);
-                    SET_TANGENT(pos, 4, tangent);
-                } else
-                if (angle == 1) {
-                    SET_NORMAL(pos, 1, wnSum);
-                    SET_TANGENT(pos, 1, tangent);
-                } else
-                if (angle == 3) {
-                    SET_NORMAL(pos, 0, wnSum);
-                    SET_NORMAL(pos, 3, wnSum);
-                    SET_TANGENT(pos, 0, tangent);
-                    SET_TANGENT(pos, 3, tangent);
-                } else
-                if (angle == 5) {
-                    SET_NORMAL(pos, 4, wnSum);
-                    SET_TANGENT(pos, 4, tangent);
-                } else
-                if (angle == 7) {
-                    SET_NORMAL(pos, 2, wnSum);
-                    SET_NORMAL(pos, 5, wnSum);
-                    SET_TANGENT(pos, 2, tangent);
-                    SET_TANGENT(pos, 5, tangent);
-                }
-            }
+            normals[pos*36 + 10*3 +0] = wnSum.x;
+            normals[pos*36 + 10*3 +1] = wnSum.y;
+            normals[pos*36 + 10*3 +2] = wnSum.z;
+            normals[pos*36 + 0*3 +0] = wnSum.x;
+            normals[pos*36 + 0*3 +1] = wnSum.y;
+            normals[pos*36 + 0*3 +2] = wnSum.z;
         }
     }
+
 
     // Remove non-visible tiles
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
             int pos = y * width + x;
             if (invisibles[pos]) {
-                for (int i = 0; i < 18; i++) {
-                    points[pos*18 + i] = 0.f;
+                for (int c = 0; c < 36; c++) {
+                    points[pos*36 + c] = 0.f;
                 }
             }
         }
@@ -585,19 +441,19 @@ bool LevelMap::load_ground() {
 
     glGenBuffers(1, &vboPoints);
     glBindBuffer(GL_ARRAY_BUFFER, vboPoints);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, ground.pCount * 3 * sizeof(GLfloat), points, GL_STATIC_DRAW);
 
     glGenBuffers(1, &vboNormals);
     glBindBuffer(GL_ARRAY_BUFFER, vboNormals);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(normals), normals, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, ground.pCount * 3 * sizeof(GLfloat), normals, GL_STATIC_DRAW);
 
     glGenBuffers(1, &vboTexcoords);
     glBindBuffer(GL_ARRAY_BUFFER, vboTexcoords);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(texcoords), texcoords, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, ground.pCount * 3 * sizeof(GLfloat), texcoords, GL_STATIC_DRAW);
 
     glGenBuffers(1, &vboTangents);
     glBindBuffer(GL_ARRAY_BUFFER, vboTangents);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(tangents), tangents, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, ground.pCount * 4 * sizeof(GLfloat), tangents, GL_STATIC_DRAW);
 
     glGenVertexArrays(1, &ground.vao);
     glBindVertexArray(ground.vao);
@@ -610,40 +466,58 @@ bool LevelMap::load_ground() {
     glBindBuffer(GL_ARRAY_BUFFER, vboNormals);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
     glBindBuffer(GL_ARRAY_BUFFER, vboTexcoords);
-    glVertexAttribPointer(2, 3, GL_INT, GL_FALSE, 0, NULL);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, NULL);
     glBindBuffer(GL_ARRAY_BUFFER, vboTangents);
     glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 0, NULL);
 
-    // Load Textures
-    sf::Image image;
-    glGenTextures(1, &ground.texDiffArray);
+    /// Load Textures ///
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, ground.texDiffArray);
-    glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, 64, 64, texCount, 0,
+    sf::Image image;
+
+    // Load Normal Textures
+    glGenTextures(1, &ground.texNormArray);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, ground.texNormArray);
+    glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA16F, 64, 64, texCount, 0,
                  GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     for (int i = 0; i < texCount ; i++) {
-        image.loadFromFile("res/textures/ground/"+texPaths[i]);
+        if (!image.loadFromFile("res/textures/ground/"+texPaths[i]+"_norm.png"))
+            image.loadFromFile("res/misc/blanknorm.png");
         glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, 64, 64, 1,
                         GL_RGBA, GL_UNSIGNED_BYTE, image.getPixelsPtr());
     }
 
-    // Load Normal Maps
-    glGenTextures(1, &ground.texNormArray);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, ground.texNormArray);
-    glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, 64, 64, texCount, 0,
+    // Load Diffuse Textures
+    glGenTextures(1, &ground.texDiffArray);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, ground.texDiffArray);
+    glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA16F, 64, 64, texCount, 0,
                  GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     for (int i = 0; i < texCount ; i++) {
-        if (!image.loadFromFile("res/normalmaps/ground/"+texPaths[i]))
-            image.loadFromFile("res/normalmaps/ground/blank.png");
+        if (!image.loadFromFile("res/textures/ground/"+texPaths[i]+"_diff.png"))
+            image.loadFromFile("res/misc/blankdiff.png");
+        glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, 64, 64, 1,
+                        GL_RGBA, GL_UNSIGNED_BYTE, image.getPixelsPtr());
+    }
+
+    // Load Specular Textures
+    glGenTextures(1, &ground.texSpecArray);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, ground.texSpecArray);
+    glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA16F, 64, 64, texCount, 0,
+                 GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    for (int i = 0; i < texCount ; i++) {
+        if (!image.loadFromFile("res/textures/ground/"+texPaths[i]+"_spec.png"))
+            image.loadFromFile("res/misc/blankspec.png");
         glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, 64, 64, 1,
                         GL_RGBA, GL_UNSIGNED_BYTE, image.getPixelsPtr());
     }
@@ -681,7 +555,3 @@ bool LevelMap::load_models() {
 }
 
 #undef CHECK_BIT
-#undef GET_NORM
-#undef GET_OWN_NORM
-#undef SET_NORMAL
-#undef SET_TANGENT
