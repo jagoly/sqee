@@ -6,11 +6,6 @@
 "hasNorm": true,
 "hasAmbi": true,
 "hasSpec": true,
-"hasShadow": true,
-"P0": [1.1,  1.1,  0.0001],
-"P1": [1.1,  -0.1, 0.0001],
-"P2": [-0.1, -0.1, 0.0001],
-"P3": [-0.1, 1.1,  0.0001],
 
 "note": "order is 6/N, 1/S, 3/T, 5/E, 4/B, 2/W",
 

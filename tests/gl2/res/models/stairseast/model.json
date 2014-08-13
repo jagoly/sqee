@@ -4,9 +4,7 @@
 "texHeight": 64,
 
 "hasNorm": true,
-"hasAmbi": true,
-"hasSpec": false,
-"hasShadow": false,
+"hasSpec": true,
 
 "points": [
 0.0, 0.92188, 0.0,

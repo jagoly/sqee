@@ -18,11 +18,10 @@ struct Ground {
 };
 
 struct ModelInstance {
-    ModelInstance(glm::vec3 _pos, glm::vec3 _scale, bool _hasShadow, int _index);
+    ModelInstance(glm::vec3 _pos, glm::vec3 _scale, int _index);
     glm::vec3 pos, scale;
-    bool hasShadow;
     int index;
-    glm::mat4 modelMatrix;
+    glm::mat4 modelMat;
 };
 
 class LevelMap {
