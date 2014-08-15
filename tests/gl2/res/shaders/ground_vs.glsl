@@ -8,16 +8,14 @@ layout(location = 3) in vec4 v_tangent;
 uniform mat4 projMat, viewMat;
 
 out vec3 texcoord;
-out float depth;
-out vec3 normal, tangent, bitangent;
+out vec3 n, t, b;
 
 void main() {
     texcoord = v_texcoord;
-    normal = v_norm;
-    tangent = v_tangent.xyz;
-    bitangent = cross(v_norm, v_tangent.xyz) * v_tangent.w;
+    mat4 normMat = transpose(inverse(viewMat));
+    n = normalize(vec4(normMat * vec4(v_norm, 0.f)).xyz);
+    t = normalize(vec4(normMat * v_tangent)).xyz;
+    b = normalize(cross(v_norm, v_tangent.xyz) * v_tangent.w);
 
     gl_Position = projMat * viewMat * vec4(v_pos, 1.f);
-    vec4 viewPos = viewMat * vec4(v_pos, 1.f);
-    depth = (-viewPos.z - 0.1f) / (64.f - 0.1f);
 }

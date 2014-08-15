@@ -13,6 +13,10 @@
 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);\
 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
 
+#define SET_BOTH_LINEAR \
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);\
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+
 #define SET_BOTH_CLAMP_EDGE \
 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);\
 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
@@ -29,7 +33,7 @@ SceneGame::SceneGame(sq::Application* _app) : sq::Scene(_app) {
     //camera = sq::Camera({2.5f, 2.5f, 8.5f}, 0.f, 0.f, 16, 9, 1.17f, 0.1f, 64.f);
     camera.update_projMat();
     camera.update_viewMat();
-    camera.update_invProjViewMat();
+    camera.update_projViewMat();
 }
 
 void SceneGame::resize(unsigned int width, unsigned int height) {
@@ -50,7 +54,7 @@ void SceneGame::update() {
         camera.pos.y += NS * 0.02f;
         camera.update_projMat();
         camera.update_viewMat();
-        camera.update_invProjViewMat();
+        camera.update_projViewMat();
 
         updateCamera = true;
     }
@@ -67,7 +71,7 @@ void SceneGame::render(sf::RenderTarget& target, float) {
         GL_COLOR_ATTACHMENT2
     };
 
-    static GLuint ssaoFb, ssaoFbTex, ssaoFbTexDepth;
+    static GLuint ssaoFb, ssaoFbTex;
     static GLenum ssaoFbDrawBuffers[] = {
         GL_COLOR_ATTACHMENT0
     };
@@ -81,7 +85,6 @@ void SceneGame::render(sf::RenderTarget& target, float) {
         1.0, 1.0,  0.0, 1.0,  0.0, 0.0
     };
     static GLuint screenQuadVao;
-    static GLuint texRandnorm;
 
     static GLuint groundProg = glCreateProgram();
     static GLuint mapModelsProg = glCreateProgram();
@@ -95,7 +98,8 @@ void SceneGame::render(sf::RenderTarget& target, float) {
                   mapModelsU_texNorm, mapModelsU_texDiff, mapModelsU_texSpec,
                   mapModelsU_hasNorm, mapModelsU_hasSpec;
 
-    static GLuint ssaoU_invProjViewMat, ssaoU_viewMat, ssaoU_texNorm, ssaoU_texRandnorm;
+    static GLuint ssaoU_invProjMat,
+                  ssaoU_texNorm, ssaoU_texDepth;
 
     static GLuint constructU_invProjViewMat,
                   constructU_camPos, constructU_skyLightDir,
@@ -134,26 +138,10 @@ void SceneGame::render(sf::RenderTarget& target, float) {
         // SSAO Framebuffer
         {
         glGenFramebuffers(1, &ssaoFb);
-
         glGenTextures(1, &ssaoFbTex);
         glBindTexture(GL_TEXTURE_2D, ssaoFbTex);
-        SET_BOTH_NEAREST; SET_BOTH_CLAMP_EDGE;
-
-        glGenTextures(1, &ssaoFbTexDepth);
-        glBindTexture(GL_TEXTURE_2D, ssaoFbTexDepth);
-        SET_BOTH_NEAREST; SET_BOTH_CLAMP_EDGE;
+        SET_BOTH_LINEAR; SET_BOTH_CLAMP_EDGE;
         }
-
-        sf::Image img;
-        img.loadFromFile("res/misc/randnorms.png");
-        glGenTextures(1, &texRandnorm);
-        glBindTexture(GL_TEXTURE_2D, texRandnorm);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, 64, 64, 0,
-                     GL_RGBA, GL_UNSIGNED_BYTE, img.getPixelsPtr());
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
         GLuint vboPoints, vboTexcoords;
 
@@ -196,10 +184,9 @@ void SceneGame::render(sf::RenderTarget& target, float) {
         mapModelsU_texDiff      = glGetUniformLocation(mapModelsProg, "texDiff");
         mapModelsU_texSpec      = glGetUniformLocation(mapModelsProg, "texSpec");
 
-        ssaoU_invProjViewMat = glGetUniformLocation(ssaoProg, "invProjViewMat");
-        ssaoU_viewMat = glGetUniformLocation(ssaoProg, "viewMat");
+        ssaoU_invProjMat = glGetUniformLocation(ssaoProg, "invProjMat");
         ssaoU_texNorm = glGetUniformLocation(ssaoProg, "texNorm");
-        ssaoU_texRandnorm = glGetUniformLocation(ssaoProg, "texRandnorm");
+        ssaoU_texDepth = glGetUniformLocation(ssaoProg, "texDepth");
 
         constructU_invProjViewMat = glGetUniformLocation(constructProg, "invProjViewMat");
         constructU_camPos         = glGetUniformLocation(constructProg, "camPos");
@@ -225,7 +212,7 @@ void SceneGame::render(sf::RenderTarget& target, float) {
 
         glUseProgram(ssaoProg);
         glUniform1i(ssaoU_texNorm, 0);
-        glUniform1i(ssaoU_texRandnorm, 1);
+        glUniform1i(ssaoU_texDepth, 1);
 
         glUseProgram(constructProg);
         glUniform1i(constructU_texNorm, 0);
@@ -281,16 +268,11 @@ void SceneGame::render(sf::RenderTarget& target, float) {
         glBindFramebuffer(GL_FRAMEBUFFER, ssaoFb);
 
         glBindTexture(GL_TEXTURE_2D, ssaoFbTex);
+        //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 640, 360,
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height,
                      0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                                GL_TEXTURE_2D, ssaoFbTex, 0);
-
-        glBindTexture(GL_TEXTURE_2D, ssaoFbTexDepth);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, width, height,
-                     0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                               GL_TEXTURE_2D, ssaoFbTexDepth, 0);
 
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
             std::cout << "SSAO FBO Error" << std::endl;
@@ -320,12 +302,11 @@ void SceneGame::render(sf::RenderTarget& target, float) {
         glUniformMatrix4fv(mapModelsU_viewMat, 1, GL_FALSE, glm::value_ptr(camera.viewMat));
 
         glUseProgram(constructProg);
-        glUniformMatrix4fv(constructU_invProjViewMat, 1, GL_FALSE, glm::value_ptr(camera.invProjViewMat));
+        glUniformMatrix4fv(constructU_invProjViewMat, 1, GL_FALSE, glm::value_ptr(glm::inverse(camera.projViewMat)));
         glUniform3fv(constructU_camPos, 1, glm::value_ptr(camera.pos));
 
         glUseProgram(ssaoProg);
-        glUniformMatrix4fv(ssaoU_invProjViewMat, 1, GL_FALSE, glm::value_ptr(camera.invProjViewMat));
-        glUniformMatrix4fv(ssaoU_viewMat, 1, GL_FALSE, glm::value_ptr(camera.viewMat));
+        glUniformMatrix4fv(ssaoU_invProjMat, 1, GL_FALSE, glm::value_ptr(glm::inverse(camera.projMat)));
 
         updateCamera = false;
     }
@@ -375,21 +356,24 @@ void SceneGame::render(sf::RenderTarget& target, float) {
 
     /// SSAO ///
     glUseProgram(ssaoProg);
-    //glDisable(GL_DEPTH_TEST);
+    //glViewport(0, 0, 640, 360);
+    glViewport(0, 0, 1280, 720);
+    glDisable(GL_DEPTH_TEST);
     glBindFramebuffer(GL_FRAMEBUFFER, ssaoFb);
     glDrawBuffers(1, ssaoFbDrawBuffers);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT);
 
     glBindVertexArray(screenQuadVao);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, mainFbTexNorm);
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, texRandnorm);
+    glBindTexture(GL_TEXTURE_2D, mainFbTexDepth);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 
 
     /// Construct ///
     glUseProgram(constructProg);
+    glViewport(0, 0, 1280, 720);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

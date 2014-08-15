@@ -16,7 +16,7 @@ SceneGame::SceneGame(sq::Application* _app) : sq::Scene(_app) {
     camera = sq::Camera({0.f, 0.f, 2.f}, 0.f, 0.f, 4, 3, 1.17f, 0.1f, 100.f);
     camera.update_projMat();
     camera.update_viewMat();
-    camera.update_invProjViewMat();
+    camera.update_projViewMat();
 }
 
 void SceneGame::update() {
@@ -46,7 +46,7 @@ void SceneGame::update() {
 
     camera.update_projMat();
     camera.update_viewMat();
-    camera.update_invProjViewMat();
+    camera.update_projViewMat();
 }
 
 void SceneGame::render(sf::RenderTarget& target, float) {

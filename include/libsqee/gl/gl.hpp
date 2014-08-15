@@ -26,9 +26,9 @@ public:
            float _width, float _height, float yFov, float zNear, float zFar);
     Camera();
 
-    glm::mat4 viewMat;
     glm::mat4 projMat;
-    glm::mat4 invProjViewMat;
+    glm::mat4 viewMat;
+    glm::mat4 projViewMat;
 
     glm::vec3 pos;
 
@@ -42,7 +42,7 @@ public:
 
     void update_viewMat();
     void update_projMat();
-    void update_invProjViewMat();
+    void update_projViewMat();
 };
 
 }
