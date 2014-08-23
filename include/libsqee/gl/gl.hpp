@@ -2,27 +2,21 @@
 
 #include <string>
 
-#include <GL/glew.h>
+#include <gl/gl_ext_3_3.hpp>
+
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
-#include <SFML/OpenGL.hpp>
-#include <SFML/Graphics.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/compatibility.hpp>
 
 namespace sq {
 
-glm::vec4 get_tangent(glm::vec3 normal);
-
-std::string get_shader_error(const GLuint& shader);
-
-bool create_shader(std::string vertPath, std::string fragPath, GLuint& prog);
-
-bool load_mesh(std::string filePath, GLuint& vao, int& pointCount);
+glm::vec3 get_tangent(glm::vec3 normal);
 
 class Camera {
 public:
-    Camera(sf::Vector3f _pos, float _xRot, float _yRot,
+    Camera(glm::vec3 _pos, float _xRot, float _yRot,
            float _width, float _height, float yFov, float zNear, float zFar);
     Camera();
 
@@ -31,6 +25,7 @@ public:
     glm::mat4 projViewMat;
 
     glm::vec3 pos;
+    glm::vec2 projAB;
 
     float xRot;
     float yRot;

@@ -2,7 +2,8 @@
 
 in vec2 texcoord;
 
-uniform mat4 invProjViewMat;
+uniform mat4 invProjMat;
+uniform mat4 viewMat;
 uniform vec3 camPos, skyLightDir;
 uniform vec3 skyLightDiff, skyLightAmbi, skyLightSpec;
 uniform sampler2D texNorm;
@@ -36,32 +37,38 @@ vec3 sampleBox(in vec2 coord) {
 
 void main() {
     vec3 normal = normalize(texture(texNorm, texcoord).xyz * 2.f - 1.f);
-
     vec4 clipPos = vec4(texcoord * 2.f - 1.f, texture(texDepth, texcoord).r * 2.f - 1.f, 1.f);
-    vec4 homogPos = vec4(invProjViewMat * clipPos);
+    vec4 homogPos = vec4(invProjMat * clipPos);
     vec3 pos = homogPos.xyz / homogPos.w;
 
     vec3 reflDiff = texture(texDiff, texcoord).rgb;
-    vec3 dirToLight = -skyLightDir;
+    vec3 reflAmbi = texture(texAmbi, texcoord).rgb;
+    vec3 reflSpec = texture(texSpec, texcoord).rgb;
+
+
+    // Diffuse
+    vec3 dirToLight = vec4(viewMat * vec4(-skyLightDir, 0.f)).xyz;
     float dotProd = dot(dirToLight, normal);
     dotProd = max(dotProd, 0.f);
     vec3 diff = skyLightDiff * reflDiff * dotProd;
 
-    vec3 reflAmbi = sampleBox(texcoord);
 
-    vec3 ambi = reflAmbi * skyLightAmbi;
-
-    vec3 reflSpec = texture(texSpec, texcoord).rgb;
-    vec3 dirFromCam = normalize(camPos - pos);
+    // Ambient
+    vec3 ambi = reflDiff * skyLightAmbi;
 
 
-    vec3 reflection = reflect(skyLightDir, normal);
-    dotProd = dot(reflection, dirFromCam);
-    dotProd = max(dotProd, 0.f);
-    float factor = pow(dotProd, 25.f);
+    // Specular
+    vec3 dirFromCam = normalize(vec4(viewMat * vec4(camPos, 1.f)).xyz - pos);
+
+    vec3 reflection = reflect(vec4(viewMat * vec4(skyLightDir, 0.f)).xyz, normal);
+    dotProd = max(dot(reflection, dirFromCam), 0.f);
+    float factor = pow(dotProd, 50.f);
     vec3 spec = skyLightSpec * reflSpec * factor;
 
-    //fragColour = vec4(ambi + diff + spec, 1.f);
+    fragColour = vec4(ambi + diff + spec, 1.f);
+    //fragColour = vec4(skyLightDir / 2.f + 0.5f, 1.f);
     //fragColour = vec4(normal / 2.f + 0.5f, 1.f);
-    fragColour = vec4(reflAmbi, 1.f);
+    //fragColour = vec4(reflAmbi, 1.f);
+    //fragColour = vec4(normal / 2.f + 0.5f, 1.f);
+    //fragColour = vec4(1.f, 1.f, 0.f, 1.f);
 }

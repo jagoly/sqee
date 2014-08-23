@@ -1,15 +1,13 @@
 #pragma once
 
-#define GLM_FORCE_RADIANS
-#include <glm/glm.hpp>
-
-#include <libsqee/scene.hpp>
-#include <libsqee/handler.hpp>
 #include <libsqee/gl/gl.hpp>
+
+#include <libsqee/scenes/scene.hpp>
+#include <libsqee/events/handler.hpp>
 
 #include "rendergeneral.hpp"
 #include "player.hpp"
-#include "maps.hpp"
+#include "maps/level.hpp"
 
 namespace sqt {
 
@@ -19,11 +17,11 @@ public:
 
     sq::Camera camera;
     SkyLight skyLight;
-    LevelMap levelMap;
+    Level level;
     Player player;
 
-    void render(sf::RenderTarget& target, float ft);
-    void resize(unsigned int width, unsigned int height);
+    void render(float ft);
+    void resize(glm::uvec2 _size);
     void update();
 private:
     bool updateFramebuffers = true;

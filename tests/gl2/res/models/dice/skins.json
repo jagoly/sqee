@@ -1,0 +1,17 @@
+{
+"basic_white": {
+  "width": 196,
+  "height": 130,
+  "textures": [
+    "dice", "dice_white", "dice_floor", "dice"
+  ]
+},
+
+"basic_yellow": {
+  "width": 196,
+  "height": 130,
+  "textures": [
+    "dice", "dice_yellow", "", "dice"
+  ]
+}
+}

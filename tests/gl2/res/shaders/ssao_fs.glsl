@@ -6,7 +6,7 @@ uniform sampler2D texDepth;
 
 uniform mat4 invProjMat;
 
-layout(location = 0) out vec4 fragColour;
+layout(location = 0) out float output;
 
 vec3 get_v_pos(in vec2 coord) {
     float bufZ = texture(texDepth, coord).r * 2.f - 1.f;
@@ -40,13 +40,10 @@ const vec2 poisson16[] = vec2[](    // These are the Poisson Disk Samples
 
 void main() {
     vec3 pos = get_v_pos(texcoord);
-
     vec3 normal = normalize(texture(texNorm, texcoord).rgb * 2.f - 1.f);
 
-    float ambientOcclusion = 0;
-    // perform AO
+    float ao = 0.f;
     for (int i = 0; i < sampleCount; i++) {
-        // sample at an offset specified by the current Poisson-Disk sample and scale it by a radius (has to be in Texture-Space)
         vec2 sampleTexcoord = texcoord + (poisson16[i] * (filterRadius / pos.z));
         vec3 samplePos = get_v_pos(sampleTexcoord);
         vec3 sampleDir = normalize(samplePos - pos);
@@ -54,17 +51,14 @@ void main() {
         // angle between SURFACE-NORMAL and SAMPLE-DIRECTION (vector from SURFACE-POSITION to SAMPLE-POSITION)
         float NdotS = max(dot(normal, sampleDir), 0.f);
         // distance between SURFACE-POSITION and SAMPLE-POSITION
+
         float VPdistSP = distance(pos, samplePos);
 
-        // a = distance function
         float a = 1.f - smoothstep(distanceThreshold, distanceThreshold * 2, VPdistSP);
-        // b = dot-Product
         float b = NdotS;
 
-        ambientOcclusion += a * b;
+        ao += a * b;
     }
 
-    float ao = 1.f - ambientOcclusion / sampleCount;
-    fragColour = vec4(ao, ao, ao, 1.f);
-    //fragColour = vec4(pos / 2.f + 0.5f, 1.f);
+    output = 1.f - ao / sampleCount;
 }

@@ -3,23 +3,23 @@
   {
     "locations": [[3.0, 8.0, 0.0], [4.0, 6.0, 0.5], [5.0, 6.0, 0.5]],
     "scale": [1.0, 1.0, 1.0],
-    "index": 0
+    "index": 2
   },
   {
     "locations": [[1.0, 3.0, 0.5], [2.0, 3.0, 1.5]],
     "scale": [1.0, 1.0, 1.0],
-    "index": 1
+    "index": 0
   },
   {
     "locations": [[4.0, 3.0, 1.5], [5.0, 3.0, 0.5]],
     "scale": [1.0, 1.0, 1.0],
-    "index": 2
+    "index": 1
   }
 ],
 
 "models": [
-  "dice",
   "stairseast",
-  "stairswest"
+  "stairswest",
+  "dice"
 ]
 }

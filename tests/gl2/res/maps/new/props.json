@@ -1,0 +1,9 @@
+{
+"width": 15,
+"height": 7,
+
+"terrainTextures": [
+"grass1.png",
+"pathhor.png"
+]
+}

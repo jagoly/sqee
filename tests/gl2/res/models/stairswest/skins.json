@@ -1,0 +1,9 @@
+{
+"basic": {
+  "width": 96,
+  "height": 64,
+  "textures": [
+    "stairs", "stairswest", "stairs", "stairs"
+  ]
+}
+}

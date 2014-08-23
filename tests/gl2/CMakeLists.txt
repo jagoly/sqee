@@ -5,9 +5,11 @@ set(SOURCES
     "helpers.hpp"
     "app.cpp"           "app.hpp"
     "scenegame.cpp"     "scenegame.hpp"
-    "maps.cpp"          "maps.hpp"
     "rendergeneral.cpp" "rendergeneral.hpp"
     "player.cpp"        "player.hpp"
+    "maps/level.hpp"    "maps/level.cpp"
+    "maps/terrain.hpp"  "maps/terrain.cpp"
+    "maps/models.hpp"   "maps/models.cpp"
 )
 
 add_executable(gl2 ${SOURCES})
