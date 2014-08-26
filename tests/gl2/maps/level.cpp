@@ -5,16 +5,16 @@
 using namespace sqt;
 
 
-bool Level::load_map(std::string _dirPath) {
-    mapDirPath = _dirPath;
+bool Level::load_map(std::string _mapPath) {
+    mapPath = _mapPath;
 
     // Put some kind of checks here
     return false;
 }
 
 bool Level::load_ground() {
-    Json::Value rootProps = sq::get_json_from_file(mapDirPath+"/props.json");
-    Json::Value rootTerrain = sq::get_json_from_file(mapDirPath+"/terrain.json");
+    Json::Value rootProps = sq::get_json_from_file("res/maps/" + mapPath + "/props.json");
+    Json::Value rootTerrain = sq::get_json_from_file("res/maps/" + mapPath+"/terrain.json");
 
     size.x = rootProps["width"].asInt();
     size.y = rootProps["height"].asInt();
@@ -40,14 +40,14 @@ bool Level::load_ground() {
         terrainTexPaths[i] = rootProps["terrainTextures"][i].asString();
     }
 
-    terrain.load(size, terrainTexCount, terrainTexPaths,terrainGeometry,
+    terrain.load(size, terrainTexCount, terrainTexPaths, mapPath, terrainGeometry,
                  terrainSmoothing, terrainTextures, terrainVisible);
 
     return false;
 }
 
 bool Level::load_models() {
-    Json::Value root = sq::get_json_from_file(mapDirPath+"/models.json");
+    Json::Value root = sq::get_json_from_file("res/maps/" + mapPath + "/models.json");
 
     modelVec.resize(root["models"].size());
     for (int i = 0; i < modelVec.size(); i++) {
@@ -56,10 +56,17 @@ bool Level::load_models() {
     }
 
     for (Json::Value& val : root["instances"]) {
+        int i1 = val["index"].asInt();
+        int ambi = modelVec[i1].ambi;
+        int i2 = 0;
         for (Json::Value& loc : val["locations"]) {
-            modelInstVec.push_back(ModelInstance(
+            int arg = i2++;
+            if (ambi == 1)      arg = -1;
+            else if (ambi == 2) arg = -2;
+            modelInstVec.reserve(1);
+            modelInstVec.emplace_back(ModelInstance(
                 {loc[0].asFloat(), loc[1].asFloat(), loc[2].asFloat()},
-                val["index"].asInt()));
+                i1, arg, mapPath));
         }
     }
 

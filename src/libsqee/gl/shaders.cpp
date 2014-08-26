@@ -8,11 +8,12 @@ using namespace sq;
 Shader::Shader() {
     prog = gl::CreateProgram();
 }
-Shader::~Shader() {
-    gl::DeleteProgram(prog);
-    gl::DeleteShader(vert);
-    gl::DeleteShader(frag);
-    gl::DeleteShader(geom);
+
+Shader::~Shader() { // FIX ME (copy ctor)
+//    gl::DeleteProgram(prog);
+//    gl::DeleteShader(vert);
+//    gl::DeleteShader(frag);
+//    gl::DeleteShader(geom);
 }
 
 bool Shader::load_from_file(std::string _path, GLenum _type) {
@@ -31,15 +32,16 @@ bool Shader::load_from_file(std::string _path, GLenum _type) {
         std::cout << "ERROR: Shader file \"" << _path << "\" not found" << std::endl;
         return true;
     }
+
     const char* src = str.c_str();
     int cnt = str.size();
     gl::ShaderSource(*shad, 1, &src, &cnt);
+
     gl::CompileShader(*shad);
-    int max_length = 2048;
-    int actual_length = 0;
+    int length = 0;
     char log[2048];
-    gl::GetShaderInfoLog(*shad, max_length, &actual_length, log);
-    if (actual_length) {
+    gl::GetShaderInfoLog(*shad, 2048, &length, log);
+    if (length) {
         std::cout << "ERROR: Failed to compile shader from \"" << _path << "\"\n"
                   << "-------------------------\n"
                   << log << "-------------------------" << std::endl;
@@ -49,9 +51,11 @@ bool Shader::load_from_file(std::string _path, GLenum _type) {
 
     return false;
 }
+
 void Shader::build() {
     gl::LinkProgram(prog);
 }
+
 void Shader::use() {
     gl::UseProgram(prog);
 }

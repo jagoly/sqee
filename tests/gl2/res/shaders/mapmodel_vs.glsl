@@ -12,6 +12,7 @@ out vec3 n, t, b;
 
 void main() {
     texcoord = v_texcoord;
+
     mat3 normMat = mat3(transpose(inverse(viewMat * modelMat)));
     n = normalize(normMat * v_norm);
     t = normalize(normMat * (v_tangent * -1));

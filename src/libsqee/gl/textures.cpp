@@ -17,8 +17,8 @@ TextureBase::TextureBase(GLenum _type, GLenum _format) {
     gl::GenTextures(1, &tex);
 }
 
-TextureBase::~TextureBase() {
-    gl::DeleteTextures(1, &tex);
+TextureBase::~TextureBase() { // FIX ME (copy ctor)
+    //gl::DeleteTextures(1, &tex);
 }
 
 void TextureBase::bind() {
@@ -50,6 +50,13 @@ void Texture2D::load_blank(glm::uvec2 _size, GLenum _internalFormat) {
     bind();
     gl::TexImage2D(gl::TEXTURE_2D, 0, _internalFormat, _size.x, _size.y,
                    0, gl::RGBA, gl::UNSIGNED_BYTE, NULL);
+}
+
+void Texture2D::load_from_memory(glm::uvec2 _size, GLenum _internalFormat, const unsigned char* _data) {
+    size = {_size.x, _size.y, 1};
+    bind();
+    gl::TexImage2D(gl::TEXTURE_2D, 0, _internalFormat, _size.x, _size.y,
+                   0, gl::RGBA, gl::UNSIGNED_BYTE, _data);
 }
 
 bool Texture2D::load_from_file(std::string _path, GLenum _internalFormat) {

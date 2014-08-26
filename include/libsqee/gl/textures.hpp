@@ -37,6 +37,7 @@ struct Texture2D : public TextureBase {
     Texture2D() : TextureBase(gl::TEXTURE_2D, gl::RGBA) {}
 
     void load_blank(glm::uvec2 _size, GLenum _internalFormat);
+    void load_from_memory(glm::uvec2 _size, GLenum _internalFormat, const unsigned char* _data);
     bool load_from_file(std::string _path, GLenum _internalFormat);
 };
 

@@ -26,7 +26,7 @@ public:
     bool load_ground();
     bool load_models();
 private:
-    std::string mapDirPath;
+    std::string mapPath;
 };
 
 }

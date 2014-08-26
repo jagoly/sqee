@@ -15,7 +15,9 @@ const float xyTiles[24] = {
     0.f, 0.f,  0.f, 1.f,  0.5f, 0.5f
 };
 
-bool Terrain::load(glm::uvec2 _size, uint _texCount, std::vector<std::string> _texPaths,
+bool Terrain::load(glm::uvec2 _size, uint _texCount,
+                   const std::vector<std::string>& _texPaths,
+                   const std::string& _map,
                    const int* _geometry, const bool* _smoothing,
                    const int* _textures, const bool* _visible) {
     int tileLen = _size.x * _size.y;
@@ -393,8 +395,13 @@ bool Terrain::load(glm::uvec2 _size, uint _texCount, std::vector<std::string> _t
 
     /// Load Textures ///
 
+    // Load Ambient Texture
+    texAmbi.load_from_file("res/maps/" + _map + "/bakes/terrain.png", gl::R16F);
+    texAmbi.set_params(2, sq::MIN_MAG_FILTERS, sq::BOTH_LINEAR);
+    texAmbi.set_params(2, sq::S_T_WRAP, sq::BOTH_CLAMP_TO_EDGE);
+
     // Load Normal Textures
-    texNormArray.load_blank({64, 64, _texCount}, gl::RGB16F);
+    texNormArray.load_blank({128, 128, _texCount}, gl::RGB16F);
     texNormArray.set_params(2, sq::MIN_MAG_FILTERS, sq::BOTH_LINEAR);
     texNormArray.set_params(2, sq::S_T_WRAP, sq::BOTH_CLAMP_TO_EDGE);
     for (int i = 0; i < _texCount ; i++) {
@@ -403,7 +410,7 @@ bool Terrain::load(glm::uvec2 _size, uint _texCount, std::vector<std::string> _t
     }
 
     // Load Diffuse Textures
-    texDiffArray.load_blank({64, 64, _texCount}, gl::RGB16F);
+    texDiffArray.load_blank({128, 128, _texCount}, gl::RGB16F);
     texDiffArray.set_params(2, sq::MIN_MAG_FILTERS, sq::BOTH_LINEAR);
     texDiffArray.set_params(2, sq::S_T_WRAP, sq::BOTH_CLAMP_TO_EDGE);
     for (int i = 0; i < _texCount ; i++) {
@@ -412,7 +419,7 @@ bool Terrain::load(glm::uvec2 _size, uint _texCount, std::vector<std::string> _t
     }
 
     // Load Specular Textures
-    texSpecArray.load_blank({64, 64, _texCount}, gl::RGB16F);
+    texSpecArray.load_blank({128, 128, _texCount}, gl::RGB16F);
     texSpecArray.set_params(2, sq::MIN_MAG_FILTERS, sq::BOTH_LINEAR);
     texSpecArray.set_params(2, sq::S_T_WRAP, sq::BOTH_CLAMP_TO_EDGE);
     for (int i = 0; i < _texCount ; i++) {

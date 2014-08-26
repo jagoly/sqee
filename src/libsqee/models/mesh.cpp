@@ -4,68 +4,50 @@
 
 namespace sq {
 
+
 bool Mesh::load_from_dir(std::string _dirPath, std::string _skin) {
-    Json::Value rootModel = get_json_from_file(_dirPath+"/model.json");
+    std::vector<Vertex> vertVec;
+    std::vector<glm::uvec3> faceVec;
+    load_ply_from_file(_dirPath + "/model.ply", vertVec, faceVec);
     Json::Value rootSkin = get_json_from_file(_dirPath+"/skins.json")[_skin];
 
-    vCount = rootModel["vCount"].asInt();
-    hasTex[0] = rootSkin["textures"][0].asBool();
-    hasTex[1] = rootSkin["textures"][1].asBool();
-    hasTex[2] = rootSkin["textures"][2].asBool();
-    hasTex[3] = rootSkin["textures"][3].asBool();
-    texWidth = rootSkin["width"].asInt();
-    texHeight = rootSkin["height"].asInt();
+    std::string str = rootSkin["ambi"].asString();
+    if      (str == "none") ambi = 1;
+    else if (str == "full") ambi = 2;
+    else                    ambi = 0;
 
-    std::vector<glm::vec3> pointsVec;
-    std::vector<glm::vec3> normalsVec;
-    std::vector<glm::vec2> texcoordsVec;
-    for (int i = 0; i < vCount; i++) {
-        pointsVec.push_back(glm::vec3(
-            rootModel["points"][i*3 +0].asFloat(),
-            rootModel["points"][i*3 +1].asFloat(),
-            rootModel["points"][i*3 +2].asFloat()
-        ));
-
-        normalsVec.push_back(glm::vec3(
-            rootModel["normals"][i*3 +0].asFloat(),
-            rootModel["normals"][i*3 +1].asFloat(),
-            rootModel["normals"][i*3 +2].asFloat()
-        ));
-
-        texcoordsVec.push_back(glm::vec2(
-            rootModel["texcoords"][i*2 +0].asFloat(),
-            rootModel["texcoords"][i*2 +1].asFloat()
-        ));
-    }
-
-    /// MODEL ///
-    gl::GenVertexArrays(1, &vao);
-    gl::BindVertexArray(vao);
+    ushort vCount = vertVec.size();
+    iCount = faceVec.size() * 3;
 
     GLfloat points[vCount * 3];
     GLfloat normals[vCount * 3];
     GLfloat texcoords[vCount * 2];
     GLfloat tangents[vCount * 3];
-
     for (int i = 0; i < vCount; i++) {
-        points[i*3 +0] = pointsVec[i].x;
-        points[i*3 +1] = pointsVec[i].y;
-        points[i*3 +2] = pointsVec[i].z;
+        points[i*3 +0] = vertVec[i].x;
+        points[i*3 +1] = vertVec[i].y;
+        points[i*3 +2] = vertVec[i].z;
+        normals[i*3 +0] = vertVec[i].nx;
+        normals[i*3 +1] = vertVec[i].ny;
+        normals[i*3 +2] = vertVec[i].nz;
+        texcoords[i*2 +0] = vertVec[i].s;
+        texcoords[i*2 +1] = vertVec[i].t;
+        tangents[i*3 +0] = vertVec[i].tx;
+        tangents[i*3 +1] = vertVec[i].ty;
+        tangents[i*3 +2] = vertVec[i].tz;
+    }
 
-        normals[i*3 +0] = normalsVec[i].x;
-        normals[i*3 +1] = normalsVec[i].y;
-        normals[i*3 +2] = normalsVec[i].z;
-
-        texcoords[i*2 +0] = texcoordsVec[i].x;
-        texcoords[i*2 +1] = texcoordsVec[i].y;
-
-        glm::vec3 tangent = sq::get_tangent(normalsVec[i]);
-        tangents[i*3 +0] = tangent.x;
-        tangents[i*3 +1] = tangent.y;
-        tangents[i*3 +2] = tangent.z;
+    GLushort indices[iCount];
+    for (int i = 0; i < iCount / 3; i++) {
+        indices[i*3 +0] = faceVec[i].x;
+        indices[i*3 +1] = faceVec[i].y;
+        indices[i*3 +2] = faceVec[i].z;
     }
 
     // Buffers
+    gl::GenVertexArrays(1, &vao);
+    gl::BindVertexArray(vao);
+
     GLuint vboP, vboN, vboTc, vboT;
 
     gl::GenBuffers(1, &vboP);
@@ -92,39 +74,28 @@ bool Mesh::load_from_dir(std::string _dirPath, std::string _skin) {
     gl::VertexAttribPointer(3, 3, gl::FLOAT, false, 0, NULL);
     gl::EnableVertexAttribArray(3);
 
+    gl::GenBuffers(1, &ibo);
+    gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ibo);
+    gl::BufferData(gl::ELEMENT_ARRAY_BUFFER, iCount * sizeof(GLushort), indices, gl::STATIC_DRAW);
 
     /// Textures ///
     // Normals
-    if (hasTex[0]) {
-        texNorm.load_from_file("res/textures/models/norm/"
-                               + rootSkin["textures"][0].asString() + ".png", gl::RGB16F);
-        texNorm.set_params(2, sq::MIN_MAG_FILTERS, sq::BOTH_LINEAR);
-        texNorm.set_params(2, sq::S_T_WRAP, sq::BOTH_CLAMP_TO_EDGE);
-    }
+    texNorm.load_from_file("res/textures/models/norm/"
+                           + rootSkin["textures"][0].asString() + ".png", gl::RGB16F);
+    texNorm.set_params(2, sq::MIN_MAG_FILTERS, sq::BOTH_LINEAR);
+    texNorm.set_params(2, sq::S_T_WRAP, sq::BOTH_CLAMP_TO_EDGE);
 
     // Diffuse
-    if (hasTex[1]) {
-        texDiff.load_from_file("res/textures/models/diff/"
-                               + rootSkin["textures"][1].asString() + ".png", gl::RGBA16F);
-        texDiff.set_params(2, sq::MIN_MAG_FILTERS, sq::BOTH_LINEAR);
-        texDiff.set_params(2, sq::S_T_WRAP, sq::BOTH_CLAMP_TO_EDGE);
-    }
-
-    // Ambient
-    if (hasTex[2]) {
-        texAmbi.load_from_file("res/textures/models/ambi/"
-                               + rootSkin["textures"][2].asString() + ".png", gl::R16F);
-        texAmbi.set_params(2, sq::MIN_MAG_FILTERS, sq::BOTH_LINEAR);
-        texAmbi.set_params(2, sq::S_T_WRAP, sq::BOTH_CLAMP_TO_EDGE);
-    }
+    texDiff.load_from_file("res/textures/models/diff/"
+                           + rootSkin["textures"][1].asString() + ".png", gl::RGB16F);
+    texDiff.set_params(2, sq::MIN_MAG_FILTERS, sq::BOTH_LINEAR);
+    texDiff.set_params(2, sq::S_T_WRAP, sq::BOTH_CLAMP_TO_EDGE);
 
     // Specular
-    if (hasTex[3]) {
-        texSpec.load_from_file("res/textures/models/spec/"
-                               + rootSkin["textures"][3].asString() + ".png", gl::RGB16F);
-        texSpec.set_params(2, sq::MIN_MAG_FILTERS, sq::BOTH_LINEAR);
-        texSpec.set_params(2, sq::S_T_WRAP, sq::BOTH_CLAMP_TO_EDGE);
-    }
+    texSpec.load_from_file("res/textures/models/spec/"
+                           + rootSkin["textures"][2].asString() + ".png", gl::RGB16F);
+    texSpec.set_params(2, sq::MIN_MAG_FILTERS, sq::BOTH_LINEAR);
+    texSpec.set_params(2, sq::S_T_WRAP, sq::BOTH_CLAMP_TO_EDGE);
 
     return true;
 }

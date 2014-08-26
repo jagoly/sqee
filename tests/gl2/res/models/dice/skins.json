@@ -1,17 +1,15 @@
 {
 "basic_white": {
-  "width": 196,
-  "height": 130,
   "textures": [
-    "dice", "dice_white", "dice_floor", "dice"
-  ]
+    "dice", "dice_white", "misc/FFFFFF"
+  ],
+  "ambi": "own"
 },
 
 "basic_yellow": {
-  "width": 196,
-  "height": 130,
   "textures": [
-    "dice", "dice_yellow", "", "dice"
-  ]
+    "dice", "dice_yellow", "misc/FFFFFF"
+  ],
+  "ambi": "own"
 }
 }

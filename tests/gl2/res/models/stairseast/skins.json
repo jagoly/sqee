@@ -1,9 +1,8 @@
 {
 "basic": {
-  "width": 96,
-  "height": 64,
   "textures": [
-    "stairs", "stairseast", "stairs", "stairs"
-  ]
+    "stairs", "stairseast", "stairs"
+  ],
+  "ambi": "own"
 }
 }
