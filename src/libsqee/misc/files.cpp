@@ -19,10 +19,10 @@ Json::Value get_json_from_file(std::string _path) {
     Json::Reader reader;
     Json::Value root;
     if (!reader.parse(src, root)) {
-        std::cout << "ERROR: Failed to load json from \"" << _path << "\"\n"
-                  << "-------------------------\n"
-                  << reader.getFormattedErrorMessages()
-                  << "-------------------------" << std::endl;
+        //std::cout << "ERROR: Failed to load json from \"" << _path << "\"\n"
+        //          << "-------------------------\n"
+        //          << reader.getFormattedErrorMessages()
+        //          << "-------------------------" << std::endl;
     }
     src.close();
 
@@ -155,6 +155,8 @@ bool load_ply_from_file(std::string _path, std::vector<Vertex>& _vertVec, std::v
 
         _faceVec.push_back({a, b, c});
     }
+
+    return false;
 }
 
 }

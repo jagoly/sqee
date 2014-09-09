@@ -26,7 +26,8 @@ public:
 protected:
     Application* app;
 
-    float interpolate(float a, float b);
+    template<typename T>
+    T interpolate(T a, T b);
 };
 
 typedef std::shared_ptr<Scene> ScenePtr;

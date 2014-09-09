@@ -17,7 +17,7 @@ enum class U_TYPE {
 };
 
 struct Uniform {
-    Uniform() {}
+    Uniform() = default;
     Uniform(GLint _ref, uint _cnt, U_TYPE _type) {
         ref = _ref; cnt = _cnt; type = _type;
     }

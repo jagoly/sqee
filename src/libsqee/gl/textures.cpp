@@ -6,60 +6,66 @@
 
 using namespace sq;
 
-
- /////////////////////////
- ///  TextureBase      ///
- /////////////////////////
-
-TextureBase::TextureBase(GLenum _type, GLenum _format) {
+Texture::Texture(GLenum _type, GLenum _format) {
     type = _type;
     format = _format;
     gl::GenTextures(1, &tex);
+    std::cout << "created texture " << tex << std::endl;
 }
 
-TextureBase::~TextureBase() { // FIX ME (copy ctor)
-    //gl::DeleteTextures(1, &tex);
+Texture::~Texture() {
+    std::cout << "Deleting texture " << tex << std::endl;
+    gl::DeleteTextures(1, &tex);
 }
 
-void TextureBase::bind() {
+const GLuint& Texture::get() {
+    return tex;
+}
+
+void Texture::bind() {
     gl::BindTexture(type, tex);
 }
 
-void TextureBase::bind(GLenum _slot) {
+void Texture::bind(GLenum _slot) {
     gl::ActiveTexture(_slot);
     gl::BindTexture(type, tex);
 }
 
-void TextureBase::set_param(GLenum _name, GLenum _value) {
+void Texture::set_param(GLenum _name, GLenum _value) {
     gl::TexParameteri(type, _name, _value);
 }
 
-void TextureBase::set_params(int num, const GLenum* _names, const GLenum* _values) {
+void Texture::set_params(int num, const GLenum* _names, const GLenum* _values) {
     for (int i = 0; i < num; i++) {
         gl::TexParameteri(type, _names[i], _values[i]);
     }
 }
 
 
- /////////////////////////
- ///  Texture2D        ///
- /////////////////////////
 
-void Texture2D::load_blank(glm::uvec2 _size, GLenum _internalFormat) {
-    size = {_size.x, _size.y, 1};
-    bind();
+Texture::Ptr sq::tex2D_load_blank(glm::uvec2 _size, GLenum _internalFormat) {
+    Texture::Ptr tex(new Texture(gl::TEXTURE_2D, gl::RGBA));
+    tex->size = {_size.x, _size.y, 1};
+    tex->bind();
     gl::TexImage2D(gl::TEXTURE_2D, 0, _internalFormat, _size.x, _size.y,
-                   0, gl::RGBA, gl::UNSIGNED_BYTE, NULL);
+                   0, gl::RGBA, gl::UNSIGNED_BYTE, nullptr);
+
+    return tex;
 }
 
-void Texture2D::load_from_memory(glm::uvec2 _size, GLenum _internalFormat, const unsigned char* _data) {
-    size = {_size.x, _size.y, 1};
-    bind();
+Texture::Ptr sq::tex2D_load_memory(glm::uvec2 _size, GLenum _internalFormat, const unsigned char* _data) {
+    Texture::Ptr tex(new Texture(gl::TEXTURE_2D, gl::RGBA));
+    tex->size = {_size.x, _size.y, 1};
+    tex->bind();
     gl::TexImage2D(gl::TEXTURE_2D, 0, _internalFormat, _size.x, _size.y,
                    0, gl::RGBA, gl::UNSIGNED_BYTE, _data);
+
+    return tex;
 }
 
-bool Texture2D::load_from_file(std::string _path, GLenum _internalFormat) {
+Texture::Ptr sq::tex2D_load_file(std::string _path, GLenum _internalFormat) {
+    Texture::Ptr tex(new Texture(gl::TEXTURE_2D, gl::RGBA));
+
     int w, h, n;
     unsigned char* data = stbi_load(_path.c_str(), &w, &h, &n, 4);
     int widthBytes = w * 4;
@@ -82,41 +88,41 @@ bool Texture2D::load_from_file(std::string _path, GLenum _internalFormat) {
     if (!data) {
         std::cout << "Error loading texture from \"" << _path << "\"" << std::endl;
         free(data);
-        return true;
+        return nullptr;
     }
-    size = {w, h, 1};
-    bind();
+    tex->size = {w, h, 1};
+    tex->bind();
     gl::TexImage2D(gl::TEXTURE_2D, 0, _internalFormat, w, h,
                    0, gl::RGBA, gl::UNSIGNED_BYTE, data);
     free(data);
-    return false;
+    return tex;
 }
 
 
- /////////////////////////
- ///  TextureDepth     ///
- /////////////////////////
 
-void TextureDepth::load_blank(glm::uvec2 _size, GLenum _internalFormat) {
-    size = {_size.x, _size.y, 1};
-    bind();
+Texture::Ptr sq::texDepth_load_blank(glm::uvec2 _size, GLenum _internalFormat) {
+    Texture::Ptr tex(new Texture(gl::TEXTURE_2D, gl::DEPTH_COMPONENT));
+    tex->size = {_size.x, _size.y, 1};
+    tex->bind();
     gl::TexImage2D(gl::TEXTURE_2D, 0, _internalFormat, _size.x, _size.y,
-                   0, gl::DEPTH_COMPONENT, gl::UNSIGNED_BYTE, NULL);
+                   0, gl::DEPTH_COMPONENT, gl::UNSIGNED_BYTE, nullptr);
+
+    return tex;
 }
 
 
- /////////////////////////
- ///  Texture2DArray   ///
- /////////////////////////
 
-void Texture2DArray::load_blank(glm::uvec3 _size, GLenum _internalFormat) {
-    size = _size;
-    bind();
-    gl::TexImage3D(gl::TEXTURE_2D_ARRAY, 0, _internalFormat, size.x, size.y, size.z,
-                   0, gl::RGBA, gl::UNSIGNED_BYTE, NULL);
+Texture::Ptr sq::tex2DArray_load_blank(glm::uvec3 _size, GLenum _internalFormat) {
+    Texture::Ptr tex(new Texture(gl::TEXTURE_2D_ARRAY, gl::RGBA));
+    tex->size = _size;
+    tex->bind();
+    gl::TexImage3D(gl::TEXTURE_2D_ARRAY, 0, _internalFormat, _size.x, _size.y, _size.z,
+                   0, gl::RGBA, gl::UNSIGNED_BYTE, nullptr);
+
+    return tex;
 }
 
-bool Texture2DArray::load_from_file(std::string _path, GLuint _index) {
+bool sq::tex2DArray_add_file(Texture::Ptr _tex, std::string _path, GLuint _index) {
     int w, h, n;
     unsigned char* data = stbi_load(_path.c_str(), &w, &h, &n, 4);
     if (!data) {
@@ -124,9 +130,9 @@ bool Texture2DArray::load_from_file(std::string _path, GLuint _index) {
         free(data);
         return true;
     }
-    bind();
-    gl::TexSubImage3D(gl::TEXTURE_2D_ARRAY, 0, 0, 0, _index, size.x, size.y, 1,
+    _tex->bind();
+    gl::TexSubImage3D(gl::TEXTURE_2D_ARRAY, 0, 0, 0, _index, _tex->size.x, _tex->size.y, 1,
                       gl::RGBA, gl::UNSIGNED_BYTE, data);
-    free(data);
+
     return false;
 }

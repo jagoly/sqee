@@ -2,6 +2,7 @@
 
 #include <string>
 #include <map>
+#include <memory>
 
 #include <gl/gl.hpp>
 
@@ -15,49 +16,37 @@ const GLenum BOTH_CLAMP_TO_EDGE[2] = {gl::CLAMP_TO_EDGE,  gl::CLAMP_TO_EDGE};
 
  /////////////////////////
 
-struct TextureBase {
-    TextureBase(GLenum _type, GLenum _format);
-    ~TextureBase();
+class Texture {
+public:
+    typedef std::shared_ptr<Texture> Ptr;
 
-    GLuint tex;
-    GLenum type;
-    GLenum format;
+    Texture(GLenum _type, GLenum _format);
+    ~Texture();
+
     glm::uvec3 size;
 
     void bind();
     void bind(GLenum _slot);
     void set_param(GLenum _name, GLenum _value);
     void set_params(int num, const GLenum* _names, const GLenum* _values);
+
+    const GLuint& get();
+private:
+    GLuint tex;
+    GLenum type;
+    GLenum format;
 };
 
 
- /////////////////////////
+Texture::Ptr tex_create(GLenum _type, GLenum _format);
 
-struct Texture2D : public TextureBase {
-    Texture2D() : TextureBase(gl::TEXTURE_2D, gl::RGBA) {}
+Texture::Ptr tex2D_load_blank(glm::uvec2 _size, GLenum _internalFormat);
+Texture::Ptr tex2D_load_memory(glm::uvec2 _size, GLenum _internalFormat, const unsigned char* _data);
+Texture::Ptr tex2D_load_file(std::string _path, GLenum _internalFormat);
 
-    void load_blank(glm::uvec2 _size, GLenum _internalFormat);
-    void load_from_memory(glm::uvec2 _size, GLenum _internalFormat, const unsigned char* _data);
-    bool load_from_file(std::string _path, GLenum _internalFormat);
-};
+Texture::Ptr texDepth_load_blank(glm::uvec2 _size, GLenum _internalFormat);
 
-
- /////////////////////////
-
-struct TextureDepth : public TextureBase {
-    TextureDepth() : TextureBase(gl::TEXTURE_2D, gl::DEPTH_COMPONENT) {}
-
-    void load_blank(glm::uvec2 _size, GLenum _internalFormat);
-};
-
-
- /////////////////////////
-
-struct Texture2DArray : public TextureBase {
-    Texture2DArray() : TextureBase(gl::TEXTURE_2D_ARRAY, gl::RGBA) {}
-
-    void load_blank(glm::uvec3 _size, GLenum _internalFormat);
-    bool load_from_file(std::string _path, GLuint _index);
-};
+Texture::Ptr tex2DArray_load_blank(glm::uvec3 _size, GLenum _internalFormat);
+bool         tex2DArray_add_file(Texture::Ptr _tex, std::string _path, GLuint _index);
 
 }

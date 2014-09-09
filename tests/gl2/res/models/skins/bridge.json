@@ -1,0 +1,7 @@
+{
+  "textures": [
+    "bridge", "bridge", "bridge"
+  ],
+  "ambi": "own",
+  "alpha": false
+}

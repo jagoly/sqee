@@ -14,11 +14,9 @@ namespace sq {
 
 glm::vec3 get_tangent(glm::vec3 normal);
 
-class Camera {
-public:
-    Camera(glm::vec3 _pos, float _xRot, float _yRot,
-           float _width, float _height, float yFov, float zNear, float zFar);
-    Camera();
+struct Camera {
+    void init(glm::vec3 _pos, float _xRot, float _yRot,
+              float _width, float _height, float yFov, float zNear, float zFar);
 
     glm::mat4 projMat;
     glm::mat4 viewMat;
@@ -38,6 +36,12 @@ public:
     void update_viewMat();
     void update_projMat();
     void update_projViewMat();
+};
+
+struct ScreenQuad {
+    ScreenQuad();
+    void draw();
+    GLuint vao;
 };
 
 }

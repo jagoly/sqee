@@ -9,8 +9,8 @@ class Terrain {
 public:
     int vCount;
     GLuint vao;
-    sq::Texture2DArray texNormArray, texDiffArray, texSpecArray;
-    sq::Texture2D texAmbi;
+    sq::Texture::Ptr texNormArray, texDiffArray, texSpecArray;
+    sq::Texture::Ptr texAmbi;
 
     bool load(glm::uvec2 _size, uint _texCount,
               const std::vector<std::string>& _texPaths,

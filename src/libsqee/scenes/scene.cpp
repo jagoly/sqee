@@ -16,7 +16,8 @@ void Scene::render(float) {
 void Scene::update() {
 }
 
-float Scene::interpolate(float a, float b) {
+template<typename T>
+T Scene::interpolate(T a, T b) {
     return a * ((dt - accum) / dt) + b * (accum / dt);
 }
 

@@ -14,12 +14,13 @@ public:
     bool resize(glm::uvec2 _size);
     void use();
 
+    Texture::Ptr get(int _id);
+
     GLuint framebuffer;
-    std::vector<Texture2D*> colourTextures;
-    TextureDepth depthTexture;
     bool hasDepth;
 private:
-    std::vector<Texture2D> cTexVec;
+    std::vector<Texture::Ptr> colourTextures;
+    Texture::Ptr depthTexture;
     std::vector<GLenum> drawBuffers;
 };
 

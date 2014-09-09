@@ -20,7 +20,7 @@ glm::vec3 get_tangent(glm::vec3 normal) {
     return tangent;
 }
 
-Camera::Camera(glm::vec3 _pos, float _xRot, float _yRot,
+void Camera::init(glm::vec3 _pos, float _xRot, float _yRot,
                float _width, float _height, float _yFov, float _zNear, float _zFar) {
     pos.x = _pos.x;
     pos.y = _pos.y;
@@ -34,10 +34,6 @@ Camera::Camera(glm::vec3 _pos, float _xRot, float _yRot,
     yFov = _yFov;
     zNear = _zNear;
     zFar = _zFar;
-}
-
-Camera::Camera() {
-
 }
 
 void Camera::update_viewMat() {
@@ -60,6 +56,41 @@ void Camera::update_projMat() {
 
 void Camera::update_projViewMat() {
     projViewMat = projMat * viewMat;
+}
+
+ScreenQuad::ScreenQuad() {
+    GLfloat points[] = {
+        -1.0, -1.0,  1.0,  -1.0,  1.0, 1.0,
+        1.0, 1.0,    -1.0, 1.0,   -1.0, -1.0
+    };
+    GLfloat texcoords[] = {
+        0.0, 0.0,  1.0, 0.0,  1.0, 1.0,
+        1.0, 1.0,  0.0, 1.0,  0.0, 0.0
+    };
+
+    GLuint vboPoints, vboTexcoords;
+
+    gl::GenBuffers(1, &vboPoints);
+    gl::BindBuffer(gl::ARRAY_BUFFER, vboPoints);
+    gl::BufferData(gl::ARRAY_BUFFER, 12 * sizeof(GLfloat), points, gl::STATIC_DRAW);
+
+    gl::GenBuffers(1, &vboTexcoords);
+    gl::BindBuffer(gl::ARRAY_BUFFER, vboTexcoords);
+    gl::BufferData(gl::ARRAY_BUFFER, 12 * sizeof(GLfloat), texcoords, gl::STATIC_DRAW);
+
+    gl::GenVertexArrays(1, &vao);
+    gl::BindVertexArray(vao);
+    gl::EnableVertexAttribArray(0);
+    gl::EnableVertexAttribArray(1);
+    gl::BindBuffer(gl::ARRAY_BUFFER, vboPoints);
+    gl::VertexAttribPointer(0, 2, gl::FLOAT, false, 0, NULL);
+    gl::BindBuffer(gl::ARRAY_BUFFER, vboTexcoords);
+    gl::VertexAttribPointer(1, 2, gl::FLOAT, false, 0, NULL);
+}
+
+void ScreenQuad::draw() {
+    gl::BindVertexArray(vao);
+    gl::DrawArrays(gl::TRIANGLES, 0, 6);
 }
 
 }

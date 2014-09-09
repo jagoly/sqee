@@ -3,13 +3,16 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build/tests/gl2")
 set(SOURCES
     "main.cpp"
     "helpers.hpp"
-    "app.cpp"           "app.hpp"
-    "scenegame.cpp"     "scenegame.hpp"
-    "rendergeneral.cpp" "rendergeneral.hpp"
-    "player.cpp"        "player.hpp"
-    "maps/level.hpp"    "maps/level.cpp"
-    "maps/terrain.hpp"  "maps/terrain.cpp"
-    "maps/models.hpp"   "maps/models.cpp"
+    "app.cpp"             "app.hpp"
+    "scenegame.cpp"       "scenegame.hpp"
+    "rendergeneral.cpp"   "rendergeneral.hpp"
+    "player.cpp"          "player.hpp"
+    "maps/level.hpp"      "maps/level.cpp"
+    "maps/terrain.hpp"    "maps/terrain.cpp"
+    "maps/models.hpp"     "maps/models.cpp"
+    "objects/models.hpp"  "objects/models.cpp"
+    "objects/meshes.hpp"  "objects/meshes.cpp"
+    "objects/skins.hpp"   "objects/skins.cpp"
 )
 
 add_executable(gl2 ${SOURCES})

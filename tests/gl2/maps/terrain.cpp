@@ -30,10 +30,10 @@ bool Terrain::load(glm::uvec2 _size, uint _texCount,
     float tangents[tileLen * 36];
 
     // Fill working arrays and set textures (Z texcoord)
-    for (int y = 0; y < _size.y; y++) {
+    for (uint y = 0; y < _size.y; y++) {
         int geoy = y * (_size.x+1);
-        for (int x = 0; x < _size.x; x++) {
-            int t = y * _size.x + x;
+        for (uint x = 0; x < _size.x; x++) {
+            uint t = y * _size.x + x;
 
             points[t*36 + 10*3 +2] = float(_geometry[geoy+x + _size.x+1 +0]) / 4.f;
             points[t*36 + 0*3  +2] = float(_geometry[geoy+x + _size.x+1 +0]) / 4.f;
@@ -84,9 +84,9 @@ bool Terrain::load(glm::uvec2 _size, uint _texCount,
     }
 
     // Calculate smooth normals and set normals
-    for (int y = 0; y < _size.y; y++) {
-        for (int x = 0; x < _size.x; x++) {
-            int t = y * _size.x + x;
+    for (uint y = 0; y < _size.y; y++) {
+        for (uint x = 0; x < _size.x; x++) {
+            uint t = y * _size.x + x;
 
             // No smoothing
             if (!_smoothing[t]) continue;
@@ -396,35 +396,36 @@ bool Terrain::load(glm::uvec2 _size, uint _texCount,
     /// Load Textures ///
 
     // Load Ambient Texture
-    texAmbi.load_from_file("res/maps/" + _map + "/bakes/terrain.png", gl::R16F);
-    texAmbi.set_params(2, sq::MIN_MAG_FILTERS, sq::BOTH_LINEAR);
-    texAmbi.set_params(2, sq::S_T_WRAP, sq::BOTH_CLAMP_TO_EDGE);
+    texAmbi = sq::tex2D_load_file("res/maps/" + _map + "/bakes/terrain.png", gl::R16F);
+    if (texAmbi == nullptr) texAmbi = sq::tex2D_load_blank({1, 1}, gl::R16F);
+    texAmbi->set_params(2, sq::MIN_MAG_FILTERS, sq::BOTH_LINEAR);
+    texAmbi->set_params(2, sq::S_T_WRAP, sq::BOTH_CLAMP_TO_EDGE);
 
     // Load Normal Textures
-    texNormArray.load_blank({128, 128, _texCount}, gl::RGB16F);
-    texNormArray.set_params(2, sq::MIN_MAG_FILTERS, sq::BOTH_LINEAR);
-    texNormArray.set_params(2, sq::S_T_WRAP, sq::BOTH_CLAMP_TO_EDGE);
-    for (int i = 0; i < _texCount ; i++) {
-        if (texNormArray.load_from_file("res/textures/ground/norm/" + _texPaths[i], i))
-            texNormArray.load_from_file("res/misc/blanknorm.png", i);
+    texNormArray = sq::tex2DArray_load_blank({128, 128, _texCount}, gl::RGB16F);
+    texNormArray->set_params(2, sq::MIN_MAG_FILTERS, sq::BOTH_LINEAR);
+    texNormArray->set_params(2, sq::S_T_WRAP, sq::BOTH_CLAMP_TO_EDGE);
+    for (uint i = 0; i < _texCount ; i++) {
+        if (sq::tex2DArray_add_file(texNormArray, "res/textures/ground/norm/" + _texPaths[i], i))
+            sq::tex2DArray_add_file(texNormArray, "res/misc/blanknorm.png", i);
     }
 
     // Load Diffuse Textures
-    texDiffArray.load_blank({128, 128, _texCount}, gl::RGB16F);
-    texDiffArray.set_params(2, sq::MIN_MAG_FILTERS, sq::BOTH_LINEAR);
-    texDiffArray.set_params(2, sq::S_T_WRAP, sq::BOTH_CLAMP_TO_EDGE);
-    for (int i = 0; i < _texCount ; i++) {
-        if (texDiffArray.load_from_file("res/textures/ground/diff/" + _texPaths[i], i))
-            texDiffArray.load_from_file("res/misc/blankdiff.png", i);
+    texDiffArray = sq::tex2DArray_load_blank({128, 128, _texCount}, gl::RGB16F);
+    texDiffArray->set_params(2, sq::MIN_MAG_FILTERS, sq::BOTH_LINEAR);
+    texDiffArray->set_params(2, sq::S_T_WRAP, sq::BOTH_CLAMP_TO_EDGE);
+    for (uint i = 0; i < _texCount ; i++) {
+        if (sq::tex2DArray_add_file(texDiffArray, "res/textures/ground/diff/" + _texPaths[i], i))
+            sq::tex2DArray_add_file(texDiffArray, "res/misc/blankdiff.png", i);
     }
 
     // Load Specular Textures
-    texSpecArray.load_blank({128, 128, _texCount}, gl::RGB16F);
-    texSpecArray.set_params(2, sq::MIN_MAG_FILTERS, sq::BOTH_LINEAR);
-    texSpecArray.set_params(2, sq::S_T_WRAP, sq::BOTH_CLAMP_TO_EDGE);
-    for (int i = 0; i < _texCount ; i++) {
-        if (texSpecArray.load_from_file("res/textures/ground/spec/" + _texPaths[i], i))
-            texSpecArray.load_from_file("res/misc/blankspec.png", i);
+    texSpecArray = sq::tex2DArray_load_blank({128, 128, _texCount}, gl::RGB16F);
+    texSpecArray->set_params(2, sq::MIN_MAG_FILTERS, sq::BOTH_LINEAR);
+    texSpecArray->set_params(2, sq::S_T_WRAP, sq::BOTH_CLAMP_TO_EDGE);
+    for (uint i = 0; i < _texCount ; i++) {
+        if (sq::tex2DArray_add_file(texSpecArray, "res/textures/ground/spec/" + _texPaths[i], i))
+            sq::tex2DArray_add_file(texSpecArray, "res/misc/blankspec.png", i);
     }
 
     return false;

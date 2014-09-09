@@ -27,7 +27,8 @@ Application::Application(glm::uvec2 _size, bool _showfps,
         window = new sf::Window({_size.x, _size.y}, title,
                                  sf::Style::Close | sf::Style::Titlebar, settings);
 
-    gl::exts::LoadTest didLoad = gl::sys::LoadFunctions();
+    gl::sys::LoadFunctions();
+    window->setKeyRepeatEnabled(false);
 
     set_vsync(_vsync);
     set_showfps(_showfps);
@@ -77,7 +78,7 @@ void Application::run() {
 
         soundManager.clean();
 
-        sf::Event event;
+        static sf::Event event;
         while (window->pollEvent(event)) {
             for (auto& handler : handlerFList) {
                 if (handler->handle(event)) {

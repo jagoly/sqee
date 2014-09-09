@@ -1,0 +1,7 @@
+{
+  "textures": [
+    "stairs", "stairs", "stairs"
+  ],
+  "ambi": "own",
+  "alpha": false
+}

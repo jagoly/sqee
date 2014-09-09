@@ -1,0 +1,7 @@
+{
+  "textures": [
+    "misc/8080FF", "water", "misc/DDDDFF"
+  ],
+  "ambi": "none",
+  "alpha": true
+}

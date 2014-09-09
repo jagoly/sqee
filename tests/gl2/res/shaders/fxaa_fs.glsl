@@ -3,6 +3,7 @@
 
 in vec2 texcoord;
 uniform sampler2D screenTex;
+uniform vec2 vpPixSize;
 uniform int aaLevel;
 out vec4 fragColour;
 
@@ -796,8 +797,6 @@ return FxaaFloat4(FxaaTexTop(tex, posM).xyz, lumaM);
 /*==========================================================================*/
 #endif
 
-
-const vec2 paramVPSize = vec2(1.f / 1280.f, 1.f / 720.f);
 const float paramSUBPIX = 0.5f;
 const float paramEDGETHRES = 0.125f;
 const float paramEDGETHRESMIN = 0.0625f;
@@ -810,12 +809,12 @@ void main() {
         FxaaPixelShader(
             texcoord,
             screenTex,
-            paramVPSize,
+            vpPixSize,
             paramSUBPIX,
             paramEDGETHRES,
             paramEDGETHRESMIN
         ).rgb, 1.f);
     } else {
-        fragColour = vec4(texture(screenTex, texcoord).rgb, 1.f);
+        fragColour = vec4(texture(screenTex, texcoord).a, 0.f, 0.f, 1.f);
     }
 }

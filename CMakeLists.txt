@@ -14,7 +14,6 @@ set(SOURCES
     "${INCDIR}/libsqee/gl/framebuffers.hpp"
     "${INCDIR}/libsqee/gl/shaders.hpp"
     "${INCDIR}/libsqee/gl/textures.hpp"
-    "${INCDIR}/libsqee/gl/vaos.hpp"
     "${INCDIR}/libsqee/app/application.hpp"
     "${INCDIR}/libsqee/events/basichandlers.hpp"
     "${INCDIR}/libsqee/events/handler.hpp"
@@ -22,7 +21,7 @@ set(SOURCES
     "${INCDIR}/libsqee/menus/basicmenu.hpp"
     "${INCDIR}/libsqee/misc/files.hpp"
     "${INCDIR}/libsqee/misc/stb_image.hpp"
-    "${INCDIR}/libsqee/models/mesh.hpp"
+    "${INCDIR}/libsqee/resources/texholder.hpp"
     "${INCDIR}/libsqee/scenes/scene.hpp"
     "${INCDIR}/libsqee/sounds/soundmanager.hpp"
 
@@ -31,7 +30,6 @@ set(SOURCES
     "${SRCDIR}/libsqee/gl/framebuffers.cpp"
     "${SRCDIR}/libsqee/gl/shaders.cpp"
     "${SRCDIR}/libsqee/gl/textures.cpp"
-    "${SRCDIR}/libsqee/gl/vaos.cpp"
     "${SRCDIR}/libsqee/app/application.cpp"
     "${SRCDIR}/libsqee/events/basichandlers.cpp"
     "${SRCDIR}/libsqee/events/handler.cpp"
@@ -39,7 +37,7 @@ set(SOURCES
     "${SRCDIR}/libsqee/menus/basicmenu.cpp"
     "${SRCDIR}/libsqee/misc/files.cpp"
     "${SRCDIR}/libsqee/misc/stb_image.cpp"
-    "${SRCDIR}/libsqee/models/mesh.cpp"
+    "${SRCDIR}/libsqee/resources/texholder.cpp"
     "${SRCDIR}/libsqee/scenes/scene.cpp"
     "${SRCDIR}/libsqee/sounds/soundmanager.cpp"
 )
@@ -47,7 +45,7 @@ set(SOURCES
 add_library(libsqee SHARED ${SOURCES})
 include_directories("${PROJECT_SOURCE_DIR}/include/libsqee")
 
-# TODO: This section need fixing
+# TODO: This section needs fixing
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     include_directories("${PROJECT_SOURCE_DIR}/extlibs/include")
     find_library(SFML_SYSTEM_LIB sfml-system "${PROJECT_SOURCE_DIR}/extlibs/lib")
