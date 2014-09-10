@@ -82,6 +82,9 @@ void SceneGame::render(float) {
 
     static std::minstd_rand gen(std::time(NULL)); gen();
 
+    static sq::Framebuffer shadowFb;
+    static GLenum noDrawBuffers[] = {gl::NONE};
+
     static sq::Framebuffer mapFb;
     static GLenum mapFbDrawBuffers[] = {
         gl::COLOR_ATTACHMENT0
@@ -91,27 +94,50 @@ void SceneGame::render(float) {
 
     static sq::Shader terrainProg;
     static sq::Shader modelOpProg;
+    static sq::Shader shadowProg;
     static sq::Shader lumaProg;
     static sq::Shader fxaaProg;
+
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
+        skyLight.dir.x += 0.01f;
+        updateSkyLight = true;
+    }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
+        skyLight.dir.x -= 0.01f;
+        updateSkyLight = true;
+    }
 
     if (first) {
         gl::DepthFunc(gl::LEQUAL);
         gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
-        //gl::ClearColor(0.4f, 0.2f, 0.6f, 1.f);
+        gl::ClearColor(0.1f, 0.05f, 0.2f, 1.f);
+
 
         level.load_ground();
         level.load_models();
         level.load_physics();
 
-        // Main Framebuffer
+        // Framebuffers
+        shadowFb.create(0, noDrawBuffers, true);
+        //shadowFb.resize({2048, 2048}); // Low
+        //shadowFb.resize({4096, 4096}); // Medium
+        shadowFb.resize({8192, 8192}); // High
+        //shadowFb.resize({16384, 16384}); // Extreme
+        shadowFb.get(-1)->bind();
+        shadowFb.get(-1)->set_params(2, sq::MIN_MAG_FILTERS, sq::BOTH_LINEAR);
+        shadowFb.get(-1)->set_param(gl::TEXTURE_COMPARE_MODE, gl::COMPARE_REF_TO_TEXTURE);
         mapFb.create(1, mapFbDrawBuffers, true);
 
+        // Shaders
         terrainProg.load_from_file("res/shaders/terrain_vs.glsl", gl::VERTEX_SHADER);
         terrainProg.load_from_file("res/shaders/terrain_fs.glsl", gl::FRAGMENT_SHADER);
         terrainProg.build();
         modelOpProg.load_from_file("res/shaders/modelop_vs.glsl", gl::VERTEX_SHADER);
         modelOpProg.load_from_file("res/shaders/modelop_fs.glsl", gl::FRAGMENT_SHADER);
         modelOpProg.build();
+        shadowProg.load_from_file("res/shaders/shadows_vs.glsl", gl::VERTEX_SHADER);
+        shadowProg.load_from_file("res/shaders/shadows_fs.glsl", gl::FRAGMENT_SHADER);
+        shadowProg.build();
         lumaProg.load_from_file("res/shaders/luma_vs.glsl", gl::VERTEX_SHADER);
         lumaProg.load_from_file("res/shaders/luma_fs.glsl", gl::FRAGMENT_SHADER);
         lumaProg.build();
@@ -121,6 +147,7 @@ void SceneGame::render(float) {
 
         terrainProg.add_uniform("projMat", sq::U_TYPE::u_4m);
         terrainProg.add_uniform("viewMat", sq::U_TYPE::u_4m);
+        terrainProg.add_uniform("shadProjViewMat", sq::U_TYPE::u_4m);
         terrainProg.add_uniform("mapSize", sq::U_TYPE::u_2u);
         terrainProg.add_uniform("camPos", sq::U_TYPE::u_3f);
         terrainProg.add_uniform("skyLightDir", sq::U_TYPE::u_3f);
@@ -131,10 +158,12 @@ void SceneGame::render(float) {
         terrainProg.add_uniform("texNormArray", sq::U_TYPE::u_1i);
         terrainProg.add_uniform("texDiffArray", sq::U_TYPE::u_1i);
         terrainProg.add_uniform("texSpecArray", sq::U_TYPE::u_1i);
+        terrainProg.add_uniform("texShad", sq::U_TYPE::u_1i);
 
         modelOpProg.add_uniform("projMat", sq::U_TYPE::u_4m);
         modelOpProg.add_uniform("viewMat", sq::U_TYPE::u_4m);
         modelOpProg.add_uniform("modelMat", sq::U_TYPE::u_4m);
+        modelOpProg.add_uniform("shadProjViewMat", sq::U_TYPE::u_4m);
         modelOpProg.add_uniform("camPos", sq::U_TYPE::u_3f);
         modelOpProg.add_uniform("skyLightDir", sq::U_TYPE::u_3f);
         modelOpProg.add_uniform("skyLightDiff", sq::U_TYPE::u_3f);
@@ -144,6 +173,11 @@ void SceneGame::render(float) {
         modelOpProg.add_uniform("texDiff", sq::U_TYPE::u_1i);
         modelOpProg.add_uniform("texAmbi", sq::U_TYPE::u_1i);
         modelOpProg.add_uniform("texSpec", sq::U_TYPE::u_1i);
+        modelOpProg.add_uniform("texShad", sq::U_TYPE::u_1i);
+
+        shadowProg.add_uniform("projMat", sq::U_TYPE::u_4m);
+        shadowProg.add_uniform("viewMat", sq::U_TYPE::u_4m);
+        shadowProg.add_uniform("modelMat", sq::U_TYPE::u_4m);
 
         lumaProg.add_uniform("screenTex", sq::U_TYPE::u_1i);
 
@@ -157,12 +191,14 @@ void SceneGame::render(float) {
         terrainProg.set_uniform_i("texDiffArray", 1);
         terrainProg.set_uniform_i("texAmbi", 2);
         terrainProg.set_uniform_i("texSpecArray", 3);
+        terrainProg.set_uniform_i("texShad", 4);
 
         modelOpProg.use();
         modelOpProg.set_uniform_i("texNorm", 0);
         modelOpProg.set_uniform_i("texDiff", 1);
         modelOpProg.set_uniform_i("texAmbi", 2);
         modelOpProg.set_uniform_i("texSpec", 3);
+        modelOpProg.set_uniform_i("texShad", 4);
 
         lumaProg.use();
         lumaProg.set_uniform_i("screenTex", 0);
@@ -182,8 +218,6 @@ void SceneGame::render(float) {
         mapFb.resize(size);
         mapFb.get(0)->bind();
         mapFb.get(0)->set_params(2, sq::MIN_MAG_FILTERS, sq::BOTH_LINEAR);
-        gl::FramebufferTexture2D(gl::FRAMEBUFFER, gl::DEPTH_ATTACHMENT,
-                                 gl::TEXTURE_2D, mapFb.get(-1)->get(), 0);
 
         glm::vec2 pixSize = {1.f / float(size.x), 1.f / float(size.y)};
         fxaaProg.use();
@@ -209,21 +243,58 @@ void SceneGame::render(float) {
     }
 
     if (player.update_render(dt, accum)) {
+        skyLight.update(skyLight.dir);
+
         terrainProg.use();
         terrainProg.set_uniform_mv("projMat", false, glm::value_ptr(camera.projMat));
         terrainProg.set_uniform_mv("viewMat", false, glm::value_ptr(camera.viewMat));
+        terrainProg.set_uniform_mv("shadProjViewMat", false, glm::value_ptr(skyLight.projViewMat));
         terrainProg.set_uniform_fv("camPos", glm::value_ptr(camera.pos));
 
         modelOpProg.use();
         modelOpProg.set_uniform_mv("projMat", false, glm::value_ptr(camera.projMat));
         modelOpProg.set_uniform_mv("viewMat", false, glm::value_ptr(camera.viewMat));
+        modelOpProg.set_uniform_mv("shadProjViewMat", false, glm::value_ptr(skyLight.projViewMat));
         modelOpProg.set_uniform_fv("camPos", glm::value_ptr(camera.pos));
+
+        shadowProg.use();
+        shadowProg.set_uniform_mv("projMat", false, glm::value_ptr(skyLight.projMat));
+        shadowProg.set_uniform_mv("viewMat", false, glm::value_ptr(skyLight.viewMat));
     }
 
-    mapFb.use();
+    /// Shadow Texture ///
+    shadowFb.use();
+    shadowFb.useVP();
     gl::Enable(gl::DEPTH_TEST);
-    gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
+    gl::Clear(gl::DEPTH_BUFFER_BIT);
+    shadowProg.use();
+    shadowProg.set_uniform_mv("modelMat", false, glm::value_ptr(glm::mat4()));
+    gl::BindVertexArray(level.terrain.vao);
+    gl::DrawArrays(gl::TRIANGLES, 0, level.terrain.vCount);
 
+    gl::BindVertexArray(player.model.mesh->vao);
+    shadowProg.set_uniform_mv("modelMat", false, glm::value_ptr(player.modelMat));
+    gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, player.model.mesh->ibo);
+    gl::DrawElements(gl::TRIANGLES, player.model.mesh->iCount, gl::UNSIGNED_SHORT, 0);
+
+    for (uint i = 0; i < level.modelVec.size(); i++) {
+        gl::BindVertexArray(level.modelVec[i].mesh->vao);
+        gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, level.modelVec[i].mesh->ibo);
+        for (ModelInstance& m : level.modelInstVec) {
+            if (m.index == i) {
+                shadowProg.set_uniform_mv("modelMat", false, glm::value_ptr(m.modelMat));
+                gl::DrawElements(gl::TRIANGLES, level.modelVec[m.index].mesh->iCount, gl::UNSIGNED_SHORT, 0);
+            }
+        }
+    }
+
+
+    /// Map ///
+
+
+    mapFb.use();
+    mapFb.useVP();
+    gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 
     /// Ground ///
     terrainProg.use();
@@ -232,6 +303,7 @@ void SceneGame::render(float) {
     level.terrain.texDiffArray->bind(gl::TEXTURE1);
     level.terrain.texAmbi->bind(gl::TEXTURE2);
     level.terrain.texSpecArray->bind(gl::TEXTURE3);
+    shadowFb.get(-1)->bind(gl::TEXTURE4);
 
     gl::BindVertexArray(level.terrain.vao);
     gl::DrawArrays(gl::TRIANGLES, 0, level.terrain.vCount);
@@ -298,6 +370,7 @@ void SceneGame::render(float) {
     gl::Clear(gl::COLOR_BUFFER_BIT);
     fxaaProg.use();
     mapFb.get(0)->bind(gl::TEXTURE0);
+    //shadowFb.get(-1)->bind();
     screenQuad.draw();
 }
 

@@ -38,6 +38,7 @@ bool Framebuffer::create(int _bufCount, const GLenum* _drawBuffers, bool _depth)
 
 bool Framebuffer::resize(glm::uvec2 _size) {
     gl::BindFramebuffer(gl::FRAMEBUFFER, framebuffer);
+    size = _size;
 
     for (GLenum i : drawBuffers) {
         uint bufId = attachMap[i];
@@ -47,7 +48,7 @@ bool Framebuffer::resize(glm::uvec2 _size) {
     }
 
     if (hasDepth) {
-        depthTexture = texDepth_load_blank(_size, gl::DEPTH24_STENCIL8);
+        depthTexture = texDepth_load_blank(_size, gl::DEPTH_COMPONENT32F);
         gl::FramebufferTexture2D(gl::FRAMEBUFFER, gl::DEPTH_ATTACHMENT,
                                  gl::TEXTURE_2D, depthTexture->get(), 0);
     }
@@ -77,4 +78,8 @@ Texture::Ptr Framebuffer::get(int _id) {
 void Framebuffer::use() {
     gl::BindFramebuffer(gl::FRAMEBUFFER, framebuffer);
     gl::DrawBuffers(drawBuffers.size(), drawBuffers.data());
+}
+
+void Framebuffer::useVP() {
+    gl::Viewport(0, 0, size.x, size.y);
 }

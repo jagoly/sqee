@@ -1,6 +1,7 @@
 #version 330
 
 in vec3 v_pos;
+in vec3 shadcoord;
 in vec3 texcoord;
 in vec2 mapPos;
 in vec3 n, t, b;
@@ -12,6 +13,7 @@ uniform sampler2DArray texNormArray;
 uniform sampler2DArray texDiffArray;
 uniform sampler2D texAmbi;
 uniform sampler2DArray texSpecArray;
+uniform sampler2DShadow texShad;
 
 out vec4 fragColour;
 
@@ -23,11 +25,14 @@ void main() {
     float reflAmbi = texture(texAmbi, mapPos).r;
     vec3 reflSpec = texture(texSpecArray, texcoord).rgb;
 
+    vec3 sc = vec3(shadcoord.xy / 2.f + 0.5f, shadcoord.z / 2.f + 0.5f - 0.0005f);
+    float visibility = texture(texShad, sc);
+
     // Diffuse
     vec3 dirToLight = vec4(viewMat * vec4(-skyLightDir, 0.f)).xyz;
     float dotProd = dot(dirToLight, v_norm);
     dotProd = max(dotProd, 0.f);
-    vec3 diff = skyLightDiff * reflDiff * dotProd;
+    vec3 diff = skyLightDiff * reflDiff * dotProd * visibility;
 
 
     // Ambient
@@ -39,7 +44,9 @@ void main() {
     vec3 reflection = reflect(vec4(viewMat * vec4(skyLightDir, 0.f)).xyz, v_norm);
     dotProd = max(dot(reflection, dirFromCam), 0.f);
     float factor = pow(dotProd, 50.f);
-    vec3 spec = skyLightSpec * reflSpec * factor;
+    vec3 spec = skyLightSpec * reflSpec * factor * visibility;
 
     fragColour = vec4(ambi + spec + diff, 1.f);
+
+    //fragColour.r = texture(texShad, shadcoord.xy / 2.f + 0.5f).r;
 }

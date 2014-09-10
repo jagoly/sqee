@@ -6,9 +6,11 @@ layout(location = 2) in vec3 V_texcoord;
 layout(location = 3) in vec3 V_tangent;
 
 uniform mat4 projMat, viewMat;
+uniform mat4 shadProjViewMat;
 uniform uvec2 mapSize;
 
 out vec3 v_pos;
+out vec3 shadcoord;
 out vec3 texcoord;
 out vec2 mapPos;
 out vec3 n, t, b;
@@ -24,5 +26,6 @@ void main() {
     b = normalize(normMat * cross(V_norm, V_tangent));
 
     v_pos = vec4(viewMat * vec4(V_pos, 1.f)).xyz;
+    shadcoord = vec4(shadProjViewMat * vec4(V_pos, 1.f)).xyz;
     gl_Position = projMat * viewMat * vec4(V_pos, 1.f);
 }

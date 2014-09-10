@@ -13,6 +13,7 @@ public:
     bool create(int _bufCount, const GLenum* _drawBuffers, bool _depth);
     bool resize(glm::uvec2 _size);
     void use();
+    void useVP();
 
     Texture::Ptr get(int _id);
 
@@ -22,6 +23,7 @@ private:
     std::vector<Texture::Ptr> colourTextures;
     Texture::Ptr depthTexture;
     std::vector<GLenum> drawBuffers;
+    glm::uvec2 size;
 };
 
 }
