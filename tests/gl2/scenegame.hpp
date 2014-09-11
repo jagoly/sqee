@@ -22,6 +22,8 @@ public:
 private:
     sq::TexHolderBasic texHolder;
 
+    Settings settings;
+
     sq::Camera camera;
     Level level;
     SkyLight skyLight;
@@ -29,6 +31,7 @@ private:
     Player player;
     ushort arrowPriority[4];
 
+    bool modSettings = true;
     bool updateFramebuffers = true;
     bool updateSkyLight = true;
 };

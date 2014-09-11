@@ -79,6 +79,7 @@ void SceneGame::update() {
 
 void SceneGame::render(float) {
     static bool first = true;
+    static int shadLevel, aaLevel;
 
     static std::minstd_rand gen(std::time(NULL)); gen();
 
@@ -96,16 +97,9 @@ void SceneGame::render(float) {
     static sq::Shader modelOpProg;
     static sq::Shader shadowProg;
     static sq::Shader lumaProg;
-    static sq::Shader fxaaProg;
-
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
-        skyLight.dir.x += 0.01f;
-        updateSkyLight = true;
-    }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-        skyLight.dir.x -= 0.01f;
-        updateSkyLight = true;
-    }
+    static sq::Shader fxaaLProg;
+    static sq::Shader fxaaHProg;
+    static sq::Shader quadProg;
 
     if (first) {
         gl::DepthFunc(gl::LEQUAL);
@@ -117,15 +111,6 @@ void SceneGame::render(float) {
         level.load_models();
         level.load_physics();
 
-        // Framebuffers
-        shadowFb.create(0, noDrawBuffers, true);
-        //shadowFb.resize({2048, 2048}); // Low
-        //shadowFb.resize({4096, 4096}); // Medium
-        shadowFb.resize({8192, 8192}); // High
-        //shadowFb.resize({16384, 16384}); // Extreme
-        shadowFb.get(-1)->bind();
-        shadowFb.get(-1)->set_params(2, sq::MIN_MAG_FILTERS, sq::BOTH_LINEAR);
-        shadowFb.get(-1)->set_param(gl::TEXTURE_COMPARE_MODE, gl::COMPARE_REF_TO_TEXTURE);
         mapFb.create(1, mapFbDrawBuffers, true);
 
         // Shaders
@@ -138,13 +123,20 @@ void SceneGame::render(float) {
         shadowProg.load_from_file("res/shaders/shadows_vs.glsl", gl::VERTEX_SHADER);
         shadowProg.load_from_file("res/shaders/shadows_fs.glsl", gl::FRAGMENT_SHADER);
         shadowProg.build();
-        lumaProg.load_from_file("res/shaders/luma_vs.glsl", gl::VERTEX_SHADER);
+        lumaProg.load_from_file("res/shaders/quad_vs.glsl", gl::VERTEX_SHADER);
         lumaProg.load_from_file("res/shaders/luma_fs.glsl", gl::FRAGMENT_SHADER);
         lumaProg.build();
-        fxaaProg.load_from_file("res/shaders/fxaa_vs.glsl", gl::VERTEX_SHADER);
-        fxaaProg.load_from_file("res/shaders/fxaa_fs.glsl", gl::FRAGMENT_SHADER);
-        fxaaProg.build();
+        fxaaLProg.load_from_file("res/shaders/quad_vs.glsl", gl::VERTEX_SHADER);
+        fxaaLProg.load_from_file("res/shaders/fxaal_fs.glsl", gl::FRAGMENT_SHADER);
+        fxaaLProg.build();
+        fxaaHProg.load_from_file("res/shaders/quad_vs.glsl", gl::VERTEX_SHADER);
+        fxaaHProg.load_from_file("res/shaders/fxaah_fs.glsl", gl::FRAGMENT_SHADER);
+        fxaaHProg.build();
+        quadProg.load_from_file("res/shaders/quad_vs.glsl", gl::VERTEX_SHADER);
+        quadProg.load_from_file("res/shaders/quad_fs.glsl", gl::FRAGMENT_SHADER);
+        quadProg.build();
 
+        terrainProg.add_uniform("shadQuality", sq::U_TYPE::u_1i);
         terrainProg.add_uniform("projMat", sq::U_TYPE::u_4m);
         terrainProg.add_uniform("viewMat", sq::U_TYPE::u_4m);
         terrainProg.add_uniform("shadProjViewMat", sq::U_TYPE::u_4m);
@@ -160,6 +152,7 @@ void SceneGame::render(float) {
         terrainProg.add_uniform("texSpecArray", sq::U_TYPE::u_1i);
         terrainProg.add_uniform("texShad", sq::U_TYPE::u_1i);
 
+        modelOpProg.add_uniform("shadQuality", sq::U_TYPE::u_1i);
         modelOpProg.add_uniform("projMat", sq::U_TYPE::u_4m);
         modelOpProg.add_uniform("viewMat", sq::U_TYPE::u_4m);
         modelOpProg.add_uniform("modelMat", sq::U_TYPE::u_4m);
@@ -181,9 +174,12 @@ void SceneGame::render(float) {
 
         lumaProg.add_uniform("screenTex", sq::U_TYPE::u_1i);
 
-        fxaaProg.add_uniform("screenTex", sq::U_TYPE::u_1i);
-        fxaaProg.add_uniform("vpPixSize", sq::U_TYPE::u_2f);
-        fxaaProg.add_uniform("aaLevel", sq::U_TYPE::u_1i);
+        fxaaLProg.add_uniform("screenTex", sq::U_TYPE::u_1i);
+        fxaaLProg.add_uniform("vpPixSize", sq::U_TYPE::u_2f);
+        fxaaHProg.add_uniform("screenTex", sq::U_TYPE::u_1i);
+        fxaaHProg.add_uniform("vpPixSize", sq::U_TYPE::u_2f);
+
+        quadProg.add_uniform("screenTex", sq::U_TYPE::u_1i);
 
         terrainProg.use();
         terrainProg.set_uniform_uv("mapSize", glm::value_ptr(level.size));
@@ -203,11 +199,41 @@ void SceneGame::render(float) {
         lumaProg.use();
         lumaProg.set_uniform_i("screenTex", 0);
 
-        fxaaProg.use();
-        fxaaProg.set_uniform_i("screenTex", 0);
-        fxaaProg.set_uniform_i("aaLevel", 1);
+        fxaaLProg.use();
+        fxaaLProg.set_uniform_i("screenTex", 0);
+        fxaaHProg.use();
+        fxaaHProg.set_uniform_i("screenTex", 0);
+
+        quadProg.use();
+        quadProg.set_uniform_i("screenTex", 0);
 
         first = false;
+    }
+
+    if (modSettings) {
+        if (settings.shad) {
+            shadowFb.create(0, noDrawBuffers, true);
+            if (settings.shad == 1)
+                shadowFb.resize({1024, 1024}); // Low
+            else if (settings.shad == 2)
+                shadowFb.resize({2048, 2048}); // Medium
+            else if (settings.shad == 3)
+                shadowFb.resize({4096, 4096}); // High
+            else if (settings.shad == 4)
+                shadowFb.resize({8192, 8192}); // Extreme
+            shadowFb.get(-1)->bind();
+            shadowFb.get(-1)->set_params(2, sq::MIN_MAG_FILTERS, sq::BOTH_LINEAR);
+            shadowFb.get(-1)->set_param(gl::TEXTURE_COMPARE_MODE, gl::COMPARE_REF_TO_TEXTURE);
+        }
+        terrainProg.use();
+        terrainProg.set_uniform_i("shadQuality", settings.shad);
+        modelOpProg.use();
+        modelOpProg.set_uniform_i("shadQuality", settings.shad);
+
+        aaLevel = settings.aa;
+        shadLevel = settings.shad;
+
+        modSettings = false;
     }
 
     if (updateFramebuffers) {
@@ -220,13 +246,17 @@ void SceneGame::render(float) {
         mapFb.get(0)->set_params(2, sq::MIN_MAG_FILTERS, sq::BOTH_LINEAR);
 
         glm::vec2 pixSize = {1.f / float(size.x), 1.f / float(size.y)};
-        fxaaProg.use();
-        fxaaProg.set_uniform_fv("vpPixSize", glm::value_ptr(pixSize));
+        fxaaLProg.use();
+        fxaaLProg.set_uniform_fv("vpPixSize", glm::value_ptr(pixSize));
+        fxaaHProg.use();
+        fxaaHProg.set_uniform_fv("vpPixSize", glm::value_ptr(pixSize));
 
         updateFramebuffers = false;
     }
 
     if (updateSkyLight) {
+        skyLight.update(skyLight.dir, level.size, 64.f);
+
         terrainProg.use();
         terrainProg.set_uniform_fv("skyLightDir", glm::value_ptr(skyLight.dir));
         terrainProg.set_uniform_fv("skyLightDiff", glm::value_ptr(skyLight.diff));
@@ -243,8 +273,6 @@ void SceneGame::render(float) {
     }
 
     if (player.update_render(dt, accum)) {
-        skyLight.update(skyLight.dir);
-
         terrainProg.use();
         terrainProg.set_uniform_mv("projMat", false, glm::value_ptr(camera.projMat));
         terrainProg.set_uniform_mv("viewMat", false, glm::value_ptr(camera.viewMat));
@@ -262,35 +290,36 @@ void SceneGame::render(float) {
         shadowProg.set_uniform_mv("viewMat", false, glm::value_ptr(skyLight.viewMat));
     }
 
-    /// Shadow Texture ///
-    shadowFb.use();
-    shadowFb.useVP();
     gl::Enable(gl::DEPTH_TEST);
-    gl::Clear(gl::DEPTH_BUFFER_BIT);
-    shadowProg.use();
-    shadowProg.set_uniform_mv("modelMat", false, glm::value_ptr(glm::mat4()));
-    gl::BindVertexArray(level.terrain.vao);
-    gl::DrawArrays(gl::TRIANGLES, 0, level.terrain.vCount);
 
-    gl::BindVertexArray(player.model.mesh->vao);
-    shadowProg.set_uniform_mv("modelMat", false, glm::value_ptr(player.modelMat));
-    gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, player.model.mesh->ibo);
-    gl::DrawElements(gl::TRIANGLES, player.model.mesh->iCount, gl::UNSIGNED_SHORT, 0);
+    /// Shadow Texture ///
+    if (shadLevel) {
+        shadowFb.use();
+        shadowFb.useVP();
+        gl::Clear(gl::DEPTH_BUFFER_BIT);
+        shadowProg.use();
+        shadowProg.set_uniform_mv("modelMat", false, glm::value_ptr(glm::mat4()));
+        gl::BindVertexArray(level.terrain.vao);
+        gl::DrawArrays(gl::TRIANGLES, 0, level.terrain.vCount);
 
-    for (uint i = 0; i < level.modelVec.size(); i++) {
-        gl::BindVertexArray(level.modelVec[i].mesh->vao);
-        gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, level.modelVec[i].mesh->ibo);
-        for (ModelInstance& m : level.modelInstVec) {
-            if (m.index == i) {
-                shadowProg.set_uniform_mv("modelMat", false, glm::value_ptr(m.modelMat));
-                gl::DrawElements(gl::TRIANGLES, level.modelVec[m.index].mesh->iCount, gl::UNSIGNED_SHORT, 0);
+        gl::BindVertexArray(player.model.mesh->vao);
+        shadowProg.set_uniform_mv("modelMat", false, glm::value_ptr(player.modelMat));
+        gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, player.model.mesh->ibo);
+        gl::DrawElements(gl::TRIANGLES, player.model.mesh->iCount, gl::UNSIGNED_SHORT, 0);
+
+        for (uint i = 0; i < level.modelVec.size(); i++) {
+            gl::BindVertexArray(level.modelVec[i].mesh->vao);
+            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, level.modelVec[i].mesh->ibo);
+            for (ModelInstance& m : level.modelInstVec) {
+                if (m.index == i) {
+                    shadowProg.set_uniform_mv("modelMat", false, glm::value_ptr(m.modelMat));
+                    gl::DrawElements(gl::TRIANGLES, level.modelVec[m.index].mesh->iCount, gl::UNSIGNED_SHORT, 0);
+                }
             }
         }
     }
 
-
     /// Map ///
-
 
     mapFb.use();
     mapFb.useVP();
@@ -303,7 +332,7 @@ void SceneGame::render(float) {
     level.terrain.texDiffArray->bind(gl::TEXTURE1);
     level.terrain.texAmbi->bind(gl::TEXTURE2);
     level.terrain.texSpecArray->bind(gl::TEXTURE3);
-    shadowFb.get(-1)->bind(gl::TEXTURE4);
+    if (shadLevel) shadowFb.get(-1)->bind(gl::TEXTURE4);
 
     gl::BindVertexArray(level.terrain.vao);
     gl::DrawArrays(gl::TRIANGLES, 0, level.terrain.vCount);
@@ -356,22 +385,28 @@ void SceneGame::render(float) {
         }
     }
 
-
-    /// Put Luma into Alpha ///
     gl::Disable(gl::DEPTH_TEST);
     gl::Disable(gl::BLEND);
-    lumaProg.use();
-    mapFb.get(0)->bind(gl::TEXTURE0);
-    screenQuad.draw();
+    if (aaLevel) { // Do FXAA
+        /// Put Luma into Alpha ///
+        lumaProg.use();
+        mapFb.get(0)->bind(gl::TEXTURE0);
+        screenQuad.draw();
 
-
-    /// FXAA and screen output ///
-    gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
-    gl::Clear(gl::COLOR_BUFFER_BIT);
-    fxaaProg.use();
-    mapFb.get(0)->bind(gl::TEXTURE0);
-    //shadowFb.get(-1)->bind();
-    screenQuad.draw();
+        /// FXAA and screen output ///
+        gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
+        gl::Clear(gl::COLOR_BUFFER_BIT);
+        if (aaLevel == 1) fxaaLProg.use();
+        else if (aaLevel == 2) fxaaHProg.use();
+        //shadowFb.get(-1)->bind();
+        screenQuad.draw();
+    } else { // No FXAA
+        gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
+        gl::Clear(gl::COLOR_BUFFER_BIT);
+        quadProg.use();
+        mapFb.get(0)->bind(gl::TEXTURE0);
+        screenQuad.draw();
+    }
 }
 
 bool HandlerGame::handle(sf::Event&) {

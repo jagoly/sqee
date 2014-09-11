@@ -4,7 +4,6 @@
 in vec2 texcoord;
 uniform sampler2D screenTex;
 uniform vec2 vpPixSize;
-uniform int aaLevel;
 out vec4 fragColour;
 
 
@@ -804,17 +803,13 @@ const float paramEDGETHRESMIN = 0.0625f;
 void main() {
     vec4 blank;
 
-    if (aaLevel == 1) {
-        fragColour = vec4(
-        FxaaPixelShader(
-            texcoord,
-            screenTex,
-            vpPixSize,
-            paramSUBPIX,
-            paramEDGETHRES,
-            paramEDGETHRESMIN
-        ).rgb, 1.f);
-    } else {
-        fragColour = vec4(texture(screenTex, texcoord).a, 0.f, 0.f, 1.f);
-    }
+    fragColour = vec4(
+    FxaaPixelShader(
+        texcoord,
+        screenTex,
+        vpPixSize,
+        paramSUBPIX,
+        paramEDGETHRES,
+        paramEDGETHRESMIN
+    ).rgb, 1.f);
 }

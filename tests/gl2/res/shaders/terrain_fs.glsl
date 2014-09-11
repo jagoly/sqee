@@ -6,6 +6,8 @@ in vec3 texcoord;
 in vec2 mapPos;
 in vec3 n, t, b;
 
+uniform int shadQuality;
+
 uniform mat4 projMat, viewMat;
 uniform vec3 camPos, skyLightDir;
 uniform vec3 skyLightDiff, skyLightAmbi, skyLightSpec;
@@ -25,15 +27,20 @@ void main() {
     float reflAmbi = texture(texAmbi, mapPos).r;
     vec3 reflSpec = texture(texSpecArray, texcoord).rgb;
 
-    vec3 sc = vec3(shadcoord.xy / 2.f + 0.5f, shadcoord.z / 2.f + 0.5f - 0.0005f);
-    float visibility = texture(texShad, sc);
+    vec3 dirToLight = vec4(viewMat * vec4(-skyLightDir, 0.f)).xyz;
+    float bias;
+    float visibility = 1.f;
+    if (shadQuality != 0) {
+        float val = 18.f - pow(2.f, float(shadQuality));
+        bias = clamp(0.00005f * val * tan(acos(dot(v_norm, dirToLight))), 0.f, 0.002f);
+        vec3 sc = vec3(shadcoord.xy / 2.f + 0.5f, shadcoord.z / 2.f + 0.5f - bias);
+        visibility = texture(texShad, sc);
+    }
 
     // Diffuse
-    vec3 dirToLight = vec4(viewMat * vec4(-skyLightDir, 0.f)).xyz;
     float dotProd = dot(dirToLight, v_norm);
     dotProd = max(dotProd, 0.f);
     vec3 diff = skyLightDiff * reflDiff * dotProd * visibility;
-
 
     // Ambient
     vec3 ambi = reflDiff * reflAmbi * skyLightAmbi;
@@ -47,6 +54,4 @@ void main() {
     vec3 spec = skyLightSpec * reflSpec * factor * visibility;
 
     fragColour = vec4(ambi + spec + diff, 1.f);
-
-    //fragColour.r = texture(texShad, shadcoord.xy / 2.f + 0.5f).r;
 }

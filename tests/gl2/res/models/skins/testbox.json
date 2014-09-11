@@ -1,0 +1,7 @@
+{
+  "textures": [
+    "dice", "dice_yellow", "misc/FFFFFF"
+  ],
+  "ambi": "full",
+  "alpha": false
+}

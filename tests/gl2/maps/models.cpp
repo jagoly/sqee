@@ -16,7 +16,7 @@ void ModelInstance::create(glm::vec3 _pos, uint _index, int _ambi, std::string& 
     else                  texAmbi = sq::tex2D_load_file("res/maps/" + _mapPath + "/bakes/" +
                           std::to_string(_index)+"_"+std::to_string(_ambi)+".png", gl::R16F);
 
-    //if (texAmbi == nullptr) texAmbi = sq::tex2D_load_blank({1, 1}, gl::R16F);
+    if (texAmbi == nullptr) texAmbi = sq::tex2D_load_blank({1, 1}, gl::R16F);
 
     texAmbi->set_params(2, sq::MIN_MAG_FILTERS, sq::BOTH_LINEAR);
     texAmbi->set_params(2, sq::S_T_WRAP, sq::BOTH_CLAMP_TO_EDGE);
