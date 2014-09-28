@@ -2,93 +2,98 @@
 
 #include <libsqee/misc/files.hpp>
 
-using namespace sqt;
+#include <misc/stb_image.hpp>
 
+using namespace sqt;
 
 bool Level::load_map(std::string _mapPath) {
     mapPath = _mapPath;
 
-    // Put some kind of checks here
-    return false;
-}
+    // TODO: Checks to make sure all resources required in map.json are available
 
-bool Level::load_ground() {
-    Json::Value rootProps = sq::get_json_from_file("res/maps/" + mapPath + "/props.json");
-    Json::Value rootTerrain = sq::get_json_from_file("res/maps/" + mapPath+"/terrain.json");
+    root = sq::get_json_from_file("res/maps/" + mapPath + "/map.json");
 
-    size.x = rootProps["width"].asInt();
-    size.y = rootProps["height"].asInt();
-
-    int terrainGeometry[(size.x +1) * (size.y +1)];
-    for (uint i = 0; i < (size.x +1) * (size.y +1); i++) {
-        terrainGeometry[i] = rootTerrain["geometry"][i].asInt();
-    }
-
-    int terrainTextures[size.x * size.y];
-    bool terrainSmoothing[size.x * size.y];
-    bool terrainVisible[size.x * size.y];
-    for (uint i = 0; i < size.x * size.y; i++) {
-        terrainTextures[i] = rootTerrain["textures"][i].asInt();
-        terrainSmoothing[i] = rootTerrain["smoothing"][i].asBool();
-        terrainVisible[i] = rootTerrain["visible"][i].asBool();
-    }
-
-    int terrainTexCount = rootProps["terrainTextures"].size();
-    std::vector<std::string> terrainTexPaths;
-    terrainTexPaths.resize(terrainTexCount);
-    for (int i = 0; i < terrainTexCount; i++) {
-        terrainTexPaths[i] = rootProps["terrainTextures"][i].asString();
-    }
-
-    terrain.load(size, terrainTexCount, terrainTexPaths, mapPath, terrainGeometry,
-                 terrainSmoothing, terrainTextures, terrainVisible);
+    size.x = root["xSize"].asUInt();
+    size.y = root["ySize"].asUInt();
+    size.z = root["zSize"].asUInt();
 
     return false;
 }
 
-bool Level::load_models() {
-    Json::Value root = sq::get_json_from_file("res/maps/" + mapPath + "/models.json");
-
-    modelVec.resize(root["instances"].size());
-    int i = 0;
-    for (Json::Value& val : root["instances"]) {
-        std::cout << val["mesh"].asInt() << "  " << val["skin"].asInt() << std::endl;
-        modelVec[i++].load_from_dir(root["meshes"][val["mesh"].asInt()].asString(),
-                                    root["skins"][val["skin"].asInt()].asString(),
-                                    &texHolder2D);
-    }
-
-    i = 0;
-    for (Json::Value& val : root["instances"]) {
-        int ambi = modelVec[i].skin.ambi;
-        int i2 = 0;
-        for (Json::Value& loc : val["locations"]) {
-            int arg = i2++;
-            if (ambi == 1)      arg = -1;
-            else if (ambi == 2) arg = -2;
-            modelInstVec.emplace_back();
-            modelInstVec.back().create({loc[0].asFloat(), loc[1].asFloat(), loc[2].asFloat()},
-                                       i, arg, mapPath);
+bool Level::load_objects() {
+    for (Json::Value& layer : root["objects"]) {
+        objectMapVec.emplace_back();
+        for (std::string& key : layer.getMemberNames()) {
+            objectMapVec.back().insert({key, obj::create(layer[key], &meshH, &skinH, &texH, mapPath, key)});
         }
-        i++;
     }
-
     return false;
 }
 
 bool Level::load_physics() {
-    Json::Value root = sq::get_json_from_file("res/maps/" + mapPath + "/physics.json");
+    for (std::string& key : root["physics"].getMemberNames()) {
+        int w, h;
+        std::string fPath = "res/maps/" + mapPath + "/data/" + root["physics"][key][0].asString()+".png";
+        unsigned char* data = stbi_load(fPath.c_str(), &w, &h, nullptr, 1);
+        if (data == NULL) {
+            std::cout << "ERROR: Error loading height data from \"" << fPath << "\"" << std::endl;
+            return true;
+        }
 
-    for (Json::Value& val : root["terrainZ"]) {
-        tileZs.push_back(val.asFloat());
+        heightMaps[key].second.resize(h/4);
+        for (std::vector<std::array<unsigned char, 16>>& vec : heightMaps[key].second) {
+            vec.resize(w/4);
+        }
+
+        for (int ry = 0; ry < h; ry++) {
+            int y = h-1 - ry;
+            for (int x = 0; x < w; x++) {
+                heightMaps[key].first.x = root["physics"][key][1].asInt();
+                heightMaps[key].first.y = root["physics"][key][2].asInt();
+                heightMaps[key].first.z = root["physics"][key][3].asInt();
+                heightMaps[key].second[y/4][x/4][y%4*4 + x%4] = data[ry*w + x];
+            }
+        }
+        free(data);
+    }
+
+    for (Json::Value& val : root["joins"]) {
+        std::pair<std::string, std::pair<int,int>> v1 = {val[0][0].asString(), {val[0][1].asInt(), val[0][2].asInt()}};
+        std::pair<std::string, std::pair<int,int>> v2 = {val[1][0].asString(), {val[1][1].asInt(), val[1][2].asInt()}};
+        joinMap[v1] = v2;
     }
 
     return false;
 }
 
-float Level::get_tile_z(int _x, int _y, ushort _layer) {
-    if (_layer == 0) {
-        return tileZs[_y * size.x + _x];
+void Level::tick(int _tickRate) {
+    for (obj::MeshHolder::Pair& m : meshH) {
+         m.second->tick();
     }
-    return 1.f; // todo
+    for (std::map<std::string, obj::Ptr>& l : objectMapVec) {
+        for (std::pair<const std::string, obj::Ptr>& o : l) {
+            o.second->tick(_tickRate);
+        }
+    }
+}
+
+void Level::update_render(float _ft) {
+    for (obj::MeshHolder::Pair& mesh : meshH) {
+        mesh.second->accum += _ft;
+    }
+}
+
+float Level::get_subtile_z(int _x, int _y, std::string _layer) {
+    return (float(heightMaps[_layer].second
+                  [_y/4 - heightMaps[_layer].first.y][_x/4 - heightMaps[_layer].first.x][_y%4*4 + _x%4])
+            + heightMaps[_layer].first.z) / 16.f;
+}
+
+std::string Level::get_join(int _x, int _y, std::string _layer) {
+    std::pair<std::string, std::pair<int,int>> val = {_layer, {_x - heightMaps[_layer].first.x, _y - heightMaps[_layer].first.y}};
+    if (joinMap.count(val)) {
+        return joinMap[val].first;
+    }
+
+    return _layer;
 }

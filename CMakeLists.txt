@@ -21,7 +21,7 @@ set(SOURCES
     "${INCDIR}/libsqee/menus/basicmenu.hpp"
     "${INCDIR}/libsqee/misc/files.hpp"
     "${INCDIR}/libsqee/misc/stb_image.hpp"
-    "${INCDIR}/libsqee/resources/texholder.hpp"
+    "${INCDIR}/libsqee/resources/resholder.hpp"
     "${INCDIR}/libsqee/scenes/scene.hpp"
     "${INCDIR}/libsqee/sounds/soundmanager.hpp"
 
@@ -37,7 +37,7 @@ set(SOURCES
     "${SRCDIR}/libsqee/menus/basicmenu.cpp"
     "${SRCDIR}/libsqee/misc/files.cpp"
     "${SRCDIR}/libsqee/misc/stb_image.cpp"
-    "${SRCDIR}/libsqee/resources/texholder.cpp"
+    "${SRCDIR}/libsqee/resources/resholder.cpp"
     "${SRCDIR}/libsqee/scenes/scene.cpp"
     "${SRCDIR}/libsqee/sounds/soundmanager.cpp"
 )

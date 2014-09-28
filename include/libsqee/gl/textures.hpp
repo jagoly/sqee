@@ -12,7 +12,8 @@ const GLenum MIN_MAG_FILTERS[2]    = {gl::TEXTURE_MIN_FILTER, gl::TEXTURE_MAG_FI
 const GLenum BOTH_NEAREST[2]       = {gl::NEAREST, gl::NEAREST};
 const GLenum BOTH_LINEAR[2]        = {gl::LINEAR, gl::LINEAR};
 const GLenum S_T_WRAP[2]           = {gl::TEXTURE_WRAP_S, gl::TEXTURE_WRAP_T};
-const GLenum BOTH_CLAMP_TO_EDGE[2] = {gl::CLAMP_TO_EDGE,  gl::CLAMP_TO_EDGE};
+const GLenum BOTH_CLAMP_TO_EDGE[2] = {gl::CLAMP_TO_EDGE, gl::CLAMP_TO_EDGE};
+const GLenum BOTH_REPEAT[2]        = {gl::REPEAT, gl::REPEAT};
 
  /////////////////////////
 

@@ -1,18 +1,18 @@
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build/tests/gl2")
+add_definitions(-DSQEE_DEBUG)
 
 set(SOURCES
     "main.cpp"
-    "helpers.hpp"
     "app.cpp"             "app.hpp"
     "scenegame.cpp"       "scenegame.hpp"
     "rendergeneral.cpp"   "rendergeneral.hpp"
     "player.cpp"          "player.hpp"
     "maps/level.hpp"      "maps/level.cpp"
-    "maps/terrain.hpp"    "maps/terrain.cpp"
-    "maps/models.hpp"     "maps/models.cpp"
-    "objects/models.hpp"  "objects/models.cpp"
-    "objects/meshes.hpp"  "objects/meshes.cpp"
-    "objects/skins.hpp"   "objects/skins.cpp"
+    "maps/obj/object.hpp" "maps/obj/object.cpp"
+    "maps/obj/model.hpp"  "maps/obj/model.cpp"
+    "maps/obj/liquid.hpp" "maps/obj/liquid.cpp"
+    "maps/obj/data.hpp"   "maps/obj/data.cpp"
+    "maps/obj/light.hpp"  "maps/obj/light.cpp"
 )
 
 add_executable(gl2 ${SOURCES})

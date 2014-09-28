@@ -11,9 +11,9 @@ class Framebuffer {
 public:
     Framebuffer();
     bool create(int _bufCount, const GLenum* _drawBuffers, bool _depth);
-    bool resize(glm::uvec2 _size);
+    bool resize(glm::uvec2 _size, glm::uvec2 _margins);
     void use();
-    void useVP();
+    void useVP(bool _cutMargins);
 
     Texture::Ptr get(int _id);
 
@@ -24,6 +24,7 @@ private:
     Texture::Ptr depthTexture;
     std::vector<GLenum> drawBuffers;
     glm::uvec2 size;
+    glm::uvec2 margins;
 };
 
 }

@@ -36,19 +36,20 @@ bool Framebuffer::create(int _bufCount, const GLenum* _drawBuffers, bool _depth)
     return false;
 }
 
-bool Framebuffer::resize(glm::uvec2 _size) {
+bool Framebuffer::resize(glm::uvec2 _size, glm::uvec2 _margins) {
     gl::BindFramebuffer(gl::FRAMEBUFFER, framebuffer);
-    size = _size;
+    margins = _margins;
+    size = _size + margins + margins;
 
     for (GLenum i : drawBuffers) {
         uint bufId = attachMap[i];
-        colourTextures[bufId] = tex2D_load_blank(_size, gl::RGBA16F);
+        colourTextures[bufId] = tex2D_load_blank(size, gl::RGBA16F);
         gl::FramebufferTexture2D(gl::FRAMEBUFFER, i,
                                  gl::TEXTURE_2D, colourTextures[bufId]->get(), 0);
     }
 
     if (hasDepth) {
-        depthTexture = texDepth_load_blank(_size, gl::DEPTH_COMPONENT32F);
+        depthTexture = texDepth_load_blank(size, gl::DEPTH_COMPONENT32F);
         gl::FramebufferTexture2D(gl::FRAMEBUFFER, gl::DEPTH_ATTACHMENT,
                                  gl::TEXTURE_2D, depthTexture->get(), 0);
     }
@@ -80,6 +81,7 @@ void Framebuffer::use() {
     gl::DrawBuffers(drawBuffers.size(), drawBuffers.data());
 }
 
-void Framebuffer::useVP() {
-    gl::Viewport(0, 0, size.x, size.y);
+void Framebuffer::useVP(bool _cutMargins) {
+    if (!_cutMargins) gl::Viewport(0, 0, size.x, size.y);
+    else              gl::Viewport(-margins.x, -margins.y, size.x, size.y);
 }

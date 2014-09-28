@@ -1,7 +1,7 @@
 #pragma once
 
 #include <libsqee/gl/gl.hpp>
-#include <libsqee/resources/texholder.hpp>
+#include <libsqee/resources/resholder.hpp>
 
 #include <libsqee/scenes/scene.hpp>
 #include <libsqee/events/handler.hpp>
@@ -16,11 +16,11 @@ class SceneGame : public sq::Scene {
 public:
     SceneGame(sq::Application* _app);
 
-    void render(float ft);
+    void render(float _ft);
     void resize(glm::uvec2 _size);
     void update();
 private:
-    sq::TexHolderBasic texHolder;
+    sq::TexHolder texHolder;
 
     Settings settings;
 
@@ -30,6 +30,11 @@ private:
 
     Player player;
     ushort arrowPriority[4];
+
+    int tickTock = 0;
+    bool pendDir = true;
+
+    float swingA, swingB;
 
     bool modSettings = true;
     bool updateFramebuffers = true;

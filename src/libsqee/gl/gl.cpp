@@ -83,9 +83,9 @@ ScreenQuad::ScreenQuad() {
     gl::EnableVertexAttribArray(0);
     gl::EnableVertexAttribArray(1);
     gl::BindBuffer(gl::ARRAY_BUFFER, vboPoints);
-    gl::VertexAttribPointer(0, 2, gl::FLOAT, false, 0, NULL);
+    gl::VertexAttribPointer(0, 2, gl::FLOAT, false, 0, nullptr);
     gl::BindBuffer(gl::ARRAY_BUFFER, vboTexcoords);
-    gl::VertexAttribPointer(1, 2, gl::FLOAT, false, 0, NULL);
+    gl::VertexAttribPointer(1, 2, gl::FLOAT, false, 0, nullptr);
 }
 
 void ScreenQuad::draw() {
