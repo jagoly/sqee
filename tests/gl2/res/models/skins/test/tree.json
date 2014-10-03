@@ -2,6 +2,6 @@
   "norm": "8080FF",
   "diff": "test/tree",
   "spec": "000000",
-  "ambi": "FFFFFF",
+  "ambi": "FF",
   "alpha": false
 }

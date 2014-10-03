@@ -17,7 +17,8 @@ set(SOURCES
     "${INCDIR}/libsqee/app/application.hpp"
     "${INCDIR}/libsqee/events/basichandlers.hpp"
     "${INCDIR}/libsqee/events/handler.hpp"
-    "${INCDIR}/libsqee/fonts/fontholder.hpp"
+    "${INCDIR}/libsqee/text/font.hpp"
+    "${INCDIR}/libsqee/text/text.hpp"
     "${INCDIR}/libsqee/menus/basicmenu.hpp"
     "${INCDIR}/libsqee/misc/files.hpp"
     "${INCDIR}/libsqee/misc/stb_image.hpp"
@@ -33,7 +34,8 @@ set(SOURCES
     "${SRCDIR}/libsqee/app/application.cpp"
     "${SRCDIR}/libsqee/events/basichandlers.cpp"
     "${SRCDIR}/libsqee/events/handler.cpp"
-    "${SRCDIR}/libsqee/fonts/fontholder.cpp"
+    "${SRCDIR}/libsqee/text/font.cpp"
+    "${SRCDIR}/libsqee/text/text.cpp"
     "${SRCDIR}/libsqee/menus/basicmenu.cpp"
     "${SRCDIR}/libsqee/misc/files.cpp"
     "${SRCDIR}/libsqee/misc/stb_image.cpp"
@@ -60,9 +62,11 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     )
 # END TODO
 else ()
+    find_package(Freetype REQUIRED)
+    include_directories(${FREETYPE_INCLUDE_DIRS})
     target_link_libraries(libsqee
         sfml-window sfml-system sfml-audio
-        jsoncpp GL
+        jsoncpp GL ${FREETYPE_LIBRARIES}
         boost_filesystem boost_system
     )
 endif ()

@@ -11,6 +11,9 @@ namespace sq {
 
 Application::Application(glm::uvec2 _size, bool _showfps,
                          bool _vsync, bool _resizable, std::string _title) {
+    int error = FT_Init_FreeType(&ftLib);
+    if (error) std::cout << "ERROR: Failed to initialise FreeType" << std::endl;
+
     sf::ContextSettings settings;
     settings.depthBits = 24;
     settings.stencilBits = 8;

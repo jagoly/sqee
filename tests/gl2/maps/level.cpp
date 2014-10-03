@@ -13,15 +13,15 @@ bool Level::load_map(std::string _mapPath) {
 
     root = sq::get_json_from_file("res/maps/" + mapPath + "/map.json");
 
-    size.x = root["xSize"].asUInt();
-    size.y = root["ySize"].asUInt();
-    size.z = root["zSize"].asUInt();
+    size.x = root["aProps"]["xSize"].asUInt();
+    size.y = root["aProps"]["ySize"].asUInt();
+    size.z = root["aProps"]["zSize"].asUInt();
 
     return false;
 }
 
 bool Level::load_objects() {
-    for (Json::Value& layer : root["objects"]) {
+    for (Json::Value& layer : root["dObjects"]) {
         objectMapVec.emplace_back();
         for (std::string& key : layer.getMemberNames()) {
             objectMapVec.back().insert({key, obj::create(layer[key], &meshH, &skinH, &texH, mapPath, key)});
@@ -31,9 +31,9 @@ bool Level::load_objects() {
 }
 
 bool Level::load_physics() {
-    for (std::string& key : root["physics"].getMemberNames()) {
+    for (std::string& key : root["bPhysics"].getMemberNames()) {
         int w, h;
-        std::string fPath = "res/maps/" + mapPath + "/data/" + root["physics"][key][0].asString()+".png";
+        std::string fPath = "res/maps/" + mapPath + "/data/" + root["bPhysics"][key][0].asString()+".png";
         unsigned char* data = stbi_load(fPath.c_str(), &w, &h, nullptr, 1);
         if (data == NULL) {
             std::cout << "ERROR: Error loading height data from \"" << fPath << "\"" << std::endl;
@@ -48,16 +48,16 @@ bool Level::load_physics() {
         for (int ry = 0; ry < h; ry++) {
             int y = h-1 - ry;
             for (int x = 0; x < w; x++) {
-                heightMaps[key].first.x = root["physics"][key][1].asInt();
-                heightMaps[key].first.y = root["physics"][key][2].asInt();
-                heightMaps[key].first.z = root["physics"][key][3].asInt();
+                heightMaps[key].first.x = root["bPhysics"][key][1].asInt();
+                heightMaps[key].first.y = root["bPhysics"][key][2].asInt();
+                heightMaps[key].first.z = root["bPhysics"][key][3].asInt();
                 heightMaps[key].second[y/4][x/4][y%4*4 + x%4] = data[ry*w + x];
             }
         }
         free(data);
     }
 
-    for (Json::Value& val : root["joins"]) {
+    for (Json::Value& val : root["cJoins"]) {
         std::pair<std::string, std::pair<int,int>> v1 = {val[0][0].asString(), {val[0][1].asInt(), val[0][2].asInt()}};
         std::pair<std::string, std::pair<int,int>> v2 = {val[1][0].asString(), {val[1][1].asInt(), val[1][2].asInt()}};
         joinMap[v1] = v2;

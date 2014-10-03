@@ -59,7 +59,7 @@ void debugCallback(GLenum _source, GLenum _type, GLuint /*_id*/, GLenum _severit
     std::cout << std::endl;
 }
 
-TestApp::TestApp() : sq::Application({1280, 720}, true, true, true, "SQEE GL Test Two") {
+TestApp::TestApp() : sq::Application({1280, 720}, false, true, true, "SQEE GL Test Two") {
     const GLubyte* renderer = gl::GetString(gl::RENDERER);
     const GLubyte* version = gl::GetString(gl::VERSION);
     std::cout << "Renderer: " << renderer << std::endl;

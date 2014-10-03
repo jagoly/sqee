@@ -86,11 +86,15 @@ ScreenQuad::ScreenQuad() {
     gl::VertexAttribPointer(0, 2, gl::FLOAT, false, 0, nullptr);
     gl::BindBuffer(gl::ARRAY_BUFFER, vboTexcoords);
     gl::VertexAttribPointer(1, 2, gl::FLOAT, false, 0, nullptr);
+
+    gl::BindVertexArray(0);
 }
 
 void ScreenQuad::draw() {
     gl::BindVertexArray(vao);
     gl::DrawArrays(gl::TRIANGLES, 0, 6);
+
+    gl::BindVertexArray(0);
 }
 
 }

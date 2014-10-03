@@ -43,11 +43,11 @@ Texture::Ptr tex_create(GLenum _type, GLenum _format);
 
 Texture::Ptr tex2D_load_blank(glm::uvec2 _size, GLenum _internalFormat);
 Texture::Ptr tex2D_load_memory(glm::uvec2 _size, GLenum _internalFormat, const unsigned char* _data);
-Texture::Ptr tex2D_load_file(std::string _path, GLenum _internalFormat);
+Texture::Ptr tex2D_load_file(const std::string& _path, GLenum _internalFormat);
 
 Texture::Ptr texDepth_load_blank(glm::uvec2 _size, GLenum _internalFormat);
 
 Texture::Ptr tex2DArray_load_blank(glm::uvec3 _size, GLenum _internalFormat);
-bool         tex2DArray_add_file(Texture::Ptr _tex, std::string _path, GLuint _index);
+bool         tex2DArray_add_file(Texture::Ptr _tex, const std::string& _path, GLuint _index);
 
 }

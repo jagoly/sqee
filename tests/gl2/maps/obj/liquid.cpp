@@ -12,7 +12,7 @@ void Liquid::create() {
     if (!floatMap.count("xFlow")) throw;
     if (!floatMap.count("yFlow")) throw;
     if (!floatMap.count("speed")) throw;
-    if (!floatMap.count("wScale")) throw;
+    if (!floatMap.count("scale")) throw;
     if (!floatMap.count("wSmooth")) throw;
     if (!floatMap.count("red")) throw;
     if (!floatMap.count("green")) throw;
@@ -32,12 +32,12 @@ void Liquid::create() {
     zPos = floatMap["zPos"];
     xPT = floatMap["xFlow"] * floatMap["speed"];
     yPT = floatMap["yFlow"] * floatMap["speed"];
-    wScale = floatMap["wScale"];
+    scale = floatMap["scale"];
     wSmooth = floatMap["wSmooth"];
     tinge = {floatMap["red"], floatMap["green"], floatMap["blue"]};
 
-    float tX = floatMap["xSize"] / wScale;
-    float tY = floatMap["ySize"] / wScale;
+    float tX = floatMap["xSize"] / scale;
+    float tY = floatMap["ySize"] / scale;
 
     points[0*2+0] = points[4*2+0] = floatMap["xPos"] + floatMap["xSize"];
     txcrds[0*2+0] = txcrds[4*2+0] = tX;

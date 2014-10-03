@@ -18,6 +18,7 @@ out vec3 v_pos;
 out vec3 shadcoord;
 out vec2 texcoord;
 out vec3 n, t, b;
+out vec3 w_pos;
 
 void main() {
     mat3 normMat = mat3(transpose(inverse(viewMat * modelMat)));
@@ -46,5 +47,7 @@ void main() {
         b = normalize(normMat * (cross(M_norm, M_tangent) * -1));
     }
 
-    gl_Position = projMat * viewMat * modelMat * vec4(M_pos, 1.f);
+    w_pos = vec4(modelMat * vec4(M_pos, 1.f)).xyz;
+
+    gl_Position = projMat * viewMat * vec4(w_pos, 1.f);
 }

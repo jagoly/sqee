@@ -43,7 +43,7 @@ bool Framebuffer::resize(glm::uvec2 _size, glm::uvec2 _margins) {
 
     for (GLenum i : drawBuffers) {
         uint bufId = attachMap[i];
-        colourTextures[bufId] = tex2D_load_blank(size, gl::RGBA16F);
+        colourTextures[bufId] = tex2D_load_blank(size, gl::RGBA8);
         gl::FramebufferTexture2D(gl::FRAMEBUFFER, i,
                                  gl::TEXTURE_2D, colourTextures[bufId]->get(), 0);
     }

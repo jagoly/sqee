@@ -14,7 +14,7 @@ public:
     glm::vec2 flowOffsetA, flowOffsetB;
     glm::vec3 tinge;
     GLfloat zPos;
-    GLfloat wScale;
+    GLfloat scale;
     GLfloat wSmooth;
     GLuint vao;
     void tick(int _tickRate);

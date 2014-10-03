@@ -6,10 +6,12 @@
 #include <memory>
 
 #include <gl/gl.hpp>
+#include <freetype2/ft2build.h>
+#include FT_FREETYPE_H
 
 #include <scenes/scene.hpp>
 #include <gl/textures.hpp>
-#include <fonts/fontholder.hpp>
+#include <text/font.hpp>
 #include <sounds/soundmanager.hpp>
 #include <events/handler.hpp>
 
@@ -22,8 +24,7 @@ public:
 
     bool running;
 
-    //TextureHolder texHolder;
-    //FontHolder fontHolder;
+    FT_Library ftLib;
     SoundManager soundManager;
 
     void run();

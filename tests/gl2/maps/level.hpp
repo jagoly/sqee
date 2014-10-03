@@ -34,6 +34,9 @@ public:
     obj::MeshHolder meshH;
     obj::SkinHolder skinH;
     sq::TexHolder texH;
+
+    typedef std::unique_ptr<Level> UPtr;
+    typedef std::weak_ptr<Level> WPtr;
 private:
     std::string mapPath;
     Json::Value root;

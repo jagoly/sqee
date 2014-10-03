@@ -17,18 +17,18 @@ void Mesh::load(std::string& _filePath, int _offset) {
         vertVec.resize(root.size());
         keyFrames.resize(vertVec.size());
         keyTimes.resize(vertVec.size());
-        for (ushort k = 0; k < vertVec.size(); k++) {
+        for (uint k = 0; k < vertVec.size(); k++) {
             faceVec.clear();
             sq::load_ply_from_file(_filePath + "/" + root[k][1].asString() + ".ply", vertVec[k], faceVec);
             keyTimes[k] = root[k][0].asUInt();
         }
     }
 
-    ushort vCount = vertVec[0].size();
+    uint vCount = vertVec[0].size();
     iCount = faceVec.size() * 3;
 
-    GLushort indices[iCount];
-    for (int i = 0; i < iCount / 3; i++) {
+    GLuint indices[iCount];
+    for (uint i = 0; i < iCount / 3; i++) {
         indices[i*3 +0] = faceVec[i].x;
         indices[i*3 +1] = faceVec[i].y;
         indices[i*3 +2] = faceVec[i].z;
@@ -36,7 +36,7 @@ void Mesh::load(std::string& _filePath, int _offset) {
 
     gl::GenBuffers(1, &ibo);
     gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ibo);
-    gl::BufferData(gl::ELEMENT_ARRAY_BUFFER, iCount * sizeof(GLushort), indices, gl::STATIC_DRAW);
+    gl::BufferData(gl::ELEMENT_ARRAY_BUFFER, iCount * sizeof(GLuint), indices, gl::STATIC_DRAW);
 
     gl::GenVertexArrays(1, &vao);
     gl::BindVertexArray(vao);
@@ -56,8 +56,8 @@ void Mesh::load(std::string& _filePath, int _offset) {
     GLfloat texcoords[vCount * 2];
     GLfloat tangents[vCount * 3];
 
-    for (ushort k = 0; k < keyFrames.size(); k++) {
-        for (int i = 0; i < vCount; i++) {
+    for (uint k = 0; k < keyFrames.size(); k++) {
+        for (uint i = 0; i < vCount; i++) {
             points[i*3 +0] = vertVec[k][i].x;
             points[i*3 +1] = vertVec[k][i].y;
             points[i*3 +2] = vertVec[k][i].z;
@@ -156,7 +156,7 @@ void Skin::load(std::string& _filePath, int _offset, sq::TexHolder* _texHolder) 
     if (_texHolder->has(name)) {
         texNorm = _texHolder->get(name);
     } else {
-        texNorm = sq::tex2D_load_file("res/textures/" + name, gl::RGB16F);
+        texNorm = sq::tex2D_load_file("res/textures/" + name, gl::RGB8);
         texNorm->set_params(2, sq::MIN_MAG_FILTERS, sq::BOTH_LINEAR);
         texNorm->set_params(2, sq::S_T_WRAP, sq::BOTH_CLAMP_TO_EDGE);
         _texHolder->set(name, texNorm);
@@ -167,7 +167,7 @@ void Skin::load(std::string& _filePath, int _offset, sq::TexHolder* _texHolder) 
     if (_texHolder->has(name)) {
         texDiff = _texHolder->get(name);
     } else {
-        texDiff = sq::tex2D_load_file("res/textures/" + name, gl::RGBA16F);
+        texDiff = sq::tex2D_load_file("res/textures/" + name, gl::RGBA8);
         texDiff->set_params(2, sq::MIN_MAG_FILTERS, sq::BOTH_LINEAR);
         texDiff->set_params(2, sq::S_T_WRAP, sq::BOTH_CLAMP_TO_EDGE);
         _texHolder->set(name, texDiff);
@@ -178,7 +178,7 @@ void Skin::load(std::string& _filePath, int _offset, sq::TexHolder* _texHolder) 
     if (_texHolder->has(name)) {
         texSpec = _texHolder->get(name);
     } else {
-        texSpec = sq::tex2D_load_file("res/textures/" + name, gl::RGB16F);
+        texSpec = sq::tex2D_load_file("res/textures/" + name, gl::RGB8);
         texSpec->set_params(2, sq::MIN_MAG_FILTERS, sq::BOTH_LINEAR);
         texSpec->set_params(2, sq::S_T_WRAP, sq::BOTH_CLAMP_TO_EDGE);
         _texHolder->set(name, texSpec);
@@ -189,7 +189,7 @@ void Skin::load(std::string& _filePath, int _offset, sq::TexHolder* _texHolder) 
     if (_texHolder->has(name)) {
         texAmbi = _texHolder->get(name);
     } else {
-        texAmbi = sq::tex2D_load_file("res/textures/" + name, gl::RGB16F);
+        texAmbi = sq::tex2D_load_file("res/textures/" + name, gl::R8);
         texAmbi->set_params(2, sq::MIN_MAG_FILTERS, sq::BOTH_LINEAR);
         texAmbi->set_params(2, sq::S_T_WRAP, sq::BOTH_CLAMP_TO_EDGE);
         _texHolder->set(name, texAmbi);
@@ -249,9 +249,9 @@ void Model::create() {
     modelMat = glm::rotate(modelMat, rot.y, {0, 1, 0});
     modelMat = glm::rotate(modelMat, rot.x, {1, 0, 0});
     modelMat = glm::scale(modelMat, sca);
-    if (boolMap["ambi"]) {
-        texAmbi = sq::tex2D_load_file("res/maps/" + mapPath + "/ao/" + uid+".png", gl::R16F);
-        if (texAmbi == nullptr) texAmbi = sq::tex2D_load_blank({1, 1}, gl::R16F);
+    if (0){//boolMap["ambi"]) {
+        texAmbi = sq::tex2D_load_file("res/maps/" + mapPath + "/ao/" + uid+".png", gl::R8);
+        if (texAmbi == nullptr) texAmbi = sq::tex2D_load_blank({1, 1}, gl::R8);
         texAmbi->set_params(2, sq::MIN_MAG_FILTERS, sq::BOTH_LINEAR);
         texAmbi->set_params(2, sq::S_T_WRAP, sq::BOTH_CLAMP_TO_EDGE);
     } else {

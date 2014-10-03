@@ -8,6 +8,8 @@
 #include <libsqee/gl/shaders.hpp>
 #include <libsqee/gl/textures.hpp>
 #include <libsqee/gl/framebuffers.hpp>
+#include <libsqee/text/font.hpp>
+#include <libsqee/text/text.hpp>
 
 namespace sqt {
 
@@ -109,6 +111,9 @@ void SceneGame::render(float _ft) {
     static sq::Shader fxaaHProg;
     static sq::Shader quadProg;
 
+    static sq::Font::Ptr font = sq::create_font("res/fonts/Ubuntu-R.ttf", app->ftLib, 48);
+    static sq::TextHandles textHandles;
+
     if (first) {
         gl::DepthFunc(gl::LEQUAL);
         gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
@@ -116,7 +121,6 @@ void SceneGame::render(float _ft) {
 
         level.load_objects();
         level.load_physics();
-
         mapFb.create(1, drawBuffers, true);
         blitFb.create(1, drawBuffers, false);
 
@@ -166,7 +170,7 @@ void SceneGame::render(float _ft) {
         liquidProg.add_uniform("camPos", sq::U_TYPE::u_3f);
         liquidProg.add_uniform("zPos", sq::U_TYPE::u_1f);
         liquidProg.add_uniform("flowOffset", sq::U_TYPE::u_2f);
-        liquidProg.add_uniform("wScale", sq::U_TYPE::u_1f);
+        liquidProg.add_uniform("scale", sq::U_TYPE::u_1f);
         liquidProg.add_uniform("skyLightDir", sq::U_TYPE::u_3f);
         liquidProg.add_uniform("skyLightSpec", sq::U_TYPE::u_3f);
         liquidProg.add_uniform("swing", sq::U_TYPE::u_1f);
@@ -212,7 +216,7 @@ void SceneGame::render(float _ft) {
         quadProg.use();
         quadProg.set_uniform_i("screenTex", 0);
 
-        sq::Texture::Ptr tex = sq::tex2DArray_load_blank({1024, 1024, 2}, gl::RGB16F);
+        sq::Texture::Ptr tex = sq::tex2DArray_load_blank({1024, 1024, 2}, gl::RGB8);
         sq::tex2DArray_add_file(tex, "res/textures/static/water_norm1.png", 0);
         sq::tex2DArray_add_file(tex, "res/textures/static/water_norm2.png", 1);
         tex->set_params(2, sq::MIN_MAG_FILTERS, sq::BOTH_LINEAR);
@@ -306,6 +310,7 @@ void SceneGame::render(float _ft) {
 
     /// Shadow Texture ///
 
+    gl::Disable(gl::BLEND);
     gl::Enable(gl::DEPTH_TEST);
     if (shadLevel) {
         shadowFb.use();
@@ -325,7 +330,7 @@ void SceneGame::render(float _ft) {
 
                     gl::BindVertexArray(o->mesh->vao);
                     gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, o->mesh->ibo);
-                    gl::DrawElements(gl::TRIANGLES, o->mesh->iCount, gl::UNSIGNED_SHORT, 0);
+                    gl::DrawElements(gl::TRIANGLES, o->mesh->iCount, gl::UNSIGNED_INT, 0);
                 }
             }
         }
@@ -362,7 +367,7 @@ void SceneGame::render(float _ft) {
 
             gl::BindVertexArray(o->mesh->vao);
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, o->mesh->ibo);
-            gl::DrawElements(gl::TRIANGLES, o->mesh->iCount, gl::UNSIGNED_SHORT, 0);
+            gl::DrawElements(gl::TRIANGLES, o->mesh->iCount, gl::UNSIGNED_INT, 0);
         }
     }
 
@@ -392,7 +397,7 @@ void SceneGame::render(float _ft) {
                                o->flowOffsetB * float((accum / dt));
             liquidProg.set_uniform_f("zPos", o->zPos);
             liquidProg.set_uniform_fv("flowOffset", glm::value_ptr(offset));
-            liquidProg.set_uniform_f("wScale", o->wScale);
+            liquidProg.set_uniform_f("scale", o->scale);
             liquidProg.set_uniform_f("wSmooth", o->wSmooth);
             liquidProg.set_uniform_f("swing", swingA * ((dt - accum) / dt) + swingB * (accum / dt));
             liquidProg.set_uniform_fv("tinge", glm::value_ptr(o->tinge));
@@ -420,7 +425,7 @@ void SceneGame::render(float _ft) {
 
             gl::BindVertexArray(o->mesh->vao);
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, o->mesh->ibo);
-            gl::DrawElements(gl::TRIANGLES, o->mesh->iCount, gl::UNSIGNED_SHORT, 0);
+            gl::DrawElements(gl::TRIANGLES, o->mesh->iCount, gl::UNSIGNED_INT, 0);
         }
     }
     gl::Disable(gl::BLEND);
@@ -450,6 +455,13 @@ void SceneGame::render(float _ft) {
         mapFb.get(0)->bind(gl::TEXTURE0);
         screenQuad.draw();
     }
+
+    gl::Viewport(0, 0, size.x, size.y);
+    gl::Enable(gl::BLEND);
+
+    static float fps = 60.f;
+    fps = fps * 0.9f + 1.f / _ft * 0.1f;
+    sq::draw_text(textHandles, font, "FPS: "+std::to_string(int(fps)), {16, size.y - 32}, size);
 }
 
 bool HandlerGame::handle(sf::Event&) {

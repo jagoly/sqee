@@ -2,6 +2,6 @@
   "norm": "test/dice",
   "diff": "test/dicewhite",
   "spec": "FFFFFF",
-  "ambi": "FFFFFF",
+  "ambi": "FF",
   "alpha": false
 }

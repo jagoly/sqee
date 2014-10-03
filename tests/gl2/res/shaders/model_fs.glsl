@@ -4,6 +4,7 @@ in vec3 v_pos;
 in vec3 shadcoord;
 in vec2 texcoord;
 in vec3 n, t, b;
+in vec3 w_pos;
 
 uniform int shadQuality;
 
@@ -15,6 +16,15 @@ uniform sampler2D texDiff;
 uniform sampler2D texAmbi;
 uniform sampler2D texSpec;
 uniform sampler2DShadow texShad;
+
+const bool feN = true;
+const bool feE = false;
+const bool feS = true;
+const bool feW = true;
+const float fsN = 25.f;
+const float fsE = 33.f;
+const float fsS = 1.f;
+const float fsW = 1.f;
 
 out vec4 fragColour;
 
@@ -58,4 +68,12 @@ void main() {
 
     fragColour = vec4(ambi + spec + diff, reflDiff.a);
     fragColour.a = 1.f / vec4(projMat * vec4(v_pos, 1.f)).w;
+
+    float fog = 0.f;
+    if (feN) fog += max(w_pos.y - fsN, 0);
+    if (feE) fog += max(w_pos.x - fsE, 0);
+    if (feS) fog += max(fsS - w_pos.y, 0);
+    if (feW) fog += max(fsW - w_pos.x, 0);
+
+    fragColour.rgb = mix(fragColour.rgb, vec3(0.1f, 0.05f, 0.2f), min(fog, 1));
 }

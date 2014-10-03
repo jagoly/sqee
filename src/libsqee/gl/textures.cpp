@@ -61,7 +61,7 @@ Texture::Ptr sq::tex2D_load_memory(glm::uvec2 _size, GLenum _internalFormat, con
     return tex;
 }
 
-Texture::Ptr sq::tex2D_load_file(std::string _path, GLenum _internalFormat) {
+Texture::Ptr sq::tex2D_load_file(const std::string& _path, GLenum _internalFormat) {
     Texture::Ptr tex(new Texture(gl::TEXTURE_2D, gl::RGBA));
 
     int w, h, n;
@@ -120,7 +120,7 @@ Texture::Ptr sq::tex2DArray_load_blank(glm::uvec3 _size, GLenum _internalFormat)
     return tex;
 }
 
-bool sq::tex2DArray_add_file(Texture::Ptr _tex, std::string _path, GLuint _index) {
+bool sq::tex2DArray_add_file(Texture::Ptr _tex, const std::string& _path, GLuint _index) {
     int w, h, n;
     unsigned char* data = stbi_load(_path.c_str(), &w, &h, &n, 4);
     int widthBytes = w * 4;

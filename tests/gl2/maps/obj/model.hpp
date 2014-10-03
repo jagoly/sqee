@@ -16,18 +16,18 @@ struct Mesh {
 
     GLuint vao;
     GLuint ibo;
-    ushort iCount;
+    uint iCount;
 
     std::vector<KeyFrame> keyFrames;
-    ushort keyCurrent, keyNext;
-    ushort tickCurrent;
+    uint keyCurrent, keyNext;
+    uint tickCurrent;
 
     std::vector<ushort> keyTimes;
 
     bool anim;
-    ushort offset;
-    ushort span;
-    ushort frac;
+    uint offset;
+    uint span;
+    uint frac;
     double accum;
 
     std::vector<std::vector<sq::Vertex>> vertVec;
