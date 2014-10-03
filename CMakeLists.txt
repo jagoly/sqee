@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 2.8)
 
 set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -Wextra")
 
+add_definitions(-DSQEE_DEBUG)
+
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build/lib")
 
 set(SRCDIR "${PROJECT_SOURCE_DIR}/src")
@@ -58,6 +60,7 @@ include_directories("${PROJECT_SOURCE_DIR}/include/libsqee")
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     include_directories("${PROJECT_SOURCE_DIR}/extlibs/include")
+    include_directories("${PROJECT_SOURCE_DIR}/extlibs/include/freetype")
     find_library(SFML_SYSTEM_LIB sfml-system "${PROJECT_SOURCE_DIR}/extlibs/lib")
     find_library(SFML_WINDOW_LIB sfml-window "${PROJECT_SOURCE_DIR}/extlibs/lib")
     find_library(SFML_AUDIO_LIB sfml-audio "${PROJECT_SOURCE_DIR}/extlibs/lib")

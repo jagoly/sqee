@@ -1,5 +1,4 @@
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build/tests/gl2")
-add_definitions(-DSQEE_DEBUG)
 
 set(SOURCES
     "main.cpp"

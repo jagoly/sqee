@@ -2581,8 +2581,8 @@ Value::Members Value::getMemberNames() const {
 //
 //# endif
 
-static bool IsIntegral(double d) {
 /// SQEE EDIT - All doubles are doubles (like 1.0)
+static bool IsIntegral(double) {
   //double integral_part;
   //return modf(d, &integral_part) == 0.0;
   return false;

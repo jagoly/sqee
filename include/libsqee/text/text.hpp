@@ -1,8 +1,6 @@
 #pragma once
 #include <memory>
 
-#include <freetype2/ft2build.h>
-
 #include <gl/gl.hpp>
 #include <text/font.hpp>
 

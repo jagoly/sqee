@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
 
-#include <freetype2/ft2build.h>
+#include <ft2build.h>
 
 #include <app/application.hpp>
 

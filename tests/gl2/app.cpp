@@ -65,9 +65,11 @@ TestApp::TestApp() : sq::Application({1280, 720}, false, true, true, "SQEE GL Te
     std::cout << "Renderer: " << renderer << std::endl;
     std::cout << "Version: " << version << std::endl;
 
+#ifdef SQEE_DEBUG
     gl::Enable(gl::DEBUG_OUTPUT);
     gl::Enable(gl::DEBUG_OUTPUT_SYNCHRONOUS);
     gl::DebugMessageCallback(debugCallback, 0);
+#endif
 
     attach_handler("close", sq::HandlerPtr(new sq::HandlerClose(this)));
     attach_handler("debug", sq::HandlerPtr(new sq::HandlerDebug(this)));
