@@ -2,7 +2,7 @@
 
 #include <libsqee/misc/files.hpp>
 
-#include <misc/stb_image.hpp>
+#include <libsqee/redist/stb_image.hpp>
 
 using namespace sqt;
 
@@ -34,7 +34,7 @@ bool Level::load_physics() {
     for (std::string& key : root["bPhysics"].getMemberNames()) {
         int w, h;
         std::string fPath = "res/maps/" + mapPath + "/data/" + root["bPhysics"][key][0].asString()+".png";
-        unsigned char* data = stbi_load(fPath.c_str(), &w, &h, nullptr, 1);
+        uchar* data = stbi_load(fPath.c_str(), &w, &h, nullptr, 1);
         if (data == NULL) {
             std::cout << "ERROR: Error loading height data from \"" << fPath << "\"" << std::endl;
             return true;

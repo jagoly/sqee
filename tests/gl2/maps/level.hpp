@@ -4,8 +4,6 @@
 #include <string>
 #include <vector>
 
-#include <boost/bimap.hpp>
-
 #include <libsqee/gl/gl.hpp>
 #include <libsqee/gl/textures.hpp>
 #include <libsqee/resources/resholder.hpp>
@@ -40,7 +38,7 @@ public:
 private:
     std::string mapPath;
     Json::Value root;
-    std::map<std::string, std::pair<glm::ivec3, std::vector<std::vector<std::array<unsigned char, 16>>>>> heightMaps;
+    std::map<std::string, std::pair<glm::ivec3, std::vector<std::vector<std::array<uchar, 16>>>>> heightMaps;
     std::map<std::pair<std::string, std::pair<int,int>>, std::pair<std::string, std::pair<int,int>>> joinMap;
 };
 

@@ -9,6 +9,12 @@ set(SRCDIR "${PROJECT_SOURCE_DIR}/src")
 set(INCDIR "${PROJECT_SOURCE_DIR}/include")
 
 set(SOURCES
+# 3rd Party Headers
+    "${INCDIR}/libsqee/redist/jsoncpp.hpp"
+    "${INCDIR}/libsqee/redist/stb_image.hpp"
+
+# SQEE Headers
+    "${INCDIR}/libsqee/defs.hpp"
     "${INCDIR}/libsqee/gl/gl_ext_3_3.hpp"
     "${INCDIR}/libsqee/gl/gl.hpp"
     "${INCDIR}/libsqee/gl/framebuffers.hpp"
@@ -21,11 +27,15 @@ set(SOURCES
     "${INCDIR}/libsqee/text/text.hpp"
     "${INCDIR}/libsqee/menus/basicmenu.hpp"
     "${INCDIR}/libsqee/misc/files.hpp"
-    "${INCDIR}/libsqee/misc/stb_image.hpp"
     "${INCDIR}/libsqee/resources/resholder.hpp"
     "${INCDIR}/libsqee/scenes/scene.hpp"
     "${INCDIR}/libsqee/sounds/soundmanager.hpp"
 
+# 3rd Party Source
+    "${SRCDIR}/libsqee/redist/jsoncpp.cpp"
+    "${SRCDIR}/libsqee/redist/stb_image.cpp"
+
+# SQEE Source
     "${SRCDIR}/libsqee/gl/gl_ext_3_3.cpp"
     "${SRCDIR}/libsqee/gl/gl.cpp"
     "${SRCDIR}/libsqee/gl/framebuffers.cpp"
@@ -38,7 +48,6 @@ set(SOURCES
     "${SRCDIR}/libsqee/text/text.cpp"
     "${SRCDIR}/libsqee/menus/basicmenu.cpp"
     "${SRCDIR}/libsqee/misc/files.cpp"
-    "${SRCDIR}/libsqee/misc/stb_image.cpp"
     "${SRCDIR}/libsqee/resources/resholder.cpp"
     "${SRCDIR}/libsqee/scenes/scene.cpp"
     "${SRCDIR}/libsqee/sounds/soundmanager.cpp"
@@ -47,27 +56,26 @@ set(SOURCES
 add_library(libsqee SHARED ${SOURCES})
 include_directories("${PROJECT_SOURCE_DIR}/include/libsqee")
 
-# TODO: This section needs fixing
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     include_directories("${PROJECT_SOURCE_DIR}/extlibs/include")
     find_library(SFML_SYSTEM_LIB sfml-system "${PROJECT_SOURCE_DIR}/extlibs/lib")
     find_library(SFML_WINDOW_LIB sfml-window "${PROJECT_SOURCE_DIR}/extlibs/lib")
-    find_library(SFGUI_LIB sfgui "${PROJECT_SOURCE_DIR}/extlibs/lib")
+    find_library(SFML_AUDIO_LIB sfml-audio "${PROJECT_SOURCE_DIR}/extlibs/lib")
+    find_library(BOOST_SYSTEM_LIB boost_system "${PROJECT_SOURCE_DIR}/extlibs/lib")
+    find_library(BOOST_FILESYSTEM_LIB boost_filesystem "${PROJECT_SOURCE_DIR}/extlibs/lib")
+    find_library(FREETYPE_LIB freetype "${PROJECT_SOURCE_DIR}/extlibs/lib")
     target_link_libraries(libsqee
-        ${SFML_SYSTEM_LIB} ${SFML_GRAPHICS_LIB} ${SFML_WINDOW_LIB} 
-        ${SFGUI_LIB} 
-        "${PROJECT_SOURCE_DIR}/extlibs/lib/jsoncpp.a"
-        "${PROJECT_SOURCE_DIR}/extlibs/lib/libboost_system.a"
-        "${PROJECT_SOURCE_DIR}/extlibs/lib/libboost_filesystem.a"
+        ${SFML_SYSTEM_LIB} ${SFML_WINDOW_LIB} ${SFML_AUDIO_LIB}
+        ${BOOST_SYSTEM_LIB} ${BOOST_FILESYSTEM_LIB}
+        ${FREETYPE_LIB} openGL32
     )
-# END TODO
 else ()
     find_package(Freetype REQUIRED)
     include_directories(${FREETYPE_INCLUDE_DIRS})
     target_link_libraries(libsqee
         sfml-window sfml-system sfml-audio
-        jsoncpp GL ${FREETYPE_LIBRARIES}
         boost_filesystem boost_system
+        freetype GL
     )
 endif ()
 	

@@ -1,5 +1,5 @@
 #define STB_IMAGE_IMPLEMENTATION
-#include <misc/stb_image.hpp>
+#include <redist/stb_image.hpp>
 
 #ifdef STB_IMAGE_IMPLEMENTATION
 #ifndef STBI_NO_HDR

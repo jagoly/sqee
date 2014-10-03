@@ -4,19 +4,18 @@ using namespace sqt::obj;
 
 void Liquid::create() {
 #ifdef SQEE_DEBUG
-    if (!floatMap.count("xPos")) throw;
-    if (!floatMap.count("yPos")) throw;
-    if (!floatMap.count("xSize")) throw;
-    if (!floatMap.count("ySize")) throw;
-    if (!floatMap.count("zPos")) throw;
-    if (!floatMap.count("xFlow")) throw;
-    if (!floatMap.count("yFlow")) throw;
-    if (!floatMap.count("speed")) throw;
-    if (!floatMap.count("scale")) throw;
-    if (!floatMap.count("wSmooth")) throw;
-    if (!floatMap.count("red")) throw;
-    if (!floatMap.count("green")) throw;
-    if (!floatMap.count("blue")) throw;
+    SQ_FLOATCHECK("xPos")
+    SQ_FLOATCHECK("yPos")
+    SQ_FLOATCHECK("xSize")
+    SQ_FLOATCHECK("ySize")
+    SQ_FLOATCHECK("zPos")
+    SQ_FLOATCHECK("xFlow")
+    SQ_FLOATCHECK("yFlow")
+    SQ_FLOATCHECK("speed")
+    SQ_FLOATCHECK("wSmooth")
+    SQ_FLOATCHECK("red")
+    SQ_FLOATCHECK("green")
+    SQ_FLOATCHECK("blue")
 #endif
 
     type = Type::Liquid;

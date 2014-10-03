@@ -199,21 +199,21 @@ void Skin::load(std::string& _filePath, int _offset, sq::TexHolder* _texHolder) 
 
 void Model::create() {
 #ifdef SQEE_DEBUG
-    if (!boolMap.count("ambi")) throw;
-    if (!boolMap.count("shad")) throw;
-    if (!intMap.count("mOff")) throw;
-    if (!intMap.count("sOff")) throw;
-    if (!floatMap.count("xPos")) throw;
-    if (!floatMap.count("xRot")) throw;
-    if (!floatMap.count("xSca")) throw;
-    if (!floatMap.count("yPos")) throw;
-    if (!floatMap.count("yRot")) throw;
-    if (!floatMap.count("ySca")) throw;
-    if (!floatMap.count("zPos")) throw;
-    if (!floatMap.count("zRot")) throw;
-    if (!floatMap.count("zSca")) throw;
-    if (!stringMap.count("mesh")) throw;
-    if (!stringMap.count("skin")) throw;
+    SQ_BOOLCHECK("ambi")
+    SQ_BOOLCHECK("shad")
+    SQ_INTCHECK("mOff")
+    SQ_INTCHECK("sOff")
+    SQ_FLOATCHECK("xPos")
+    SQ_FLOATCHECK("xRot")
+    SQ_FLOATCHECK("xSca")
+    SQ_FLOATCHECK("yPos")
+    SQ_FLOATCHECK("yRot")
+    SQ_FLOATCHECK("ySca")
+    SQ_FLOATCHECK("zPos")
+    SQ_FLOATCHECK("zRot")
+    SQ_FLOATCHECK("zSca")
+    SQ_STRINGCHECK("mesh")
+    SQ_STRINGCHECK("skin")
 #endif
 
     type = Type::Model;

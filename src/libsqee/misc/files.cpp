@@ -1,5 +1,6 @@
 #include <fstream>
 #include <sstream>
+#include <iostream>
 
 #include <misc/files.hpp>
 #include <gl/gl.hpp>

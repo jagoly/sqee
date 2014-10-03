@@ -3,7 +3,7 @@
 #include <glm/glm.hpp>
 
 #include <tuple>
-#include <jsoncpp/json/json.h>
+#include <redist/jsoncpp.hpp>
 
 namespace sq {
 

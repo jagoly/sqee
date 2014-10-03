@@ -2,7 +2,7 @@
 
 #include <gl/textures.hpp>
 
-#include <misc/stb_image.hpp>
+#include <redist/stb_image.hpp>
 
 using namespace sq;
 
@@ -51,7 +51,7 @@ Texture::Ptr sq::tex2D_load_blank(glm::uvec2 _size, GLenum _internalFormat) {
     return tex;
 }
 
-Texture::Ptr sq::tex2D_load_memory(glm::uvec2 _size, GLenum _internalFormat, const unsigned char* _data) {
+Texture::Ptr sq::tex2D_load_memory(glm::uvec2 _size, GLenum _internalFormat, const uchar* _data) {
     Texture::Ptr tex(new Texture(gl::TEXTURE_2D, gl::RGBA));
     tex->size = {_size.x, _size.y, 1};
     tex->bind();
@@ -65,11 +65,11 @@ Texture::Ptr sq::tex2D_load_file(const std::string& _path, GLenum _internalForma
     Texture::Ptr tex(new Texture(gl::TEXTURE_2D, gl::RGBA));
 
     int w, h, n;
-    unsigned char* data = stbi_load(_path.c_str(), &w, &h, &n, 4);
+    uchar* data = stbi_load(_path.c_str(), &w, &h, &n, 4);
     int widthBytes = w * 4;
-    unsigned char* top = nullptr;
-    unsigned char* bottom = nullptr;
-    unsigned char temp = 0;
+    uchar* top = nullptr;
+    uchar* bottom = nullptr;
+    uchar temp = 0;
     int halfH = h / 2;
     for (int y = 0; y < halfH; y++) {
         top = data + y * widthBytes;
@@ -122,11 +122,11 @@ Texture::Ptr sq::tex2DArray_load_blank(glm::uvec3 _size, GLenum _internalFormat)
 
 bool sq::tex2DArray_add_file(Texture::Ptr _tex, const std::string& _path, GLuint _index) {
     int w, h, n;
-    unsigned char* data = stbi_load(_path.c_str(), &w, &h, &n, 4);
+    uchar* data = stbi_load(_path.c_str(), &w, &h, &n, 4);
     int widthBytes = w * 4;
-    unsigned char* top = nullptr;
-    unsigned char* bottom = nullptr;
-    unsigned char temp = 0;
+    uchar* top = nullptr;
+    uchar* bottom = nullptr;
+    uchar temp = 0;
     int halfH = h / 2;
     for (int y = 0; y < halfH; y++) {
         top = data + y * widthBytes;

@@ -10,6 +10,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/compatibility.hpp>
 
+#include <defs.hpp>
+
 namespace sq {
 
 glm::vec3 get_tangent(glm::vec3 normal);

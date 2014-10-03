@@ -9,6 +9,15 @@
 #include <libsqee/misc/files.hpp>
 #include <libsqee/resources/resholder.hpp>
 
+#define SQ_BOOLCHECK(key) if (!boolMap.count(key))\
+    std::cout << "FATAL: Missing bool \"" << key << "\" in object \"" << uid << "\"" << std::endl;
+#define SQ_INTCHECK(key) if (!intMap.count(key))\
+    std::cout << "FATAL: Missing int \"" << key << "\" in object \"" << uid << "\"" << std::endl;
+#define SQ_FLOATCHECK(key) if (!floatMap.count(key))\
+    std::cout << "FATAL: Missing float \"" << key << "\" in object \"" << uid << "\"" << std::endl;
+#define SQ_STRINGCHECK(key) if (!stringMap.count(key))\
+    std::cout << "FATAL: Missing string \"" << key << "\" in object \"" << uid << "\"" << std::endl;
+
 namespace sqt {
 namespace obj {
 
