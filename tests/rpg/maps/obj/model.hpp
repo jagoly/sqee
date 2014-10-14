@@ -1,5 +1,7 @@
 #pragma once
 
+#include <libsqee/gl/bounds.hpp>
+
 #include "object.hpp"
 
 namespace sqt {
@@ -24,6 +26,8 @@ public:
     GLuint vao;
     GLuint ibo;
     uint iCount;
+
+    sq::Box bBox;
 
     std::vector<Vertex> vertVec;
     std::vector<glm::uvec3> faceVec;
@@ -55,8 +59,9 @@ public:
     Mesh* mesh;
     Skin* skin;
 
+    sq::ModBox bBox;
+
     bool shad;
-    bool subm;
     glm::vec3 pos, rot, sca;
     glm::mat4 modelMat;
 };

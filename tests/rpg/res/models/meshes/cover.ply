@@ -1,6 +1,7 @@
 ply
 format ascii 1.0
 comment Created by Blender 2.71 (sub 0) - www.blender.org, source file: ''
+bounds 0 1 0 1 0 0
 element vertex 4
 property float x
 property float y

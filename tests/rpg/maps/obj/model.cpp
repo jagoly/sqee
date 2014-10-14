@@ -7,6 +7,7 @@ using namespace sqt::obj;
 
 void Mesh::load(const std::string& _filePath) {
     /// Load File ////////////////////
+    // This sucks ass. Fix it.
 
     std::ifstream src;
     std::string line;
@@ -19,7 +20,18 @@ void Mesh::load(const std::string& _filePath) {
     if (line != "format ascii 1.0") throw; // Second line incorrect
     std::getline(src, line);
     if (line.substr(0, 7) != "comment") throw; // Third line must be comment
-
+    std::getline(src, line);
+    if (line.substr(0, 6) != "bounds") throw; // Third line must be bounding box
+    {
+    float vals[8];
+    uint A=0, B=0;
+    for (uint j = 0; j < 6; j++) {
+        A = line.find_first_not_of(' ', B);
+        B = line.find_first_of(' ', A);
+        vals[j] = std::atof(line.substr(A, B - A).c_str());
+    }
+    bBox = sq::Box(vals);
+    }
     std::getline(src, line);
     if (line.substr(0, 14) != "element vertex") throw; // No vertex count
     uint vCount = std::atoi(line.substr(15).c_str());
@@ -189,7 +201,6 @@ void Model::create() {
 #ifdef SQEE_DEBUG
     SQ_BOOLCHECK("ambi")
     SQ_BOOLCHECK("shad")
-    SQ_BOOLCHECK("subm")
     SQ_FLOATCHECK("xPos")
     SQ_FLOATCHECK("xRot")
     SQ_FLOATCHECK("xSca")
@@ -206,7 +217,6 @@ void Model::create() {
     type = Type::Model;
 
     shad = boolMap["shad"];
-    subm = boolMap["subm"];
     std::string mPath = "res/models/meshes/" + stringMap["mesh"];
     std::string sPath = "res/models/skins/" + stringMap["skin"];
 
@@ -231,11 +241,12 @@ void Model::create() {
     modelMat = glm::rotate(modelMat, rot.y, {0, 1, 0});
     modelMat = glm::rotate(modelMat, rot.x, {1, 0, 0});
     modelMat = glm::scale(modelMat, sca);
-    if (0){//boolMap["ambi"]) {
-        //texAmbi = new sq::Texture;
-        //texAmbi->create(gl::TEXTURE_2D, gl::RGBA, gl::R8,
-        //                "res/maps/"+mapPath+"/ao/"+uid, sq::TexPreset::L_C);
-    } else {
-        texAmbi = skin->texAmbi;
-    }
+
+    bBox.init(mesh->bBox);
+    bBox.translate(pos);
+    // need to add rotate and scale
+    bBox.recalc();
+
+    // need to fix individual object ambient light
+    texAmbi = skin->texAmbi;
 }

@@ -19,6 +19,7 @@ set(SOURCES
     "${INCDIR}/libsqee/defs.hpp"
     "${INCDIR}/libsqee/gl/gl_ext_3_3.hpp"
     "${INCDIR}/libsqee/gl/gl.hpp"
+    "${INCDIR}/libsqee/gl/bounds.hpp"
     "${INCDIR}/libsqee/gl/camera.hpp"
     "${INCDIR}/libsqee/gl/framebuffers.hpp"
     "${INCDIR}/libsqee/gl/shaders.hpp"
@@ -41,6 +42,7 @@ set(SOURCES
 # SQEE Source
     "${SRCDIR}/libsqee/gl/gl_ext_3_3.cpp"
     "${SRCDIR}/libsqee/gl/gl.cpp"
+    "${SRCDIR}/libsqee/gl/bounds.cpp"
     "${SRCDIR}/libsqee/gl/camera.cpp"
     "${SRCDIR}/libsqee/gl/framebuffers.cpp"
     "${SRCDIR}/libsqee/gl/shaders.cpp"

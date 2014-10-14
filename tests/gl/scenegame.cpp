@@ -5,8 +5,8 @@
 namespace sqt {
 
 SceneGame::SceneGame(sq::Application* _app) : sq::Scene(_app) {
-    tickRate = 120;
-    dt = 1/120.d;
+    tickRate = 24;
+    dt = 1.d/24.d;
 
     camera.init({0, 0, 2}, {0, 0, 0}, 4, 3, 1.17f, 0.1f, 100.f);
     camera.update_projMat();

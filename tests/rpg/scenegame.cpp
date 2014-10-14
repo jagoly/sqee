@@ -15,7 +15,7 @@ namespace sqt {
 
 SceneGame::SceneGame(sq::Application* _app) : sq::Scene(_app) {
     tickRate = 24;
-    dt = 1.d/24;
+    dt = 1.d/24.d;
 
     level.set_holders(&meshH, &skinH, &texH);
     level.load_map("test");
@@ -365,7 +365,6 @@ void SceneGame::render(float _ft) {
     for (std::pair<const std::string, std::unique_ptr<obj::Object>>& bo : level.objectMap) {
         if (bo.second->type == obj::Type::Model) {
             obj::Model* o = static_cast<obj::Model*>(bo.second.get());
-            if (!o->subm) continue;
 
             o->mesh->bind_buffers();
             o->skin->bind_textures();
