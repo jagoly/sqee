@@ -9,8 +9,8 @@
 
 namespace sq {
 
-Application::Application(glm::uvec2 _size, bool _showfps,
-                         bool _vsync, bool _resizable, std::string _title) {
+Application::Application(glm::uvec2 _size, bool _showFPS,
+                         bool _vSync, bool _resizable, const std::string& _title) {
     int error = FT_Init_FreeType(&ftLib);
     if (error) std::cout << "ERROR: Failed to initialise FreeType" << std::endl;
 
@@ -23,77 +23,54 @@ Application::Application(glm::uvec2 _size, bool _showfps,
 
     title = _title;
 
-    if (_resizable)
-        window = new sf::Window({_size.x, _size.y}, title,
-                                 sf::Style::Default, settings);
-    else
-        window = new sf::Window({_size.x, _size.y}, title,
-                                 sf::Style::Close | sf::Style::Titlebar, settings);
+    window.create({_size.x, _size.y}, title,
+                  _resizable ? sf::Style::Default : sf::Style::Close | sf::Style::Titlebar,
+                  settings);
+    window.setKeyRepeatEnabled(false);
 
     gl::sys::LoadFunctions();
-    window->setKeyRepeatEnabled(false);
 
-    set_vsync(_vsync);
-    set_showfps(_showfps);
-}
+    const GLubyte* renderer = gl::GetString(gl::RENDERER);
+    const GLubyte* version = gl::GetString(gl::VERSION);
+    std::cout << "Renderer: " << renderer << std::endl;
+    std::cout << "Version: " << version << std::endl;
+#ifdef SQEE_DEBUG
+    gl::Enable(gl::DEBUG_OUTPUT);
+    gl::Enable(gl::DEBUG_OUTPUT_SYNCHRONOUS);
+    gl::DebugMessageCallback(sq::debug_callback, 0);
+#endif
 
-
-void Application::set_size(glm::uvec2 _size) {
-    window->setSize({_size.x, _size.y});
-    for (auto& scene : sceneList) {
-        scene->resize(_size);
-    }
-}
-glm::uvec2 Application::get_size() {
-    return {window->getSize().x, window->getSize().y};
-}
-
-void Application::set_vsync(bool _vsync) {
-    window->setVerticalSyncEnabled(_vsync);
-    vsync = _vsync;
-}
-bool Application::get_vsync() {
-    return vsync;
-}
-
-void Application::set_showfps(bool _showfps) {
-    showfps = _showfps;
-}
-bool Application::get_showfps() {
-    return showfps;
+    set_vSync(_vSync);
+    set_showFPS(_showFPS);
 }
 
 void Application::run() {
     running = true;
     sf::Clock clockFT;
-    sf::Clock clockFPS;
 
-    while (true) {
-        for (auto& strId : sceneSweep) {
-            sceneList.remove(sceneMap[strId]);
-            sceneMap.erase(strId);
+    while (running) {
+        for (const std::string& _id : sceneSweep) {
+            sceneIM.del(_id);
         } sceneSweep.clear();
 
-        for (auto& strId : handlerSweep) {
-            handlerFList.remove(handlerMap[strId]);
-            handlerMap.erase(strId);
+        for (const std::string& _id : handlerSweep) {
+            handlerIM.del(_id);
         } handlerSweep.clear();
 
         soundManager.clean();
 
         static sf::Event event;
-        while (window->pollEvent(event)) {
-            for (auto& handler : handlerFList) {
+        while (window.pollEvent(event)) {
+            for (Handler::Ptr& handler : handlerIM) {
                 if (handler->handle(event)) {
                     break;
                 }
             }
         }
-        if (!running) break;
 
         float ft = clockFT.restart().asSeconds();
 
-        for (auto& scene : sceneList) {
+        for (Scene::Ptr& scene : sceneIM) {
             scene->accum += ft;
             while (scene->accum >= 1.d / double(scene->tickRate)) {
                 scene->update();
@@ -101,63 +78,53 @@ void Application::run() {
             }
         }
 
-        for (auto& scene : sceneList) {
+        for (Scene::Ptr& scene : sceneIM) {
             scene->render(ft);
         }
 
-        if (showfps) {
+        if (showFPS) {
             static float fps = 60.f;
             fps = fps * 0.9f + 1.f / ft * 0.1f;
-            if (clockFPS.getElapsedTime().asSeconds() > 1.f) {
-                window->setTitle(title + " | FPS: " + std::to_string(fps));
-                clockFPS.restart();
-            }
+            // set something up
         }
 
-        window->display();
+        window.display();
     }
 }
 
-void Application::attach_handler(std::string strId, HandlerPtr handler) {
-    handlerMap.insert(std::make_pair(strId, handler));
-    handlerFList.push_front(handler);
+
+void Application::set_size(glm::uvec2 _size) {
+    window.setSize({_size.x, _size.y});
+    for (Scene::Ptr& scene : sceneIM) {
+        scene->resize(_size);
+    }
+}
+glm::uvec2 Application::get_size() {
+    return {window.getSize().x, window.getSize().y};
 }
 
-void Application::append_scene(std::string strId, ScenePtr scene) {
-    sceneMap.insert(std::make_pair(strId, scene));
-    sceneList.push_back(scene);
+void Application::set_vSync(bool _vSync) {
+    window.setVerticalSyncEnabled(_vSync);
+    vSync = _vSync;
+}
+bool Application::get_vSync() {
+    return vSync;
 }
 
-void Application::prepend_scene(std::string strId, ScenePtr scene) {
-    sceneMap.insert(std::make_pair(strId, scene));
-    sceneList.push_front(scene);
+void Application::set_showFPS(bool _showFPS) {
+    showFPS = _showFPS;
+}
+bool Application::get_showFPS() {
+    return showFPS;
 }
 
-void Application::insert_scene(int index, std::string strId, ScenePtr scene) {
-    std::list<ScenePtr>::iterator iter = sceneList.begin();
-    std::advance(iter, index);
-    sceneMap.insert(std::make_pair(strId, scene));
-    sceneList.insert(iter, scene);
+
+void Application::sweep_handler(const std::string& _id) {
+    handlerSweep.emplace(_id);
 }
 
-Scene& Application::get_scene_first() {
-    return *sceneList.front();
-}
-
-Scene& Application::get_scene_last() {
-    return *sceneList.back();
-}
-
-Scene& Application::get_scene(std::string strId) {
-    return *sceneMap[strId];
-}
-
-void Application::sweep_handler(std::string strId) {
-    handlerSweep.emplace(strId);
-}
-
-void Application::sweep_scene(std::string strId) {
-    sceneSweep.emplace(strId);
+void Application::sweep_scene(const std::string& _id) {
+    sceneSweep.emplace(_id);
 }
 
 }

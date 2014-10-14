@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include <SFML/Graphics.hpp>
+#include <SFML/Window.hpp>
 
 #define SQ_KEYPRESS(keyName)   (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::keyName)
 #define SQ_KEYRELEASE(keyName) (event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::keyName)
@@ -18,6 +18,8 @@ class Application;
 
 class Handler {
 public:
+    typedef std::unique_ptr<Handler> Ptr;
+
     Handler(Application* _app);
 
     virtual bool handle(sf::Event& event);
@@ -25,7 +27,5 @@ public:
 protected:
     Application* app;
 };
-
-typedef std::shared_ptr<Handler> HandlerPtr;
 
 }

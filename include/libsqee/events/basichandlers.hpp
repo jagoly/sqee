@@ -1,7 +1,6 @@
 #pragma once
 
 #include <events/handler.hpp>
-#include <app/application.hpp>
 
 namespace sq {
 

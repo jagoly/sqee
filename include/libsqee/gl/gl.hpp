@@ -14,31 +14,10 @@
 
 namespace sq {
 
+void debug_callback(GLenum _source, GLenum _type, GLuint /*_id*/, GLenum _severity,
+                   GLsizei /*_length*/, const GLchar* _message, const void* /*_param*/);
+
 glm::vec3 get_tangent(glm::vec3 normal);
-
-struct Camera {
-    void init(glm::vec3 _pos, float _xRot, float _yRot,
-              float _width, float _height, float yFov, float zNear, float zFar);
-
-    glm::mat4 projMat;
-    glm::mat4 viewMat;
-    glm::mat4 projViewMat;
-
-    glm::vec3 pos;
-    glm::vec2 projAB;
-
-    float xRot;
-    float yRot;
-    float width;
-    float height;
-    float yFov;
-    float zNear;
-    float zFar;
-
-    void update_viewMat();
-    void update_projMat();
-    void update_projViewMat();
-};
 
 struct ScreenQuad {
     ScreenQuad();

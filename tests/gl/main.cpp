@@ -2,7 +2,7 @@
 
 int main()
 {
-    sqt::TestApp app;
+    sqt::GlApp app;
 
     app.run();
 

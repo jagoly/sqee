@@ -1,53 +1,52 @@
 #pragma once
 
-#include <string>
-#include <map>
-#include <memory>
-
 #include <gl/gl.hpp>
+#include <misc/containers.hpp>
+
+#ifndef SQEE_TEX
+#define SQEE_TEX "res/textures/"
+#endif
 
 namespace sq {
 
-const GLenum MIN_MAG_FILTERS[2]    = {gl::TEXTURE_MIN_FILTER, gl::TEXTURE_MAG_FILTER};
-const GLenum BOTH_NEAREST[2]       = {gl::NEAREST, gl::NEAREST};
-const GLenum BOTH_LINEAR[2]        = {gl::LINEAR, gl::LINEAR};
-const GLenum S_T_WRAP[2]           = {gl::TEXTURE_WRAP_S, gl::TEXTURE_WRAP_T};
-const GLenum BOTH_CLAMP_TO_EDGE[2] = {gl::CLAMP_TO_EDGE, gl::CLAMP_TO_EDGE};
-const GLenum BOTH_REPEAT[2]        = {gl::REPEAT, gl::REPEAT};
-
- /////////////////////////
+enum class TexPreset {
+    NONE, N_C, N_R, L_C, L_R
+};
 
 class Texture {
 public:
-    typedef std::shared_ptr<Texture> Ptr;
-
-    Texture(GLenum _type, GLenum _format);
     ~Texture();
 
-    glm::uvec3 size;
+    // These are pretty crappy, compiler can't easily distinguish
+    // the second and third ctors. FIX IT
+
+    void create(GLenum _target, GLenum _format, GLenum _iFormat, glm::uvec3 _size,
+                TexPreset _preset = TexPreset::NONE);
+    void create(GLenum _target, GLenum _format, GLenum _iFormat, glm::uvec3 _size,
+                const void* _data,
+                TexPreset _preset = TexPreset::NONE);
+    void create(GLenum _target, GLenum _format, GLenum _iFormat,
+                const std::string& _filePath,
+                TexPreset _preset = TexPreset::NONE);
+
+    void resize(glm::uvec3 _size);
+    void buffer_memory(const void* _data, int _z = -1);
+    void buffer_file(const std::string& _filePath, int _z = -1);
+    void set_preset(TexPreset _preset);
 
     void bind();
     void bind(GLenum _slot);
     void set_param(GLenum _name, GLenum _value);
-    void set_params(int num, const GLenum* _names, const GLenum* _values);
 
-    const GLuint& get();
-private:
     GLuint tex;
-    GLenum type;
+    GLenum target;
     GLenum format;
+    GLenum iFormat;
+    glm::uvec3 size;
+private:
+    int channels;
+    int dimensions;
 };
-
-
-Texture::Ptr tex_create(GLenum _type, GLenum _format);
-
-Texture::Ptr tex2D_load_blank(glm::uvec2 _size, GLenum _internalFormat);
-Texture::Ptr tex2D_load_memory(glm::uvec2 _size, GLenum _internalFormat, const unsigned char* _data);
-Texture::Ptr tex2D_load_file(const std::string& _path, GLenum _internalFormat);
-
-Texture::Ptr texDepth_load_blank(glm::uvec2 _size, GLenum _internalFormat);
-
-Texture::Ptr tex2DArray_load_blank(glm::uvec3 _size, GLenum _internalFormat);
-bool         tex2DArray_add_file(Texture::Ptr _tex, const std::string& _path, GLuint _index);
+typedef ResHolder<std::string, Texture> TexHolder;
 
 }

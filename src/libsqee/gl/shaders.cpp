@@ -9,27 +9,29 @@ Shader::Shader() {
     prog = gl::CreateProgram();
 }
 
-Shader::~Shader() { // FIX ME (copy ctor)
-//    gl::DeleteProgram(prog);
-//    gl::DeleteShader(vert);
-//    gl::DeleteShader(frag);
-//    gl::DeleteShader(geom);
+Shader::~Shader() {
+    gl::DeleteProgram(prog);
+    gl::DeleteShader(vert);
+    gl::DeleteShader(frag);
+    gl::DeleteShader(geom);
 }
 
-bool Shader::load_from_file(std::string _path, GLenum _type) {
+bool Shader::load_from_file(const std::string& _fPath, GLenum _type) {
+    std::string fPath = SQEE_SHD + _fPath + ".glsl";
+
     GLuint* shad;
     if      (_type == gl::VERTEX_SHADER)   shad = &vert;
     else if (_type == gl::GEOMETRY_SHADER) shad = &geom;
     else if (_type == gl::FRAGMENT_SHADER) shad = &frag;
     else {
-        std::cout << "ERROR: Invalid shader type when loading \"" << _path << "\"" << std::endl;
+        std::cout << "ERROR: Invalid shader type when loading \"" << fPath << "\"" << std::endl;
         return true;
     }
     *shad = gl::CreateShader(_type);
 
-    std::string str = sq::get_string_from_file(_path);
+    std::string str = sq::get_string_from_file(fPath);
     if (str.empty()) {
-        std::cout << "ERROR: Shader file \"" << _path << "\" not found" << std::endl;
+        std::cout << "ERROR: Shader file \"" << fPath << "\" not found" << std::endl;
         return true;
     }
 
@@ -42,7 +44,7 @@ bool Shader::load_from_file(std::string _path, GLenum _type) {
     char log[2048];
     gl::GetShaderInfoLog(*shad, 2048, &length, log);
     if (length) {
-        std::cout << "ERROR: Failed to compile shader from \"" << _path << "\"\n"
+        std::cout << "ERROR: Failed to compile shader from \"" << fPath << "\"\n"
                   << "-------------------------\n"
                   << log << "-------------------------" << std::endl;
         return true;
@@ -54,37 +56,45 @@ bool Shader::load_from_file(std::string _path, GLenum _type) {
 
 void Shader::build() {
     gl::LinkProgram(prog);
+    int length = 0;
+    char log[2048];
+    gl::GetProgramInfoLog(prog, 2048, &length, log);
+    if (length) {
+        std::cout << "ERROR: Failed to link shader\n"
+                  << "-------------------------\n"
+                  << log << "-------------------------" << std::endl;
+    }
 }
 
 void Shader::use() {
     gl::UseProgram(prog);
 }
 
-void Shader::add_uniform(std::string _name, U_TYPE _type) {
-    uniforms.emplace(_name, Uniform(gl::GetUniformLocation(prog, _name.c_str()), 1, _type));
+void Shader::add_uniform(const std::string& _name, UType _type) {
+    uniforms[_name] = Uniform(gl::GetUniformLocation(prog, _name.c_str()), 1, _type);
 }
-void Shader::add_uniform_v(std::string _name, uint _cntgth, U_TYPE _type) {
-    uniforms.emplace(_name, Uniform(gl::GetUniformLocation(prog, _name.c_str()), _cntgth, _type));
+void Shader::add_uniform_v(const std::string& _name, uint _cntgth, UType _type) {
+    uniforms[_name] = Uniform(gl::GetUniformLocation(prog, _name.c_str()), _cntgth, _type);
 }
 
-bool Shader::set_uniform_f(std::string _name, const GLfloat _value) {
-    if (uniforms[_name].type != U_TYPE::u_1f) {
+bool Shader::set_uniform_f(const std::string& _name, const GLfloat _value) {
+    if (uniforms[_name].type != UType::u_1f) {
         std::cout << "ERROR: Uniform \"" << _name << "\" is not a u_1f" << std::endl;
         return true;
     }
     gl::Uniform1f(uniforms[_name].ref, _value);
     return false;
 }
-bool Shader::set_uniform_u(std::string _name, const GLuint _value) {
-    if (uniforms[_name].type != U_TYPE::u_1u) {
+bool Shader::set_uniform_u(const std::string& _name, const GLuint _value) {
+    if (uniforms[_name].type != UType::u_1u) {
         std::cout << "ERROR: Uniform \"" << _name << "\" is not a u_1u" << std::endl;
         return true;
     }
     gl::Uniform1ui(uniforms[_name].ref, _value);
     return false;
 }
-bool Shader::set_uniform_i(std::string _name, const GLint _value) {
-    if (uniforms[_name].type != U_TYPE::u_1i) {
+bool Shader::set_uniform_i(const std::string& _name, const GLint _value) {
+    if (uniforms[_name].type != UType::u_1i) {
         std::cout << "ERROR: Uniform \"" << _name << "\" is not a u_1i" << std::endl;
         return true;
     }
@@ -92,54 +102,54 @@ bool Shader::set_uniform_i(std::string _name, const GLint _value) {
     return false;
 }
 
-bool Shader::set_uniform_fv(std::string _name, const GLfloat* _value) {
+bool Shader::set_uniform_fv(const std::string& _name, const GLfloat* _value) {
     GLint ref = uniforms[_name].ref;
     uint cnt = uniforms[_name].cnt;
-    U_TYPE type = uniforms[_name].type;
+    UType type = uniforms[_name].type;
 
-    if      (type == U_TYPE::u_1f)
+    if      (type == UType::u_1f)
         gl::Uniform1fv(ref, cnt, _value);
-    else if (type == U_TYPE::u_2f)
+    else if (type == UType::u_2f)
         gl::Uniform2fv(ref, cnt, _value);
-    else if (type == U_TYPE::u_3f)
+    else if (type == UType::u_3f)
         gl::Uniform3fv(ref, cnt, _value);
-    else if (type == U_TYPE::u_4f)
+    else if (type == UType::u_4f)
         gl::Uniform4fv(ref, cnt, _value);
     else {
         std::cout << "ERROR: Uniform \"" << _name << "\" is not a GLfloat(v)" << std::endl;
         return true;
     } return false;
 }
-bool Shader::set_uniform_uv(std::string _name, const GLuint* _value) {
+bool Shader::set_uniform_uv(const std::string& _name, const GLuint* _value) {
     GLint ref = uniforms[_name].ref;
     uint cnt = uniforms[_name].cnt;
-    U_TYPE type = uniforms[_name].type;
+    UType type = uniforms[_name].type;
 
-    if      (type == U_TYPE::u_1u)
+    if      (type == UType::u_1u)
         gl::Uniform1uiv(ref, cnt, _value);
-    else if (type == U_TYPE::u_2u)
+    else if (type == UType::u_2u)
         gl::Uniform2uiv(ref, cnt, _value);
-    else if (type == U_TYPE::u_3u)
+    else if (type == UType::u_3u)
         gl::Uniform3uiv(ref, cnt, _value);
-    else if (type == U_TYPE::u_4u)
+    else if (type == UType::u_4u)
         gl::Uniform4uiv(ref, cnt, _value);
     else {
         std::cout << "ERROR: Uniform \"" << _name << "\" is not a GLuint(v)" << std::endl;
         return true;
     } return false;
 }
-bool Shader::set_uniform_iv(std::string _name, const GLint* _value) {
+bool Shader::set_uniform_iv(const std::string& _name, const GLint* _value) {
     GLint ref = uniforms[_name].ref;
     uint cnt = uniforms[_name].cnt;
-    U_TYPE type = uniforms[_name].type;
+    UType type = uniforms[_name].type;
 
-    if      (type == U_TYPE::u_1i)
+    if      (type == UType::u_1i)
         gl::Uniform1iv(ref, cnt, _value);
-    else if (type == U_TYPE::u_2i)
+    else if (type == UType::u_2i)
         gl::Uniform2iv(ref, cnt, _value);
-    else if (type == U_TYPE::u_3i)
+    else if (type == UType::u_3i)
         gl::Uniform3iv(ref, cnt, _value);
-    else if (type == U_TYPE::u_4i)
+    else if (type == UType::u_4i)
         gl::Uniform4iv(ref, cnt, _value);
     else {
         std::cout << "ERROR: Uniform \"" << _name << "\" is not a GLint(v)" << std::endl;
@@ -147,28 +157,28 @@ bool Shader::set_uniform_iv(std::string _name, const GLint* _value) {
     } return false;
 }
 
-bool Shader::set_uniform_mv(std::string _name, bool _transpose, const GLfloat* _value) {
+bool Shader::set_uniform_mv(const std::string& _name, bool _transpose, const GLfloat* _value) {
     GLint ref = uniforms[_name].ref;
     uint cnt = uniforms[_name].cnt;
-    U_TYPE type = uniforms[_name].type;
+    UType type = uniforms[_name].type;
 
-    if      (type == U_TYPE::u_2m)
+    if      (type == UType::u_2m)
         gl::UniformMatrix2fv(ref, cnt, _transpose, _value);
-    else if (type == U_TYPE::u_23m)
+    else if (type == UType::u_23m)
         gl::UniformMatrix2x3fv(ref, cnt, _transpose, _value);
-    else if (type == U_TYPE::u_24m)
+    else if (type == UType::u_24m)
         gl::UniformMatrix2x4fv(ref, cnt, _transpose, _value);
-    else if (type == U_TYPE::u_3m)
+    else if (type == UType::u_3m)
         gl::UniformMatrix3fv(ref, cnt, _transpose, _value);
-    else if (type == U_TYPE::u_32m)
+    else if (type == UType::u_32m)
         gl::UniformMatrix3x2fv(ref, cnt, _transpose, _value);
-    else if (type == U_TYPE::u_34m)
+    else if (type == UType::u_34m)
         gl::UniformMatrix3x4fv(ref, cnt, _transpose, _value);
-    else if (type == U_TYPE::u_4m)
+    else if (type == UType::u_4m)
         gl::UniformMatrix4fv(ref, cnt, _transpose, _value);
-    else if (type == U_TYPE::u_42m)
+    else if (type == UType::u_42m)
         gl::UniformMatrix4x2fv(ref, cnt, _transpose, _value);
-    else if (type == U_TYPE::u_43m)
+    else if (type == UType::u_43m)
         gl::UniformMatrix4x3fv(ref, cnt, _transpose, _value);
     else {
         std::cout << "ERROR: Uniform \"" << _name << "\" is not a matrix(v)" << std::endl;

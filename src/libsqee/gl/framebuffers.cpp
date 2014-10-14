@@ -1,10 +1,12 @@
-#include <gl/framebuffers.hpp>
-
 #include <iostream>
+#include <array>
+#include <unordered_map>
+
+#include <gl/framebuffers.hpp>
 
 using namespace sq;
 
-std::map<const GLenum, const uint> attachMap = {
+std::unordered_map<GLenum, uint> attachMap = {
     {gl::COLOR_ATTACHMENT0,  0},  {gl::COLOR_ATTACHMENT1,  1},
     {gl::COLOR_ATTACHMENT2,  2},  {gl::COLOR_ATTACHMENT3,  3},
     {gl::COLOR_ATTACHMENT4,  4},  {gl::COLOR_ATTACHMENT5,  5},
@@ -15,73 +17,61 @@ std::map<const GLenum, const uint> attachMap = {
     {gl::COLOR_ATTACHMENT14, 14}, {gl::COLOR_ATTACHMENT15, 15}
 };
 
-Framebuffer::Framebuffer() {
-    colourTextures.resize(16);
-}
 
-bool Framebuffer::create(int _bufCount, const GLenum* _drawBuffers, bool _depth) {
-    gl::GenFramebuffers(1, &framebuffer);
+void Framebuffer::create(std::vector<GLenum> _drawBuffers, std::vector<GLenum> _cFormats,
+                         std::vector<GLenum> _iCFormats) {
+    if (!fbo) gl::GenFramebuffers(1, &fbo);
 
-    for (int i = 0; i < _bufCount; i++) {
+    cTexVec.resize(_drawBuffers.size());
+
+    for (uint i = 0; i < _drawBuffers.size(); i++) {
         drawBuffers.push_back(_drawBuffers[i]);
         uint bufId = attachMap[_drawBuffers[i]];
-        colourTextures[bufId] = sq::Texture::Ptr(new sq::Texture(gl::TEXTURE_2D, gl::RGBA));
-        colourTextures[bufId]->bind();
-        colourTextures[bufId]->set_params(2, MIN_MAG_FILTERS, BOTH_NEAREST);
-        colourTextures[bufId]->set_params(2, S_T_WRAP, BOTH_CLAMP_TO_EDGE);
+        cTexVec[bufId].create(gl::TEXTURE_2D, _cFormats[i], _iCFormats[i],
+                              glm::uvec3(), TexPreset::N_C);
     }
-
-    hasDepth = _depth;
-
-    return false;
 }
 
-bool Framebuffer::resize(glm::uvec2 _size, glm::uvec2 _margins) {
-    gl::BindFramebuffer(gl::FRAMEBUFFER, framebuffer);
-    margins = _margins;
-    size = _size + margins + margins;
+void Framebuffer::create(GLenum _dsFormat, GLenum _idsFormat) {
+    if (!fbo) gl::GenFramebuffers(1, &fbo);
+
+    dsTex.create(gl::TEXTURE_2D, _dsFormat, _idsFormat, glm::uvec3(), TexPreset::N_C);
+}
+
+void Framebuffer::create(std::vector<GLenum> _drawBuffers,
+                         std::vector<GLenum> _cFormats, std::vector<GLenum> _icFormats,
+                         GLenum _dsFormat, GLenum _idsFormat) {
+    create(_drawBuffers, _cFormats, _icFormats);
+    create(_dsFormat, _idsFormat);
+}
+
+void Framebuffer::resize(glm::uvec2 _size) {
+    gl::BindFramebuffer(gl::FRAMEBUFFER, fbo);
+    size = _size;
 
     for (GLenum i : drawBuffers) {
         uint bufId = attachMap[i];
-        colourTextures[bufId] = tex2D_load_blank(size, gl::RGBA8);
+        cTexVec[bufId].resize({size.x, size.y, 1});
         gl::FramebufferTexture2D(gl::FRAMEBUFFER, i,
-                                 gl::TEXTURE_2D, colourTextures[bufId]->get(), 0);
+                                 gl::TEXTURE_2D, cTexVec[bufId].tex, 0);
     }
 
-    if (hasDepth) {
-        depthTexture = texDepth_load_blank(size, gl::DEPTH_COMPONENT32F);
+    if (dsTex.tex) {
+        dsTex.resize({size.x, size.y, 1});
         gl::FramebufferTexture2D(gl::FRAMEBUFFER, gl::DEPTH_ATTACHMENT,
-                                 gl::TEXTURE_2D, depthTexture->get(), 0);
+                                 gl::TEXTURE_2D, dsTex.tex, 0);
     }
 
-    if (gl::CheckFramebufferStatus(gl::FRAMEBUFFER) != gl::FRAMEBUFFER_COMPLETE) {
-        std::cout << "FBO Error" << std::endl;
-        return true;
-    }
-
-    return false;
+    if (gl::CheckFramebufferStatus(gl::FRAMEBUFFER) != gl::FRAMEBUFFER_COMPLETE)
+        std::cout << "ERROR: FBO resize failed" << std::endl;
 }
 
-Texture::Ptr Framebuffer::get(int _id) {
-    if (_id == -1) {
-        if (hasDepth) {
-            return depthTexture;
-        } else {
-            std::cout << "ERROR: Framebuffer has no Depth Texture" << std::endl;
-            return nullptr;
-        }
-    }
-    Texture::Ptr ret = colourTextures[_id];
-    if (ret == nullptr) std::cout << "ERROR: Framebuffer has no Texture " << _id << std::endl;
-    return ret;
-}
 
 void Framebuffer::use() {
-    gl::BindFramebuffer(gl::FRAMEBUFFER, framebuffer);
+    gl::BindFramebuffer(gl::FRAMEBUFFER, fbo);
     gl::DrawBuffers(drawBuffers.size(), drawBuffers.data());
 }
 
-void Framebuffer::useVP(bool _cutMargins) {
-    if (!_cutMargins) gl::Viewport(0, 0, size.x, size.y);
-    else              gl::Viewport(-margins.x, -margins.y, size.x, size.y);
+void Framebuffer::useVP() {
+    gl::Viewport(0, 0, size.x, size.y);
 }

@@ -1,12 +1,12 @@
 #pragma once
 
-#include <libsqee/application.hpp>
+#include <libsqee/app/application.hpp>
 
 namespace sqt {
 
-class TestApp : public sq::Application {
+class GlApp : public sq::Application {
 public:
-    TestApp();
+    GlApp();
 };
 
 }

@@ -1,5 +1,4 @@
 #include <scenes/scene.hpp>
-#include <app/application.hpp>
 
 namespace sq {
 
@@ -14,11 +13,6 @@ void Scene::render(float) {
 }
 
 void Scene::update() {
-}
-
-template<typename T>
-T Scene::interpolate(T a, T b) {
-    return a * ((dt - accum) / dt) + b * (accum / dt);
 }
 
 }

@@ -1,9 +1,61 @@
-#include <fstream>
+#include <iostream>
 
 #include <gl/gl.hpp>
-#include <misc/files.hpp>
 
 namespace sq {
+
+void debug_callback(GLenum _source, GLenum _type, GLuint /*_id*/, GLenum _severity,
+                   GLsizei /*_length*/, const GLchar* _message, const void* /*_param*/) {
+    std::string source;
+    if (_source == gl::DEBUG_SOURCE_API)
+        source = "API";
+    else if (_source == gl::DEBUG_SOURCE_APPLICATION)
+        source = "APPLICATION";
+    else if (_source == gl::DEBUG_SOURCE_OTHER)
+        source = "OTHER";
+    else if (_source == gl::DEBUG_SOURCE_SHADER_COMPILER)
+        source = "SHADER_COMPILER";
+    else if (_source == gl::DEBUG_SOURCE_THIRD_PARTY)
+        source = "THIRD_PARTY";
+    else if (_source == gl::DEBUG_SOURCE_WINDOW_SYSTEM)
+        source = "WINDOW_SYSTEM";
+
+    std::string type;
+    if (_type == gl::DEBUG_TYPE_DEPRECATED_BEHAVIOR)
+        type = "DEPRECATED_BEHAVIOR";
+    if (_type == gl::DEBUG_TYPE_ERROR)
+        type = "ERROR";
+    if (_type == gl::DEBUG_TYPE_MARKER)
+        type = "MARKER";
+    if (_type == gl::DEBUG_TYPE_OTHER)
+        type = "OTHER";
+    if (_type == gl::DEBUG_TYPE_PERFORMANCE)
+        type = "PERFORMANCE";
+    if (_type == gl::DEBUG_TYPE_POP_GROUP)
+        type = "POP_GROUP";
+    if (_type == gl::DEBUG_TYPE_PORTABILITY)
+        type = "PORTABILITY";
+    if (_type == gl::DEBUG_TYPE_PUSH_GROUP)
+        type = "PUSH_GROUP";
+    if (_type == gl::DEBUG_TYPE_UNDEFINED_BEHAVIOR)
+        type = "UNDEFINED_BEHAVIOR";
+
+    std::string severity;
+    if (_severity == gl::DEBUG_SEVERITY_HIGH)
+        severity = "HIGH";
+    if (_severity == gl::DEBUG_SEVERITY_LOW)
+        severity = "LOW";
+    if (_severity == gl::DEBUG_SEVERITY_MEDIUM)
+        severity = "MEDIUM";
+    if (_severity == gl::DEBUG_SEVERITY_NOTIFICATION)
+        severity = "NOTIFICATION";
+
+    std::cout << "\nSource: " << source;
+    std::cout << "\nSeverity: " << severity;
+    std::cout << "\nType: " << type;
+    std::cout << "\nMessage: " << _message;
+    std::cout << std::endl;
+}
 
 glm::vec3 get_tangent(glm::vec3 normal) {
     glm::vec3 tangent;
@@ -20,72 +72,23 @@ glm::vec3 get_tangent(glm::vec3 normal) {
     return tangent;
 }
 
-void Camera::init(glm::vec3 _pos, float _xRot, float _yRot,
-               float _width, float _height, float _yFov, float _zNear, float _zFar) {
-    pos.x = _pos.x;
-    pos.y = _pos.y;
-    pos.z = _pos.z;
-
-    xRot = _xRot;
-    yRot = _yRot;
-
-    width = _width;
-    height = _height;
-    yFov = _yFov;
-    zNear = _zNear;
-    zFar = _zFar;
-}
-
-void Camera::update_viewMat() {
-    glm::mat4 rotMat;
-    rotMat = glm::rotate(rotMat, xRot, glm::vec3(1.f, 0.f, 0.f));
-    rotMat = glm::rotate(rotMat, yRot, glm::vec3(0.f, 1.f, 0.f));
-
-    glm::vec4 forward(0.f, 0.f, -1.f, 0.f);
-    forward = rotMat * forward;
-    glm::vec3 target = pos + glm::vec3(forward.x, forward.y, forward.z);
-
-    viewMat = glm::lookAt(pos, target, glm::vec3(rotMat * glm::vec4(0.f, 1.f, 0.f, 0.f)));
-}
-
-void Camera::update_projMat() {
-    projMat = glm::perspective(yFov, width / height, zNear, zFar);
-    projAB.x = (zFar + zNear) / (zFar - zNear);
-    projAB.y = (2.f * zFar * zNear) / (zFar - zNear);
-}
-
-void Camera::update_projViewMat() {
-    projViewMat = projMat * viewMat;
-}
-
 ScreenQuad::ScreenQuad() {
     GLfloat points[] = {
         -1.0, -1.0,  1.0,  -1.0,  1.0, 1.0,
         1.0, 1.0,    -1.0, 1.0,   -1.0, -1.0
     };
-    GLfloat texcoords[] = {
-        0.0, 0.0,  1.0, 0.0,  1.0, 1.0,
-        1.0, 1.0,  0.0, 1.0,  0.0, 0.0
-    };
 
-    GLuint vboPoints, vboTexcoords;
+    GLuint vboPoints;
 
     gl::GenBuffers(1, &vboPoints);
     gl::BindBuffer(gl::ARRAY_BUFFER, vboPoints);
     gl::BufferData(gl::ARRAY_BUFFER, 12 * sizeof(GLfloat), points, gl::STATIC_DRAW);
 
-    gl::GenBuffers(1, &vboTexcoords);
-    gl::BindBuffer(gl::ARRAY_BUFFER, vboTexcoords);
-    gl::BufferData(gl::ARRAY_BUFFER, 12 * sizeof(GLfloat), texcoords, gl::STATIC_DRAW);
-
     gl::GenVertexArrays(1, &vao);
     gl::BindVertexArray(vao);
     gl::EnableVertexAttribArray(0);
-    gl::EnableVertexAttribArray(1);
     gl::BindBuffer(gl::ARRAY_BUFFER, vboPoints);
     gl::VertexAttribPointer(0, 2, gl::FLOAT, false, 0, nullptr);
-    gl::BindBuffer(gl::ARRAY_BUFFER, vboTexcoords);
-    gl::VertexAttribPointer(1, 2, gl::FLOAT, false, 0, nullptr);
 
     gl::BindVertexArray(0);
 }
@@ -93,7 +96,6 @@ ScreenQuad::ScreenQuad() {
 void ScreenQuad::draw() {
     gl::BindVertexArray(vao);
     gl::DrawArrays(gl::TRIANGLES, 0, 6);
-
     gl::BindVertexArray(0);
 }
 

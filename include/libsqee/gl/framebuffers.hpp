@@ -9,22 +9,25 @@ namespace sq {
 
 class Framebuffer {
 public:
-    Framebuffer();
-    bool create(int _bufCount, const GLenum* _drawBuffers, bool _depth);
-    bool resize(glm::uvec2 _size, glm::uvec2 _margins);
+/// Colour Only
+    void create(std::vector<GLenum> _drawBuffers,
+                std::vector<GLenum> _cFormats, std::vector<GLenum> _iCFormats);
+    void create(GLenum _dsFormat, GLenum _idsFormat);
+    void create(std::vector<GLenum> _drawBuffers,
+                std::vector<GLenum> _cFormats, std::vector<GLenum> _icFormats,
+                GLenum _dsFormat, GLenum _idsFormat);
+
+    void resize(glm::uvec2 _size);
     void use();
-    void useVP(bool _cutMargins);
+    void useVP();
 
-    Texture::Ptr get(int _id);
+    GLuint fbo;
 
-    GLuint framebuffer;
-    bool hasDepth;
+    std::vector<Texture> cTexVec;
+    Texture dsTex;
 private:
-    std::vector<Texture::Ptr> colourTextures;
-    Texture::Ptr depthTexture;
     std::vector<GLenum> drawBuffers;
     glm::uvec2 size;
-    glm::uvec2 margins;
 };
 
 }

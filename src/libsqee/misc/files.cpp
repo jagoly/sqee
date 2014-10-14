@@ -14,7 +14,7 @@ Vertex::Vertex(float _x, float _y, float _z, float _nx, float _ny, float _nz, fl
     tx = tangent.x; ty = tangent.y; tz = tangent.z;
 }
 
-Json::Value get_json_from_file(std::string _path) {
+Json::Value get_json_from_file(const std::string& _path) {
     std::ifstream src(_path);
 
     Json::Reader reader;
@@ -30,7 +30,7 @@ Json::Value get_json_from_file(std::string _path) {
     return root;
 }
 
-std::string get_string_from_file(std::string _path) {
+std::string get_string_from_file(const std::string& _path) {
     std::ifstream src;
     src.open(_path);
     std::stringstream sstr;
@@ -39,7 +39,8 @@ std::string get_string_from_file(std::string _path) {
     return sstr.str();
 }
 
-bool load_ply_from_file(std::string _path, std::vector<Vertex>& _vertVec, std::vector<glm::uvec3>& _faceVec) {
+bool load_ply_from_file(const std::string& _path, std::vector<Vertex>& _vertVec,
+                        std::vector<glm::uvec3>& _faceVec) {
     std::ifstream src;
     std::string line;
 

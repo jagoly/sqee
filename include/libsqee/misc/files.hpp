@@ -2,7 +2,6 @@
 
 #include <glm/glm.hpp>
 
-#include <tuple>
 #include <redist/jsoncpp.hpp>
 
 namespace sq {
@@ -14,10 +13,11 @@ struct Vertex {
     float x, y, z, nx, ny, nz, s, t, tx, ty, tz;
 };
 
-Json::Value get_json_from_file(std::string _path);
+Json::Value get_json_from_file(const std::string& _path);
 
-std::string get_string_from_file(std::string _path);
+std::string get_string_from_file(const std::string& _path);
 
-bool load_ply_from_file(std::string _path, std::vector<Vertex>& _vertVec, std::vector<glm::uvec3>& _faceVec);
+bool load_ply_from_file(const std::string& _path, std::vector<Vertex>& _vertVec,
+                        std::vector<glm::uvec3>& _faceVec);
 
 }

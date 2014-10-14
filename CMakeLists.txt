@@ -19,6 +19,7 @@ set(SOURCES
     "${INCDIR}/libsqee/defs.hpp"
     "${INCDIR}/libsqee/gl/gl_ext_3_3.hpp"
     "${INCDIR}/libsqee/gl/gl.hpp"
+    "${INCDIR}/libsqee/gl/camera.hpp"
     "${INCDIR}/libsqee/gl/framebuffers.hpp"
     "${INCDIR}/libsqee/gl/shaders.hpp"
     "${INCDIR}/libsqee/gl/textures.hpp"
@@ -29,7 +30,7 @@ set(SOURCES
     "${INCDIR}/libsqee/text/text.hpp"
     "${INCDIR}/libsqee/menus/basicmenu.hpp"
     "${INCDIR}/libsqee/misc/files.hpp"
-    "${INCDIR}/libsqee/resources/resholder.hpp"
+    "${INCDIR}/libsqee/misc/containers.hpp"
     "${INCDIR}/libsqee/scenes/scene.hpp"
     "${INCDIR}/libsqee/sounds/soundmanager.hpp"
 
@@ -40,6 +41,7 @@ set(SOURCES
 # SQEE Source
     "${SRCDIR}/libsqee/gl/gl_ext_3_3.cpp"
     "${SRCDIR}/libsqee/gl/gl.cpp"
+    "${SRCDIR}/libsqee/gl/camera.cpp"
     "${SRCDIR}/libsqee/gl/framebuffers.cpp"
     "${SRCDIR}/libsqee/gl/shaders.cpp"
     "${SRCDIR}/libsqee/gl/textures.cpp"
@@ -50,7 +52,7 @@ set(SOURCES
     "${SRCDIR}/libsqee/text/text.cpp"
     "${SRCDIR}/libsqee/menus/basicmenu.cpp"
     "${SRCDIR}/libsqee/misc/files.cpp"
-    "${SRCDIR}/libsqee/resources/resholder.cpp"
+    "${SRCDIR}/libsqee/misc/containers.cpp"
     "${SRCDIR}/libsqee/scenes/scene.cpp"
     "${SRCDIR}/libsqee/sounds/soundmanager.cpp"
 )
@@ -84,5 +86,5 @@ endif ()
 	
 #add_subdirectory("tests/soko")
 #add_subdirectory("tests/fb")
-#add_subdirectory("tests/gl")
-add_subdirectory("tests/gl2")
+add_subdirectory("tests/gl")
+add_subdirectory("tests/rpg")

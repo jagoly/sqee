@@ -1,7 +1,5 @@
 #pragma once
 
-#include <list>
-#include <forward_list>
 #include <set>
 #include <memory>
 
@@ -19,8 +17,8 @@ namespace sq {
 
 class Application {
 public:
-    Application(glm::uvec2 size, bool _showfps,
-                bool _vsync, bool _resizable, std::string _title);
+    Application(glm::uvec2 _size, bool _showFPS, bool _vSync,
+                bool _resizable, const std::string& _title);
 
     bool running;
 
@@ -32,38 +30,25 @@ public:
     void set_size(glm::uvec2);
     glm::uvec2 get_size();
 
-    void set_vsync(bool _vsync);
-    bool get_vsync();
+    void set_vSync(bool _vSync);
+    bool get_vSync();
 
-    void set_showfps(bool _showfps);
-    bool get_showfps();
+    void set_showFPS(bool _showFPS);
+    bool get_showFPS();
 
-    void attach_handler(std::string strId, HandlerPtr handler);
+    void sweep_handler(const std::string& _id);
+    void sweep_scene(const std::string& _id);
 
-    void append_scene(std::string strId, ScenePtr scene);
-    void prepend_scene(std::string strId, ScenePtr scene);
-    void insert_scene(int index, std::string strId, ScenePtr scene);
-
-    Scene& get_scene_first();
-    Scene& get_scene_last();
-    Scene& get_scene(std::string strId);
-
-    void sweep_handler(std::string strId);
-    void sweep_scene(std::string strId);
-
+    IndexedMap<std::string, Scene::Ptr> sceneIM;
+    IndexedMap<std::string, Handler::Ptr> handlerIM;
 protected:
-    sf::Window* window;
-
-    std::map<std::string, HandlerPtr> handlerMap;
-    std::forward_list<HandlerPtr> handlerFList;
-    std::map<std::string, ScenePtr> sceneMap;
-    std::list<ScenePtr> sceneList;
+    sf::Window window;
 
     std::set<std::string> handlerSweep;
     std::set<std::string> sceneSweep;
 
-    bool vsync;
-    bool showfps;
+    bool vSync;
+    bool showFPS;
     std::string title;
 };
 

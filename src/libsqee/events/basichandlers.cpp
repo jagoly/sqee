@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include <events/basichandlers.hpp>
+#include <app/application.hpp>
 
 namespace sq {
 
@@ -30,7 +31,7 @@ bool HandlerResize::handle(sf::Event& event) {
 
 bool HandlerFramelimit::handle(sf::Event& event) {
     if (SQ_KEYPRESS(V)) {
-        app->set_vsync(!app->get_vsync());
+        app->set_vSync(!app->get_vSync());
         return true;
     }
     return false;
