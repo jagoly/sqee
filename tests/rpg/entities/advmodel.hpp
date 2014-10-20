@@ -20,7 +20,7 @@ struct AdvMesh {
 
     void load(const std::string& _filePath);
 
-    uint wCount=0;
+    uint bCount=0, wCount=0;
     GLuint vboP, vboN, vboB, vboW, vboTc;
 
     GLuint vao;
@@ -56,8 +56,6 @@ struct AdvSkin {
     sq::Texture* texNorm;
     sq::Texture* texDiff;
     sq::Texture* texSpec;
-    sq::Texture* texAmbi;
-    bool alpha;
 
     void bind_textures();
 };

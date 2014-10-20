@@ -72,6 +72,10 @@ glm::vec3 get_tangent(glm::vec3 normal) {
     return tangent;
 }
 
+}
+
+using namespace sq;
+
 ScreenQuad::ScreenQuad() {
     GLfloat points[] = {
         -1.0, -1.0,  1.0,  -1.0,  1.0, 1.0,
@@ -97,6 +101,4 @@ void ScreenQuad::draw() {
     gl::BindVertexArray(vao);
     gl::DrawArrays(gl::TRIANGLES, 0, 6);
     gl::BindVertexArray(0);
-}
-
 }

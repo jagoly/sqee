@@ -27,15 +27,14 @@ void Framebuffer::create(std::vector<GLenum> _drawBuffers, std::vector<GLenum> _
     for (uint i = 0; i < _drawBuffers.size(); i++) {
         drawBuffers.push_back(_drawBuffers[i]);
         uint bufId = attachMap[_drawBuffers[i]];
-        cTexVec[bufId].create(gl::TEXTURE_2D, _cFormats[i], _iCFormats[i],
-                              glm::uvec3(), TexPreset::N_C);
+        cTexVec[bufId].create(gl::TEXTURE_2D, _cFormats[i], _iCFormats[i], TexPreset::N_C);
     }
 }
 
 void Framebuffer::create(GLenum _dsFormat, GLenum _idsFormat) {
     if (!fbo) gl::GenFramebuffers(1, &fbo);
 
-    dsTex.create(gl::TEXTURE_2D, _dsFormat, _idsFormat, glm::uvec3(), TexPreset::N_C);
+    dsTex.create(gl::TEXTURE_2D, _dsFormat, _idsFormat, TexPreset::N_C);
 }
 
 void Framebuffer::create(std::vector<GLenum> _drawBuffers,
@@ -58,12 +57,29 @@ void Framebuffer::resize(glm::uvec2 _size) {
 
     if (dsTex.tex) {
         dsTex.resize({size.x, size.y, 1});
+        if (dsTex.format == gl::DEPTH_STENCIL)
+            gl::FramebufferTexture2D(gl::FRAMEBUFFER, gl::STENCIL_ATTACHMENT,
+                                     gl::TEXTURE_2D, dsTex.tex, 0);
         gl::FramebufferTexture2D(gl::FRAMEBUFFER, gl::DEPTH_ATTACHMENT,
                                  gl::TEXTURE_2D, dsTex.tex, 0);
     }
 
     if (gl::CheckFramebufferStatus(gl::FRAMEBUFFER) != gl::FRAMEBUFFER_COMPLETE)
         std::cout << "ERROR: FBO resize failed" << std::endl;
+}
+
+void Framebuffer::clear() {
+    use();
+    gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT | gl::STENCIL_BUFFER_BIT);
+}
+
+void Framebuffer::clear(glm::vec4 _colour) {
+    use();
+    float prevColour[4];
+    gl::GetFloatv(gl::COLOR_CLEAR_VALUE, prevColour);
+    gl::ClearColor(_colour.r, _colour.g, _colour.b, _colour.a);
+    gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT | gl::STENCIL_BUFFER_BIT);
+    gl::ClearColor(prevColour[0], prevColour[1], prevColour[2], prevColour[3]);
 }
 
 

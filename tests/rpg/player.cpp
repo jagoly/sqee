@@ -2,18 +2,27 @@
 
 using namespace sqt;
 
-void Player::set_holders(AdvMeshHolder* _advMeshH, sq::TexHolder* _texH) {
+void Player::set_holders(AdvMeshHolder* _advMeshH, AdvSkinHolder* _advSkinH, sq::TexHolder* _texH) {
     layer = "Terrain";
 
     advMeshH = _advMeshH;
+    advSkinH = _advSkinH;
     texH = _texH;
 
-    std::string mPath = "res/models/advmeshes/characters/don";
+    std::string mPath = "res/models/meshes/characters/don";
     std::string mName = "don";
 
     if (!(mesh = advMeshH->get(mName))) {
         mesh = advMeshH->add(mName);
         mesh->load(mPath);
+    }
+
+    std::string sPath = "res/models/skins/characters/don";
+    std::string sName = "don";
+
+    if (!(skin = advSkinH->get(sName))) {
+        skin = advSkinH->add(sName);
+        skin->load(sPath, texH);
     }
 }
 

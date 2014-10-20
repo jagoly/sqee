@@ -4,6 +4,8 @@
 #include <ft2build.h>
 
 #include <app/application.hpp>
+#include <misc/containers.hpp>
+// ^ need to make fonts follow conventions of other sqee resources
 
 namespace sq {
 

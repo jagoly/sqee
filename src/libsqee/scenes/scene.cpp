@@ -1,18 +1,11 @@
 #include <scenes/scene.hpp>
 
-namespace sq {
+using namespace sq;
 
-Scene::Scene(Application* _app)
-    : app(_app) {
-}
+Scene::Scene(Application* _app) : app(_app) {}
 
-void Scene::resize(glm::uvec2) {
-}
+void Scene::resize(glm::uvec2) {}
 
-void Scene::render(float) {
-}
+void Scene::render(float) {}
 
-void Scene::update() {
-}
-
-}
+void Scene::update() {}

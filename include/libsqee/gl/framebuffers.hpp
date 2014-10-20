@@ -18,6 +18,8 @@ public:
                 GLenum _dsFormat, GLenum _idsFormat);
 
     void resize(glm::uvec2 _size);
+    void clear();
+    void clear(glm::vec4 _colour);
     void use();
     void useVP();
 

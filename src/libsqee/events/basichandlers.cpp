@@ -1,40 +1,27 @@
-#include <iostream>
-
 #include <events/basichandlers.hpp>
-#include <app/application.hpp>
 
-namespace sq {
+using namespace sq;
 
-bool HandlerClose::handle(sf::Event& event) {
-    if (event.type == sf::Event::Closed) {
-        app->running = false;
+bool HandlerClose::handle(sf::Event& _event) {
+    if (_event.type == sf::Event::Closed) {
+        app->quit(0);
         return true;
     }
     return false;
 }
 
-bool HandlerDebug::handle(sf::Event& event) {
-    if (SQ_KEYPRESS(D)) {
-        std::cout << "NYI" << std::endl;
+bool HandlerResize::handle(sf::Event& _event) {
+    if (_event.type == sf::Event::Resized) {
+        app->set_size({_event.size.width, _event.size.height});
         return true;
     }
     return false;
 }
 
-bool HandlerResize::handle(sf::Event& event) {
-    if (event.type == sf::Event::Resized) {
-        app->set_size({event.size.width, event.size.height});
+bool HandlerFramelimit::handle(sf::Event& _event) {
+    if (_event.type == sf::Event::KeyPressed && _event.key.code == sf::Keyboard::V) {
+        app->set_vsync(!app->get_vsync());
         return true;
     }
     return false;
-}
-
-bool HandlerFramelimit::handle(sf::Event& event) {
-    if (SQ_KEYPRESS(V)) {
-        app->set_vSync(!app->get_vSync());
-        return true;
-    }
-    return false;
-}
-
 }

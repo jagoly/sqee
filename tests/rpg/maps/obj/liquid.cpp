@@ -27,51 +27,53 @@ void Liquid::create() {
     gl::EnableVertexAttribArray(0);
     gl::EnableVertexAttribArray(1);
 
-    GLfloat points[18];
-    GLfloat txcrds[12];
+    float points[18];
+    float txcrds[12];
 
     xPT = floatMap["xFlow"] * floatMap["speed"];
     yPT = floatMap["yFlow"] * floatMap["speed"];
     scale = floatMap["scale"];
     wSmooth = floatMap["wSmooth"];
     tinge = {floatMap["red"], floatMap["green"], floatMap["blue"]};
+    zPos = floatMap["zPos"];
 
     float tX = floatMap["xSize"] / scale;
     float tY = floatMap["ySize"] / scale;
 
-    points[0*3+0] = points[4*3+0] = floatMap["xPos"] + floatMap["xSize"];
-    txcrds[0*2+0] = txcrds[4*2+0] = tX;
-    points[0*3+1] = points[4*3+1] = floatMap["yPos"] + floatMap["ySize"];
-    txcrds[0*2+1] = txcrds[4*2+1] = tY;
+    points[5*2+0] = points[1*2+0] = floatMap["xPos"] + floatMap["xSize"];
+    txcrds[5*2+0] = txcrds[1*2+0] = tX;
+    points[5*2+1] = points[1*2+1] = floatMap["yPos"] + floatMap["ySize"];
+    txcrds[5*2+1] = txcrds[1*2+1] = tY;
 
-    points[1*3+0] = points[3*3+0] = floatMap["xPos"];
-    txcrds[1*2+0] = txcrds[3*2+0] = 0.f;
-    points[1*3+1] = points[3*3+1] = floatMap["yPos"];
-    txcrds[1*2+1] = txcrds[3*2+1] = 0.f;
+    points[4*2+0] = points[2*2+0] = floatMap["xPos"];
+    txcrds[4*2+0] = txcrds[2*2+0] = 0.f;
+    points[4*2+1] = points[2*2+1] = floatMap["yPos"];
+    txcrds[4*2+1] = txcrds[2*2+1] = 0.f;
 
-    points[2*3+0] = floatMap["xPos"];
-    txcrds[2*2+0] = 0.f;
-    points[2*3+1] = floatMap["yPos"] + floatMap["ySize"];
-    txcrds[2*2+1] = tY;
+    points[3*2+0] = floatMap["xPos"];
+    txcrds[3*2+0] = 0.f;
+    points[3*2+1] = floatMap["yPos"] + floatMap["ySize"];
+    txcrds[3*2+1] = tY;
 
-    points[5*3+0] = floatMap["xPos"] + floatMap["xSize"];
-    txcrds[5*2+0] = tX;
-    points[5*3+1] = floatMap["yPos"];
-    txcrds[5*2+1] = 0.f;
-
-    points[0+2] = points[3+2] = points[6+2] = points[9+2] = points[12+2] = points[15+2] = floatMap["zPos"];
-
-    GLuint vboP, vboTc;
+    points[0*2+0] = floatMap["xPos"] + floatMap["xSize"];
+    txcrds[0*2+0] = tX;
+    points[0*2+1] = floatMap["yPos"];
+    txcrds[0*2+1] = 0.f;
 
     gl::GenBuffers(1, &vboP);
     gl::BindBuffer(gl::ARRAY_BUFFER, vboP);
-    gl::BufferData(gl::ARRAY_BUFFER, 18 * sizeof(GLfloat), points, gl::STATIC_DRAW);
-    gl::VertexAttribPointer(0, 3, gl::FLOAT, false, 0, nullptr);
+    gl::BufferData(gl::ARRAY_BUFFER, 12 * sizeof(float), points, gl::STATIC_DRAW);
+    gl::VertexAttribPointer(0, 2, gl::FLOAT, false, 0, nullptr);
 
     gl::GenBuffers(1, &vboTc);
     gl::BindBuffer(gl::ARRAY_BUFFER, vboTc);
-    gl::BufferData(gl::ARRAY_BUFFER, 12 * sizeof(GLfloat), txcrds, gl::STATIC_DRAW);
+    gl::BufferData(gl::ARRAY_BUFFER, 12 * sizeof(float), txcrds, gl::STATIC_DRAW);
     gl::VertexAttribPointer(1, 2, gl::FLOAT, false, 0, nullptr);
+
+    reflMat = {1, 0, 0, 0,
+               0, 1, 0, 0,
+               0, 0, -1, 0,
+               0, 0, 7.f, 1};
 }
 
 void Liquid::tick(int) {

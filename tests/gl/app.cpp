@@ -7,7 +7,6 @@ namespace sqt {
 
 GlApp::GlApp() : sq::Application({1280, 720}, false, true, true, "SQEE Tests") {
     handlerIM.append("close", new sq::HandlerClose(this));
-    handlerIM.append("debug", new sq::HandlerDebug(this));
     handlerIM.append("resize", new sq::HandlerResize(this));
     handlerIM.append("framelimit", new sq::HandlerFramelimit(this));
 

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <string>
-
 #include <gl/gl_ext_3_3.hpp>
 
 #define GLM_FORCE_RADIANS

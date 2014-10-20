@@ -100,7 +100,7 @@ void Mesh::load(const std::string& _filePath) {
 
     gl::GenBuffers(1, &ibo);
     gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ibo);
-    gl::BufferData(gl::ELEMENT_ARRAY_BUFFER, iCount * sizeof(GLuint), indices, gl::STATIC_DRAW);
+    gl::BufferData(gl::ELEMENT_ARRAY_BUFFER, iCount * sizeof(uint), indices, gl::STATIC_DRAW);
 
     gl::GenVertexArrays(1, &vao);
     gl::BindVertexArray(vao);
@@ -108,9 +108,9 @@ void Mesh::load(const std::string& _filePath) {
     gl::EnableVertexAttribArray(1);
     gl::EnableVertexAttribArray(2);
 
-    GLfloat points[vCount * 3];
-    GLfloat normals[vCount * 3];
-    GLfloat texcoords[vCount * 2];
+    float points[vCount * 3];
+    float normals[vCount * 3];
+    float texcoords[vCount * 2];
 
     for (uint i = 0; i < vCount; i++) {
         points[i*3 +0] = vertVec[i].x;
@@ -129,17 +129,17 @@ void Mesh::load(const std::string& _filePath) {
     // Buffers
     gl::GenBuffers(1, &vboP);
     gl::BindBuffer(gl::ARRAY_BUFFER, vboP);
-    gl::BufferData(gl::ARRAY_BUFFER, 3 * vCount * sizeof(GLfloat), points, gl::STATIC_DRAW);
+    gl::BufferData(gl::ARRAY_BUFFER, 3 * vCount * sizeof(float), points, gl::STATIC_DRAW);
     gl::VertexAttribPointer(0, 3, gl::FLOAT, false, 0, nullptr);
 
     gl::GenBuffers(1, &vboN);
     gl::BindBuffer(gl::ARRAY_BUFFER, vboN);
-    gl::BufferData(gl::ARRAY_BUFFER, 3 * vCount * sizeof(GLfloat), normals, gl::STATIC_DRAW);
+    gl::BufferData(gl::ARRAY_BUFFER, 3 * vCount * sizeof(float), normals, gl::STATIC_DRAW);
     gl::VertexAttribPointer(1, 3, gl::FLOAT, false, 0, nullptr);
 
     gl::GenBuffers(1, &vboTc);
     gl::BindBuffer(gl::ARRAY_BUFFER, vboTc);
-    gl::BufferData(gl::ARRAY_BUFFER, 2 * vCount * sizeof(GLfloat), texcoords, gl::STATIC_DRAW);
+    gl::BufferData(gl::ARRAY_BUFFER, 2 * vCount * sizeof(float), texcoords, gl::STATIC_DRAW);
     gl::VertexAttribPointer(2, 2, gl::FLOAT, false, 0, nullptr);
 }
 
@@ -157,7 +157,7 @@ void Mesh::bind_buffers() {
 }
 
 
-void Skin::load(std::string& _filePath, sq::TexHolder* _texH) {
+void Skin::load(const std::string& _filePath, sq::TexHolder* _texH) {
     Json::Value root = sq::get_json_from_file(_filePath+".json");
 
     alpha = root["alpha"].asBool();
@@ -201,6 +201,7 @@ void Model::create() {
 #ifdef SQEE_DEBUG
     SQ_BOOLCHECK("ambi")
     SQ_BOOLCHECK("shad")
+    SQ_BOOLCHECK("refl")
     SQ_FLOATCHECK("xPos")
     SQ_FLOATCHECK("xRot")
     SQ_FLOATCHECK("xSca")
@@ -217,6 +218,7 @@ void Model::create() {
     type = Type::Model;
 
     shad = boolMap["shad"];
+    refl = boolMap["refl"];
     std::string mPath = "res/models/meshes/" + stringMap["mesh"];
     std::string sPath = "res/models/skins/" + stringMap["skin"];
 

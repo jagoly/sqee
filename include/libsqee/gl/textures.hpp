@@ -3,10 +3,6 @@
 #include <gl/gl.hpp>
 #include <misc/containers.hpp>
 
-#ifndef SQEE_TEX
-#define SQEE_TEX "res/textures/"
-#endif
-
 namespace sq {
 
 enum class TexPreset {
@@ -17,21 +13,15 @@ class Texture {
 public:
     ~Texture();
 
-    // These are pretty crappy, compiler can't easily distinguish
-    // the second and third ctors. FIX IT
-
-    void create(GLenum _target, GLenum _format, GLenum _iFormat, glm::uvec3 _size,
-                TexPreset _preset = TexPreset::NONE);
-    void create(GLenum _target, GLenum _format, GLenum _iFormat, glm::uvec3 _size,
-                const void* _data,
+    void create(GLenum _target, GLenum _format, GLenum _iFormat,
                 TexPreset _preset = TexPreset::NONE);
     void create(GLenum _target, GLenum _format, GLenum _iFormat,
                 const std::string& _filePath,
                 TexPreset _preset = TexPreset::NONE);
 
     void resize(glm::uvec3 _size);
-    void buffer_memory(const void* _data, int _z = -1);
-    void buffer_file(const std::string& _filePath, int _z = -1);
+    void buffer_memory(const void* _data, uint _z = 0);
+    void buffer_file(const std::string& _filePath, uint _z = 0);
     void set_preset(TexPreset _preset);
 
     void bind();
@@ -43,9 +33,11 @@ public:
     GLenum format;
     GLenum iFormat;
     glm::uvec3 size;
+
 private:
     int channels;
     int dimensions;
+    GLenum dataType;
 };
 typedef ResHolder<std::string, Texture> TexHolder;
 

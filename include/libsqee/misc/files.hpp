@@ -6,8 +6,6 @@
 
 namespace sq {
 
-typedef std::pair<std::string, int> SIPair;
-
 struct Vertex {
     Vertex(float _x, float _y, float _z, float _nx, float _ny, float _nz, float _s, float _t);
     float x, y, z, nx, ny, nz, s, t, tx, ty, tz;

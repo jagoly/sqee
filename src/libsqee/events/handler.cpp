@@ -1,14 +1,9 @@
 #include <events/handler.hpp>
-#include <app/application.hpp>
 
-namespace sq {
+using namespace sq;
 
-Handler::Handler(Application* _app) {
-    app = _app;
-}
+Handler::Handler(Application* _app) : app(_app) {}
 
 bool Handler::handle(sf::Event&) {
     return false;
-}
-
 }

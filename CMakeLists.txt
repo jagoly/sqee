@@ -25,14 +25,15 @@ set(SOURCES
     "${INCDIR}/libsqee/gl/shaders.hpp"
     "${INCDIR}/libsqee/gl/textures.hpp"
     "${INCDIR}/libsqee/app/application.hpp"
-    "${INCDIR}/libsqee/events/basichandlers.hpp"
     "${INCDIR}/libsqee/events/handler.hpp"
+    "${INCDIR}/libsqee/events/basichandlers.hpp"
     "${INCDIR}/libsqee/text/font.hpp"
     "${INCDIR}/libsqee/text/text.hpp"
     "${INCDIR}/libsqee/menus/basicmenu.hpp"
     "${INCDIR}/libsqee/misc/files.hpp"
     "${INCDIR}/libsqee/misc/containers.hpp"
     "${INCDIR}/libsqee/scenes/scene.hpp"
+    "${INCDIR}/libsqee/scenes/basicscenes.hpp"
     "${INCDIR}/libsqee/sounds/soundmanager.hpp"
 
 # 3rd Party Source
@@ -56,6 +57,7 @@ set(SOURCES
     "${SRCDIR}/libsqee/misc/files.cpp"
     "${SRCDIR}/libsqee/misc/containers.cpp"
     "${SRCDIR}/libsqee/scenes/scene.cpp"
+    "${SRCDIR}/libsqee/scenes/basicscenes.cpp"
     "${SRCDIR}/libsqee/sounds/soundmanager.cpp"
 )
 

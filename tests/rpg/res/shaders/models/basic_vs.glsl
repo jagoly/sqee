@@ -11,8 +11,10 @@ layout(std140, binding = 0) uniform cameraBlock {
     vec2 zRange;
 };
 
+uniform mat4 reflMat;
 uniform mat4 modelMat;
 uniform mat4 shadProjViewMat;
+uniform float clipZ;
 
 out vec3 v_pos;
 out vec3 shadcoord;
@@ -22,16 +24,18 @@ out vec3 w_pos;
 
 void main() {
     mat3 normMat = mat3(transpose(inverse(viewMat * modelMat)));
-    texcoord = V_texcoord;
-    v_pos = vec4(viewMat * modelMat * vec4(V_pos, 1.f)).xyz;
-    shadcoord = vec4(shadProjViewMat * modelMat * vec4(V_pos, 1.f)).xyz;
 
+    v_pos = vec4(viewMat * modelMat * vec4(V_pos, 1)).xyz;
+    shadcoord = vec4(shadProjViewMat * modelMat * vec4(V_pos, 1)).xyz / 2.f + 0.5f;
+    texcoord = V_texcoord;
     vec3 tangent = normalize(cross(V_norm, vec3(0, 1, 0)));
     n = normalize(normMat * V_norm);
-    t = normalize(normMat * (tangent * -1));
-    b = normalize(normMat * (cross(V_norm, tangent) * -1));
+    t = normalize(normMat * -tangent);
+    b = normalize(normMat * -cross(V_norm, tangent));
 
-    w_pos = vec4(modelMat * vec4(V_pos, 1.f)).xyz;
+    w_pos = vec4(modelMat * vec4(V_pos, 1)).xyz;
+    gl_ClipDistance[0] = w_pos.z - clipZ;
+    gl_ClipDistance[1] = -(w_pos.z - clipZ);
 
-    gl_Position = projMat * viewMat * vec4(w_pos, 1.f);
+    gl_Position = projMat * viewMat * vec4(vec4(reflMat * vec4(w_pos, 1)).xyz, 1);
 }

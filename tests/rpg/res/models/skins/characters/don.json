@@ -1,0 +1,26 @@
+{
+  "sID": "characters/don",
+  "nWidth": 1,
+  "nHeight": 1,
+  "dWidth": 1024,
+  "dHeight": 512,
+  "sWidth": 1,
+  "sHeight": 1,
+  "groups": [
+    {
+      "norm": "8080FF",
+      "diff": "characters/don/head",
+      "spec": "000000"
+    },
+    {
+      "norm": "8080FF",
+      "diff": "characters/don/mid",
+      "spec": "000000"
+    },
+    {
+      "norm": "8080FF",
+      "diff": "characters/don/legs",
+      "spec": "000000"
+    }
+  ]
+}

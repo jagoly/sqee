@@ -1,25 +1,23 @@
 #include <iostream>
-#include <iterator>
 
 #include <gl/gl_ext_3_3.hpp>
-
 #include <app/application.hpp>
 #include <events/handler.hpp>
 #include <scenes/scene.hpp>
 
-namespace sq {
+using namespace sq;
 
-Application::Application(glm::uvec2 _size, bool _showFPS,
-                         bool _vSync, bool _resizable, const std::string& _title) {
+Application::Application(glm::uvec2 _size, bool _showfps, bool _vsync,
+                         bool _resizable, const std::string& _title) {
     int error = FT_Init_FreeType(&ftLib);
     if (error) std::cout << "ERROR: Failed to initialise FreeType" << std::endl;
 
     sf::ContextSettings settings;
-    settings.depthBits = 24;
-    settings.stencilBits = 8;
+    settings.depthBits        = 24;
+    settings.stencilBits       = 8;
     settings.antialiasingLevel = 0;
-    settings.majorVersion = 3;
-    settings.minorVersion = 3;
+    settings.majorVersion      = 3;
+    settings.minorVersion      = 3;
 
     title = _title;
 
@@ -30,25 +28,25 @@ Application::Application(glm::uvec2 _size, bool _showFPS,
 
     gl::sys::LoadFunctions();
 
+#ifdef SQEE_DEBUG
     const GLubyte* renderer = gl::GetString(gl::RENDERER);
     const GLubyte* version = gl::GetString(gl::VERSION);
     std::cout << "Renderer: " << renderer << std::endl;
     std::cout << "Version: " << version << std::endl;
-#ifdef SQEE_DEBUG
     gl::Enable(gl::DEBUG_OUTPUT);
     gl::Enable(gl::DEBUG_OUTPUT_SYNCHRONOUS);
     gl::DebugMessageCallback(sq::debug_callback, 0);
 #endif
 
-    set_vSync(_vSync);
-    set_showFPS(_showFPS);
+    set_vsync(_vsync);
+    set_showfps(_showfps);
 }
 
-void Application::run() {
-    running = true;
+int Application::run() {
+    retCode = -1;
     sf::Clock clockFT;
 
-    while (running) {
+    while (retCode == -1) {
         for (const std::string& _id : sceneSweep) {
             sceneIM.del(_id);
         } sceneSweep.clear();
@@ -72,9 +70,9 @@ void Application::run() {
 
         for (Scene::Ptr& scene : sceneIM) {
             scene->accum += ft;
-            while (scene->accum >= 1.d / double(scene->tickRate)) {
+            while (scene->accum >= scene->dt) {
                 scene->update();
-                scene->accum -= 1.d / double(scene->tickRate);
+                scene->accum -= scene->dt;
             }
         }
 
@@ -82,7 +80,7 @@ void Application::run() {
             scene->render(ft);
         }
 
-        if (showFPS) {
+        if (showfps) {
             static float fps = 60.f;
             fps = fps * 0.9f + 1.f / ft * 0.1f;
             // set something up
@@ -90,6 +88,12 @@ void Application::run() {
 
         window.display();
     }
+
+    return retCode;
+}
+
+void Application::quit(int _code) {
+    retCode = _code;
 }
 
 
@@ -103,19 +107,19 @@ glm::uvec2 Application::get_size() {
     return {window.getSize().x, window.getSize().y};
 }
 
-void Application::set_vSync(bool _vSync) {
-    window.setVerticalSyncEnabled(_vSync);
-    vSync = _vSync;
+void Application::set_vsync(bool _vsync) {
+    window.setVerticalSyncEnabled(_vsync);
+    vsync = _vsync;
 }
-bool Application::get_vSync() {
-    return vSync;
+bool Application::get_vsync() {
+    return vsync;
 }
 
-void Application::set_showFPS(bool _showFPS) {
-    showFPS = _showFPS;
+void Application::set_showfps(bool _showfps) {
+    showfps = _showfps;
 }
-bool Application::get_showFPS() {
-    return showFPS;
+bool Application::get_showfps() {
+    return showfps;
 }
 
 
@@ -125,6 +129,4 @@ void Application::sweep_handler(const std::string& _id) {
 
 void Application::sweep_scene(const std::string& _id) {
     sceneSweep.emplace(_id);
-}
-
 }

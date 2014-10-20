@@ -12,9 +12,15 @@ public:
 
     glm::vec2 flowOffsetA, flowOffsetB;
     glm::vec3 tinge;
-    GLfloat scale;
-    GLfloat wSmooth;
+    float scale;
+    float wSmooth;
+
+    GLuint vboP, vboTc;
     GLuint vao;
+
+    glm::mat4 reflMat;
+    float zPos;
+
     void tick(int _tickRate);
 private:
     float xPT, yPT;

@@ -27,3 +27,5 @@ protected:
 };
 
 }
+
+#include <app/application.hpp>

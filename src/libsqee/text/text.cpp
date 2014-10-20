@@ -5,8 +5,9 @@
 namespace sq {
 
 void draw_text(TextHandles& _handles, Font::Ptr& _font, const std::string& _text, glm::vec2 pos, glm::vec2 vp) {
-    gl::UseProgram(_handles.prog);
+    gl::Enable(gl::BLEND);
 
+    gl::UseProgram(_handles.prog);
     gl::ActiveTexture(gl::TEXTURE0);
     gl::BindTexture(gl::TEXTURE_2D, _handles.tex);
     gl::BindBuffer(gl::ARRAY_BUFFER, _handles.vbo);
@@ -27,10 +28,10 @@ void draw_text(TextHandles& _handles, Font::Ptr& _font, const std::string& _text
         float h = float(g->bitmap.rows) / vp.y*2;
 
         GLfloat box[16] = {
-            x2,   y2,   0, 0,
-            x2+w, y2,   1, 0,
             x2,   y2-h, 0, 1,
-            x2+w, y2-h, 1, 1
+            x2+w, y2-h, 1, 1,
+            x2,   y2,   0, 0,
+            x2+w, y2,   1, 0
         };
 
         gl::BufferData(gl::ARRAY_BUFFER, 16 * sizeof(GLfloat), box, gl::STREAM_DRAW);
@@ -89,7 +90,7 @@ TextHandles::TextHandles() {
     gl::GenBuffers(1, &vbo);
     gl::EnableVertexAttribArray(0);
     gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
-    gl::VertexAttribPointer(0, 4, gl::FLOAT, false, 0, 0);
+    gl::VertexAttribPointer(0, 4, gl::FLOAT, false, 0, nullptr);
 
     gl::GenTextures(1, &tex);
     gl::BindTexture(gl::TEXTURE_2D, tex);

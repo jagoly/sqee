@@ -36,8 +36,9 @@ public:
 };
 typedef sq::ResHolder<std::string, Mesh> MeshHolder;
 
+
 struct Skin {
-    void load(std::string& _filePath, sq::TexHolder* _texH);
+    void load(const std::string& _filePath, sq::TexHolder* _texH);
 
     sq::Texture* texNorm;
     sq::Texture* texDiff;
@@ -61,7 +62,7 @@ public:
 
     sq::ModBox bBox;
 
-    bool shad;
+    bool shad, refl;
     glm::vec3 pos, rot, sca;
     glm::mat4 modelMat;
 };

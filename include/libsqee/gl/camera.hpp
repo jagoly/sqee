@@ -1,7 +1,5 @@
 #pragma once
 
-#include <string>
-
 #include <gl/gl.hpp>
 
 namespace sq {
@@ -9,6 +7,7 @@ namespace sq {
 class Camera {
 public:
     Camera();
+
     void init(glm::vec3 _pos, glm::vec3 _rot, float _width, float _height,
               float yFov, float zNear, float zFar);
 

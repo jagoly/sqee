@@ -14,7 +14,7 @@ namespace sqt {
 
 class Player {
 public:
-    void set_holders(AdvMeshHolder* _advMeshH, sq::TexHolder* texHolder);
+    void set_holders(AdvMeshHolder* _advMeshH, AdvSkinHolder* _advSkinH, sq::TexHolder* texHolder);
 
     sq::Camera* camera;
     Level* level;
@@ -42,6 +42,7 @@ private:
     glm::vec3 pos;
 
     AdvMeshHolder* advMeshH;
+    AdvSkinHolder* advSkinH;
     sq::TexHolder* texH;
 
     void initMove();

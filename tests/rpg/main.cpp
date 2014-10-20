@@ -1,10 +1,6 @@
 #include "app.hpp"
 
-int main()
-{
+int main() {
     sqt::RpgApp app;
-
-    app.run();
-
-    return 0;
+    return app.run();
 }

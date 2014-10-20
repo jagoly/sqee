@@ -1,17 +1,14 @@
-#include "scenegame.hpp"
-
 #include <iostream>
 #include <random>
 #include <array>
 
 #include <libsqee/app/application.hpp>
 #include <libsqee/gl/shaders.hpp>
-#include <libsqee/gl/textures.hpp>
 #include <libsqee/gl/framebuffers.hpp>
-#include <libsqee/text/font.hpp>
-#include <libsqee/text/text.hpp>
 
-namespace sqt {
+#include "scenegame.hpp"
+
+using namespace sqt;
 
 SceneGame::SceneGame(sq::Application* _app) : sq::Scene(_app) {
     tickRate = 24;
@@ -20,13 +17,13 @@ SceneGame::SceneGame(sq::Application* _app) : sq::Scene(_app) {
     level.set_holders(&meshH, &skinH, &texH);
     level.load_map("test");
 
-    camera.init({0, 0, 0}, {0.375f, 0, 0}, 0, 0, 1.2f, 0.5f, 60.f);
-    //camera.init({0, 0, 0}, {0, 0, 0}, 0, 0, 1.17f, 0.5f, 60.f);
+    camera.init({0, 0, 0}, {0.35f, 0, 0}, 0, 0, 1.2f, 0.5f, 60.f);
+    //camera.init({0, 0, 0}, {0, 0, 0}, 0, 0, 1.17f, 0.5f, 20.f);
     camera.update_projMat();
     camera.update_viewMat();
     camera.update_ubo();
 
-    player.set_holders(&advMeshH, &texH);
+    player.set_holders(&advMeshH, &advSkinH, &texH);
     player.camera = &camera;
     player.level = &level;
     resize(app->get_size());
@@ -88,21 +85,21 @@ void SceneGame::update() {
 }
 
 void SceneGame::render(float _ft) {
+    const static glm::mat4 iMat;
+
     static bool first = true;
-    static glm::uvec2 size, margins, adjSize;
 
-    static std::minstd_rand gen(std::time(nullptr)); gen();
+    static glm::uvec2 size;
 
-    static sq::Framebuffer shadowFb;
     static sq::Framebuffer priFb;
     static sq::Framebuffer secFb;
+    static sq::Framebuffer terFb;
+    static sq::Framebuffer shadowFb;
 
     static sq::ScreenQuad screenQuad;
 
     static sq::Shader modelProg;
-    static sq::Shader modelSubProg;
     static sq::Shader advmodelProg;
-    static sq::Shader advmodelSubProg;
     static sq::Shader liquidProg;
     static sq::Shader mvpSaProg;
     static sq::Shader lumaProg;
@@ -110,38 +107,30 @@ void SceneGame::render(float _ft) {
     static sq::Shader fxaaHProg;
     static sq::Shader quadProg;
 
-    static sq::Font::Ptr font = sq::create_font("res/fonts/Ubuntu-R.ttf", app->ftLib, 48);
-    static sq::TextHandles textHandles;
+
+    /// Set things up on first call ///
 
     if (first) {
-        gl::DepthFunc(gl::LEQUAL);
-        gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
-        gl::ClearColor(0.1f, 0.05f, 0.2f, 1.f);
-
         level.load_objects();
         level.load_physics();
+
         priFb.create({gl::COLOR_ATTACHMENT0}, {gl::RGBA}, {gl::RGBA8},
                      gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT32);
         secFb.create({gl::COLOR_ATTACHMENT0}, {gl::RGBA}, {gl::RGBA8},
                      gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT32);
+        terFb.create({gl::COLOR_ATTACHMENT0}, {gl::RGBA}, {gl::RGBA8},
+                     gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT32);
 
-        // Shaders
         modelProg.load_from_file("models/basic_vs", gl::VERTEX_SHADER);
         modelProg.load_from_file("models/basic_fs", gl::FRAGMENT_SHADER);
         modelProg.build();
-        modelSubProg.load_from_file("models/basic_vs", gl::VERTEX_SHADER);
-        modelSubProg.load_from_file("models/basicsub_fs", gl::FRAGMENT_SHADER);
-        modelSubProg.build();
         advmodelProg.load_from_file("models/advanced_vs", gl::VERTEX_SHADER);
         advmodelProg.load_from_file("models/advanced_fs", gl::FRAGMENT_SHADER);
         advmodelProg.build();
-        advmodelSubProg.load_from_file("models/advanced_vs", gl::VERTEX_SHADER);
-        advmodelSubProg.load_from_file("models/advancedsub_fs", gl::FRAGMENT_SHADER);
-        advmodelSubProg.build();
-        liquidProg.load_from_file("liquids/planar_vs", gl::VERTEX_SHADER);
-        liquidProg.load_from_file("liquids/planar_fs", gl::FRAGMENT_SHADER);
+        liquidProg.load_from_file("liquids/surface_vs", gl::VERTEX_SHADER);
+        liquidProg.load_from_file("liquids/surface_fs", gl::FRAGMENT_SHADER);
         liquidProg.build();
-        mvpSaProg.load_from_file("generic/mvpsa_vs", gl::VERTEX_SHADER);
+        mvpSaProg.load_from_file("generic/mvp_vs", gl::VERTEX_SHADER);
         mvpSaProg.load_from_file("generic/dummy_fs", gl::FRAGMENT_SHADER);
         mvpSaProg.build();
         lumaProg.load_from_file("generic/quad_vs", gl::VERTEX_SHADER);
@@ -157,61 +146,53 @@ void SceneGame::render(float _ft) {
         quadProg.load_from_file("generic/passthrough_fs", gl::FRAGMENT_SHADER);
         quadProg.build();
 
-        modelProg.add_uniform("shadQuality", sq::UType::u_1i);
-        modelProg.add_uniform("modelMat", sq::UType::u_4m);
-        modelProg.add_uniform("shadProjViewMat", sq::UType::u_4m);
-        modelProg.add_uniform("skyLightDir", sq::UType::u_3f);
-        modelProg.add_uniform("skyLightDiff", sq::UType::u_3f);
-        modelProg.add_uniform("skyLightAmbi", sq::UType::u_3f);
-        modelProg.add_uniform("skyLightSpec", sq::UType::u_3f);
+        modelProg.add_uniform("shadQuality", sq::UType::i1);
+        modelProg.add_uniform("reflMat", sq::UType::m4);
+        modelProg.add_uniform("clipZ", sq::UType::f1);
+        modelProg.add_uniform("modelMat", sq::UType::m4);
+        modelProg.add_uniform("shadProjViewMat", sq::UType::m4);
+        modelProg.add_uniform("skyLightDir", sq::UType::f3);
+        modelProg.add_uniform("skyLightDiff", sq::UType::f3);
+        modelProg.add_uniform("skyLightAmbi", sq::UType::f3);
+        modelProg.add_uniform("skyLightSpec", sq::UType::f3);
 
-        modelSubProg.add_uniform("shadQuality", sq::UType::u_1i);
-        modelSubProg.add_uniform("modelMat", sq::UType::u_4m);
-        modelSubProg.add_uniform("shadProjViewMat", sq::UType::u_4m);
-        modelSubProg.add_uniform("skyLightDir", sq::UType::u_3f);
-        modelSubProg.add_uniform("skyLightDiff", sq::UType::u_3f);
-        modelSubProg.add_uniform("skyLightAmbi", sq::UType::u_3f);
-        modelSubProg.add_uniform("skyLightSpec", sq::UType::u_3f);
+        advmodelProg.add_uniform("shadQuality", sq::UType::i1);
+        advmodelProg.add_uniform("reflMat", sq::UType::m4);
+        advmodelProg.add_uniform("clipZ", sq::UType::f1);
+        advmodelProg.add_uniform("modelMat", sq::UType::m4);
+        advmodelProg.add_uniform("shadProjViewMat", sq::UType::m4);
+        advmodelProg.add_uniform("skyLightDir", sq::UType::f3);
+        advmodelProg.add_uniform("skyLightDiff", sq::UType::f3);
+        advmodelProg.add_uniform("skyLightAmbi", sq::UType::f3);
+        advmodelProg.add_uniform("skyLightSpec", sq::UType::f3);
 
-        advmodelProg.add_uniform("shadQuality", sq::UType::u_1i);
-        advmodelProg.add_uniform("modelMat", sq::UType::u_4m);
-        advmodelProg.add_uniform("shadProjViewMat", sq::UType::u_4m);
-        advmodelProg.add_uniform("skyLightDir", sq::UType::u_3f);
-        advmodelProg.add_uniform("skyLightDiff", sq::UType::u_3f);
-        advmodelProg.add_uniform("skyLightAmbi", sq::UType::u_3f);
-        advmodelProg.add_uniform("skyLightSpec", sq::UType::u_3f);
+        liquidProg.add_uniform("reflMat", sq::UType::m4);
+        liquidProg.add_uniform("zPos", sq::UType::f1);
+        liquidProg.add_uniform("flowOffset", sq::UType::f2);
+        liquidProg.add_uniform("scale", sq::UType::f1);
+        liquidProg.add_uniform("skyLightDir", sq::UType::f3);
+        liquidProg.add_uniform("skyLightSpec", sq::UType::f3);
+        liquidProg.add_uniform("swing", sq::UType::f1);
+        liquidProg.add_uniform("wSmooth", sq::UType::f1);
 
-        advmodelSubProg.add_uniform("shadQuality", sq::UType::u_1i);
-        advmodelSubProg.add_uniform("modelMat", sq::UType::u_4m);
-        advmodelSubProg.add_uniform("shadProjViewMat", sq::UType::u_4m);
-        advmodelSubProg.add_uniform("skyLightDir", sq::UType::u_3f);
-        advmodelSubProg.add_uniform("skyLightDiff", sq::UType::u_3f);
-        advmodelSubProg.add_uniform("skyLightAmbi", sq::UType::u_3f);
-        advmodelSubProg.add_uniform("skyLightSpec", sq::UType::u_3f);
+        mvpSaProg.add_uniform("projMat", sq::UType::m4);
+        mvpSaProg.add_uniform("viewMat", sq::UType::m4);
+        mvpSaProg.add_uniform("modelMat", sq::UType::m4);
 
-        liquidProg.add_uniform("flowOffset", sq::UType::u_2f);
-        liquidProg.add_uniform("scale", sq::UType::u_1f);
-        liquidProg.add_uniform("skyLightDir", sq::UType::u_3f);
-        liquidProg.add_uniform("skyLightSpec", sq::UType::u_3f);
-        liquidProg.add_uniform("swing", sq::UType::u_1f);
-        liquidProg.add_uniform("wSmooth", sq::UType::u_1f);
-        liquidProg.add_uniform("tinge", sq::UType::u_3f);
-
-        mvpSaProg.add_uniform("projMat", sq::UType::u_4m);
-        mvpSaProg.add_uniform("viewMat", sq::UType::u_4m);
-        mvpSaProg.add_uniform("modelMat", sq::UType::u_4m);
-
-        fxaaLProg.add_uniform("vpPixSize", sq::UType::u_2f);
-        fxaaHProg.add_uniform("vpPixSize", sq::UType::u_2f);
+        fxaaLProg.add_uniform("vpPixSize", sq::UType::f2);
+        fxaaHProg.add_uniform("vpPixSize", sq::UType::f2);
 
         texH.add("water_norms");
-        texH.get("water_norms")->create(gl::TEXTURE_2D_ARRAY, gl::RGB, gl::RGB8,
-                                        glm::uvec3(1024, 1024, 2), sq::TexPreset::L_R);
+        texH.get("water_norms")->create(gl::TEXTURE_2D_ARRAY, gl::RGB, gl::RGB8, sq::TexPreset::L_R);
+        texH.get("water_norms")->resize({1024, 1024, 2});
         texH.get("water_norms")->buffer_file("static/water_norm1", 0);
         texH.get("water_norms")->buffer_file("static/water_norm2", 1);
 
         first = false;
     }
+
+
+    /// Act Upon Changed Settings ///
 
     if (modSettings) {
         if (settings.shad) {
@@ -229,29 +210,31 @@ void SceneGame::render(float _ft) {
         }
         modelProg.use();
         modelProg.set_uniform_i("shadQuality", settings.shad);
-        modelSubProg.use();
-        modelSubProg.set_uniform_i("shadQuality", settings.shad);
 
         advmodelProg.use();
         advmodelProg.set_uniform_i("shadQuality", settings.shad);
-        advmodelSubProg.use();
-        advmodelSubProg.set_uniform_i("shadQuality", settings.shad);
 
         modSettings = false;
     }
 
+
+    /// Act Upon Changed Framebuffers ///
+
     if (updateFramebuffers) {
         size = app->get_size();
-        margins = {size.x / 10, size.y / 10};
-        adjSize = size + margins + margins;
         gl::Viewport(0, 0, size.x, size.y);
 
-        // Main Framebuffer
+        // Primary Framebuffer
         priFb.resize(size);
         priFb.cTexVec[0].set_preset(sq::TexPreset::L_C);
 
-        // Liquid Depth Framebuffer
+        // Secondary Framebuffer
         secFb.resize(size);
+        secFb.cTexVec[0].set_preset(sq::TexPreset::L_C);
+
+        // Tertiary Framebuffer
+        terFb.resize(size);
+        terFb.cTexVec[0].set_preset(sq::TexPreset::L_C);
 
         glm::vec2 pixSize = {1.f / float(size.x), 1.f / float(size.y)};
         fxaaLProg.use();
@@ -261,6 +244,9 @@ void SceneGame::render(float _ft) {
 
         updateFramebuffers = false;
     }
+
+
+    /// Act Upon Changed Skylight ///
 
     if (updateSkyLight) {
         skyLight.update(skyLight.dir, level.size);
@@ -272,26 +258,12 @@ void SceneGame::render(float _ft) {
         modelProg.set_uniform_fv("skyLightSpec", glm::value_ptr(skyLight.spec));
         modelProg.set_uniform_mv("shadProjViewMat", false, glm::value_ptr(skyLight.projViewMat));
 
-        modelSubProg.use();
-        modelSubProg.set_uniform_fv("skyLightDir", glm::value_ptr(skyLight.dir));
-        modelSubProg.set_uniform_fv("skyLightDiff", glm::value_ptr(skyLight.diff));
-        modelSubProg.set_uniform_fv("skyLightAmbi", glm::value_ptr(skyLight.ambi));
-        modelSubProg.set_uniform_fv("skyLightSpec", glm::value_ptr(skyLight.spec));
-        modelSubProg.set_uniform_mv("shadProjViewMat", false, glm::value_ptr(skyLight.projViewMat));
-
         advmodelProg.use();
         advmodelProg.set_uniform_fv("skyLightDir", glm::value_ptr(skyLight.dir));
         advmodelProg.set_uniform_fv("skyLightDiff", glm::value_ptr(skyLight.diff));
         advmodelProg.set_uniform_fv("skyLightAmbi", glm::value_ptr(skyLight.ambi));
         advmodelProg.set_uniform_fv("skyLightSpec", glm::value_ptr(skyLight.spec));
         advmodelProg.set_uniform_mv("shadProjViewMat", false, glm::value_ptr(skyLight.projViewMat));
-
-        advmodelSubProg.use();
-        advmodelSubProg.set_uniform_fv("skyLightDir", glm::value_ptr(skyLight.dir));
-        advmodelSubProg.set_uniform_fv("skyLightDiff", glm::value_ptr(skyLight.diff));
-        advmodelSubProg.set_uniform_fv("skyLightAmbi", glm::value_ptr(skyLight.ambi));
-        advmodelSubProg.set_uniform_fv("skyLightSpec", glm::value_ptr(skyLight.spec));
-        advmodelSubProg.set_uniform_mv("shadProjViewMat", false, glm::value_ptr(skyLight.projViewMat));
 
         liquidProg.use();
         liquidProg.set_uniform_fv("skyLightDir", glm::value_ptr(skyLight.dir));
@@ -304,23 +276,29 @@ void SceneGame::render(float _ft) {
         updateSkyLight = false;
     }
 
+    gl::DepthFunc(gl::LEQUAL);
+    gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+    gl::ClearColor(0.f, 0.f, 0.f, 1.f);
+    gl::ClearDepth(1.d);
+
     player.update_render(dt, accum);
     level.update_render(_ft);
 
 
-    /// Shadow Texture ///////////////////////////////////
+    /// Shadow Texture ///
 
     gl::Disable(gl::BLEND);
     gl::Enable(gl::DEPTH_TEST);
+    gl::Enable(gl::CULL_FACE);
 
     if (settings.shad) {
+        shadowFb.use();
+        shadowFb.useVP();
+        shadowFb.clear();
+
         mvpSaProg.use();
         mvpSaProg.set_uniform_mv("projMat", false, glm::value_ptr(skyLight.projMat));
         mvpSaProg.set_uniform_mv("viewMat", false, glm::value_ptr(skyLight.viewMat));
-        shadowFb.use();
-        shadowFb.useVP();
-        gl::Clear(gl::DEPTH_BUFFER_BIT);
-        mvpSaProg.use();
 
         for (std::pair<const std::string, std::unique_ptr<obj::Object>>& bop : level.objectMap) {
             if (bop.second->type == obj::Type::Model) {
@@ -337,83 +315,115 @@ void SceneGame::render(float _ft) {
         shadowFb.dsTex.bind(gl::TEXTURE4);
     }
 
-
-    /// Submerged Areas ///
+    /// Liquids and submerged areas ///
 
     priFb.useVP();
-    priFb.use();
-    gl::Clear(gl::DEPTH_BUFFER_BIT);
-
-    static glm::mat4 iMat;
-    mvpSaProg.use();
-    mvpSaProg.set_uniform_mv("projMat", false, glm::value_ptr(camera.projMat));
-    mvpSaProg.set_uniform_mv("viewMat", false, glm::value_ptr(camera.viewMat));
-    mvpSaProg.set_uniform_mv("modelMat", false, glm::value_ptr(iMat));
+    priFb.clear();
 
     for (std::pair<const std::string, std::unique_ptr<obj::Object>>& bo : level.objectMap) {
-        if (bo.second->type == obj::Type::Liquid) {
-            obj::Liquid* o = static_cast<obj::Liquid*>(bo.second.get());
-            gl::BindVertexArray(o->vao);
-            gl::DrawArrays(gl::TRIANGLES, 0, 6);
+        if (bo.second->type != obj::Type::Liquid) continue;
+        obj::Liquid* o = static_cast<obj::Liquid*>(bo.second.get());
+
+        gl::Enable(gl::BLEND);
+        modelProg.use();
+        modelProg.set_uniform_f("clipZ", o->zPos);
+        advmodelProg.use();
+        advmodelProg.set_uniform_mv("reflMat", false, glm::value_ptr(o->reflMat));
+        advmodelProg.set_uniform_f("clipZ", o->zPos);
+
+        //////////////////////////////////////////
+
+        gl::Enable(gl::CLIP_DISTANCE0);
+        gl::CullFace(gl::FRONT);
+
+        secFb.clear({0.5f, 0.5f, 0.7f, 1.f});
+        modelProg.use();
+        modelProg.set_uniform_mv("reflMat", false, glm::value_ptr(o->reflMat));
+        for (std::pair<const std::string, std::unique_ptr<obj::Object>>& bo2 : level.objectMap) {
+            if (bo2.second->type != obj::Type::Model) continue;
+            obj::Model* o2 = static_cast<obj::Model*>(bo2.second.get());
+            if (!o2->refl) continue;
+
+            o2->mesh->bind_buffers();
+            o2->skin->bind_textures();
+            modelProg.set_uniform_mv("modelMat", false, glm::value_ptr(o2->modelMat));
+
+            gl::DrawElements(gl::TRIANGLES, o2->mesh->iCount, gl::UNSIGNED_INT, 0);
         }
+
+        advmodelProg.use();
+        advmodelProg.set_uniform_mv("reflMat", false, glm::value_ptr(o->reflMat));
+        player.mesh->bind_buffers();
+        player.skin->bind_textures();
+        advmodelProg.set_uniform_mv("modelMat", false, glm::value_ptr(player.modelMat));
+        gl::DrawElements(gl::TRIANGLES, player.mesh->iCount, gl::UNSIGNED_INT, 0);
+
+        gl::Disable(gl::CLIP_DISTANCE0);
+        gl::CullFace(gl::BACK);
+
+        ////////////////////////////////////////
+
+        gl::Enable(gl::CLIP_DISTANCE1);
+
+        terFb.clear();
+        modelProg.use();
+        modelProg.set_uniform_mv("reflMat", false, glm::value_ptr(iMat));
+        for (std::pair<const std::string, std::unique_ptr<obj::Object>>& bo2 : level.objectMap) {
+            if (bo2.second->type != obj::Type::Model) continue;
+            obj::Model* o2 = static_cast<obj::Model*>(bo2.second.get());
+            if (!o2->refl) continue;
+
+            o2->mesh->bind_buffers();
+            o2->skin->bind_textures();
+            modelProg.set_uniform_mv("modelMat", false, glm::value_ptr(o2->modelMat));
+            gl::DrawElements(gl::TRIANGLES, o2->mesh->iCount, gl::UNSIGNED_INT, 0);
+        }
+
+        advmodelProg.use();
+        advmodelProg.set_uniform_mv("reflMat", false, glm::value_ptr(iMat));
+        player.mesh->bind_buffers();
+        player.skin->bind_textures();
+        advmodelProg.set_uniform_mv("modelMat", false, glm::value_ptr(player.modelMat));
+        gl::DrawElements(gl::TRIANGLES, player.mesh->iCount, gl::UNSIGNED_INT, 0);
+
+        gl::Disable(gl::CLIP_DISTANCE1);
+
+        ////////////////////////////////////////
+
+        gl::Disable(gl::BLEND);
+
+        priFb.use();
+        liquidProg.use();
+        secFb.cTexVec[0].bind(gl::TEXTURE0);
+        terFb.cTexVec[0].bind(gl::TEXTURE1);
+        terFb.dsTex.bind(gl::TEXTURE2);
+        glm::vec2 offset = o->flowOffsetA * float(((dt - accum) / dt)) +
+                           o->flowOffsetB * float((accum / dt));
+        liquidProg.set_uniform_mv("reflMat", false, glm::value_ptr(o->reflMat));
+        liquidProg.set_uniform_f("zPos", o->zPos);
+        liquidProg.set_uniform_fv("flowOffset", glm::value_ptr(offset));
+        liquidProg.set_uniform_f("scale", o->scale);
+        liquidProg.set_uniform_f("wSmooth", o->wSmooth);
+        liquidProg.set_uniform_f("swing", swingA * ((dt - accum) / dt) + swingB * (accum / dt));
+        gl::BindVertexArray(o->vao);
+        gl::DrawArrays(gl::TRIANGLES, 0, 6);
     }
 
-    secFb.use();
-    gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
-    modelSubProg.use();
-    priFb.dsTex.bind(gl::TEXTURE5);
-    for (std::pair<const std::string, std::unique_ptr<obj::Object>>& bo : level.objectMap) {
-        if (bo.second->type == obj::Type::Model) {
-            obj::Model* o = static_cast<obj::Model*>(bo.second.get());
-
-            o->mesh->bind_buffers();
-            o->skin->bind_textures();
-            modelSubProg.set_uniform_mv("modelMat", false, glm::value_ptr(o->modelMat));
-
-            gl::DrawElements(gl::TRIANGLES, o->mesh->iCount, gl::UNSIGNED_INT, 0);
-        }
-    }
-
-    advmodelSubProg.use();
-    player.mesh->bind_buffers();
-    advmodelSubProg.set_uniform_mv("modelMat", false, glm::value_ptr(player.modelMat));
-    gl::DrawElements(gl::TRIANGLES, player.mesh->iCount, gl::UNSIGNED_INT, 0);
-
-
-    /// Liquids ///
-
-    priFb.use();
-    gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
-    liquidProg.use();
-    texH.get("water_norms")->bind(gl::TEXTURE0);
-    secFb.cTexVec[0].bind(gl::TEXTURE1);
-    for (std::pair<const std::string, std::unique_ptr<obj::Object>>& bo : level.objectMap) {
-        if (bo.second->type == obj::Type::Liquid) {
-            obj::Liquid* o = static_cast<obj::Liquid*>(bo.second.get());
-
-            glm::vec2 offset = o->flowOffsetA * float(((dt - accum) / dt)) +
-                               o->flowOffsetB * float((accum / dt));
-            liquidProg.set_uniform_fv("flowOffset", glm::value_ptr(offset));
-            liquidProg.set_uniform_f("scale", o->scale);
-            liquidProg.set_uniform_f("wSmooth", o->wSmooth);
-            liquidProg.set_uniform_f("swing", swingA * ((dt - accum) / dt) + swingB * (accum / dt));
-            liquidProg.set_uniform_fv("tinge", glm::value_ptr(o->tinge));
-            gl::BindVertexArray(o->vao);
-            gl::DrawArrays(gl::TRIANGLES, 0, 6);
-        }
-    }
 
     /// Characters and Player ///
+
     advmodelProg.use();
+    advmodelProg.set_uniform_mv("reflMat", false, glm::value_ptr(iMat));
     player.mesh->bind_buffers();
+    player.skin->bind_textures();
     advmodelProg.set_uniform_mv("modelMat", false, glm::value_ptr(player.modelMat));
     gl::DrawElements(gl::TRIANGLES, player.mesh->iCount, gl::UNSIGNED_INT, 0);
 
 
-    /// Map Models ///
-
     /// Map Models Opaque ///
+
     modelProg.use();
+    modelProg.set_uniform_mv("reflMat", false, glm::value_ptr(iMat));
     for (std::pair<const std::string, std::unique_ptr<obj::Object>>& bo : level.objectMap) {
         if (bo.second->type == obj::Type::Model) {
             obj::Model* o = static_cast<obj::Model*>(bo.second.get());
@@ -429,6 +439,7 @@ void SceneGame::render(float _ft) {
 
 
     /// Map Models Translucent ///
+
     gl::Enable(gl::BLEND);
     for (std::pair<const std::string, std::unique_ptr<obj::Object>>& bo : level.objectMap) {
         if (bo.second->type == obj::Type::Model) {
@@ -442,41 +453,32 @@ void SceneGame::render(float _ft) {
             gl::DrawElements(gl::TRIANGLES, o->mesh->iCount, gl::UNSIGNED_INT, 0);
         }
     }
+
+
+    /// FXAA and Screen Output ///
+
     gl::Disable(gl::BLEND);
-
-
-    /// FXAA ///
     gl::Disable(gl::DEPTH_TEST);
-    if (settings.aa) { // Do FXAA
-        /// Put Luma into Alpha ///
+    if (settings.aa) {
         lumaProg.use();
         priFb.cTexVec[0].bind(gl::TEXTURE0);
         screenQuad.draw();
 
-        /// FXAA and screen output ///
         gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
         gl::Clear(gl::COLOR_BUFFER_BIT);
         if (settings.aa == 1) fxaaLProg.use();
         else if (settings.aa == 2) fxaaHProg.use();
         screenQuad.draw();
-    } else { // No FXAA
+    } else {
         gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
         gl::Clear(gl::COLOR_BUFFER_BIT);
         quadProg.use();
         priFb.cTexVec[0].bind(gl::TEXTURE0);
         screenQuad.draw();
     }
-
-    gl::Viewport(0, 0, size.x, size.y);
-    gl::Enable(gl::BLEND);
-
-    static float fps = 60.f;
-    fps = fps * 0.9f + 1.f / _ft * 0.1f;
-    sq::draw_text(textHandles, font, "FPS: "+std::to_string(int(fps)), {16, size.y - 32}, size);
 }
+
 
 bool HandlerGame::handle(sf::Event&) {
     return false;
-}
-
 }

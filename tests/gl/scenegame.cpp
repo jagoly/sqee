@@ -2,7 +2,7 @@
 
 #include "scenegame.hpp"
 
-namespace sqt {
+using namespace sqt;
 
 SceneGame::SceneGame(sq::Application* _app) : sq::Scene(_app) {
     tickRate = 24;
@@ -18,11 +18,9 @@ void SceneGame::update() {
 }
 
 void SceneGame::render(float) {
-    static bool first = true;
+
 }
 
 bool HandlerGame::handle(sf::Event&) {
     return false;
-}
-
 }
