@@ -12,57 +12,57 @@ set(INCDIR "${PROJECT_SOURCE_DIR}/include")
 
 set(SOURCES
 # 3rd Party Headers
-    "${INCDIR}/libsqee/redist/jsoncpp.hpp"
-    "${INCDIR}/libsqee/redist/stb_image.hpp"
+    "${INCDIR}/sqee/redist/jsoncpp.hpp"
+    "${INCDIR}/sqee/redist/stb_image.hpp"
 
 # SQEE Headers
-    "${INCDIR}/libsqee/defs.hpp"
-    "${INCDIR}/libsqee/gl/gl_ext_3_3.hpp"
-    "${INCDIR}/libsqee/gl/gl.hpp"
-    "${INCDIR}/libsqee/gl/bounds.hpp"
-    "${INCDIR}/libsqee/gl/camera.hpp"
-    "${INCDIR}/libsqee/gl/framebuffers.hpp"
-    "${INCDIR}/libsqee/gl/shaders.hpp"
-    "${INCDIR}/libsqee/gl/textures.hpp"
-    "${INCDIR}/libsqee/app/application.hpp"
-    "${INCDIR}/libsqee/events/handler.hpp"
-    "${INCDIR}/libsqee/events/basichandlers.hpp"
-    "${INCDIR}/libsqee/text/font.hpp"
-    "${INCDIR}/libsqee/text/text.hpp"
-    "${INCDIR}/libsqee/menus/basicmenu.hpp"
-    "${INCDIR}/libsqee/misc/files.hpp"
-    "${INCDIR}/libsqee/misc/containers.hpp"
-    "${INCDIR}/libsqee/scenes/scene.hpp"
-    "${INCDIR}/libsqee/scenes/basicscenes.hpp"
-    "${INCDIR}/libsqee/sounds/soundmanager.hpp"
+    "${INCDIR}/sqee/defs.hpp"
+    "${INCDIR}/sqee/gl/gl_ext_3_3.hpp"
+    "${INCDIR}/sqee/gl/gl.hpp"
+    "${INCDIR}/sqee/gl/bounds.hpp"
+    "${INCDIR}/sqee/gl/camera.hpp"
+    "${INCDIR}/sqee/gl/framebuffers.hpp"
+    "${INCDIR}/sqee/gl/shaders.hpp"
+    "${INCDIR}/sqee/gl/textures.hpp"
+    "${INCDIR}/sqee/app/application.hpp"
+    "${INCDIR}/sqee/events/handler.hpp"
+    "${INCDIR}/sqee/events/basichandlers.hpp"
+    "${INCDIR}/sqee/text/font.hpp"
+    "${INCDIR}/sqee/text/text.hpp"
+    "${INCDIR}/sqee/menus/basicmenu.hpp"
+    "${INCDIR}/sqee/misc/files.hpp"
+    "${INCDIR}/sqee/misc/containers.hpp"
+    "${INCDIR}/sqee/scenes/scene.hpp"
+    "${INCDIR}/sqee/scenes/basicscenes.hpp"
+    "${INCDIR}/sqee/sounds/soundmanager.hpp"
 
 # 3rd Party Source
-    "${SRCDIR}/libsqee/redist/jsoncpp.cpp"
-    "${SRCDIR}/libsqee/redist/stb_image.cpp"
+    "${SRCDIR}/sqee/redist/jsoncpp.cpp"
+    "${SRCDIR}/sqee/redist/stb_image.cpp"
 
 # SQEE Source
-    "${SRCDIR}/libsqee/gl/gl_ext_3_3.cpp"
-    "${SRCDIR}/libsqee/gl/gl.cpp"
-    "${SRCDIR}/libsqee/gl/bounds.cpp"
-    "${SRCDIR}/libsqee/gl/camera.cpp"
-    "${SRCDIR}/libsqee/gl/framebuffers.cpp"
-    "${SRCDIR}/libsqee/gl/shaders.cpp"
-    "${SRCDIR}/libsqee/gl/textures.cpp"
-    "${SRCDIR}/libsqee/app/application.cpp"
-    "${SRCDIR}/libsqee/events/basichandlers.cpp"
-    "${SRCDIR}/libsqee/events/handler.cpp"
-    "${SRCDIR}/libsqee/text/font.cpp"
-    "${SRCDIR}/libsqee/text/text.cpp"
-    "${SRCDIR}/libsqee/menus/basicmenu.cpp"
-    "${SRCDIR}/libsqee/misc/files.cpp"
-    "${SRCDIR}/libsqee/misc/containers.cpp"
-    "${SRCDIR}/libsqee/scenes/scene.cpp"
-    "${SRCDIR}/libsqee/scenes/basicscenes.cpp"
-    "${SRCDIR}/libsqee/sounds/soundmanager.cpp"
+    "${SRCDIR}/sqee/gl/gl_ext_3_3.cpp"
+    "${SRCDIR}/sqee/gl/gl.cpp"
+    "${SRCDIR}/sqee/gl/bounds.cpp"
+    "${SRCDIR}/sqee/gl/camera.cpp"
+    "${SRCDIR}/sqee/gl/framebuffers.cpp"
+    "${SRCDIR}/sqee/gl/shaders.cpp"
+    "${SRCDIR}/sqee/gl/textures.cpp"
+    "${SRCDIR}/sqee/app/application.cpp"
+    "${SRCDIR}/sqee/events/basichandlers.cpp"
+    "${SRCDIR}/sqee/events/handler.cpp"
+    "${SRCDIR}/sqee/text/font.cpp"
+    "${SRCDIR}/sqee/text/text.cpp"
+    "${SRCDIR}/sqee/menus/basicmenu.cpp"
+    "${SRCDIR}/sqee/misc/files.cpp"
+    "${SRCDIR}/sqee/misc/containers.cpp"
+    "${SRCDIR}/sqee/scenes/scene.cpp"
+    "${SRCDIR}/sqee/scenes/basicscenes.cpp"
+    "${SRCDIR}/sqee/sounds/soundmanager.cpp"
 )
 
-add_library(libsqee SHARED ${SOURCES})
-include_directories("${PROJECT_SOURCE_DIR}/include/libsqee")
+add_library(sqee SHARED ${SOURCES})
+include_directories("${PROJECT_SOURCE_DIR}/include/sqee")
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     include_directories("${PROJECT_SOURCE_DIR}/extlibs/include")
@@ -73,7 +73,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     find_library(BOOST_SYSTEM_LIB boost_system "${PROJECT_SOURCE_DIR}/extlibs/lib")
     find_library(BOOST_FILESYSTEM_LIB boost_filesystem "${PROJECT_SOURCE_DIR}/extlibs/lib")
     find_library(FREETYPE_LIB freetype "${PROJECT_SOURCE_DIR}/extlibs/lib")
-    target_link_libraries(libsqee
+    target_link_libraries(sqee
         ${SFML_SYSTEM_LIB} ${SFML_WINDOW_LIB} ${SFML_AUDIO_LIB}
         ${BOOST_SYSTEM_LIB} ${BOOST_FILESYSTEM_LIB}
         ${FREETYPE_LIB} openGL32
@@ -81,7 +81,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 else ()
     find_package(Freetype REQUIRED)
     include_directories(${FREETYPE_INCLUDE_DIRS})
-    target_link_libraries(libsqee
+    target_link_libraries(sqee
         sfml-window sfml-system sfml-audio
         boost_filesystem boost_system
         freetype GL

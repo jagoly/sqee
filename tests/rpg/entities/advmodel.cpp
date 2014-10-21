@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
 
-#include <libsqee/misc/files.hpp>
+#include <sqee/misc/files.hpp>
 
 #include "advmodel.hpp"
 

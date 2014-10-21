@@ -7,7 +7,7 @@ set(SOURCES
 )
 
 add_executable(gl ${SOURCES})
-target_link_libraries(gl libsqee)
+target_link_libraries(gl sqee)
 include_directories("${PROJECT_SOURCE_DIR}/include")
 
 file(COPY "res" DESTINATION "${CMAKE_BINARY_DIR}/build/tests/gl/")

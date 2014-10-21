@@ -1,7 +1,7 @@
 #include <iostream>
 
-#include <libsqee/events/basichandlers.hpp>
-#include <libsqee/scenes/basicscenes.hpp>
+#include <sqee/events/basichandlers.hpp>
+#include <sqee/scenes/basicscenes.hpp>
 
 #include "app.hpp"
 #include "scenegame.hpp"

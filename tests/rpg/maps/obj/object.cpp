@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include <libsqee/gl/gl.hpp>
+#include <sqee/gl/gl.hpp>
 
 #include "object.hpp"
 #include "model.hpp"

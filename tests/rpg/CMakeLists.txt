@@ -16,7 +16,7 @@ set(SOURCES
 )
 
 add_executable(rpg ${SOURCES})
-target_link_libraries(rpg libsqee)
+target_link_libraries(rpg sqee)
 include_directories("${PROJECT_SOURCE_DIR}/include")
 
 file(COPY "res" DESTINATION "${CMAKE_BINARY_DIR}/build/tests/rpg/")

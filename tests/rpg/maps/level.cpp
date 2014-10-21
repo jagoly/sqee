@@ -1,7 +1,7 @@
 #include <iostream>
 
-#include <libsqee/redist/stb_image.hpp>
-#include <libsqee/misc/files.hpp>
+#include <sqee/redist/stb_image.hpp>
+#include <sqee/misc/files.hpp>
 
 #include "level.hpp"
 

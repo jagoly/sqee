@@ -1,9 +1,9 @@
 #include <vector>
 #include <memory>
 
-#include <libsqee/gl/gl.hpp>
-#include <libsqee/gl/textures.hpp>
-#include <libsqee/misc/containers.hpp>
+#include <sqee/gl/gl.hpp>
+#include <sqee/gl/textures.hpp>
+#include <sqee/misc/containers.hpp>
 
 namespace sqt {
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <libsqee/gl/gl.hpp>
+#include <sqee/gl/gl.hpp>
 
 namespace sqt {
 

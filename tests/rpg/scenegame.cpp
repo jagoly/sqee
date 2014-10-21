@@ -2,9 +2,9 @@
 #include <random>
 #include <array>
 
-#include <libsqee/app/application.hpp>
-#include <libsqee/gl/shaders.hpp>
-#include <libsqee/gl/framebuffers.hpp>
+#include <sqee/app/application.hpp>
+#include <sqee/gl/shaders.hpp>
+#include <sqee/gl/framebuffers.hpp>
 
 #include "scenegame.hpp"
 

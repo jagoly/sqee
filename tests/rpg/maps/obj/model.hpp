@@ -1,6 +1,6 @@
 #pragma once
 
-#include <libsqee/gl/bounds.hpp>
+#include <sqee/gl/bounds.hpp>
 
 #include "object.hpp"
 

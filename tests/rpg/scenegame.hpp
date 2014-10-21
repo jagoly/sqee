@@ -1,11 +1,11 @@
 #pragma once
 
-#include <libsqee/gl/gl.hpp>
-#include <libsqee/gl/textures.hpp>
-#include <libsqee/gl/camera.hpp>
-#include <libsqee/misc/containers.hpp>
-#include <libsqee/scenes/scene.hpp>
-#include <libsqee/events/handler.hpp>
+#include <sqee/gl/gl.hpp>
+#include <sqee/gl/textures.hpp>
+#include <sqee/gl/camera.hpp>
+#include <sqee/misc/containers.hpp>
+#include <sqee/scenes/scene.hpp>
+#include <sqee/events/handler.hpp>
 
 #include "rendergeneral.hpp"
 #include "player.hpp"
