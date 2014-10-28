@@ -7,11 +7,7 @@
 
 using namespace sqt;
 
-void Level::set_holders(obj::MeshHolder* _meshH, obj::SkinHolder* _skinH, sq::TexHolder* _texH) {
-    meshH = _meshH; skinH = _skinH; texH = _texH;
-}
-
-bool Level::load_map(std::string _mapPath) {
+bool Level::load_map(const std::string& _mapPath) {
     mapPath = _mapPath;
 
     // TODO: Checks to make sure all resources required in map.json are available
@@ -43,18 +39,18 @@ bool Level::load_physics() {
             free(data); return true;
         }
 
-        heightMaps[key].second.resize(h/4);
-        for (std::vector<std::array<unsigned char, 16>>& vec : heightMaps[key].second) {
+        hlMap[key].second.resize(h/4);
+        for (std::vector<std::array<unsigned char, 16>>& vec : hlMap[key].second) {
             vec.resize(w/4);
         }
 
         for (int ry = 0; ry < h; ry++) {
             int y = h-1 - ry;
             for (int x = 0; x < w; x++) {
-                heightMaps[key].first.x = root["bPhysics"][key][1].asInt();
-                heightMaps[key].first.y = root["bPhysics"][key][2].asInt();
-                heightMaps[key].first.z = root["bPhysics"][key][3].asInt();
-                heightMaps[key].second[y/4][x/4][y%4*4 + x%4] = data[ry*w + x];
+                hlMap[key].first.x = root["bPhysics"][key][1].asInt();
+                hlMap[key].first.y = root["bPhysics"][key][2].asInt();
+                hlMap[key].first.z = root["bPhysics"][key][3].asInt();
+                hlMap[key].second[y/4][x/4][y%4*4 + x%4] = data[ry*w + x];
             }
         }
         free(data);
@@ -69,24 +65,51 @@ bool Level::load_physics() {
     return false;
 }
 
-void Level::tick(int _tickRate) {
+void Level::tick() {
     for (std::pair<const std::string, std::unique_ptr<obj::Object>>& o : objectMap) {
-        o.second->tick(_tickRate);
+        o.second->tick();
     }
 }
 
-void Level::update_render(float _ft) {
+void Level::calc(double _accum) {
 
 }
 
-float Level::get_subtile_z(int _x, int _y, std::string _layer) {
-    return (float(heightMaps[_layer].second
-                  [_y/4 - heightMaps[_layer].first.y][_x/4 - heightMaps[_layer].first.x][_y%4*4 + _x%4])
-            + heightMaps[_layer].first.z) / 16.f;
+float Level::get_max4_z(int _x, int _y, const std::string& _layer) {
+    std::pair<glm::ivec3, HeightLayer>& hlPair = hlMap[_layer];
+
+    int xT = _x/4 - hlPair.first.x,
+        yT = _y/4 - hlPair.first.y;
+    char xO = _x%4,
+         yO = _y%4;
+
+    int xT_0 = xT,
+        xT_1 = xT;
+    char xO_0 = xO-1,
+         xO_1 = xO;
+    int yT_0 = yT,
+        yT_1 = yT;
+    char yO_0 = yO-1,
+         yO_1 = yO;
+
+    if (xO_0 == -1) { xO_0 = 3; xT_0--; }
+    else
+    if (xO_1 == 4)  { xO_1 = 0; xT_1++; }
+
+    if (yO_0 == -1) { yO_0 = 3; yT_0--; }
+    else
+    if (yO_1 == 4)  { yO_1 = 0; yT_1++; }
+
+    uchar val = hlPair.second[yT_0][xT_0][yO_0*4 + xO_0];
+    val = std::max(val, hlPair.second[yT_0][xT_1][yO_0*4 + xO_1]);
+    val = std::max(val, hlPair.second[yT_1][xT_0][yO_1*4 + xO_0]);
+    val = std::max(val, hlPair.second[yT_1][xT_1][yO_1*4 + xO_1]);
+
+    return float(hlPair.first.z + val) / 16.f;
 }
 
-std::string Level::get_join(int _x, int _y, std::string _layer) {
-    std::pair<std::string, std::pair<int,int>> val = {_layer, {_x - heightMaps[_layer].first.x, _y - heightMaps[_layer].first.y}};
+std::string Level::get_join(int _x, int _y, const std::string& _layer) {
+    std::pair<std::string, std::pair<int,int>> val = {_layer, {_x - hlMap[_layer].first.x, _y - hlMap[_layer].first.y}};
     if (joinMap.count(val)) {
         return joinMap[val].first;
     }

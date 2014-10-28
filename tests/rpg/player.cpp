@@ -1,95 +1,88 @@
+#include <iostream>
+
 #include "player.hpp"
 
 using namespace sqt;
 
-void Player::set_holders(AdvMeshHolder* _advMeshH, AdvSkinHolder* _advSkinH, sq::TexHolder* _texH) {
+void Player::test_init() {
     layer = "Terrain";
 
-    advMeshH = _advMeshH;
-    advSkinH = _advSkinH;
-    texH = _texH;
+    skeleton.load("res/models/anims/characters/don/walking");
+    skel = SkeletonAnim::Ptr(new SkeletonAnim(skeleton));
+    skel->tick();
 
     std::string mPath = "res/models/meshes/characters/don";
     std::string mName = "don";
 
-    if (!(mesh = advMeshH->get(mName))) {
-        mesh = advMeshH->add(mName);
+    if (!(mesh = advMeshH.get(mName))) {
+        mesh = advMeshH.add(mName);
         mesh->load(mPath);
     }
 
     std::string sPath = "res/models/skins/characters/don";
     std::string sName = "don";
 
-    if (!(skin = advSkinH->get(sName))) {
-        skin = advSkinH->add(sName);
+    if (!(skin = advSkinH.get(sName))) {
+        skin = advSkinH.add(sName);
         skin->load(sPath, texH);
     }
 }
 
-void Player::initMove() {
-    gridPre = gridCur;
-    zPre = zCur;
-    if      (keys[0] == 0) gridCur.y += 1;
-    else if (keys[0] == 1) gridCur.x += 1;
-    else if (keys[0] == 2) gridCur.y -= 1;
-    else if (keys[0] == 3) gridCur.x -= 1;
+void Player::tick(char _moveDir, Level::Ptr& _level) {
+    skel->tick();
 
-    zCur =                level->get_subtile_z(gridCur.x+1, gridCur.y+1, layer);
-    zCur = std::max(zCur, level->get_subtile_z(gridCur.x+2, gridCur.y+1, layer));
-    zCur = std::max(zCur, level->get_subtile_z(gridCur.x+1, gridCur.y+2, layer));
-    zCur = std::max(zCur, level->get_subtile_z(gridCur.x+2, gridCur.y+2, layer));
+    static uint prgrs8;
+    static glm::ivec2 gridPre;
+    static int xDir = 0, yDir = 0;
+    static int xSub = 0, ySub = 0;
 
-    progress = 0;
-    endTime = 1;
-    moving = true;
-    moveNext = false;
-}
+    posCrnt = posNext;
+    if (!moving && _moveDir != -1) {
+        // add collision code here
+        gridPre = gridPos;
+        moving = true;
+        prgrs8 = 0;
+        if      (_moveDir == 0) gridPos.y += 1;
+        else if (_moveDir == 1) gridPos.x += 1;
+        else if (_moveDir == 2) gridPos.y -= 1;
+        else if (_moveDir == 3) gridPos.x -= 1;
+        else throw; // Invalid dir
 
-void Player::update_logic(std::array<ushort, 4> _keys) {
-    static ushort subTiles = 3;
-    progress += 1;
-    if (progress == endTime)
-        moving = false;
+        xDir = gridPos.x - gridPre.x;
+        yDir = gridPos.y - gridPre.y;
+        xSub = gridPre.x * 4 + 2;
+        ySub = gridPre.y * 4 + 2;
+    }
 
-    if (!moving) {
-        if (subTiles != 3) {
-            subTiles += 1;
-            initMove();
-            return;
+    if (moving) {
+        int prgrs4 = ++prgrs8 / 2;
+
+        posNext.z = _level->get_max4_z(xSub + prgrs4 * xDir, ySub + prgrs4 * yDir, layer);
+        if (prgrs8 % 2) {
+            posNext.z += _level->get_max4_z(xSub + (prgrs4+1) * xDir, ySub + (prgrs4+1) * yDir, layer);
+            posNext.z /= 2.f;
         }
-        if (moveNext) {
-            keys = _keys;
-            layer = level->get_join(gridCur.x / 4, gridCur.y / 4, layer);
-            subTiles = 0;
-            initMove();
-        } else {
-            camera->pos.x = gridCur.x/4.f + 0.5f;
-            camera->pos.y = gridCur.y/4.f - 3.f;
-            camera->pos.z = zCur + 8.f;
-            camera->update_projMat();
-            camera->update_viewMat();
-            camera->update_ubo();
-            modelMat = glm::translate(glm::mat4(), glm::vec3(gridCur.x/4.f +0.5f, gridCur.y/4.f +0.5f, zCur));
-        }
-        return;
+
+        posNext.x = glm::mix(float(gridPre.x), float(gridPos.x), float(prgrs8) / 8.f);
+        posNext.y = glm::mix(float(gridPre.y), float(gridPos.y), float(prgrs8) / 8.f);
+
+        if (prgrs8 == 8) moving = false;
     }
 }
 
-void Player::update_render(double dt, double accum) {
-    if (!moving) return;
+void Player::calc(double _accum, sq::Camera& _camera) {
+    skel->calc(_accum);
 
-    glm::vec3 pos1 = glm::vec3(gridPre.x/4.f, gridPre.y/4.f, zPre) * (1.f - float(progress) / float(endTime))
-                   + glm::vec3(gridCur.x/4.f, gridCur.y/4.f, zCur) * float(progress) / float(endTime);
-    glm::vec3 pos2 = glm::vec3(gridPre.x/4.f, gridPre.y/4.f, zPre) * (1.f - float(progress+1) / float(endTime))
-                   + glm::vec3(gridCur.x/4.f, gridCur.y/4.f, zCur) * float(progress+1) / float(endTime);
+    const double dt = 1.d / 24.d;
+    glm::vec3 pos = glm::mix(posCrnt, posNext, _accum / dt);
+    pos.x += 0.5f; pos.y += 0.5f;
 
-    pos = pos1 * float((dt - accum) / dt) + pos2 * float(accum / dt);
+    _camera.pos.x = pos.x;
+    _camera.pos.y = pos.y - 3.f;
+    _camera.pos.z = pos.z + 8.f;
+    _camera.update_projMat();
+    _camera.update_viewMat();
+    _camera.update_ubo();
 
-    camera->pos.x = pos.x + 0.5f;
-    camera->pos.y = pos.y - 3.f;
-    camera->pos.z = pos.z + 8.f;
-    camera->update_projMat();
-    camera->update_viewMat();
-    camera->update_ubo();
-    modelMat = glm::translate(glm::mat4(), {pos.x+0.5f, pos.y+0.5f, pos.z});
+    modelMat = glm::translate(sq::iMat4, pos);
 }

@@ -12,7 +12,7 @@ namespace sqt {
 namespace obj {
 
 Object* create(const Json::Value& _json,
-               MeshHolder* _meshH, SkinHolder* _skinH, sq::TexHolder* _texH,
+               MeshHolder& _meshH, SkinHolder& _skinH, sq::TexHolder& _texH,
                const std::string& _mapPath, const std::string& _uid) {
 #ifdef SQEE_DEBUG
     if (!_json["type"].isString()) throw;
@@ -46,13 +46,3 @@ Object* create(const Json::Value& _json,
 
 }
 }
-
-using namespace sqt::obj;
-
-Object::Object(MeshHolder* _meshH, SkinHolder* _skinH, sq::TexHolder* _texH,
-               const std::string& _mapPath, const std::string& _uid) {
-    meshH = _meshH; skinH = _skinH; texH = _texH;
-    mapPath = _mapPath; uid = _uid;
-}
-
-void Object::tick(int) {}

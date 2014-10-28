@@ -2,6 +2,6 @@
   "norm": "8080FF",
   "diff": "testmap/terrain",
   "spec": "000000",
-  "ambi": "FF",
+  "ambi": "testmap/terrain",
   "alpha": false
 }

@@ -4,8 +4,6 @@
 #include <map>
 #include <list>
 
-#include <gl/gl.hpp>
-
 namespace sq {
 
 template <class Tk, class Tv>
@@ -24,7 +22,8 @@ public:
     }
 
     Tv* get(const Tk& _key) {
-        if (has(_key)) return map.at(_key).get();
+        if (has(_key))
+            return map.at(_key).get();
         return nullptr;
     }
 
@@ -36,7 +35,7 @@ public:
         map.erase(_key);
     }
 
-private:
+protected:
     std::map<Tk, std::unique_ptr<Tv>> map;
 };
 
@@ -80,7 +79,7 @@ public:
         return map.at(_key);
     }
 
-private:
+protected:
     std::list<Tv> list;
     std::map<Tk, Tv&> map;
 };

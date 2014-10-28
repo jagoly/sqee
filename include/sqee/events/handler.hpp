@@ -12,12 +12,15 @@ class Handler {
 public:
     typedef std::unique_ptr<Handler> Ptr;
 
-    Handler(Application* _app);
+    Handler(Application& _app)
+        : app(_app) {}
 
-    virtual bool handle(sf::Event& event);
+    virtual bool handle(const sf::Event& event) {
+        return false;
+    }
 
 protected:
-    Application* app;
+    Application& app;
 };
 
 }

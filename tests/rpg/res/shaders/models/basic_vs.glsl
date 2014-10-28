@@ -23,16 +23,16 @@ out vec3 n, t, b;
 out vec3 w_pos;
 
 void main() {
-    mat3 normMat = mat3(transpose(inverse(viewMat * modelMat)));
-
-    v_pos = vec4(viewMat * modelMat * vec4(V_pos, 1)).xyz;
     shadcoord = vec4(shadProjViewMat * modelMat * vec4(V_pos, 1)).xyz / 2.f + 0.5f;
     texcoord = V_texcoord;
+
+    mat3 normMat = mat3(transpose(inverse(viewMat * modelMat)));
     vec3 tangent = normalize(cross(V_norm, vec3(0, 1, 0)));
     n = normalize(normMat * V_norm);
     t = normalize(normMat * -tangent);
     b = normalize(normMat * -cross(V_norm, tangent));
 
+    v_pos = vec4(viewMat * modelMat * vec4(V_pos, 1)).xyz;
     w_pos = vec4(modelMat * vec4(V_pos, 1)).xyz;
     gl_ClipDistance[0] = w_pos.z - clipZ;
     gl_ClipDistance[1] = -(w_pos.z - clipZ);

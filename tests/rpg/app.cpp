@@ -14,13 +14,13 @@ RpgApp::RpgApp() : sq::Application({1280, 720}, false, true, true, "SQEE RPG Eng
     std::cout << val << std::endl;
 
 
-    handlerIM.append("close", new sq::HandlerClose(this));
-    handlerIM.append("resize", new sq::HandlerResize(this));
-    handlerIM.append("framelimit", new sq::HandlerFramelimit(this));
+    handlerIM.append("close", new sq::HandlerClose(*this));
+    handlerIM.append("resize", new sq::HandlerResize(*this));
+    handlerIM.append("framelimit", new sq::HandlerFramelimit(*this));
 
-    sceneIM.append("game", new SceneGame(this));
-    sceneIM.append("fps", new sq::SceneFPS(this));
-    handlerIM.append("game", new HandlerGame(this));
+    sceneIM.append("game", new SceneGame(*this));
+    sceneIM.append("fps", new sq::SceneFPS(*this));
+    handlerIM.append("game", new HandlerGame(*this));
 }
 
 }

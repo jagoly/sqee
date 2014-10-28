@@ -38,7 +38,7 @@ typedef sq::ResHolder<std::string, Mesh> MeshHolder;
 
 
 struct Skin {
-    void load(const std::string& _filePath, sq::TexHolder* _texH);
+    void load(const std::string& _filePath, sq::TexHolder& _texH);
 
     sq::Texture* texNorm;
     sq::Texture* texDiff;

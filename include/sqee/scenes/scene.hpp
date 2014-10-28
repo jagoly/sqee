@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include <glm/glm.hpp>
+#include <gl/gl.hpp>
 
 namespace sq {
 
@@ -12,18 +12,18 @@ class Scene {
 public:
     typedef std::unique_ptr<Scene> Ptr;
 
-    Scene(Application* _app);
+    Scene(Application& _app)
+        : app(_app) {}
 
     double accum = 0.d;
-    int tickRate = 60;
-    double dt = 1.d/60.d;
+    uint tickRate = 60;
 
-    virtual void update();
-    virtual void render(float ft);
-    virtual void resize(glm::uvec2 _size);
+    virtual void update() {}
+    virtual void render(float _ft) {}
+    virtual void resize(glm::uvec2 _size) {}
 
 protected:
-    Application* app;
+    Application& app;
 };
 
 }

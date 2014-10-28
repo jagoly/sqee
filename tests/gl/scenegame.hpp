@@ -11,7 +11,7 @@ namespace sqt {
 
 class SceneGame : public sq::Scene {
 public:
-    SceneGame(sq::Application* _app);
+    SceneGame(sq::Application& _app);
 
     sq::Camera camera;
 
@@ -22,7 +22,7 @@ public:
 class HandlerGame : public sq::Handler {
 public:
     using sq::Handler::Handler;
-    bool handle(sf::Event& _event);
+    bool handle(const sf::Event& _event);
 };
 
 }

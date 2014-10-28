@@ -15,11 +15,12 @@ namespace sqt {
 
 class SceneGame : public sq::Scene {
 public:
-    SceneGame(sq::Application* _app);
+    SceneGame(sq::Application& _app);
 
     void render(float _ft);
     void resize(glm::uvec2 _size);
     void update();
+
 private:
     obj::MeshHolder meshH;
     obj::SkinHolder skinH;
@@ -30,11 +31,10 @@ private:
     Settings settings;
 
     sq::Camera camera;
-    Level level;
+    Level::Ptr level;
     SkyLight skyLight;
 
-    Player player;
-    ushort arrowPriority[4];
+    Player::Ptr player;
 
     int tickTock = 0;
     bool pendDir = true;
@@ -49,7 +49,7 @@ private:
 class HandlerGame : public sq::Handler {
 public:
     using sq::Handler::Handler;
-    bool handle(sf::Event& event);
+    bool handle(const sf::Event& event);
 };
 
 }

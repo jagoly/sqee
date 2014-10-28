@@ -70,20 +70,15 @@ int Application::run() {
 
         for (Scene::Ptr& scene : sceneIM) {
             scene->accum += ft;
-            while (scene->accum >= scene->dt) {
+            double dt = 1.d / double(scene->tickRate);
+            while (scene->accum >= dt) {
                 scene->update();
-                scene->accum -= scene->dt;
+                scene->accum -= dt;
             }
         }
 
         for (Scene::Ptr& scene : sceneIM) {
             scene->render(ft);
-        }
-
-        if (showfps) {
-            static float fps = 60.f;
-            fps = fps * 0.9f + 1.f / ft * 0.1f;
-            // set something up
         }
 
         window.display();

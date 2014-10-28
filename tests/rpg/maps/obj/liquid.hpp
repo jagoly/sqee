@@ -21,7 +21,7 @@ public:
     glm::mat4 reflMat;
     float zPos;
 
-    void tick(int _tickRate);
+    void tick();
 private:
     float xPT, yPT;
 };

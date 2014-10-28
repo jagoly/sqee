@@ -1,6 +1,7 @@
 #include <iostream>
 #include <random>
 #include <array>
+#include <list>
 
 #include <sqee/app/application.hpp>
 #include <sqee/gl/shaders.hpp>
@@ -10,23 +11,22 @@
 
 using namespace sqt;
 
-SceneGame::SceneGame(sq::Application* _app) : sq::Scene(_app) {
+SceneGame::SceneGame(sq::Application& _app) : sq::Scene(_app) {
     tickRate = 24;
-    dt = 1.d/24.d;
 
-    level.set_holders(&meshH, &skinH, &texH);
-    level.load_map("test");
+    level = Level::Ptr(new Level(meshH, skinH, texH));
+    level->load_map("test");
 
-    camera.init({0, 0, 0}, {0.35f, 0, 0}, 0, 0, 1.2f, 0.5f, 60.f);
-    //camera.init({0, 0, 0}, {0, 0, 0}, 0, 0, 1.17f, 0.5f, 20.f);
+    camera.init({0, 0, 0}, {0.37f, 0, 0}, 0, 0, 1.2f, 0.5f, 60.f);
+    //camera.init({0, 0, 0}, {0, 0, 0}, 0, 0, 1.2f, 1.f, 20.f);
     camera.update_projMat();
     camera.update_viewMat();
     camera.update_ubo();
 
-    player.set_holders(&advMeshH, &advSkinH, &texH);
-    player.camera = &camera;
-    player.level = &level;
-    resize(app->get_size());
+    player = Player::Ptr(new Player(advMeshH, advSkinH, texH));
+    player->test_init();
+
+    resize(app.get_size());
 }
 
 void SceneGame::resize(glm::uvec2 _size) {
@@ -36,12 +36,10 @@ void SceneGame::resize(glm::uvec2 _size) {
 }
 
 void SceneGame::update() {
-    level.tick(tickRate);
+    level->tick();
 
-    static std::array<ushort, 4> keys = {0, 1, 2, 3};
+    static std::list<char> keys = {-1};
     static std::array<bool, 4> keyStates = {false, false, false, false};
-
-    std::array<ushort, 4> keysPrev = keys;
     std::array<bool, 4> keyStatesPrev = keyStates;
 
     keyStates[0] = sf::Keyboard::isKeyPressed(sf::Keyboard::Up);
@@ -49,33 +47,17 @@ void SceneGame::update() {
     keyStates[2] = sf::Keyboard::isKeyPressed(sf::Keyboard::Down);
     keyStates[3] = sf::Keyboard::isKeyPressed(sf::Keyboard::Left);
 
-    ushort keyPrs = 4;
-    ushort keyRls = 4;
-    for (int k = 0; k < 4; k++) {
-        if (keyStates[k] && !keyStatesPrev[k]) keyPrs = k;
-        if (!keyStates[k] && keyStatesPrev[k]) keyRls = k;
+    for (int i = 0; i < 4; i++) {
+        if (keyStates[i] && !keyStatesPrev[i]) {
+            keys.remove(i);
+            keys.emplace_front(i);
+        } else
+        if (!keyStates[i] && keyStatesPrev[i]) {
+            keys.remove(i);
+        }
     }
 
-    if (keyPrs != 4) {
-        keys[0] = keyPrs;
-        keys[1] = keysPrev[0];
-        if (keysPrev[2] == keyPrs || keysPrev[3] == keyPrs)
-            keys[2] = keysPrev[1];
-        if (keysPrev[3] == keyPrs)
-            keys[3] = keysPrev[2];
-    }
-
-    if (keyRls != 4) {
-        keys[3] = keyRls;
-        keys[2] = keysPrev[3];
-        if (keysPrev[1] == keyRls || keysPrev[0] == keyRls)
-            keys[1] = keysPrev[2];
-        if (keysPrev[0] == keyRls)
-            keys[0] = keysPrev[1];
-    }
-
-    player.moveNext = keyStates[0] || keyStates[1] || keyStates[2] || keyStates[3];
-    player.update_logic(keys);
+    player->tick(keys.front(), level);
 
     if (pendDir) tickTock++;
     else         tickTock--;
@@ -85,7 +67,7 @@ void SceneGame::update() {
 }
 
 void SceneGame::render(float _ft) {
-    const static glm::mat4 iMat;
+    const double dt = 1.d / 24.d;
 
     static bool first = true;
 
@@ -101,7 +83,8 @@ void SceneGame::render(float _ft) {
     static sq::Shader modelProg;
     static sq::Shader advmodelProg;
     static sq::Shader liquidProg;
-    static sq::Shader mvpSaProg;
+    static sq::Shader mvpProg;
+    static sq::Shader mvpskelProg;
     static sq::Shader lumaProg;
     static sq::Shader fxaaLProg;
     static sq::Shader fxaaHProg;
@@ -111,8 +94,8 @@ void SceneGame::render(float _ft) {
     /// Set things up on first call ///
 
     if (first) {
-        level.load_objects();
-        level.load_physics();
+        level->load_objects();
+        level->load_physics();
 
         priFb.create({gl::COLOR_ATTACHMENT0}, {gl::RGBA}, {gl::RGBA8},
                      gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT32);
@@ -130,9 +113,12 @@ void SceneGame::render(float _ft) {
         liquidProg.load_from_file("liquids/surface_vs", gl::VERTEX_SHADER);
         liquidProg.load_from_file("liquids/surface_fs", gl::FRAGMENT_SHADER);
         liquidProg.build();
-        mvpSaProg.load_from_file("generic/mvp_vs", gl::VERTEX_SHADER);
-        mvpSaProg.load_from_file("generic/dummy_fs", gl::FRAGMENT_SHADER);
-        mvpSaProg.build();
+        mvpProg.load_from_file("generic/mvp_vs", gl::VERTEX_SHADER);
+        mvpProg.load_from_file("generic/dummy_fs", gl::FRAGMENT_SHADER);
+        mvpProg.build();
+        mvpskelProg.load_from_file("generic/mvpskel_vs", gl::VERTEX_SHADER);
+        mvpskelProg.load_from_file("generic/dummy_fs", gl::FRAGMENT_SHADER);
+        mvpskelProg.build();
         lumaProg.load_from_file("generic/quad_vs", gl::VERTEX_SHADER);
         lumaProg.load_from_file("generic/luma_fs", gl::FRAGMENT_SHADER);
         lumaProg.build();
@@ -159,6 +145,8 @@ void SceneGame::render(float _ft) {
         advmodelProg.add_uniform("shadQuality", sq::UType::i1);
         advmodelProg.add_uniform("reflMat", sq::UType::m4);
         advmodelProg.add_uniform("clipZ", sq::UType::f1);
+        advmodelProg.add_uniform_v("s_quat", 40, sq::UType::f4);
+        advmodelProg.add_uniform_v("s_offs", 40, sq::UType::f3);
         advmodelProg.add_uniform("modelMat", sq::UType::m4);
         advmodelProg.add_uniform("shadProjViewMat", sq::UType::m4);
         advmodelProg.add_uniform("skyLightDir", sq::UType::f3);
@@ -175,9 +163,15 @@ void SceneGame::render(float _ft) {
         liquidProg.add_uniform("swing", sq::UType::f1);
         liquidProg.add_uniform("wSmooth", sq::UType::f1);
 
-        mvpSaProg.add_uniform("projMat", sq::UType::m4);
-        mvpSaProg.add_uniform("viewMat", sq::UType::m4);
-        mvpSaProg.add_uniform("modelMat", sq::UType::m4);
+        mvpProg.add_uniform("projMat", sq::UType::m4);
+        mvpProg.add_uniform("viewMat", sq::UType::m4);
+        mvpProg.add_uniform("modelMat", sq::UType::m4);
+
+        mvpskelProg.add_uniform("projMat", sq::UType::m4);
+        mvpskelProg.add_uniform("viewMat", sq::UType::m4);
+        mvpskelProg.add_uniform("modelMat", sq::UType::m4);
+        mvpskelProg.add_uniform_v("s_quat", 40, sq::UType::f4);
+        mvpskelProg.add_uniform_v("s_offs", 40, sq::UType::f3);
 
         fxaaLProg.add_uniform("vpPixSize", sq::UType::f2);
         fxaaHProg.add_uniform("vpPixSize", sq::UType::f2);
@@ -221,7 +215,7 @@ void SceneGame::render(float _ft) {
     /// Act Upon Changed Framebuffers ///
 
     if (updateFramebuffers) {
-        size = app->get_size();
+        size = app.get_size();
         gl::Viewport(0, 0, size.x, size.y);
 
         // Primary Framebuffer
@@ -249,7 +243,7 @@ void SceneGame::render(float _ft) {
     /// Act Upon Changed Skylight ///
 
     if (updateSkyLight) {
-        skyLight.update(skyLight.dir, level.size);
+        skyLight.update(skyLight.dir, level->size);
 
         modelProg.use();
         modelProg.set_uniform_fv("skyLightDir", glm::value_ptr(skyLight.dir));
@@ -269,10 +263,6 @@ void SceneGame::render(float _ft) {
         liquidProg.set_uniform_fv("skyLightDir", glm::value_ptr(skyLight.dir));
         liquidProg.set_uniform_fv("skyLightSpec", glm::value_ptr(skyLight.spec));
 
-        mvpSaProg.use();
-        mvpSaProg.set_uniform_mv("projMat", false, glm::value_ptr(skyLight.projMat));
-        mvpSaProg.set_uniform_mv("viewMat", false, glm::value_ptr(skyLight.viewMat));
-
         updateSkyLight = false;
     }
 
@@ -281,8 +271,8 @@ void SceneGame::render(float _ft) {
     gl::ClearColor(0.f, 0.f, 0.f, 1.f);
     gl::ClearDepth(1.d);
 
-    player.update_render(dt, accum);
-    level.update_render(_ft);
+    player->calc(accum, camera);
+    level->calc(accum);
 
 
     /// Shadow Texture ///
@@ -296,31 +286,39 @@ void SceneGame::render(float _ft) {
         shadowFb.useVP();
         shadowFb.clear();
 
-        mvpSaProg.use();
-        mvpSaProg.set_uniform_mv("projMat", false, glm::value_ptr(skyLight.projMat));
-        mvpSaProg.set_uniform_mv("viewMat", false, glm::value_ptr(skyLight.viewMat));
-
-        for (std::pair<const std::string, std::unique_ptr<obj::Object>>& bop : level.objectMap) {
+        mvpProg.use();
+        mvpProg.set_uniform_mv("projMat", false, glm::value_ptr(skyLight.projMat));
+        mvpProg.set_uniform_mv("viewMat", false, glm::value_ptr(skyLight.viewMat));
+        for (std::pair<const std::string, std::unique_ptr<obj::Object>>& bop : level->objectMap) {
             if (bop.second->type == obj::Type::Model) {
                 obj::Model* o = static_cast<obj::Model*>(bop.second.get());
                 if (!o->shad) continue;
-                mvpSaProg.set_uniform_mv("modelMat", false, glm::value_ptr(o->modelMat));
+                mvpProg.set_uniform_mv("modelMat", false, glm::value_ptr(o->modelMat));
 
                 o->mesh->bind_buffers();
                 gl::DrawElements(gl::TRIANGLES, o->mesh->iCount, gl::UNSIGNED_INT, 0);
             }
         }
-        // PLAYER MODEL TODO
+
+        mvpskelProg.use();
+        mvpskelProg.set_uniform_mv("projMat", false, glm::value_ptr(skyLight.projMat));
+        mvpskelProg.set_uniform_mv("viewMat", false, glm::value_ptr(skyLight.viewMat));
+        player->mesh->bind_buffers();
+        mvpskelProg.set_uniform_mv("modelMat", false, glm::value_ptr(player->modelMat));
+        mvpskelProg.set_uniform_fv("s_quat", player->skel->pose.quatData);
+        mvpskelProg.set_uniform_fv("s_offs", player->skel->pose.offsData);
+        gl::DrawElements(gl::TRIANGLES, player->mesh->iCount, gl::UNSIGNED_INT, 0);
 
         shadowFb.dsTex.bind(gl::TEXTURE4);
     }
+
 
     /// Liquids and submerged areas ///
 
     priFb.useVP();
     priFb.clear();
 
-    for (std::pair<const std::string, std::unique_ptr<obj::Object>>& bo : level.objectMap) {
+    for (std::pair<const std::string, std::unique_ptr<obj::Object>>& bo : level->objectMap) {
         if (bo.second->type != obj::Type::Liquid) continue;
         obj::Liquid* o = static_cast<obj::Liquid*>(bo.second.get());
 
@@ -339,7 +337,7 @@ void SceneGame::render(float _ft) {
         secFb.clear({0.5f, 0.5f, 0.7f, 1.f});
         modelProg.use();
         modelProg.set_uniform_mv("reflMat", false, glm::value_ptr(o->reflMat));
-        for (std::pair<const std::string, std::unique_ptr<obj::Object>>& bo2 : level.objectMap) {
+        for (std::pair<const std::string, std::unique_ptr<obj::Object>>& bo2 : level->objectMap) {
             if (bo2.second->type != obj::Type::Model) continue;
             obj::Model* o2 = static_cast<obj::Model*>(bo2.second.get());
             if (!o2->refl) continue;
@@ -353,10 +351,12 @@ void SceneGame::render(float _ft) {
 
         advmodelProg.use();
         advmodelProg.set_uniform_mv("reflMat", false, glm::value_ptr(o->reflMat));
-        player.mesh->bind_buffers();
-        player.skin->bind_textures();
-        advmodelProg.set_uniform_mv("modelMat", false, glm::value_ptr(player.modelMat));
-        gl::DrawElements(gl::TRIANGLES, player.mesh->iCount, gl::UNSIGNED_INT, 0);
+        player->mesh->bind_buffers();
+        player->skin->bind_textures();
+        advmodelProg.set_uniform_mv("modelMat", false, glm::value_ptr(player->modelMat));
+        advmodelProg.set_uniform_fv("s_quat", player->skel->pose.quatData);
+        advmodelProg.set_uniform_fv("s_offs", player->skel->pose.offsData);
+        gl::DrawElements(gl::TRIANGLES, player->mesh->iCount, gl::UNSIGNED_INT, 0);
 
         gl::Disable(gl::CLIP_DISTANCE0);
         gl::CullFace(gl::BACK);
@@ -367,8 +367,8 @@ void SceneGame::render(float _ft) {
 
         terFb.clear();
         modelProg.use();
-        modelProg.set_uniform_mv("reflMat", false, glm::value_ptr(iMat));
-        for (std::pair<const std::string, std::unique_ptr<obj::Object>>& bo2 : level.objectMap) {
+        modelProg.set_uniform_mv("reflMat", false, glm::value_ptr(sq::iMat4));
+        for (std::pair<const std::string, std::unique_ptr<obj::Object>>& bo2 : level->objectMap) {
             if (bo2.second->type != obj::Type::Model) continue;
             obj::Model* o2 = static_cast<obj::Model*>(bo2.second.get());
             if (!o2->refl) continue;
@@ -380,11 +380,13 @@ void SceneGame::render(float _ft) {
         }
 
         advmodelProg.use();
-        advmodelProg.set_uniform_mv("reflMat", false, glm::value_ptr(iMat));
-        player.mesh->bind_buffers();
-        player.skin->bind_textures();
-        advmodelProg.set_uniform_mv("modelMat", false, glm::value_ptr(player.modelMat));
-        gl::DrawElements(gl::TRIANGLES, player.mesh->iCount, gl::UNSIGNED_INT, 0);
+        advmodelProg.set_uniform_mv("reflMat", false, glm::value_ptr(sq::iMat4));
+        player->mesh->bind_buffers();
+        player->skin->bind_textures();
+        advmodelProg.set_uniform_mv("modelMat", false, glm::value_ptr(player->modelMat));
+        advmodelProg.set_uniform_fv("s_quat", player->skel->pose.quatData);
+        advmodelProg.set_uniform_fv("s_offs", player->skel->pose.offsData);
+        gl::DrawElements(gl::TRIANGLES, player->mesh->iCount, gl::UNSIGNED_INT, 0);
 
         gl::Disable(gl::CLIP_DISTANCE1);
 
@@ -397,14 +399,14 @@ void SceneGame::render(float _ft) {
         secFb.cTexVec[0].bind(gl::TEXTURE0);
         terFb.cTexVec[0].bind(gl::TEXTURE1);
         terFb.dsTex.bind(gl::TEXTURE2);
-        glm::vec2 offset = o->flowOffsetA * float(((dt - accum) / dt)) +
-                           o->flowOffsetB * float((accum / dt));
+        texH.get("water_norms")->bind(gl::TEXTURE3);
+        glm::vec2 offset = glm::mix(o->flowOffsetA, o->flowOffsetB, accum / dt);
         liquidProg.set_uniform_mv("reflMat", false, glm::value_ptr(o->reflMat));
         liquidProg.set_uniform_f("zPos", o->zPos);
         liquidProg.set_uniform_fv("flowOffset", glm::value_ptr(offset));
         liquidProg.set_uniform_f("scale", o->scale);
         liquidProg.set_uniform_f("wSmooth", o->wSmooth);
-        liquidProg.set_uniform_f("swing", swingA * ((dt - accum) / dt) + swingB * (accum / dt));
+        liquidProg.set_uniform_f("swing", glm::mix(swingA, swingB, accum / dt));
         gl::BindVertexArray(o->vao);
         gl::DrawArrays(gl::TRIANGLES, 0, 6);
     }
@@ -413,18 +415,20 @@ void SceneGame::render(float _ft) {
     /// Characters and Player ///
 
     advmodelProg.use();
-    advmodelProg.set_uniform_mv("reflMat", false, glm::value_ptr(iMat));
-    player.mesh->bind_buffers();
-    player.skin->bind_textures();
-    advmodelProg.set_uniform_mv("modelMat", false, glm::value_ptr(player.modelMat));
-    gl::DrawElements(gl::TRIANGLES, player.mesh->iCount, gl::UNSIGNED_INT, 0);
+    advmodelProg.set_uniform_mv("reflMat", false, glm::value_ptr(sq::iMat4));
+    player->mesh->bind_buffers();
+    player->skin->bind_textures();
+    advmodelProg.set_uniform_mv("modelMat", false, glm::value_ptr(player->modelMat));
+    advmodelProg.set_uniform_fv("s_quat", player->skel->pose.quatData);
+    advmodelProg.set_uniform_fv("s_offs", player->skel->pose.offsData);
+    gl::DrawElements(gl::TRIANGLES, player->mesh->iCount, gl::UNSIGNED_INT, 0);
 
 
     /// Map Models Opaque ///
 
     modelProg.use();
-    modelProg.set_uniform_mv("reflMat", false, glm::value_ptr(iMat));
-    for (std::pair<const std::string, std::unique_ptr<obj::Object>>& bo : level.objectMap) {
+    modelProg.set_uniform_mv("reflMat", false, glm::value_ptr(sq::iMat4));
+    for (std::pair<const std::string, std::unique_ptr<obj::Object>>& bo : level->objectMap) {
         if (bo.second->type == obj::Type::Model) {
             obj::Model* o = static_cast<obj::Model*>(bo.second.get());
             if (o->skin->alpha) continue;
@@ -441,7 +445,7 @@ void SceneGame::render(float _ft) {
     /// Map Models Translucent ///
 
     gl::Enable(gl::BLEND);
-    for (std::pair<const std::string, std::unique_ptr<obj::Object>>& bo : level.objectMap) {
+    for (std::pair<const std::string, std::unique_ptr<obj::Object>>& bo : level->objectMap) {
         if (bo.second->type == obj::Type::Model) {
             obj::Model* o = static_cast<obj::Model*>(bo.second.get());
             if (!o->skin->alpha) continue;
@@ -479,6 +483,6 @@ void SceneGame::render(float _ft) {
 }
 
 
-bool HandlerGame::handle(sf::Event&) {
+bool HandlerGame::handle(const sf::Event&) {
     return false;
 }

@@ -4,7 +4,7 @@
 in vec3 v_pos;
 in vec3 shadcoord;
 in vec2 texcoord;
-in vec3 n, t, b;
+in vec3 N, T, B;
 in vec3 w_pos;
 
 uniform int shadQuality;
@@ -37,7 +37,7 @@ void main() {
     texelSpec = texture(texSpec, vec3(texcoord, texNum)).rgb;
 
     vec3 t_norm = normalize(texelNorm * 2.f - 1.f);
-    vec3 v_norm = t * t_norm.x + b * t_norm.y + n * t_norm.z;
+    vec3 v_norm = T * t_norm.x + B * t_norm.y + N * t_norm.z;
 
     vec3 dirToLight = vec4(viewMat * vec4(-skyLightDir, 0.f)).xyz;
     float bias;

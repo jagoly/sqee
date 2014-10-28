@@ -57,21 +57,6 @@ void debug_callback(GLenum _source, GLenum _type, GLuint /*_id*/, GLenum _severi
     std::cout << std::endl;
 }
 
-glm::vec3 get_tangent(glm::vec3 normal) {
-    glm::vec3 tangent;
-    glm::vec3 t1 = glm::cross(normal, glm::vec3(0, 1, 0));
-    glm::vec3 t2 = glm::cross(normal, glm::vec3(0, 0, 1));
-
-    if (glm::length(t1) > glm::length(t2)) {
-        tangent = t1;
-    } else {
-        tangent = t2;
-    }
-    tangent = glm::normalize(tangent);
-
-    return tangent;
-}
-
 }
 
 using namespace sq;

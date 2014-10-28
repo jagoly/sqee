@@ -8,6 +8,7 @@ using namespace sqt::obj;
 void Mesh::load(const std::string& _filePath) {
     /// Load File ////////////////////
     // This sucks ass. Fix it.
+    // edit: will replace with sqm models
 
     std::ifstream src;
     std::string line;
@@ -20,18 +21,7 @@ void Mesh::load(const std::string& _filePath) {
     if (line != "format ascii 1.0") throw; // Second line incorrect
     std::getline(src, line);
     if (line.substr(0, 7) != "comment") throw; // Third line must be comment
-    std::getline(src, line);
-    if (line.substr(0, 6) != "bounds") throw; // Third line must be bounding box
-    {
-    float vals[8];
-    uint A=0, B=0;
-    for (uint j = 0; j < 6; j++) {
-        A = line.find_first_not_of(' ', B);
-        B = line.find_first_of(' ', A);
-        vals[j] = std::atof(line.substr(A, B - A).c_str());
-    }
-    bBox = sq::Box(vals);
-    }
+
     std::getline(src, line);
     if (line.substr(0, 14) != "element vertex") throw; // No vertex count
     uint vCount = std::atoi(line.substr(15).c_str());
@@ -157,7 +147,7 @@ void Mesh::bind_buffers() {
 }
 
 
-void Skin::load(const std::string& _filePath, sq::TexHolder* _texH) {
+void Skin::load(const std::string& _filePath, sq::TexHolder& _texH) {
     Json::Value root = sq::get_json_from_file(_filePath+".json");
 
     alpha = root["alpha"].asBool();
@@ -165,26 +155,26 @@ void Skin::load(const std::string& _filePath, sq::TexHolder* _texH) {
     std::string name;
 
     name = "models/norm/"+root["norm"].asString();
-    if (!(texNorm = _texH->get(name))) {
-        texNorm = _texH->add(name);
+    if (!(texNorm = _texH.get(name))) {
+        texNorm = _texH.add(name);
         texNorm->create(gl::TEXTURE_2D, gl::RGB, gl::RGB8, name, sq::TexPreset::L_C);
     }
 
     name = "models/diff/"+root["diff"].asString();
-    if (!(texDiff = _texH->get(name))) {
-        texDiff = _texH->add(name);
+    if (!(texDiff = _texH.get(name))) {
+        texDiff = _texH.add(name);
         texDiff->create(gl::TEXTURE_2D, gl::RGBA, gl::RGBA8, name, sq::TexPreset::L_C);
     }
 
     name = "models/spec/"+root["spec"].asString();
-    if (!(texSpec = _texH->get(name))) {
-        texSpec = _texH->add(name);
+    if (!(texSpec = _texH.get(name))) {
+        texSpec = _texH.add(name);
         texSpec->create(gl::TEXTURE_2D, gl::RGB, gl::RGB8, name, sq::TexPreset::L_C);
     }
 
     name = "models/ambi/"+root["ambi"].asString();
-    if (!(texAmbi = _texH->get(name))) {
-        texAmbi = _texH->add(name);
+    if (!(texAmbi = _texH.get(name))) {
+        texAmbi = _texH.add(name);
         texAmbi->create(gl::TEXTURE_2D, gl::RED, gl::R8, name, sq::TexPreset::L_C);
     }
 }
@@ -225,13 +215,13 @@ void Model::create() {
     std::string mName = stringMap["mesh"];
     std::string sName = stringMap["skin"];
 
-    if (!(mesh = meshH->get(mName))) {
-        mesh = meshH->add(mName);
+    if (!(mesh = meshH.get(mName))) {
+        mesh = meshH.add(mName);
         mesh->load(mPath);
     }
 
-    if (!(skin = skinH->get(sName))) {
-        skin = skinH->add(sName);
+    if (!(skin = skinH.get(sName))) {
+        skin = skinH.add(sName);
         skin->load(sPath, texH);
     }
 
@@ -244,10 +234,11 @@ void Model::create() {
     modelMat = glm::rotate(modelMat, rot.x, {1, 0, 0});
     modelMat = glm::scale(modelMat, sca);
 
-    bBox.init(mesh->bBox);
-    bBox.translate(pos);
+    // Gone until I remove use of PLY
+    //bBox.init(mesh->bBox);
+    //bBox.translate(pos);
     // need to add rotate and scale
-    bBox.recalc();
+    //bBox.recalc();
 
     // need to fix individual object ambient light
     texAmbi = skin->texAmbi;

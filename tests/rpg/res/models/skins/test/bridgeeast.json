@@ -2,6 +2,6 @@
   "norm": "test/bridgestart",
   "diff": "test/bridgestart",
   "spec": "test/bridgestart",
-  "ambi": "FF",
+  "ambi": "test/bridgeeast",
   "alpha": false
 }

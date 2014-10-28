@@ -26,7 +26,7 @@ public:
     int run();
     void quit(int _code);
 
-    void set_size(glm::uvec2);
+    void set_size(glm::uvec2 _size);
     void set_vsync(bool _vsync);
     void set_showfps(bool _showfps);
 

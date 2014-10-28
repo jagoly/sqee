@@ -1,7 +1,7 @@
 project(SQEE)
 cmake_minimum_required(VERSION 2.8)
 
-set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -Wextra")
+set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -Wextra -Wno-unused-parameter")
 
 add_definitions(-DSQEE_DEBUG)
 
@@ -50,13 +50,10 @@ set(SOURCES
     "${SRCDIR}/sqee/gl/textures.cpp"
     "${SRCDIR}/sqee/app/application.cpp"
     "${SRCDIR}/sqee/events/basichandlers.cpp"
-    "${SRCDIR}/sqee/events/handler.cpp"
     "${SRCDIR}/sqee/text/font.cpp"
     "${SRCDIR}/sqee/text/text.cpp"
     "${SRCDIR}/sqee/menus/basicmenu.cpp"
     "${SRCDIR}/sqee/misc/files.cpp"
-    "${SRCDIR}/sqee/misc/containers.cpp"
-    "${SRCDIR}/sqee/scenes/scene.cpp"
     "${SRCDIR}/sqee/scenes/basicscenes.cpp"
     "${SRCDIR}/sqee/sounds/soundmanager.cpp"
 )

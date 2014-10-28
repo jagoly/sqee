@@ -14,7 +14,7 @@ public:
 class SkyLight {
 public:
     glm::vec3 dir = {-0.1f, -0.25f, -0.65f};
-    //glm::vec3 dir = {0.5f, 0.f, -0.5f};
+    //glm::vec3 dir = {0.f, 0.f, -1.f};
     glm::vec3 diff = {0.8f, 0.8f, 0.8f};
     glm::vec3 ambi = {0.4f, 0.4f, 0.4f};
     glm::vec3 spec = {1.f, 1.f, 1.f};

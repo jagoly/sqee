@@ -3,6 +3,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <memory>
 
 #include <sqee/gl/gl.hpp>
 #include <sqee/gl/textures.hpp>
@@ -14,31 +15,38 @@ namespace sqt {
 
 class Level {
 public:
-    void set_holders(obj::MeshHolder* _meshH, obj::SkinHolder* _skinH, sq::TexHolder* _texH);
+    // change to unique when qt creator fixed
+    typedef std::shared_ptr<Level> Ptr;
+    typedef std::pair<const std::string, std::unique_ptr<obj::Object>> SOPair;
+
+    Level(obj::MeshHolder& _meshH, obj::SkinHolder& _skinH, sq::TexHolder& _texH)
+        : meshH(_meshH), skinH(_skinH), texH(_texH) {}
 
     glm::uvec3 size;
 
     std::map<std::string, std::unique_ptr<obj::Object>> objectMap;
 
-    bool load_map(std::string dirPath);
-
+    bool load_map(const std::string& _mapPath);
     bool load_objects();
     bool load_physics();
 
-    void tick(int _tickRate);
-    void update_render(float _ft);
+    void tick();
+    void calc(double _accum);
 
-    float get_subtile_z(int _x, int _y, std::string _layer);
-    std::string get_join(int _x, int _y, std::string _layer);
+    float get_max4_z(int _x, int _y, const std::string& _layer);
+    std::string get_join(int _x, int _y, const std::string& _layer);
 
-    obj::MeshHolder* meshH;
-    obj::SkinHolder* skinH;
-    sq::TexHolder* texH;
+    obj::MeshHolder& meshH;
+    obj::SkinHolder& skinH;
+    sq::TexHolder& texH;
 
 private:
     std::string mapPath;
     Json::Value root;
-    std::map<std::string, std::pair<glm::ivec3, std::vector<std::vector<std::array<uchar, 16>>>>> heightMaps;
+
+    typedef std::vector<std::vector<std::array<uchar, 16>>> HeightLayer;
+    std::map<std::string, std::pair<glm::ivec3, HeightLayer>> hlMap;
+
     std::map<std::pair<std::string, std::pair<int,int>>, std::pair<std::string, std::pair<int,int>>> joinMap;
 };
 

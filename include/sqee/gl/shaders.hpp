@@ -20,14 +20,6 @@ enum class UType {
 
 class Shader {
 public:
-    struct Uniform {
-        Uniform() = default;
-        Uniform(GLint _ref, uint _cnt, UType _type) {
-            ref = _ref; cnt = _cnt; type = _type;
-        }
-        GLint ref; uint cnt; UType type;
-    };
-
     Shader();
     ~Shader();
 
@@ -38,7 +30,7 @@ public:
     void use();
 
     void add_uniform(const std::string& _name, UType _type);
-    void add_uniform_v(const std::string& _name, uint _length, UType _type);
+    void add_uniform_v(const std::string& _name, uint _cnt, UType _type);
 
     void set_uniform_f(const std::string& _name, const GLfloat _value);
     void set_uniform_u(const std::string& _name, const GLuint _value);
@@ -49,6 +41,12 @@ public:
     void set_uniform_mv(const std::string& _name, bool _transpose, const GLfloat* _value);
 
 private:
+    struct Uniform {
+        Uniform(GLint _ref, uint _cnt, UType _type)
+            : ref(_ref), cnt(_cnt), type(_type) {}
+        const GLint ref; const uint cnt; const UType type;
+    };
+
     std::unordered_map<std::string, Uniform> uniforms;
     GLuint vert, geom, frag;
 };

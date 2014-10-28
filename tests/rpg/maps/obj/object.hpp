@@ -32,13 +32,14 @@ class Light;
 
 class Object {
 public:
-    Object(sq::ResHolder<std::string, Mesh>* _meshH, sq::ResHolder<std::string, Skin>* _skinH,
-           sq::TexHolder* _texH, const std::string& _mapPath, const std::string& _uid);
+    Object(sq::ResHolder<std::string, Mesh>& _meshH, sq::ResHolder<std::string, Skin>& _skinH,
+           sq::TexHolder& _texH, const std::string& _mapPath, const std::string& _uid)
+        : meshH(_meshH), skinH(_skinH), texH(_texH), mapPath(_mapPath), uid(_uid) {}
 
     Type type;
-    sq::ResHolder<std::string, Mesh>* meshH;
-    sq::ResHolder<std::string, Skin>* skinH;
-    sq::TexHolder* texH;
+    sq::ResHolder<std::string, Mesh>& meshH;
+    sq::ResHolder<std::string, Skin>& skinH;
+    sq::TexHolder& texH;
     std::string mapPath;
     std::string uid;
 
@@ -47,11 +48,11 @@ public:
     std::map<std::string, float> floatMap;
     std::map<std::string, std::string> stringMap;
 
-    virtual void tick(int _tickRate);
+    virtual void tick() {}
 };
 
-Object* create(const Json::Value& _json, sq::ResHolder<std::string, Mesh>* _meshH,
-               sq::ResHolder<std::string, Skin>* _skinH, sq::TexHolder* _texH,
+Object* create(const Json::Value& _json, sq::ResHolder<std::string, Mesh>& _meshH,
+               sq::ResHolder<std::string, Skin>& _skinH, sq::TexHolder& _texH,
                const std::string& _mapPath, const std::string& _uid);
 
 }

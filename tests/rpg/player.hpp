@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include <SFML/System.hpp>
 
 #include <sqee/gl/gl.hpp>
@@ -14,38 +16,37 @@ namespace sqt {
 
 class Player {
 public:
-    void set_holders(AdvMeshHolder* _advMeshH, AdvSkinHolder* _advSkinH, sq::TexHolder* texHolder);
+    // change to unique when qt creator fixed
+    typedef std::shared_ptr<Player> Ptr;
 
-    sq::Camera* camera;
-    Level* level;
+    Player(AdvMeshHolder& _advMeshH, AdvSkinHolder& _advSkinH, sq::TexHolder& _texH)
+        : advMeshH(_advMeshH), advSkinH(_advSkinH), texH(_texH) {}
 
     AdvMesh* mesh;
     AdvSkin* skin;
+    SkeletonAnim::Ptr skel;
 
     bool moving = false;
-    bool moveNext = false;
 
     glm::mat4 modelMat;
 
-    void update_logic(std::array<ushort, 4> _keys);
-    void update_render(double dt, double accum);
+    void test_init();
+
+    void tick(char _moveDir, Level::Ptr& _level);
+    void calc(double _accum, sq::Camera& _camera);
 
 private:
-    ushort progress, endTime;
-    std::array<ushort, 4> keys;
-
-    glm::ivec2 gridCur = {0, 0};
-    glm::ivec2 gridPre = {0, 0};
-    float zCur = 0.f;
-    float zPre = 0.f;
     std::string layer;
-    glm::vec3 pos;
+    glm::ivec2 gridPos;
 
-    AdvMeshHolder* advMeshH;
-    AdvSkinHolder* advSkinH;
-    sq::TexHolder* texH;
+    glm::vec3 posCrnt;
+    glm::vec3 posNext;
 
-    void initMove();
+    AdvMeshHolder& advMeshH;
+    AdvSkinHolder& advSkinH;
+    sq::TexHolder& texH;
+
+    Skeleton skeleton;
 };
 
 }

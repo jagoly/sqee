@@ -1,7 +1,6 @@
 ply
 format ascii 1.0
 comment Created by Blender 2.71 (sub 0) - www.blender.org, source file: 'Terrain.blend'
-bounds 0 34 0 26 0 8
 element vertex 14379
 property float x
 property float y
