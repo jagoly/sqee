@@ -1,5 +1,4 @@
 #pragma once
-#include <memory>
 
 #include <gl/gl.hpp>
 #include <text/font.hpp>
@@ -15,6 +14,6 @@ struct TextHandles {
     GLint u_colour;
 };
 
-void draw_text(TextHandles& _handles, Font::Ptr& _font, const std::string& _text, glm::vec2 _pos, glm::vec2 _sca);
+void draw_text(TextHandles& _handles, Font::Ptr& _font, const string& _text, glm::vec2 _pos, glm::vec2 _sca);
 
 }

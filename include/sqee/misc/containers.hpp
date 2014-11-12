@@ -9,7 +9,7 @@ namespace sq {
 template <class Tk, class Tv>
 class ResHolder {
 public:
-    typedef typename std::map<Tk, Tv>::iterator iterator;
+    typedef typename map<Tk, Tv>::iterator iterator;
     typedef std::pair<const Tk, Tv> Pair;
 
     iterator begin() { return map.begin(); }

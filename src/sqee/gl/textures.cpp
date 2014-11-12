@@ -1,7 +1,7 @@
 #include <iostream>
 
-#include <redist/stb_image.hpp>
 #include <gl/textures.hpp>
+#include <redist/stb_image.hpp>
 
 using namespace sq;
 
@@ -37,7 +37,7 @@ void Texture::create(GLenum _target, GLenum _format, GLenum _iFormat, TexPreset 
 }
 
 void Texture::create(GLenum _target, GLenum _format, GLenum _iFormat,
-                     const std::string& _filePath, TexPreset _preset) {
+                     const string& _filePath, TexPreset _preset) {
     create(_target, _format, _iFormat, _preset);
     buffer_file(_filePath);
 }
@@ -63,8 +63,8 @@ void Texture::buffer_memory(const void* _data, uint _z) {
                                                format, dataType, _data);
 }
 
-void Texture::buffer_file(const std::string& _filePath, uint _z) {
-    std::string fPath = SQ_TEXTURES + _filePath + ".png";
+void Texture::buffer_file(const string& _filePath, uint _z) {
+    string fPath = SQ_TEXTURES + _filePath + ".png";
 
     int w, h;
     uchar* data = stbi_load(fPath.c_str(), &w, &h, nullptr, channels);
@@ -115,13 +115,9 @@ void Texture::set_preset(TexPreset _preset) {
     }
 }
 
-void Texture::bind() {
-    gl::BindTexture(target, tex);
-}
-
 void Texture::bind(GLenum _slot) {
-    gl::ActiveTexture(_slot);
-    bind();
+    if (_slot != gl::NONE) gl::ActiveTexture(_slot);
+    gl::BindTexture(target, tex);
 }
 
 void Texture::set_param(GLenum _name, GLenum _value) {

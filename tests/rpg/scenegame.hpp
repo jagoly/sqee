@@ -1,15 +1,14 @@
 #pragma once
 
-#include <sqee/gl/gl.hpp>
-#include <sqee/gl/textures.hpp>
 #include <sqee/gl/camera.hpp>
-#include <sqee/misc/containers.hpp>
 #include <sqee/scenes/scene.hpp>
 #include <sqee/events/handler.hpp>
 
+#include "resbank.hpp"
+#include "game/settings.hpp"
 #include "rendergeneral.hpp"
 #include "player.hpp"
-#include "maps/level.hpp"
+#include "maps/world.hpp"
 
 namespace sqt {
 
@@ -22,19 +21,14 @@ public:
     void update();
 
 private:
-    obj::MeshHolder meshH;
-    obj::SkinHolder skinH;
-    sq::TexHolder texH;
-    AdvMeshHolder advMeshH;
-    AdvSkinHolder advSkinH;
-
     Settings settings;
 
     sq::Camera camera;
-    Level::Ptr level;
     SkyLight skyLight;
 
-    Player::Ptr player;
+    wld::World world;
+
+    Player player;
 
     int tickTock = 0;
     bool pendDir = true;

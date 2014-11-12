@@ -8,7 +8,7 @@
 
 namespace sqt {
 
-RpgApp::RpgApp() : sq::Application({1280, 720}, false, true, true, "SQEE RPG Engine") {
+RpgApp::RpgApp() : sq::Application({1280, 720}, true, "SQEE RPG Engine") {
     int val;
     gl::GetIntegerv(gl::MAX_FRAMEBUFFER_WIDTH, &val);
     std::cout << val << std::endl;

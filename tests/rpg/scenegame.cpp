@@ -1,7 +1,5 @@
 #include <iostream>
 #include <random>
-#include <array>
-#include <list>
 
 #include <sqee/app/application.hpp>
 #include <sqee/gl/shaders.hpp>
@@ -14,8 +12,7 @@ using namespace sqt;
 SceneGame::SceneGame(sq::Application& _app) : sq::Scene(_app) {
     tickRate = 24;
 
-    level = Level::Ptr(new Level(meshH, skinH, texH));
-    level->load_map("test");
+    world.load_base("WorldTest");
 
     camera.init({0, 0, 0}, {0.37f, 0, 0}, 0, 0, 1.2f, 0.5f, 60.f);
     //camera.init({0, 0, 0}, {0, 0, 0}, 0, 0, 1.2f, 1.f, 20.f);
@@ -23,8 +20,7 @@ SceneGame::SceneGame(sq::Application& _app) : sq::Scene(_app) {
     camera.update_viewMat();
     camera.update_ubo();
 
-    player = Player::Ptr(new Player(advMeshH, advSkinH, texH));
-    player->test_init();
+    player.test_init();
 
     resize(app.get_size());
 }
@@ -36,11 +32,11 @@ void SceneGame::resize(glm::uvec2 _size) {
 }
 
 void SceneGame::update() {
-    level->tick();
+    world.tick();
 
-    static std::list<char> keys = {-1};
-    static std::array<bool, 4> keyStates = {false, false, false, false};
-    std::array<bool, 4> keyStatesPrev = keyStates;
+    static list<char> keys = {-1};
+    static array<bool, 4> keyStates = {false, false, false, false};
+    array<bool, 4> keyStatesPrev = keyStates;
 
     keyStates[0] = sf::Keyboard::isKeyPressed(sf::Keyboard::Up);
     keyStates[1] = sf::Keyboard::isKeyPressed(sf::Keyboard::Right);
@@ -57,7 +53,7 @@ void SceneGame::update() {
         }
     }
 
-    player->tick(keys.front(), level);
+    player.tick(keys.front(), world);
 
     if (pendDir) tickTock++;
     else         tickTock--;
@@ -70,8 +66,6 @@ void SceneGame::render(float _ft) {
     const double dt = 1.d / 24.d;
 
     static bool first = true;
-
-    static glm::uvec2 size;
 
     static sq::Framebuffer priFb;
     static sq::Framebuffer secFb;
@@ -94,9 +88,6 @@ void SceneGame::render(float _ft) {
     /// Set things up on first call ///
 
     if (first) {
-        level->load_objects();
-        level->load_physics();
-
         priFb.create({gl::COLOR_ATTACHMENT0}, {gl::RGBA}, {gl::RGBA8},
                      gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT32);
         secFb.create({gl::COLOR_ATTACHMENT0}, {gl::RGBA}, {gl::RGBA8},
@@ -132,55 +123,57 @@ void SceneGame::render(float _ft) {
         quadProg.load_from_file("generic/passthrough_fs", gl::FRAGMENT_SHADER);
         quadProg.build();
 
-        modelProg.add_uniform("shadQuality", sq::UType::i1);
-        modelProg.add_uniform("reflMat", sq::UType::m4);
-        modelProg.add_uniform("clipZ", sq::UType::f1);
-        modelProg.add_uniform("modelMat", sq::UType::m4);
-        modelProg.add_uniform("shadProjViewMat", sq::UType::m4);
-        modelProg.add_uniform("skyLightDir", sq::UType::f3);
-        modelProg.add_uniform("skyLightDiff", sq::UType::f3);
-        modelProg.add_uniform("skyLightAmbi", sq::UType::f3);
-        modelProg.add_uniform("skyLightSpec", sq::UType::f3);
+        modelProg.add_uniform("shadQuality");
+        modelProg.add_uniform("reflMat");
+        modelProg.add_uniform("useRefl");
+        modelProg.add_uniform("clipZ");
+        modelProg.add_uniform("modelMat");
+        modelProg.add_uniform("shadProjViewMat");
+        modelProg.add_uniform("skyLightDir");
+        modelProg.add_uniform("skyLightDiff");
+        modelProg.add_uniform("skyLightAmbi");
+        modelProg.add_uniform("skyLightSpec");
 
-        advmodelProg.add_uniform("shadQuality", sq::UType::i1);
-        advmodelProg.add_uniform("reflMat", sq::UType::m4);
-        advmodelProg.add_uniform("clipZ", sq::UType::f1);
-        advmodelProg.add_uniform_v("s_quat", 40, sq::UType::f4);
-        advmodelProg.add_uniform_v("s_offs", 40, sq::UType::f3);
-        advmodelProg.add_uniform("modelMat", sq::UType::m4);
-        advmodelProg.add_uniform("shadProjViewMat", sq::UType::m4);
-        advmodelProg.add_uniform("skyLightDir", sq::UType::f3);
-        advmodelProg.add_uniform("skyLightDiff", sq::UType::f3);
-        advmodelProg.add_uniform("skyLightAmbi", sq::UType::f3);
-        advmodelProg.add_uniform("skyLightSpec", sq::UType::f3);
+        advmodelProg.add_uniform("shadQuality");
+        advmodelProg.add_uniform("reflMat");
+        advmodelProg.add_uniform("useRefl");
+        advmodelProg.add_uniform("clipZ");
+        advmodelProg.add_uniform("s_quat", 40);
+        advmodelProg.add_uniform("s_offs", 40);
+        advmodelProg.add_uniform("modelMat");
+        advmodelProg.add_uniform("shadProjViewMat");
+        advmodelProg.add_uniform("skyLightDir");
+        advmodelProg.add_uniform("skyLightDiff");
+        advmodelProg.add_uniform("skyLightAmbi");
+        advmodelProg.add_uniform("skyLightSpec");
 
-        liquidProg.add_uniform("reflMat", sq::UType::m4);
-        liquidProg.add_uniform("zPos", sq::UType::f1);
-        liquidProg.add_uniform("flowOffset", sq::UType::f2);
-        liquidProg.add_uniform("scale", sq::UType::f1);
-        liquidProg.add_uniform("skyLightDir", sq::UType::f3);
-        liquidProg.add_uniform("skyLightSpec", sq::UType::f3);
-        liquidProg.add_uniform("swing", sq::UType::f1);
-        liquidProg.add_uniform("wSmooth", sq::UType::f1);
+        liquidProg.add_uniform("reflMat");
+        liquidProg.add_uniform("translation");
+        liquidProg.add_uniform("flowOffset");
+        liquidProg.add_uniform("scale");
+        liquidProg.add_uniform("skyLightDir");
+        liquidProg.add_uniform("skyLightSpec");
+        liquidProg.add_uniform("swing");
+        liquidProg.add_uniform("wSmooth");
 
-        mvpProg.add_uniform("projMat", sq::UType::m4);
-        mvpProg.add_uniform("viewMat", sq::UType::m4);
-        mvpProg.add_uniform("modelMat", sq::UType::m4);
+        mvpProg.add_uniform("projMat");
+        mvpProg.add_uniform("viewMat");
+        mvpProg.add_uniform("modelMat");
 
-        mvpskelProg.add_uniform("projMat", sq::UType::m4);
-        mvpskelProg.add_uniform("viewMat", sq::UType::m4);
-        mvpskelProg.add_uniform("modelMat", sq::UType::m4);
-        mvpskelProg.add_uniform_v("s_quat", 40, sq::UType::f4);
-        mvpskelProg.add_uniform_v("s_offs", 40, sq::UType::f3);
+        mvpskelProg.add_uniform("projMat");
+        mvpskelProg.add_uniform("viewMat");
+        mvpskelProg.add_uniform("modelMat");
+        mvpskelProg.add_uniform("s_quat", 40);
+        mvpskelProg.add_uniform("s_offs", 40);
 
-        fxaaLProg.add_uniform("vpPixSize", sq::UType::f2);
-        fxaaHProg.add_uniform("vpPixSize", sq::UType::f2);
+        fxaaLProg.add_uniform("vpPixSize");
+        fxaaHProg.add_uniform("vpPixSize");
 
-        texH.add("water_norms");
-        texH.get("water_norms")->create(gl::TEXTURE_2D_ARRAY, gl::RGB, gl::RGB8, sq::TexPreset::L_R);
-        texH.get("water_norms")->resize({1024, 1024, 2});
-        texH.get("water_norms")->buffer_file("static/water_norm1", 0);
-        texH.get("water_norms")->buffer_file("static/water_norm2", 1);
+        resBank().texH.add("water_norms");
+        resBank().texH.get("water_norms")->create(gl::TEXTURE_2D_ARRAY, gl::RGB, gl::RGB8, sq::TexPreset::L_R);
+        resBank().texH.get("water_norms")->resize({1024, 1024, 2});
+        resBank().texH.get("water_norms")->buffer_file("static/water_norm1", 0);
+        resBank().texH.get("water_norms")->buffer_file("static/water_norm2", 1);
 
         first = false;
     }
@@ -189,24 +182,25 @@ void SceneGame::render(float _ft) {
     /// Act Upon Changed Settings ///
 
     if (modSettings) {
-        if (settings.shad) {
+        int shad = settings.get_int("shadows");
+        if (shad) {
             shadowFb.create(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT32);
-            if (settings.shad == 1)
+            if (shad == 1)
                 shadowFb.resize({1024, 1024}); // Low
-            else if (settings.shad == 2)
+            else if (shad == 2)
                 shadowFb.resize({2048, 2048}); // Medium
-            else if (settings.shad == 3)
+            else if (shad == 3)
                 shadowFb.resize({4096, 4096}); // High
-            else if (settings.shad == 4)
+            else if (shad == 4)
                 shadowFb.resize({8192, 8192}); // Extreme
             shadowFb.dsTex.set_preset(sq::TexPreset::L_C);
             shadowFb.dsTex.set_param(gl::TEXTURE_COMPARE_MODE, gl::COMPARE_REF_TO_TEXTURE);
         }
         modelProg.use();
-        modelProg.set_uniform_i("shadQuality", settings.shad);
+        modelProg.set_I("shadQuality", shad);
 
         advmodelProg.use();
-        advmodelProg.set_uniform_i("shadQuality", settings.shad);
+        advmodelProg.set_I("shadQuality", shad);
 
         modSettings = false;
     }
@@ -215,7 +209,7 @@ void SceneGame::render(float _ft) {
     /// Act Upon Changed Framebuffers ///
 
     if (updateFramebuffers) {
-        size = app.get_size();
+        glm::uvec2 size = app.get_size();
         gl::Viewport(0, 0, size.x, size.y);
 
         // Primary Framebuffer
@@ -232,9 +226,9 @@ void SceneGame::render(float _ft) {
 
         glm::vec2 pixSize = {1.f / float(size.x), 1.f / float(size.y)};
         fxaaLProg.use();
-        fxaaLProg.set_uniform_fv("vpPixSize", glm::value_ptr(pixSize));
+        fxaaLProg.set_glmvec("vpPixSize", pixSize);
         fxaaHProg.use();
-        fxaaHProg.set_uniform_fv("vpPixSize", glm::value_ptr(pixSize));
+        fxaaHProg.set_glmvec("vpPixSize", pixSize);
 
         updateFramebuffers = false;
     }
@@ -243,25 +237,25 @@ void SceneGame::render(float _ft) {
     /// Act Upon Changed Skylight ///
 
     if (updateSkyLight) {
-        skyLight.update(skyLight.dir, level->size);
+        skyLight.update(skyLight.dir, world.minPos, world.maxPos);
 
         modelProg.use();
-        modelProg.set_uniform_fv("skyLightDir", glm::value_ptr(skyLight.dir));
-        modelProg.set_uniform_fv("skyLightDiff", glm::value_ptr(skyLight.diff));
-        modelProg.set_uniform_fv("skyLightAmbi", glm::value_ptr(skyLight.ambi));
-        modelProg.set_uniform_fv("skyLightSpec", glm::value_ptr(skyLight.spec));
-        modelProg.set_uniform_mv("shadProjViewMat", false, glm::value_ptr(skyLight.projViewMat));
+        modelProg.set_glmvec("skyLightDir", skyLight.dir);
+        modelProg.set_glmvec("skyLightDiff", skyLight.diff);
+        modelProg.set_glmvec("skyLightAmbi", skyLight.ambi);
+        modelProg.set_glmvec("skyLightSpec", skyLight.spec);
+        modelProg.set_glmmat("shadProjViewMat", skyLight.projViewMat);
 
         advmodelProg.use();
-        advmodelProg.set_uniform_fv("skyLightDir", glm::value_ptr(skyLight.dir));
-        advmodelProg.set_uniform_fv("skyLightDiff", glm::value_ptr(skyLight.diff));
-        advmodelProg.set_uniform_fv("skyLightAmbi", glm::value_ptr(skyLight.ambi));
-        advmodelProg.set_uniform_fv("skyLightSpec", glm::value_ptr(skyLight.spec));
-        advmodelProg.set_uniform_mv("shadProjViewMat", false, glm::value_ptr(skyLight.projViewMat));
+        advmodelProg.set_glmvec("skyLightDir", skyLight.dir);
+        advmodelProg.set_glmvec("skyLightDiff", skyLight.diff);
+        advmodelProg.set_glmvec("skyLightAmbi", skyLight.ambi);
+        advmodelProg.set_glmvec("skyLightSpec", skyLight.spec);
+        advmodelProg.set_glmmat("shadProjViewMat", skyLight.projViewMat);
 
         liquidProg.use();
-        liquidProg.set_uniform_fv("skyLightDir", glm::value_ptr(skyLight.dir));
-        liquidProg.set_uniform_fv("skyLightSpec", glm::value_ptr(skyLight.spec));
+        liquidProg.set_glmvec("skyLightDir", skyLight.dir);
+        liquidProg.set_glmvec("skyLightSpec", skyLight.spec);
 
         updateSkyLight = false;
     }
@@ -271,8 +265,8 @@ void SceneGame::render(float _ft) {
     gl::ClearColor(0.f, 0.f, 0.f, 1.f);
     gl::ClearDepth(1.d);
 
-    player->calc(accum, camera);
-    level->calc(accum);
+    player.calc(accum, camera);
+    world.calc(accum);
 
 
     /// Shadow Texture ///
@@ -281,19 +275,18 @@ void SceneGame::render(float _ft) {
     gl::Enable(gl::DEPTH_TEST);
     gl::Enable(gl::CULL_FACE);
 
-    if (settings.shad) {
-        shadowFb.use();
+    if (settings.get_int("shadows")) {
         shadowFb.useVP();
         shadowFb.clear();
 
         mvpProg.use();
-        mvpProg.set_uniform_mv("projMat", false, glm::value_ptr(skyLight.projMat));
-        mvpProg.set_uniform_mv("viewMat", false, glm::value_ptr(skyLight.viewMat));
-        for (std::pair<const std::string, std::unique_ptr<obj::Object>>& bop : level->objectMap) {
-            if (bop.second->type == obj::Type::Model) {
-                obj::Model* o = static_cast<obj::Model*>(bop.second.get());
+        mvpProg.set_glmmat("projMat", skyLight.projMat);
+        mvpProg.set_glmmat("viewMat", skyLight.viewMat);
+        for (wld::World::OPair& bop : world.cellObjects) {
+            if (bop.second->type == wld::ObjType::Model) {
+                wld::Model* o = static_cast<wld::Model*>(bop.second);
                 if (!o->shad) continue;
-                mvpProg.set_uniform_mv("modelMat", false, glm::value_ptr(o->modelMat));
+                mvpProg.set_glmmat("modelMat", glm::translate(o->modelMat, bop.first));
 
                 o->mesh->bind_buffers();
                 gl::DrawElements(gl::TRIANGLES, o->mesh->iCount, gl::UNSIGNED_INT, 0);
@@ -301,13 +294,13 @@ void SceneGame::render(float _ft) {
         }
 
         mvpskelProg.use();
-        mvpskelProg.set_uniform_mv("projMat", false, glm::value_ptr(skyLight.projMat));
-        mvpskelProg.set_uniform_mv("viewMat", false, glm::value_ptr(skyLight.viewMat));
-        player->mesh->bind_buffers();
-        mvpskelProg.set_uniform_mv("modelMat", false, glm::value_ptr(player->modelMat));
-        mvpskelProg.set_uniform_fv("s_quat", player->skel->pose.quatData);
-        mvpskelProg.set_uniform_fv("s_offs", player->skel->pose.offsData);
-        gl::DrawElements(gl::TRIANGLES, player->mesh->iCount, gl::UNSIGNED_INT, 0);
+        mvpskelProg.set_glmmat("projMat", skyLight.projMat);
+        mvpskelProg.set_glmmat("viewMat", skyLight.viewMat);
+        player.model.mesh->bind_buffers(gl::TEXTURE3);
+        mvpskelProg.set_glmmat("modelMat", player.model.modelMat);
+        mvpskelProg.set_ptrvec<glm::vec4>("s_quat", player.model.skeleton.quatData);
+        mvpskelProg.set_ptrvec<glm::vec3>("s_offs", player.model.skeleton.offsData);
+        gl::DrawElements(gl::TRIANGLES, player.model.mesh->iCount, gl::UNSIGNED_INT, 0);
 
         shadowFb.dsTex.bind(gl::TEXTURE4);
     }
@@ -318,16 +311,17 @@ void SceneGame::render(float _ft) {
     priFb.useVP();
     priFb.clear();
 
-    for (std::pair<const std::string, std::unique_ptr<obj::Object>>& bo : level->objectMap) {
-        if (bo.second->type != obj::Type::Liquid) continue;
-        obj::Liquid* o = static_cast<obj::Liquid*>(bo.second.get());
+    for (wld::World::OPair& bop : world.cellObjects) {
+        if (bop.second->type != wld::ObjType::Liquid) continue;
+        wld::Liquid* o = static_cast<wld::Liquid*>(bop.second);
 
         gl::Enable(gl::BLEND);
         modelProg.use();
-        modelProg.set_uniform_f("clipZ", o->zPos);
+        modelProg.set_glmmat("reflMat", o->reflMat);
+        modelProg.set_F("clipZ", o->pos.z);
         advmodelProg.use();
-        advmodelProg.set_uniform_mv("reflMat", false, glm::value_ptr(o->reflMat));
-        advmodelProg.set_uniform_f("clipZ", o->zPos);
+        advmodelProg.set_glmmat("reflMat", o->reflMat);
+        advmodelProg.set_F("clipZ", o->pos.z);
 
         //////////////////////////////////////////
 
@@ -336,27 +330,27 @@ void SceneGame::render(float _ft) {
 
         secFb.clear({0.5f, 0.5f, 0.7f, 1.f});
         modelProg.use();
-        modelProg.set_uniform_mv("reflMat", false, glm::value_ptr(o->reflMat));
-        for (std::pair<const std::string, std::unique_ptr<obj::Object>>& bo2 : level->objectMap) {
-            if (bo2.second->type != obj::Type::Model) continue;
-            obj::Model* o2 = static_cast<obj::Model*>(bo2.second.get());
+        modelProg.set_I("useRefl", 1);
+        for (wld::World::OPair& bop2 : world.cellObjects) {
+            if (bop2.second->type != wld::ObjType::Model) continue;
+            wld::Model* o2 = static_cast<wld::Model*>(bop2.second);
             if (!o2->refl) continue;
 
             o2->mesh->bind_buffers();
-            o2->skin->bind_textures();
-            modelProg.set_uniform_mv("modelMat", false, glm::value_ptr(o2->modelMat));
+            o2->bind_textures();
+            modelProg.set_glmmat("modelMat", glm::translate(o2->modelMat, bop2.first));
 
             gl::DrawElements(gl::TRIANGLES, o2->mesh->iCount, gl::UNSIGNED_INT, 0);
         }
 
         advmodelProg.use();
-        advmodelProg.set_uniform_mv("reflMat", false, glm::value_ptr(o->reflMat));
-        player->mesh->bind_buffers();
-        player->skin->bind_textures();
-        advmodelProg.set_uniform_mv("modelMat", false, glm::value_ptr(player->modelMat));
-        advmodelProg.set_uniform_fv("s_quat", player->skel->pose.quatData);
-        advmodelProg.set_uniform_fv("s_offs", player->skel->pose.offsData);
-        gl::DrawElements(gl::TRIANGLES, player->mesh->iCount, gl::UNSIGNED_INT, 0);
+        advmodelProg.set_I("useRefl", 1);
+        player.model.mesh->bind_buffers(gl::TEXTURE3);
+        player.model.bind_textures();
+        advmodelProg.set_glmmat("modelMat", player.model.modelMat);
+        advmodelProg.set_ptrvec<glm::vec4>("s_quat", player.model.skeleton.quatData);
+        advmodelProg.set_ptrvec<glm::vec3>("s_offs", player.model.skeleton.offsData);
+        gl::DrawElements(gl::TRIANGLES, player.model.mesh->iCount, gl::UNSIGNED_INT, 0);
 
         gl::Disable(gl::CLIP_DISTANCE0);
         gl::CullFace(gl::BACK);
@@ -367,26 +361,26 @@ void SceneGame::render(float _ft) {
 
         terFb.clear();
         modelProg.use();
-        modelProg.set_uniform_mv("reflMat", false, glm::value_ptr(sq::iMat4));
-        for (std::pair<const std::string, std::unique_ptr<obj::Object>>& bo2 : level->objectMap) {
-            if (bo2.second->type != obj::Type::Model) continue;
-            obj::Model* o2 = static_cast<obj::Model*>(bo2.second.get());
+        modelProg.set_I("useRefl", 0);
+        for (wld::World::OPair& bop2 : world.cellObjects) {
+            if (bop2.second->type != wld::ObjType::Model) continue;
+            wld::Model* o2 = static_cast<wld::Model*>(bop2.second);
             if (!o2->refl) continue;
 
             o2->mesh->bind_buffers();
-            o2->skin->bind_textures();
-            modelProg.set_uniform_mv("modelMat", false, glm::value_ptr(o2->modelMat));
+            o2->bind_textures();
+            modelProg.set_glmmat("modelMat", glm::translate(o2->modelMat, bop2.first));
             gl::DrawElements(gl::TRIANGLES, o2->mesh->iCount, gl::UNSIGNED_INT, 0);
         }
 
         advmodelProg.use();
-        advmodelProg.set_uniform_mv("reflMat", false, glm::value_ptr(sq::iMat4));
-        player->mesh->bind_buffers();
-        player->skin->bind_textures();
-        advmodelProg.set_uniform_mv("modelMat", false, glm::value_ptr(player->modelMat));
-        advmodelProg.set_uniform_fv("s_quat", player->skel->pose.quatData);
-        advmodelProg.set_uniform_fv("s_offs", player->skel->pose.offsData);
-        gl::DrawElements(gl::TRIANGLES, player->mesh->iCount, gl::UNSIGNED_INT, 0);
+        advmodelProg.set_I("useRefl", 0);
+        player.model.mesh->bind_buffers(gl::TEXTURE3);
+        player.model.bind_textures();
+        advmodelProg.set_glmmat("modelMat", player.model.modelMat);
+        advmodelProg.set_ptrvec<glm::vec4>("s_quat", player.model.skeleton.quatData);
+        advmodelProg.set_ptrvec<glm::vec3>("s_offs", player.model.skeleton.offsData);
+        gl::DrawElements(gl::TRIANGLES, player.model.mesh->iCount, gl::UNSIGNED_INT, 0);
 
         gl::Disable(gl::CLIP_DISTANCE1);
 
@@ -399,14 +393,13 @@ void SceneGame::render(float _ft) {
         secFb.cTexVec[0].bind(gl::TEXTURE0);
         terFb.cTexVec[0].bind(gl::TEXTURE1);
         terFb.dsTex.bind(gl::TEXTURE2);
-        texH.get("water_norms")->bind(gl::TEXTURE3);
-        glm::vec2 offset = glm::mix(o->flowOffsetA, o->flowOffsetB, accum / dt);
-        liquidProg.set_uniform_mv("reflMat", false, glm::value_ptr(o->reflMat));
-        liquidProg.set_uniform_f("zPos", o->zPos);
-        liquidProg.set_uniform_fv("flowOffset", glm::value_ptr(offset));
-        liquidProg.set_uniform_f("scale", o->scale);
-        liquidProg.set_uniform_f("wSmooth", o->wSmooth);
-        liquidProg.set_uniform_f("swing", glm::mix(swingA, swingB, accum / dt));
+        resBank().texH.get("water_norms")->bind(gl::TEXTURE3);
+        liquidProg.set_glmmat("reflMat", o->reflMat);
+        liquidProg.set_glmvec("flowOffset", o->flowOffs);
+        liquidProg.set_glmvec("translation", o->pos + bop.first);
+        liquidProg.set_F("scale", o->scale);
+        liquidProg.set_F("wSmooth", o->smooth);
+        liquidProg.set_F("swing", glm::mix(swingA, swingB, accum / dt));
         gl::BindVertexArray(o->vao);
         gl::DrawArrays(gl::TRIANGLES, 0, 6);
     }
@@ -415,27 +408,25 @@ void SceneGame::render(float _ft) {
     /// Characters and Player ///
 
     advmodelProg.use();
-    advmodelProg.set_uniform_mv("reflMat", false, glm::value_ptr(sq::iMat4));
-    player->mesh->bind_buffers();
-    player->skin->bind_textures();
-    advmodelProg.set_uniform_mv("modelMat", false, glm::value_ptr(player->modelMat));
-    advmodelProg.set_uniform_fv("s_quat", player->skel->pose.quatData);
-    advmodelProg.set_uniform_fv("s_offs", player->skel->pose.offsData);
-    gl::DrawElements(gl::TRIANGLES, player->mesh->iCount, gl::UNSIGNED_INT, 0);
+    player.model.mesh->bind_buffers(gl::TEXTURE3);
+    player.model.bind_textures();
+    advmodelProg.set_glmmat("modelMat", player.model.modelMat);
+    advmodelProg.set_ptrvec<glm::vec4>("s_quat", player.model.skeleton.quatData);
+    advmodelProg.set_ptrvec<glm::vec3>("s_offs", player.model.skeleton.offsData);
+    gl::DrawElements(gl::TRIANGLES, player.model.mesh->iCount, gl::UNSIGNED_INT, 0);
 
 
     /// Map Models Opaque ///
 
     modelProg.use();
-    modelProg.set_uniform_mv("reflMat", false, glm::value_ptr(sq::iMat4));
-    for (std::pair<const std::string, std::unique_ptr<obj::Object>>& bo : level->objectMap) {
-        if (bo.second->type == obj::Type::Model) {
-            obj::Model* o = static_cast<obj::Model*>(bo.second.get());
-            if (o->skin->alpha) continue;
+    for (wld::World::OPair& bop : world.cellObjects) {
+        if (bop.second->type == wld::ObjType::Model) {
+            wld::Model* o = static_cast<wld::Model*>(bop.second);
+            if (o->alpha) continue;
 
             o->mesh->bind_buffers();
-            o->skin->bind_textures();
-            modelProg.set_uniform_mv("modelMat", false, glm::value_ptr(o->modelMat));
+            o->bind_textures();
+            modelProg.set_glmmat("modelMat", glm::translate(o->modelMat, bop.first));
 
             gl::DrawElements(gl::TRIANGLES, o->mesh->iCount, gl::UNSIGNED_INT, 0);
         }
@@ -445,14 +436,14 @@ void SceneGame::render(float _ft) {
     /// Map Models Translucent ///
 
     gl::Enable(gl::BLEND);
-    for (std::pair<const std::string, std::unique_ptr<obj::Object>>& bo : level->objectMap) {
-        if (bo.second->type == obj::Type::Model) {
-            obj::Model* o = static_cast<obj::Model*>(bo.second.get());
-            if (!o->skin->alpha) continue;
+    for (wld::World::OPair& bop : world.cellObjects) {
+        if (bop.second->type == wld::ObjType::Model) {
+            wld::Model* o = static_cast<wld::Model*>(bop.second);
+            if (!o->alpha) continue;
 
             o->mesh->bind_buffers();
-            o->skin->bind_textures();
-            modelProg.set_uniform_mv("modelMat", false, glm::value_ptr(o->modelMat));
+            o->bind_textures();
+            modelProg.set_glmmat("modelMat", glm::translate(o->modelMat, bop.first));
 
             gl::DrawElements(gl::TRIANGLES, o->mesh->iCount, gl::UNSIGNED_INT, 0);
         }
@@ -463,15 +454,16 @@ void SceneGame::render(float _ft) {
 
     gl::Disable(gl::BLEND);
     gl::Disable(gl::DEPTH_TEST);
-    if (settings.aa) {
+    int antialiasing = settings.get_int("antialiasing");
+    if (antialiasing) {
         lumaProg.use();
         priFb.cTexVec[0].bind(gl::TEXTURE0);
         screenQuad.draw();
 
         gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
         gl::Clear(gl::COLOR_BUFFER_BIT);
-        if (settings.aa == 1) fxaaLProg.use();
-        else if (settings.aa == 2) fxaaHProg.use();
+        if (antialiasing == 1) fxaaLProg.use();
+        else if (antialiasing == 2) fxaaHProg.use();
         screenQuad.draw();
     } else {
         gl::BindFramebuffer(gl::FRAMEBUFFER, 0);

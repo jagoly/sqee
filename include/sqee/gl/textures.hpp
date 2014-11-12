@@ -16,16 +16,15 @@ public:
     void create(GLenum _target, GLenum _format, GLenum _iFormat,
                 TexPreset _preset = TexPreset::NONE);
     void create(GLenum _target, GLenum _format, GLenum _iFormat,
-                const std::string& _filePath,
+                const string& _filePath,
                 TexPreset _preset = TexPreset::NONE);
 
     void resize(glm::uvec3 _size);
     void buffer_memory(const void* _data, uint _z = 0);
-    void buffer_file(const std::string& _filePath, uint _z = 0);
+    void buffer_file(const string& _filePath, uint _z = 0);
     void set_preset(TexPreset _preset);
 
-    void bind();
-    void bind(GLenum _slot);
+    void bind(GLenum _slot = gl::NONE);
     void set_param(GLenum _name, GLenum _value);
 
     GLuint tex;
@@ -39,6 +38,6 @@ private:
     int dimensions;
     GLenum dataType;
 };
-typedef ResHolder<std::string, Texture> TexHolder;
+typedef ResHolder<string, Texture> TexHolder;
 
 }

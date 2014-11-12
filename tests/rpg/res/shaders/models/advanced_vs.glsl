@@ -15,11 +15,14 @@ layout(std140, binding = 0) uniform cameraBlock {
     vec2 zRange;
 };
 
-uniform mat4 reflMat;
-uniform mat4 modelMat;
+// From Other
 uniform mat4 shadProjViewMat;
+uniform int useRefl;
+uniform mat4 reflMat;
 uniform float clipZ;
 
+// From Object
+uniform mat4 modelMat;
 uniform vec4[40] s_quat;
 uniform vec3[40] s_offs;
 
@@ -28,6 +31,7 @@ out vec3 shadcoord;
 out vec2 texcoord;
 out vec3 N, T, B;
 out vec3 w_pos;
+
 
 void main() {
     texcoord = V_texcoord;
@@ -75,5 +79,9 @@ void main() {
     gl_ClipDistance[0] = w_pos.z - clipZ;
     gl_ClipDistance[1] = -(w_pos.z - clipZ);
 
-    gl_Position = projMat * viewMat * vec4(vec4(reflMat * vec4(w_pos, 1)).xyz, 1);
+    if (useRefl == 1) {
+        gl_Position = projMat * viewMat * vec4(vec4(reflMat * vec4(w_pos, 1)).xyz, 1);
+    } else {
+        gl_Position = projMat * viewMat * vec4(w_pos, 1);
+    }
 }

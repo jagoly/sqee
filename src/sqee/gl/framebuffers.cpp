@@ -1,5 +1,4 @@
 #include <iostream>
-#include <array>
 #include <unordered_map>
 
 #include <gl/framebuffers.hpp>
@@ -18,8 +17,8 @@ std::unordered_map<GLenum, uint> attachMap = {
 };
 
 
-void Framebuffer::create(std::vector<GLenum> _drawBuffers, std::vector<GLenum> _cFormats,
-                         std::vector<GLenum> _iCFormats) {
+void Framebuffer::create(vector<GLenum> _drawBuffers, vector<GLenum> _cFormats,
+                         vector<GLenum> _iCFormats) {
     if (!fbo) gl::GenFramebuffers(1, &fbo);
 
     cTexVec.resize(_drawBuffers.size());
@@ -37,8 +36,8 @@ void Framebuffer::create(GLenum _dsFormat, GLenum _idsFormat) {
     dsTex.create(gl::TEXTURE_2D, _dsFormat, _idsFormat, TexPreset::N_C);
 }
 
-void Framebuffer::create(std::vector<GLenum> _drawBuffers,
-                         std::vector<GLenum> _cFormats, std::vector<GLenum> _icFormats,
+void Framebuffer::create(vector<GLenum> _drawBuffers,
+                         vector<GLenum> _cFormats, vector<GLenum> _icFormats,
                          GLenum _dsFormat, GLenum _idsFormat) {
     create(_drawBuffers, _cFormats, _icFormats);
     create(_dsFormat, _idsFormat);

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vector>
-
 #include <gl/gl.hpp>
 #include <gl/textures.hpp>
 
@@ -9,12 +7,11 @@ namespace sq {
 
 class Framebuffer {
 public:
-/// Colour Only
-    void create(std::vector<GLenum> _drawBuffers,
-                std::vector<GLenum> _cFormats, std::vector<GLenum> _iCFormats);
+    void create(vector<GLenum> _drawBuffers,
+                vector<GLenum> _cFormats, vector<GLenum> _iCFormats);
     void create(GLenum _dsFormat, GLenum _idsFormat);
-    void create(std::vector<GLenum> _drawBuffers,
-                std::vector<GLenum> _cFormats, std::vector<GLenum> _icFormats,
+    void create(vector<GLenum> _drawBuffers,
+                vector<GLenum> _cFormats, vector<GLenum> _icFormats,
                 GLenum _dsFormat, GLenum _idsFormat);
 
     void resize(glm::uvec2 _size);
@@ -25,10 +22,10 @@ public:
 
     GLuint fbo;
 
-    std::vector<Texture> cTexVec;
+    vector<Texture> cTexVec;
     Texture dsTex;
 private:
-    std::vector<GLenum> drawBuffers;
+    vector<GLenum> drawBuffers;
     glm::uvec2 size;
 };
 

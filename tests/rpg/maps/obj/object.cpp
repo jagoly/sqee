@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include <sqee/gl/gl.hpp>
+#include <sqee/misc/files.hpp>
 
 #include "object.hpp"
 #include "model.hpp"
@@ -8,41 +8,65 @@
 #include "data.hpp"
 #include "light.hpp"
 
-namespace sqt {
-namespace obj {
+using namespace sqt::wld;
 
-Object* create(const Json::Value& _json,
-               MeshHolder& _meshH, SkinHolder& _skinH, sq::TexHolder& _texH,
-               const std::string& _mapPath, const std::string& _uid) {
-#ifdef SQEE_DEBUG
-    if (!_json["type"].isString()) throw;
-    std::string str = _json["type"].asString();
-    if (str != "model" && str != "liquid" && str != "data" && str != "light") throw;
-#endif
+void ObjectSpec::parse_line(const string& line) {
+    SubStr key(line);
 
-    Object* ptr;
+    if (key.str == "object") {
+        SubStr val(line, key);
+        if      (val.str == "model")   objType = ObjType::Model;
+        else if (val.str == "liquid") objType = ObjType::Liquid;
+        else throw; // bad type
 
-    std::string vType = _json["type"].asString();
-    if      (vType == "model")  ptr = new Model(_meshH, _skinH, _texH, _mapPath, _uid);
-    else if (vType == "liquid") ptr = new Liquid(_meshH, _skinH, _texH, _mapPath, _uid);
-    else if (vType == "data")   ptr = new Data(_meshH, _skinH, _texH, _mapPath, _uid);
-    else if (vType == "light")  ptr = new Light(_meshH, _skinH, _texH, _mapPath, _uid);
-
-    for (const std::string& key : _json.getMemberNames()) {
-        const Json::Value& val = _json[key];
-        if      (val.isBool())   ptr->boolMap[key]   = val.asBool();
-        else if (val.isInt())    ptr->intMap[key]    = val.asInt();
-        else if (val.isDouble()) ptr->floatMap[key]  = val.asFloat();
-        else if (val.isString()) ptr->stringMap[key] = val.asString();
+        uid = SubStr(line, val).str;
+        return;
     }
 
-    if      (vType == "model")  static_cast<Model*>(ptr)->create();
-    else if (vType == "liquid") static_cast<Liquid*>(ptr)->create();
-    else if (vType == "data")   static_cast<Data*>(ptr)->create();
-    else if (vType == "light")  static_cast<Light*>(ptr)->create();
+    if (key.str == "flags") {
+        SubStr val = key;
+        while (true) {
+            val = SubStr(line, val);
+            if (val.str.empty()) break;
+            flagSet.emplace(val.str);
+        }
+        return;
+    }
 
-    return ptr;
-}
+    char c = key.str[0];
+    if (c == 'b' || c == 'i' || c == 'f' || c == 's') {
+        int len = std::atoi(&key.str[1]);
+        key = SubStr(line, key);
+        SubStr val = key;
 
-}
+        if (c == 'b') {
+            std::vector<bool>& vec = boolMap[key.str];
+            for (int i = 0; i < len; i++) {
+                val = SubStr(line, val);
+                vec.push_back(int(val));
+            }
+        }
+        if (c == 'i') {
+            std::vector<int>& vec = intMap[key.str];
+            for (int i = 0; i < len; i++) {
+                val = SubStr(line, val);
+                vec.push_back(int(val));
+            }
+        }
+        if (c == 'f') {
+            std::vector<float>& vec = floatMap[key.str];
+            for (int i = 0; i < len; i++) {
+                val = SubStr(line, val);
+                vec.push_back(float(val));
+            }
+        }
+        if (c == 's') {
+            std::vector<string>& vec = stringMap[key.str];
+            for (int i = 0; i < len; i++) {
+                val = SubStr(line, val);
+                vec.push_back(val.str);
+            }
+        }
+        return;
+    }
 }

@@ -1,4 +1,5 @@
 #pragma once
+#include <defs.hpp>
 
 #include <gl/gl_ext_3_3.hpp>
 
@@ -6,8 +7,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
-#include <defs.hpp>
 
 namespace sq {
 

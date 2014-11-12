@@ -7,23 +7,30 @@ in vec2 texcoord;
 in vec3 N, T, B;
 in vec3 w_pos;
 
-uniform int shadQuality;
-
 layout(std140, binding = 0) uniform cameraBlock {
     mat4 projMat, viewMat;
     vec3 camPos, camRot;
     vec2 zRange;
 };
 
+// From Settings
+uniform int shadQuality;
+
+// From Other
+layout(binding=4) uniform sampler2DShadow texShad;
+
+// From World
 uniform vec3 skyLightDir;
 uniform vec3 skyLightDiff, skyLightAmbi, skyLightSpec;
+
+// From Object
 layout(binding=0) uniform sampler2DArray texNorm;
 layout(binding=1) uniform sampler2DArray texDiff;
 layout(binding=2) uniform sampler2DArray texSpec;
 layout(binding=3) uniform usamplerBuffer texNums;
-layout(binding=4) uniform sampler2DShadow texShad;
 
 out vec4 fragColour;
+
 
 void main() {
     vec3 texelNorm;

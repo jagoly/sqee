@@ -1,0 +1,62 @@
+# SQEE RPG Map Format
+
+{ header
+size 34 26 8
+}
+
+{ heightlayers
+Terrain WorldTest/TerrainA 0 0 0.0
+}
+
+{ objects
+object model Terrain
+f3 pos 0.0 0.0 0.0
+s1 mesh WorldTest/TerrainA
+s1 diff WorldTest/TerrainA
+s1 ambi WorldTest/TerrainA
+flags shad refl refr
+
+object model StairsEast0
+f3 pos 14.0 11.0 4.0
+s1 mesh Test/StairsEast
+s1 norm Test/Stairs
+s1 diff Test/Stairs
+s1 spec Test/Stairs
+s1 ambi Test/Stairs
+flags shad
+
+object model StairsEast1
+f3 pos 15.0 11.0 5.0
+s1 mesh Test/StairsEast
+s1 norm Test/Stairs
+s1 diff Test/Stairs
+s1 spec Test/Stairs
+s1 ambi Test/Stairs
+flags shad
+
+object model StairsWest0
+f3 pos 29.0 11.0 4.0
+s1 mesh Test/StairsWest
+s1 norm Test/Stairs
+s1 diff Test/Stairs
+s1 spec Test/Stairs
+s1 ambi Test/Stairs
+flags shad
+
+object model StairsWest1
+f3 pos 28.0 11.0 5.0
+s1 mesh Test/StairsWest
+s1 norm Test/Stairs
+s1 diff Test/Stairs
+s1 spec Test/Stairs
+s1 ambi Test/Stairs
+flags shad
+
+object liquid River
+f3 pos 13.0 -2.0 3.5
+f2 size 15.0 26.0
+f1 scale 1.0
+f1 smooth 2.0
+f2 flow 0.0 0.02
+flags
+}

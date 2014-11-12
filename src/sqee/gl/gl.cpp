@@ -6,7 +6,7 @@ namespace sq {
 
 void debug_callback(GLenum _source, GLenum _type, GLuint /*_id*/, GLenum _severity,
                    GLsizei /*_length*/, const GLchar* _message, const void* /*_param*/) {
-    std::string source;
+    string source;
     if (_source == gl::DEBUG_SOURCE_API)
         source = "API";
     else if (_source == gl::DEBUG_SOURCE_APPLICATION)
@@ -20,7 +20,7 @@ void debug_callback(GLenum _source, GLenum _type, GLuint /*_id*/, GLenum _severi
     else if (_source == gl::DEBUG_SOURCE_WINDOW_SYSTEM)
         source = "WINDOW_SYSTEM";
 
-    std::string type;
+    string type;
     if (_type == gl::DEBUG_TYPE_DEPRECATED_BEHAVIOR)
         type = "DEPRECATED_BEHAVIOR";
     if (_type == gl::DEBUG_TYPE_ERROR)
@@ -40,7 +40,7 @@ void debug_callback(GLenum _source, GLenum _type, GLuint /*_id*/, GLenum _severi
     if (_type == gl::DEBUG_TYPE_UNDEFINED_BEHAVIOR)
         type = "UNDEFINED_BEHAVIOR";
 
-    std::string severity;
+    string severity;
     if (_severity == gl::DEBUG_SEVERITY_HIGH)
         severity = "HIGH";
     if (_severity == gl::DEBUG_SEVERITY_LOW)

@@ -14,30 +14,25 @@ layout(std140, binding = 0) uniform cameraBlock {
     vec2 zRange;
 };
 
-
+// From Settings
 uniform int shadQuality;
+
+// From Other
+layout(binding=4) uniform sampler2DShadow texShad;
+
+// From World
 uniform vec3 skyLightDir;
+
+// From Object
 uniform float wSmooth;
 uniform float swing;
 uniform mat4 reflMat;
-
 layout(binding=0) uniform sampler2D texRefl;
 layout(binding=1) uniform sampler2D texRefr;
 layout(binding=2) uniform sampler2D texDep;
 layout(binding=3) uniform sampler2DArray texNorms;
-layout(binding=4) uniform sampler2DShadow texShad;
 
 out vec4 fragColour;
-
-
-const bool feN = true;
-const bool feE = true;
-const bool feS = true;
-const bool feW = true;
-const float fsN = 25.f;
-const float fsE = 33.f;
-const float fsS = 1.f;
-const float fsW = 1.f;
 
 
 void main() {
@@ -92,14 +87,7 @@ void main() {
     rOffset /= 100.f;
     vec3 texelRefr = texture(texRefr, rtc + rOffset).rgb;
 
-    float fog = 0.f;
-    if (feN) fog = max(w_pos.y - fsN, fog);
-    if (feE) fog = max(w_pos.x - fsE, fog);
-    if (feS) fog = max(fsS - w_pos.y, fog);
-    if (feW) fog = max(fsW - w_pos.x, fog);
-    fog = min(max(fog, 0.f), 1.f);
     vec3 refl = texelRefl * fres;
-    refl = mix(refl, vec3(0), fog);
 
     vec3 refr = texelRefr * invFres;
     refr *= 1.f - wDep / 4.f;

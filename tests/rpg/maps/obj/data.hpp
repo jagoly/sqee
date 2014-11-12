@@ -3,7 +3,7 @@
 #include "object.hpp"
 
 namespace sqt {
-namespace obj {
+namespace wld {
 
 class Data : public Object {
 public:

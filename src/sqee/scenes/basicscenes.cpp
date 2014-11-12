@@ -1,6 +1,6 @@
+#include <scenes/basicscenes.hpp>
 #include <text/font.hpp>
 #include <text/text.hpp>
-#include <scenes/basicscenes.hpp>
 
 using namespace sq;
 

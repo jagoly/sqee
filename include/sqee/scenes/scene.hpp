@@ -1,7 +1,5 @@
 #pragma once
 
-#include <memory>
-
 #include <gl/gl.hpp>
 
 namespace sq {
@@ -10,7 +8,7 @@ class Application;
 
 class Scene {
 public:
-    typedef std::unique_ptr<Scene> Ptr;
+    typedef unique_ptr<Scene> Ptr;
 
     Scene(Application& _app)
         : app(_app) {}

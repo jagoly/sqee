@@ -1,0 +1,21 @@
+# SQEE RPG World Format
+
+{ skylight
+enable yes
+dir -0.1 -0.25 -0.65
+diff 0.8 0.8 0.8
+ambi 0.4 0.4 0.4
+spec 1.0 1.0 1.0
+}
+
+{ cells
+cell CellA
+path WorldTest/CellA
+xypos 0 0
+zpos 0.0
+}
+
+{ heightlayers
+layer Terrain
+CellA Terrain
+}

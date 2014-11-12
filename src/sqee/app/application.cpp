@@ -1,14 +1,12 @@
 #include <iostream>
 
-#include <gl/gl_ext_3_3.hpp>
 #include <app/application.hpp>
 #include <events/handler.hpp>
 #include <scenes/scene.hpp>
 
 using namespace sq;
 
-Application::Application(glm::uvec2 _size, bool _showfps, bool _vsync,
-                         bool _resizable, const std::string& _title) {
+Application::Application(glm::uvec2 _size, bool _resizable, const string& _title) {
     int error = FT_Init_FreeType(&ftLib);
     if (error) std::cout << "ERROR: Failed to initialise FreeType" << std::endl;
 
@@ -38,8 +36,7 @@ Application::Application(glm::uvec2 _size, bool _showfps, bool _vsync,
     gl::DebugMessageCallback(sq::debug_callback, 0);
 #endif
 
-    set_vsync(_vsync);
-    set_showfps(_showfps);
+    window.setVerticalSyncEnabled(true);
 }
 
 int Application::run() {
@@ -47,11 +44,11 @@ int Application::run() {
     sf::Clock clockFT;
 
     while (retCode == -1) {
-        for (const std::string& _id : sceneSweep) {
+        for (const string& _id : sceneSweep) {
             sceneIM.del(_id);
         } sceneSweep.clear();
 
-        for (const std::string& _id : handlerSweep) {
+        for (const string& _id : handlerSweep) {
             handlerIM.del(_id);
         } handlerSweep.clear();
 
@@ -106,22 +103,12 @@ void Application::set_vsync(bool _vsync) {
     window.setVerticalSyncEnabled(_vsync);
     vsync = _vsync;
 }
-bool Application::get_vsync() {
-    return vsync;
-}
-
-void Application::set_showfps(bool _showfps) {
-    showfps = _showfps;
-}
-bool Application::get_showfps() {
-    return showfps;
-}
 
 
-void Application::sweep_handler(const std::string& _id) {
+void Application::sweep_handler(const string& _id) {
     handlerSweep.emplace(_id);
 }
 
-void Application::sweep_scene(const std::string& _id) {
+void Application::sweep_scene(const string& _id) {
     sceneSweep.emplace(_id);
 }

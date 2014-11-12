@@ -1,0 +1,25 @@
+# SQEE RPG Map Format
+
+{ header
+size 4 4 4
+}
+
+{ layers
+Ground worldtest/hl 0 0 0.0
+}
+
+{ objects
+object model Ground
+f3 pos 0.0 0.0 0.0
+s1 mesh worldtest/ground
+s1 diff test/debug
+flags shad refl refr
+
+object liquid Puddle
+f3 pos 1.0 1.0 1.0
+f2 size 2.0 2.0
+f1 scale 1.0
+f1 smooth 2.0
+f2 flow 0.01 0.01
+flags
+}

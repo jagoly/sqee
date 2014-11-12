@@ -1,27 +1,8 @@
-#include <iostream>
-
 #include "liquid.hpp"
 
-using namespace sqt::obj;
+using namespace sqt::wld;
 
-void Liquid::create() {
-#ifdef SQEE_DEBUG
-    SQ_FLOATCHECK("xPos")
-    SQ_FLOATCHECK("yPos")
-    SQ_FLOATCHECK("xSize")
-    SQ_FLOATCHECK("ySize")
-    SQ_FLOATCHECK("zPos")
-    SQ_FLOATCHECK("xFlow")
-    SQ_FLOATCHECK("yFlow")
-    SQ_FLOATCHECK("speed")
-    SQ_FLOATCHECK("wSmooth")
-    SQ_FLOATCHECK("red")
-    SQ_FLOATCHECK("green")
-    SQ_FLOATCHECK("blue")
-#endif
-
-    type = Type::Liquid;
-
+void Liquid::create(ObjectSpec& _spec) {
     gl::GenVertexArrays(1, &vao);
     gl::BindVertexArray(vao);
     gl::EnableVertexAttribArray(0);
@@ -30,37 +11,49 @@ void Liquid::create() {
     float points[18];
     float txcrds[12];
 
-    xPT = floatMap["xFlow"] * floatMap["speed"];
-    yPT = floatMap["yFlow"] * floatMap["speed"];
-    scale = floatMap["scale"];
-    wSmooth = floatMap["wSmooth"];
-    tinge = {floatMap["red"], floatMap["green"], floatMap["blue"]};
-    zPos = floatMap["zPos"];
+    if (_spec.floatMap.count("pos")) {
+        pos = glm::make_vec3(_spec.floatMap["pos"].data());
+    }
 
-    float tX = floatMap["xSize"] / scale;
-    float tY = floatMap["ySize"] / scale;
+    if (_spec.floatMap.count("size"))
+        size = glm::make_vec2(_spec.floatMap["size"].data());
 
-    points[5*3+0] = points[1*3+0] = floatMap["xPos"] + floatMap["xSize"];
+    if (_spec.floatMap.count("scale"))
+        scale = _spec.floatMap["scale"][0];
+
+    if (_spec.floatMap.count("smooth"))
+        smooth = _spec.floatMap["smooth"][0];
+
+    if (_spec.floatMap.count("flow"))
+        flow = glm::make_vec2(_spec.floatMap["flow"].data());
+
+    if (_spec.floatMap.count("colour"))
+        colour = glm::make_vec4(_spec.floatMap["colour"].data());
+
+    float tX = size.x / scale;
+    float tY = size.y / scale;
+
+    points[5*3+0] = points[1*3+0] = size.x;
     txcrds[5*2+0] = txcrds[1*2+0] = tX;
-    points[5*3+1] = points[1*3+1] = floatMap["yPos"] + floatMap["ySize"];
+    points[5*3+1] = points[1*3+1] = size.y;
     txcrds[5*2+1] = txcrds[1*2+1] = tY;
 
-    points[4*3+0] = points[2*3+0] = floatMap["xPos"];
+    points[4*3+0] = points[2*3+0] = 0.f;
     txcrds[4*2+0] = txcrds[2*2+0] = 0.f;
-    points[4*3+1] = points[2*3+1] = floatMap["yPos"];
+    points[4*3+1] = points[2*3+1] = 0.f;
     txcrds[4*2+1] = txcrds[2*2+1] = 0.f;
 
-    points[3*3+0] = floatMap["xPos"];
+    points[3*3+0] = 0.f;
     txcrds[3*2+0] = 0.f;
-    points[3*3+1] = floatMap["yPos"] + floatMap["ySize"];
+    points[3*3+1] = size.y;
     txcrds[3*2+1] = tY;
 
-    points[0*3+0] = floatMap["xPos"] + floatMap["xSize"];
+    points[0*3+0] = size.x;
     txcrds[0*2+0] = tX;
-    points[0*3+1] = floatMap["yPos"];
+    points[0*3+1] = 0.f;
     txcrds[0*2+1] = 0.f;
 
-    points[2] = points[5] = points[8] = points[11] = points[14] = points[17] = zPos;
+    points[2] = points[5] = points[8] = points[11] = points[14] = points[17] = 0.f;
 
     gl::GenBuffers(1, &vboP);
     gl::BindBuffer(gl::ARRAY_BUFFER, vboP);
@@ -75,11 +68,16 @@ void Liquid::create() {
     reflMat = {1, 0, 0, 0,
                0, 1, 0, 0,
                0, 0, -1, 0,
-               0, 0, 2.f*zPos, 1};
+               0, 0, 2.f*pos.z, 1};
 }
 
 void Liquid::tick() {
-    flowOffsetA = flowOffsetB;
-    flowOffsetB.x += xPT;
-    flowOffsetB.y += yPT;
+    flowOffsA = flowOffsB;
+    flowOffsB.x += flow.x / scale;
+    flowOffsB.y += flow.y / scale;
+}
+
+void Liquid::calc(double _accum) {
+    const double dt = 1.d / 24.d;
+    flowOffs = glm::mix(flowOffsA, flowOffsB, _accum / dt);
 }

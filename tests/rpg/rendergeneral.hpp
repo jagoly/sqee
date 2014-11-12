@@ -4,13 +4,6 @@
 
 namespace sqt {
 
-class Settings {
-public:
-    int aa = 2;
-    int shad = 4;
-    int refl = 2;
-};
-
 class SkyLight {
 public:
     glm::vec3 dir = {-0.1f, -0.25f, -0.65f};
@@ -23,7 +16,7 @@ public:
     glm::mat4 projMat;
     glm::mat4 projViewMat;
 
-    void update(glm::vec3 _dir, glm::uvec3 _mapSize);
+    void update(glm::vec3 _dir, glm::vec3 _min, glm::vec3 _max);
 };
 
 }

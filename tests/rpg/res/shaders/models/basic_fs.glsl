@@ -7,32 +7,30 @@ in vec2 texcoord;
 in vec3 n, t, b;
 in vec3 w_pos;
 
-uniform int shadQuality;
-
 layout(std140, binding = 0) uniform cameraBlock {
     mat4 projMat, viewMat;
     vec3 camPos, camRot;
     vec2 zRange;
 };
 
+// From Settings
+uniform int shadQuality;
+
+// From Other
+layout(binding=4) uniform sampler2DShadow texShad;
+
+// From World
 uniform vec3 skyLightDir;
 uniform vec3 skyLightDiff, skyLightAmbi, skyLightSpec;
+
+// From Object
 layout(binding=0) uniform sampler2D texNorm;
 layout(binding=1) uniform sampler2D texDiff;
 layout(binding=2) uniform sampler2D texSpec;
 layout(binding=3) uniform sampler2D texAmbi;
-layout(binding=4) uniform sampler2DShadow texShad;
-
-const bool feN = true;
-const bool feE = true;
-const bool feS = true;
-const bool feW = true;
-const float fsN = 25.f;
-const float fsE = 33.f;
-const float fsS = 1.f;
-const float fsW = 1.f;
 
 out vec4 fragColour;
+
 
 void main() {
     vec3 t_norm = normalize(texture(texNorm, texcoord).rgb * 2.f - 1.f);
@@ -69,13 +67,4 @@ void main() {
     vec3 spec = skyLightSpec * texelSpec * factor * visibility;
 
     fragColour = vec4(ambi + spec + diff, texelDiff.a);
-
-    float fog = 0.f;
-    if (feN) fog = max(w_pos.y - fsN, fog);
-    if (feE) fog = max(w_pos.x - fsE, fog);
-    if (feS) fog = max(fsS - w_pos.y, fog);
-    if (feW) fog = max(fsW - w_pos.x, fog);
-    fog = min(max(fog, 0.f), 1.f);
-
-    fragColour.rgb = mix(fragColour.rgb, vec3(0), fog);
 }

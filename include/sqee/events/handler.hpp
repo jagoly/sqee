@@ -1,8 +1,8 @@
 #pragma once
 
-#include <memory>
-
 #include <SFML/Window.hpp>
+
+#include <defs.hpp>
 
 namespace sq {
 
@@ -10,7 +10,7 @@ class Application;
 
 class Handler {
 public:
-    typedef std::unique_ptr<Handler> Ptr;
+    typedef unique_ptr<Handler> Ptr;
 
     Handler(Application& _app)
         : app(_app) {}

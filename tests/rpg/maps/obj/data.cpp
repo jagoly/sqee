@@ -1,11 +1,11 @@
 #include "data.hpp"
 
-using namespace sqt::obj;
+using namespace sqt::wld;
 
 void Data::create() { // TODO
 #ifdef SQEE_DEBUG
 
 #endif
 
-    type = Type::Data;
+    type = ObjType::Data;
 }
