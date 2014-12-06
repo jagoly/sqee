@@ -1,4 +1,3 @@
-#include <iostream>
 #include <fstream>
 #include <sstream>
 
@@ -6,23 +5,23 @@
 
 namespace sq {
 
-Json::Value get_json_from_file(const std::string& _path) {
+Json::Value get_json_from_file(const string& _path) {
     std::ifstream src(_path);
 
     Json::Reader reader;
     Json::Value root;
     if (!reader.parse(src, root)) {
-        std::cout << "ERROR: Failed to load json from \"" << _path << "\"\n"
-                  << "-------------------------\n"
-                  << reader.getFormattedErrorMessages()
-                  << "-------------------------" << std::endl;
+        cout << "ERROR: Failed to load json from \"" << _path << "\"\n"
+             << "-------------------------\n"
+             << reader.getFormattedErrorMessages()
+             << "-------------------------" << endl;
     }
     src.close();
 
     return root;
 }
 
-std::string get_string_from_file(const std::string& _path) {
+std::string get_string_from_file(const string& _path) {
     std::ifstream src;
     src.open(_path);
     std::stringstream sstr;

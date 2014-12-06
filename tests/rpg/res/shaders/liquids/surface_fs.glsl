@@ -1,96 +1,105 @@
 #version 330
 #extension GL_ARB_shading_language_420pack : enable
 
-in vec2 texcoord;
-in vec3 shadcoord;
-in vec3 n, t, b;
-in vec3 w_pos;
-in vec3 v_pos;
-in vec4 p_pos;
+in vec3 w_pos, v_pos;
+in noperspective vec2 refrTc, reflTc;
+in vec3 N, T, B;
+in vec2 texcrd;
+in vec3 slShadcrd;
 
-layout(std140, binding = 0) uniform cameraBlock {
-    mat4 projMat, viewMat;
-    vec3 camPos, camRot;
-    vec2 zRange;
+layout(std140, binding = 0) uniform CameraBlock {
+    mat4 proj, view;
+    vec3 pos; float near;
+    vec3 rot; float far;
+} Cam;
+
+struct SpotLight {
+    vec3 pos; float angle;
+    vec3 dir; float intensity;
+    vec3 colour; float softness;
 };
 
-// From Settings
-uniform int shadQuality;
+layout(std140, binding = 1) uniform WorldBlock {
+    vec3 ambiColour;
+    bool skylEnable;
+    vec3 skylDir;
+    vec3 skylColour;
+    mat4 skylMat;
+    uint spotCount;
+    SpotLight spots[8];
+    mat4 spotMats[8];
+} Wor;
 
-// From Other
-layout(binding=4) uniform sampler2DShadow texShad;
+layout(std140, binding = 2) uniform LiquidBlock {
+    mat4 reflMat;
+    float wSmooth;
+    float thickness;
+    vec2 flowOffset;
+    vec3 translation;
+    float normProg;
+    vec3 colour;
+    float normA, normB;
+} Liq;
 
-// From World
-uniform vec3 skyLightDir;
-
-// From Object
-uniform float wSmooth;
-uniform float swing;
-uniform mat4 reflMat;
+uniform float shadBiasMod;
 layout(binding=0) uniform sampler2D texRefl;
 layout(binding=1) uniform sampler2D texRefr;
 layout(binding=2) uniform sampler2D texDep;
 layout(binding=3) uniform sampler2DArray texNorms;
+layout(binding=4) uniform sampler2DShadow texSlShad;
+layout(binding=5) uniform sampler2DShadow texSpShad[8];
 
 out vec4 fragColour;
 
 
-void main() {
-    vec3 t_norm = vec3(0, 0, 1);
-    if (wSmooth < 49.9f) {
-        vec3 t_normA = texture(texNorms, vec3(texcoord, 0)).rgb * 2.f - 1.f;
-        vec3 t_normB = texture(texNorms, vec3(texcoord, 1)).rgb * 2.f - 1.f;
-        t_normA *= 1.f + swing;
-        t_normB *= 1.f - swing;
-        t_norm = normalize(t_normA + t_normB + vec3(0, 0, wSmooth));
-    }
-    vec3 v_norm = t * t_norm.x + b * t_norm.y + n * t_norm.z;
+float sample_shadow(vec3 _dirToLight, vec3 _shadCoord, sampler2DShadow _tex) {
+    float magicTan = tan(acos(dot(N, _dirToLight)));
+    float bias = clamp(0.00025f * shadBiasMod * magicTan, 0.f, 0.0025f);
+    return texture(_tex, vec3(_shadCoord.xy, _shadCoord.z - bias));
+}
 
-    vec3 dirFromCam = normalize(vec4(viewMat * vec4(camPos, 1)).xyz - v_pos);
+void main() {
+    vec3 dirFromCam = normalize(vec4(Cam.view * vec4(Cam.pos, 1)).xyz - v_pos);
+
+    vec3 v_norm = N;
+    if (Liq.wSmooth < 99.99f) {
+        vec3 t_normA = texture(texNorms, vec3(texcrd, Liq.normA)).rgb * 2.f - 1.f;
+        vec3 t_normB = texture(texNorms, vec3(texcrd, Liq.normB)).rgb * 2.f - 1.f;
+        vec3 t_norm = mix(t_normA, t_normB, Liq.normProg);
+        t_norm = normalize(mix(t_norm, vec3(0, 0, 1), Liq.wSmooth / 100.f));
+        v_norm = T * t_norm.x + B * t_norm.y + N * t_norm.z;
+    }
+
 
     vec3 angle = refract(-dirFromCam, v_norm, 0.7f);
-    vec4 rpc = p_pos;
-    vec2 rtc = rpc.xy / rpc.w / 2.f + 0.5f;
-    float texelDep = texture(texDep, rtc).r;
-    if (texelDep == 1.f) discard; // NOT WORKING I THINK
+    float texelDep = texture(texDep, refrTc).r;
+
+    vec2 lOffset = (-N.xy - reflect(-dirFromCam, v_norm).xy) / 100.f;
+    vec3 texelRefl = texture(texRefl, reflTc + lOffset).rgb;
 
 
+    // Skylight Lighting
+    if (Wor.skylEnable) {
+        vec3 skylDir = vec4(Cam.view * vec4(Wor.skylDir, 0)).xyz;
 
-    vec2 lOffset = (-n.xy - reflect(-dirFromCam, v_norm).xy);
-    lOffset /= 100.f;
-    vec4 lpc = reflMat * projMat * viewMat * vec4(w_pos, 1);
-    vec2 ltc = lpc.xy / lpc.w / 2.f + 0.5f;
-    vec3 texelRefl = texture(texRefl, ltc + lOffset).rgb;
+        // Shadow
+        float vis = sample_shadow(-skylDir, slShadcrd, texSlShad);
 
-
-    vec3 dirToLight = vec4(viewMat * vec4(-skyLightDir, 0)).xyz;
-    float bias;
-    float visibility = 1.f;
-    if (bool(shadQuality)) {
-        float val = pow(2.f, 5.f-shadQuality) / 2.f;
-        bias = clamp(0.0002f * val * tan(acos(dot(v_norm, dirToLight))), 0.f, 0.002f);
-        vec3 sc = vec3(shadcoord.xy, shadcoord.z - bias);
-        visibility = texture(texShad, sc);
+        // more todo
     }
 
-    vec3 lRefl = normalize(vec4(viewMat * vec4(reflect(-skyLightDir, t_norm), 0)).xyz)
-            * 2.f; // depth
-    float invFres = vec3(dot(dirFromCam, vec4(viewMat * vec4(t_norm, 0)).xyz));
+    float invFres = dot(dirFromCam, v_norm);
     float fres = 1.f - invFres;
 
-    float zN = zRange.x; float zF = zRange.y;
     float sDep = -v_pos.z;
-    float bDep = (zN * zF) / (zF - texelDep * (zF - zN));
+    float bDep = (Cam.near * Cam.far) / (Cam.far - texelDep * (Cam.far - Cam.near));
     float wDep = distance(sDep, bDep);
 
-    vec2 rOffset = (-n.xy - refract(-dirFromCam, v_norm, 0.f).xy) * wDep;
-    rOffset /= 100.f;
-    vec3 texelRefr = texture(texRefr, rtc + rOffset).rgb;
+    vec2 rOffset = (-N.xy - refract(-dirFromCam, v_norm, 0.f).xy) * wDep / 100.f;
+    vec3 texelRefr = texture(texRefr, refrTc + rOffset).rgb;
 
     vec3 refl = texelRefl * fres;
-
-    vec3 refr = texelRefr * invFres;
-    refr *= 1.f - wDep / 4.f;
+    vec3 refr = texelRefr * invFres * (1.f - wDep / 4.f); // 4 is liquid "thickness"
 
     fragColour = vec4(refr + refl, 1);
 }

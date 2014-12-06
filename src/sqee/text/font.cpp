@@ -1,10 +1,8 @@
-#include <iostream>
-
 #include <text/font.hpp>
 
-namespace sq {
+using namespace sq;
 
-Font::Ptr create_font(const std::string& _fPath, FT_Library& _ftLib, int _size) {
+Font::Ptr sq::create_font(const std::string& _fPath, FT_Library& _ftLib, int _size) {
     Font::Ptr ptr(new Font());
 
     std::string fPath = SQ_FONTS + _fPath + ".ttf";
@@ -16,10 +14,6 @@ Font::Ptr create_font(const std::string& _fPath, FT_Library& _ftLib, int _size) 
 
     return ptr;
 }
-
-}
-
-using namespace sq;
 
 void Font::set_size(int _size) {
     FT_Set_Pixel_Sizes(face, 0, _size);

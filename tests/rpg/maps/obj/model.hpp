@@ -1,5 +1,8 @@
 #pragma once
 
+#include <sqee/models/mesh.hpp>
+#include <sqee/models/skin.hpp>
+
 #include "object.hpp"
 
 namespace sqt {
@@ -7,19 +10,13 @@ namespace wld {
 
 class Model : public Object {
 public:
-    using Object::Object;
-    void create(ObjectSpec& _spec);
-
-    sq::Mesh* mesh;
-    sq::Texture* texNorm;
-    sq::Texture* texDiff;
-    sq::Texture* texSpec;
-    sq::Texture* texAmbi;
-    bool alpha, shad, refl, refr;
+    Model(const ObjectSpec& _spec);
 
     glm::mat4 modelMat;
 
-    void bind_textures();
+    sq::Mesh* mesh;
+    sq::Skin skin;
+    bool shad, refl, refr;
 };
 
 }

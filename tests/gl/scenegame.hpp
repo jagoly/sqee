@@ -1,8 +1,7 @@
 #pragma once
 
-#include <sqee/gl/gl.hpp>
 #include <sqee/gl/textures.hpp>
-#include <sqee/gl/camera.hpp>
+#include <sqee/gl/cameras.hpp>
 #include <sqee/misc/containers.hpp>
 #include <sqee/scenes/scene.hpp>
 #include <sqee/events/handler.hpp>
@@ -17,6 +16,11 @@ public:
 
     void render(float _ft);
     void update();
+
+private:
+    glm::vec3 translation;
+
+    int fsWhat = 0;
 };
 
 class HandlerGame : public sq::Handler {

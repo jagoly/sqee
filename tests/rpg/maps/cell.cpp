@@ -1,138 +1,132 @@
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 #include <sqee/misc/files.hpp>
 
+#include "../resbank.hpp"
 #include "cell.hpp"
 
 using namespace sqt::wld;
 
-Cell::Cell(const string& _filePath) {
-    string filePath = "res/game/cells/" + _filePath + ".sq_cell";
-
-    std::ifstream src;
-    src.open(filePath);
+HeightLayer::HeightLayer(const string& _filePath, glm::ivec2 _pos, glm::uvec2 _size, float _offs) {
+    const string filePath = "res/game/heightlayers/" + _filePath + ".sq_hl";
+    std::ifstream src(filePath, std::ios::binary);
 
     #ifdef SQEE_DEBUG
     if (!src.is_open())
-        std::cout << "ERROR: Couldn't open file \"" << filePath << "\"" << std::endl;
+        cout << "ERROR: Couldn't open file \"" << filePath << "\"" << endl;
     #endif
+
+    int xSize, ySize;
+    src.read((char*)&xSize, 4);
+    src.read((char*)&ySize, 4);
+
+    float fBuf;
+    for (int y = 0; y < int(_size.y); y++) {
+        floatVV.emplace_back();
+        for (int x = 0; x < int(_size.x); x++) {
+            if (x < _pos.x || x >= _pos.x + xSize || y < _pos.y || y >= _pos.y + ySize)
+                floatVV.back().emplace_back(5.f);
+            else {
+                src.read((char*)&fBuf, 4);
+                floatVV.back().emplace_back(_offs + fBuf);
+            }
+        }
+    }
+}
+
+float HeightLayer::get_z(uint _x, uint _y) const {
+    return floatVV[_y][_x];
+}
+
+Cell::Cell(const string& _filePath, const string& _name,
+           const vector<string>& _loads, glm::ivec2 _xyPos, float _zPos)
+    : name(_name), loads(_loads), xyPos(_xyPos), pos(xyPos.x, xyPos.y, _zPos) {
+    string filePath = "res/game/cells/" + _filePath + ".sq_cell";
+    std::ifstream src(filePath);
+
+    #ifdef SQEE_DEBUG
+    if (!src.is_open())
+        cout << "ERROR: Couldn't open file \"" << filePath << "\"" << endl;
+    #endif
+
+    vector<ObjectSpec> specVec;
 
     string line;
     string section = "";
-
-    vector<ObjectSpec> specVec;
     while (std::getline(src, line)) {
-        bool blank = true;
-        for (const char* c = line.c_str(); *c && blank; c++) {
-            blank = (*c == ' ');
-        } if (blank) continue;
-        else {
-            char c = line[0];
-            if (c == '#') continue;
-            if (c == '{') {
-                if (!section.empty()) throw; // already in a section
-                section = SubStr(line.substr(1)).str; continue;
-            }
-            if (c == '}') {
-                if (section.empty()) throw; // not in a section
-                section = ""; continue;
-            }
+        vector<string> vec;
+        {   std::stringstream stream(line); string val;
+            while (stream >> val) vec.emplace_back(val);
+        }
+
+        if (vec.empty() || vec[0][0] == '#') continue;
+
+        if (vec[0] == "{") {
+            if (!section.empty()) throw; // already in a section
+            section = vec[1]; continue;
+        }
+        if (vec[0] == "}") {
+            if (section.empty()) throw; // not in a section
+            section = ""; continue;
         }
 
         if (section == "header") {
-            SubStr key(line);
-            if (key.str == "size") {
-                SubStr X(line, key); SubStr Y(line, X); SubStr Z(line, Y);
-                size = {uint(X), uint(Y), uint(Z)};
+            string& key = vec[0];;
+            if (key == "size") {
+                xySize = {std::stoi(vec[1]), std::stoi(vec[2])};
+                size = {std::stof(vec[1]), std::stof(vec[2]), std::stoi(vec[3])};
                 continue;
             }
             throw; // invalid key
         }
 
-        if (section == "layers") {
-            SubStr uid(line);
-            SubStr path(line, uid);
-            SubStr X(line, path);
-            SubStr Y(line, X);
-            SubStr Z(line, Y);
-
-            HeightLayer& hl = hlMap[uid.str];
-
-            std::ifstream src2;
-            string hlPath = "res/maps/heightlayers/" + path.str + ".sq_hl";
-            src2.open(hlPath, std::ios::binary);
-
-            #ifdef SQEE_DEBUG
-            if (!src2.is_open())
-                std::cout << "ERROR: Couldn't open file \"" << hlPath << "\"" << std::endl;
-            #endif
-
-            int xSize;
-            int ySize;
-            src2.read((char*)&xSize, 4);
-            src2.read((char*)&ySize, 4);
-
-            float fBuf;
-            for (uint y = 0; y < size.y*4; y++) {
-                hl.emplace_back();
-                for (uint x = 0; x < size.x*4; x++) {
-                    if (y < uint(Y)*4 || y >= (uint(Y)*4 + ySize) ||
-                        x < uint(X)*4 || x >= (uint(X)*4 + xSize)) {
-                        hl.back().emplace_back(-INFINITY);
-                    } else {
-                        src2.read((char*)&fBuf, 4);
-                        hl.back().emplace_back(float(Z) + fBuf);
-                    }
-                }
-            }
+        if (section == "heightlayers") {
+            glm::ivec2 hlpos(std::stoi(vec[2]) * 4, std::stoi(vec[3]) * 4);
+            glm::uvec2 hlsize(size.x * 4, size.y * 4);
+            float hloffs(std::stof(vec[4]));
+            hlMap.emplace(vec[0], HeightLayer(vec[1], hlpos, hlsize, hloffs));
             continue;
         }
 
         if (section == "objects") {
-            SubStr key(line);
-            if (key.str == "object")
-                specVec.emplace_back();
-            specVec.back().parse_line(line);
+            if (vec[0] == "object") {
+                if (vec[1] == "model")
+                    specVec.emplace_back(vec[2], ObjType::Model, pos);
+                else if (vec[1] == "light")
+                    specVec.emplace_back(vec[2], ObjType::Light, pos);
+                else if (vec[1] == "liquid")
+                    specVec.emplace_back(vec[2], ObjType::Liquid, pos);
+                else if (vec[1] == "data")
+                    specVec.emplace_back(vec[2], ObjType::Data, pos);
+            } else specVec.back().parse_line(vec);
         }
     }
 
 
     for (ObjectSpec& spec : specVec) {
         Object* ptr;
-        if (spec.objType == ObjType::Model) {
-            ptr = new Model(spec.objType, spec.uid);
-            ptr->create(spec);
-        }
-        else
-        if (spec.objType == ObjType::Liquid) {
-            ptr = new Liquid(spec.objType, spec.uid);
-            ptr->create(spec);
-        }
-        objectMap.emplace(spec.uid, std::unique_ptr<Object>(ptr));
+        if (spec.type == ObjType::Model)
+            ptr = new Model(spec);
+        else if (spec.type == ObjType::Light)
+            ptr = new Light(spec);
+        else if (spec.type == ObjType::Liquid)
+            ptr = new Liquid(spec);
+        else if (spec.type == ObjType::Data)
+            ptr = new Data(spec);
+        objectMap.emplace(spec.name, std::unique_ptr<Object>(ptr));
     }
 }
 
 void Cell::tick() {
-    for (SOPair& o : objectMap) {
-        o.second->tick();
+    for (SOPair& so : objectMap) {
+        so.second->tick();
     }
 }
 
 void Cell::calc(double _accum) {
-    for (SOPair& o : objectMap) {
-        o.second->calc(_accum);
+    for (SOPair& so : objectMap) {
+        so.second->calc(_accum);
     }
 }
-
-float Cell::get_max16_z(glm::uvec2 _pos, const string& _layer) {
-    HeightLayer& hl = hlMap[_layer];
-
-    float val = -INFINITY;
-    for (int y = 0; y < 4; y++)
-        for (int x = 0; x < 4; x++)
-            val = std::max(val, hl[_pos.y+y][_pos.x+x]);
-
-    return val;
-}
-

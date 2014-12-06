@@ -1,23 +1,53 @@
 # SQEE RPG Map Format
 
 { header
-size 34 26 8
+size 38 33 8
 }
 
 { heightlayers
-Terrain WorldTest/TerrainA 0 0 0.0
+Terrain WorldTest/TerrainA 11 6 0.0
+Bridge WorldTest/Bridge 19 15 3.0
 }
 
 { objects
+object light TestA
+f3 pos 13.0 17.0 10.0
+f3 dir 0.0 0.0 -1.0
+f3 colour 1.0 1.0 1.0
+f3 angIntSft 35.0 25.0 0.1
+i1 texSize 128
+
+object light TestB
+f3 pos 25.0 17.0 10.0
+f3 dir 0.0 0.0 -1.0
+f3 colour 1.0 1.0 1.0
+f3 angIntSft 35.0 25.0 0.1
+i1 texSize 64
+
+object liquid River
+f3 pos 17.0 0.0 -0.5
+f2 size 20.0 26.0
+f1 scale 7.0
+f1 smooth 75.0
+f2 flow 0.0 -0.01
+s1 texDir n_s
+
+object model Dice
+f3 pos 13 15 0
+s1 mesh Test/Dice
+s1 norm Test/Dice
+s1 diff Test/DiceWhite
+s1 spec FFFFFF
+flags shad refl refr
+
 object model Terrain
 f3 pos 0.0 0.0 0.0
 s1 mesh WorldTest/TerrainA
-s1 diff WorldTest/TerrainA
-s1 ambi WorldTest/TerrainA
+s1 skin WorldTest/TerrainA
 flags shad refl refr
 
-object model StairsEast0
-f3 pos 14.0 11.0 4.0
+object model StairsA
+f3 pos 15.0 15.0 0.0
 s1 mesh Test/StairsEast
 s1 norm Test/Stairs
 s1 diff Test/Stairs
@@ -25,8 +55,8 @@ s1 spec Test/Stairs
 s1 ambi Test/Stairs
 flags shad
 
-object model StairsEast1
-f3 pos 15.0 11.0 5.0
+object model StairsB
+f3 pos 16.0 15.0 1.0
 s1 mesh Test/StairsEast
 s1 norm Test/Stairs
 s1 diff Test/Stairs
@@ -34,29 +64,21 @@ s1 spec Test/Stairs
 s1 ambi Test/Stairs
 flags shad
 
-object model StairsWest0
-f3 pos 29.0 11.0 4.0
-s1 mesh Test/StairsWest
+object model StairsC
+f3 pos 17.0 15.0 2.0
+s1 mesh Test/StairsEast
 s1 norm Test/Stairs
 s1 diff Test/Stairs
 s1 spec Test/Stairs
 s1 ambi Test/Stairs
 flags shad
 
-object model StairsWest1
-f3 pos 28.0 11.0 5.0
-s1 mesh Test/StairsWest
-s1 norm Test/Stairs
-s1 diff Test/Stairs
-s1 spec Test/Stairs
-s1 ambi Test/Stairs
-flags shad
-
-object liquid River
-f3 pos 13.0 -2.0 3.5
-f2 size 15.0 26.0
-f1 scale 1.0
-f1 smooth 2.0
-f2 flow 0.0 0.02
-flags
+object model BridgeEast
+f3 pos 18.0 15.0 3.0
+s1 mesh Test/BridgeEast
+s1 norm Test/BridgeStart
+s1 diff Test/BridgeStart
+s1 spec Test/BridgeStart
+s1 ambi Test/BridgeEast
+flags shad refl
 }

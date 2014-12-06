@@ -20,22 +20,23 @@
 #define SQ_FPSFONT "Ubuntu-R"
 #endif
 
+#include <iostream>
 #include <array>
 #include <list>
 #include <map>
 #include <set>
 #include <string>
-#include <tuple>
 #include <vector>
 #include <memory>
 
+using std::cout;
+using std::endl;
 using std::array;
 using std::list;
 using std::map;
 using std::pair;
 using std::string;
 using std::set;
-using std::tuple;
 using std::vector;
 using std::shared_ptr;
 using std::weak_ptr;

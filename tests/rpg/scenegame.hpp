@@ -1,12 +1,9 @@
 #pragma once
 
-#include <sqee/gl/camera.hpp>
+#include <sqee/gl/cameras.hpp>
 #include <sqee/scenes/scene.hpp>
 #include <sqee/events/handler.hpp>
 
-#include "resbank.hpp"
-#include "game/settings.hpp"
-#include "rendergeneral.hpp"
 #include "player.hpp"
 #include "maps/world.hpp"
 
@@ -21,23 +18,12 @@ public:
     void update();
 
 private:
-    Settings settings;
-
     sq::Camera camera;
-    SkyLight skyLight;
-
     wld::World world;
-
     Player player;
 
-    int tickTock = 0;
-    bool pendDir = true;
-
-    float swingA, swingB;
-
-    bool modSettings = true;
+    bool updateSettings = true;
     bool updateFramebuffers = true;
-    bool updateSkyLight = true;
 };
 
 class HandlerGame : public sq::Handler {

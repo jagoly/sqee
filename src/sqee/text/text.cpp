@@ -1,10 +1,8 @@
-#include <iostream>
-
 #include <text/text.hpp>
 
-namespace sq {
+using namespace sq;
 
-void draw_text(TextHandles& _handles, Font::Ptr& _font, const std::string& _text, glm::vec2 pos, glm::vec2 vp) {
+void sq::draw_text(TextHandles& _handles, Font::Ptr& _font, const string& _text, glm::vec2 pos, glm::vec2 vp) {
     gl::Enable(gl::BLEND);
 
     gl::UseProgram(_handles.prog);
@@ -27,24 +25,22 @@ void draw_text(TextHandles& _handles, Font::Ptr& _font, const std::string& _text
         float w = float(g->bitmap.width) / vp.x*2;
         float h = float(g->bitmap.rows) / vp.y*2;
 
-        GLfloat box[16] = {
+        float box[16] = {
             x2,   y2-h, 0, 1,
             x2+w, y2-h, 1, 1,
             x2,   y2,   0, 0,
             x2+w, y2,   1, 0
         };
 
-        gl::BufferData(gl::ARRAY_BUFFER, 16 * sizeof(GLfloat), box, gl::STREAM_DRAW);
+        gl::BufferData(gl::ARRAY_BUFFER, 16 * sizeof(float), box, gl::STREAM_DRAW);
         gl::DrawArrays(gl::TRIANGLE_STRIP, 0, 4);
 
         x += (g->advance.x >> 6) *2;
         y += (g->advance.y >> 6) *2;
     }
+    gl::UseProgram(0);
 }
 
-}
-
-using namespace sq;
 
 TextHandles::TextHandles() {
     prog = gl::CreateProgram();

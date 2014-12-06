@@ -1,11 +1,10 @@
 # SQEE Mesh Format
 
 { header
-vCount  52
-fCount  24
-hasUV   yes
-hasBW   no
-hasMID  no
+vCount 52
+fCount 24
+hasNM
+hasUV
 }
 
 { vertices

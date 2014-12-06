@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include <gl/textures.hpp>
 #include <redist/stb_image.hpp>
 
@@ -9,10 +7,10 @@ Texture::~Texture() {
     gl::DeleteTextures(1, &tex);
 }
 
-void Texture::create(GLenum _target, GLenum _format, GLenum _iFormat, TexPreset _preset) {
-#ifdef SQEE_DEBUG
+void Texture::create(GLenum _target, GLenum _format, GLenum _iFormat, Preset _preset) {
+    #ifdef SQEE_DEBUG
     // Add something in here
-#endif
+    #endif
     target = _target;
     format = _format;
     iFormat = _iFormat;
@@ -25,19 +23,19 @@ void Texture::create(GLenum _target, GLenum _format, GLenum _iFormat, TexPreset 
     else if (iFormat == gl::RG8 || iFormat == gl::RG16 || iFormat == gl::RG32F) channels = 2;
     else if (iFormat == gl::RGB8 || iFormat == gl::RGB16 || iFormat == gl::RGB32F) channels = 3;
     else if (iFormat == gl::RGBA8 || iFormat == gl::RGBA16 || iFormat == gl::RGBA32F) channels = 4;
-    else std::cout << "ERROR: Unsupported texture iFormat given" << std::endl;
+    else cout << "ERROR: Unsupported texture iFormat given" << endl;
 
     if (target == gl::TEXTURE_1D) dimensions = 1;
     else if (target == gl::TEXTURE_1D_ARRAY || target == gl::TEXTURE_2D) dimensions = 2;
     else if (target == gl::TEXTURE_2D_ARRAY || target == gl::TEXTURE_3D) dimensions = 3;
-    else std::cout << "ERROR: Unsupported texture target given" << std::endl;
+    else cout << "ERROR: Unsupported texture target given" << endl;
 
     gl::GenTextures(1, &tex);
     set_preset(_preset);
 }
 
 void Texture::create(GLenum _target, GLenum _format, GLenum _iFormat,
-                     const string& _filePath, TexPreset _preset) {
+                     const string& _filePath, Preset _preset) {
     create(_target, _format, _iFormat, _preset);
     buffer_file(_filePath);
 }
@@ -78,11 +76,13 @@ void Texture::buffer_file(const string& _filePath, uint _z) {
             top++; btm++;
         }
     }
-#ifdef SQEE_DEBUG
-    if (!data) std::cout << "ERROR: Failed to load texture from \""
-                         << fPath << "\"" << std::endl;
-#endif
     if (dimensions < 3) size = {w, h, 1};
+
+    #ifdef SQEE_DEBUG
+    if (!data)
+        cout << "ERROR: Failed to load texture from \""
+             << fPath << "\"" << endl;
+    #endif
 
     bind();
     if (dimensions == 1)
@@ -95,23 +95,26 @@ void Texture::buffer_file(const string& _filePath, uint _z) {
     free(data);
 }
 
-void Texture::set_preset(TexPreset _preset) {
+void Texture::set_preset(Preset _preset) {
     bind();
-    if (_preset == TexPreset::L_C || _preset == TexPreset::L_R) {
+    if (_preset == Preset::L_C || _preset == Preset::L_R || _preset == Preset::SHAD) {
         gl::TexParameteri(target, gl::TEXTURE_MIN_FILTER, gl::LINEAR);
         gl::TexParameteri(target, gl::TEXTURE_MAG_FILTER, gl::LINEAR);
     } else
-    if (_preset == TexPreset::N_C || _preset == TexPreset::N_R) {
+    if (_preset == Preset::N_C || _preset == Preset::N_R) {
         gl::TexParameteri(target, gl::TEXTURE_MIN_FILTER, gl::NEAREST);
         gl::TexParameteri(target, gl::TEXTURE_MAG_FILTER, gl::NEAREST);
     }
-    if (_preset == TexPreset::L_C || _preset == TexPreset::N_C) {
+    if (_preset == Preset::L_C || _preset == Preset::N_C || _preset == Preset::SHAD) {
         gl::TexParameteri(target, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE);
         gl::TexParameteri(target, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE);
     } else
-    if (_preset == TexPreset::L_R || _preset == TexPreset::N_R) {
+    if (_preset == Preset::L_R || _preset == Preset::N_R) {
         gl::TexParameteri(target, gl::TEXTURE_WRAP_S, gl::REPEAT);
         gl::TexParameteri(target, gl::TEXTURE_WRAP_T, gl::REPEAT);
+    }
+    if (_preset == Preset::SHAD) {
+        gl::TexParameteri(target, gl::TEXTURE_COMPARE_MODE, gl::COMPARE_REF_TO_TEXTURE);
     }
 }
 

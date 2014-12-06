@@ -5,29 +5,29 @@
 
 namespace sq {
 
-enum class TexPreset {
-    NONE, N_C, N_R, L_C, L_R
-};
+
 
 class Texture {
 public:
+    enum class Preset { NONE, N_C, N_R, L_C, L_R, SHAD };
+
     ~Texture();
 
     void create(GLenum _target, GLenum _format, GLenum _iFormat,
-                TexPreset _preset = TexPreset::NONE);
+                Preset _preset = Preset::NONE);
     void create(GLenum _target, GLenum _format, GLenum _iFormat,
                 const string& _filePath,
-                TexPreset _preset = TexPreset::NONE);
+                Preset _preset = Preset::NONE);
 
     void resize(glm::uvec3 _size);
     void buffer_memory(const void* _data, uint _z = 0);
     void buffer_file(const string& _filePath, uint _z = 0);
-    void set_preset(TexPreset _preset);
+    void set_preset(Preset _preset);
 
     void bind(GLenum _slot = gl::NONE);
     void set_param(GLenum _name, GLenum _value);
 
-    GLuint tex;
+    GLuint tex = 0;
     GLenum target;
     GLenum format;
     GLenum iFormat;

@@ -9,6 +9,6 @@ out vec4 fragColour;
 
 void main() {
     vec3 texel = texture(tex, texcoord).rgb;
-    float luma = 0.299f * texel.r + 0.587f * texel.g + 0.114f * texel.b;
+    float luma = dot(vec3(0.299f, 0.587f, 0.114f), texel);
     fragColour = vec4(texel, luma);
 }

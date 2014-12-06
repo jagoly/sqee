@@ -1,14 +1,13 @@
-#include <iostream>
-
+#include "resbank.hpp"
 #include "player.hpp"
 
 using namespace sqt;
 
 void Player::test_init() {
-    layer = "Surface";
+    layer = "Terrain";
 
     model.load("Characters/Don",
-               "res/models/skins/Characters/Don",
+               "Characters/Don",
                "Characters/Don/Walking");
 
     sq::Animation* anim = resBank().animH.add("Characters/Don/Standing");
@@ -43,8 +42,8 @@ void Player::tick(char _moveDir, wld::World& _world) {
 
         xDir = gridPos.x - gridPre.x;
         yDir = gridPos.y - gridPre.y;
-        xSub = gridPre.x * 4;
-        ySub = gridPre.y * 4;
+        xSub = gridPre.x * 4 +1;
+        ySub = gridPre.y * 4 +1;
 
         _world.set_player_pos(gridPos);
 
@@ -57,11 +56,11 @@ void Player::tick(char _moveDir, wld::World& _world) {
     if (moving) {
         int prgrs4 = ++prgrs8 / 2;
 
-        //posNext.z = _level->get_max16_z(xSub + prgrs4 * xDir, ySub + prgrs4 * yDir, layer);
-        //if (prgrs8 % 2) {
-        //    posNext.z += _level->get_max16_z(xSub + (prgrs4+1) * xDir, ySub + (prgrs4+1) * yDir, layer);
-        //    posNext.z /= 2.f;
-        //}
+        posNext.z = _world.get_maxZ4(layer, xSub + prgrs4*xDir, ySub + prgrs4*yDir);
+        if (prgrs8 % 2) {
+            posNext.z += _world.get_maxZ4(layer, xSub + (prgrs4+1)*xDir, ySub + (prgrs4+1)*yDir);
+            posNext.z /= 2.f;
+        }
 
         posNext.x = glm::mix(float(gridPre.x), float(gridPos.x), float(prgrs8) / 8.f);
         posNext.y = glm::mix(float(gridPre.y), float(gridPos.y), float(prgrs8) / 8.f);
@@ -81,8 +80,8 @@ void Player::calc(double _accum, sq::Camera& _camera) {
     pos.x += 0.5f; pos.y += 0.5f;
 
     _camera.pos.x = pos.x;
-    _camera.pos.y = pos.y - 3.f;
-    _camera.pos.z = pos.z + 8.f;
+    _camera.pos.y = pos.y - 5.f;
+    _camera.pos.z = pos.z + 9.5f;
     _camera.update_projMat();
     _camera.update_viewMat();
     _camera.update_ubo();

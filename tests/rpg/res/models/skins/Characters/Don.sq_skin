@@ -1,13 +1,16 @@
 # SQEE RPG Skin Format
 
 { header
-skinID don_plain
-gCount 3
-pCount 1
-diff 1024 512
+mCount 3
 }
 
-{ poses
-pose
-diff Characters/Don/Head Characters/Don/Mid Characters/Don/Legs
+{ materials
+material
+diff Characters/Don/Head
+
+material
+diff Characters/Don/Mid
+
+material
+diff Characters/Don/Legs
 }

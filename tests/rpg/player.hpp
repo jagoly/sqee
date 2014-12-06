@@ -2,9 +2,8 @@
 
 #include <SFML/System.hpp>
 
-#include <sqee/gl/camera.hpp>
+#include <sqee/gl/cameras.hpp>
 
-#include "resbank.hpp"
 #include "maps/world.hpp"
 #include "entities/model.hpp"
 

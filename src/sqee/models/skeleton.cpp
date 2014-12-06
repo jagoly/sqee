@@ -1,5 +1,5 @@
-#include <iostream>
 #include <fstream>
+#include <sstream>
 
 #include <models/skeleton.hpp>
 #include <misc/files.hpp>
@@ -8,75 +8,78 @@ using namespace sq;
 
 void Animation::load(const string& _filePath) {
     string filePath = SQ_MODELS "skeletons/" + _filePath + ".sqa";
+    std::ifstream src(filePath);
 
-    std::ifstream src;
-    src.open(filePath);
+    if (!src.is_open()) cout << "ERROR: Couldn't open file \"" << filePath << "\"" << endl;
 
-#ifdef SQEE_DEBUG
-    if (!src.is_open())
-        std::cout << "ERROR: Couldn't open file \"" << filePath << "\"" << std::endl;
-#endif
-
-    string line;
-    string section = "";
-
-    uint pCount, kCount = 0;
     int pNum = 0;
     vector<array<float, 4>> qVec; qVec.reserve(40);
     vector<array<float, 3>> oVec; oVec.reserve(40);
     vector<pair<uint, int>> kVec;
+
+    string line, section = "";
     while (std::getline(src, line)) {
-        bool blank = true;
-        for (const char* c = line.c_str(); *c && blank; c++) {
-            blank = (*c == ' ');
-        } if (blank) continue;
-        char c = line[0];
-        if (c == '#') continue;
-        if (c == '{') {
-            if (!section.empty()) throw; // already in a section
-            section = SubStr(line.substr(1)).str; continue;
+        vector<string> vec;
+        {   std::stringstream stream(line); string val;
+            while (stream >> val) vec.emplace_back(val);
         }
-        if (c == '}') {
+
+        if (vec.empty() || vec[0] == "#") continue;
+
+        if (vec[0] == "{") {
+            if (!section.empty()) throw; // already in a section
+            section = vec[1]; continue;
+        }
+        if (vec[0] == "}") {
             if (section.empty()) throw; // not in a section
             section = ""; continue;
         }
 
         if (section == "header") {
-            SubStr key(line);
-            int val = int(SubStr(line, key));
-            if (key.str == "bcount") { bCount = val; continue; }
-            if (key.str == "pcount") { pCount = val; continue; }
-            if (key.str == "kcount") { kCount = val; continue; }
+            string& key = vec[0];
+            uint val = std::stoi(vec[1]);
+            if (key == "bCount") { bCount = val; continue; }
+            if (key == "pCount") { pCount = val; continue; }
+            if (key == "kCount") { kCount = val; continue; }
             throw; // invalid key
         }
 
         if (section == "poses") {
-            if (line == "pose") { pNum++; continue; }
-            SubStr qw(line), qx(line, qw), qy(line, qx), qz(line, qy);
-            SubStr ox(line, qz), oy(line, ox), oz(line, oy);
+            if (vec[0] == "pose") { pNum++; continue; }
+
+            float qw = std::stof(vec[0]);
+            float qx = std::stof(vec[1]);
+            float qy = std::stof(vec[2]);
+            float qz = std::stof(vec[3]);
+            float ox = std::stof(vec[4]);
+            float oy = std::stof(vec[5]);
+            float oz = std::stof(vec[6]);
+
             qVec.push_back({qw, qx, qy, qz});
             oVec.push_back({ox, oy, oz});
             continue;
         }
 
         if (section == "timeline") {
-            SubStr frame(line), pose(line, frame);
-            kVec.emplace_back(int(frame), int(pose));
+            uint frame = std::stoi(vec[0]);
+            int pose = std::stoi(vec[1]);
+
+            kVec.emplace_back(frame, pose);
             continue;
         }
     }
 
-#ifdef SQEE_DEBUG
+    #ifdef SQEE_DEBUG
     if (bCount != qVec.size() / pNum)
-        std::cout << "WARNING: bcount and actual bone count do not match when loading animation from \""
+        std::cout << "WARNING: bCount mismatch when loading animation from \""
                   << filePath << "\"" << std::endl;
     if (pCount != uint(pNum))
-        std::cout << "WARNING: pcount and actual pose count do not match when loading animation from \""
+        std::cout << "WARNING: pCount mismatch when loading animation from \""
                   << filePath << "\"" << std::endl;
     if (kCount != kVec.size() && kfrVec.size())
-        std::cout << "WARNING: kcount and actual keyframe count do not match when loading animation from \""
+        std::cout << "WARNING: kCount mismatch when loading animation from \""
                   << filePath << "\"" << std::endl;
-#endif
+    #endif
 
     for (int i = 0; i < pNum; i++) {
         poseVec.emplace_back(bCount, (float*)qVec.data()+i*bCount*4, (float*)oVec.data()+i*bCount*3);

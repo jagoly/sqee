@@ -1,9 +1,9 @@
 # SQEE Animation Format
 
 { header
-bcount 21
-pcount 4
-kcount 5
+bCount 21
+pCount 4
+kCount 5
 }
 
 { poses

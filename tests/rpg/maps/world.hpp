@@ -1,6 +1,8 @@
 #pragma once
 
-#include "../resbank.hpp"
+#include <sqee/gl/uniformbuffers.hpp>
+#include <sqee/gl/framebuffers.hpp>
+
 #include "cell.hpp"
 #include "obj/object.hpp"
 
@@ -9,13 +11,8 @@ namespace wld {
 
 class World {
 public:
-    struct CData {
-        CData(const vector<string>& _loads, glm::ivec2 _xyPos, float _zPos)
-            : loads(_loads), xyPos(_xyPos), zPos(_zPos), pos(xyPos.x, xyPos.y, zPos) {}
-        vector<string> loads;
-        glm::ivec2 xyPos; float zPos;
-        glm::vec3 pos;
-    };
+    World();
+    //~World();
 
     void load_base(const string& _filePath);
 
@@ -26,16 +23,32 @@ public:
     string get_move(glm::uvec2 _prev, glm::uvec2 _next);
     void set_player_pos(glm::uvec2 _pos);
 
+    float get_maxZ4(const string& _layer, int _xPos, int _yPos);
+
     glm::vec3 minPos, maxPos;
     glm::uvec2 playerPos = {0, 0};
 
-    typedef pair<glm::vec3&, Object*> OPair;
-    list<OPair> cellObjects;
+    list<Object*> objectList;
+    list<Model*> modelList;
+    list<Liquid*> liquidList;
+    list<Data*> dataList;
+    vector<Light*> lightVec;
+
+    glm::vec3 ambiColour;
+    int skylEnable;
+    uint skylTexSize;
+    glm::vec3 skylDir;
+    glm::vec3 skylColour;
+    glm::mat4 skylMat;
+    uint spotCount;
+
+    sq::UniformBuffer ubo;
+    sq::Framebuffer slFb;
+    array<sq::Framebuffer, 8> spFbArr;
 
 private:
-    typedef pair<CData, Cell> CellPair;
-    map<const string, CellPair> cellMap;
-   // map<const string, vector<Cell::HeightLayer&>> hlMap;
+    map<string, Cell> cellMap;
+    map<string, vector<pair<string, string>>> hlMap;
 };
 
 }

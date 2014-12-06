@@ -1,7 +1,0 @@
-{
-  "norm": "test/stairs",
-  "diff": "test/stairs",
-  "spec": "test/stairs",
-  "ambi": "test/stairs",
-  "alpha": false
-}

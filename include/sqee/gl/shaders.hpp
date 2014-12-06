@@ -10,41 +10,50 @@
 namespace sq {
 
 class Shader {
+friend class Pipeline;
 public:
-    Shader();
     ~Shader();
 
-    bool load_from_file(const string& _path, GLenum _type);
-    void build();
-    void use();
-
+    void load(const string& _path, GLenum _stage);
     void add_uniform(const string& _name, uint _cnt = 1);
 
-    void set_F(const string& _name, const GLfloat _value);
-    void set_I(const string& _name, const GLint _value);
-    void set_U(const string& _name, const GLuint _value);
+    template <class T>
+    void set_sca(const string& _name, const T& _value);
+    template <class T>
+    void set_ptr(const string& _name, const T* _value);
 
     template <class T>
     void set_glmvec(const string& _name, const T& _value);
-    template <class T>
-    void set_glmmat(const string& _name, const T& _value);
-
-    template <class T, typename D>
-    void set_ptrvec(const string& _name, const D* _value);
     template <class T, class D>
-    void set_ptrmat(const string& _name, const D* _value);
+    void set_ptrvec(const string& _name, const D* _value);
 
-    GLuint prog;
+    template <class T>
+    void set_glmmat(const string& _name, const T& _value, bool _transpose = false);
+    template <class T, class D>
+    void set_ptrmat(const string& _name, const D* _value, bool _transpose = false);
 
 private:
+    GLuint prog = 0;
+    GLbitfield stages;
+
     struct Uniform {
-        Uniform(GLint _ref, uint _cnt)
-            : ref(_ref), cnt(_cnt) {}
+        Uniform(GLint _ref, uint _cnt) : ref(_ref), cnt(_cnt) {}
         const GLint ref; const uint cnt;
     };
-
     std::unordered_map<string, Uniform> uniforms;
-    GLuint vert, geom, frag;
+};
+
+class Pipeline {
+public:
+    Pipeline();
+    ~Pipeline();
+
+    void use_shader(const Shader& _shader);
+    void disable_stages(GLbitfield _stages);
+    void bind();
+
+private:
+    GLuint pipeline = 0;
 };
 
 }

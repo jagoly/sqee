@@ -1,0 +1,11 @@
+# SQEE RPG Skin Format
+
+{ header
+mCount 1
+}
+
+{ materials
+material
+diff WorldTest/TerrainA
+ambi WorldTest/TerrainA
+}

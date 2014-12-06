@@ -16,28 +16,27 @@ public:
         const array<float, 8> w;
     };
 
-    struct Face {
-        Face(uint _a, uint _b, uint _c, uchar _m)
-            : a(_a), b(_b), c(_c), m(_m) {}
-        const uint a, b, c; const uchar m;
-    };
-
     ~Mesh();
 
     void load(const string& _filePath);
 
-    bool hasUV = false, hasBW = false, hasMID = false;
+    bool hasNM = false;
+    bool hasUV = false;
+    bool hasBW = false;
+    bool hasMT = false;
+    uint vCount = 0;
+    uint fCount = 0;
 
-    GLuint vboP, vboN, vboB, vboW, vboTc;
+    GLuint vboP, vboN, vboT, vboB, vboW, vboTc;
 
     GLuint vao;
-    GLuint ibo, tboTn, vboTn;
-    uint iCount;
+    vector<pair<GLuint, uint>> iboVec;
 
     vector<Vertex> vertVec;
-    vector<Face> faceVec;
+    vector<vector<std::array<uint, 3>>> faceVec;
 
-    void bind_buffers(GLenum _texBufSlot = gl::NONE);
+    void bind_vao();
+    void draw_ibo(uint _mtrl = 0);
 };
 typedef ResHolder<string, Mesh> MeshHolder;
 

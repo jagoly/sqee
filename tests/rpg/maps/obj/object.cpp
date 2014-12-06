@@ -1,7 +1,6 @@
-#include <iostream>
-
 #include <sqee/misc/files.hpp>
 
+#include "../../resbank.hpp"
 #include "object.hpp"
 #include "model.hpp"
 #include "liquid.hpp"
@@ -10,62 +9,34 @@
 
 using namespace sqt::wld;
 
-void ObjectSpec::parse_line(const string& line) {
-    SubStr key(line);
+void ObjectSpec::parse_line(const vector<string>& _line) {
+    const string& key = _line[0];
 
-    if (key.str == "object") {
-        SubStr val(line, key);
-        if      (val.str == "model")   objType = ObjType::Model;
-        else if (val.str == "liquid") objType = ObjType::Liquid;
-        else throw; // bad type
-
-        uid = SubStr(line, val).str;
+    if (key == "flags") {
+        for (uint i = 1; i < _line.size(); i++)
+            flagSet.emplace(_line[i]);
         return;
     }
 
-    if (key.str == "flags") {
-        SubStr val = key;
-        while (true) {
-            val = SubStr(line, val);
-            if (val.str.empty()) break;
-            flagSet.emplace(val.str);
-        }
-        return;
-    }
+    char c = key[0];
+    if (c == 'i' || c == 'f' || c == 's') {
+        int len = std::atoi(key.substr(1, 1).c_str());
+        const string& name = _line[1];
 
-    char c = key.str[0];
-    if (c == 'b' || c == 'i' || c == 'f' || c == 's') {
-        int len = std::atoi(&key.str[1]);
-        key = SubStr(line, key);
-        SubStr val = key;
-
-        if (c == 'b') {
-            std::vector<bool>& vec = boolMap[key.str];
-            for (int i = 0; i < len; i++) {
-                val = SubStr(line, val);
-                vec.push_back(int(val));
-            }
-        }
         if (c == 'i') {
-            std::vector<int>& vec = intMap[key.str];
-            for (int i = 0; i < len; i++) {
-                val = SubStr(line, val);
-                vec.push_back(int(val));
-            }
-        }
+            std::vector<int>& vec = iMap[name];
+            for (int i = 0; i < len; i++)
+                vec.push_back(std::stoi(_line[i+2]));
+        } else
         if (c == 'f') {
-            std::vector<float>& vec = floatMap[key.str];
-            for (int i = 0; i < len; i++) {
-                val = SubStr(line, val);
-                vec.push_back(float(val));
-            }
-        }
+            std::vector<float>& vec = fMap[name];
+            for (int i = 0; i < len; i++)
+                vec.push_back(std::stof(_line[i+2]));
+        } else
         if (c == 's') {
-            std::vector<string>& vec = stringMap[key.str];
-            for (int i = 0; i < len; i++) {
-                val = SubStr(line, val);
-                vec.push_back(val.str);
-            }
+            std::vector<string>& vec = sMap[name];
+            for (int i = 0; i < len; i++)
+                vec.push_back(_line[i+2]);
         }
         return;
     }

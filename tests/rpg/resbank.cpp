@@ -3,6 +3,10 @@
 using namespace sqt;
 
 ResBank::ResBank() {
+    #ifdef SQEE_DEBUG
+    cout << "INFO: Initializing Global \"sqt::ResBank\"" << endl;
+    #endif
+
     const uchar t8080FF[3] = {0x80, 0x80, 0xFF};
     const uchar t000000[3] = {0x00, 0x00, 0x00};
     const uchar tFFFFFF[3] = {0xFF, 0xFF, 0xFF};
@@ -36,11 +40,7 @@ ResBank::ResBank() {
     tex2DA_FFFFFF.buffer_memory(tFFFFFF);
 }
 
-namespace sqt {
-
-ResBank& resBank() {
+ResBank& sqt::resBank() {
     static ResBank resBank;
     return resBank;
-}
-
 }

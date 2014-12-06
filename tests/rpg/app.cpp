@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include <sqee/events/basichandlers.hpp>
 #include <sqee/scenes/basicscenes.hpp>
 
@@ -8,11 +6,10 @@
 
 namespace sqt {
 
-RpgApp::RpgApp() : sq::Application({1280, 720}, true, "SQEE RPG Engine") {
+RpgApp::RpgApp() : sq::Application({1200, 750}, true, "SQEE RPG Engine") {
     int val;
-    gl::GetIntegerv(gl::MAX_FRAMEBUFFER_WIDTH, &val);
-    std::cout << val << std::endl;
-
+    gl::GetIntegerv(gl::MAX_UNIFORM_BLOCK_SIZE, &val);
+    cout << val << endl;
 
     handlerIM.append("close", new sq::HandlerClose(*this));
     handlerIM.append("resize", new sq::HandlerResize(*this));

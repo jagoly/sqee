@@ -3,6 +3,7 @@
 #include <memory>
 #include <map>
 #include <list>
+#include <string>
 
 namespace sq {
 
@@ -82,6 +83,31 @@ public:
 protected:
     std::list<Tv> list;
     std::map<Tk, Tv&> map;
+};
+
+template<class T> class SettingMap {
+public:
+    void add_setting(const std::string& _key, const T& _val) {
+        theMap[_key] = {_val, _val};
+    }
+    void modify(const std::string& _key, const T& _val) {
+        theMap.at(_val).second = _val;
+    }
+    T crnt(const std::string& _key) { return theMap.at(_key).first; }
+    T next(const std::string& _key) { return theMap.at(_key).second; }
+
+    void apply() {
+        for (std::pair<const std::string, std::pair<T, T>>& item : theMap)
+            item.second.first = item.second.second;
+    }
+
+    void revert() {
+        for (std::pair<const std::string, std::pair<T, T>>& item : theMap)
+            item.second.second = item.second.first;
+    }
+
+protected:
+    std::map<const std::string, std::pair<T, T>> theMap;
 };
 
 }

@@ -1,7 +1,0 @@
-{
-  "norm": "test/bridgestart",
-  "diff": "test/bridgestart",
-  "spec": "test/bridgestart",
-  "ambi": "test/bridgewest",
-  "alpha": false
-}

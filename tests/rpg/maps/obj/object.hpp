@@ -1,7 +1,5 @@
 #pragma once
 
-#include "../../resbank.hpp"
-
 namespace sqt {
 namespace wld {
 
@@ -10,32 +8,28 @@ enum class ObjType {
 };
 
 struct ObjectSpec {
-    void parse_line(const string& _line);
+    ObjectSpec(const string& _name, ObjType _type, glm::vec3 _cellPos)
+        : name(_name), type(_type), cellPos(_cellPos) {}
+    const string name;
+    const ObjType type;
+    const glm::vec3 cellPos;
 
-    ObjType objType;
-    string uid;
+    void parse_line(const vector<string>& _line);
 
-    map<string, vector<bool>> boolMap;
-    map<string, vector<int>> intMap;
-    map<string, vector<float>> floatMap;
-    map<string, vector<string>> stringMap;
+    map<string, vector<bool>> bMap;
+    map<string, vector<int>> iMap;
+    map<string, vector<float>> fMap;
+    map<string, vector<string>> sMap;
     set<string> flagSet;
-
-    glm::ivec2 xyOffs;
-    float zOffs;
 };
 
 class Object {
 public:
-    Object(ObjType _type, const string& _uid)
-        : type(_type), uid(_uid) {}
+    Object(const ObjectSpec& _spec)
+        : name(_spec.name), type(_spec.type) {}
 
-    virtual ~Object() {}
-
-    virtual void create(ObjectSpec& _spec) {}
-
-    ObjType type;
-    string uid;
+    const string name;
+    const ObjType type;
 
     virtual void tick() {}
     virtual void calc(double _accum) {}

@@ -1,7 +1,5 @@
 #include <sounds/soundmanager.hpp>
 
-#include <iostream>
-
 namespace sq {
 
 SoundManager::SoundManager() {

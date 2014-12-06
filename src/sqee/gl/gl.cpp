@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include <gl/gl.hpp>
 
 namespace sq {
@@ -50,11 +48,11 @@ void debug_callback(GLenum _source, GLenum _type, GLuint /*_id*/, GLenum _severi
     if (_severity == gl::DEBUG_SEVERITY_NOTIFICATION)
         severity = "NOTIFICATION";
 
-    std::cout << "\nSource: " << source;
-    std::cout << "\nSeverity: " << severity;
-    std::cout << "\nType: " << type;
-    std::cout << "\nMessage: " << _message;
-    std::cout << std::endl;
+    cout << "\nSource: " << source
+         << " | Severity: " << severity
+         << " | Type: " << type
+         << "\nMessage: " << _message
+         << endl;
 }
 
 }
@@ -62,16 +60,15 @@ void debug_callback(GLenum _source, GLenum _type, GLuint /*_id*/, GLenum _severi
 using namespace sq;
 
 ScreenQuad::ScreenQuad() {
-    GLfloat points[] = {
-        -1.0, -1.0,  1.0,  -1.0,  1.0, 1.0,
-        1.0, 1.0,    -1.0, 1.0,   -1.0, -1.0
+    float points[] = {
+        -1.0, -1.0, 1.0, -1.0, 1.0, 1.0,
+        1.0, 1.0, -1.0, 1.0, -1.0, -1.0
     };
 
     GLuint vboPoints;
-
     gl::GenBuffers(1, &vboPoints);
     gl::BindBuffer(gl::ARRAY_BUFFER, vboPoints);
-    gl::BufferData(gl::ARRAY_BUFFER, 12 * sizeof(GLfloat), points, gl::STATIC_DRAW);
+    gl::BufferData(gl::ARRAY_BUFFER, 12 * sizeof(float), points, gl::STATIC_DRAW);
 
     gl::GenVertexArrays(1, &vao);
     gl::BindVertexArray(vao);

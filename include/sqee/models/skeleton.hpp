@@ -19,6 +19,8 @@ public:
     void load(const string& _filePath);
 
     uint bCount;
+    uint pCount = 0;
+    uint kCount = 0;
     vector<pair<uint, Pose&>> kfrVec;
 
 private:

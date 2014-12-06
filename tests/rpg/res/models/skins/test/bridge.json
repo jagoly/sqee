@@ -1,7 +1,0 @@
-{
-  "norm": "test/bridge",
-  "diff": "test/bridge",
-  "spec": "test/bridge",
-  "ambi": "test/bridge",
-  "alpha": false
-}

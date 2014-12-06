@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include <gl/bounds.hpp>
 
 using namespace sq;

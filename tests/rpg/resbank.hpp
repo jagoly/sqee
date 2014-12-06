@@ -4,6 +4,7 @@
 #include <sqee/misc/containers.hpp>
 #include <sqee/gl/textures.hpp>
 #include <sqee/models/mesh.hpp>
+#include <sqee/models/skin.hpp>
 #include <sqee/models/skeleton.hpp>
 
 namespace sqt {

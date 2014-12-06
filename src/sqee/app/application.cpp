@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include <app/application.hpp>
 #include <events/handler.hpp>
 #include <scenes/scene.hpp>
@@ -8,7 +6,7 @@ using namespace sq;
 
 Application::Application(glm::uvec2 _size, bool _resizable, const string& _title) {
     int error = FT_Init_FreeType(&ftLib);
-    if (error) std::cout << "ERROR: Failed to initialise FreeType" << std::endl;
+    if (error) cout << "ERROR: Failed to initialise FreeType" << endl;
 
     sf::ContextSettings settings;
     settings.depthBits        = 24;
@@ -26,15 +24,15 @@ Application::Application(glm::uvec2 _size, bool _resizable, const string& _title
 
     gl::sys::LoadFunctions();
 
-#ifdef SQEE_DEBUG
+    #ifdef SQEE_DEBUG
     const GLubyte* renderer = gl::GetString(gl::RENDERER);
     const GLubyte* version = gl::GetString(gl::VERSION);
-    std::cout << "Renderer: " << renderer << std::endl;
-    std::cout << "Version: " << version << std::endl;
+    cout << "Renderer: " << renderer << endl;
+    cout << "Version: " << version << endl;
     gl::Enable(gl::DEBUG_OUTPUT);
     gl::Enable(gl::DEBUG_OUTPUT_SYNCHRONOUS);
     gl::DebugMessageCallback(sq::debug_callback, 0);
-#endif
+    #endif
 
     window.setVerticalSyncEnabled(true);
 }

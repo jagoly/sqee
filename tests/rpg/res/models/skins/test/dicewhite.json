@@ -1,7 +1,0 @@
-{
-  "norm": "test/dice",
-  "diff": "test/dicewhite",
-  "spec": "FFFFFF",
-  "ambi": "FF",
-  "alpha": false
-}
