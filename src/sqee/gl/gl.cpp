@@ -1,9 +1,9 @@
 #include <gl/gl.hpp>
 
-namespace sq {
+using namespace sq;
 
-void debug_callback(GLenum _source, GLenum _type, GLuint /*_id*/, GLenum _severity,
-                   GLsizei /*_length*/, const GLchar* _message, const void* /*_param*/) {
+void sq::debug_callback(GLenum _source, GLenum _type, GLuint /*_id*/, GLenum _severity,
+                       GLsizei /*_length*/, const GLchar* _message, const void* /*_param*/) {
     string source;
     if (_source == gl::DEBUG_SOURCE_API)
         source = "API";
@@ -55,32 +55,27 @@ void debug_callback(GLenum _source, GLenum _type, GLuint /*_id*/, GLenum _severi
          << endl;
 }
 
-}
+void sq::draw_screen_quad() {
+    static GLuint vao;
 
-using namespace sq;
+    static bool first = true;
+    if (first) { first = false;
+        float points[12] = {
+            -1.0, -1.0, 1.0, -1.0, 1.0, 1.0,
+            1.0, 1.0, -1.0, 1.0, -1.0, -1.0
+        };
+        GLuint vbo;
+        gl::GenBuffers(1, &vbo);
+        gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
+        gl::BufferData(gl::ARRAY_BUFFER, 12 * sizeof(float), points, gl::STATIC_DRAW);
 
-ScreenQuad::ScreenQuad() {
-    float points[] = {
-        -1.0, -1.0, 1.0, -1.0, 1.0, 1.0,
-        1.0, 1.0, -1.0, 1.0, -1.0, -1.0
-    };
 
-    GLuint vboPoints;
-    gl::GenBuffers(1, &vboPoints);
-    gl::BindBuffer(gl::ARRAY_BUFFER, vboPoints);
-    gl::BufferData(gl::ARRAY_BUFFER, 12 * sizeof(float), points, gl::STATIC_DRAW);
+        gl::GenVertexArrays(1, &vao);
+        gl::BindVertexArray(vao);
+        gl::EnableVertexAttribArray(0);
+        gl::VertexAttribPointer(0, 2, gl::FLOAT, false, 0, nullptr);
+    }
 
-    gl::GenVertexArrays(1, &vao);
-    gl::BindVertexArray(vao);
-    gl::EnableVertexAttribArray(0);
-    gl::BindBuffer(gl::ARRAY_BUFFER, vboPoints);
-    gl::VertexAttribPointer(0, 2, gl::FLOAT, false, 0, nullptr);
-
-    gl::BindVertexArray(0);
-}
-
-void ScreenQuad::draw() {
     gl::BindVertexArray(vao);
     gl::DrawArrays(gl::TRIANGLES, 0, 6);
-    gl::BindVertexArray(0);
 }

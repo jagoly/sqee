@@ -66,8 +66,6 @@ void SceneGame::render(float _ft) {
     static sq::Framebuffer secFb;
     static sq::Framebuffer terFb;
 
-    static sq::ScreenQuad screenQuad;
-
     static sq::Shader staticVS;
     static sq::Shader skellyVS;
     static sq::Shader modelsFS;
@@ -92,7 +90,7 @@ void SceneGame::render(float _ft) {
     /// Set things up on first call ///
 
     static bool first = true;
-    if (first) {
+    if (first) { first = false;
         priFb.create({gl::COLOR_ATTACHMENT0}, {gl::RGBA}, {gl::RGBA8},
                      gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT32);
         secFb.create({gl::COLOR_ATTACHMENT0}, {gl::RGBA}, {gl::RGBA8},
@@ -144,8 +142,6 @@ void SceneGame::render(float _ft) {
         liquidFS.add_uniform("shadBiasMod"); // float
         fxaaLFS.add_uniform("vpPixSize"); // vec2
         fxaaHFS.add_uniform("vpPixSize"); // vec2
-
-        first = false;
     };
 
 
@@ -269,18 +265,31 @@ void SceneGame::render(float _ft) {
     gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 
     for (wld::Liquid* liquid : world.liquidList) {
-        liquid->bind_ubo();
-
-        //////////////////////////////////////////
-
         gl::Enable(gl::CLIP_DISTANCE0);
         gl::CullFace(gl::FRONT);
+        liquid->bind_ubo();
         staticVS.set_sca("useRefl", 1);
         skellyVS.set_sca("useRefl", 1);
         secFb.use();
         gl::ClearColor(0.5f, 0.5f, 0.7f, 1.f);
         gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
         gl::ClearColor(0.f, 0.f, 0.f, 1.f);
+
+        //////////////////////////////////////////
+
+        skellyPl.bind();
+        { // will become loop
+            player.model.mesh->bind_vao();
+            skellyVS.set_glmmat("modelMat", player.model.modelMat);
+            skellyVS.set_glmmat("normMat", to_norm_mat(camera.viewMat * player.model.modelMat));
+            skellyVS.set_ptrvec<glm::vec4>("skelQuat", player.model.skeleton.quatData);
+            skellyVS.set_ptrvec<glm::vec3>("skelOffs", player.model.skeleton.offsData);
+            for (uint i = 0; i < player.model.mesh->iboVec.size(); i++) {
+                modelsFS.set_sca("mode", player.model.skin.get_mode(i));
+                player.model.skin.bind_textures(i);
+                player.model.mesh->draw_ibo(i);
+            }
+        }
 
         staticPl.bind();
         for (wld::Model* model : world.modelList) {
@@ -295,6 +304,14 @@ void SceneGame::render(float _ft) {
             }
         }
 
+        ////////////////////////////////////////
+
+        gl::CullFace(gl::BACK);
+        staticVS.set_sca("useRefl", 0);
+        skellyVS.set_sca("useRefl", 0);
+        terFb.use();
+        gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
+
         skellyPl.bind();
         { // will become loop
             player.model.mesh->bind_vao();
@@ -308,14 +325,6 @@ void SceneGame::render(float _ft) {
                 player.model.mesh->draw_ibo(i);
             }
         }
-
-        ////////////////////////////////////////
-
-        gl::CullFace(gl::BACK);
-        staticVS.set_sca("useRefl", 0);
-        skellyVS.set_sca("useRefl", 0);
-        terFb.use();
-        gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 
         staticPl.bind();
         for (wld::Model* model : world.modelList) {
@@ -327,20 +336,6 @@ void SceneGame::render(float _ft) {
                 modelsFS.set_sca("mode", model->skin.get_mode(i));
                 model->skin.bind_textures(i);
                 model->mesh->draw_ibo(i);
-            }
-        }
-
-        skellyPl.bind();
-        { // will become loop
-            player.model.mesh->bind_vao();
-            skellyVS.set_glmmat("modelMat", player.model.modelMat);
-            skellyVS.set_glmmat("normMat", to_norm_mat(camera.viewMat * player.model.modelMat));
-            skellyVS.set_ptrvec<glm::vec4>("skelQuat", player.model.skeleton.quatData);
-            skellyVS.set_ptrvec<glm::vec3>("skelOffs", player.model.skeleton.offsData);
-            for (uint i = 0; i < player.model.mesh->iboVec.size(); i++) {
-                modelsFS.set_sca("mode", player.model.skin.get_mode(i));
-                player.model.skin.bind_textures(i);
-                player.model.mesh->draw_ibo(i);
             }
         }
 
@@ -358,7 +353,7 @@ void SceneGame::render(float _ft) {
     }
 
 
-    /// Characters and Player ///
+    /// Main Rendering
 
     skellyPl.bind();
     { // will become loop
@@ -373,8 +368,6 @@ void SceneGame::render(float _ft) {
             player.model.mesh->draw_ibo(i);
         }
     }
-
-    /// Map Models ///
 
     staticPl.bind();
     for (wld::Model* model : world.modelList) {
@@ -396,12 +389,14 @@ void SceneGame::render(float _ft) {
 
     if (vidSet().smInt.crnt("fxaaQuality")) {
         lumaPl.bind();
-        screenQuad.draw();
+        sq::draw_screen_quad();
     }
     gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
     gl::Clear(gl::COLOR_BUFFER_BIT);
     fxaaPl.bind();
-    screenQuad.draw();
+    sq::draw_screen_quad();
+
+    gl::BindVertexArray(0);
 }
 
 

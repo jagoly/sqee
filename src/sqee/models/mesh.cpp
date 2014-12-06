@@ -158,7 +158,6 @@ void Mesh::load(const string& _filePath) {
         }
     }
 
-
     gl::GenBuffers(1, &vboP);
     gl::BindBuffer(gl::ARRAY_BUFFER, vboP);
     gl::BufferData(gl::ARRAY_BUFFER, 3 * vCount * sizeof(float), points, gl::STATIC_DRAW);
