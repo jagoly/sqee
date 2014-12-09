@@ -131,9 +131,6 @@ Pipeline::~Pipeline() {
 }
 
 void Pipeline::use_shader(const Shader& _shader) {
-    if (_shader.stages != gl::VERTEX_SHADER_BIT && _shader.stages != gl::FRAGMENT_SHADER_BIT)
-        cout << "ERROR: Shader has invalid stages value" << endl;
-
     gl::UseProgramStages(pipeline, _shader.stages, _shader.prog);
 }
 

@@ -141,10 +141,10 @@ void Skin::load_simple(const string& _norm, const string& _diff, const string& _
 
 void Skin::bind_textures(uint _mtrl, int _override) {
     const Material& mtrl = mtrlVec[_mtrl];
-    if (mtrl.mode & _override & 1) mtrl.norm->bind(gl::TEXTURE0);
-    if (mtrl.mode & _override & 2) mtrl.diff->bind(gl::TEXTURE1);
-    if (mtrl.mode & _override & 4) mtrl.spec->bind(gl::TEXTURE2);
-    if (mtrl.mode & _override & 8) mtrl.ambi->bind(gl::TEXTURE3);
+    if (mtrl.mode & _override & Mode::norm) mtrl.norm->bind(gl::TEXTURE0);
+    if (mtrl.mode & _override & Mode::diff) mtrl.diff->bind(gl::TEXTURE1);
+    if (mtrl.mode & _override & Mode::spec) mtrl.spec->bind(gl::TEXTURE2);
+    if (mtrl.mode & _override & Mode::ambi) mtrl.ambi->bind(gl::TEXTURE3);
 }
 
 int Skin::get_mode(uint _mtrl) {

@@ -7,6 +7,7 @@ using namespace sqt::wld;
 
 Model::Model(const ObjectSpec& _spec) : Object(_spec) {
     shad  = _spec.flagSet.count("shad");
+    pnch  = _spec.flagSet.count("pnch");
     refl  = _spec.flagSet.count("refl");
     refr  = _spec.flagSet.count("refr");
 

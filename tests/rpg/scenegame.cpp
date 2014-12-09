@@ -71,6 +71,7 @@ void SceneGame::render(float _ft) {
     static sq::Shader modelsFS;
     static sq::Shader staticshadVS;
     static sq::Shader skellyshadVS;
+    static sq::Shader punchFS;
     static sq::Shader liquidVS;
     static sq::Shader liquidFS;
     static sq::Shader quadVS;
@@ -79,13 +80,7 @@ void SceneGame::render(float _ft) {
     static sq::Shader fxaaHFS;
     static sq::Shader passthruFS;
 
-    static sq::Pipeline staticPl;
-    static sq::Pipeline skellyPl;
-    static sq::Pipeline staticshadPl;
-    static sq::Pipeline skellyshadPl;
-    static sq::Pipeline liquidPl;
-    static sq::Pipeline lumaPl;
-    static sq::Pipeline fxaaPl;
+    static sq::Pipeline mainPl;
 
     /// Set things up on first call ///
 
@@ -103,6 +98,7 @@ void SceneGame::render(float _ft) {
         modelsFS.load("models/models_fs", gl::FRAGMENT_SHADER);
         staticshadVS.load("models/staticshad_vs", gl::VERTEX_SHADER);
         skellyshadVS.load("models/skellyshad_vs", gl::VERTEX_SHADER);
+        punchFS.load("models/punch_fs", gl::FRAGMENT_SHADER);
         liquidVS.load("liquids/surface_vs", gl::VERTEX_SHADER);
         liquidFS.load("liquids/surface_fs", gl::FRAGMENT_SHADER);
         quadVS.load("generic/quad_vs", gl::VERTEX_SHADER);
@@ -110,18 +106,6 @@ void SceneGame::render(float _ft) {
         fxaaLFS.load("post/fxaal_fs", gl::FRAGMENT_SHADER);
         fxaaHFS.load("post/fxaah_fs", gl::FRAGMENT_SHADER);
         passthruFS.load("generic/passthru_fs", gl::FRAGMENT_SHADER);
-
-        staticPl.use_shader(staticVS);
-        staticPl.use_shader(modelsFS);
-        skellyPl.use_shader(skellyVS);
-        skellyPl.use_shader(modelsFS);
-        staticshadPl.use_shader(staticshadVS);
-        skellyshadPl.use_shader(skellyshadVS);
-        liquidPl.use_shader(liquidVS);
-        liquidPl.use_shader(liquidFS);
-        lumaPl.use_shader(quadVS);
-        lumaPl.use_shader(lumaFS);
-        fxaaPl.use_shader(quadVS);
 
         staticVS.add_uniform("modelMat"); // mat4
         staticVS.add_uniform("normMat"); // mat3
@@ -154,11 +138,6 @@ void SceneGame::render(float _ft) {
         modelsFS.set_sca("shadBiasMod", shadBiasMod);
         liquidFS.set_sca("shadBiasMod", shadBiasMod);
 
-        int fxaaQuality = vidSet().smInt.crnt("fxaaQuality");
-        if      (fxaaQuality == 1) fxaaPl.use_shader(fxaaLFS);    // Low
-        else if (fxaaQuality == 2) fxaaPl.use_shader(fxaaHFS);    // High
-        else                       fxaaPl.use_shader(passthruFS); // Off
-
         updateSettings = false;
     }
 
@@ -189,6 +168,7 @@ void SceneGame::render(float _ft) {
     player.calc(accum, camera);
     world.calc(accum);
 
+    mainPl.bind();
 
     /// Shadow Textures ///
 
@@ -199,28 +179,39 @@ void SceneGame::render(float _ft) {
     world.slFb.use();
     world.slFb.useVP();
     gl::Clear(gl::DEPTH_BUFFER_BIT);
+    mainPl.disable_stages(gl::FRAGMENT_SHADER_BIT);
     staticshadVS.set_glmmat("shadMat", world.skylMat);
     skellyshadVS.set_glmmat("shadMat", world.skylMat);
 
-    staticshadPl.bind();
-    for (wld::Model* model : world.modelList) {
-        if (!model->shad) continue;
+    mainPl.use_shader(skellyshadVS);
+    { // will become loop
+        skellyshadVS.set_glmmat("modelMat", player.model.modelMat);
+        skellyshadVS.set_ptrvec<glm::vec4>("skelQuat", player.model.skeleton.quatData);
+        skellyshadVS.set_ptrvec<glm::vec3>("skelOffs", player.model.skeleton.offsData);
+        player.model.mesh->bind_vao();
+        for (uint i = 0; i < player.model.mesh->iboVec.size(); i++) {
+            player.model.mesh->draw_ibo(i);
+        }
+    }
 
-        model->mesh->bind_vao();
+    mainPl.use_shader(staticshadVS);
+    for (wld::Model* model : world.modelList) {
+        if (!model->shad || model->pnch) continue;
         staticshadVS.set_glmmat("modelMat", model->modelMat);
+        model->mesh->bind_vao();
         for (uint i = 0; i < model->mesh->iboVec.size(); i++) {
             model->mesh->draw_ibo(i);
         }
     }
 
-    skellyshadPl.bind();
-    { // will become loop
-        player.model.mesh->bind_vao();
-        skellyshadVS.set_glmmat("modelMat", player.model.modelMat);
-        skellyshadVS.set_ptrvec<glm::vec4>("skelQuat", player.model.skeleton.quatData);
-        skellyshadVS.set_ptrvec<glm::vec3>("skelOffs", player.model.skeleton.offsData);
-        for (uint i = 0; i < player.model.mesh->iboVec.size(); i++) {
-            player.model.mesh->draw_ibo(i);
+    mainPl.use_shader(punchFS);
+    for (wld::Model* model : world.modelList) {
+        if (!model->shad || !model->pnch) continue;
+        staticshadVS.set_glmmat("modelMat", model->modelMat);
+        model->mesh->bind_vao();
+        for (uint i = 0; i < model->mesh->iboVec.size(); i++) {
+            model->skin.bind_textures(i, sq::Skin::Mode::diff);
+            model->mesh->draw_ibo(i);
         }
     }
 
@@ -230,30 +221,42 @@ void SceneGame::render(float _ft) {
         world.spFbArr[i].use();
         world.spFbArr[i].useVP();
         gl::Clear(gl::DEPTH_BUFFER_BIT);
+        mainPl.disable_stages(gl::FRAGMENT_SHADER_BIT);
         staticshadVS.set_glmmat("shadMat", world.lightVec[i]->shadMat);
         skellyshadVS.set_glmmat("shadMat", world.lightVec[i]->shadMat);
 
-        staticshadPl.bind();
-        for (wld::Model* model : world.modelList) {
-            if (!model->shad) continue;
+        mainPl.use_shader(skellyshadVS);
+        { // will become loop
+            skellyshadVS.set_glmmat("modelMat", player.model.modelMat);
+            skellyshadVS.set_ptrvec<glm::vec4>("skelQuat", player.model.skeleton.quatData);
+            skellyshadVS.set_ptrvec<glm::vec3>("skelOffs", player.model.skeleton.offsData);
+            player.model.mesh->bind_vao();
+            for (uint i = 0; i < player.model.mesh->iboVec.size(); i++) {
+                player.model.mesh->draw_ibo(i);
+            }
+        }
 
-            model->mesh->bind_vao();
+        mainPl.use_shader(staticshadVS);
+        for (wld::Model* model : world.modelList) {
+            if (!model->shad || model->pnch) continue;
             staticshadVS.set_glmmat("modelMat", model->modelMat);
+            model->mesh->bind_vao();
             for (uint i = 0; i < model->mesh->iboVec.size(); i++) {
                 model->mesh->draw_ibo(i);
             }
         }
 
-        skellyshadPl.bind();
-        { // will become loop
-            player.model.mesh->bind_vao();
-            skellyshadVS.set_glmmat("modelMat", player.model.modelMat);
-            skellyshadVS.set_ptrvec<glm::vec4>("skelQuat", player.model.skeleton.quatData);
-            skellyshadVS.set_ptrvec<glm::vec3>("skelOffs", player.model.skeleton.offsData);
-            for (uint i = 0; i < player.model.mesh->iboVec.size(); i++) {
-                player.model.mesh->draw_ibo(i);
+        mainPl.use_shader(punchFS);
+        for (wld::Model* model : world.modelList) {
+            if (!model->shad || !model->pnch) continue;
+            staticshadVS.set_glmmat("modelMat", model->modelMat);
+            model->mesh->bind_vao();
+            for (uint i = 0; i < model->mesh->iboVec.size(); i++) {
+                model->skin.bind_textures(i, sq::Skin::Mode::diff);
+                model->mesh->draw_ibo(i);
             }
         }
+
         world.spFbArr[i].dsTex.bind(gl::TEXTURE5+i);
     }
 
@@ -275,9 +278,11 @@ void SceneGame::render(float _ft) {
         gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
         gl::ClearColor(0.f, 0.f, 0.f, 1.f);
 
+        mainPl.use_shader(modelsFS);
+
         //////////////////////////////////////////
 
-        skellyPl.bind();
+        mainPl.use_shader(skellyVS);
         { // will become loop
             player.model.mesh->bind_vao();
             skellyVS.set_glmmat("modelMat", player.model.modelMat);
@@ -291,7 +296,7 @@ void SceneGame::render(float _ft) {
             }
         }
 
-        staticPl.bind();
+        mainPl.use_shader(staticVS);
         for (wld::Model* model : world.modelList) {
             if (!model->refl) continue;
             model->mesh->bind_vao();
@@ -312,7 +317,7 @@ void SceneGame::render(float _ft) {
         terFb.use();
         gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 
-        skellyPl.bind();
+        mainPl.use_shader(skellyVS);
         { // will become loop
             player.model.mesh->bind_vao();
             skellyVS.set_glmmat("modelMat", player.model.modelMat);
@@ -326,7 +331,7 @@ void SceneGame::render(float _ft) {
             }
         }
 
-        staticPl.bind();
+        mainPl.use_shader(staticVS);
         for (wld::Model* model : world.modelList) {
             if (!model->refr) continue;
             model->mesh->bind_vao();
@@ -344,7 +349,8 @@ void SceneGame::render(float _ft) {
         gl::Disable(gl::CLIP_DISTANCE0);
         priFb.use();
 
-        liquidPl.bind();
+        mainPl.use_shader(liquidVS);
+        mainPl.use_shader(liquidFS);
         secFb.cTexVec[0].bind(gl::TEXTURE0);
         terFb.cTexVec[0].bind(gl::TEXTURE1);
         terFb.dsTex.bind(gl::TEXTURE2);
@@ -355,7 +361,9 @@ void SceneGame::render(float _ft) {
 
     /// Main Rendering
 
-    skellyPl.bind();
+    mainPl.use_shader(modelsFS);
+
+    mainPl.use_shader(skellyVS);
     { // will become loop
         player.model.mesh->bind_vao();
         skellyVS.set_glmmat("modelMat", player.model.modelMat);
@@ -369,7 +377,7 @@ void SceneGame::render(float _ft) {
         }
     }
 
-    staticPl.bind();
+    mainPl.use_shader(staticVS);
     for (wld::Model* model : world.modelList) {
         model->mesh->bind_vao();
         staticVS.set_glmmat("modelMat", model->modelMat);
@@ -384,16 +392,20 @@ void SceneGame::render(float _ft) {
 
     /// FXAA and/or Screen Output ///
 
+    mainPl.use_shader(quadVS);
+
     gl::Disable(gl::DEPTH_TEST);
     priFb.cTexVec[0].bind(gl::TEXTURE0);
-
-    if (vidSet().smInt.crnt("fxaaQuality")) {
-        lumaPl.bind();
+    int fxaaQuality = vidSet().smInt.crnt("fxaaQuality");
+    if (fxaaQuality > 0) {
+        mainPl.use_shader(lumaFS);
         sq::draw_screen_quad();
-    }
+        if (fxaaQuality == 1) mainPl.use_shader(fxaaLFS);
+        else mainPl.use_shader(fxaaHFS);
+    } else mainPl.use_shader(passthruFS);
+
     gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
     gl::Clear(gl::COLOR_BUFFER_BIT);
-    fxaaPl.bind();
     sq::draw_screen_quad();
 
     gl::BindVertexArray(0);

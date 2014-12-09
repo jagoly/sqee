@@ -9,6 +9,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build/lib")
 
 set(SRCDIR "${PROJECT_SOURCE_DIR}/src")
 set(INCDIR "${PROJECT_SOURCE_DIR}/include")
+set(BINDIR "${SRCDIR}/sqee/bin")
 
 set(SOURCES
 # 3rd Party Headers
@@ -66,6 +67,24 @@ set(SOURCES
     "${SRCDIR}/sqee/sounds/soundmanager.cpp"
 )
 
+MAKE_DIRECTORY(${CMAKE_CURRENT_BINARY_DIR}/objwork)
+set(OBJWORKDIR ${CMAKE_CURRENT_BINARY_DIR}/objwork)
+
+add_custom_command(OUTPUT ${OBJWORKDIR}/tinytext_texture.o
+    COMMAND cd ${BINDIR} && ld -r -b binary -o ${OBJWORKDIR}/tinytext_texture.o tinytext/texture.bin
+)
+add_library(tinytext_texture STATIC ${OBJWORKDIR}/tinytext_texture.o)
+set_source_files_properties(tinytext_texture PROPERTIES EXTERNAL_OBJECT true GENERATED true)
+set_target_properties(tinytext_texture PROPERTIES LINKER_LANGUAGE C)
+
+add_custom_command(OUTPUT ${OBJWORKDIR}/tinytext_indices.o
+    COMMAND cd ${BINDIR} && ld -r -b binary -o ${OBJWORKDIR}/tinytext_indices.o tinytext/indices.bin
+)
+add_library(tinytext_indices STATIC ${OBJWORKDIR}/tinytext_indices.o)
+set_source_files_properties(tinytext_indices PROPERTIES EXTERNAL_OBJECT true GENERATED true)
+set_target_properties(tinytext_indices PROPERTIES LINKER_LANGUAGE C)
+
+
 add_library(sqee SHARED ${SOURCES})
 include_directories("${PROJECT_SOURCE_DIR}/include/sqee")
 
@@ -82,6 +101,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
         ${SFML_SYSTEM_LIB} ${SFML_WINDOW_LIB} ${SFML_AUDIO_LIB}
         ${BOOST_SYSTEM_LIB} ${BOOST_FILESYSTEM_LIB}
         ${FREETYPE_LIB} openGL32
+        tinytext_texture tinytext_indices
     )
 else ()
     find_package(Freetype REQUIRED)
@@ -90,6 +110,7 @@ else ()
         sfml-window sfml-system sfml-audio
         boost_filesystem boost_system
         freetype GL
+        tinytext_texture tinytext_indices
     )
 endif ()
 	

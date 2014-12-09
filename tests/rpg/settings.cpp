@@ -20,7 +20,7 @@ VideoSettings::VideoSettings() {
     cout << "INFO: Initializing Global \"sqt::VideoSettings\"" << endl;
     #endif
 
-    smInt.add_setting("shadQuality", 3);
+    smInt.add_setting("shadQuality", 2);
     smInt.add_setting("fxaaQuality", 2);
 }
 
