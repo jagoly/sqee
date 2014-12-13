@@ -25,6 +25,7 @@ SceneGame::SceneGame(sq::Application& _app)
     camera.range = {0.5f, 60.f};
     camera.size = {16, 10};
     camera.fov = 1.f;
+    camera.strictAspect = 1.6f;
     camera.update();
 
     player.test_init();

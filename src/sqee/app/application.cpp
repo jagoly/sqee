@@ -6,10 +6,10 @@ using namespace sq;
 
 Application::Application(glm::uvec2 _size, bool _resizable, const string& _title) {
     sf::ContextSettings settings;
-    settings.depthBits        = 24;
-    settings.stencilBits       = 8;
-    settings.antialiasingLevel = 0;
-    settings.majorVersion      = 3;
+    settings.depthBits        = 24,
+    settings.stencilBits       = 8,
+    settings.antialiasingLevel = 0,
+    settings.majorVersion      = 3,
     settings.minorVersion      = 3;
 
     title = _title;
@@ -28,7 +28,7 @@ Application::Application(glm::uvec2 _size, bool _resizable, const string& _title
     cout << "Version: " << version << endl;
     gl::Enable(gl::DEBUG_OUTPUT);
     gl::Enable(gl::DEBUG_OUTPUT_SYNCHRONOUS);
-    gl::DebugMessageCallback(sq::debug_callback, 0);
+    gl::DebugMessageCallback(debug_callback, 0);
     #endif
 
     window.setVerticalSyncEnabled(true);
@@ -50,13 +50,9 @@ int Application::run() {
         soundManager.clean();
 
         static sf::Event event;
-        while (window.pollEvent(event)) {
-            for (Handler::Ptr& handler : handlerIM) {
-                if (handler->handle(event)) {
-                    break;
-                }
-            }
-        }
+        while (window.pollEvent(event))
+            for (Handler::Ptr& handler : handlerIM)
+                if (handler->handle(event)) break;
 
         float ft = clockFT.restart().asSeconds();
 
