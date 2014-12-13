@@ -1,6 +1,4 @@
-#include <fstream>
-#include <sstream>
-
+#include <maths/glm.hpp>
 #include <models/skeleton.hpp>
 #include <misc/files.hpp>
 
@@ -8,63 +6,51 @@ using namespace sq;
 
 void Animation::load(const string& _filePath) {
     string filePath = SQ_MODELS "skeletons/" + _filePath + ".sqa";
-    std::ifstream src(filePath);
-
-    if (!src.is_open()) cout << "ERROR: Couldn't open file \"" << filePath << "\"" << endl;
+    vector<vector<string>> fileVec(sq::get_words_from_file(filePath));
 
     int pNum = 0;
     vector<array<float, 4>> qVec; qVec.reserve(40);
     vector<array<float, 3>> oVec; oVec.reserve(40);
     vector<pair<uint, int>> kVec;
 
-    string line, section = "";
-    while (std::getline(src, line)) {
-        vector<string> vec;
-        {   std::stringstream stream(line); string val;
-            while (stream >> val) vec.emplace_back(val);
+    string section = "";
+    for (const vector<string>& line : fileVec) {
+        const string& key = line[0];
+        if (key[0] == '#') continue;
+        if (key == "{") {
+            if (!section.empty()) throw;
+            section = line[1]; continue;
         }
-
-        if (vec.empty() || vec[0] == "#") continue;
-
-        if (vec[0] == "{") {
-            if (!section.empty()) throw; // already in a section
-            section = vec[1]; continue;
-        }
-        if (vec[0] == "}") {
-            if (section.empty()) throw; // not in a section
-            section = ""; continue;
+        if (key == "}") {
+            if (section.empty()) throw;
+            section.clear(); continue;
         }
 
         if (section == "header") {
-            string& key = vec[0];
-            uint val = std::stoi(vec[1]);
-            if (key == "bCount") { bCount = val; continue; }
-            if (key == "pCount") { pCount = val; continue; }
-            if (key == "kCount") { kCount = val; continue; }
-            throw; // invalid key
-        }
-
-        if (section == "poses") {
-            if (vec[0] == "pose") { pNum++; continue; }
-
-            float qw = std::stof(vec[0]);
-            float qx = std::stof(vec[1]);
-            float qy = std::stof(vec[2]);
-            float qz = std::stof(vec[3]);
-            float ox = std::stof(vec[4]);
-            float oy = std::stof(vec[5]);
-            float oz = std::stof(vec[6]);
-
-            qVec.push_back({qw, qx, qy, qz});
-            oVec.push_back({ox, oy, oz});
+            if      (key == "bCount") bCount = std::stoi(line[1]);
+            else if (key == "pCount") pCount = std::stoi(line[1]);
+            else if (key == "kCount") kCount = std::stoi(line[1]);
+            else throw; // invalid key
             continue;
         }
 
-        if (section == "timeline") {
-            uint frame = std::stoi(vec[0]);
-            int pose = std::stoi(vec[1]);
+        if (section == "poses") {
+            if (key == "pose") pNum++;
+            else {
+                float qw = std::stof(line[0]);
+                float qx = std::stof(line[1]);
+                float qy = std::stof(line[2]);
+                float qz = std::stof(line[3]);
+                float ox = std::stof(line[4]);
+                float oy = std::stof(line[5]);
+                float oz = std::stof(line[6]);
+                qVec.push_back({qw, qx, qy, qz});
+                oVec.push_back({ox, oy, oz});
+            } continue;
+        }
 
-            kVec.emplace_back(frame, pose);
+        if (section == "timeline") {
+            kVec.emplace_back(std::stoi(line[0]), std::stoi(line[1]));
             continue;
         }
     }

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <sqee/gl/gl.hpp>
 #include <sqee/misc/containers.hpp>
 #include <sqee/gl/textures.hpp>
 #include <sqee/models/mesh.hpp>

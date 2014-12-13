@@ -12,15 +12,13 @@ class SceneGame : public sq::Scene {
 public:
     SceneGame(sq::Application& _app);
 
-    sq::Camera camera;
+    sq::LookatCamera camera;
 
     void render(float _ft);
     void update();
 
 private:
-    glm::vec3 translation;
-
-    int fsWhat = 0;
+    glm::vec3 translation = {0.f, 0.f, -4.f};
 };
 
 class HandlerGame : public sq::Handler {

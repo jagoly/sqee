@@ -4,22 +4,22 @@
 
 namespace sq {
 
-class HandlerClose : public sq::Handler {
+class HandlerClose : public Handler {
 public:
-    using sq::Handler::Handler;
+    using Handler::Handler;
     bool handle(const sf::Event& _event);
 };
 
 
-class HandlerResize : public sq::Handler {
+class HandlerResize : public Handler {
 public:
-    using sq::Handler::Handler;
+    using Handler::Handler;
     bool handle(const sf::Event& _event);
 };
 
-class HandlerFramelimit : public sq::Handler {
+class HandlerFramelimit : public Handler {
 public:
-    using sq::Handler::Handler;
+    using Handler::Handler;
     bool handle(const sf::Event& _event);
 };
 

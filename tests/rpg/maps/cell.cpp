@@ -1,6 +1,4 @@
-#include <iostream>
 #include <fstream>
-#include <sstream>
 
 #include <sqee/misc/files.hpp>
 
@@ -44,63 +42,50 @@ Cell::Cell(const string& _filePath, const string& _name,
            const vector<string>& _loads, glm::ivec2 _xyPos, float _zPos)
     : name(_name), loads(_loads), xyPos(_xyPos), pos(xyPos.x, xyPos.y, _zPos) {
     string filePath = "res/game/cells/" + _filePath + ".sq_cell";
-    std::ifstream src(filePath);
-
-    #ifdef SQEE_DEBUG
-    if (!src.is_open())
-        cout << "ERROR: Couldn't open file \"" << filePath << "\"" << endl;
-    #endif
+    vector<vector<string>> fileVec(sq::get_words_from_file(filePath));
 
     vector<ObjectSpec> specVec;
 
-    string line;
     string section = "";
-    while (std::getline(src, line)) {
-        vector<string> vec;
-        {   std::stringstream stream(line); string val;
-            while (stream >> val) vec.emplace_back(val);
+    for (const vector<string>& line : fileVec) {
+        const string& key = line[0];
+        if (key[0] == '#') continue;
+        if (key == "{") {
+            if (!section.empty()) throw;
+            section = line[1]; continue;
         }
-
-        if (vec.empty() || vec[0][0] == '#') continue;
-
-        if (vec[0] == "{") {
-            if (!section.empty()) throw; // already in a section
-            section = vec[1]; continue;
-        }
-        if (vec[0] == "}") {
-            if (section.empty()) throw; // not in a section
-            section = ""; continue;
+        if (key == "}") {
+            if (section.empty()) throw;
+            section.clear(); continue;
         }
 
         if (section == "header") {
-            string& key = vec[0];;
             if (key == "size") {
-                xySize = {std::stoi(vec[1]), std::stoi(vec[2])};
-                size = {std::stof(vec[1]), std::stof(vec[2]), std::stoi(vec[3])};
-                continue;
-            }
-            throw; // invalid key
+                ////   CHECK THIS PART ??
+                xySize = {stou(line[1]), stou(line[2])};
+                size = {stof(line[1]), stof(line[2]), stof(line[3])};
+            } else throw; // invalid key
+            continue;
         }
 
         if (section == "heightlayers") {
-            glm::ivec2 hlpos(std::stoi(vec[2]) * 4, std::stoi(vec[3]) * 4);
-            glm::uvec2 hlsize(size.x * 4, size.y * 4);
-            float hloffs(std::stof(vec[4]));
-            hlMap.emplace(vec[0], HeightLayer(vec[1], hlpos, hlsize, hloffs));
+            glm::ivec2 hlPos(stoi(line[2]) * 4, stoi(line[3]) * 4);
+            hlMap.emplace(key, HeightLayer(line[1], hlPos, xySize*4u, stof(line[4])));
             continue;
         }
 
         if (section == "objects") {
-            if (vec[0] == "object") {
-                if (vec[1] == "model")
-                    specVec.emplace_back(vec[2], ObjType::Model, pos);
-                else if (vec[1] == "light")
-                    specVec.emplace_back(vec[2], ObjType::Light, pos);
-                else if (vec[1] == "liquid")
-                    specVec.emplace_back(vec[2], ObjType::Liquid, pos);
-                else if (vec[1] == "data")
-                    specVec.emplace_back(vec[2], ObjType::Data, pos);
-            } else specVec.back().parse_line(vec);
+            if (key == "object") {
+                if (line[1] == "model")
+                    specVec.emplace_back(line[2], ObjType::Model, pos);
+                else if (line[1] == "light")
+                    specVec.emplace_back(line[2], ObjType::Light, pos);
+                else if (line[1] == "liquid")
+                    specVec.emplace_back(line[2], ObjType::Liquid, pos);
+                else if (line[1] == "data")
+                    specVec.emplace_back(line[2], ObjType::Data, pos);
+            } else specVec.back().parse_line(line);
+            continue;
         }
     }
 

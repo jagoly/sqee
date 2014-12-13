@@ -14,7 +14,7 @@ object light TestA
 f3 pos 13.0 17.0 10.0
 f3 dir 0.0 0.0 -1.0
 f3 colour 1.0 1.0 1.0
-f3 angIntSft 35.0 25.0 0.2
+f3 angIntSft 35.0 25.0 0.3
 i1 texSize 128
 
 object light TestB

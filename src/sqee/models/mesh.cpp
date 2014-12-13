@@ -1,91 +1,73 @@
-#include <fstream>
-#include <sstream>
-
-#include <models/mesh.hpp>
+#include <gl/gl.hpp>
 #include <misc/files.hpp>
+#include <models/mesh.hpp>
 
 using namespace sq;
 
 void Mesh::load(const string& _filePath) {
-    faceVec.resize(1);
+    mtrlVec.resize(1);
     uint countedFaces = 0;
 
     string filePath = SQ_MODELS "meshes/" + _filePath + ".sqm";
-    std::ifstream src(filePath);
-    if (!src.is_open()) cout << "ERROR: Couldn't open file \"" << filePath << "\"" << endl;
+    vector<vector<string>> fileVec(sq::get_words_from_file(filePath));
 
-    string line, section = "";
-    while (std::getline(src, line)) {
-        vector<string> vec;
-        {   std::stringstream stream(line); string val;
-            while (stream >> val) vec.emplace_back(val);
+    string section = "";
+    for (const vector<string>& line : fileVec) {
+        const string& key = line[0];
+        if (key[0] == '#') continue;
+        if (key == "{") {
+            if (!section.empty()) throw;
+            section = line[1]; continue;
         }
-
-        if (vec.empty() || vec[0] == "#") continue;
-
-        if (vec[0] == "{") {
-            if (!section.empty()) throw; // already in a section
-            section = vec[1]; continue;
-        }
-        if (vec[0] == "}") {
-            if (section.empty()) throw; // not in a section
-            section = ""; continue;
+        if (key == "}") {
+            if (section.empty()) throw;
+            section.clear(); continue;
         }
 
         if (section == "header") {
-            if      (vec[0] == "vCount") vCount = std::stoi(vec[1]);
-            else if (vec[0] == "fCount") fCount = std::stoi(vec[1]);
-            else if (vec[0] == "mCount") faceVec.resize(std::stoi(vec[1]));
-            else if (vec[0] == "hasNM") hasNM = true;
-            else if (vec[0] == "hasUV") hasUV = true;
-            else if (vec[0] == "hasBW") hasBW = true;
-            else if (vec[0] == "hasMT") hasMT = true;
+            if      (key == "vCount") vCount = stoi(line[1]);
+            else if (key == "fCount") fCount = stoi(line[1]);
+            else if (key == "mCount") mtrlVec.resize(stoi(line[1]));
+            else if (key == "hasNM") hasNM = true;
+            else if (key == "hasUV") hasUV = true;
+            else if (key == "hasBW") hasBW = true;
+            else if (key == "hasMT") hasMT = true;
             else throw; // invalid key
             continue;
         }
 
         if (section == "vertices") {
-            float x = std::stof(vec[0]);
-            float y = std::stof(vec[1]);
-            float z = std::stof(vec[2]);
-            float nx = hasNM ? std::stof(vec[3]) : 0.f;
-            float ny = hasNM ? std::stof(vec[4]) : 0.f;
-            float nz = hasNM ? std::stof(vec[5]) : 0.f;
-            int o = 3 * !hasNM;
-            float u = hasUV ? std::stof(vec[6-o]) : 0.f;
-            float v = hasUV ? std::stof(vec[7-o]) : 0.f;
-            o += 2 * !hasUV;
-            int b0 = hasBW ? std::stoi(vec[8-o])  : -1;
-            int b1 = hasBW ? std::stoi(vec[9-o])  : -1;
-            int b2 = hasBW ? std::stoi(vec[10-o]) : -1;
-            int b3 = hasBW ? std::stoi(vec[11-o]) : -1;
-            int b4 = hasBW ? std::stoi(vec[12-o]) : -1;
-            int b5 = hasBW ? std::stoi(vec[13-o]) : -1;
-            int b6 = hasBW ? std::stoi(vec[14-o]) : -1;
-            int b7 = hasBW ? std::stoi(vec[15-o]) : -1;
-            float w0 = hasBW ? std::stof(vec[16-o]) : 0.f;
-            float w1 = hasBW ? std::stof(vec[17-o]) : 0.f;
-            float w2 = hasBW ? std::stof(vec[18-o]) : 0.f;
-            float w3 = hasBW ? std::stof(vec[19-o]) : 0.f;
-            float w4 = hasBW ? std::stof(vec[20-o]) : 0.f;
-            float w5 = hasBW ? std::stof(vec[21-o]) : 0.f;
-            float w6 = hasBW ? std::stof(vec[22-o]) : 0.f;
-            float w7 = hasBW ? std::stof(vec[23-o]) : 0.f;
+            int ind = 0;
+            Vertex vert;
 
-            vertVec.push_back({x, y, z, nx, ny, nz, u, v,
-                               {b0, b1, b2, b3, b4, b5, b6, b7},
-                               {w0, w1, w2, w3, w4, w5, w6, w7}});
+            vert.x = stof(line[ind++]),
+            vert.y = stof(line[ind++]),
+            vert.z = stof(line[ind++]);
+
+            if (hasNM) vert.nx = stof(line[ind++]),
+                       vert.ny = stof(line[ind++]),
+                       vert.nz = stof(line[ind++]);
+
+            if (hasUV) vert.u = stof(line[ind++]),
+                       vert.v = stof(line[ind++]);
+
+            if (hasBW) vert.b[0] = stoi(line[ind++]), vert.b[1] = stoi(line[ind++]),
+                       vert.b[2] = stoi(line[ind++]), vert.b[3] = stoi(line[ind++]),
+                       vert.b[4] = stoi(line[ind++]), vert.b[5] = stoi(line[ind++]),
+                       vert.b[6] = stoi(line[ind++]), vert.b[7] = stoi(line[ind++]),
+                       vert.w[0] = stof(line[ind++]), vert.w[1] = stof(line[ind++]),
+                       vert.w[2] = stof(line[ind++]), vert.w[3] = stof(line[ind++]),
+                       vert.w[4] = stof(line[ind++]), vert.w[5] = stof(line[ind++]),
+                       vert.w[6] = stof(line[ind++]), vert.w[7] = stof(line[ind++]);
+
+            vertVec.push_back(vert);
             continue;
         }
 
         if (section == "faces") {
             countedFaces++;
-            uint a = std::stoi(vec[0]);
-            uint b = std::stoi(vec[1]);
-            uint c = std::stoi(vec[2]);
-            uchar m = hasMT ? std::stoi(vec[3]) : 0;
-
-            faceVec[m].push_back({a, b, c});
+            array<uint, 3> face = {stou(line[0]), stou(line[1]), stou(line[2])};
+            mtrlVec[hasMT ? stoi(line[3]) : 0].push_back(face);
             continue;
         }
     }
@@ -99,11 +81,14 @@ void Mesh::load(const string& _filePath) {
              << filePath << "\"" << endl;
     #endif
 
-    for (uint i = 0; i < faceVec.size(); i++) {
-        iboVec.emplace_back(0, faceVec[i].size() * 3);
-        gl::GenBuffers(1, &(iboVec[i].first));
-        gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, iboVec[i].first);
-        gl::BufferData(gl::ELEMENT_ARRAY_BUFFER, iboVec[i].second * sizeof(GLuint), faceVec[i].data(), gl::STATIC_DRAW);
+    for (uint i = 0; i < mtrlVec.size(); i++) {
+        vector<array<uint, 3>>& faceVec = mtrlVec[i];
+        iboVec.emplace_back(0, faceVec.size() * 3);
+        pair<GLuint, uint>& ibo = iboVec.back();
+        gl::GenBuffers(1, &ibo.first);
+        gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ibo.first);
+        gl::BufferData(gl::ELEMENT_ARRAY_BUFFER, ibo.second * intSz,
+                       faceVec.data(), gl::STATIC_DRAW);
     }
 
     gl::GenVertexArrays(1, &vao);

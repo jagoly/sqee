@@ -1,6 +1,7 @@
 #pragma once
 
 #include <gl/gl.hpp>
+#include <maths/glm.hpp>
 
 namespace sq {
 

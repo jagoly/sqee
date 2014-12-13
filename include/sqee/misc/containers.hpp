@@ -10,7 +10,7 @@ namespace sq {
 template <class Tk, class Tv>
 class ResHolder {
 public:
-    typedef typename map<Tk, Tv>::iterator iterator;
+    typedef typename std::map<Tk, Tv>::iterator iterator;
     typedef std::pair<const Tk, Tv> Pair;
 
     iterator begin() { return map.begin(); }
@@ -91,7 +91,7 @@ public:
         theMap[_key] = {_val, _val};
     }
     void modify(const std::string& _key, const T& _val) {
-        theMap.at(_val).second = _val;
+        theMap.at(_key).second = _val;
     }
     T crnt(const std::string& _key) { return theMap.at(_key).first; }
     T next(const std::string& _key) { return theMap.at(_key).second; }

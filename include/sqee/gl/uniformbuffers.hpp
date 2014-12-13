@@ -1,12 +1,10 @@
 #pragma once
 
-#include <unordered_map>
-
 #include <gl/gl.hpp>
 
 namespace sq {
 
-class UniformBuffer {
+class UniformBuffer : NonCopyable {
 public:
     ~UniformBuffer();
 
@@ -25,7 +23,7 @@ private:
             : offs(_offs), size(_size) {}
         const uint offs, size;
     };
-    std::unordered_map<string, Item> itemMap;
+    unordered_map<string, Item> itemMap;
     uint crntSize = 0;
 };
 

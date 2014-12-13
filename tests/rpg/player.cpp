@@ -12,79 +12,79 @@ void Player::test_init() {
 
     sq::Animation* anim = resBank().animH.add("Characters/Don/Standing");
     anim->load("Characters/Don/Standing");
-
 }
 
-void Player::tick(char _moveDir, wld::World& _world) {
+void Player::attempt_move(sq::Direction _moveDir) {
     static sq::Animation* anWalking = resBank().animH.get("Characters/Don/Walking");
-    static sq::Animation* anStanding = resBank().animH.get("Characters/Don/Standing");
 
-    model.skeleton.tick();
-
-    static uint prgrs8;
-    static glm::uvec2 gridPre;
-    static int xDir = 0, yDir = 0;
-    static int xSub = 0, ySub = 0;
-
-    static bool stopped = true;
-
-    posCrnt = posNext;
-    if (!moving && _moveDir != -1) {
+    if (!moving && _moveDir != sq::Direction::Zero) {
         // add collision code here
-        gridPre = gridPos;
+        gridPrev = gridCrnt;
+        moveDir = _moveDir;
         moving = true;
-        prgrs8 = 0;
-        if      (_moveDir == 0) { gridPos.y += 1; rot = 3.1416f; }
-        else if (_moveDir == 1) { gridPos.x += 1; rot = 1.5708f; }
-        else if (_moveDir == 2) { gridPos.y -= 1; rot = 0.f; }
-        else if (_moveDir == 3) { gridPos.x -= 1; rot = -1.5708f; }
-        else throw; // Invalid dir
+        moveCntr = 0;
 
-        xDir = gridPos.x - gridPre.x;
-        yDir = gridPos.y - gridPre.y;
-        xSub = gridPre.x * 4 +1;
-        ySub = gridPre.y * 4 +1;
+        moveVal = {0, 0};
+        if      (moveDir == sq::Direction::North) moveVal.y = 1,  rot = glm::radians(180.d);
+        else if (moveDir == sq::Direction::East)  moveVal.x = 1,  rot = glm::radians(90.d);
+        else if (moveDir == sq::Direction::South) moveVal.y = -1, rot = glm::radians(0.d);
+        else if (moveDir == sq::Direction::West)  moveVal.x = -1, rot = glm::radians(-90.d);
 
-        _world.set_player_pos(gridPos);
+        gridCrnt += moveVal;
+        camOffsTrgt = glm::vec2(moveVal) * 0.65f;
+
+        world->set_player_pos(gridCrnt);
 
         if (stopped) {
             model.skeleton.transition(anWalking, 1, 4);
             stopped = false;
         }
     }
+}
+
+void Player::tick() {
+    static sq::Animation* anStanding = resBank().animH.get("Characters/Don/Standing");
+
+    model.skeleton.tick();
+
+    posCrnt = posNext;
+    camOffsCrnt = camOffsNext;
 
     if (moving) {
-        int prgrs4 = ++prgrs8 / 2;
-
-        posNext.z = _world.get_maxZ4(layer, xSub + prgrs4*xDir, ySub + prgrs4*yDir);
-        if (prgrs8 % 2) {
-            posNext.z += _world.get_maxZ4(layer, xSub + (prgrs4+1)*xDir, ySub + (prgrs4+1)*yDir);
+        int prgrs4 = ++moveCntr / 2;
+        posNext.z = world->get_maxZ4(layer, (gridPrev.x*4+1) + prgrs4*moveVal.x,
+                                            (gridPrev.y*4+1) + prgrs4*moveVal.y);
+        if (moveCntr % 2) {
+            posNext.z += world->get_maxZ4(layer, (gridPrev.x*4+1) + (prgrs4+1)*moveVal.x,
+                                                 (gridPrev.y*4+1) + (prgrs4+1)*moveVal.y);
             posNext.z /= 2.f;
         }
 
-        posNext.x = glm::mix(float(gridPre.x), float(gridPos.x), float(prgrs8) / 8.f);
-        posNext.y = glm::mix(float(gridPre.y), float(gridPos.y), float(prgrs8) / 8.f);
+        posNext = glm::vec3(glm::mix(glm::vec2(gridPrev), glm::vec2(gridCrnt),
+                                     moveCntr / 8.f), posNext.z);
 
-        if (prgrs8 == 8) moving = false;
+        camOffsNext = glm::mix(camOffsNext, camOffsTrgt, moveCntr / 8.f);
+
+        if (moveCntr == 8) moving = false;
     } else if (!stopped) {
         model.skeleton.transition(anStanding, 0, 4);
         stopped = true;
     }
 }
 
-void Player::calc(double _accum, sq::Camera& _camera) {
+void Player::calc(double _accum) {
     model.skeleton.calc(_accum);
 
     const double dt = 1.d / 24.d;
     glm::vec3 pos = glm::mix(posCrnt, posNext, _accum / dt);
     pos.x += 0.5f; pos.y += 0.5f;
 
-    _camera.pos.x = pos.x;
-    _camera.pos.y = pos.y - 5.f;
-    _camera.pos.z = pos.z + 9.5f;
-    _camera.update_projMat();
-    _camera.update_viewMat();
-    _camera.update_ubo();
+    camera->pos.x = pos.x;
+    camera->pos.y = pos.y - 4.5f;
+    camera->pos.z = pos.z + 9.5f;
+
+    camera->pos += glm::vec3(glm::mix(camOffsCrnt, camOffsNext, _accum / dt), 0);
+    camera->update();
 
     model.modelMat = glm::translate(sq::iMat4, pos);
     model.modelMat = glm::rotate(model.modelMat, rot, {0, 0, 1});

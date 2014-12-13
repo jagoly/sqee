@@ -1,15 +1,13 @@
 #pragma once
 
-#include <unordered_map>
-#include <iterator>
-
 #include <gl/gl.hpp>
+#include <maths/glm.hpp>
 #include <misc/containers.hpp>
 // ^ need to make shaders follow conventions of other sqee resources
 
 namespace sq {
 
-class Shader {
+class Shader : NonCopyable {
 friend class Pipeline;
 public:
     ~Shader();
@@ -40,10 +38,10 @@ private:
         Uniform(GLint _ref, uint _cnt) : ref(_ref), cnt(_cnt) {}
         const GLint ref; const uint cnt;
     };
-    std::unordered_map<string, Uniform> uniforms;
+    unordered_map<string, Uniform> uniforms;
 };
 
-class Pipeline {
+class Pipeline : NonCopyable {
 public:
     Pipeline();
     ~Pipeline();

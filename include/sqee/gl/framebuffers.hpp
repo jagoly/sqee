@@ -1,17 +1,18 @@
 #pragma once
 
 #include <gl/gl.hpp>
+#include <maths/glm.hpp>
 #include <gl/textures.hpp>
 
 namespace sq {
 
-class Framebuffer {
+class Framebuffer : NonCopyable {
 public:
-    void create(const vector<GLenum>& _drawBuffers,
+    Framebuffer(const vector<GLenum>& _drawBuffers,
                 const vector<GLenum>& _cFormats,
                 const vector<GLenum>& _icFormats);
-    void create(GLenum _dsFormat, GLenum _idsFormat);
-    void create(const vector<GLenum>& _drawBuffers,
+    Framebuffer(GLenum _dsFormat, GLenum _idsFormat);
+    Framebuffer(const vector<GLenum>& _drawBuffers,
                 const vector<GLenum>& _cFormats,
                 const vector<GLenum>& _icFormats,
                 GLenum _dsFormat, GLenum _idsFormat);

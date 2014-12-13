@@ -1,6 +1,3 @@
-#include <fstream>
-#include <sstream>
-
 #include <models/skin.hpp>
 #include <misc/files.hpp>
 
@@ -8,50 +5,41 @@ using namespace sq;
 
 void Skin::load(const string& _filePath, TexHolder& _texH) {
     string filePath = SQ_MODELS "skins/" + _filePath + ".sq_skin";
-    std::ifstream src(filePath);
+    vector<vector<string>> fileVec(sq::get_words_from_file(filePath));
 
-    if (!src.is_open()) cout << "ERROR: Couldn't open file \"" << filePath << "\"" << endl;
+    struct TexPaths { string norm, diff, spec, ambi; };
+    vector<TexPaths> TexPathsVec;
 
-    struct TexPaths {
-        string norm, diff, spec, ambi;
-    }; vector<TexPaths> TexPathsVec;
-
-    string line;
     string section = "";
-    while (std::getline(src, line)) {
-        vector<string> vec;
-        {   std::stringstream stream(line); string val;
-            while (stream >> val) vec.emplace_back(val);
+    for (const vector<string>& line : fileVec) {
+        const string& key = line[0];
+        if (key[0] == '#') continue;
+        if (key == "{") {
+            if (!section.empty()) throw;
+            section = line[1]; continue;
         }
-
-        if (vec.empty() || vec[0] == "#") continue;
-
-        if (vec[0] == "{") {
-            if (!section.empty()) throw; // already in a section
-            section = vec[1]; continue;
-        }
-        if (vec[0] == "}") {
-            if (section.empty()) throw; // not in a section
-            section = ""; continue;
+        if (key == "}") {
+            if (section.empty()) throw;
+            section.clear(); continue;
         }
 
         if (section == "header") {
-            if (vec[0] == "mCount")
-                mtrlVec.resize(std::stoi(vec[1]));
-            else throw;
+            if (key == "mCount") mtrlVec.resize(std::stoi(line[1]));
+            else throw; // invalid key
+            continue;
         }
 
         if (section == "materials") {
-            if (line == "material")
+            if (key == "material")
                 TexPathsVec.emplace_back();
-            else if (vec[0] == "norm")
-                TexPathsVec.back().norm = vec[1];
-            else if (vec[0] == "diff")
-                TexPathsVec.back().diff = vec[1];
-            else if (vec[0] == "spec")
-                TexPathsVec.back().spec = vec[1];
-            else if (vec[0] == "ambi")
-                TexPathsVec.back().ambi = vec[1];
+            else if (key == "norm")
+                TexPathsVec.back().norm = line[1];
+            else if (key == "diff")
+                TexPathsVec.back().diff = line[1];
+            else if (key == "spec")
+                TexPathsVec.back().spec = line[1];
+            else if (key == "ambi")
+                TexPathsVec.back().ambi = line[1];
             else throw;
             continue;
         }

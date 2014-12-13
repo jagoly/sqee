@@ -18,11 +18,10 @@ public:
     void update();
 
 private:
-    sq::Camera camera;
+    sq::LookatCamera camera;
     wld::World world;
     Player player;
 
-    bool updateSettings = true;
     bool updateFramebuffers = true;
 };
 

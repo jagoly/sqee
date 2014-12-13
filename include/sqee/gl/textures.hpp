@@ -1,13 +1,12 @@
 #pragma once
 
 #include <gl/gl.hpp>
+#include <maths/glm.hpp>
 #include <misc/containers.hpp>
 
 namespace sq {
 
-
-
-class Texture {
+class Texture : NonCopyable {
 public:
     enum class Preset { NONE, N_C, N_R, L_C, L_R, SHAD };
 

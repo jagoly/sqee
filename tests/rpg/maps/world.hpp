@@ -35,7 +35,7 @@ public:
     vector<Light*> lightVec;
 
     glm::vec3 ambiColour;
-    int skylEnable;
+    bool skylEnable;
     uint skylTexSize;
     glm::vec3 skylDir;
     glm::vec3 skylColour;
@@ -43,8 +43,8 @@ public:
     uint spotCount;
 
     sq::UniformBuffer ubo;
-    sq::Framebuffer slFb;
-    array<sq::Framebuffer, 8> spFbArr;
+
+    bool updateScene = false;
 
 private:
     map<string, Cell> cellMap;

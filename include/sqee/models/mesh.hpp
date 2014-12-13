@@ -1,19 +1,17 @@
 #pragma once
 
-#include <gl/gl.hpp>
+#include <maths/glm.hpp>
 #include <misc/containers.hpp>
 
 namespace sq {
 
-class Mesh {
+class Mesh : NonCopyable {
 public:
     struct Vertex {
-        Vertex(float _x, float _y, float _z, float _nx, float _ny, float _nz,
-               float _u, float _v, array<int, 8> _b, array<float, 8> _w)
-            : x(_x), y(_y), z(_z), nx(_nx), ny(_ny), nz(_nz), u(_u), v(_v), b(_b), w(_w) {}
-        const float x, y, z, nx, ny, nz, u, v;
-        const array<int, 8> b;
-        const array<float, 8> w;
+        float x=0, y=0, z=0;
+        float nx=0, ny=0, nz=0;
+        float u=0, v=0;
+        int b[8] {-1}; float w[8] {0};
     };
 
     ~Mesh();
@@ -33,7 +31,7 @@ public:
     vector<pair<GLuint, uint>> iboVec;
 
     vector<Vertex> vertVec;
-    vector<vector<std::array<uint, 3>>> faceVec;
+    vector<vector<array<uint, 3>>> mtrlVec;
 
     void bind_vao();
     void draw_ibo(uint _mtrl = 0);

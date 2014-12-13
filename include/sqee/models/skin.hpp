@@ -1,6 +1,5 @@
 #pragma once
 
-#include <gl/gl.hpp>
 #include <gl/textures.hpp>
 #include <misc/containers.hpp>
 

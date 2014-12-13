@@ -1,15 +1,13 @@
-#include <unordered_map>
-
 #include <gl/framebuffers.hpp>
 
 using namespace sq;
 
-void Framebuffer::create(const vector<GLenum>& _drawBuffers,
+Framebuffer::Framebuffer(const vector<GLenum>& _drawBuffers,
                          const vector<GLenum>& _cFormats,
                          const vector<GLenum>& _icFormats,
-                         GLenum _dsFormat, GLenum _idsFormat) {
+                         GLenum _dsFormat, GLenum _idsFormat)
+    : drawBuffers(_drawBuffers) {
 
-    drawBuffers = _drawBuffers;
     for (GLenum i : drawBuffers) {
         uint ind = i - gl::COLOR_ATTACHMENT0;
         cTexVec[ind].create(gl::TEXTURE_2D, _cFormats[ind], _icFormats[ind], Texture::Preset::N_C);
@@ -20,19 +18,16 @@ void Framebuffer::create(const vector<GLenum>& _drawBuffers,
         dsTex.create(gl::TEXTURE_2D, _dsFormat, _idsFormat, Texture::Preset::N_C);
     }
 
-    gl::DeleteFramebuffers(1, &fbo);
     gl::GenFramebuffers(1, &fbo);
 }
 
-void Framebuffer::create(const vector<GLenum>& _drawBuffers,
+Framebuffer::Framebuffer(const vector<GLenum>& _drawBuffers,
                          const vector<GLenum>& _cFormats,
-                         const vector<GLenum>& _icFormats) {
-    create(_drawBuffers, _cFormats, _icFormats, gl::NONE, gl::NONE);
-}
+                         const vector<GLenum>& _icFormats)
+    : Framebuffer(_drawBuffers, _cFormats, _icFormats, gl::NONE, gl::NONE) {}
 
-void Framebuffer::create(GLenum _dsFormat, GLenum _idsFormat) {
-    create({}, {}, {}, _dsFormat, _idsFormat);
-}
+Framebuffer::Framebuffer(GLenum _dsFormat, GLenum _idsFormat)
+    : Framebuffer({}, {}, {}, _dsFormat, _idsFormat) {}
 
 
 void Framebuffer::resize(glm::uvec2 _size) {

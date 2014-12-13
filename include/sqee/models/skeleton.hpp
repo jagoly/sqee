@@ -1,16 +1,16 @@
 #pragma once
 
-#include <gl/gl.hpp>
+#include <maths/glm.hpp>
 #include <misc/containers.hpp>
 
 namespace sq {
 
-class Animation {
+class Animation : NonCopyable {
 public:
     struct Pose {
         Pose(uint _bCount, const float* _quatData, const float* _offsData) {
-            memcpy(quatData, _quatData, _bCount*4*sizeof(float));
-            memcpy(offsData, _offsData, _bCount*3*sizeof(float));
+            std::memcpy(quatData, _quatData, _bCount*4*sizeof(float));
+            std::memcpy(offsData, _offsData, _bCount*3*sizeof(float));
         }
         float quatData[40*4];
         float offsData[40*3];
@@ -31,9 +31,6 @@ typedef ResHolder<string, Animation> AnimHolder;
 
 class Skeleton {
 public:
-    // change to unique when qt creator fixed
-    typedef shared_ptr<Skeleton> Ptr;
-
     void setup(Animation* _anim);
 
     float quatData[40*4];

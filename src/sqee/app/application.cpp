@@ -5,9 +5,6 @@
 using namespace sq;
 
 Application::Application(glm::uvec2 _size, bool _resizable, const string& _title) {
-    int error = FT_Init_FreeType(&ftLib);
-    if (error) cout << "ERROR: Failed to initialise FreeType" << endl;
-
     sf::ContextSettings settings;
     settings.depthBits        = 24;
     settings.stencilBits       = 8;

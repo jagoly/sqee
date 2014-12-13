@@ -1,14 +1,10 @@
 #pragma once
 
-#include <ft2build.h>
-#include FT_FREETYPE_H
-
 #include <gl/gl.hpp>
-#include <gl/textures.hpp>
 #include <scenes/scene.hpp>
-#include <text/font.hpp>
-#include <sounds/soundmanager.hpp>
 #include <events/handler.hpp>
+#include <sounds/soundmanager.hpp>
+#include <misc/containers.hpp>
 
 namespace sq {
 
@@ -16,7 +12,6 @@ class Application {
 public:
     Application(glm::uvec2 _size, bool _resizable, const string& _title);
 
-    FT_Library ftLib;
     SoundManager soundManager;
 
     int run();
@@ -31,8 +26,8 @@ public:
     void sweep_handler(const string& _id);
     void sweep_scene(const string& _id);
 
-    IndexedMap<const string, Scene::Ptr> sceneIM;
-    IndexedMap<const string, Handler::Ptr> handlerIM;
+    IndexedMap<string, Scene::Ptr> sceneIM;
+    IndexedMap<string, Handler::Ptr> handlerIM;
 
 protected:
     sf::Window window;

@@ -1,5 +1,5 @@
-#include <gl/textures.hpp>
 #include <redist/stb_image.hpp>
+#include <gl/textures.hpp>
 
 using namespace sq;
 

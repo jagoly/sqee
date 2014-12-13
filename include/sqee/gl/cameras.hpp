@@ -1,28 +1,36 @@
 #pragma once
 
 #include <gl/gl.hpp>
+#include <maths/glm.hpp>
+#include <maths/physics.hpp>
 #include <gl/uniformbuffers.hpp>
 
 namespace sq {
 
-class Camera {
+class BaseCamera : NonCopyable {
 public:
-    Camera();
-
-    void init(glm::vec3 _pos, glm::vec3 _dir,
-              glm::vec2 _zRange, glm::vec2 _aspect, float _fov);
+    BaseCamera(bool _useUBO);
 
     glm::mat4 projMat, viewMat;
     glm::vec3 pos, dir;
-    glm::vec2 zRange;
-    glm::vec2 aspect;
+    glm::vec2 range;
+
+    virtual void update();
+
+private:
+    const bool useUBO;
+    UniformBuffer ubo;
+};
+
+class LookatCamera : public BaseCamera {
+public:
+    using BaseCamera::BaseCamera;
+
+    glm::vec2 size;
+    float strictAspect;
     float fov;
 
-    sq::UniformBuffer ubo;
-
-    void update_viewMat();
-    void update_projMat(float _aspStnd = 0.f);
-    void update_ubo();
+    void update();
 };
 
 }

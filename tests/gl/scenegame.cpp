@@ -7,88 +7,81 @@
 
 using namespace sqt;
 
-SceneGame::SceneGame(sq::Application& _app) : sq::Scene(_app) {
-    tickRate = 24;
+SceneGame::SceneGame(sq::Application& _app) : sq::Scene(_app), camera(true) {
+    tickRate = 60;
 
-    camera.init({0, 0, 0}, {0, 0, -1}, {0.1f, 100.f}, {4, 3}, 1.f);
-    camera.update_projMat();
-    camera.update_viewMat();
+    camera.pos = {0, 0, 0};
+    camera.dir = {0, 0, -1};
+    camera.range = {0.1f, 100.f};
+    camera.size = {4, 3};
+    camera.fov = 1.f;
+    camera.strictAspect = 0.f;
+    camera.update();
 }
 
 void SceneGame::update() {
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
-        translation.y += 0.02f;
-    }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
-        translation.x += 0.02f;
-    }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
-        translation.y -= 0.02f;
-    }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
-        translation.x -= 0.02f;
+    static glm::vec3 prevdir, tdir, dir;
+    static glm::vec3 target;
+
+    static bool state = false;
+    static int side = 0;
+    static uint cnt = 0;
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space) != state) {
+        state = !state;
+        if (state) { side++;
+            if (side == 4) side = 0;
+            if (side == 0) target = {0.f, 1.f, -4.f};
+            if (side == 1) target = {1.f, 0.f, -4.f};
+            if (side == 2) target = {0.f, -1.f, -4.f};
+            if (side == 3) target = {-1.f, 0.f, -4.f};
+
+            prevdir = dir;
+            cnt = 0;
+        }
     }
 
-    translation.z = -2.f;
+    if (glm::distance(target, translation) > 0.025f) {
+        tdir = glm::normalize(target - translation);
+        dir = cnt < 30 ? glm::mix(prevdir, tdir, float(cnt++) / 30.f) : tdir;
+        translation += dir * 0.05f;
+    } else {
+        translation = target;
+        dir = {0, 0, 0};
+    }
 }
 
 void SceneGame::render(float) {
-    static bool first = true;
-
     static sq::Mesh mesh;
 
-    static sq::Shader vs1, fs1, fs2;
-    static sq::Pipeline pl1;
-    static sq::Texture texDiff;
-    static sq::Texture texNorm;
+    static sq::Shader vert, frag;
+    static sq::Pipeline pipe;
 
-
-
-    if (first) {
+    static bool first = true;
+    if (first) { first = false;
         gl::Enable(gl::DEPTH_TEST);
         gl::ClearColor(0.3f, 0.3f, 0.5f, 1.f);
 
-        vs1.load("vert1_vs", gl::VERTEX_SHADER);
-        fs1.load("frag1_fs", gl::FRAGMENT_SHADER);
-        fs2.load("frag2_fs", gl::FRAGMENT_SHADER);
+        vert.load("vert1_vs", gl::VERTEX_SHADER);
+        frag.load("frag1_fs", gl::FRAGMENT_SHADER);
 
-        vs1.add_uniform("viewMat"); // mat4
-        vs1.add_uniform("projMat"); // mat4
-        vs1.add_uniform("normMat"); // mat3
-        vs1.add_uniform("translation"); // vec3
+        vert.add_uniform("viewMat"); // mat4
+        vert.add_uniform("projMat"); // mat4
+        vert.add_uniform("translation"); // vec3
 
-        fs1.add_uniform("viewMat"); // mat4
-        fs1.add_uniform("lightDir"); // vec3
-        fs1.add_uniform("lightColour"); // vec3
+        pipe.use_shader(vert);
+        pipe.use_shader(frag);
 
-        fs2.add_uniform("viewMat"); // mat4
-        fs2.add_uniform("lightDir"); // vec3
-        fs2.add_uniform("lightColour"); // vec3
-
-        pl1.use_shader(vs1);
-        pl1.use_shader(fs1);
-
-        vs1.set_glmmat("viewMat", camera.viewMat);
-        vs1.set_glmmat("projMat", camera.projMat);
-        fs1.set_glmmat("viewMat", camera.viewMat);
-        fs1.set_glmvec("lightDir", glm::vec3(1.f, 0.f, 0.f));
-        fs1.set_glmvec("lightColour", glm::vec3(1.f, 1.f, 1.f));
-        fs2.set_glmvec("lightDir", glm::vec3(1.f, 0.f, 0.f));
-        fs2.set_glmvec("lightColour", glm::vec3(1.f, 1.f, 1.f));
+        vert.set_glmmat("viewMat", camera.viewMat);
+        vert.set_glmmat("projMat", camera.projMat);
 
         mesh.load("Dice");
-        texDiff.create(gl::TEXTURE_2D, gl::RGB, gl::RGB8, "diff", sq::Texture::Preset::L_C);
-        texNorm.create(gl::TEXTURE_2D, gl::RGB, gl::RGB8, "norm", sq::Texture::Preset::L_C);
-        first = false;
     }
 
     gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 
-    pl1.bind();
-    vs1.set_glmvec("translation", translation);
+    pipe.bind();
+    vert.set_glmvec("translation", translation);
 
-    texDiff.bind(gl::TEXTURE0);
-    texNorm.bind(gl::TEXTURE1);
     mesh.bind_vao();
     mesh.draw_ibo();
 }

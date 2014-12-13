@@ -1,6 +1,3 @@
-#include <fstream>
-#include <sstream>
-
 #include <sqee/misc/files.hpp>
 
 #include "../resbank.hpp"
@@ -19,22 +16,14 @@ World::World() {
     ubo.reserve("spots", 12*8);
     ubo.reserve("spotMats", 16*8);
     ubo.create();
-
-    slFb.create(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT32);
-    for (sq::Framebuffer& fb : spFbArr)
-        fb.create(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT32);
 }
 
 void World::load_base(const string& _filePath) {
     string filePath = "res/game/worlds/" + _filePath + ".sq_world";
-    std::ifstream src(filePath);
-
-    #ifdef SQEE_DEBUG
-    if (!src.is_open())
-        cout << "ERROR: Couldn't open file \"" << filePath << "\"" << endl;
-    #endif
+    vector<vector<string>> fileVec(sq::get_words_from_file(filePath));
 
     struct Spec {
+        Spec(const string& _name) : name(_name) {}
         string name, path;
         glm::ivec2 xyPos;
         float zPos;
@@ -44,23 +33,17 @@ void World::load_base(const string& _filePath) {
 
     vector<pair<string, vector<pair<string, string>>>> hlVec;
 
-    string line;
     string section = "";
-    while (std::getline(src, line)) {
-        vector<string> vec;
-        {   std::stringstream stream(line); string val;
-            while (stream >> val) vec.emplace_back(val);
+    for (const vector<string>& line : fileVec) {
+        const string& key = line[0];
+        if (key[0] == '#') continue;
+        if (key == "{") {
+            if (!section.empty()) throw;
+            section = line[1]; continue;
         }
-
-        if (vec.empty() || vec[0] == "#") continue;
-
-        if (vec[0] == "{") {
-            if (!section.empty()) throw; // already in a section
-            section = vec[1]; continue;
-        }
-        if (vec[0] == "}") {
-            if (section.empty()) throw; // not in a section
-            section = ""; continue;
+        if (key == "}") {
+            if (section.empty()) throw;
+            section.clear(); continue;
         }
 
         if (section == "header") {
@@ -69,50 +52,39 @@ void World::load_base(const string& _filePath) {
         }
 
         if (section == "defaults") {
-            const string& key = vec[0];
-            if (key == "ambiColour") {
-                ambiColour.r = std::stoi(vec[1]);
-                ambiColour.g = std::stof(vec[2]);
-                ambiColour.b = std::stof(vec[3]);
-            } else if (key == "skylEnable") {
-                skylEnable = vec[1] == "true";
-            } else if (key == "skylTexSize") {
-                skylTexSize = std::stoi(vec[1]);
-            } else if (key == "skylDir") {
-                skylDir.x = std::stof(vec[1]);
-                skylDir.y = std::stof(vec[2]);
-                skylDir.z = std::stof(vec[3]);
-            } else if (key == "skylColour") {
-                skylColour.r = std::stof(vec[1]);
-                skylColour.g = std::stof(vec[2]);
-                skylColour.b = std::stof(vec[3]);
-            } else throw;
+            if (key == "ambiColour")
+                ambiColour = {stof(line[1]), stof(line[2]), stof(line[3])};
+            else if (key == "skylEnable")
+                skylEnable = line[1] == "true";
+            else if (key == "skylTexSize")
+                skylTexSize = stoi(line[1]);
+            else if (key == "skylDir")
+                skylDir = {stof(line[1]), stof(line[2]), stof(line[3])};
+            else if (key == "skylColour")
+                skylColour = {stof(line[1]), stof(line[2]), stof(line[3])};
+            else throw;
             continue;
         }
 
         if (section == "cells") {
-            const string& key = vec[0];
-            if (key == "cell") {
-                specVec.emplace_back();
-                specVec.back().name = vec[1];
-            } else if (key == "path") {
-                specVec.back().path = vec[1];
-            } else if (key == "xyPos") {
-                specVec.back().xyPos.x = std::stoi(vec[1]);
-                specVec.back().xyPos.y = std::stoi(vec[2]);
-            } else if (key == "zPos") {
-                specVec.back().zPos = std::stof(vec[1]);
-            } else if (key == "loads") {
-                for (uint i = 1; i < vec.size(); i++)
-                    specVec.back().loads.emplace_back(vec[i]);
-            } else throw;
+            if (key == "cell")
+                specVec.emplace_back(line[1]);
+            else if (key == "path")
+                specVec.back().path = line[1];
+            else if (key == "xyPos")
+                specVec.back().xyPos = {stou(line[1]), stou(line[2])};
+            else if (key == "zPos")
+                specVec.back().zPos = std::stof(line[1]);
+            else if (key == "loads")
+                for (uint i = 1; i < line.size(); i++)
+                    specVec.back().loads.emplace_back(line[i]);
+            else throw;
             continue;
         }
 
         if (section == "heightlayers") {
-            if (vec[0] == "layer") {
-                hlVec.push_back({vec[1], {}});
-            } else hlVec.back().second.emplace_back(vec[0], vec[1]);
+            if (key == "layer") hlVec.push_back({line[1], {}});
+            else hlVec.back().second.emplace_back(line[0], line[1]);
             continue;
         }
     }
@@ -219,9 +191,6 @@ void World::activate_cell(const string& _cell) {
     glm::mat4 projMat = glm::ortho(minO.x, maxO.x, minO.y, maxO.y, minO.z, maxO.z);
     skylMat = projMat * viewMat;
 
-    uint shadowMult = std::pow(2, vidSet().smInt.crnt("shadQuality"));
-    slFb.resize(skylTexSize * shadowMult);
-    slFb.dsTex.set_preset(sq::Texture::Preset::SHAD);
     spotCount = lightVec.size();
 
     ubo.bind(1);
@@ -241,9 +210,9 @@ void World::activate_cell(const string& _cell) {
         ubo.update("spots", &light->colour,    i*12+8, 3);
         ubo.update("spots", &light->softness,  i*12+11, 1);
         ubo.update("spotMats", &light->shadMat, i*16, 16);
-        spFbArr[i].resize(light->texSize * shadowMult);
-        spFbArr[i].dsTex.set_preset(sq::Texture::Preset::SHAD);
     }
+
+    updateScene = true;
 }
 
 void World::set_player_pos(glm::uvec2 _pos) {
@@ -258,4 +227,6 @@ void World::tick() {
 void World::calc(double _accum) {
     for (pair<const string, Cell>& scPair : cellMap)
         scPair.second.calc(_accum);
+
+    if (vidSet().check_update("World")) updateScene = true;
 }

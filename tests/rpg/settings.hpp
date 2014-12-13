@@ -13,6 +13,11 @@ public:
 
     void apply();
     void revert();
+
+    bool check_update(const string& _object);
+
+private:
+    set<string> updatedSet;
 };
 
 struct VideoSettings : public Settings {
