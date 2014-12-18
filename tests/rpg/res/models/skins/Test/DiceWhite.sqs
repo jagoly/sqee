@@ -1,0 +1,9 @@
+# SQEE Skin Format
+
+{ materials
+material
+filter_wrap linear clamp
+norm Test/Dice
+diff Test/DiceWhite
+spec FFFFFF
+}

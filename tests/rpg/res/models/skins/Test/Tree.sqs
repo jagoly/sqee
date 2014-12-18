@@ -1,0 +1,15 @@
+# SQEE Skin Format
+
+{ header
+mCount 2
+}
+
+{ materials
+material
+filter_wrap linear clamp
+diff Test/TreeBark
+
+material
+filter_wrap linear clamp
+diff Test/TreeBranch
+}

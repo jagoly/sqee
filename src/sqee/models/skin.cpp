@@ -4,11 +4,13 @@
 using namespace sq;
 
 void Skin::load(const string& _filePath, TexHolder& _texH) {
-    string filePath = SQ_MODELS "skins/" + _filePath + ".sq_skin";
+    string filePath = SQ_MODELS "skins/" + _filePath + ".sqs";
     vector<vector<string>> fileVec(sq::get_words_from_file(filePath));
 
-    struct TexPaths { string norm, diff, spec, ambi; };
+    struct TexPaths { string norm, diff, spec, ambi; bool linearNearest, clampRepeat;};
     vector<TexPaths> TexPathsVec;
+
+    mtrlVec.resize(1);
 
     string section = "";
     for (const vector<string>& line : fileVec) {
@@ -32,6 +34,14 @@ void Skin::load(const string& _filePath, TexHolder& _texH) {
         if (section == "materials") {
             if (key == "material")
                 TexPathsVec.emplace_back();
+            else if (key == "filter_wrap") {
+                if      (line[1] == "linear") TexPathsVec.back().linearNearest = false;
+                else if (line[1] == "nearest") TexPathsVec.back().linearNearest = true;
+                else throw;
+                if      (line[2] == "clamp") TexPathsVec.back().clampRepeat = false;
+                else if (line[2] == "repeat") TexPathsVec.back().clampRepeat = true;
+                else throw;
+            }
             else if (key == "norm")
                 TexPathsVec.back().norm = line[1];
             else if (key == "diff")
@@ -53,13 +63,20 @@ void Skin::load(const string& _filePath, TexHolder& _texH) {
 
     for (uint i = 0; i < TexPathsVec.size(); i++) {
         const TexPaths& paths = TexPathsVec[i];
+
+        Texture::Preset preset;
+        if      (!paths.linearNearest && !paths.clampRepeat) preset = Texture::Preset::L_C;
+        else if (!paths.linearNearest &&  paths.clampRepeat) preset = Texture::Preset::L_R;
+        else if ( paths.linearNearest && !paths.clampRepeat) preset = Texture::Preset::N_C;
+        else if ( paths.linearNearest &&  paths.clampRepeat) preset = Texture::Preset::N_R;
+
         Material& mtrl = mtrlVec[i];
         if (!paths.norm.empty()) {
             mtrl.mode = mtrl.mode | Mode::norm;
             const string name = "models/norm/" + paths.norm;
             if (!(mtrl.norm = _texH.get(name))) {
                 mtrl.norm = _texH.add(name);
-                mtrl.norm->create(gl::TEXTURE_2D, gl::RGB, gl::RGB8, name, Texture::Preset::L_C);
+                mtrl.norm->create(gl::TEXTURE_2D, gl::RGB, gl::RGB8, name, preset);
             }
         }
         if (!paths.diff.empty()) {
@@ -67,7 +84,7 @@ void Skin::load(const string& _filePath, TexHolder& _texH) {
             const string name = "models/diff/" + paths.diff;
             if (!(mtrl.diff = _texH.get(name))) {
                 mtrl.diff = _texH.add(name);
-                mtrl.diff->create(gl::TEXTURE_2D, gl::RGBA, gl::RGBA8, name, Texture::Preset::L_C);
+                mtrl.diff->create(gl::TEXTURE_2D, gl::RGBA, gl::RGBA8, name, preset);
             }
         }
         if (!paths.spec.empty()) {
@@ -75,7 +92,7 @@ void Skin::load(const string& _filePath, TexHolder& _texH) {
             const string name = "models/spec/" + paths.spec;
             if (!(mtrl.spec = _texH.get(name))) {
                 mtrl.spec = _texH.add(name);
-                mtrl.spec->create(gl::TEXTURE_2D, gl::RGB, gl::RGB8, name, Texture::Preset::L_C);
+                mtrl.spec->create(gl::TEXTURE_2D, gl::RGB, gl::RGB8, name, preset);
             }
         }
         if (!paths.ambi.empty()) {
@@ -83,14 +100,14 @@ void Skin::load(const string& _filePath, TexHolder& _texH) {
             const string name = "models/ambi/" + paths.ambi;
             if (!(mtrl.ambi = _texH.get(name))) {
                 mtrl.ambi = _texH.add(name);
-                mtrl.ambi->create(gl::TEXTURE_2D, gl::RED, gl::R8, name, Texture::Preset::L_C);
+                mtrl.ambi->create(gl::TEXTURE_2D, gl::RED, gl::R8, name, preset);
             }
         }
     }
 }
 
 void Skin::load_simple(const string& _norm, const string& _diff, const string& _spec,
-                       const string& _ambi, TexHolder& _texH) {
+                       const string& _ambi, Texture::Preset _preset, TexHolder& _texH) {
     mtrlVec.resize(1);
     Material& mtrl = mtrlVec.front();
     if (!_norm.empty()) {
@@ -98,7 +115,7 @@ void Skin::load_simple(const string& _norm, const string& _diff, const string& _
         const string name = "models/norm/" + _norm;
         if (!(mtrl.norm = _texH.get(name))) {
             mtrl.norm = _texH.add(name);
-            mtrl.norm->create(gl::TEXTURE_2D, gl::RGB, gl::RGB8, name, Texture::Preset::L_C);
+            mtrl.norm->create(gl::TEXTURE_2D, gl::RGB, gl::RGB8, name, _preset);
         }
     }
     if (!_diff.empty()) {
@@ -106,7 +123,7 @@ void Skin::load_simple(const string& _norm, const string& _diff, const string& _
         const string name = "models/diff/" + _diff;
         if (!(mtrl.diff = _texH.get(name))) {
             mtrl.diff = _texH.add(name);
-            mtrl.diff->create(gl::TEXTURE_2D, gl::RGBA, gl::RGBA8, name, Texture::Preset::L_C);
+            mtrl.diff->create(gl::TEXTURE_2D, gl::RGBA, gl::RGBA8, name, _preset);
         }
     }
     if (!_spec.empty()) {
@@ -114,7 +131,7 @@ void Skin::load_simple(const string& _norm, const string& _diff, const string& _
         const string name = "models/spec/" + _spec;
         if (!(mtrl.spec = _texH.get(name))) {
             mtrl.spec = _texH.add(name);
-            mtrl.spec->create(gl::TEXTURE_2D, gl::RGB, gl::RGB8, name, Texture::Preset::L_C);
+            mtrl.spec->create(gl::TEXTURE_2D, gl::RGB, gl::RGB8, name, _preset);
         }
     }
     if (!_ambi.empty()) {
@@ -122,7 +139,7 @@ void Skin::load_simple(const string& _norm, const string& _diff, const string& _
         const string name = "models/ambi/" + _ambi;
         if (!(mtrl.ambi = _texH.get(name))) {
             mtrl.ambi = _texH.add(name);
-            mtrl.ambi->create(gl::TEXTURE_2D, gl::RED, gl::R8, name, Texture::Preset::L_C);
+            mtrl.ambi->create(gl::TEXTURE_2D, gl::RED, gl::R8, name, _preset);
         }
     }
 }

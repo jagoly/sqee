@@ -54,8 +54,9 @@ out vec4 fragColour;
 
 
 float sample_shadow(vec3 _dirToLight, vec3 _shadCoord, sampler2DShadow _tex) {
-    float magicTan = tan(acos(dot(N, _dirToLight)));
-    float bias = clamp(0.00025f * shadBiasMod * magicTan, 0.f, 0.0025f);
+    float lightDot = dot(N, _dirToLight);
+    float magicTan = sqrt(1.f - lightDot * lightDot) / lightDot;
+    float bias = clamp(0.00025f * shadBiasMod * magicTan, 0.f, 0.01f);
     return texture(_tex, vec3(_shadCoord.xy, _shadCoord.z - bias));
 }
 

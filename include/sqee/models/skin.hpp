@@ -11,7 +11,7 @@ public:
 
     void load(const string& _filePath, TexHolder& _texH);
     void load_simple(const string& _norm, const string& _diff, const string& _spec,
-                     const string& _ambi, TexHolder& _texH);
+                     const string& _ambi, Texture::Preset _preset, TexHolder& _texH);
     void bind_textures(uint _mtrl = 0, int _override = Mode::all);
     int get_mode(uint _mtrl = 0);
     uint mtrl_num();

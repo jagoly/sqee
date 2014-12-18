@@ -26,6 +26,8 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <algorithm>
+#include <initializer_list>
 
 using std::cout;
 using std::endl;
@@ -73,6 +75,11 @@ struct NonCopyable {
     NonCopyable(const NonCopyable&) = delete;
     NonCopyable& operator=(const NonCopyable&) = delete;
 };
+
+template <typename T>
+bool val_in(const T& _val, const std::initializer_list<T>& _in) {
+    return std::find(_in.begin(), _in.end(), _val) != _in.end();
+}
 
 namespace sq {
     enum class Direction { Zero, North, East, South, West };

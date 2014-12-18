@@ -63,6 +63,7 @@ void Texture::buffer_memory(const void* _data, uint _z) {
 
 void Texture::buffer_file(const string& _filePath, uint _z) {
     string fPath = SQ_TEXTURES + _filePath + ".png";
+    // ADD FILE FOUND CHECK!!!
 
     int w, h;
     uchar* data = stbi_load(fPath.c_str(), &w, &h, nullptr, channels);
@@ -97,25 +98,26 @@ void Texture::buffer_file(const string& _filePath, uint _z) {
 
 void Texture::set_preset(Preset _preset) {
     bind();
-    if (_preset == Preset::L_C || _preset == Preset::L_R || _preset == Preset::SHAD) {
+
+    if (val_in(_preset, {Preset::L_C, Preset::L_R, Preset::SHAD})) {
         gl::TexParameteri(target, gl::TEXTURE_MIN_FILTER, gl::LINEAR);
         gl::TexParameteri(target, gl::TEXTURE_MAG_FILTER, gl::LINEAR);
-    } else
-    if (_preset == Preset::N_C || _preset == Preset::N_R) {
+    }
+    if (val_in(_preset, {Preset::N_C, Preset::N_R})) {
         gl::TexParameteri(target, gl::TEXTURE_MIN_FILTER, gl::NEAREST);
         gl::TexParameteri(target, gl::TEXTURE_MAG_FILTER, gl::NEAREST);
     }
-    if (_preset == Preset::L_C || _preset == Preset::N_C || _preset == Preset::SHAD) {
+    if (val_in(_preset, {Preset::L_C, Preset::N_C, Preset::SHAD})) {
         gl::TexParameteri(target, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE);
         gl::TexParameteri(target, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE);
-    } else
-    if (_preset == Preset::L_R || _preset == Preset::N_R) {
+    }
+    if (val_in(_preset, {Preset::L_R, Preset::N_R})) {
         gl::TexParameteri(target, gl::TEXTURE_WRAP_S, gl::REPEAT);
         gl::TexParameteri(target, gl::TEXTURE_WRAP_T, gl::REPEAT);
     }
-    if (_preset == Preset::SHAD) {
+
+    if (val_in(_preset, {Preset::SHAD}))
         gl::TexParameteri(target, gl::TEXTURE_COMPARE_MODE, gl::COMPARE_REF_TO_TEXTURE);
-    }
 }
 
 void Texture::bind(GLenum _slot) {
@@ -124,6 +126,5 @@ void Texture::bind(GLenum _slot) {
 }
 
 void Texture::set_param(GLenum _name, GLenum _value) {
-    bind();
-    gl::TexParameteri(target, _name, _value);
+    bind(); gl::TexParameteri(target, _name, _value);
 }

@@ -3,9 +3,9 @@
 { defaults
 ambiColour 0.4 0.4 0.4
 skylEnable true
-skylTexSize 1024
+skylTexSize 2048
 skylDir -0.1 -0.25 -0.65
-skylColour 0.3 0.3 0.3
+skylColour 0.45 0.45 0.45
 }
 
 { cells

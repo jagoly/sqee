@@ -151,7 +151,7 @@ void SceneGame::render(float _ft) {
     if (vidSet().check_update("SceneGame")) {
         int shadQuality = vidSet().smInt.crnt("shadQuality");
 
-        float shadBiasMod = std::pow(2.f, 3.f-shadQuality);
+        float shadBiasMod = std::pow(2.f, 2.f-shadQuality);
         modelsFS.set_sca("shadBiasMod", shadBiasMod);
         liquidFS.set_sca("shadBiasMod", shadBiasMod);
     }
@@ -450,7 +450,7 @@ bool HandlerGame::handle(const sf::Event& _event) {
     if (_event.type == sf::Event::KeyPressed) {
         if (_event.key.code == sf::Keyboard::S) {
             int crnt = vidSet().smInt.crnt("shadQuality");
-            if (crnt == 3) vidSet().smInt.modify("shadQuality", 0);
+            if (crnt == 2) vidSet().smInt.modify("shadQuality", 0);
             else vidSet().smInt.modify("shadQuality", crnt+1);
             vidSet().apply();
             return true;

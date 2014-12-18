@@ -17,20 +17,7 @@ Model::Model(const ObjectSpec& _spec) : Object(_spec) {
         mesh->load(mName);
     }
 
-    string normPath, diffPath, specPath, ambiPath;
-    if (_spec.sMap.count("skin"))
-        skin.load(_spec.sMap.at("skin")[0], resBank().texH);
-    else {
-        if (_spec.sMap.count("norm"))
-            normPath = _spec.sMap.at("norm")[0];
-        if (_spec.sMap.count("diff"))
-            diffPath = _spec.sMap.at("diff")[0];
-        if (_spec.sMap.count("spec"))
-            specPath = _spec.sMap.at("spec")[0];
-        if (_spec.sMap.count("ambi"))
-            ambiPath = _spec.sMap.at("ambi")[0];
-        skin.load_simple(normPath, diffPath, specPath, ambiPath, resBank().texH);
-    }
+    skin.load(_spec.sMap.at("skin")[0], resBank().texH);
 
     glm::vec3 pos = {0, 0, 0};
     glm::vec3 rot = {0, 0, 0};

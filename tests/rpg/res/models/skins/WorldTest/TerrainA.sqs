@@ -1,0 +1,32 @@
+# SQEE Skin Format
+
+{ header
+mCount 6
+}
+
+{ materials
+material
+filter_wrap linear repeat
+diff WorldTest/DarkGrass
+
+material
+filter_wrap linear clamp
+diff WorldTest/EdgeSide
+
+material
+filter_wrap linear clamp
+diff WorldTest/EdgeCorner
+
+material
+filter_wrap linear clamp
+diff WorldTest/GrassDirt
+
+material
+filter_wrap linear clamp
+diff WorldTest/GrassPath
+norm WorldTest/GrassPath
+
+material
+filter_wrap linear clamp
+diff WorldTest/GrassSand
+}

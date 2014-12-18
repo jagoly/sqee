@@ -1,0 +1,10 @@
+# SQEE Skin Format
+
+{ materials
+material
+filter_wrap linear clamp
+norm Test/Stairs
+diff Test/Stairs
+spec Test/Stairs
+ambi Test/Stairs
+}
