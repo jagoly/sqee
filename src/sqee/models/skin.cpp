@@ -92,7 +92,7 @@ void Skin::load(const string& _filePath, TexHolder& _texH) {
             const string name = "models/spec/" + paths.spec;
             if (!(mtrl.spec = _texH.get(name))) {
                 mtrl.spec = _texH.add(name);
-                mtrl.spec->create(gl::TEXTURE_2D, gl::RGB, gl::RGB8, name, preset);
+                mtrl.spec->create(gl::TEXTURE_2D, gl::RGBA, gl::RGBA8, name, preset);
             }
         }
         if (!paths.ambi.empty()) {
@@ -102,44 +102,6 @@ void Skin::load(const string& _filePath, TexHolder& _texH) {
                 mtrl.ambi = _texH.add(name);
                 mtrl.ambi->create(gl::TEXTURE_2D, gl::RED, gl::R8, name, preset);
             }
-        }
-    }
-}
-
-void Skin::load_simple(const string& _norm, const string& _diff, const string& _spec,
-                       const string& _ambi, Texture::Preset _preset, TexHolder& _texH) {
-    mtrlVec.resize(1);
-    Material& mtrl = mtrlVec.front();
-    if (!_norm.empty()) {
-        mtrl.mode = mtrl.mode | Mode::norm;
-        const string name = "models/norm/" + _norm;
-        if (!(mtrl.norm = _texH.get(name))) {
-            mtrl.norm = _texH.add(name);
-            mtrl.norm->create(gl::TEXTURE_2D, gl::RGB, gl::RGB8, name, _preset);
-        }
-    }
-    if (!_diff.empty()) {
-        mtrl.mode = mtrl.mode | Mode::diff;
-        const string name = "models/diff/" + _diff;
-        if (!(mtrl.diff = _texH.get(name))) {
-            mtrl.diff = _texH.add(name);
-            mtrl.diff->create(gl::TEXTURE_2D, gl::RGBA, gl::RGBA8, name, _preset);
-        }
-    }
-    if (!_spec.empty()) {
-        mtrl.mode = mtrl.mode | Mode::spec;
-        const string name = "models/spec/" + _spec;
-        if (!(mtrl.spec = _texH.get(name))) {
-            mtrl.spec = _texH.add(name);
-            mtrl.spec->create(gl::TEXTURE_2D, gl::RGB, gl::RGB8, name, _preset);
-        }
-    }
-    if (!_ambi.empty()) {
-        mtrl.mode = mtrl.mode | Mode::ambi;
-        const string name = "models/ambi/" + _ambi;
-        if (!(mtrl.ambi = _texH.get(name))) {
-            mtrl.ambi = _texH.add(name);
-            mtrl.ambi->create(gl::TEXTURE_2D, gl::RED, gl::R8, name, _preset);
         }
     }
 }

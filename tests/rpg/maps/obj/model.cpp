@@ -3,7 +3,7 @@
 #include "../../resbank.hpp"
 #include "model.hpp"
 
-using namespace sqt::wld;
+using namespace sqt;
 
 Model::Model(const ObjectSpec& _spec) : Object(_spec) {
     shad  = _spec.flagSet.count("shad");
@@ -31,6 +31,7 @@ Model::Model(const ObjectSpec& _spec) : Object(_spec) {
 
     modelMat = sq::iMat4;
     modelMat = glm::translate(sq::iMat4, pos);
+    modelMat = glm::translate(modelMat, cellPos);
     modelMat = glm::rotate(modelMat, rot.x, {1, 0, 0});
     modelMat = glm::rotate(modelMat, rot.y, {0, 1, 0});
     modelMat = glm::rotate(modelMat, rot.z, {0, 0, 1});

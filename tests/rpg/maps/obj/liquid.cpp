@@ -1,16 +1,17 @@
 #include "../../resbank.hpp"
 #include "liquid.hpp"
 
-using namespace sqt::wld;
+using namespace sqt;
 
 Liquid::Liquid(const ObjectSpec& _spec) : Object(_spec) {
     ubo.reserve("reflMat", 16);
     ubo.reserve("wSmooth", 1);
-    ubo.reserve("thickness", 1);
+    ubo.reserve("wScale", 1);
     ubo.reserve("flowOffset", 2);
-    ubo.reserve("translation", 3);
+    ubo.reserve("translation", 3); // needs to go
     ubo.reserve("normProg", 1);
     ubo.reserve("colour", 3);
+    ubo.reserve("thickness", 1);
     ubo.reserve("normA", 1);
     ubo.reserve("normB", 1);
 
@@ -19,71 +20,16 @@ Liquid::Liquid(const ObjectSpec& _spec) : Object(_spec) {
     gl::GenVertexArrays(1, &vao);
     gl::BindVertexArray(vao);
     gl::EnableVertexAttribArray(0);
-    gl::EnableVertexAttribArray(1);
 
-    float points[18];
-    float txcrds[12];
-
-    glm::vec3 pos = {0.f, 0.f, 0.f};
-    if (_spec.fMap.count("pos"))
-        pos = glm::make_vec3(_spec.fMap.at("pos").data());
-
-    glm::vec2 size = {0.f, 0.f};
-    if (_spec.fMap.count("size"))
-        size = glm::make_vec2(_spec.fMap.at("size").data());
-
-    if (_spec.fMap.count("smooth"))
-        smooth = _spec.fMap.at("smooth")[0];
-
-    if (_spec.fMap.count("scale"))
-        scale = _spec.fMap.at("scale")[0];
-
-    if (_spec.fMap.count("flow"))
-        flow = glm::make_vec2(_spec.fMap.at("flow").data());
-
-    if (_spec.fMap.count("colour"))
-        colour = glm::make_vec3(_spec.fMap.at("colour").data());
-
-    if (_spec.fMap.count("thickness"))
-        thickness = _spec.fMap.at("thickness")[0];
-
+    glm::vec3 pos = glm::make_vec3(_spec.fMap.at("pos").data());
     string texDir = _spec.sMap.at("texDir")[0];
+    mesh.load(_spec.sMap.at("mesh")[0]);
 
-
-    float tX = size.x / scale;
-    float tY = size.y / scale;
-
-    points[5*3+0] = points[1*3+0] = size.x;
-    txcrds[5*2+0] = txcrds[1*2+0] = tX;
-    points[5*3+1] = points[1*3+1] = size.y;
-    txcrds[5*2+1] = txcrds[1*2+1] = tY;
-
-    points[4*3+0] = points[2*3+0] = 0.f;
-    txcrds[4*2+0] = txcrds[2*2+0] = 0.f;
-    points[4*3+1] = points[2*3+1] = 0.f;
-    txcrds[4*2+1] = txcrds[2*2+1] = 0.f;
-
-    points[3*3+0] = 0.f;
-    txcrds[3*2+0] = 0.f;
-    points[3*3+1] = size.y;
-    txcrds[3*2+1] = tY;
-
-    points[0*3+0] = size.x;
-    txcrds[0*2+0] = tX;
-    points[0*3+1] = 0.f;
-    txcrds[0*2+1] = 0.f;
-
-    points[2] = points[5] = points[8] = points[11] = points[14] = points[17] = 0.f;
-
-    gl::GenBuffers(1, &vboP);
-    gl::BindBuffer(gl::ARRAY_BUFFER, vboP);
-    gl::BufferData(gl::ARRAY_BUFFER, 18 * sizeof(float), points, gl::STATIC_DRAW);
-    gl::VertexAttribPointer(0, 3, gl::FLOAT, false, 0, nullptr);
-
-    gl::GenBuffers(1, &vboTc);
-    gl::BindBuffer(gl::ARRAY_BUFFER, vboTc);
-    gl::BufferData(gl::ARRAY_BUFFER, 12 * sizeof(float), txcrds, gl::STATIC_DRAW);
-    gl::VertexAttribPointer(1, 2, gl::FLOAT, false, 0, nullptr);
+    wScale = _spec.fMap.at("scale")[0];
+    wSmooth = _spec.fMap.at("smooth")[0];
+    flow = glm::make_vec2(_spec.fMap.at("flow").data());
+    colour = glm::make_vec3(_spec.fMap.at("colour").data());
+    thickness = _spec.fMap.at("thickness")[0];
 
     glm::mat4 reflMat = {
         1, 0, 0, 0,
@@ -109,7 +55,8 @@ Liquid::Liquid(const ObjectSpec& _spec) : Object(_spec) {
 
 void Liquid::update_ubo() {
     ubo.bind(2);
-    ubo.update("wSmooth", &smooth);
+    ubo.update("wSmooth", &wSmooth);
+    ubo.update("wScale", &wScale);
     ubo.update("thickness", &thickness);
     ubo.update("colour", &colour);
 }
@@ -124,14 +71,14 @@ void Liquid::bind_ubo() {
 
 void Liquid::draw() {
     normArray->bind(gl::TEXTURE3);
-    gl::BindVertexArray(vao);
-    gl::DrawArrays(gl::TRIANGLES, 0, 6);
+    mesh.bind_vao();
+    mesh.draw_ibo();
 }
 
 void Liquid::tick() {
     flowOffsA = flowOffsB;
-    flowOffsB.x += flow.x / scale;
-    flowOffsB.y += flow.y / scale;
+    flowOffsB.x += flow.x / wScale;
+    flowOffsB.y += flow.y / wScale;
 
     static int ticker = 191;
     if (++ticker == 192) ticker = 0;

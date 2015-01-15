@@ -1,10 +1,10 @@
 #include "../../resbank.hpp"
 #include "light.hpp"
 
-using namespace sqt::wld;
+using namespace sqt;
 
 Light::Light(const ObjectSpec& _spec) : Object(_spec) {
-    pos       = glm::make_vec3(_spec.fMap.at("pos").data());
+    pos       = glm::make_vec3(_spec.fMap.at("pos").data()) + cellPos;
     dir       = glm::make_vec3(_spec.fMap.at("dir").data());
     colour    = glm::make_vec3(_spec.fMap.at("colour").data());
     angle     = glm::radians(_spec.fMap.at("angIntSft")[0]) / 2.f;

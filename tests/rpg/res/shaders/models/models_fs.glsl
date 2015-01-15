@@ -33,11 +33,12 @@ layout(std140, binding = 1) uniform WorldBlock {
 layout(std140, binding = 2) uniform LiquidBlock {
     mat4 reflMat;
     float wSmooth;
-    float thickness;
+    float wScale;
     vec2 flowOffset;
     vec3 translation;
     float normProg;
     vec3 colour;
+    float thickness;
     float normA, normB;
 } Liq;
 
@@ -80,8 +81,8 @@ void main() {
         v_norm = T * t_norm.x + B * t_norm.y + N * t_norm.z;
     }
 
-    vec3 texelSpec = vec3(0.f);
-    if (useSpec) texelSpec = texture(texSpec, texcrd).rgb;
+    vec4 texelSpec = vec4(0.f);
+    if (useSpec) texelSpec = texture(texSpec, texcrd).rgba;
 
     // Ambient
     vec3 ambi = texelDiff.rgb * Wor.ambiColour;
@@ -104,7 +105,7 @@ void main() {
         if (useSpec) {
             vec3 reflection = reflect(skylDir, v_norm);
             float factor = pow(max(dot(reflection, dirFromCam), 0.f), 50.f);
-            slSpec = Wor.skylColour * texelSpec * factor * vis;
+            slSpec = Wor.skylColour * texelSpec.rgb * factor * vis;
         }
     }
 
@@ -138,11 +139,14 @@ void main() {
         // Specular
         if (useSpec) {
             vec3 reflection = reflect(vec4(Cam.view * vec4(spotDir, 0)).xyz, v_norm);
-            float factor = pow(max(dot(reflection, dirFromCam), 0.f), 50.f);
-            spSpec += spColour * texelSpec * factor * vis;
+            float factor = pow(max(dot(dirFromCam, reflection), 0.f), texelSpec.a * 256.f);
+            spSpec += spColour * texelSpec.rgb * factor * vis;
         }
     }
 
     fragColour = vec4(min(texelDiff, ambi + spDiff + slDiff)
-                    + min(texelSpec, spSpec + slSpec), 1);
+                    + min(texelSpec.rgb, spSpec + slSpec), 1);
+
+    //fragColour.rgb = v_norm;
+    //fragColour.rgb = texelSpec.aaa;
 }

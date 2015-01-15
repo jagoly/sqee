@@ -1,10 +1,9 @@
 #pragma once
 
 namespace sqt {
-namespace wld {
 
 enum class ObjType {
-    Model, Liquid, Data, Light
+    Model, Reflector, Liquid, Light
 };
 
 struct ObjectSpec {
@@ -26,19 +25,19 @@ struct ObjectSpec {
 class Object {
 public:
     Object(const ObjectSpec& _spec)
-        : name(_spec.name), type(_spec.type) {}
+        : name(_spec.name), type(_spec.type), cellPos(_spec.cellPos) {}
 
     const string name;
     const ObjType type;
+    const glm::vec3 cellPos;
 
     virtual void tick() {}
     virtual void calc(double _accum) {}
 };
 
 }
-}
 
 #include "model.hpp"
 #include "liquid.hpp"
-#include "data.hpp"
+#include "reflector.hpp"
 #include "light.hpp"

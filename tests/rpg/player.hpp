@@ -28,7 +28,7 @@ public:
 
 
     sq::LookatCamera* camera = nullptr;
-    wld::World* world = nullptr;
+    World* world = nullptr;
 
 private:
     string layer;
@@ -38,7 +38,7 @@ private:
     uint moveCntr = 0;
     bool stopped = true;
 
-    glm::uvec2 gridCrnt, gridPrev;
+    glm::ivec2 gridCrnt, gridPrev;
     glm::vec3 posCrnt, posNext;
     glm::vec2 camOffsCrnt, camOffsNext, camOffsTrgt;
 

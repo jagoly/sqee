@@ -5,7 +5,6 @@
 #include "object.hpp"
 
 namespace sqt {
-namespace wld {
 
 class Light : public Object {
 public:
@@ -18,5 +17,4 @@ public:
     glm::mat4 shadMat;
 };
 
-}
 }

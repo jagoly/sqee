@@ -6,5 +6,5 @@ filter_wrap linear clamp
 norm Test/BridgeStart
 diff Test/BridgeStart
 spec Test/BridgeStart
-#ambi Test/BridgeEast
+#ambi Test/BridgeWest
 }

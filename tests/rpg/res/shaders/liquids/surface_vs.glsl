@@ -2,7 +2,6 @@
 #extension GL_ARB_shading_language_420pack : enable
 
 layout(location = 0) in vec3 V_pos;
-layout(location = 1) in vec2 V_texcrd;
 
 layout(std140, binding = 0) uniform CameraBlock {
     mat4 proj, view;
@@ -30,11 +29,12 @@ layout(std140, binding = 1) uniform WorldBlock {
 layout(std140, binding = 2) uniform LiquidBlock {
     mat4 reflMat;
     float wSmooth;
-    float thickness;
+    float wScale;
     vec2 flowOffset;
     vec3 translation;
     float normProg;
     vec3 colour;
+    float thickness;
     float normA, normB;
 } Liq;
 
@@ -58,7 +58,7 @@ void main() {
     vec4 reflPc = Liq.reflMat * Cam.proj * vec4(v_pos, 1);
     reflTc = reflPc.xy / reflPc.w * 0.5f + 0.5f;
 
-    texcrd = V_texcrd - Liq.flowOffset;
+    texcrd = V_pos.xy / Liq.wScale - Liq.flowOffset;
     slShadcrd = vec4(Wor.skylMat * vec4(w_pos, 1)).xyz * 0.5f + 0.5f;
 
     mat3 normMat = mat3(transpose(inverse(Cam.view)));

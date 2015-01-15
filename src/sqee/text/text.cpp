@@ -4,18 +4,8 @@
 
 using namespace sq;
 
-extern const uchar  ttTexture[16*1024] asm("_binary_tinytext_texture_bin_start");
+extern const uchar  ttTexture[256*16*16] asm("_binary_tinytext_texture_bin_start");
 extern const ushort ttIndices[2048*6]  asm("_binary_tinytext_indices_bin_start");
-const std::unordered_map<char, uchar> charMap = {
-    {'0',  0}, {'1',  1}, {'2',  2}, {'3',  3}, {'4',  4}, {'5',  5}, {'6',  6}, {'7',  7},
-    {'8',  8}, {'9',  9}, {'a', 10}, {'b', 11}, {'c', 12}, {'d', 13}, {'e', 14}, {'f', 15},
-    {'g', 16}, {'h', 17}, {'i', 18}, {'j', 19}, {'k', 20}, {'l', 21}, {'m', 22}, {'n', 23},
-    {'o', 24}, {'p', 25}, {'q', 26}, {'r', 27}, {'s', 28}, {'t', 29}, {'u', 30}, {'v', 31},
-    {'w', 32}, {'x', 33}, {'y', 34}, {'z', 35}, {'.', 36}, {',', 37}, {'!', 38}, {'?', 39},
-    {'+', 40}, {'-', 41}, {'/', 42}, {'*', 43}, {'@', 44}, {'#', 45}, {'$', 46}, {'%', 47},
-    {'^', 48}, {'&', 49}, {'(', 50}, {')', 51}, {'[', 52}, {']', 53}, {'{', 54}, {'}', 55},
-    {'_', 56}, {'~', 57}, {'<', 58}, {'>', 59}, {':', 60}, {';', 61}, {'"', 62}, {'\"',63}
-};
 
 void sq::draw_tiny_text(const string& _text, float _scale, Alignment _align,
                         glm::vec2 _pos,  glm::uvec2 _viewport) {
@@ -31,8 +21,17 @@ void sq::draw_tiny_text(const string& _text, float _scale, Alignment _align,
         gl::GenTextures(1, &tex);
         gl::ActiveTexture(gl::TEXTURE0);
         gl::BindTexture(gl::TEXTURE_2D_ARRAY, tex);
-        gl::TexImage3D(gl::TEXTURE_2D_ARRAY, 0, gl::R8, 16, 16, 64, 0,
-                       gl::RED, gl::UNSIGNED_BYTE, ttTexture);
+
+        gl::TexStorage3D(gl::TEXTURE_2D_ARRAY, 1, gl::R8, 16, 16, 256);
+        gl::PixelStorei(gl::UNPACK_ROW_LENGTH, 256);
+
+        for (int y = 0; y < 16; y++)
+            for (int x = 0; x < 16; x++)
+                gl::TexSubImage3D(
+                    gl::TEXTURE_2D_ARRAY, 0, 0, 0, 16*y + x,
+                    16, 16, 1, gl::RED, gl::UNSIGNED_BYTE,
+                    ttTexture + y*16*256 + x*16);
+
         gl::TexParameteri(gl::TEXTURE_2D_ARRAY, gl::TEXTURE_MIN_FILTER, gl::LINEAR);
         gl::TexParameteri(gl::TEXTURE_2D_ARRAY, gl::TEXTURE_MAG_FILTER, gl::LINEAR);
         gl::TexParameteri(gl::TEXTURE_2D_ARRAY, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE);
@@ -53,7 +52,7 @@ void sq::draw_tiny_text(const string& _text, float _scale, Alignment _align,
             "uniform sampler2DArray tex;\n"
             "out vec4 fragColour;\n"
             "void main() {\n"
-            "    fragColour = vec4(1, 1, 1, 1.f-texture(tex, texcrd).r);\n"
+            "    fragColour = vec4(1, 1, 1, texture(tex, texcrd).r);\n"
             "}\n";
 
         GLuint vShad = gl::CreateShader(gl::VERTEX_SHADER);
@@ -101,7 +100,7 @@ void sq::draw_tiny_text(const string& _text, float _scale, Alignment _align,
 
     glm::vec2 crntPos(textPos);
     for (const char& c : _text) {
-        if (c == ' ') crntPos.x += charSize.x;
+        if (c == ' ') crntPos.x += charSize.x * 0.5f;
         else if (c == '\n') { crntPos.x = textPos.x; crntPos.y += charSize.y; }
         else {
             posData.emplace_back();
@@ -112,13 +111,17 @@ void sq::draw_tiny_text(const string& _text, float _scale, Alignment _align,
             pos[1] = crntPos + charSize;
             pos[2] = crntPos;
             pos[3] = {crntPos.x + charSize.x, crntPos.y};
-            const uchar id = charMap.at(c);
+            const uchar id = c;
             crd[0] = {0, 0, id};
             crd[1] = {1, 0, id};
             crd[2] = {0, 1, id};
             crd[3] = {1, 1, id};
 
-            crntPos.x += charSize.x;
+            crntPos.x += charSize.x * 0.625f;
+            if (crntPos.x > 1.f-charSize.x) {
+                crntPos.y += charSize.y * 1.25f;
+                crntPos.x = textPos.x;
+            }
         }
     }
 

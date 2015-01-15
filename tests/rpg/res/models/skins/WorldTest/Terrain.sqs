@@ -1,21 +1,17 @@
 # SQEE Skin Format
 
 { header
-mCount 6
+mCount 5
 }
 
 { materials
 material
 filter_wrap linear repeat
-diff WorldTest/DarkGrass
+diff WorldTest/Margin_DarkGrass
 
 material
-filter_wrap linear clamp
-diff WorldTest/EdgeSide
-
-material
-filter_wrap linear clamp
-diff WorldTest/EdgeCorner
+filter_wrap linear repeat
+diff WorldTest/Edge_Grass-DarkGrass
 
 material
 filter_wrap linear clamp

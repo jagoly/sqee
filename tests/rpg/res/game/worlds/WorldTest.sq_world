@@ -11,11 +11,26 @@ skylColour 0.45 0.45 0.45
 { cells
 cell CellA
 path WorldTest/CellA
+loads CellB
 xyPos 0 0
+zPos 0.0
+
+cell CellB
+path WorldTest/CellB
+loads CellA CellC
+xyPos 32 0
+zPos 0.0
+
+cell CellC
+path WorldTest/CellC
+loads CellB
+xyPos 64 0
 zPos 0.0
 }
 
 { heightlayers
 layer Terrain
 CellA Terrain
+CellB Terrain
+CellC Terrain
 }

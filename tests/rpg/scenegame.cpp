@@ -226,7 +226,7 @@ void SceneGame::render(float _ft) {
         }
 
         pipeLine.use_shader(staticshadVS);
-        for (wld::Model* model : world.modelList) {
+        for (Model* model : world.modelList) {
             if (!model->shad || model->pnch) continue;
             staticshadVS.set_glmmat("modelMat", model->modelMat);
             model->mesh->bind_vao();
@@ -236,7 +236,7 @@ void SceneGame::render(float _ft) {
         }
 
         pipeLine.use_shader(punchFS);
-        for (wld::Model* model : world.modelList) {
+        for (Model* model : world.modelList) {
             if (!model->shad || !model->pnch) continue;
             staticshadVS.set_glmmat("modelMat", model->modelMat);
             model->mesh->bind_vao();
@@ -272,7 +272,7 @@ void SceneGame::render(float _ft) {
         }
 
         pipeLine.use_shader(staticshadVS);
-        for (wld::Model* model : world.modelList) {
+        for (Model* model : world.modelList) {
             if (!model->shad || model->pnch) continue;
             staticshadVS.set_glmmat("modelMat", model->modelMat);
             model->mesh->bind_vao();
@@ -282,7 +282,7 @@ void SceneGame::render(float _ft) {
         }
 
         pipeLine.use_shader(punchFS);
-        for (wld::Model* model : world.modelList) {
+        for (Model* model : world.modelList) {
             if (!model->shad || !model->pnch) continue;
             staticshadVS.set_glmmat("modelMat", model->modelMat);
             model->mesh->bind_vao();
@@ -302,7 +302,7 @@ void SceneGame::render(float _ft) {
     priFb.useVP();
     gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 
-    for (wld::Liquid* liquid : world.liquidList) {
+    for (Liquid* liquid : world.liquidList) {
         gl::Enable(gl::CLIP_DISTANCE0);
         gl::CullFace(gl::FRONT);
         liquid->bind_ubo();
@@ -332,7 +332,7 @@ void SceneGame::render(float _ft) {
         }
 
         pipeLine.use_shader(staticVS);
-        for (wld::Model* model : world.modelList) {
+        for (Model* model : world.modelList) {
             if (!model->refl) continue;
             model->mesh->bind_vao();
             staticVS.set_glmmat("modelMat", model->modelMat);
@@ -367,7 +367,7 @@ void SceneGame::render(float _ft) {
         }
 
         pipeLine.use_shader(staticVS);
-        for (wld::Model* model : world.modelList) {
+        for (Model* model : world.modelList) {
             if (!model->refr) continue;
             model->mesh->bind_vao();
             staticVS.set_glmmat("modelMat", model->modelMat);
@@ -413,7 +413,7 @@ void SceneGame::render(float _ft) {
     }
 
     pipeLine.use_shader(staticVS);
-    for (wld::Model* model : world.modelList) {
+    for (Model* model : world.modelList) {
         model->mesh->bind_vao();
         staticVS.set_glmmat("modelMat", model->modelMat);
         staticVS.set_glmmat("normMat", to_norm_mat(camera.viewMat * model->modelMat));

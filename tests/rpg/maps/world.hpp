@@ -7,7 +7,6 @@
 #include "obj/object.hpp"
 
 namespace sqt {
-namespace wld {
 
 class World {
 public:
@@ -19,19 +18,19 @@ public:
     void tick();
     void calc(double _accum);
 
-    void activate_cell(const string& _cell);
-    string get_move(glm::uvec2 _prev, glm::uvec2 _next);
-    void set_player_pos(glm::uvec2 _pos);
+    void set_active_tile(glm::ivec2 _tile);
+    void set_active_cell(const string& _cell);
+    const glm::ivec2& get_active_tile();
+    const string& get_active_cell();
 
     float get_maxZ4(const string& _layer, int _xPos, int _yPos);
 
     glm::vec3 minPos, maxPos;
-    glm::uvec2 playerPos = {0, 0};
 
     list<Object*> objectList;
     list<Model*> modelList;
     list<Liquid*> liquidList;
-    list<Data*> dataList;
+    list<Reflector*> reflectorList;
     vector<Light*> lightVec;
 
     glm::vec3 ambiColour;
@@ -49,7 +48,8 @@ public:
 private:
     map<string, Cell> cellMap;
     map<string, vector<pair<string, string>>> hlMap;
+
+
 };
 
-}
 }

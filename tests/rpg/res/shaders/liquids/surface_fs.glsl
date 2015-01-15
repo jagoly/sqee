@@ -33,11 +33,12 @@ layout(std140, binding = 1) uniform WorldBlock {
 layout(std140, binding = 2) uniform LiquidBlock {
     mat4 reflMat;
     float wSmooth;
-    float thickness;
+    float wScale;
     vec2 flowOffset;
     vec3 translation;
     float normProg;
     vec3 colour;
+    float thickness;
     float normA, normB;
 } Liq;
 
@@ -96,11 +97,11 @@ void main() {
     float bDep = (Cam.near * Cam.far) / (Cam.far - texelDep * (Cam.far - Cam.near));
     float wDep = distance(sDep, bDep);
 
-    vec2 rOffset = (-N.xy - refract(-dirFromCam, v_norm, 0.f).xy) * wDep / 100.f;
+    vec2 rOffset = (-N.xy - refract(-dirFromCam, v_norm, 0.f).xy) * wDep * 0.01f;
     vec3 texelRefr = texture(texRefr, refrTc + rOffset).rgb;
 
     vec3 refl = texelRefl * fres;
-    vec3 refr = texelRefr * invFres * (1.f - wDep / 4.f); // 4 is liquid "thickness"
+    vec3 refr = mix(Liq.colour, texelRefr * invFres, 1.f - wDep / Liq.thickness);
 
     fragColour = vec4(refr + refl, 1);
 }

@@ -5,5 +5,5 @@ material
 filter_wrap linear clamp
 norm Test/Dice
 diff Test/DiceWhite
-spec FFFFFF
+spec FFFFFF80
 }

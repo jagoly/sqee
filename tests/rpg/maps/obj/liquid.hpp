@@ -1,21 +1,21 @@
 #pragma once
 
 #include <sqee/gl/uniformbuffers.hpp>
+#include <sqee/models/mesh.hpp>
 
 #include "object.hpp"
 
 namespace sqt {
-namespace wld {
 
 class Liquid : public Object {
 public:
     Liquid(const ObjectSpec& _spec);
 
-    float smooth = 0.f;
-    float scale = 1.f;
-    glm::vec2 flow = {0.f, 0.f};
-    glm::vec3 colour = {0.f, 0.f, 0.f};
-    float thickness = 1.f;
+    float wScale;
+    float wSmooth;
+    glm::vec2 flow;
+    glm::vec3 colour;
+    float thickness;
 
     GLuint vao;
     GLuint vboP, vboTc;
@@ -35,7 +35,8 @@ private:
     glm::vec2 flowOffs;
     double normOffsA, normOffsB;
     glm::vec2 flowOffsA, flowOffsB;
+
+    sq::Mesh mesh;
 };
 
-}
 }

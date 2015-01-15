@@ -36,11 +36,12 @@ layout(std140, binding = 1) uniform WorldBlock {
 layout(std140, binding = 2) uniform LiquidBlock {
     mat4 reflMat;
     float wSmooth;
-    float thickness;
+    float wScale;
     vec2 flowOffset;
     vec3 translation;
     float normProg;
     vec3 colour;
+    float thickness;
     float normA, normB;
 } Liq;
 

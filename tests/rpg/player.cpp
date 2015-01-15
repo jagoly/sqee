@@ -33,7 +33,7 @@ void Player::attempt_move(sq::Direction _moveDir) {
         gridCrnt += moveVal;
         camOffsTrgt = glm::vec2(moveVal) * 0.65f;
 
-        world->set_player_pos(gridCrnt);
+        world->set_active_tile(gridCrnt);
 
         if (stopped) {
             model.skeleton.transition(anWalking, 1, 4);

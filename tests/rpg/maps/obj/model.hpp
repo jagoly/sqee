@@ -6,7 +6,6 @@
 #include "object.hpp"
 
 namespace sqt {
-namespace wld {
 
 class Model : public Object {
 public:
@@ -16,8 +15,7 @@ public:
 
     sq::Mesh* mesh;
     sq::Skin skin;
-    bool shad, pnch, refl, refr;
+    bool shad, pnch, refl, refr;    
 };
 
-}
 }

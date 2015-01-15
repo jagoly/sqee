@@ -4,10 +4,10 @@
 #include "object.hpp"
 #include "model.hpp"
 #include "liquid.hpp"
-#include "data.hpp"
+#include "reflector.hpp"
 #include "light.hpp"
 
-using namespace sqt::wld;
+using namespace sqt;
 
 void ObjectSpec::parse_line(const vector<string>& _line) {
     const string& key = _line[0];

@@ -4,7 +4,7 @@
 #include "../settings.hpp"
 #include "world.hpp"
 
-using namespace sqt::wld;
+using namespace sqt;
 
 World::World() {
     ubo.reserve("ambiColour", 3);
@@ -95,19 +95,20 @@ void World::load_base(const string& _filePath) {
     for (const pair<string, vector<pair<string, string>>>& val : hlVec)
         hlMap.insert(val);
 
-    activate_cell("CellA");
+    set_active_cell("CellA");
 }
 
 float World::get_maxZ4(const string& _layer, int _x, int _y) {
+    return 0;
     float val = -INFINITY;
     bool a=false, b=false, c=false, d=false;
-    for (pair<string, string>& strPair : hlMap.at(_layer)) {
+    for (pair<string, string>& ssPair : hlMap.at(_layer)) {
         if (a && b && c && d) break;
 
-        const Cell& cell = cellMap.at(strPair.first);
-        const HeightLayer& hl = cell.hlMap.at(strPair.second);
-        glm::ivec2 xy1 = cell.xyPos * 4;
-        glm::ivec2 xy2 = xy1 + glm::ivec2(cell.xySize) * 4;
+        const Cell& cell = cellMap.at(ssPair.first);
+        const HeightLayer& hl = cell.hlMap.at(ssPair.second);
+        glm::ivec2 xy1 = cell.minXY * 4;
+        glm::ivec2 xy2 = xy1 + glm::ivec2(cell.sizeXY) * 4;
 
         if (!a && _x >= xy1.x && _y >= xy1.y && _x < xy2.x && _y < xy2.y) {
             val = std::max(val, hl.get_z(_x-xy1.x, _y-xy1.y)); a = true;
@@ -125,16 +126,16 @@ float World::get_maxZ4(const string& _layer, int _x, int _y) {
     return val;
 }
 
-void World::activate_cell(const string& _cell) {
+void World::set_active_cell(const string& _cell) {
     objectList.clear();
     modelList.clear();
     liquidList.clear();
-    dataList.clear();
+    reflectorList.clear();
     lightVec.clear();
 
     const Cell& activeCell = cellMap.at(_cell);
-    minPos = activeCell.pos;
-    maxPos = activeCell.pos + glm::vec3(activeCell.size);
+    minPos = activeCell.get_min();
+    maxPos = activeCell.get_max();
     for (const Cell::SOPair& so : activeCell.objectMap) {
         Object* ptr = so.second.get();
         objectList.push_front(ptr);
@@ -142,16 +143,16 @@ void World::activate_cell(const string& _cell) {
             modelList.push_front(static_cast<Model*>(ptr));
         else if (ptr->type == ObjType::Liquid)
             liquidList.push_front(static_cast<Liquid*>(ptr));
-        else if (ptr->type == ObjType::Data)
-            dataList.push_front(static_cast<Data*>(ptr));
+        else if (ptr->type == ObjType::Reflector)
+            reflectorList.push_front(static_cast<Reflector*>(ptr));
         else if (ptr->type == ObjType::Light && lightVec.size() < 8)
             lightVec.push_back(static_cast<Light*>(ptr));
     }
 
     for (const string& cellName : activeCell.loads) {
         const Cell& iterCell = cellMap.at(cellName);
-        minPos = glm::min(minPos, iterCell.pos);
-        maxPos = glm::max(maxPos, iterCell.pos + glm::vec3(iterCell.size));
+        minPos = glm::min(minPos, iterCell.get_min());
+        maxPos = glm::max(maxPos, iterCell.get_max());
         for (const Cell::SOPair& so : iterCell.objectMap) {
             Object* ptr = so.second.get();
             objectList.push_front(ptr);
@@ -159,8 +160,8 @@ void World::activate_cell(const string& _cell) {
                 modelList.push_front(static_cast<Model*>(ptr));
             else if (ptr->type == ObjType::Liquid)
                 liquidList.push_front(static_cast<Liquid*>(ptr));
-            else if (ptr->type == ObjType::Data)
-                dataList.push_front(static_cast<Data*>(ptr));
+            else if (ptr->type == ObjType::Reflector)
+                reflectorList.push_front(static_cast<Reflector*>(ptr));
             else if (ptr->type == ObjType::Light && lightVec.size() < 8)
                 lightVec.push_back(static_cast<Light*>(ptr));
         }
@@ -215,8 +216,14 @@ void World::activate_cell(const string& _cell) {
     updateScene = true;
 }
 
-void World::set_player_pos(glm::uvec2 _pos) {
-
+void World::set_active_tile(glm::ivec2 _tile) {
+    const Cell* cellPtr;
+    for (pair<const string, Cell>& scPair : cellMap) {
+        cellPtr = &scPair.second;
+        if (sq::within_box(_tile, cellPtr->minXY, cellPtr->maxXY))
+            break;
+    }
+    set_active_cell(cellPtr->name);
 }
 
 void World::tick() {

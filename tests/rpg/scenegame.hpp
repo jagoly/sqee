@@ -19,7 +19,7 @@ public:
 
 private:
     sq::LookatCamera camera;
-    wld::World world;
+    World world;
     Player player;
 
     bool updateFramebuffers = true;

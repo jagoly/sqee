@@ -5,9 +5,9 @@
 #include "../resbank.hpp"
 #include "cell.hpp"
 
-using namespace sqt::wld;
+using namespace sqt;
 
-HeightLayer::HeightLayer(const string& _filePath, glm::ivec2 _pos, glm::uvec2 _size, float _offs) {
+HeightLayer::HeightLayer(const string& _filePath, glm::ivec2 _min, glm::ivec2 _max, float _offs) {
     const string filePath = "res/game/heightlayers/" + _filePath + ".sq_hl";
     std::ifstream src(filePath, std::ios::binary);
 
@@ -21,10 +21,10 @@ HeightLayer::HeightLayer(const string& _filePath, glm::ivec2 _pos, glm::uvec2 _s
     src.read((char*)&ySize, 4);
 
     float fBuf;
-    for (int y = 0; y < int(_size.y); y++) {
+    for (int y = 0; y < _max.y; y++) {
         floatVV.emplace_back();
-        for (int x = 0; x < int(_size.x); x++) {
-            if (x < _pos.x || x >= _pos.x + xSize || y < _pos.y || y >= _pos.y + ySize)
+        for (int x = 0; x < _max.x; x++) {
+            if (x < _min.x || x >= _min.x + xSize || y < _min.y || y >= _min.y + ySize)
                 floatVV.back().emplace_back(5.f);
             else {
                 src.read((char*)&fBuf, 4);
@@ -39,8 +39,8 @@ float HeightLayer::get_z(uint _x, uint _y) const {
 }
 
 Cell::Cell(const string& _filePath, const string& _name,
-           const vector<string>& _loads, glm::ivec2 _xyPos, float _zPos)
-    : name(_name), loads(_loads), xyPos(_xyPos), pos(xyPos.x, xyPos.y, _zPos) {
+           const vector<string>& _loads, glm::ivec2 _posXY, float _posZ)
+    : name(_name), loads(_loads), minXY(_posXY), minZ(_posZ) {
     string filePath = "res/game/cells/" + _filePath + ".sq_cell";
     vector<vector<string>> fileVec(sq::get_words_from_file(filePath));
 
@@ -60,35 +60,37 @@ Cell::Cell(const string& _filePath, const string& _name,
         }
 
         if (section == "header") {
-            if (key == "size") {
-                ////   CHECK THIS PART ??
-                xySize = {stou(line[1]), stou(line[2])};
-                size = {stof(line[1]), stof(line[2]), stof(line[3])};
-            } else throw; // invalid key
+            if (key == "sizeXY")
+                maxXY = minXY + glm::ivec2(stoi(line[1]), stoi(line[2]));
+            else if (key == "sizeZ")
+                maxZ = minZ + stof(line[1]);
+            else throw; // invalid key
             continue;
         }
 
         if (section == "heightlayers") {
             glm::ivec2 hlPos(stoi(line[2]) * 4, stoi(line[3]) * 4);
-            hlMap.emplace(key, HeightLayer(line[1], hlPos, xySize*4u, stof(line[4])));
+            hlMap.emplace(key, HeightLayer(line[1], hlPos, sizeXY*4u, stof(line[4])));
             continue;
         }
 
         if (section == "objects") {
             if (key == "object") {
                 if (line[1] == "model")
-                    specVec.emplace_back(line[2], ObjType::Model, pos);
-                else if (line[1] == "light")
-                    specVec.emplace_back(line[2], ObjType::Light, pos);
+                    specVec.emplace_back(line[2], ObjType::Model, get_min());
                 else if (line[1] == "liquid")
-                    specVec.emplace_back(line[2], ObjType::Liquid, pos);
-                else if (line[1] == "data")
-                    specVec.emplace_back(line[2], ObjType::Data, pos);
+                    specVec.emplace_back(line[2], ObjType::Liquid, get_min());
+                else if (line[1] == "reflector")
+                    specVec.emplace_back(line[2], ObjType::Reflector, get_min());
+                else if (line[1] == "light")
+                    specVec.emplace_back(line[2], ObjType::Light, get_min());
             } else specVec.back().parse_line(line);
             continue;
         }
     }
 
+    sizeXY = maxXY - minXY;
+    sizeZ = maxZ - minZ;
 
     for (ObjectSpec& spec : specVec) {
         Object* ptr;
@@ -98,8 +100,8 @@ Cell::Cell(const string& _filePath, const string& _name,
             ptr = new Light(spec);
         else if (spec.type == ObjType::Liquid)
             ptr = new Liquid(spec);
-        else if (spec.type == ObjType::Data)
-            ptr = new Data(spec);
+        else if (spec.type == ObjType::Reflector)
+            ptr = new Reflector(spec);
         objectMap.emplace(spec.name, std::unique_ptr<Object>(ptr));
     }
 }
@@ -114,4 +116,16 @@ void Cell::calc(double _accum) {
     for (SOPair& so : objectMap) {
         so.second->calc(_accum);
     }
+}
+
+glm::vec3 Cell::get_min() const {
+    return glm::vec3(minXY.x, minXY.y, minZ);
+}
+
+glm::vec3 Cell::get_max() const {
+    return glm::vec3(maxXY.x, maxXY.y, maxZ);
+}
+
+glm::vec3 Cell::get_size() const {
+    return glm::vec3(sizeXY.x, sizeXY.y, sizeZ);
 }

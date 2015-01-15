@@ -97,12 +97,9 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     find_library(SFML_SYSTEM_LIB sfml-system "${PROJECT_SOURCE_DIR}/extlibs/lib")
     find_library(SFML_WINDOW_LIB sfml-window "${PROJECT_SOURCE_DIR}/extlibs/lib")
     find_library(SFML_AUDIO_LIB sfml-audio "${PROJECT_SOURCE_DIR}/extlibs/lib")
-    find_library(BOOST_SYSTEM_LIB boost_system "${PROJECT_SOURCE_DIR}/extlibs/lib")
-    find_library(BOOST_FILESYSTEM_LIB boost_filesystem "${PROJECT_SOURCE_DIR}/extlibs/lib")
     find_library(FREETYPE_LIB freetype "${PROJECT_SOURCE_DIR}/extlibs/lib")
     target_link_libraries(sqee
         ${SFML_SYSTEM_LIB} ${SFML_WINDOW_LIB} ${SFML_AUDIO_LIB}
-        ${BOOST_SYSTEM_LIB} ${BOOST_FILESYSTEM_LIB}
         ${FREETYPE_LIB} openGL32
         tinytext_texture tinytext_indices
     )
@@ -111,7 +108,6 @@ else ()
     include_directories(${FREETYPE_INCLUDE_DIRS})
     target_link_libraries(sqee
         sfml-window sfml-system sfml-audio
-        boost_filesystem boost_system
         freetype GL
         tinytext_texture tinytext_indices
     )

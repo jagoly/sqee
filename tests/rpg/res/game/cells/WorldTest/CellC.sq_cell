@@ -1,0 +1,25 @@
+# SQEE RPG Map Format
+
+{ header
+sizeXY 32 32
+sizeZ 8.0
+}
+
+{ heightlayers
+Terrain WorldTest/TerrainC 0 0 0.0
+}
+
+{ objects
+object light TestA
+f3 pos 10.0 17.0 10.0
+f3 dir 0.0 0.0 -1.0
+f3 colour 1.0 1.0 1.0
+f3 angIntSft 35.0 25.0 0.3
+i1 texSize 128
+
+object model Terrain
+f3 pos 0.0 0.0 0.0
+s1 mesh WorldTest/TerrainC
+s1 skin WorldTest/Terrain
+flags
+}

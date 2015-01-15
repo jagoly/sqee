@@ -3,13 +3,11 @@
 #include "object.hpp"
 
 namespace sqt {
-namespace wld {
 
-class Data : public Object {
+class Reflector : public Object {
 public:
     using Object::Object;
     void create();
 };
 
-}
 }
