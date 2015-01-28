@@ -3,7 +3,7 @@
 using namespace sq;
 
 void sq::debug_callback(GLenum _source, GLenum _type, GLuint /*_id*/, GLenum _severity,
-                       GLsizei /*_length*/, const GLchar* _message, const void* /*_param*/) {
+                        GLsizei /*_length*/, const GLchar* _message, const void* /*_param*/) {
     string source;
     if (_source == gl::DEBUG_SOURCE_API)
         source = "API";

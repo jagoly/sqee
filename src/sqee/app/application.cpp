@@ -1,6 +1,4 @@
 #include <app/application.hpp>
-#include <events/handler.hpp>
-#include <scenes/scene.hpp>
 
 using namespace sq;
 
@@ -28,7 +26,7 @@ Application::Application(glm::uvec2 _size, bool _resizable, const string& _title
     cout << "Version: " << version << endl;
     gl::Enable(gl::DEBUG_OUTPUT);
     gl::Enable(gl::DEBUG_OUTPUT_SYNCHRONOUS);
-    gl::DebugMessageCallback(debug_callback, 0);
+    gl::DebugMessageCallback(debug_callback, nullptr);
     #endif
 
     window.setVerticalSyncEnabled(true);

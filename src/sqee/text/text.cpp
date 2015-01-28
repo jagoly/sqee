@@ -1,11 +1,9 @@
-#include <unordered_map>
-
 #include <text/text.hpp>
 
 using namespace sq;
 
-extern const uchar  ttTexture[256*16*16] asm("_binary_tinytext_texture_bin_start");
-extern const ushort ttIndices[2048*6]  asm("_binary_tinytext_indices_bin_start");
+extern "C" const uchar ttTexture[256*16*16];
+extern "C" const uchar ttIndices[2048*6*2];
 
 void sq::draw_tiny_text(const string& _text, float _scale, Alignment _align,
                         glm::vec2 _pos,  glm::uvec2 _viewport) {
@@ -76,7 +74,7 @@ void sq::draw_tiny_text(const string& _text, float _scale, Alignment _align,
 
         gl::GenBuffers(1, &ibo);
         gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ibo);
-        gl::BufferData(gl::ELEMENT_ARRAY_BUFFER, sizeof(ttIndices), ttIndices, gl::STATIC_DRAW);
+        gl::BufferData(gl::ELEMENT_ARRAY_BUFFER, sizeof(ttIndices), (const ushort*)ttIndices, gl::STATIC_DRAW);
 
         gl::GenVertexArrays(1, &vao);
         gl::BindVertexArray(vao);

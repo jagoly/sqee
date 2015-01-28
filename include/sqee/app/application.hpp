@@ -1,10 +1,11 @@
 #pragma once
 
 #include <gl/gl.hpp>
+#include <maths/glm.hpp>
+#include <misc/containers.hpp>
 #include <scenes/scene.hpp>
 #include <events/handler.hpp>
 #include <sounds/soundmanager.hpp>
-#include <misc/containers.hpp>
 
 namespace sq {
 
