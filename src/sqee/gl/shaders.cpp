@@ -1,5 +1,9 @@
-#include <gl/shaders.hpp>
-#include <misc/files.hpp>
+#include "app/logging.hpp"
+#include "gl/gl_ext_3_3.hpp"
+#include "gl/maths.hpp"
+#include "misc/files.hpp"
+
+#include "gl/shaders.hpp"
 
 using namespace sq;
 
@@ -10,25 +14,22 @@ Shader::~Shader() {
 void Shader::load(const string& _fPath, GLenum _stage) {
     uniforms.clear();
 
-    string fPath = SQ_SHADERS + _fPath + ".glsl";
+    string fPath = "res/shaders/" + _fPath + ".glsl";
 
     if (_stage == gl::VERTEX_SHADER)
         stages = gl::VERTEX_SHADER_BIT;
     else if (_stage == gl::FRAGMENT_SHADER)
         stages = gl::FRAGMENT_SHADER_BIT;
-    else cout << "ERROR: Invalid shader stage when loading \"" << fPath << "\"" << endl;
+    else log_error("Invalid shader stage when loading $0", fPath);
 
     string str = sq::get_string_from_file(fPath);
-    if (str.empty()) cout << "ERROR: Shader file \"" << fPath << "\" not found" << endl;
+    if (str.empty()) log_error("Shader file $0 not found", fPath);
 
     const char* src = str.c_str();
     prog = gl::CreateShaderProgramv(_stage, 1, &src);
     int length = 0; char log[2048];
     gl::GetProgramInfoLog(prog, 2048, &length, log);
-    if (length > 0)
-        cout << "ERROR: Failed to compile shader from \"" << fPath << "\"\n"
-             << "-------------------------\n" << log
-             << "-------------------------" << endl;
+    if (length > 0) log_error("Failed to compile shader from $0$L$1$L", fPath, log);
 }
 
 void Shader::add_uniform(const string& _name, uint _cnt) {

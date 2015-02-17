@@ -1,10 +1,14 @@
+#include <sqee/gl/gl_ext_3_3.hpp>
+#include <sqee/gl/maths.hpp>
+#include <sqee/app/logging.hpp>
+
 #include "resbank.hpp"
 
 using namespace sqt;
 
 ResBank::ResBank() {
     #ifdef SQEE_DEBUG
-    cout << "INFO: Initializing Global \"sqt::ResBank\"" << endl;
+    sq::log_info("Initializing Global \"sqt::ResBank\"");
     #endif
 
     const uchar t8080FF[3] = {0x80, 0x80, 0xFF};

@@ -1,4 +1,5 @@
 #pragma once
+#include <sqee/forward.hpp>
 
 #include <sqee/models/mesh.hpp>
 #include <sqee/models/skin.hpp>
@@ -9,14 +10,15 @@ namespace ent {
 
 class Model {
 public:
-    ~Model() {} // todo
+    //~Model() {} // todo
 
-    void load(const string& _meshPath, const string& _skinPath, const string& _animPath);
+    void load(const string& _meshPath, const string& _skinPath,
+              const string& _animPath);
 
     glm::mat4 modelMat;
 
     sq::Mesh* mesh;
-    sq::Skin skin;
+    sq::Skin* skin;
     sq::Skeleton skeleton;
 
     void tick();

@@ -1,7 +1,8 @@
 #pragma once
+#include <sqee/forward.hpp>
 
-#include <sqee/misc/containers.hpp>
 #include <sqee/gl/textures.hpp>
+#include <sqee/misc/containers.hpp>
 #include <sqee/models/mesh.hpp>
 #include <sqee/models/skin.hpp>
 #include <sqee/models/skeleton.hpp>
@@ -12,9 +13,10 @@ class ResBank {
 public:
     ResBank();
 
-    sq::TexHolder texH;
-    sq::MeshHolder meshH;
-    sq::AnimHolder animH;
+    sq::ResHolder<sq::Texture> texH;
+    sq::ResHolder<sq::Mesh> meshH;
+    sq::ResHolder<sq::Skin> skinH;
+    sq::ResHolder<sq::Animation> animH;
 
     sq::Texture tex2D_8080FF;
     sq::Texture tex2D_000000;

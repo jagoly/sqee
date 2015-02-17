@@ -6,8 +6,8 @@ set(SOURCES
     "scenegame.cpp" "scenegame.hpp"
 )
 
-add_executable(gl ${SOURCES})
-target_link_libraries(gl sqee)
+add_executable(sqee_gl ${SOURCES})
+target_link_libraries(sqee_gl sqee)
 include_directories("${PROJECT_SOURCE_DIR}/include")
 
 file(COPY "res" DESTINATION "${CMAKE_BINARY_DIR}/build/tests/gl/")

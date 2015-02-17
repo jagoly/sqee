@@ -1,15 +1,15 @@
 #pragma once
+#include "forward.hpp"
 
-#include <gl/gl.hpp>
-#include <maths/glm.hpp>
+#include <memory>
 
 namespace sq {
 
 class Application;
 
-class Scene {
+class Scene : NonCopyable {
 public:
-    typedef unique_ptr<Scene> Ptr;
+    typedef std::unique_ptr<Scene> Ptr;
 
     Scene(Application& _app)
         : app(_app) {}
@@ -17,14 +17,12 @@ public:
     double accum = 0.d;
     uint tickRate = 60;
 
-    virtual void update() {}
-    virtual void render(float _ft) {}
-    virtual void resize(glm::uvec2 _size) {}
+    virtual void update() =0;
+    virtual void render(float _ft) =0;
+    virtual void resize(glm::uvec2 _size) =0;
 
 protected:
     Application& app;
 };
 
 }
-
-#include <app/application.hpp>

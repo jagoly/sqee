@@ -1,7 +1,6 @@
 #pragma once
 
 #include <sqee/gl/uniformbuffers.hpp>
-#include <sqee/models/mesh.hpp>
 
 #include "object.hpp"
 
@@ -36,7 +35,7 @@ private:
     double normOffsA, normOffsB;
     glm::vec2 flowOffsA, flowOffsB;
 
-    sq::Mesh mesh;
+    sq::Mesh* mesh;
 };
 
 }

@@ -1,4 +1,6 @@
-#include <gl/bounds.hpp>
+#include "gl/maths.hpp"
+
+#include "gl/bounds.hpp"
 
 using namespace sq;
 

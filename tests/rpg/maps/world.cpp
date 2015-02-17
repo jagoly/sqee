@@ -1,12 +1,17 @@
+#include <array>
+
+#include <sqee/gl/gl_ext_3_3.hpp>
+#include <sqee/gl/maths.hpp>
+#include <sqee/app/application.hpp>
 #include <sqee/misc/files.hpp>
+#include <sqee/misc/strtonum.hpp>
 
 #include "../resbank.hpp"
-#include "../settings.hpp"
 #include "world.hpp"
 
 using namespace sqt;
 
-World::World() {
+World::World(sq::Application& _app) : app(_app) {
     ubo.reserve("ambiColour", 3);
     ubo.reserve("skylEnable", 1);
     ubo.reserve("skylDir", 4);
@@ -20,21 +25,21 @@ World::World() {
 
 void World::load_base(const string& _filePath) {
     string filePath = "res/game/worlds/" + _filePath + ".sq_world";
-    vector<vector<string>> fileVec(sq::get_words_from_file(filePath));
+    std::vector<std::vector<string>> fileVec(sq::get_words_from_file(filePath));
 
     struct Spec {
         Spec(const string& _name) : name(_name) {}
         string name, path;
         glm::ivec2 xyPos;
         float zPos;
-        vector<string> loads;
+        std::vector<string> loads;
     };
-    vector<Spec> specVec;
+    std::vector<Spec> specVec;
 
-    vector<pair<string, vector<pair<string, string>>>> hlVec;
+    std::vector<std::pair<string, std::vector<std::pair<string, string>>>> hlVec;
 
     string section = "";
-    for (const vector<string>& line : fileVec) {
+    for (const std::vector<string>& line : fileVec) {
         const string& key = line[0];
         if (key[0] == '#') continue;
         if (key == "{") {
@@ -89,10 +94,10 @@ void World::load_base(const string& _filePath) {
         }
     }
 
-    for (const Spec& spec : specVec)
+    for (const auto& spec : specVec)
         cellMap.emplace(spec.name, Cell(spec.path, spec.name, spec.loads, spec.xyPos, spec.zPos));
 
-    for (const pair<string, vector<pair<string, string>>>& val : hlVec)
+    for (const auto& val : hlVec)
         hlMap.insert(val);
 
     set_active_cell("CellA");
@@ -102,7 +107,7 @@ float World::get_maxZ4(const string& _layer, int _x, int _y) {
     return 0;
     float val = -INFINITY;
     bool a=false, b=false, c=false, d=false;
-    for (pair<string, string>& ssPair : hlMap.at(_layer)) {
+    for (auto& ssPair : hlMap.at(_layer)) {
         if (a && b && c && d) break;
 
         const Cell& cell = cellMap.at(ssPair.first);
@@ -136,7 +141,7 @@ void World::set_active_cell(const string& _cell) {
     const Cell& activeCell = cellMap.at(_cell);
     minPos = activeCell.get_min();
     maxPos = activeCell.get_max();
-    for (const Cell::SOPair& so : activeCell.objectMap) {
+    for (const auto& so : activeCell.objMap) {
         Object* ptr = so.second.get();
         objectList.push_front(ptr);
         if (ptr->type == ObjType::Model)
@@ -149,11 +154,11 @@ void World::set_active_cell(const string& _cell) {
             lightVec.push_back(static_cast<Light*>(ptr));
     }
 
-    for (const string& cellName : activeCell.loads) {
+    for (const auto& cellName : activeCell.loads) {
         const Cell& iterCell = cellMap.at(cellName);
         minPos = glm::min(minPos, iterCell.get_min());
         maxPos = glm::max(maxPos, iterCell.get_max());
-        for (const Cell::SOPair& so : iterCell.objectMap) {
+        for (const auto& so : iterCell.objMap) {
             Object* ptr = so.second.get();
             objectList.push_front(ptr);
             if (ptr->type == ObjType::Model)
@@ -172,7 +177,7 @@ void World::set_active_cell(const string& _cell) {
     glm::vec3 centre = (minPos + maxPos) / 2.f;
     glm::mat4 viewMat = glm::lookAt(centre, centre + skylDir, {0, 0, 1});
 
-    array<glm::vec3, 8> arr = {
+    std::array<glm::vec3, 8> arr = {
         glm::vec3(viewMat * glm::vec4(minPos.x, minPos.y, maxPos.z, 1)),
         glm::vec3(viewMat * glm::vec4(minPos.x, minPos.y, minPos.z, 1)),
         glm::vec3(viewMat * glm::vec4(minPos.x, maxPos.y, minPos.z, 1)),
@@ -184,7 +189,7 @@ void World::set_active_cell(const string& _cell) {
     };
 
     glm::vec3 minO = centre, maxO = centre;
-    for (glm::vec3& vec : arr) {
+    for (auto& vec : arr) {
         minO = glm::min(minO, vec);
         maxO = glm::max(maxO, vec);
     }
@@ -218,7 +223,7 @@ void World::set_active_cell(const string& _cell) {
 
 void World::set_active_tile(glm::ivec2 _tile) {
     const Cell* cellPtr;
-    for (pair<const string, Cell>& scPair : cellMap) {
+    for (auto& scPair : cellMap) {
         cellPtr = &scPair.second;
         if (sq::within_box(_tile, cellPtr->minXY, cellPtr->maxXY))
             break;
@@ -227,13 +232,13 @@ void World::set_active_tile(glm::ivec2 _tile) {
 }
 
 void World::tick() {
-    for (pair<const string, Cell>& scPair : cellMap)
+    for (auto& scPair : cellMap)
         scPair.second.tick();
 }
 
 void World::calc(double _accum) {
-    for (pair<const string, Cell>& scPair : cellMap)
+    for (auto& scPair : cellMap)
         scPair.second.calc(_accum);
 
-    if (vidSet().check_update("World")) updateScene = true;
+    if (app.settings.check_update("World")) updateScene = true;
 }

@@ -1,4 +1,4 @@
-#include <sounds/soundmanager.hpp>
+#include "sounds/soundmanager.hpp"
 
 namespace sq {
 
@@ -6,33 +6,33 @@ SoundManager::SoundManager() {
 }
 
 
-void SoundManager::add_sound(std::string strId, std::string strPath) {
+void SoundManager::add_sound(string strId, string strPath) {
     soundBufferMap[strId].loadFromFile(strPath);
 }
 
-void SoundManager::remove_sound(std::string) {
+void SoundManager::remove_sound(string) {
 
 }
 
-void SoundManager::play_sound(std::string strId) {
+void SoundManager::play_sound(string strId) {
     soundQueue.push(sf::Sound());
     soundQueue.back().setBuffer(soundBufferMap[strId]);
     soundQueue.back().play();
 }
 
-void SoundManager::play_managed_sound(std::string, std::string, bool) {
+void SoundManager::play_managed_sound(string, string, bool) {
 
 }
 
-void SoundManager::stop_managed_sound(std::string) {
+void SoundManager::stop_managed_sound(string) {
 
 }
 
-void SoundManager::pause_managed_sound(std::string) {
+void SoundManager::pause_managed_sound(string) {
 
 }
 
-void SoundManager::resume_managed_sound(std::string) {
+void SoundManager::resume_managed_sound(string) {
 
 }
 

@@ -1,19 +1,25 @@
-#include <models/skin.hpp>
-#include <misc/files.hpp>
+#include "app/logging.hpp"
+#include "gl/gl_ext_3_3.hpp"
+#include "gl/maths.hpp"
+#include "gl/textures.hpp"
+#include "misc/containers.hpp"
+#include "misc/files.hpp"
+
+#include "models/skin.hpp"
 
 using namespace sq;
 
-void Skin::load(const string& _filePath, TexHolder& _texH) {
-    string filePath = SQ_MODELS "skins/" + _filePath + ".sqs";
-    vector<vector<string>> fileVec(sq::get_words_from_file(filePath));
+void Skin::load(const string& _filePath, ResHolder<Texture>& _texH) {
+    string filePath = "res/models/skins/" + _filePath + ".sqs";
+    std::vector<std::vector<string>> fileVec(sq::get_words_from_file(filePath));
 
     struct TexPaths { string norm, diff, spec, ambi; bool linearNearest, clampRepeat;};
-    vector<TexPaths> TexPathsVec;
+    std::vector<TexPaths> TexPathsVec;
 
     mtrlVec.resize(1);
 
     string section = "";
-    for (const vector<string>& line : fileVec) {
+    for (const std::vector<string>& line : fileVec) {
         const string& key = line[0];
         if (key[0] == '#') continue;
         if (key == "{") {
@@ -57,8 +63,7 @@ void Skin::load(const string& _filePath, TexHolder& _texH) {
 
     #ifdef SQEE_DEBUG
     if (mtrlVec.size() != TexPathsVec.size())
-        cout << "WARNING: mCount mismatch when loading skin from \""
-             << filePath << "\"" << endl;
+        log_warning("mCount mismatch when loading skin from $0", filePath);
     #endif
 
     for (uint i = 0; i < TexPathsVec.size(); i++) {

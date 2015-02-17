@@ -1,20 +1,27 @@
-#include <maths/glm.hpp>
-#include <models/skeleton.hpp>
-#include <misc/files.hpp>
+#include "app/logging.hpp"
+#include "gl/maths.hpp"
+#include "misc/files.hpp"
+
+#include "models/skeleton.hpp"
 
 using namespace sq;
 
+Animation::Pose::Pose(uint _bCount, const float* _quatData, const float* _offsData) {
+    std::memcpy(quatData, _quatData, _bCount*4*sizeof(float));
+    std::memcpy(offsData, _offsData, _bCount*3*sizeof(float));
+}
+
 void Animation::load(const string& _filePath) {
-    string filePath = SQ_MODELS "skeletons/" + _filePath + ".sqa";
-    vector<vector<string>> fileVec(sq::get_words_from_file(filePath));
+    string filePath = "res/models/skeletons/" + _filePath + ".sqa";
+    std::vector<std::vector<string>> fileVec(sq::get_words_from_file(filePath));
 
     int pNum = 0;
-    vector<array<float, 4>> qVec; qVec.reserve(40);
-    vector<array<float, 3>> oVec; oVec.reserve(40);
-    vector<pair<uint, int>> kVec;
+    std::vector<std::array<float, 4>> qVec; qVec.reserve(40);
+    std::vector<std::array<float, 3>> oVec; oVec.reserve(40);
+    std::vector<std::pair<uint, int>> kVec;
 
     string section = "";
-    for (const vector<string>& line : fileVec) {
+    for (const std::vector<string>& line : fileVec) {
         const string& key = line[0];
         if (key[0] == '#') continue;
         if (key == "{") {
@@ -57,18 +64,16 @@ void Animation::load(const string& _filePath) {
 
     #ifdef SQEE_DEBUG
     if (bCount != qVec.size() / pNum)
-        std::cout << "WARNING: bCount mismatch when loading animation from \""
-                  << filePath << "\"" << std::endl;
+        log_warning("bCount mismatch when loading animation from $0", _filePath);
     if (pCount != uint(pNum))
-        std::cout << "WARNING: pCount mismatch when loading animation from \""
-                  << filePath << "\"" << std::endl;
+        log_warning("pCount mismatch when loading animation from $0", _filePath);
     if (kCount != kVec.size() && kfrVec.size())
-        std::cout << "WARNING: kCount mismatch when loading animation from \""
-                  << filePath << "\"" << std::endl;
+        log_warning("kCount mismatch when loading animation from $0", _filePath);
     #endif
 
     for (int i = 0; i < pNum; i++) {
-        poseVec.emplace_back(bCount, (float*)qVec.data()+i*bCount*4, (float*)oVec.data()+i*bCount*3);
+        poseVec.emplace_back(bCount, (float*)qVec.data()+i*bCount*4,
+                                     (float*)oVec.data()+i*bCount*3);
     }
 
     for (auto iter = kVec.begin(); iter != kVec.end(); iter++) {

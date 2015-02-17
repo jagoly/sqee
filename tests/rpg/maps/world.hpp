@@ -1,37 +1,40 @@
 #pragma once
+#include <sqee/forward.hpp>
+
+#include <list>
+#include <map>
+#include <vector>
 
 #include <sqee/gl/uniformbuffers.hpp>
-#include <sqee/gl/framebuffers.hpp>
 
 #include "cell.hpp"
 #include "obj/object.hpp"
 
 namespace sqt {
 
-class World {
+class World : NonCopyable {
 public:
-    World();
-    //~World();
+    World(sq::Application& _app);
 
-    void load_base(const string& _filePath);
+    void load_base(const std::string& _filePath);
 
     void tick();
     void calc(double _accum);
 
     void set_active_tile(glm::ivec2 _tile);
-    void set_active_cell(const string& _cell);
+    void set_active_cell(const std::string& _cell);
     const glm::ivec2& get_active_tile();
-    const string& get_active_cell();
+    const std::string& get_active_cell();
 
-    float get_maxZ4(const string& _layer, int _xPos, int _yPos);
+    float get_maxZ4(const std::string& _layer, int _xPos, int _yPos);
 
     glm::vec3 minPos, maxPos;
 
-    list<Object*> objectList;
-    list<Model*> modelList;
-    list<Liquid*> liquidList;
-    list<Reflector*> reflectorList;
-    vector<Light*> lightVec;
+    std::list<Object*> objectList;
+    std::list<Model*> modelList;
+    std::list<Liquid*> liquidList;
+    std::list<Reflector*> reflectorList;
+    std::vector<Light*> lightVec;
 
     glm::vec3 ambiColour;
     bool skylEnable;
@@ -46,10 +49,10 @@ public:
     bool updateScene = false;
 
 private:
-    map<string, Cell> cellMap;
-    map<string, vector<pair<string, string>>> hlMap;
+    std::map<std::string, Cell> cellMap;
+    std::map<std::string, std::vector<std::pair<std::string, std::string>>> hlMap;
 
-
+    sq::Application& app;
 };
 
 }

@@ -1,6 +1,10 @@
-#include <gl/gl.hpp>
-#include <misc/files.hpp>
-#include <models/mesh.hpp>
+#include "app/logging.hpp"
+#include "gl/gl_ext_3_3.hpp"
+#include "gl/maths.hpp"
+#include "misc/files.hpp"
+#include "misc/strtonum.hpp"
+
+#include "models/mesh.hpp"
 
 using namespace sq;
 
@@ -8,11 +12,11 @@ void Mesh::load(const string& _filePath) {
     mtrlVec.resize(1);
     uint countedFaces = 0;
 
-    string filePath = SQ_MODELS "meshes/" + _filePath + ".sqm";
-    vector<vector<string>> fileVec(sq::get_words_from_file(filePath));
+    string filePath = "res/models/meshes/" + _filePath + ".sqm";
+    std::vector<std::vector<string>> fileVec(sq::get_words_from_file(filePath));
 
     string section = "";
-    for (const vector<string>& line : fileVec) {
+    for (const std::vector<string>& line : fileVec) {
         const string& key = line[0];
         if (key[0] == '#') continue;
         if (key == "{") {
@@ -66,7 +70,7 @@ void Mesh::load(const string& _filePath) {
 
         if (section == "faces") {
             countedFaces++;
-            array<uint, 3> face = {stou(line[0]), stou(line[1]), stou(line[2])};
+            std::array<uint, 3> face = {stou(line[0]), stou(line[1]), stou(line[2])};
             mtrlVec[hasMT ? stoi(line[3]) : 0].push_back(face);
             continue;
         }
@@ -74,20 +78,18 @@ void Mesh::load(const string& _filePath) {
 
     #ifdef SQEE_DEBUG
     if (vCount != vertVec.size())
-        cout << "WARNING: vCount mismatch when loading mesh from \""
-             << filePath << "\"" << endl;
+        log_warning("vCount mismatch when loading mesh from $0", filePath);
     if (fCount != countedFaces)
-        cout << "WARNING: fCount mismatch when loading mesh from \""
-             << filePath << "\"" << endl;
+        log_warning("fCount mismatch when loading mesh from $0", filePath);
     #endif
 
     for (uint i = 0; i < mtrlVec.size(); i++) {
-        vector<array<uint, 3>>& faceVec = mtrlVec[i];
+        std::vector<std::array<uint, 3>>& faceVec = mtrlVec[i];
         iboVec.emplace_back(0, faceVec.size() * 3);
-        pair<GLuint, uint>& ibo = iboVec.back();
+        std::pair<GLuint, uint>& ibo = iboVec.back();
         gl::GenBuffers(1, &ibo.first);
         gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ibo.first);
-        gl::BufferData(gl::ELEMENT_ARRAY_BUFFER, ibo.second * intSz,
+        gl::BufferData(gl::ELEMENT_ARRAY_BUFFER, ibo.second * sizeof(int),
                        faceVec.data(), gl::STATIC_DRAW);
     }
 
@@ -183,14 +185,16 @@ void Mesh::load(const string& _filePath) {
 }
 
 Mesh::~Mesh() {
-    for (pair<GLuint, uint>& iboPair : iboVec)
+    for (std::pair<GLuint, uint>& iboPair : iboVec) {
         gl::DeleteBuffers(1, &iboPair.first);
+    }
     gl::DeleteVertexArrays(1, &vao);
     gl::DeleteBuffers(1, &vboP);
     gl::DeleteBuffers(1, &vboN);
     gl::DeleteBuffers(1, &vboT);
-    if (hasUV)
+    if (hasUV) {
         gl::DeleteBuffers(1, &vboTc);
+    }
     if (hasBW) {
         gl::DeleteBuffers(1, &vboB);
         gl::DeleteBuffers(1, &vboW);

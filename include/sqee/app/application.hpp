@@ -1,19 +1,23 @@
 #pragma once
+#include "forward.hpp"
 
-#include <gl/gl.hpp>
-#include <maths/glm.hpp>
-#include <misc/containers.hpp>
-#include <scenes/scene.hpp>
-#include <events/handler.hpp>
-#include <sounds/soundmanager.hpp>
+#include <memory>
+#include <set>
+
+#include <SFML/Window/Window.hpp>
+
+#include "app/settings.hpp"
+#include "events/handler.hpp"
+#include "misc/containers.hpp"
+#include "scenes/scene.hpp"
+#include "scripts/chaiscript.hpp"
+#include "sounds/soundmanager.hpp"
 
 namespace sq {
 
-class Application {
+class Application : NonCopyable {
 public:
-    Application(glm::uvec2 _size, bool _resizable, const string& _title);
-
-    SoundManager soundManager;
+    Application(glm::uvec2 _size, bool _resizable);
 
     int run();
     void quit(int _code);
@@ -21,23 +25,24 @@ public:
     void set_size(glm::uvec2 _size);
     glm::uvec2 get_size();
 
-    bool vsync = true;
-    void set_vsync(bool _vsync);
-
     void sweep_handler(const string& _id);
     void sweep_scene(const string& _id);
 
-    IndexedMap<string, Scene::Ptr> sceneIM;
-    IndexedMap<string, Handler::Ptr> handlerIM;
+    IndexedMap<string, std::unique_ptr<Scene>> sceneIM;
+    IndexedMap<string, std::unique_ptr<Handler>> handlerIM;
+
+    chai::ChaiScript cs;
+    SoundManager sndMan;
+    SettingMap settings;
 
 protected:
     sf::Window window;
     int retCode;
 
-    set<string> handlerSweep;
-    set<string> sceneSweep;
+    std::set<string> handlerSweep;
+    std::set<string> sceneSweep;
 
-    string title;
+    void update_settings();
 };
 
 }

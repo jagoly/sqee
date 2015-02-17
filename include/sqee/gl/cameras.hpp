@@ -1,9 +1,7 @@
 #pragma once
+#include "forward.hpp"
 
-#include <gl/gl.hpp>
-#include <maths/glm.hpp>
-#include <maths/physics.hpp>
-#include <gl/uniformbuffers.hpp>
+#include "gl/uniformbuffers.hpp"
 
 namespace sq {
 

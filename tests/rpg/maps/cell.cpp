@@ -1,5 +1,8 @@
 #include <fstream>
 
+#include <sqee/gl/gl_ext_3_3.hpp>
+#include <sqee/gl/maths.hpp>
+#include <sqee/app/logging.hpp>
 #include <sqee/misc/files.hpp>
 
 #include "../resbank.hpp"
@@ -7,13 +10,15 @@
 
 using namespace sqt;
 
-HeightLayer::HeightLayer(const string& _filePath, glm::ivec2 _min, glm::ivec2 _max, float _offs) {
+HeightLayer::HeightLayer(const string& _filePath, glm::ivec2 _min,
+                         glm::ivec2 _max, float _offs)
+{
     const string filePath = "res/game/heightlayers/" + _filePath + ".sq_hl";
     std::ifstream src(filePath, std::ios::binary);
 
     #ifdef SQEE_DEBUG
     if (!src.is_open())
-        cout << "ERROR: Couldn't open file \"" << filePath << "\"" << endl;
+        sq::log_error("Couldn't open file $0", filePath);
     #endif
 
     int xSize, ySize;
@@ -39,15 +44,19 @@ float HeightLayer::get_z(uint _x, uint _y) const {
 }
 
 Cell::Cell(const string& _filePath, const string& _name,
-           const vector<string>& _loads, glm::ivec2 _posXY, float _posZ)
-    : name(_name), loads(_loads), minXY(_posXY), minZ(_posZ) {
+           const std::vector<string>& _loads, glm::ivec2 _posXY, float _posZ)
+    : name(_name),
+      loads(_loads),
+      minXY(_posXY),
+      minZ(_posZ)
+{
     string filePath = "res/game/cells/" + _filePath + ".sq_cell";
-    vector<vector<string>> fileVec(sq::get_words_from_file(filePath));
+    std::vector<std::vector<string>> fileVec(sq::get_words_from_file(filePath));
 
-    vector<ObjectSpec> specVec;
+    std::vector<ObjectSpec> specVec;
 
     string section = "";
-    for (const vector<string>& line : fileVec) {
+    for (const std::vector<string>& line : fileVec) {
         const string& key = line[0];
         if (key[0] == '#') continue;
         if (key == "{") {
@@ -93,7 +102,7 @@ Cell::Cell(const string& _filePath, const string& _name,
     sizeZ = maxZ - minZ;
 
     for (ObjectSpec& spec : specVec) {
-        Object* ptr;
+        Object* ptr = nullptr;
         if (spec.type == ObjType::Model)
             ptr = new Model(spec);
         else if (spec.type == ObjType::Light)
@@ -102,18 +111,18 @@ Cell::Cell(const string& _filePath, const string& _name,
             ptr = new Liquid(spec);
         else if (spec.type == ObjType::Reflector)
             ptr = new Reflector(spec);
-        objectMap.emplace(spec.name, std::unique_ptr<Object>(ptr));
+        objMap.emplace(spec.name, std::unique_ptr<Object>(ptr));
     }
 }
 
 void Cell::tick() {
-    for (SOPair& so : objectMap) {
+    for (SOPair& so : objMap) {
         so.second->tick();
     }
 }
 
 void Cell::calc(double _accum) {
-    for (SOPair& so : objectMap) {
+    for (SOPair& so : objMap) {
         so.second->calc(_accum);
     }
 }

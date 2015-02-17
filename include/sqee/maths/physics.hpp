@@ -1,6 +1,5 @@
 #pragma once
-
-#include <maths/glm.hpp>
+#include "forward.hpp"
 
 namespace sq {
 

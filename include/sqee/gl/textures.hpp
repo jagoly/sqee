@@ -1,8 +1,5 @@
 #pragma once
-
-#include <gl/gl.hpp>
-#include <maths/glm.hpp>
-#include <misc/containers.hpp>
+#include "forward.hpp"
 
 namespace sq {
 
@@ -37,6 +34,5 @@ private:
     int dimensions;
     GLenum dataType;
 };
-typedef ResHolder<string, Texture> TexHolder;
 
 }

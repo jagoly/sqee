@@ -1,30 +1,32 @@
 #include <fstream>
 #include <sstream>
 
-#include <misc/files.hpp>
+#include "app/logging.hpp"
+
+#include "misc/files.hpp"
 
 using namespace sq;
 
 Json::Value sq::get_json_from_file(const string& _filePath) {
     std::ifstream src(_filePath);
     if (!src.is_open()) {
-        cout << "ERROR: Couldn't open file \"" << _filePath << "\"" << endl;
+        log_error("Couldn't open file $0", _filePath);
         return Json::Value();
     }
 
     Json::Reader reader; Json::Value root;
-    if (!reader.parse(src, root))
-        cout << "ERROR: Failed to load json from \"" << _filePath << "\"\n"
-             << "-------------------------\n"
-             << reader.getFormattedErrorMessages()
-             << "-------------------------" << endl;
+    if (!reader.parse(src, root)) {
+        log_error("Failed to load json from $0$L$1$L", _filePath, reader.getFormattedErrorMessages());
+        return Json::Value();
+    }
+
     return root;
 }
 
 string sq::get_string_from_file(const string& _filePath) {
     std::ifstream src(_filePath);
     if (!src.is_open()) {
-        cout << "ERROR: Couldn't open file \"" << _filePath << "\"" << endl;
+        log_error("Couldn't open file $0", _filePath);
         return string();
     }
 
@@ -33,11 +35,11 @@ string sq::get_string_from_file(const string& _filePath) {
     return sstr.str();
 }
 
-vector<vector<string>> sq::get_words_from_file(const string& _filePath) {
+std::vector<std::vector<string>> sq::get_words_from_file(const string& _filePath) {
     std::ifstream src(_filePath);
-    vector<vector<string>> vec;
+    std::vector<std::vector<string>> vec;
     if (!src.is_open()) {
-        cout << "ERROR: Couldn't open file \"" << _filePath << "\"" << endl;
+        log_error("Couldn't open file $0", _filePath);
         return vec;
     }
 

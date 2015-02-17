@@ -1,21 +1,19 @@
 #pragma once
+#include "forward.hpp"
 
-#include <SFML/Window.hpp>
+#include <memory>
 
-#include <defs.hpp>
+#include <SFML/Window/Event.hpp>
 
 namespace sq {
 
-class Application;
-
-class Handler {
+class Handler : NonCopyable {
 public:
-    typedef unique_ptr<Handler> Ptr;
+    typedef std::unique_ptr<Handler> Ptr;
 
-    Handler(Application& _app)
-        : app(_app) {}
+    Handler(Application& _app) : app(_app) {}
 
-    virtual bool handle(const sf::Event& event) {
+    virtual bool handle(const sf::Event& _event) {
         return false;
     }
 
@@ -24,5 +22,3 @@ protected:
 };
 
 }
-
-#include <app/application.hpp>

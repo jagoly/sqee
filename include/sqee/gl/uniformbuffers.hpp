@@ -1,6 +1,7 @@
 #pragma once
+#include "forward.hpp"
 
-#include <gl/gl.hpp>
+#include <unordered_map>
 
 namespace sq {
 
@@ -23,7 +24,7 @@ private:
             : offs(_offs), size(_size) {}
         const uint offs, size;
     };
-    unordered_map<string, Item> itemMap;
+    std::unordered_map<string, Item> itemMap;
     uint crntSize = 0;
 };
 

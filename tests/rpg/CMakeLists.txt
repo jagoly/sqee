@@ -6,7 +6,6 @@ set(SOURCES
     "scenegame.hpp"           "scenegame.cpp"
     "player.hpp"              "player.cpp"
     "resbank.hpp"             "resbank.cpp"
-    "settings.hpp"            "settings.cpp"
     "maps/cell.hpp"           "maps/cell.cpp"
     "maps/world.hpp"          "maps/world.cpp"
     "entities/model.hpp"      "entities/model.cpp"
@@ -17,8 +16,8 @@ set(SOURCES
     "maps/obj/light.hpp"      "maps/obj/light.cpp"
 )
 
-add_executable(rpg ${SOURCES})
-target_link_libraries(rpg sqee)
+add_executable(sqee_rpg ${SOURCES})
+target_link_libraries(sqee_rpg sqee)
 include_directories("${PROJECT_SOURCE_DIR}/include")
 
 file(COPY "res" DESTINATION "${CMAKE_BINARY_DIR}/build/tests/rpg/")

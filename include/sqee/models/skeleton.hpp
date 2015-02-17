@@ -1,17 +1,15 @@
 #pragma once
+#include "forward.hpp"
 
-#include <maths/glm.hpp>
-#include <misc/containers.hpp>
+#include <utility>
+#include <vector>
 
 namespace sq {
 
 class Animation : NonCopyable {
 public:
     struct Pose {
-        Pose(uint _bCount, const float* _quatData, const float* _offsData) {
-            std::memcpy(quatData, _quatData, _bCount*4*sizeof(float));
-            std::memcpy(offsData, _offsData, _bCount*3*sizeof(float));
-        }
+        Pose(uint _bCount, const float* _quatData, const float* _offsData);
         float quatData[40*4];
         float offsData[40*3];
     };
@@ -21,15 +19,14 @@ public:
     uint bCount;
     uint pCount = 0;
     uint kCount = 0;
-    vector<pair<uint, Pose&>> kfrVec;
+    std::vector<std::pair<uint, Pose&>> kfrVec;
 
 private:
-    vector<Pose> poseVec;
+    std::vector<Pose> poseVec;
 };
-typedef ResHolder<string, Animation> AnimHolder;
 
 
-class Skeleton {
+class Skeleton : NonCopyable {
 public:
     void setup(Animation* _anim);
 

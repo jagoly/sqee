@@ -1,9 +1,7 @@
 #pragma once
+#include "forward.hpp"
 
-#include <glm/fwd.hpp>
-
-#include <gl/gl.hpp>
-#include <maths/glm.hpp>
+#include <array>
 
 namespace sq {
 
@@ -25,7 +23,7 @@ public:
     void scale(glm::vec3 _sca);
 
     float xO, yO, zO;
-    array<float, 3> p000, p001, p010, p011, p100, p101, p110, p111;
+    std::array<float, 3> p000, p001, p010, p011, p100, p101, p110, p111;
 
     bool intersect_pnt(glm::vec3 _pos);
     bool intersect_box(const Box& _box);

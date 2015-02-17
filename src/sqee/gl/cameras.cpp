@@ -1,4 +1,6 @@
-#include <gl/cameras.hpp>
+#include "gl/maths.hpp"
+
+#include "gl/cameras.hpp"
 
 using namespace sq;
 
@@ -25,7 +27,6 @@ void BaseCamera::update() {
         ubo.update("far", &range.y);
     }
 }
-
 
 void LookatCamera::update() {
     viewMat = glm::lookAt(pos, pos+dir, {0, 1, 0});

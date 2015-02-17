@@ -1,15 +1,18 @@
 #include <fstream>
 
+#include <sqee/gl/gl_ext_3_3.hpp>
+#include <sqee/gl/maths.hpp>
+
 #include "../../resbank.hpp"
 #include "model.hpp"
 
 using namespace sqt;
 
 Model::Model(const ObjectSpec& _spec) : Object(_spec) {
-    shad  = _spec.flagSet.count("shad");
-    pnch  = _spec.flagSet.count("pnch");
-    refl  = _spec.flagSet.count("refl");
-    refr  = _spec.flagSet.count("refr");
+    shad = _spec.flagSet.count("shad");
+    pnch = _spec.flagSet.count("pnch");
+    refl = _spec.flagSet.count("refl");
+    refr = _spec.flagSet.count("refr");
 
     const string& mName = _spec.sMap.at("mesh")[0];
     if (!(mesh = resBank().meshH.get(mName))) {
@@ -17,7 +20,11 @@ Model::Model(const ObjectSpec& _spec) : Object(_spec) {
         mesh->load(mName);
     }
 
-    skin.load(_spec.sMap.at("skin")[0], resBank().texH);
+    const string& sName = _spec.sMap.at("skin")[0];
+    if (!(skin = resBank().skinH.get(sName))) {
+        skin = resBank().skinH.add(sName);
+        skin->load(sName, resBank().texH);
+    }
 
     glm::vec3 pos = {0, 0, 0};
     glm::vec3 rot = {0, 0, 0};

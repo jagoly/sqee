@@ -1,4 +1,5 @@
 #pragma once
+#include <sqee/forward.hpp>
 
 #include <sqee/gl/cameras.hpp>
 #include <sqee/scenes/scene.hpp>

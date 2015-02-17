@@ -1,4 +1,6 @@
-#include <gl/gl.hpp>
+#include <iostream>
+
+#include "gl/misc.hpp"
 
 using namespace sq;
 
@@ -48,11 +50,11 @@ void sq::debug_callback(GLenum _source, GLenum _type, GLuint /*_id*/, GLenum _se
     if (_severity == gl::DEBUG_SEVERITY_NOTIFICATION)
         severity = "NOTIFICATION";
 
-    cout << "\nSource: " << source
-         << " | Severity: " << severity
-         << " | Type: " << type
-         << "\nMessage: " << _message
-         << endl;
+    std::cout << "\nSource: " << source
+              << " | Severity: " << severity
+              << " | Type: " << type
+              << "\nMessage: " << _message
+              << std::endl;
 }
 
 void sq::draw_screen_quad() {

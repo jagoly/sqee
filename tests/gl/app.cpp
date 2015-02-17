@@ -1,11 +1,13 @@
+#include <sqee/gl/gl_ext_3_3.hpp>
+#include <sqee/gl/maths.hpp>
 #include <sqee/events/basichandlers.hpp>
 
-#include "app.hpp"
 #include "scenegame.hpp"
+#include "app.hpp"
 
 namespace sqt {
 
-GlApp::GlApp() : sq::Application({960, 720}, true, "SQEE Tests") {
+GlApp::GlApp() : sq::Application({960, 720}, true) {
     handlerIM.append("close", new sq::HandlerClose(*this));
     handlerIM.append("resize", new sq::HandlerResize(*this));
     handlerIM.append("framelimit", new sq::HandlerFramelimit(*this));

@@ -1,10 +1,14 @@
-#include <gl/framebuffers.hpp>
+#include "app/logging.hpp"
+#include "gl/gl_ext_3_3.hpp"
+#include "gl/maths.hpp"
+
+#include "gl/framebuffers.hpp"
 
 using namespace sq;
 
-Framebuffer::Framebuffer(const vector<GLenum>& _drawBuffers,
-                         const vector<GLenum>& _cFormats,
-                         const vector<GLenum>& _icFormats,
+Framebuffer::Framebuffer(const std::vector<GLenum>& _drawBuffers,
+                         const std::vector<GLenum>& _cFormats,
+                         const std::vector<GLenum>& _icFormats,
                          GLenum _dsFormat, GLenum _idsFormat)
     : drawBuffers(_drawBuffers) {
 
@@ -21,9 +25,9 @@ Framebuffer::Framebuffer(const vector<GLenum>& _drawBuffers,
     gl::GenFramebuffers(1, &fbo);
 }
 
-Framebuffer::Framebuffer(const vector<GLenum>& _drawBuffers,
-                         const vector<GLenum>& _cFormats,
-                         const vector<GLenum>& _icFormats)
+Framebuffer::Framebuffer(const std::vector<GLenum>& _drawBuffers,
+                         const std::vector<GLenum>& _cFormats,
+                         const std::vector<GLenum>& _icFormats)
     : Framebuffer(_drawBuffers, _cFormats, _icFormats, gl::NONE, gl::NONE) {}
 
 Framebuffer::Framebuffer(GLenum _dsFormat, GLenum _idsFormat)
@@ -51,7 +55,7 @@ void Framebuffer::resize(glm::uvec2 _size) {
     }
 
     if (gl::CheckFramebufferStatus(gl::FRAMEBUFFER) != gl::FRAMEBUFFER_COMPLETE)
-        cout << "ERROR: FBO resize failed" << endl;
+        log_error("FBO resize failed");
 }
 
 void Framebuffer::resize(uint _size) {

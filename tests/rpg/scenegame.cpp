@@ -1,10 +1,14 @@
-#include <sqee/app/application.hpp>
+#include <list>
+#include <map>
+
+#include <sqee/gl/gl_ext_3_3.hpp>
+#include <sqee/gl/maths.hpp>
+#include <sqee/gl/misc.hpp>
 #include <sqee/gl/shaders.hpp>
 #include <sqee/gl/framebuffers.hpp>
+#include <sqee/app/application.hpp>
 
-#include "settings.hpp"
 #include "resbank.hpp"
-
 #include "scenegame.hpp"
 
 inline glm::mat3 to_norm_mat(const glm::mat4& _mvMat) {
@@ -13,9 +17,7 @@ inline glm::mat3 to_norm_mat(const glm::mat4& _mvMat) {
 
 using namespace sqt;
 
-SceneGame::SceneGame(sq::Application& _app)
-    : sq::Scene(_app), camera(true) {
-
+SceneGame::SceneGame(sq::Application& _app) : sq::Scene(_app), camera(true), world(_app) {
     tickRate = 24;
 
     world.load_base("WorldTest");
@@ -43,19 +45,19 @@ void SceneGame::resize(glm::uvec2 _size) {
 void SceneGame::update() {
     world.tick();
 
-    static list<sq::Direction> keys;
-    static map<sq::Direction, bool> keyStates = {
+    static std::list<sq::Direction> keys;
+    static std::map<sq::Direction, bool> keyStates = {
         {sq::Direction::North, false}, {sq::Direction::East, false},
         {sq::Direction::South, false}, {sq::Direction::West, false}
     };
-    map<sq::Direction, bool> keyStatesPrev = keyStates;
+    std::map<sq::Direction, bool> keyStatesPrev = keyStates;
 
     keyStates[sq::Direction::North] = sf::Keyboard::isKeyPressed(sf::Keyboard::Up);
     keyStates[sq::Direction::East]  = sf::Keyboard::isKeyPressed(sf::Keyboard::Right);
     keyStates[sq::Direction::South] = sf::Keyboard::isKeyPressed(sf::Keyboard::Down);
     keyStates[sq::Direction::West]  = sf::Keyboard::isKeyPressed(sf::Keyboard::Left);
 
-    for (const pair<sq::Direction, bool>& dpPair : keyStates) {
+    for (const auto& dpPair : keyStates) {
         if (dpPair.second && !keyStatesPrev.at(dpPair.first)) {
             keys.remove(dpPair.first); keys.emplace_front(dpPair.first);
         } else
@@ -104,6 +106,9 @@ void SceneGame::render(float _ft) {
 
     static bool first = true;
     if (first) { first = false;
+        app.settings.add("shadQuality", 2);
+        app.settings.add("fxaaQuality", 2);
+
         staticshadVS.load("models/staticshad_vs", gl::VERTEX_SHADER);
         skellyshadVS.load("models/skellyshad_vs", gl::VERTEX_SHADER);
         punchFS.load("models/punch_fs", gl::FRAGMENT_SHADER);
@@ -148,10 +153,8 @@ void SceneGame::render(float _ft) {
 
     /// Act Upon Changed Settings ///
 
-    if (vidSet().check_update("SceneGame")) {
-        int shadQuality = vidSet().smInt.crnt("shadQuality");
-
-        float shadBiasMod = std::pow(2.f, 2.f-shadQuality);
+    if (app.settings.check_update("SceneGame")) {
+        float shadBiasMod = std::pow(2.f, 2.f - app.settings.crnt("shadQuality").i());
         modelsFS.set_sca("shadBiasMod", shadBiasMod);
         liquidFS.set_sca("shadBiasMod", shadBiasMod);
     }
@@ -180,7 +183,7 @@ void SceneGame::render(float _ft) {
     /// World Updates ///
 
     if (world.updateScene) { world.updateScene = false;
-        uint shadowMult = std::pow(2, vidSet().smInt.crnt("shadQuality"));
+        int shadowMult = std::pow(2, app.settings.crnt("shadQuality").i());
         slFramebuf.resize(world.skylTexSize * shadowMult);
         slFramebuf.dsTex.set_preset(sq::Texture::Preset::SHAD);
 
@@ -241,7 +244,7 @@ void SceneGame::render(float _ft) {
             staticshadVS.set_glmmat("modelMat", model->modelMat);
             model->mesh->bind_vao();
             for (uint i = 0; i < model->mesh->iboVec.size(); i++) {
-                model->skin.bind_textures(i, sq::Skin::Mode::diff);
+                model->skin->bind_textures(i, sq::Skin::Mode::diff);
                 model->mesh->draw_ibo(i);
             }
         }
@@ -287,7 +290,7 @@ void SceneGame::render(float _ft) {
             staticshadVS.set_glmmat("modelMat", model->modelMat);
             model->mesh->bind_vao();
             for (uint i = 0; i < model->mesh->iboVec.size(); i++) {
-                model->skin.bind_textures(i, sq::Skin::Mode::diff);
+                model->skin->bind_textures(i, sq::Skin::Mode::diff);
                 model->mesh->draw_ibo(i);
             }
         }
@@ -325,8 +328,8 @@ void SceneGame::render(float _ft) {
             skellyVS.set_ptrvec<glm::vec4>("skelQuat", player.model.skeleton.quatData);
             skellyVS.set_ptrvec<glm::vec3>("skelOffs", player.model.skeleton.offsData);
             for (uint i = 0; i < player.model.mesh->iboVec.size(); i++) {
-                modelsFS.set_sca("mode", player.model.skin.get_mode(i));
-                player.model.skin.bind_textures(i);
+                modelsFS.set_sca("mode", player.model.skin->get_mode(i));
+                player.model.skin->bind_textures(i);
                 player.model.mesh->draw_ibo(i);
             }
         }
@@ -338,8 +341,8 @@ void SceneGame::render(float _ft) {
             staticVS.set_glmmat("modelMat", model->modelMat);
             staticVS.set_glmmat("normMat", to_norm_mat(camera.viewMat * model->modelMat));
             for (uint i = 0; i < model->mesh->iboVec.size(); i++) {
-                modelsFS.set_sca("mode", model->skin.get_mode(i));
-                model->skin.bind_textures(i);
+                modelsFS.set_sca("mode", model->skin->get_mode(i));
+                model->skin->bind_textures(i);
                 model->mesh->draw_ibo(i);
             }
         }
@@ -360,8 +363,8 @@ void SceneGame::render(float _ft) {
             skellyVS.set_ptrvec<glm::vec4>("skelQuat", player.model.skeleton.quatData);
             skellyVS.set_ptrvec<glm::vec3>("skelOffs", player.model.skeleton.offsData);
             for (uint i = 0; i < player.model.mesh->iboVec.size(); i++) {
-                modelsFS.set_sca("mode", player.model.skin.get_mode(i));
-                player.model.skin.bind_textures(i);
+                modelsFS.set_sca("mode", player.model.skin->get_mode(i));
+                player.model.skin->bind_textures(i);
                 player.model.mesh->draw_ibo(i);
             }
         }
@@ -373,8 +376,8 @@ void SceneGame::render(float _ft) {
             staticVS.set_glmmat("modelMat", model->modelMat);
             staticVS.set_glmmat("normMat", to_norm_mat(camera.viewMat * model->modelMat));
             for (uint i = 0; i < model->mesh->iboVec.size(); i++) {
-                modelsFS.set_sca("mode", model->skin.get_mode(i));
-                model->skin.bind_textures(i);
+                modelsFS.set_sca("mode", model->skin->get_mode(i));
+                model->skin->bind_textures(i);
                 model->mesh->draw_ibo(i);
             }
         }
@@ -406,8 +409,8 @@ void SceneGame::render(float _ft) {
         skellyVS.set_ptrvec<glm::vec4>("skelQuat", player.model.skeleton.quatData);
         skellyVS.set_ptrvec<glm::vec3>("skelOffs", player.model.skeleton.offsData);
         for (uint i = 0; i < player.model.mesh->iboVec.size(); i++) {
-            modelsFS.set_sca("mode", player.model.skin.get_mode(i));
-            player.model.skin.bind_textures(i);
+            modelsFS.set_sca("mode", player.model.skin->get_mode(i));
+            player.model.skin->bind_textures(i);
             player.model.mesh->draw_ibo(i);
         }
     }
@@ -418,8 +421,8 @@ void SceneGame::render(float _ft) {
         staticVS.set_glmmat("modelMat", model->modelMat);
         staticVS.set_glmmat("normMat", to_norm_mat(camera.viewMat * model->modelMat));
         for (uint i = 0; i < model->mesh->iboVec.size(); i++) {
-            modelsFS.set_sca("mode", model->skin.get_mode(i));
-            model->skin.bind_textures(i);
+            modelsFS.set_sca("mode", model->skin->get_mode(i));
+            model->skin->bind_textures(i);
             model->mesh->draw_ibo(i);
         }
     }
@@ -431,7 +434,7 @@ void SceneGame::render(float _ft) {
 
     gl::Disable(gl::DEPTH_TEST);
     priFb.cTexVec[0].bind(gl::TEXTURE0);
-    int fxaaQuality = vidSet().smInt.crnt("fxaaQuality");
+    int fxaaQuality = app.settings.crnt("fxaaQuality").i();
     if (fxaaQuality > 0) {
         pipeLine.use_shader(lumaFS);
         sq::draw_screen_quad();
@@ -449,17 +452,17 @@ void SceneGame::render(float _ft) {
 bool HandlerGame::handle(const sf::Event& _event) {
     if (_event.type == sf::Event::KeyPressed) {
         if (_event.key.code == sf::Keyboard::S) {
-            int crnt = vidSet().smInt.crnt("shadQuality");
-            if (crnt == 2) vidSet().smInt.modify("shadQuality", 0);
-            else vidSet().smInt.modify("shadQuality", crnt+1);
-            vidSet().apply();
+            int crnt = app.settings.crnt("shadQuality").i();
+            if (crnt == 2) app.settings.modify("shadQuality", 0);
+            else app.settings.modify("shadQuality", crnt+1);
+            app.settings.apply();
             return true;
         }
         if (_event.key.code == sf::Keyboard::A) {
-            int crnt = vidSet().smInt.crnt("fxaaQuality");
-            if (crnt == 2) vidSet().smInt.modify("fxaaQuality", 0);
-            else vidSet().smInt.modify("fxaaQuality", crnt+1);
-            vidSet().apply();
+            int crnt = app.settings.crnt("fxaaQuality").i();
+            if (crnt == 2) app.settings.modify("fxaaQuality", 0);
+            else app.settings.modify("fxaaQuality", crnt+1);
+            app.settings.apply();
             return true;
         }
     }

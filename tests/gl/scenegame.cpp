@@ -1,7 +1,8 @@
-#include <sqee/gl/gl.hpp>
-#include <sqee/models/mesh.hpp>
+#include <sqee/gl/gl_ext_3_3.hpp>
+#include <sqee/gl/maths.hpp>
 #include <sqee/gl/shaders.hpp>
 #include <sqee/misc/files.hpp>
+#include <sqee/models/mesh.hpp>
 
 #include "scenegame.hpp"
 
@@ -85,6 +86,8 @@ void SceneGame::render(float) {
     mesh.bind_vao();
     mesh.draw_ibo();
 }
+
+void SceneGame::resize(glm::uvec2 _size) {}
 
 bool HandlerGame::handle(const sf::Event&) {
     return false;

@@ -1,44 +1,48 @@
 #pragma once
+#include "forward.hpp"
 
-#include <defs.hpp>
+#include <algorithm>
+#include <list>
+#include <memory>
+#include <unordered_map>
 
 namespace sq {
 
-template <class Tk, class Tv>
+template <class T>
 class ResHolder {
 public:
-    typedef typename unordered_map<Tk, Tv>::iterator iterator;
+    typedef typename std::unordered_map<string, T>::iterator iterator;
 
     iterator begin() { return theMap.begin(); }
     iterator end() { return theMap.end(); }
 
-    Tv* add(const Tk& _key) {
+    T* add(const string& _key) {
         if (has(_key)) theMap.erase(_key);
-        theMap[_key] = unique_ptr<Tv>(new Tv());
+        theMap[_key] = std::unique_ptr<T>(new T());
         return theMap.at(_key).get();
     }
 
-    Tv* get(const Tk& _key) {
+    T* get(const string& _key) {
         return has(_key) ? theMap.at(_key).get() : nullptr;
     }
 
-    bool has(const Tk& _key) {
+    bool has(const string& _key) {
         return theMap.count(_key);
     }
 
-    void del(const Tk& _key) {
+    void del(const string& _key) {
         theMap.erase(_key);
     }
 
 protected:
-    unordered_map<Tk, unique_ptr<Tv>> theMap;
+    std::unordered_map<string, std::unique_ptr<T>> theMap;
 };
 
 template <class Tk, class Tv>
 class IndexedMap {
 public:
-    typedef typename list<Tv>::iterator iterator;
-    typedef typename list<Tv>::reverse_iterator reverse_iterator;
+    typedef typename std::list<Tv>::iterator iterator;
+    typedef typename std::list<Tv>::reverse_iterator reverse_iterator;
     iterator begin() { return theList.begin(); }
     iterator end() { return theList.end(); }
     reverse_iterator rbegin() { return theList.rbegin(); }
@@ -54,7 +58,7 @@ public:
 
     template<typename... TvArgs> Tv& prepend(const Tk& _key, TvArgs&&... _args) {
         theList.emplace_front(_args...);
-        theMap.emplace({_key, theList.front()});
+        theMap.emplace(_key, theList.front());
         return theList.front();
     }
 
@@ -75,35 +79,13 @@ public:
     }
 
 protected:
-    list<Tv> theList;
-    map<Tk, Tv&> theMap;
+    std::list<Tv> theList;
+    std::unordered_map<Tk, Tv&> theMap;
 };
 
-template<class T> class SettingMap {
-public:
-    void add_setting(const string& _key, const T& _val) {
-        theMap[_key] = {_val, _val};
-    }
-
-    void modify(const string& _key, const T& _val) {
-        theMap.at(_key).second = _val;
-    }
-
-    T crnt(const string& _key) { return theMap.at(_key).first; }
-    T next(const string& _key) { return theMap.at(_key).second; }
-
-    void apply() {
-        for (pair<const string, pair<T, T>>& item : theMap)
-            item.second.first = item.second.second;
-    }
-
-    void revert() {
-        for (pair<const string, pair<T, T>>& item : theMap)
-            item.second.second = item.second.first;
-    }
-
-protected:
-    map<const string, pair<T, T>> theMap;
-};
+template <typename T>
+bool val_in(const T& _val, const std::initializer_list<T>& _in) {
+    return std::find(_in.begin(), _in.end(), _val) != _in.end();
+}
 
 }

@@ -1,7 +1,6 @@
 #pragma once
-#include <defs.hpp>
+#include "forward.hpp"
 
 namespace sq {
-
 
 }

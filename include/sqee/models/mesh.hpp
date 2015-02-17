@@ -1,7 +1,8 @@
 #pragma once
+#include "forward.hpp"
 
-#include <maths/glm.hpp>
-#include <misc/containers.hpp>
+#include <array>
+#include <vector>
 
 namespace sq {
 
@@ -28,15 +29,14 @@ public:
     GLuint vboP, vboN, vboT, vboB, vboW, vboTc;
 
     GLuint vao;
-    vector<pair<GLuint, uint>> iboVec;
+    std::vector<std::pair<GLuint, uint>> iboVec;
 
-    vector<Vertex> vertVec;
-    vector<vector<array<uint, 3>>> mtrlVec;
+    std::vector<Vertex> vertVec;
+    std::vector<std::vector<std::array<uint, 3>>> mtrlVec;
 
     void bind_vao();
     void draw_ibo(uint _mtrl = 0);
 };
-typedef ResHolder<string, Mesh> MeshHolder;
 
 
 }

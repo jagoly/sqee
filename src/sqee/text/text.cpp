@@ -1,11 +1,17 @@
-#include <text/text.hpp>
+#include <array>
+#include <vector>
+
+#include "gl/gl_ext_3_3.hpp"
+#include "gl/maths.hpp"
+
+#include "text/text.hpp"
 
 using namespace sq;
 
 extern "C" const uchar ttTexture[256*16*16];
 extern "C" const uchar ttIndices[2048*6*2];
 
-void sq::draw_tiny_text(const string& _text, float _scale, Alignment _align,
+void sq::draw_tiny_text(const std::string& _text, float _scale, Alignment _align,
                         glm::vec2 _pos,  glm::uvec2 _viewport) {
     static GLuint tex = 0;
     static GLuint prog = 0;
@@ -93,8 +99,8 @@ void sq::draw_tiny_text(const string& _text, float _scale, Alignment _align,
     const glm::vec2 charSize(16.f*_scale / _viewport.x, 16.f*_scale / _viewport.y);
     const glm::vec2 textPos(_pos.x / _viewport.x*2-1, _pos.y / _viewport.y*2-1);
 
-    vector<array<glm::vec2, 4>> posData;
-    vector<array<glm::u8vec3, 4>> crdData;
+    std::vector<std::array<glm::vec2, 4>> posData;
+    std::vector<std::array<glm::u8vec3, 4>> crdData;
 
     glm::vec2 crntPos(textPos);
     for (const char& c : _text) {
@@ -103,8 +109,8 @@ void sq::draw_tiny_text(const string& _text, float _scale, Alignment _align,
         else {
             posData.emplace_back();
             crdData.emplace_back();
-            array<glm::vec2, 4>& pos = posData.back();
-            array<glm::u8vec3, 4>& crd = crdData.back();
+            std::array<glm::vec2, 4>& pos = posData.back();
+            std::array<glm::u8vec3, 4>& crd = crdData.back();
             pos[0] = {crntPos.x, crntPos.y + charSize.y};
             pos[1] = crntPos + charSize;
             pos[2] = crntPos;

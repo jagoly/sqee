@@ -8,14 +8,17 @@
 
 namespace sqt {
 
+class GlApp;
+
 class SceneGame : public sq::Scene {
 public:
     SceneGame(sq::Application& _app);
 
     sq::LookatCamera camera;
 
-    void render(float _ft);
     void update();
+    void render(float _ft);
+    void resize(glm::uvec2 _size);
 
 private:
     glm::vec3 translation = {0.f, 0.f, -4.f};

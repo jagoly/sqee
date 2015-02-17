@@ -1,6 +1,7 @@
 #pragma once
-#include <defs.hpp>
+#include "forward.hpp"
 
+#include <map>
 #include <queue>
 
 #include <SFML/Audio.hpp>
@@ -24,8 +25,8 @@ public:
     void clean();
 
 private:
-    map<string, sf::SoundBuffer> soundBufferMap;
-    map<string, string> soundManagedMap;
+    std::map<string, sf::SoundBuffer> soundBufferMap;
+    std::map<string, string> soundManagedMap;
     std::queue<sf::Sound> soundQueue;
 
 };

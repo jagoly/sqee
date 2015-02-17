@@ -29,30 +29,34 @@ set(SOURCES
     "${INCDIR}/sqee/redist/stb_image.hpp"
 
 # SQEE Headers
-    "${INCDIR}/sqee/defs.hpp"
+    "${INCDIR}/sqee/forward.hpp"
     "${INCDIR}/sqee/gl/gl_ext_3_3.hpp"
-    "${INCDIR}/sqee/gl/gl.hpp"
+    "${INCDIR}/sqee/gl/maths.hpp"
+    "${INCDIR}/sqee/gl/misc.hpp"
     "${INCDIR}/sqee/gl/bounds.hpp"
     "${INCDIR}/sqee/gl/cameras.hpp"
     "${INCDIR}/sqee/gl/framebuffers.hpp"
     "${INCDIR}/sqee/gl/shaders.hpp"
     "${INCDIR}/sqee/gl/uniformbuffers.hpp"
     "${INCDIR}/sqee/gl/textures.hpp"
+    "${INCDIR}/sqee/scripts/chaiscript.hpp"
+    "${INCDIR}/sqee/scripts/console.hpp"
+    "${INCDIR}/sqee/scripts/intergration.hpp"
     "${INCDIR}/sqee/app/application.hpp"
+    "${INCDIR}/sqee/app/logging.hpp"
+    "${INCDIR}/sqee/app/settings.hpp"
     "${INCDIR}/sqee/events/handler.hpp"
     "${INCDIR}/sqee/events/basichandlers.hpp"
     "${INCDIR}/sqee/text/font.hpp"
     "${INCDIR}/sqee/text/text.hpp"
-    "${INCDIR}/sqee/maths/glm.hpp"
     "${INCDIR}/sqee/maths/physics.hpp"
     "${INCDIR}/sqee/menus/basicmenu.hpp"
     "${INCDIR}/sqee/models/mesh.hpp"
     "${INCDIR}/sqee/models/skin.hpp"
     "${INCDIR}/sqee/models/skeleton.hpp"
-    "${INCDIR}/sqee/misc/files.hpp"
     "${INCDIR}/sqee/misc/containers.hpp"
-#    "${INCDIR}/sqee/python/console.hpp"
-#    "${INCDIR}/sqee/python/interpreter.hpp"
+    "${INCDIR}/sqee/misc/files.hpp"
+    "${INCDIR}/sqee/misc/strtonum.hpp"
     "${INCDIR}/sqee/scenes/scene.hpp"
     "${INCDIR}/sqee/scenes/basicscenes.hpp"
     "${INCDIR}/sqee/sounds/soundmanager.hpp"
@@ -63,14 +67,18 @@ set(SOURCES
 
 # SQEE Source
     "${SRCDIR}/sqee/gl/gl_ext_3_3.cpp"
-    "${SRCDIR}/sqee/gl/gl.cpp"
+    "${SRCDIR}/sqee/gl/misc.cpp"
     "${SRCDIR}/sqee/gl/bounds.cpp"
     "${SRCDIR}/sqee/gl/cameras.cpp"
     "${SRCDIR}/sqee/gl/framebuffers.cpp"
     "${SRCDIR}/sqee/gl/shaders.cpp"
     "${SRCDIR}/sqee/gl/uniformbuffers.cpp"
     "${SRCDIR}/sqee/gl/textures.cpp"
+    "${SRCDIR}/sqee/scripts/console.cpp"
+    "${SRCDIR}/sqee/scripts/intergration.cpp"
     "${SRCDIR}/sqee/app/application.cpp"
+    "${SRCDIR}/sqee/app/logging.cpp"
+    "${SRCDIR}/sqee/app/settings.cpp"
     "${SRCDIR}/sqee/events/basichandlers.cpp"
     "${SRCDIR}/sqee/text/font.cpp"
     "${SRCDIR}/sqee/text/text.cpp"
@@ -80,8 +88,6 @@ set(SOURCES
     "${SRCDIR}/sqee/models/skin.cpp"
     "${SRCDIR}/sqee/models/skeleton.cpp"
     "${SRCDIR}/sqee/misc/files.cpp"
-#    "${INCDIR}/sqee/python/console.hpp"
-#    "${INCDIR}/sqee/python/interpreter.hpp"
     "${SRCDIR}/sqee/scenes/basicscenes.cpp"
     "${SRCDIR}/sqee/sounds/soundmanager.cpp"
 )
@@ -159,5 +165,5 @@ endif()
 #add_subdirectory("tests/soko")
 #add_subdirectory("tests/fb")
 add_subdirectory("tests/gl")
-#add_subdirectory("tests/python")
+add_subdirectory("tests/chai")
 add_subdirectory("tests/rpg")

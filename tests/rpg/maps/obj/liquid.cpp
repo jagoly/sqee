@@ -1,3 +1,6 @@
+#include <sqee/gl/gl_ext_3_3.hpp>
+#include <sqee/gl/maths.hpp>
+
 #include "../../resbank.hpp"
 #include "liquid.hpp"
 
@@ -23,7 +26,12 @@ Liquid::Liquid(const ObjectSpec& _spec) : Object(_spec) {
 
     glm::vec3 pos = glm::make_vec3(_spec.fMap.at("pos").data());
     string texDir = _spec.sMap.at("texDir")[0];
-    mesh.load(_spec.sMap.at("mesh")[0]);
+
+    const string& mName = _spec.sMap.at("mesh")[0];
+    if (!(mesh = resBank().meshH.get(mName))) {
+        mesh = resBank().meshH.add(mName);
+        mesh->load(mName);
+    }
 
     wScale = _spec.fMap.at("scale")[0];
     wSmooth = _spec.fMap.at("smooth")[0];
@@ -71,8 +79,8 @@ void Liquid::bind_ubo() {
 
 void Liquid::draw() {
     normArray->bind(gl::TEXTURE3);
-    mesh.bind_vao();
-    mesh.draw_ibo();
+    mesh->bind_vao();
+    mesh->draw_ibo();
 }
 
 void Liquid::tick() {

@@ -1,3 +1,8 @@
+#include <sqee/gl/gl_ext_3_3.hpp>
+#include <sqee/gl/maths.hpp>
+#include <sqee/gl/cameras.hpp>
+
+#include "maps/world.hpp"
 #include "resbank.hpp"
 #include "player.hpp"
 

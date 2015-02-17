@@ -1,13 +1,11 @@
 #pragma once
+#include <sqee/forward.hpp>
 
-#include <SFML/System.hpp>
-
-#include <sqee/gl/cameras.hpp>
-
-#include "maps/world.hpp"
 #include "entities/model.hpp"
 
 namespace sqt {
+
+class World;
 
 class Player {
 public:
@@ -41,8 +39,6 @@ private:
     glm::ivec2 gridCrnt, gridPrev;
     glm::vec3 posCrnt, posNext;
     glm::vec2 camOffsCrnt, camOffsNext, camOffsTrgt;
-
-
 };
 
 }

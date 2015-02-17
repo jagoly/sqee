@@ -1,9 +1,7 @@
 #pragma once
+#include "forward.hpp"
 
-#include <gl/gl.hpp>
-#include <maths/glm.hpp>
-#include <misc/containers.hpp>
-// ^ need to make shaders follow conventions of other sqee resources
+#include <unordered_map>
 
 namespace sq {
 
@@ -38,7 +36,7 @@ private:
         Uniform(GLint _ref, uint _cnt) : ref(_ref), cnt(_cnt) {}
         const GLint ref; const uint cnt;
     };
-    unordered_map<string, Uniform> uniforms;
+    std::unordered_map<string, Uniform> uniforms;
 };
 
 class Pipeline : NonCopyable {

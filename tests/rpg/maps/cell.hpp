@@ -1,6 +1,9 @@
 #pragma once
+#include <sqee/forward.hpp>
 
-#include <unordered_map>
+#include <map>
+#include <memory>
+#include <vector>
 
 #include "obj/object.hpp"
 
@@ -10,15 +13,15 @@ class HeightLayer {
 public:
     HeightLayer(const string& _filePath, glm::ivec2 _minXY, glm::ivec2 _maxXY, float _offs);
     float get_z(uint _x, uint _y) const;
-    vector<vector<float>> floatVV;
+    std::vector<std::vector<float>> floatVV;
 };
 
 class Cell {
 public:
     Cell(const string& _filePath, const string& _name,
-         const vector<string>& _loads, glm::ivec2 _posXY, float _posZ);
+         const std::vector<string>& _loads, glm::ivec2 _posXY, float _posZ);
     const string name;
-    const vector<string> loads;
+    const std::vector<string> loads;
 
     glm::ivec2 minXY; float minZ;
     glm::ivec2 maxXY; float maxZ;
@@ -31,9 +34,9 @@ public:
     glm::vec3 get_max() const;
     glm::vec3 get_size() const;
 
-    map<string, HeightLayer> hlMap;
-    map<string, unique_ptr<Object>> objectMap;
-    typedef pair<const string, unique_ptr<Object>> SOPair;
+    std::map<string, HeightLayer> hlMap;
+    std::map<string, std::unique_ptr<Object>> objMap;
+    typedef std::pair<const string, std::unique_ptr<Object>> SOPair;
 
 };
 
