@@ -1,7 +1,5 @@
 #include "app/logging.hpp"
 #include "gl/gl_ext_3_3.hpp"
-#include "gl/maths.hpp"
-#include "misc/containers.hpp"
 #include "redist/stb_image.hpp"
 
 #include "gl/textures.hpp"
@@ -12,15 +10,16 @@ Texture::~Texture() {
     gl::DeleteTextures(1, &tex);
 }
 
-void Texture::create(GLenum _target, GLenum _format, GLenum _iFormat, Preset _preset) {
+void Texture::create(GLenum _target, GLenum _format, GLenum _iFormat,
+                     Preset _preset, const string& _path) {
     #ifdef SQEE_DEBUG
     // Add something in here
     #endif
     target = _target;
     format = _format;
     iFormat = _iFormat;
-    dataType = (format != gl::DEPTH_STENCIL) ?
-                gl::UNSIGNED_BYTE : gl::UNSIGNED_INT_24_8;
+    if (format == gl::DEPTH_STENCIL) dataType = gl::UNSIGNED_INT_24_8;
+    else dataType = gl::UNSIGNED_BYTE;
 
     if      (iFormat == gl::DEPTH_COMPONENT16 || iFormat == gl::DEPTH_COMPONENT32 ||
              iFormat == gl::DEPTH24_STENCIL8 ||
@@ -37,12 +36,8 @@ void Texture::create(GLenum _target, GLenum _format, GLenum _iFormat, Preset _pr
 
     gl::GenTextures(1, &tex);
     set_preset(_preset);
-}
 
-void Texture::create(GLenum _target, GLenum _format, GLenum _iFormat,
-                     const string& _filePath, Preset _preset) {
-    create(_target, _format, _iFormat, _preset);
-    buffer_file(_filePath);
+    if (!_path.empty()) buffer_file(_path);
 }
 
 void Texture::resize(glm::uvec3 _size) {
@@ -102,32 +97,38 @@ void Texture::buffer_file(const string& _filePath, uint _z) {
 void Texture::set_preset(Preset _preset) {
     bind();
 
-    if (val_in(_preset, {Preset::L_C, Preset::L_R, Preset::SHAD})) {
+    if (_preset == Preset::L_C || _preset == Preset::L_R || _preset == Preset::SHAD) {
         gl::TexParameteri(target, gl::TEXTURE_MIN_FILTER, gl::LINEAR);
         gl::TexParameteri(target, gl::TEXTURE_MAG_FILTER, gl::LINEAR);
     }
-    if (val_in(_preset, {Preset::N_C, Preset::N_R})) {
+    if (_preset == Preset::N_C || _preset == Preset::N_R) {
         gl::TexParameteri(target, gl::TEXTURE_MIN_FILTER, gl::NEAREST);
         gl::TexParameteri(target, gl::TEXTURE_MAG_FILTER, gl::NEAREST);
     }
-    if (val_in(_preset, {Preset::L_C, Preset::N_C, Preset::SHAD})) {
+    if (_preset == Preset::L_C || _preset == Preset::N_C || _preset == Preset::SHAD) {
         gl::TexParameteri(target, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE);
         gl::TexParameteri(target, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE);
     }
-    if (val_in(_preset, {Preset::L_R, Preset::N_R})) {
+    if (_preset == Preset::L_R || _preset == Preset::N_R) {
         gl::TexParameteri(target, gl::TEXTURE_WRAP_S, gl::REPEAT);
         gl::TexParameteri(target, gl::TEXTURE_WRAP_T, gl::REPEAT);
     }
-
-    if (val_in(_preset, {Preset::SHAD}))
+    if (_preset == Preset::SHAD) {
         gl::TexParameteri(target, gl::TEXTURE_COMPARE_MODE, gl::COMPARE_REF_TO_TEXTURE);
+    }
 }
 
 void Texture::bind(GLenum _slot) {
-    if (_slot != gl::NONE) gl::ActiveTexture(_slot);
+    if (_slot != 0) gl::ActiveTexture(_slot);
     gl::BindTexture(target, tex);
 }
 
 void Texture::set_param(GLenum _name, GLenum _value) {
     bind(); gl::TexParameteri(target, _name, _value);
+}
+
+
+ResHolder<Texture>& sq::res::texture() {
+    static ResHolder<Texture> holder;
+    return holder;
 }

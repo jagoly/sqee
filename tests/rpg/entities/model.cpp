@@ -1,28 +1,27 @@
 #include <sqee/gl/gl_ext_3_3.hpp>
-#include <sqee/gl/maths.hpp>
+#include <sqee/models/mesh.hpp>
+#include <sqee/models/skin.hpp>
+#include <sqee/models/animation.hpp>
 
-#include "../resbank.hpp"
 #include "model.hpp"
 
 using namespace sqt::ent;
 
-void Model::load(const string& _meshPath, const string& _skinPath,
-                 const string& _animPath)
-{
-    if (!(mesh = resBank().meshH.get(_meshPath))) {
-        mesh = resBank().meshH.add(_meshPath);
-        mesh->load(_meshPath);
+void Model::load(const string& _meshPath, const string& _skinPath, const string& _animPath) {
+    if (!(mesh = sq::res::mesh().get(_meshPath))) {
+        mesh = sq::res::mesh().add(_meshPath);
+        mesh->create(_meshPath);
     }
 
-    if (!(skin = resBank().skinH.get(_skinPath))) {
-        skin = resBank().skinH.add(_skinPath);
-        skin->load(_skinPath, resBank().texH);
+    if (!(skin = sq::res::skin().get(_skinPath))) {
+        skin = sq::res::skin().add(_skinPath);
+        skin->create(_skinPath);
     }
 
     sq::Animation* anim;
-    if (!(anim = resBank().animH.get(_animPath))) {
-        anim = resBank().animH.add(_animPath);
-        anim->load(_animPath);
+    if (!(anim = sq::res::animation().get(_animPath))) {
+        anim = sq::res::animation().add(_animPath);
+        anim->create(_animPath);
     }
 
     skeleton.setup(anim);

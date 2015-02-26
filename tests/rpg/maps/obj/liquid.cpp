@@ -1,7 +1,9 @@
-#include <sqee/gl/gl_ext_3_3.hpp>
-#include <sqee/gl/maths.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
-#include "../../resbank.hpp"
+#include <sqee/gl/gl_ext_3_3.hpp>
+#include <sqee/gl/textures.hpp>
+#include <sqee/models/mesh.hpp>
+
 #include "liquid.hpp"
 
 using namespace sqt;
@@ -27,10 +29,10 @@ Liquid::Liquid(const ObjectSpec& _spec) : Object(_spec) {
     glm::vec3 pos = glm::make_vec3(_spec.fMap.at("pos").data());
     string texDir = _spec.sMap.at("texDir")[0];
 
-    const string& mName = _spec.sMap.at("mesh")[0];
-    if (!(mesh = resBank().meshH.get(mName))) {
-        mesh = resBank().meshH.add(mName);
-        mesh->load(mName);
+    const string& mPath = _spec.sMap.at("mesh")[0];
+    if (!(mesh = sq::res::mesh().get(mPath))) {
+        mesh = sq::res::mesh().add(mPath);
+        mesh->create(mPath);
     }
 
     wScale = _spec.fMap.at("scale")[0];
@@ -39,15 +41,15 @@ Liquid::Liquid(const ObjectSpec& _spec) : Object(_spec) {
     colour = glm::make_vec3(_spec.fMap.at("colour").data());
     thickness = _spec.fMap.at("thickness")[0];
 
-    glm::mat4 reflMat = {
+    glm::mat4 reflMat {
         1, 0, 0, 0,
         0, 1, 0, 0,
         0, 0, -1, 0,
         0, 0, 2.f*pos.z, 1
     };
 
-    if (!(normArray = resBank().texH.get("waternorms_"+texDir))) {
-        normArray = resBank().texH.add("waternorms_"+texDir);
+    if (!(normArray = sq::res::texture().get("waternorms_"+texDir))) {
+        normArray = sq::res::texture().add("waternorms_"+texDir);
         normArray->create(gl::TEXTURE_2D_ARRAY, gl::RGB, gl::RGB8, sq::Texture::Preset::L_R);
         normArray->resize({1024, 1024, 4});
         normArray->buffer_file("static/water/"+texDir+"/0", 0);

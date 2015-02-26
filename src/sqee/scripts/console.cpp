@@ -2,13 +2,16 @@
 
 #include "app/application.hpp"
 #include "app/logging.hpp"
-#include "gl/maths.hpp"
 #include "scripts/chaiscript.hpp"
 #include "text/text.hpp"
 
 #include "scripts/console.hpp"
 
 using namespace sq;
+
+namespace Action {
+enum { Up, Right, Down, Left, Backspace, Delete, Home, End, Return, ShiftReturn };
+}
 
 void SceneConsole::update() {}
 
@@ -18,6 +21,19 @@ void SceneConsole::render(float _ft) {
     }
 }
 void SceneConsole::resize(glm::uvec2 _size) {}
+
+void SceneConsole::toggle_active() {
+    static bool prevKR = false;
+    active = !active;
+    if (active) {
+        prevKR = app.settings.crnt("app_keyrepeat").b();
+        app.settings.modify("app_keyrepeat", true);
+        app.settings.apply();
+    } else {
+        app.settings.modify("app_keyrepeat", prevKR);
+        app.settings.apply();
+    }
+}
 
 void SceneConsole::exec() {
     try {
@@ -30,21 +46,45 @@ void SceneConsole::exec() {
     curPos = 0;
 }
 
-void SceneConsole::handle_char(char _c) {
-    if (_c == 8) { // backspace
-        if (!inputStr.empty() && curPos > 0)
-            inputStr.erase(--curPos, 1);
-    } else if (_c == 127) { // delete
-        if (inputStr.length() > curPos)
-            inputStr.erase(curPos, 1);
-    } else if (_c == -2) { // right
+void SceneConsole::handle_character(char _c) {
+    if (std::isprint(_c)) // all printable chars
+        inputStr.insert(curPos++, 1, _c);
+}
+
+void SceneConsole::handle_action(int _action) {
+    if (_action == Action::Up) {
+
+    } else
+    if (_action == Action::Right) {
         if (curPos < inputStr.length())
             curPos++;
-    } else if (_c == -4) { // left
+    } else
+    if (_action == Action::Down) {
+
+    } else
+    if (_action == Action::Left) {
         if (curPos > 0)
             curPos--;
-    } else if (std::isprint(_c) || _c == 10) { // all others inc newline
-        inputStr.insert(curPos++, 1, _c);
+    } else
+    if (_action == Action::Backspace) {
+        if (!inputStr.empty() && curPos > 0)
+            inputStr.erase(--curPos, 1);
+    } else
+    if (_action == Action::Delete) {
+        if (inputStr.length() > curPos)
+            inputStr.erase(curPos, 1);
+    } else
+    if (_action == Action::Home) {
+        curPos = 0;
+    } else
+    if (_action == Action::End) {
+        curPos = inputStr.length();
+    } else
+    if (_action == Action::ShiftReturn) {
+        inputStr.insert(curPos++, 1, '\n');
+    } else
+    if (_action == Action::Return) {
+        exec();
     }
 }
 
@@ -61,36 +101,40 @@ string SceneConsole::pretty_print() {
 bool HandlerConsole::handle(const sf::Event& _event) {
     static SceneConsole* console = static_cast<SceneConsole*>(app.sceneIM.get("console").get());
 
-    if (!console->active) {
-        if (_event.type == sf::Event::KeyPressed && _event.key.code == sf::Keyboard::Menu) {
-            console->active = true;
-            return true;
-        }
-        return false;
+    if (_event.type == sf::Event::KeyPressed && _event.key.code == sf::Keyboard::Menu) {
+        console->toggle_active();
+        return true;
     }
 
+    if (!console->active) return false;
+
     if (_event.type == sf::Event::KeyPressed) {
-        if (_event.key.code == sf::Keyboard::Return) {
-            if (_event.key.shift) console->handle_char(10);
-            else console->exec();
-        }
-        else if (_event.key.code == sf::Keyboard::Menu)
-            console->active = false;
-        else if (_event.key.code == sf::Keyboard::Up)
-            console->handle_char(-1);
+        if (_event.key.code == sf::Keyboard::Up)
+            console->handle_action(Action::Up);
         else if (_event.key.code == sf::Keyboard::Right)
-            console->handle_char(-2);
+            console->handle_action(Action::Right);
         else if (_event.key.code == sf::Keyboard::Down)
-            console->handle_char(-3);
+            console->handle_action(Action::Down);
         else if (_event.key.code == sf::Keyboard::Left)
-            console->handle_char(-4);
+            console->handle_action(Action::Left);
+        else if (_event.key.code == sf::Keyboard::BackSpace)
+            console->handle_action(Action::Backspace);
+        else if (_event.key.code == sf::Keyboard::Delete)
+            console->handle_action(Action::Delete);
+        else if (_event.key.code == sf::Keyboard::Home)
+            console->handle_action(Action::Home);
+        else if (_event.key.code == sf::Keyboard::End)
+            console->handle_action(Action::End);
+        else if (_event.key.code == sf::Keyboard::Return)
+            console->handle_action(_event.key.shift ? Action::ShiftReturn : Action::Return);
         return true; // catch all keyboard input
     } else if (_event.type == sf::Event::KeyReleased) return true;
 
     if (_event.type == sf::Event::TextEntered) {
         if (_event.text.unicode < 128) // ascii only
-            console->handle_char(static_cast<char>(_event.text.unicode));
+            console->handle_character(static_cast<char>(_event.text.unicode));
         return true;
     }
+
     return false;
 }

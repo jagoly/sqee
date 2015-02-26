@@ -9,6 +9,10 @@
 
 #include "cell.hpp"
 #include "obj/object.hpp"
+#include "obj/model.hpp"
+#include "obj/liquid.hpp"
+#include "obj/reflector.hpp"
+#include "obj/light.hpp"
 
 namespace sqt {
 

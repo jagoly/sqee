@@ -8,7 +8,7 @@
 
 #include "app/settings.hpp"
 #include "events/handler.hpp"
-#include "misc/containers.hpp"
+#include "misc/indexedmap.hpp"
 #include "scenes/scene.hpp"
 #include "scripts/chaiscript.hpp"
 #include "sounds/soundmanager.hpp"

@@ -4,6 +4,8 @@
 #include <array>
 #include <vector>
 
+#include "misc/resholder.hpp"
+
 namespace sq {
 
 class Mesh : NonCopyable {
@@ -12,12 +14,12 @@ public:
         float x=0, y=0, z=0;
         float nx=0, ny=0, nz=0;
         float u=0, v=0;
-        int b[8] {-1}; float w[8] {0};
+        int b[8] {-1};
+        float w[8] {0};
     };
 
+    void create(const string& _filePath);
     ~Mesh();
-
-    void load(const string& _filePath);
 
     bool hasNM = false;
     bool hasUV = false;
@@ -38,5 +40,6 @@ public:
     void draw_ibo(uint _mtrl = 0);
 };
 
+namespace res { ResHolder<Mesh>& mesh(); }
 
 }

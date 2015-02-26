@@ -2,7 +2,6 @@
 #include <vector>
 
 #include "gl/gl_ext_3_3.hpp"
-#include "gl/maths.hpp"
 
 #include "text/text.hpp"
 
@@ -104,7 +103,7 @@ void sq::draw_tiny_text(const std::string& _text, float _scale, Alignment _align
 
     glm::vec2 crntPos(textPos);
     for (const char& c : _text) {
-        if (c == ' ') crntPos.x += charSize.x * 0.5f;
+        if (c == ' ') crntPos.x += charSize.x * 0.625f;
         else if (c == '\n') { crntPos.x = textPos.x; crntPos.y += charSize.y; }
         else {
             posData.emplace_back();

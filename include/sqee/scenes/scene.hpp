@@ -11,10 +11,9 @@ class Scene : NonCopyable {
 public:
     typedef std::unique_ptr<Scene> Ptr;
 
-    Scene(Application& _app)
-        : app(_app) {}
+    Scene(Application& _app) : app(_app) {}
 
-    double accum = 0.d;
+    double accum = 0.0;
     uint tickRate = 60;
 
     virtual void update() =0;

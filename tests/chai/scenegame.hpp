@@ -2,7 +2,6 @@
 
 #include <sqee/gl/textures.hpp>
 #include <sqee/gl/cameras.hpp>
-#include <sqee/misc/containers.hpp>
 #include <sqee/scenes/scene.hpp>
 #include <sqee/events/handler.hpp>
 

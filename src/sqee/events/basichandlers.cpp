@@ -1,5 +1,4 @@
 #include <app/application.hpp>
-#include <gl/maths.hpp>
 
 #include <events/basichandlers.hpp>
 

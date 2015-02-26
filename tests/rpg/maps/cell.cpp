@@ -1,11 +1,14 @@
 #include <fstream>
 
 #include <sqee/gl/gl_ext_3_3.hpp>
-#include <sqee/gl/maths.hpp>
 #include <sqee/app/logging.hpp>
 #include <sqee/misc/files.hpp>
 
-#include "../resbank.hpp"
+#include "obj/model.hpp"
+#include "obj/liquid.hpp"
+#include "obj/light.hpp"
+#include "obj/reflector.hpp"
+
 #include "cell.hpp"
 
 using namespace sqt;
@@ -116,14 +119,14 @@ Cell::Cell(const string& _filePath, const string& _name,
 }
 
 void Cell::tick() {
-    for (SOPair& so : objMap) {
-        so.second->tick();
+    for (auto& strObj : objMap) {
+        strObj.second->tick();
     }
 }
 
 void Cell::calc(double _accum) {
-    for (SOPair& so : objMap) {
-        so.second->calc(_accum);
+    for (auto& strObj : objMap) {
+        strObj.second->calc(_accum);
     }
 }
 

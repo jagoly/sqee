@@ -1,6 +1,5 @@
 #include "app/logging.hpp"
 #include "gl/gl_ext_3_3.hpp"
-#include "gl/maths.hpp"
 #include "gl/misc.hpp"
 #include "scripts/intergration.hpp"
 
@@ -48,11 +47,11 @@ int Application::run() {
     sf::Clock clockFT;
 
     while (retCode == -1) {
-        for (const string& _id : sceneSweep) {
+        for (const auto& _id : sceneSweep) {
             sceneIM.del(_id);
         } sceneSweep.clear();
 
-        for (const string& _id : handlerSweep) {
+        for (const auto& _id : handlerSweep) {
             handlerIM.del(_id);
         } handlerSweep.clear();
 
@@ -60,23 +59,23 @@ int Application::run() {
 
         static sf::Event event;
         while (window.pollEvent(event))
-            for (Handler::Ptr& handler : handlerIM)
+            for (auto& handler : handlerIM)
                 if (handler->handle(event)) break;
 
         update_settings();
 
         float ft = clockFT.restart().asSeconds();
 
-        for (Scene::Ptr& scene : sceneIM) {
+        for (auto& scene : sceneIM) {
             scene->accum += ft;
-            double dt = 1.d / double(scene->tickRate);
+            double dt = 1.0 / double(scene->tickRate);
             while (scene->accum >= dt) {
                 scene->update();
                 scene->accum -= dt;
             }
         }
 
-        for (Scene::Ptr& scene : sceneIM) {
+        for (auto& scene : sceneIM) {
             scene->render(ft);
         }
 

@@ -36,8 +36,6 @@ public:
 
     std::map<string, HeightLayer> hlMap;
     std::map<string, std::unique_ptr<Object>> objMap;
-    typedef std::pair<const string, std::unique_ptr<Object>> SOPair;
-
 };
 
 }

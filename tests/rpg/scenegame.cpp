@@ -1,14 +1,16 @@
 #include <list>
 #include <map>
 
+#include <glm/gtc/matrix_transform.hpp>
+
 #include <sqee/gl/gl_ext_3_3.hpp>
-#include <sqee/gl/maths.hpp>
 #include <sqee/gl/misc.hpp>
 #include <sqee/gl/shaders.hpp>
 #include <sqee/gl/framebuffers.hpp>
+#include <sqee/models/mesh.hpp>
+#include <sqee/models/skin.hpp>
 #include <sqee/app/application.hpp>
 
-#include "resbank.hpp"
 #include "scenegame.hpp"
 
 inline glm::mat3 to_norm_mat(const glm::mat4& _mvMat) {
@@ -71,19 +73,9 @@ void SceneGame::update() {
 }
 
 void SceneGame::render(float _ft) {
-    static sq::Framebuffer priFb({gl::COLOR_ATTACHMENT0}, {gl::RGBA}, {gl::RGBA8},
-                                 gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT32);
-    static sq::Framebuffer secFb({gl::COLOR_ATTACHMENT0}, {gl::RGBA}, {gl::RGBA8},
-                                 gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT32);
-    static sq::Framebuffer terFb({gl::COLOR_ATTACHMENT0}, {gl::RGBA}, {gl::RGBA8},
-                                 gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT32);
-    static sq::Framebuffer slFramebuf(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT32);
-    static sq::Framebuffer spFramebufs[8] {
-        {gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT32}, {gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT32},
-        {gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT32}, {gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT32},
-        {gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT32}, {gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT32},
-        {gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT32}, {gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT32}
-    };
+    static sq::Framebuffer priFb, secFb, terFb;
+    static sq::Framebuffer skylFb;
+    static sq::Framebuffer spotFbArr[8];
 
     static sq::Shader staticshadVS;
     static sq::Shader skellyshadVS;
@@ -108,6 +100,18 @@ void SceneGame::render(float _ft) {
     if (first) { first = false;
         app.settings.add("shadQuality", 2);
         app.settings.add("fxaaQuality", 2);
+
+        using TexPreset = sq::Texture::Preset;
+        priFb.create_tex(0, gl::RGBA, gl::RGBA8, TexPreset::L_C);
+        priFb.create_tex(-1, gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT32, TexPreset::L_C);
+        secFb.create_tex(0, gl::RGBA, gl::RGBA8, TexPreset::L_C);
+        secFb.create_tex(-1, gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT32, TexPreset::L_C);
+        terFb.create_tex(0, gl::RGBA, gl::RGBA8, TexPreset::L_C);
+        terFb.create_tex(-1, gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT32, TexPreset::L_C);
+        skylFb.create_tex(-1, gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT32, TexPreset::SHAD);
+        for (auto& fb : spotFbArr)
+            fb.create_tex(-1, gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT32, TexPreset::SHAD);
+
 
         staticshadVS.load("models/staticshad_vs", gl::VERTEX_SHADER);
         skellyshadVS.load("models/skellyshad_vs", gl::VERTEX_SHADER);
@@ -163,14 +167,10 @@ void SceneGame::render(float _ft) {
     /// Act Upon Changed Framebuffers ///
 
     if (updateFramebuffers) {
-        glm::uvec2 size = app.get_size();
-
+        auto size = app.get_size();
         priFb.resize(size);
-        priFb.cTexVec[0].set_preset(sq::Texture::Preset::L_C);
         secFb.resize(size);
-        secFb.cTexVec[0].set_preset(sq::Texture::Preset::L_C);
         terFb.resize(size);
-        terFb.cTexVec[0].set_preset(sq::Texture::Preset::L_C);
 
         glm::vec2 pixSize(1.f / size.x, 1.f / size.y);
         fxaaLFS.set_glmvec("vpPixSize", pixSize);
@@ -183,13 +183,11 @@ void SceneGame::render(float _ft) {
     /// World Updates ///
 
     if (world.updateScene) { world.updateScene = false;
-        int shadowMult = std::pow(2, app.settings.crnt("shadQuality").i());
-        slFramebuf.resize(world.skylTexSize * shadowMult);
-        slFramebuf.dsTex.set_preset(sq::Texture::Preset::SHAD);
-
+        int shadMult = std::pow(2, app.settings.crnt("shadQuality").i());
+        skylFb.resize({world.skylTexSize*shadMult, world.skylTexSize*shadMult});
         for (uint i = 0; i < world.spotCount; i++) {
-            spFramebufs[i].resize(world.lightVec[i]->texSize * shadowMult);
-            spFramebufs[i].dsTex.set_preset(sq::Texture::Preset::SHAD);
+            uint sz = world.lightVec[i]->texSize * shadMult;
+            spotFbArr[i].resize({sz, sz});
         }
     }
 
@@ -211,8 +209,8 @@ void SceneGame::render(float _ft) {
     if (world.skylEnable) {
         pipeLine.disable_stages(gl::FRAGMENT_SHADER_BIT);
 
-        slFramebuf.use();
-        slFramebuf.useVP();
+        skylFb.use();
+        skylFb.useVP();
         gl::Clear(gl::DEPTH_BUFFER_BIT);
         staticshadVS.set_glmmat("shadMat", world.skylMat);
         skellyshadVS.set_glmmat("shadMat", world.skylMat);
@@ -249,15 +247,15 @@ void SceneGame::render(float _ft) {
             }
         }
 
-        slFramebuf.dsTex.bind(gl::TEXTURE4);
+        skylFb.dsTex->bind(gl::TEXTURE4);
     }
 
 
     /// Spotlights ///
 
     for (uint i = 0; i < world.spotCount; i++) {
-        spFramebufs[i].use();
-        spFramebufs[i].useVP();
+        spotFbArr[i].use();
+        spotFbArr[i].useVP();
         gl::Clear(gl::DEPTH_BUFFER_BIT);
         pipeLine.disable_stages(gl::FRAGMENT_SHADER_BIT);
         staticshadVS.set_glmmat("shadMat", world.lightVec[i]->shadMat);
@@ -295,7 +293,7 @@ void SceneGame::render(float _ft) {
             }
         }
 
-        spFramebufs[i].dsTex.bind(gl::TEXTURE5+i);
+        spotFbArr[i].dsTex->bind(gl::TEXTURE5+i);
     }
 
 
@@ -389,9 +387,9 @@ void SceneGame::render(float _ft) {
 
         pipeLine.use_shader(liquidVS);
         pipeLine.use_shader(liquidFS);
-        secFb.cTexVec[0].bind(gl::TEXTURE0);
-        terFb.cTexVec[0].bind(gl::TEXTURE1);
-        terFb.dsTex.bind(gl::TEXTURE2);
+        secFb.cTexArr[0]->bind(gl::TEXTURE0);
+        terFb.cTexArr[0]->bind(gl::TEXTURE1);
+        terFb.dsTex->bind(gl::TEXTURE2);
 
         liquid->draw();
     }
@@ -433,7 +431,7 @@ void SceneGame::render(float _ft) {
     pipeLine.use_shader(quadVS);
 
     gl::Disable(gl::DEPTH_TEST);
-    priFb.cTexVec[0].bind(gl::TEXTURE0);
+    priFb.cTexArr[0]->bind(gl::TEXTURE0);
     int fxaaQuality = app.settings.crnt("fxaaQuality").i();
     if (fxaaQuality > 0) {
         pipeLine.use_shader(lumaFS);

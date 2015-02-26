@@ -1,6 +1,7 @@
+#include <glm/geometric.hpp>
+
 #include "app/logging.hpp"
 #include "gl/gl_ext_3_3.hpp"
-#include "gl/maths.hpp"
 #include "misc/files.hpp"
 #include "misc/strtonum.hpp"
 
@@ -8,7 +9,7 @@
 
 using namespace sq;
 
-void Mesh::load(const string& _filePath) {
+void Mesh::create(const string& _filePath) {
     mtrlVec.resize(1);
     uint countedFaces = 0;
 
@@ -16,7 +17,7 @@ void Mesh::load(const string& _filePath) {
     std::vector<std::vector<string>> fileVec(sq::get_words_from_file(filePath));
 
     string section = "";
-    for (const std::vector<string>& line : fileVec) {
+    for (const auto& line : fileVec) {
         const string& key = line[0];
         if (key[0] == '#') continue;
         if (key == "{") {
@@ -185,7 +186,7 @@ void Mesh::load(const string& _filePath) {
 }
 
 Mesh::~Mesh() {
-    for (std::pair<GLuint, uint>& iboPair : iboVec) {
+    for (auto& iboPair : iboVec) {
         gl::DeleteBuffers(1, &iboPair.first);
     }
     gl::DeleteVertexArrays(1, &vao);
@@ -208,4 +209,10 @@ void Mesh::bind_vao() {
 void Mesh::draw_ibo(uint _mtrl) {
     gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, iboVec[_mtrl].first);
     gl::DrawElements(gl::TRIANGLES, iboVec[_mtrl].second, gl::UNSIGNED_INT, 0);
+}
+
+
+ResHolder<Mesh>& sq::res::mesh() {
+    static ResHolder<Mesh> holder;
+    return holder;
 }

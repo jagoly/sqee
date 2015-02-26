@@ -1,6 +1,7 @@
+#include <glm/gtc/type_ptr.hpp>
+
 #include "app/logging.hpp"
 #include "gl/gl_ext_3_3.hpp"
-#include "gl/maths.hpp"
 #include "misc/files.hpp"
 
 #include "gl/shaders.hpp"

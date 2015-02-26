@@ -1,8 +1,6 @@
 #pragma once
 #include <sqee/forward.hpp>
 
-#include <sqee/models/mesh.hpp>
-#include <sqee/models/skin.hpp>
 #include <sqee/models/skeleton.hpp>
 
 namespace sqt {
@@ -10,8 +8,6 @@ namespace ent {
 
 class Model {
 public:
-    //~Model() {} // todo
-
     void load(const string& _meshPath, const string& _skinPath,
               const string& _animPath);
 

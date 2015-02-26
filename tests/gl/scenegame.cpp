@@ -1,5 +1,7 @@
+#include <glm/common.hpp>
+#include <glm/geometric.hpp>
+
 #include <sqee/gl/gl_ext_3_3.hpp>
-#include <sqee/gl/maths.hpp>
 #include <sqee/gl/shaders.hpp>
 #include <sqee/misc/files.hpp>
 #include <sqee/models/mesh.hpp>
@@ -75,7 +77,7 @@ void SceneGame::render(float) {
         vert.set_glmmat("viewMat", camera.viewMat);
         vert.set_glmmat("projMat", camera.projMat);
 
-        mesh.load("Dice");
+        mesh.create("Dice");
     }
 
     gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);

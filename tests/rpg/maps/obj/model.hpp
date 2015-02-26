@@ -12,6 +12,7 @@ public:
 
     sq::Mesh* mesh;
     sq::Skin* skin;
+
     bool shad, pnch, refl, refr;    
 };
 

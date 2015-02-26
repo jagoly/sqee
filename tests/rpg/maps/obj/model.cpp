@@ -1,9 +1,12 @@
 #include <fstream>
 
-#include <sqee/gl/gl_ext_3_3.hpp>
-#include <sqee/gl/maths.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
-#include "../../resbank.hpp"
+#include <sqee/gl/gl_ext_3_3.hpp>
+#include <sqee/models/mesh.hpp>
+#include <sqee/models/skin.hpp>
+
 #include "model.hpp"
 
 using namespace sqt;
@@ -14,16 +17,16 @@ Model::Model(const ObjectSpec& _spec) : Object(_spec) {
     refl = _spec.flagSet.count("refl");
     refr = _spec.flagSet.count("refr");
 
-    const string& mName = _spec.sMap.at("mesh")[0];
-    if (!(mesh = resBank().meshH.get(mName))) {
-        mesh = resBank().meshH.add(mName);
-        mesh->load(mName);
+    const string& mPath = _spec.sMap.at("mesh")[0];
+    if (!(mesh = sq::res::mesh().get(mPath))) {
+        mesh = sq::res::mesh().add(mPath);
+        mesh->create(mPath);
     }
 
-    const string& sName = _spec.sMap.at("skin")[0];
-    if (!(skin = resBank().skinH.get(sName))) {
-        skin = resBank().skinH.add(sName);
-        skin->load(sName, resBank().texH);
+    const string& sPath = _spec.sMap.at("skin")[0];
+    if (!(skin = sq::res::skin().get(sPath))) {
+        skin = sq::res::skin().add(sPath);
+        skin->create(sPath);
     }
 
     glm::vec3 pos = {0, 0, 0};
@@ -36,8 +39,7 @@ Model::Model(const ObjectSpec& _spec) : Object(_spec) {
     if (_spec.fMap.count("sca"))
         sca = glm::make_vec3(_spec.fMap.at("sca").data());
 
-    modelMat = sq::iMat4;
-    modelMat = glm::translate(sq::iMat4, pos);
+    modelMat = glm::translate(glm::mat4(), pos);
     modelMat = glm::translate(modelMat, cellPos);
     modelMat = glm::rotate(modelMat, rot.x, {1, 0, 0});
     modelMat = glm::rotate(modelMat, rot.y, {0, 1, 0});

@@ -15,10 +15,11 @@ public:
     void resize(glm::uvec2 _size);
 
     void exec();
-    void handle_char(char _c);
+    void handle_character(char _char);
+    void handle_action(int _action);
 
-    void open();
-    void close();
+    void toggle_active();
+
     bool active = false;
 
 private:

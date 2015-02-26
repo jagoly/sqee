@@ -53,13 +53,16 @@ set(SOURCES
     "${INCDIR}/sqee/menus/basicmenu.hpp"
     "${INCDIR}/sqee/models/mesh.hpp"
     "${INCDIR}/sqee/models/skin.hpp"
+    "${INCDIR}/sqee/models/animation.hpp"
     "${INCDIR}/sqee/models/skeleton.hpp"
-    "${INCDIR}/sqee/misc/containers.hpp"
+    "${INCDIR}/sqee/misc/resholder.hpp"
+    "${INCDIR}/sqee/misc/indexedmap.hpp"
     "${INCDIR}/sqee/misc/files.hpp"
     "${INCDIR}/sqee/misc/strtonum.hpp"
     "${INCDIR}/sqee/scenes/scene.hpp"
     "${INCDIR}/sqee/scenes/basicscenes.hpp"
     "${INCDIR}/sqee/sounds/soundmanager.hpp"
+    "${INCDIR}/sqee/globals/resources.hpp"
 
 # 3rd Party Source
     "${SRCDIR}/sqee/redist/jsoncpp.cpp"
@@ -86,10 +89,12 @@ set(SOURCES
     "${SRCDIR}/sqee/menus/basicmenu.cpp"
     "${SRCDIR}/sqee/models/mesh.cpp"
     "${SRCDIR}/sqee/models/skin.cpp"
+    "${SRCDIR}/sqee/models/animation.cpp"
     "${SRCDIR}/sqee/models/skeleton.cpp"
     "${SRCDIR}/sqee/misc/files.cpp"
     "${SRCDIR}/sqee/scenes/basicscenes.cpp"
     "${SRCDIR}/sqee/sounds/soundmanager.cpp"
+    "${SRCDIR}/sqee/globals/resources.cpp"
 )
 
 make_directory(${CMAKE_CURRENT_BINARY_DIR}/work)

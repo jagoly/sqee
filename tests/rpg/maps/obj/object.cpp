@@ -1,27 +1,20 @@
 #include <sqee/gl/gl_ext_3_3.hpp>
-#include <sqee/gl/maths.hpp>
 #include <sqee/misc/files.hpp>
 
-#include "../../resbank.hpp"
 #include "object.hpp"
 
 using namespace sqt;
 
 ObjectSpec::ObjectSpec(const string& _name, ObjType _type, glm::vec3 _cellPos)
-    : name(_name),
-      type(_type),
-      cellPos(_cellPos)
+    : name(_name), type(_type), cellPos(_cellPos)
 {}
 
 
 Object::Object(const ObjectSpec& _spec)
-    : name(_spec.name),
-      type(_spec.type),
-      cellPos(_spec.cellPos)
+    : name(_spec.name), type(_spec.type), cellPos(_spec.cellPos)
 {}
 
-void ObjectSpec::parse_line(const std::vector<string>& _line)
-{
+void ObjectSpec::parse_line(const std::vector<string>& _line) {
     const string& key = _line[0];
 
     if (key == "flags") {

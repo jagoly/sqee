@@ -1,10 +1,10 @@
 #include "app/application.hpp"
 #include "events/handler.hpp"
 #include "gl/gl_ext_3_3.hpp"
-#include "gl/maths.hpp"
 #include "models/mesh.hpp"
-#include "models/skeleton.hpp"
 #include "models/skin.hpp"
+#include "models/animation.hpp"
+#include "models/skeleton.hpp"
 #include "scenes/scene.hpp"
 #include "sounds/soundmanager.hpp"
 

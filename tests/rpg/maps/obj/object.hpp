@@ -39,8 +39,3 @@ public:
 };
 
 }
-
-#include "model.hpp"
-#include "liquid.hpp"
-#include "reflector.hpp"
-#include "light.hpp"

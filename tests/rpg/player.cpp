@@ -1,9 +1,13 @@
+#include <glm/common.hpp>
+#include <glm/trigonometric.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 #include <sqee/gl/gl_ext_3_3.hpp>
-#include <sqee/gl/maths.hpp>
 #include <sqee/gl/cameras.hpp>
+#include <sqee/models/animation.hpp>
+#include <sqee/globals/resources.hpp>
 
 #include "maps/world.hpp"
-#include "resbank.hpp"
 #include "player.hpp"
 
 using namespace sqt;
@@ -15,12 +19,12 @@ void Player::test_init() {
                "Characters/Don",
                "Characters/Don/Walking");
 
-    sq::Animation* anim = resBank().animH.add("Characters/Don/Standing");
-    anim->load("Characters/Don/Standing");
+    sq::Animation* anim = sq::res::animation().add("Characters/Don/Standing");
+    anim->create("Characters/Don/Standing");
 }
 
 void Player::attempt_move(sq::Direction _moveDir) {
-    static sq::Animation* anWalking = resBank().animH.get("Characters/Don/Walking");
+    static sq::Animation* anWalking = sq::res::animation().get("Characters/Don/Walking");
 
     if (!moving && _moveDir != sq::Direction::Zero) {
         // add collision code here
@@ -48,7 +52,7 @@ void Player::attempt_move(sq::Direction _moveDir) {
 }
 
 void Player::tick() {
-    static sq::Animation* anStanding = resBank().animH.get("Characters/Don/Standing");
+    static sq::Animation* anStanding = sq::res::animation().get("Characters/Don/Standing");
 
     model.skeleton.tick();
 
@@ -80,7 +84,7 @@ void Player::tick() {
 void Player::calc(double _accum) {
     model.skeleton.calc(_accum);
 
-    const double dt = 1.d / 24.d;
+    const double dt = 1.0 / 24.0;
     glm::vec3 pos = glm::mix(posCrnt, posNext, _accum / dt);
     pos.x += 0.5f; pos.y += 0.5f;
 
@@ -91,6 +95,6 @@ void Player::calc(double _accum) {
     camera->pos += glm::vec3(glm::mix(camOffsCrnt, camOffsNext, _accum / dt), 0);
     camera->update();
 
-    model.modelMat = glm::translate(sq::iMat4, pos);
+    model.modelMat = glm::translate(glm::mat4(), pos);
     model.modelMat = glm::rotate(model.modelMat, rot, {0, 0, 1});
 }

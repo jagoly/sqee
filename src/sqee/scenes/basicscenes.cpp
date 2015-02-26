@@ -1,5 +1,4 @@
 #include "app/application.hpp"
-#include "gl/maths.hpp"
 #include "text/text.hpp"
 
 #include "scenes/basicscenes.hpp"

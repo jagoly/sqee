@@ -1,7 +1,8 @@
-#include <sqee/gl/gl_ext_3_3.hpp>
-#include <sqee/gl/maths.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
-#include "../../resbank.hpp"
+#include <sqee/gl/gl_ext_3_3.hpp>
+
 #include "light.hpp"
 
 using namespace sqt;
