@@ -13,7 +13,7 @@ class SceneGame : public sq::Scene {
 public:
     SceneGame(sq::Application& _app);
 
-    sq::LookatCamera camera;
+    sq::Camera camera;
 
     void update();
     void render(float _ft);

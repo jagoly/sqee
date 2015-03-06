@@ -8,9 +8,10 @@ namespace sq {
 class Shader : NonCopyable {
 friend class Pipeline;
 public:
+    Shader(const GLenum _stage);
     ~Shader();
 
-    void load(const string& _path, GLenum _stage);
+    void load(const string& _shaderStr);
     void add_uniform(const string& _name, uint _cnt = 1);
 
     template <class T>
@@ -30,7 +31,8 @@ public:
 
 private:
     GLuint prog = 0;
-    GLbitfield stages;
+    GLenum stage;
+    GLbitfield stageBit;
 
     struct Uniform {
         Uniform(GLint _ref, uint _cnt) : ref(_ref), cnt(_cnt) {}
@@ -39,13 +41,14 @@ private:
     std::unordered_map<string, Uniform> uniforms;
 };
 
+
 class Pipeline : NonCopyable {
 public:
     Pipeline();
     ~Pipeline();
 
     void use_shader(const Shader& _shader);
-    void disable_stages(GLbitfield _stages);
+    void disable_stages(GLbitfield _stageBits);
     void bind();
 
 private:

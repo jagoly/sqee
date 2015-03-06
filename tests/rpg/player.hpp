@@ -1,6 +1,8 @@
 #pragma once
 #include <sqee/forward.hpp>
 
+#include <sqee/events/handler.hpp>
+
 #include "entities/model.hpp"
 
 namespace sqt {
@@ -25,11 +27,13 @@ public:
     void calc(double _accum);
 
 
-    sq::LookatCamera* camera = nullptr;
+    sq::Camera* camera = nullptr;
     World* world = nullptr;
 
 private:
     string layer;
+
+    float zCam = 0;
 
     sq::Direction moveDir;
     glm::ivec2 moveVal;
@@ -38,7 +42,6 @@ private:
 
     glm::ivec2 gridCrnt, gridPrev;
     glm::vec3 posCrnt, posNext;
-    glm::vec2 camOffsCrnt, camOffsNext, camOffsTrgt;
 };
 
 }

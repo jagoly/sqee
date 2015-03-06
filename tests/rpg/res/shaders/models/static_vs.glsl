@@ -1,45 +1,18 @@
 #version 330
 #extension GL_ARB_shading_language_420pack : enable
 
+#include "headers/camera_block"
+#include "headers/world_block"
+#include "headers/liquid_block"
+
 layout(location = 0) in vec3 V_pos;
 layout(location = 1) in vec3 V_norm;
 layout(location = 2) in vec3 V_tan;
 layout(location = 3) in vec2 V_texcrd;
 
-layout(std140, binding = 0) uniform CameraBlock {
-    mat4 proj, view;
-    vec3 pos; float near;
-    vec3 rot; float far;
-} Cam;
-
-struct SpotLight {
-    vec3 pos; float angle;
-    vec3 dir; float intensity;
-    vec3 colour; float softness;
-};
-
-layout(std140, binding = 1) uniform WorldBlock {
-    vec3 ambiColour;
-    bool skylEnable;
-    vec3 skylDir;
-    vec3 skylColour;
-    mat4 skylMat;
-    uint spotCount;
-    SpotLight spots[8];
-    mat4 spotMats[8];
-} Wor;
-
-layout(std140, binding = 2) uniform LiquidBlock {
-    mat4 reflMat;
-    float wSmooth;
-    float wScale;
-    vec2 flowOffset;
-    vec3 translation;
-    float normProg;
-    vec3 colour;
-    float thickness;
-    float normA, normB;
-} Liq;
+layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
+layout(std140, binding=1) uniform WORLDBLOCk { WorldBlock WB; };
+layout(std140, binding=2) uniform LIQUIDBLOCK { LiquidBlock LB; };
 
 uniform mat4 modelMat;
 uniform mat3 normMat;
@@ -48,7 +21,7 @@ uniform bool useRefl;
 out vec3 w_pos, v_pos;
 out vec3 N, T, B;
 out vec2 texcrd;
-out vec3 slShadcrd;
+out vec3 slShadcrd[6];
 out vec3 spShadcrd[8];
 
 out gl_PerVertex {
@@ -59,12 +32,15 @@ out gl_PerVertex {
 
 void main() {
     w_pos = vec4(modelMat * vec4(V_pos, 1)).xyz;
-    v_pos = vec4(Cam.view * vec4(w_pos, 1)).xyz;
+    v_pos = vec4(CB.view * vec4(w_pos, 1)).xyz;
 
     texcrd = V_texcrd;
-    slShadcrd = vec4(Wor.skylMat * vec4(w_pos, 1)).xyz * 0.5f + 0.5f;
-    for (uint i = 0u; i < Wor.spotCount; i++) {
-        vec4 sc = Wor.spotMats[i] * vec4(w_pos, 1);
+    for (int i = 0; i < 6; i++) {
+        vec4 sc = WB.skylMatArr[i] * vec4(w_pos, 1);
+        slShadcrd[i] = sc.xyz / sc.w * 0.5f + 0.5f;
+    }
+    for (uint i = 0u; i < WB.spotCount; i++) {
+        vec4 sc = WB.spotArr[i].matArr[0] * vec4(w_pos, 1);
         spShadcrd[i] = vec3(sc.xyz / sc.w) * 0.5f + 0.5f;
     }
 
@@ -73,10 +49,10 @@ void main() {
     B = normalize(normMat * -cross(V_norm, V_tan));
 
     if (useRefl) {
-        gl_ClipDistance[0] = w_pos.z - Liq.translation.z;
-        gl_Position = Cam.proj * Cam.view * vec4(vec4(Liq.reflMat * vec4(w_pos, 1)).xyz, 1);
+        gl_ClipDistance[0] = w_pos.z - LB.translation.z;
+        gl_Position = CB.proj * CB.view * vec4(vec4(LB.reflMat * vec4(w_pos, 1)).xyz, 1);
     } else {
-        gl_ClipDistance[0] = -(w_pos.z - Liq.translation.z);
-        gl_Position = Cam.proj * vec4(v_pos, 1);
+        gl_ClipDistance[0] = -(w_pos.z - LB.translation.z);
+        gl_Position = CB.proj * vec4(v_pos, 1.f);
     }
 }

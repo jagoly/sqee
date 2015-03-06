@@ -97,7 +97,7 @@ void Texture::buffer_file(const string& _filePath, uint _z) {
 void Texture::set_preset(Preset _preset) {
     bind();
 
-    if (_preset == Preset::L_C || _preset == Preset::L_R || _preset == Preset::SHAD) {
+    if (_preset == Preset::L_C || _preset == Preset::L_R) {
         gl::TexParameteri(target, gl::TEXTURE_MIN_FILTER, gl::LINEAR);
         gl::TexParameteri(target, gl::TEXTURE_MAG_FILTER, gl::LINEAR);
     }
@@ -105,16 +105,13 @@ void Texture::set_preset(Preset _preset) {
         gl::TexParameteri(target, gl::TEXTURE_MIN_FILTER, gl::NEAREST);
         gl::TexParameteri(target, gl::TEXTURE_MAG_FILTER, gl::NEAREST);
     }
-    if (_preset == Preset::L_C || _preset == Preset::N_C || _preset == Preset::SHAD) {
+    if (_preset == Preset::L_C || _preset == Preset::N_C) {
         gl::TexParameteri(target, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE);
         gl::TexParameteri(target, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE);
     }
     if (_preset == Preset::L_R || _preset == Preset::N_R) {
         gl::TexParameteri(target, gl::TEXTURE_WRAP_S, gl::REPEAT);
         gl::TexParameteri(target, gl::TEXTURE_WRAP_T, gl::REPEAT);
-    }
-    if (_preset == Preset::SHAD) {
-        gl::TexParameteri(target, gl::TEXTURE_COMPARE_MODE, gl::COMPARE_REF_TO_TEXTURE);
     }
 }
 
@@ -124,7 +121,8 @@ void Texture::bind(GLenum _slot) {
 }
 
 void Texture::set_param(GLenum _name, GLenum _value) {
-    bind(); gl::TexParameteri(target, _name, _value);
+    bind();
+    gl::TexParameteri(target, _name, _value);
 }
 
 

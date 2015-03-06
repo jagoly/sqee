@@ -1,21 +1,30 @@
 #pragma once
 #include <sqee/forward.hpp>
 
+#include <forward_list>
 #include <map>
 #include <set>
 #include <vector>
+#include <functional>
 
 namespace sqt {
+
+class Cell;
 
 enum class ObjType {
     Model, Reflector, Liquid, Light
 };
 
-struct ObjectSpec {
-    ObjectSpec(const string& _name, ObjType _type, glm::vec3 _cellPos);
-    const string name;
+template<class T> struct ObjTraits {
+    template<T> static constexpr ObjType type();
+};
+
+struct ObjSpec {
+    ObjSpec(const string& _name, ObjType _type, Cell& _cell);
+
     const ObjType type;
-    const glm::vec3 cellPos;
+    const string name;
+    Cell& cell;
 
     void parse_line(const std::vector<string>& _line);
 
@@ -26,16 +35,32 @@ struct ObjectSpec {
     std::set<string> flagSet;
 };
 
-class Object {
-public:
-    Object(const ObjectSpec& _spec);
 
-    const string name;
+class Object : NonCopyable {
+public:
+    Object(const ObjSpec& _spec);
+
     const ObjType type;
-    const glm::vec3 cellPos;
+    const string name;
+    Cell& cell;
 
     virtual void tick() {}
     virtual void calc(double _accum) {}
 };
+
+
+template<class T, class IterT>
+std::forward_list<T*> filter_objs(const IterT& _begin, const IterT& _end,
+                                  std::function<bool(const T&)> _func) {
+    std::forward_list<T*> retList;
+    for (auto iter = _begin; iter != _end; iter++) {
+        if ((*iter)->type != ObjTraits<T>::type()) continue;
+        if (_func(static_cast<T&>(**iter)))
+            retList.push_front(static_cast<T*>(*iter));
+
+    }
+
+    return retList;
+}
 
 }

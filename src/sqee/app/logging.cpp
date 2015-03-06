@@ -21,22 +21,22 @@ void sq::log_only(const string& _message, string _a0, string _a1) {
     string msgStr = _message; size_t pos;
 
     pos = msgStr.find("$0", 0);
-    if (pos != string::npos) msgStr.replace(pos, 2, '\"'+_a0+'\"');
+    if (pos != string::npos) msgStr.replace(pos, 2, _a0);
 
     pos = msgStr.find("$1", 0);
     if (pos != string::npos) msgStr.replace(pos, 2, _a1);
 
-    std::cout << get_time() << msgStr << std::endl;
+    std::cout << msgStr << std::endl;
 }
 
 void sq::log_info(const string& _message, string _a0, string _a1) {
-    log_only("INFO: "+_message, _a0, _a1);
+    log_only(get_time()+"INFO: "+_message, _a0, _a1);
 }
 
 void sq::log_warning(const string& _message, string _a0, string _a1) {
-    log_only("WARNING: "+_message, _a0, _a1);
+    log_only(get_time()+"WARNING: "+_message, _a0, _a1);
 }
 
 void sq::log_error(const string& _message, string _a0, string _a1) {
-    log_only("ERROR: "+_message, _a0, _a1);
+    log_only(get_time()+"ERROR: "+_message, _a0, _a1);
 }

@@ -1,36 +1,35 @@
 #include <glm/gtc/type_ptr.hpp>
 
+#include <cassert>
+
 #include "app/logging.hpp"
 #include "gl/gl_ext_3_3.hpp"
-#include "misc/files.hpp"
 
 #include "gl/shaders.hpp"
 
 using namespace sq;
 
+Shader::Shader(const GLenum _stage) {
+    stage = _stage;
+    if (_stage == gl::VERTEX_SHADER) stageBit = gl::VERTEX_SHADER_BIT;
+    else if (_stage == gl::FRAGMENT_SHADER) stageBit = gl::FRAGMENT_SHADER_BIT;
+    else if (_stage == gl::GEOMETRY_SHADER) stageBit = gl::GEOMETRY_SHADER_BIT;
+    else log_error("Invalid stage when constructing Shader");
+}
+
 Shader::~Shader() {
     gl::DeleteProgram(prog);
 }
 
-void Shader::load(const string& _fPath, GLenum _stage) {
+void Shader::load(const string& _shaderStr) {
     uniforms.clear();
+    gl::DeleteProgram(prog);
 
-    string fPath = "res/shaders/" + _fPath + ".glsl";
-
-    if (_stage == gl::VERTEX_SHADER)
-        stages = gl::VERTEX_SHADER_BIT;
-    else if (_stage == gl::FRAGMENT_SHADER)
-        stages = gl::FRAGMENT_SHADER_BIT;
-    else log_error("Invalid shader stage when loading $0", fPath);
-
-    string str = sq::get_string_from_file(fPath);
-    if (str.empty()) log_error("Shader file $0 not found", fPath);
-
-    const char* src = str.c_str();
-    prog = gl::CreateShaderProgramv(_stage, 1, &src);
+    const char* src = _shaderStr.c_str();
+    prog = gl::CreateShaderProgramv(stage, 1, &src);
     int length = 0; char log[2048];
     gl::GetProgramInfoLog(prog, 2048, &length, log);
-    if (length > 0) log_error("Failed to compile shader from $0$L$1$L", fPath, log);
+    if (length > 0) log_error("Failed to compile shader\n$0", log);
 }
 
 void Shader::add_uniform(const string& _name, uint _cnt) {
@@ -133,11 +132,11 @@ Pipeline::~Pipeline() {
 }
 
 void Pipeline::use_shader(const Shader& _shader) {
-    gl::UseProgramStages(pipeline, _shader.stages, _shader.prog);
+    gl::UseProgramStages(pipeline, _shader.stageBit, _shader.prog);
 }
 
-void Pipeline::disable_stages(GLbitfield _stages) {
-    gl::UseProgramStages(pipeline, _stages, 0);
+void Pipeline::disable_stages(GLbitfield _stageBits) {
+    gl::UseProgramStages(pipeline, _stageBits, 0);
 }
 
 void Pipeline::bind() {

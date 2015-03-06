@@ -2,30 +2,29 @@
 
 { defaults
 ambiColour 0.4 0.4 0.4
+#ambiColour 0.0 0.0 0.0
 skylEnable true
-skylTexSize 2048
 skylDir -0.1 -0.25 -0.65
+#skylDir 0.0 0.0 -1.0
 skylColour 0.45 0.45 0.45
+#skylColour 1.0 1.0 1.0
 }
 
 { cells
 cell CellA
 path WorldTest/CellA
-loads CellB
-xyPos 0 0
-zPos 0.0
+loads CellB CellC
+pos 0.0 0.0 0.0
 
 cell CellB
 path WorldTest/CellB
 loads CellA CellC
-xyPos 32 0
-zPos 0.0
+pos 32.0 0.0 0.0
 
 cell CellC
 path WorldTest/CellC
-loads CellB
-xyPos 64 0
-zPos 0.0
+loads CellB CellA
+pos 64.0 0.0 0.0
 }
 
 { heightlayers

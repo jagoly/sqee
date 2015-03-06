@@ -6,31 +6,17 @@
 
 namespace sq {
 
-class SettingValue {
-public:
-    SettingValue() = delete;
-    SettingValue(const bool& _val);
-    SettingValue(const int& _val);
-    SettingValue(const float& _val);
-    SettingValue(const string& _val);
-    SettingValue(const char* _val);
-
-    bool b(); int i(); float f(); string s();
-
-private:
-    union { bool bVal; int iVal; float fVal; char sVal[20]; };
-    enum class ValType : uchar { B, I, F, S, UNSET };
-    ValType valType = ValType::UNSET;
-};
-
-
 class SettingMap {
 public:
-    void add(const string& _key, const SettingValue& _val);
-    void modify(const string& _key, const SettingValue& _val);
+    template <class T>
+    void add(const string& _key, const T& _val);
+    template <class T>
+    void mod(const string& _key, const T& _val);
 
-    SettingValue crnt(const string& _key);
-    SettingValue next(const string& _key);
+    template <class T>
+    T crnt(const string& _key);
+    template <class T>
+    T next(const string& _key);
 
     void apply();
     void revert();
@@ -38,7 +24,11 @@ public:
     bool check_update(const string& _object);
 
 private:
-    std::map<const string, std::pair<SettingValue, SettingValue>> theMap;
+    std::map<const string, std::pair<int, int>> iMap;
+    std::map<const string, std::pair<bool, bool>> bMap;
+    std::map<const string, std::pair<float, float>> fMap;
+    std::map<const string, std::pair<string, string>> sMap;
+
     std::set<string> updateSet;
 };
 

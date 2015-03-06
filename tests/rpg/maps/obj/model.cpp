@@ -7,11 +7,12 @@
 #include <sqee/models/mesh.hpp>
 #include <sqee/models/skin.hpp>
 
+#include "../cell.hpp"
 #include "model.hpp"
 
 using namespace sqt;
 
-Model::Model(const ObjectSpec& _spec) : Object(_spec) {
+Model::Model(const ObjSpec& _spec) : Object(_spec) {
     shad = _spec.flagSet.count("shad");
     pnch = _spec.flagSet.count("pnch");
     refl = _spec.flagSet.count("refl");
@@ -40,7 +41,7 @@ Model::Model(const ObjectSpec& _spec) : Object(_spec) {
         sca = glm::make_vec3(_spec.fMap.at("sca").data());
 
     modelMat = glm::translate(glm::mat4(), pos);
-    modelMat = glm::translate(modelMat, cellPos);
+    modelMat = glm::translate(modelMat, cell.pos);
     modelMat = glm::rotate(modelMat, rot.x, {1, 0, 0});
     modelMat = glm::rotate(modelMat, rot.y, {0, 1, 0});
     modelMat = glm::rotate(modelMat, rot.z, {0, 0, 1});

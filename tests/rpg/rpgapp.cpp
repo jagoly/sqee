@@ -4,11 +4,11 @@
 #include <sqee/scripts/console.hpp>
 
 #include "scenegame.hpp"
-#include "app.hpp"
+#include "rpgapp.hpp"
 
 namespace sqt {
 
-RpgApp::RpgApp() : sq::Application({1200, 750}, true) {
+RpgApp::RpgApp() : sq::Application({1680, 1050}, true) {
     handlerIM.append("close", new sq::HandlerClose(*this));
     handlerIM.append("resize", new sq::HandlerResize(*this));
     handlerIM.append("framelimit", new sq::HandlerFramelimit(*this));

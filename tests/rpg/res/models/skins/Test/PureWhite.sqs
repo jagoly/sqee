@@ -1,0 +1,7 @@
+# SQEE Skin Format
+
+{ materials
+material
+filter_wrap linear clamp
+diff FFFFFF
+}

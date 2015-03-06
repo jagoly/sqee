@@ -5,16 +5,16 @@
 
 using namespace sqt;
 
-ObjectSpec::ObjectSpec(const string& _name, ObjType _type, glm::vec3 _cellPos)
-    : name(_name), type(_type), cellPos(_cellPos)
+ObjSpec::ObjSpec(const string& _name, ObjType _type, Cell& _cell)
+    : type(_type), name(_name), cell(_cell)
+{}
+
+Object::Object(const ObjSpec& _spec)
+    : type(_spec.type), name(_spec.name), cell(_spec.cell)
 {}
 
 
-Object::Object(const ObjectSpec& _spec)
-    : name(_spec.name), type(_spec.type), cellPos(_spec.cellPos)
-{}
-
-void ObjectSpec::parse_line(const std::vector<string>& _line) {
+void ObjSpec::parse_line(const std::vector<string>& _line) {
     const string& key = _line[0];
 
     if (key == "flags") {

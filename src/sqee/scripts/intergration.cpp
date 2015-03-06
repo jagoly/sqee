@@ -95,26 +95,23 @@ void sq::cs_setup_application(chai::ChaiScript& _cs) {
 void sq::cs_setup_settings(chai::ChaiScript& _cs) {
     chai::ModulePtr m(new chai::Module());
 
-    add_class<SettingValue>(*m, "SettingValue",  {
-            constructor<SettingValue(bool)>(),
-            constructor<SettingValue(int)>(),
-            constructor<SettingValue(float)>(),
-            constructor<SettingValue(string)>()
-        }, {{fun(&SettingValue::b), "b"},
-            {fun(&SettingValue::i), "i"},
-            {fun(&SettingValue::f), "f"},
-            {fun(&SettingValue::s), "s"}});
-
-    m->add(type_conversion<bool, SettingValue>());
-    m->add(type_conversion<int, SettingValue>());
-    m->add(type_conversion<float, SettingValue>());
-    m->add(type_conversion<string, SettingValue>());
-
     add_class<SettingMap>(*m, "SettingMap", {
-        }, {{fun(&SettingMap::crnt), "crnt"},
-            {fun(&SettingMap::next), "next"},
-            {fun(&SettingMap::add), "add"},
-            {fun(&SettingMap::modify), "modify"},
+        }, {{fun(&SettingMap::add<int>), "addI"},
+            {fun(&SettingMap::mod<int>), "modI"},
+            {fun(&SettingMap::crnt<int>), "crntI"},
+            {fun(&SettingMap::next<int>), "nextI"},
+            {fun(&SettingMap::add<bool>), "addB"},
+            {fun(&SettingMap::mod<bool>), "modB"},
+            {fun(&SettingMap::crnt<bool>), "crntB"},
+            {fun(&SettingMap::next<bool>), "nextB"},
+            {fun(&SettingMap::add<float>), "addF"},
+            {fun(&SettingMap::mod<float>), "modF"},
+            {fun(&SettingMap::crnt<float>), "crntF"},
+            {fun(&SettingMap::next<float>), "nextF"},
+            {fun(&SettingMap::add<string>), "addS"},
+            {fun(&SettingMap::mod<string>), "modS"},
+            {fun(&SettingMap::crnt<string>), "crntS"},
+            {fun(&SettingMap::next<string>), "nextS"},
             {fun(&SettingMap::apply), "apply"}});
 
     _cs.add(m);

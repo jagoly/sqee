@@ -1,8 +1,10 @@
 #pragma once
 
 #include <string>
+#include <array>
 #include <memory>
 using std::string;
+using std::array;
 using std::unique_ptr;
 using std::shared_ptr;
 using std::weak_ptr;
@@ -47,6 +49,11 @@ struct NonCopyable {
     NonCopyable& operator=(const NonCopyable&) = delete;
 };
 
+template <class T>
+struct AlwaysTrue {
+    bool operator()(const T&) const { return true; }
+};
+
 namespace sq {
 
 class Scene;
@@ -61,11 +68,11 @@ class Animation;
 class Skeleton;
 class Skin;
 
-class BaseCamera;
-class LookatCamera;
+class Camera;
 
 class Texture;
 class Framebuffer;
+class FramebufferRaw;
 class Shader;
 class Pipeline;
 class UniformBuffer;
@@ -78,5 +85,6 @@ class ResHolder;
 
 enum class Direction { Zero, North, East, South, West };
 enum class Alignment { TL, TC, TR, CL, CC, CR, BL, BC, BR };
+enum class Grid4x4 { AA, AB, AC, AD, BA, BB, BC, BD, CA, CB, CC, CD, DA, DB, DC, DD };
 
 }

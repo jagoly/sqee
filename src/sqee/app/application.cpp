@@ -1,8 +1,10 @@
+#ifdef SQEE_DEBUG
+#include "debug/glcallback.hpp"
+#endif
+
 #include "app/logging.hpp"
 #include "gl/gl_ext_3_3.hpp"
-#include "gl/misc.hpp"
 #include "scripts/intergration.hpp"
-
 #include "app/application.hpp"
 
 using namespace sq;
@@ -31,9 +33,9 @@ Application::Application(glm::uvec2 _size, bool _resizable) {
     gl::DebugMessageCallback(debug_callback, nullptr);
     #endif
 
-    settings.add("app_vsync", false);
-    settings.add("app_keyrepeat", false);
-    settings.add("app_title", "SQEE Application");
+    settings.add<bool>("app_vsync", false);
+    settings.add<bool>("app_keyrepeat", false);
+    settings.add<string>("app_title", "SQEE Application");
 
     sq::cs_setup_glm(cs);
     sq::cs_setup_application(cs);
@@ -111,8 +113,8 @@ void Application::sweep_scene(const string& _id) {
 
 void Application::update_settings() {
     if (settings.check_update("Application")) {
-        window.setVerticalSyncEnabled(settings.crnt("app_vsync").b());
-        window.setKeyRepeatEnabled(settings.crnt("app_keyrepeat").b());
-        window.setTitle(settings.crnt("app_title").s());
+        window.setVerticalSyncEnabled(settings.crnt<bool>("app_vsync"));
+        window.setKeyRepeatEnabled(settings.crnt<bool>("app_keyrepeat"));
+        window.setTitle(settings.crnt<string>("app_title"));
     }
 }

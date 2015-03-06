@@ -6,7 +6,7 @@ namespace sqt {
 
 class Light : public Object {
 public:
-    Light(const ObjectSpec& _spec);
+    Light(const ObjSpec& _spec);
 
     glm::vec3 pos, dir;
     glm::vec3 colour;

@@ -23,13 +23,21 @@ void UniformBuffer::bind(GLuint _index) {
     gl::BindBufferBase(gl::UNIFORM_BUFFER, _index, ubo);
 }
 
+void UniformBuffer::update(const string& _name, const void* _data) {
+    const Item& item = itemMap.at(_name);
+    gl::BufferSubData(gl::UNIFORM_BUFFER, item.offs*4, item.size*4, _data);
+}
+
 void UniformBuffer::update(const string& _name, const void* _data, uint _offs, uint _size) {
     const Item& item = itemMap.at(_name);
-    if (_size == 0)
-        gl::BufferSubData(gl::UNIFORM_BUFFER, item.offs*4, item.size*4, _data);
-    else gl::BufferSubData(gl::UNIFORM_BUFFER, (item.offs+_offs)*4, _size*4, _data);
+    gl::BufferSubData(gl::UNIFORM_BUFFER, (item.offs+_offs)*4, _size*4, _data);
 }
 
 void UniformBuffer::update(uint _offs, uint _size, const void* _data) {
     gl::BufferSubData(gl::UNIFORM_BUFFER, _offs*4, _size*4, _data);
+}
+
+uint UniformBuffer::get_size() {
+    if (ubo != 0) return crntSize;
+    return 0;
 }

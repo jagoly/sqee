@@ -7,7 +7,7 @@ namespace sq {
 
 class Texture : NonCopyable {
 public:
-    enum class Preset { NONE, N_C, N_R, L_C, L_R, M_C, M_R, SHAD };
+    enum class Preset { NONE, N_C, N_R, L_C, L_R, M_C, M_R };
 
     void create(GLenum _target, GLenum _format, GLenum _iFormat,
                 Preset _preset, const string& _path = "");

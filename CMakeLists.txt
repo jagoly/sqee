@@ -30,12 +30,16 @@ set(SOURCES
 
 # SQEE Headers
     "${INCDIR}/sqee/forward.hpp"
+    "${INCDIR}/sqee/debug/freecam.hpp"
+    "${INCDIR}/sqee/debug/glcallback.hpp"
+    "${INCDIR}/sqee/debug/miscdraw.hpp"
     "${INCDIR}/sqee/gl/gl_ext_3_3.hpp"
     "${INCDIR}/sqee/gl/maths.hpp"
     "${INCDIR}/sqee/gl/misc.hpp"
     "${INCDIR}/sqee/gl/bounds.hpp"
     "${INCDIR}/sqee/gl/cameras.hpp"
     "${INCDIR}/sqee/gl/framebuffers.hpp"
+    "${INCDIR}/sqee/gl/preprocessor.hpp"
     "${INCDIR}/sqee/gl/shaders.hpp"
     "${INCDIR}/sqee/gl/uniformbuffers.hpp"
     "${INCDIR}/sqee/gl/textures.hpp"
@@ -62,18 +66,22 @@ set(SOURCES
     "${INCDIR}/sqee/scenes/scene.hpp"
     "${INCDIR}/sqee/scenes/basicscenes.hpp"
     "${INCDIR}/sqee/sounds/soundmanager.hpp"
-    "${INCDIR}/sqee/globals/resources.hpp"
 
 # 3rd Party Source
     "${SRCDIR}/sqee/redist/jsoncpp.cpp"
     "${SRCDIR}/sqee/redist/stb_image.cpp"
 
 # SQEE Source
+    "${SRCDIR}/sqee/debug/freecam.cpp"
+    "${SRCDIR}/sqee/debug/glcallback.cpp"
+    "${SRCDIR}/sqee/debug/miscdraw.cpp"
     "${SRCDIR}/sqee/gl/gl_ext_3_3.cpp"
+    "${SRCDIR}/sqee/gl/maths.cpp"
     "${SRCDIR}/sqee/gl/misc.cpp"
     "${SRCDIR}/sqee/gl/bounds.cpp"
     "${SRCDIR}/sqee/gl/cameras.cpp"
     "${SRCDIR}/sqee/gl/framebuffers.cpp"
+    "${SRCDIR}/sqee/gl/preprocessor.cpp"
     "${SRCDIR}/sqee/gl/shaders.cpp"
     "${SRCDIR}/sqee/gl/uniformbuffers.cpp"
     "${SRCDIR}/sqee/gl/textures.cpp"
@@ -94,7 +102,6 @@ set(SOURCES
     "${SRCDIR}/sqee/misc/files.cpp"
     "${SRCDIR}/sqee/scenes/basicscenes.cpp"
     "${SRCDIR}/sqee/sounds/soundmanager.cpp"
-    "${SRCDIR}/sqee/globals/resources.cpp"
 )
 
 make_directory(${CMAKE_CURRENT_BINARY_DIR}/work)

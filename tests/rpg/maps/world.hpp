@@ -1,9 +1,10 @@
 #pragma once
 #include <sqee/forward.hpp>
 
-#include <list>
+#include <forward_list>
 #include <map>
 #include <vector>
+
 
 #include <sqee/gl/uniformbuffers.hpp>
 
@@ -34,18 +35,17 @@ public:
 
     glm::vec3 minPos, maxPos;
 
-    std::list<Object*> objectList;
-    std::list<Model*> modelList;
-    std::list<Liquid*> liquidList;
-    std::list<Reflector*> reflectorList;
-    std::vector<Light*> lightVec;
+    std::forward_list<Object*> objectList;
+    template<class T>
+    std::forward_list<T*> filtered(std::function<bool(const T&)>&& _func = AlwaysTrue<T>()) {
+        return filter_objs(objectList.begin(), objectList.end(), _func);
+    }
 
     glm::vec3 ambiColour;
     bool skylEnable;
-    uint skylTexSize;
     glm::vec3 skylDir;
     glm::vec3 skylColour;
-    glm::mat4 skylMat;
+    std::vector<glm::mat4> skylMatVec;
     uint spotCount;
 
     sq::UniformBuffer ubo;

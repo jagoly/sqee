@@ -1,6 +1,8 @@
 #version 330
 #extension GL_ARB_shading_language_420pack : enable
 
+// define PUNCH
+
 layout(location = 0) in vec3 V_pos;
 layout(location = 4) in ivec4 V_bonesABCD;
 layout(location = 5) in ivec4 V_bonesEFGH;
@@ -10,6 +12,11 @@ layout(location = 7) in vec4 V_weightsEFGH;
 uniform mat4 shadMat, modelMat;
 uniform vec4 skelQuat[40];
 uniform vec3 skelOffs[40];
+
+#ifdef PUNCH
+layout(location = 3) in vec2 V_texcrd;
+out vec2 texcrd;
+#endif
 
 out gl_PerVertex {
     vec4 gl_Position;
@@ -43,4 +50,8 @@ void main() {
     }
 
     gl_Position = shadMat * modelMat * vec4(a_pos, 1.f);
+
+    #ifdef PUNCH    
+    texcrd = V_texcrd;
+    #endif
 }

@@ -1,4 +1,4 @@
-#include "app.hpp"
+#include "rpgapp.hpp"
 
 int main() {
     sqt::RpgApp app;

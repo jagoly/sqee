@@ -8,7 +8,7 @@
 
 using namespace sqt;
 
-Liquid::Liquid(const ObjectSpec& _spec) : Object(_spec) {
+Liquid::Liquid(const ObjSpec& _spec) : Object(_spec) {
     ubo.reserve("reflMat", 16);
     ubo.reserve("wSmooth", 1);
     ubo.reserve("wScale", 1);
@@ -105,7 +105,7 @@ void Liquid::tick() {
 }
 
 void Liquid::calc(double _accum) {
-    const double dt = 1.d / 24.d;
+    const double dt = 1.0 / 24.0;
     flowOffs = glm::mix(flowOffsA, flowOffsB, _accum / dt);
     normInfo.z = glm::mix(normOffsA, normOffsB, _accum / dt);
 

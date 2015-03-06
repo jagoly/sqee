@@ -1,74 +1,39 @@
 #version 330
 #extension GL_ARB_shading_language_420pack : enable
 
+#include "headers/camera_block"
+#include "headers/world_block"
+#include "headers/liquid_block"
+#include "headers/sample_shadow"
+
 in vec3 w_pos, v_pos;
 in noperspective vec2 refrTc, reflTc;
 in vec3 N, T, B;
 in vec2 texcrd;
 in vec3 slShadcrd;
 
-layout(std140, binding = 0) uniform CameraBlock {
-    mat4 proj, view;
-    vec3 pos; float near;
-    vec3 rot; float far;
-} Cam;
+layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
+layout(std140, binding=1) uniform WORLDBLOCk { WorldBlock WB; };
+layout(std140, binding=2) uniform LIQUIDBLOCK { LiquidBlock LB; };
 
-struct SpotLight {
-    vec3 pos; float angle;
-    vec3 dir; float intensity;
-    vec3 colour; float softness;
-};
-
-layout(std140, binding = 1) uniform WorldBlock {
-    vec3 ambiColour;
-    bool skylEnable;
-    vec3 skylDir;
-    vec3 skylColour;
-    mat4 skylMat;
-    uint spotCount;
-    SpotLight spots[8];
-    mat4 spotMats[8];
-} Wor;
-
-layout(std140, binding = 2) uniform LiquidBlock {
-    mat4 reflMat;
-    float wSmooth;
-    float wScale;
-    vec2 flowOffset;
-    vec3 translation;
-    float normProg;
-    vec3 colour;
-    float thickness;
-    float normA, normB;
-} Liq;
-
-uniform float shadBiasMod;
 layout(binding=0) uniform sampler2D texRefl;
 layout(binding=1) uniform sampler2D texRefr;
 layout(binding=2) uniform sampler2D texDep;
 layout(binding=3) uniform sampler2DArray texNorms;
-layout(binding=4) uniform sampler2DShadow texSlShad;
-layout(binding=5) uniform sampler2DShadow texSpShad[8];
+layout(binding=4) uniform sampler2DArrayShadow shadSkyl;
+layout(binding=5) uniform sampler2DArrayShadow shadSpot[8];
 
 out vec4 fragColour;
 
-
-float sample_shadow(vec3 _dirToLight, vec3 _shadCoord, sampler2DShadow _tex) {
-    float lightDot = dot(N, _dirToLight);
-    float magicTan = sqrt(1.f - lightDot * lightDot) / lightDot;
-    float bias = clamp(0.00025f * shadBiasMod * magicTan, 0.f, 0.01f);
-    return texture(_tex, vec3(_shadCoord.xy, _shadCoord.z - bias));
-}
-
 void main() {
-    vec3 dirFromCam = normalize(vec4(Cam.view * vec4(Cam.pos, 1)).xyz - v_pos);
+    vec3 dirFromCam = normalize(vec4(CB.view * vec4(CB.pos, 1)).xyz - v_pos);
 
     vec3 v_norm = N;
-    if (Liq.wSmooth < 99.99f) {
-        vec3 t_normA = texture(texNorms, vec3(texcrd, Liq.normA)).rgb * 2.f - 1.f;
-        vec3 t_normB = texture(texNorms, vec3(texcrd, Liq.normB)).rgb * 2.f - 1.f;
-        vec3 t_norm = mix(t_normA, t_normB, Liq.normProg);
-        t_norm = normalize(mix(t_norm, vec3(0, 0, 1), Liq.wSmooth / 100.f));
+    if (LB.wSmooth < 99.99f) {
+        vec3 t_normA = texture(texNorms, vec3(texcrd, LB.normA)).rgb * 2.f - 1.f;
+        vec3 t_normB = texture(texNorms, vec3(texcrd, LB.normB)).rgb * 2.f - 1.f;
+        vec3 t_norm = mix(t_normA, t_normB, LB.normProg);
+        t_norm = normalize(mix(t_norm, vec3(0, 0, 1), LB.wSmooth / 100.f));
         v_norm = T * t_norm.x + B * t_norm.y + N * t_norm.z;
     }
 
@@ -81,11 +46,11 @@ void main() {
 
 
     // Skylight Lighting
-    if (Wor.skylEnable) {
-        vec3 skylDir = vec4(Cam.view * vec4(Wor.skylDir, 0)).xyz;
+    if (WB.skylEnable) {
+        vec3 skylDir = vec4(CB.view * vec4(WB.skylDir, 0)).xyz;
 
         // Shadow
-        float vis = sample_shadow(-skylDir, slShadcrd, texSlShad);
+        //float vis = sample_shadow(-skylDir, slShadcrd, texSlShad);
 
         // more todo
     }
@@ -94,14 +59,14 @@ void main() {
     float fres = 1.f - invFres;
 
     float sDep = -v_pos.z;
-    float bDep = (Cam.near * Cam.far) / (Cam.far - texelDep * (Cam.far - Cam.near));
+    float bDep = (CB.near * CB.far) / (CB.far - texelDep * (CB.far - CB.near));
     float wDep = distance(sDep, bDep);
 
     vec2 rOffset = (-N.xy - refract(-dirFromCam, v_norm, 0.f).xy) * wDep * 0.01f;
     vec3 texelRefr = texture(texRefr, refrTc + rOffset).rgb;
 
     vec3 refl = texelRefl * fres;
-    vec3 refr = mix(Liq.colour, texelRefr * invFres, 1.f - wDep / Liq.thickness);
+    vec3 refr = mix(LB.colour, texelRefr * invFres, 1.f - wDep / LB.thickness);
 
     fragColour = vec4(refr + refl, 1);
 }

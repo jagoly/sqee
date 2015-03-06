@@ -1,11 +1,13 @@
 #include <glm/common.hpp>
 #include <glm/trigonometric.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 #include <sqee/gl/gl_ext_3_3.hpp>
 #include <sqee/gl/cameras.hpp>
+#include <sqee/app/logging.hpp>
 #include <sqee/models/animation.hpp>
-#include <sqee/globals/resources.hpp>
 
 #include "maps/world.hpp"
 #include "player.hpp"
@@ -40,7 +42,6 @@ void Player::attempt_move(sq::Direction _moveDir) {
         else if (moveDir == sq::Direction::West)  moveVal.x = -1, rot = glm::radians(-90.d);
 
         gridCrnt += moveVal;
-        camOffsTrgt = glm::vec2(moveVal) * 0.65f;
 
         world->set_active_tile(gridCrnt);
 
@@ -57,7 +58,11 @@ void Player::tick() {
     model.skeleton.tick();
 
     posCrnt = posNext;
-    camOffsCrnt = camOffsNext;
+
+    /////
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::PageUp)) zCam += 0.05f;
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::PageDown)) zCam -= 0.05f;
+    /////
 
     if (moving) {
         int prgrs4 = ++moveCntr / 2;
@@ -71,8 +76,6 @@ void Player::tick() {
 
         posNext = glm::vec3(glm::mix(glm::vec2(gridPrev), glm::vec2(gridCrnt),
                                      moveCntr / 8.f), posNext.z);
-
-        camOffsNext = glm::mix(camOffsNext, camOffsTrgt, moveCntr / 8.f);
 
         if (moveCntr == 8) moving = false;
     } else if (!stopped) {
@@ -89,11 +92,30 @@ void Player::calc(double _accum) {
     pos.x += 0.5f; pos.y += 0.5f;
 
     camera->pos.x = pos.x;
-    camera->pos.y = pos.y - 4.5f;
-    camera->pos.z = pos.z + 9.5f;
+    camera->pos.y = pos.y;// - 4.5f;
+    camera->pos.z = pos.z + zCam;
+    //if (moveDir == sq::Direction::North) camera->dir = {0.f, 1.f, 0.f};
+    //if (moveDir == sq::Direction::East)  camera->dir = {1.f, 0.f, 0.f};
+    //if (moveDir == sq::Direction::South) camera->dir = {0.f, -1.f, 0.f};
+    //if (moveDir == sq::Direction::West)  camera->dir = {-1.f, 0.f, 0.f};
 
-    camera->pos += glm::vec3(glm::mix(camOffsCrnt, camOffsNext, _accum / dt), 0);
+
+    static float lookY = 0.f;
+
+    sf::Vector2i mPos = sf::Mouse::getPosition();
+    glm::ivec2 mMove = {400-mPos.x, 300-mPos.y};
+    lookY = glm::clamp(lookY+mMove.y/400.f, -0.9f, 0.9f);
+    //glm::mat4 rotY = glm::rotate(glm::mat4(), lookY, {1, 0, 0});
+    glm::mat4 rotX = glm::rotate(glm::mat4(), mMove.x/200.f, {0, 0, 1});
+    camera->dir.z = 0.f;
+    camera->dir = glm::vec3((rotX) * glm::vec4(camera->dir, 1));
+    camera->dir.z = lookY;
+    camera->dir = glm::normalize(camera->dir);
+
+    sf::Mouse::setPosition({400, 300});
+
     camera->update();
+    camera->recalc_frustums();
 
     model.modelMat = glm::translate(glm::mat4(), pos);
     model.modelMat = glm::rotate(model.modelMat, rot, {0, 0, 1});

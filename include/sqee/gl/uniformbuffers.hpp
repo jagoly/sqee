@@ -13,10 +13,14 @@ public:
     void create();
     void bind(GLuint _index);
 
-    void update(const string& _name, const void* _data, uint _offs=0, uint _size=0);
+    void update(const string& _name, const void* _data);
+    void update(const string& _name, const void* _data, uint _offs, uint _size);
     void update(uint _offs, uint _size, const void* _data);
 
+    uint get_size();
+
     GLuint ubo = 0;
+
 
 private:
     struct Item {

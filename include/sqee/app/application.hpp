@@ -8,6 +8,7 @@
 
 #include "app/settings.hpp"
 #include "events/handler.hpp"
+#include "gl/preprocessor.hpp"
 #include "misc/indexedmap.hpp"
 #include "scenes/scene.hpp"
 #include "scripts/chaiscript.hpp"
@@ -34,6 +35,7 @@ public:
     chai::ChaiScript cs;
     SoundManager sndMan;
     SettingMap settings;
+    Preprocessor preproc;
 
 protected:
     sf::Window window;

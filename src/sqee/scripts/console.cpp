@@ -26,11 +26,11 @@ void SceneConsole::toggle_active() {
     static bool prevKR = false;
     active = !active;
     if (active) {
-        prevKR = app.settings.crnt("app_keyrepeat").b();
-        app.settings.modify("app_keyrepeat", true);
+        prevKR = app.settings.crnt<bool>("app_keyrepeat");
+        app.settings.mod<bool>("app_keyrepeat", true);
         app.settings.apply();
     } else {
-        app.settings.modify("app_keyrepeat", prevKR);
+        app.settings.mod<bool>("app_keyrepeat", prevKR);
         app.settings.apply();
     }
 }

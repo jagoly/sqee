@@ -47,16 +47,13 @@ float HeightLayer::get_z(uint _x, uint _y) const {
 }
 
 Cell::Cell(const string& _filePath, const string& _name,
-           const std::vector<string>& _loads, glm::ivec2 _posXY, float _posZ)
-    : name(_name),
-      loads(_loads),
-      minXY(_posXY),
-      minZ(_posZ)
+           const std::vector<string>& _loads, glm::vec3 _pos)
+    : name(_name), loads(_loads), pos(_pos)
 {
     string filePath = "res/game/cells/" + _filePath + ".sq_cell";
     std::vector<std::vector<string>> fileVec(sq::get_words_from_file(filePath));
 
-    std::vector<ObjectSpec> specVec;
+    std::vector<ObjSpec> specVec;
 
     string section = "";
     for (const std::vector<string>& line : fileVec) {
@@ -72,39 +69,34 @@ Cell::Cell(const string& _filePath, const string& _name,
         }
 
         if (section == "header") {
-            if (key == "sizeXY")
-                maxXY = minXY + glm::ivec2(stoi(line[1]), stoi(line[2]));
-            else if (key == "sizeZ")
-                maxZ = minZ + stof(line[1]);
+            if (key == "size")
+                size = {stoi(line[1]), stoi(line[2]), stoi(line[3])};
             else throw; // invalid key
             continue;
         }
 
         if (section == "heightlayers") {
-            glm::ivec2 hlPos(stoi(line[2]) * 4, stoi(line[3]) * 4);
-            hlMap.emplace(key, HeightLayer(line[1], hlPos, sizeXY*4u, stof(line[4])));
+            //glm::ivec2 hlPos(stoi(line[2]) * 4, stoi(line[3]) * 4);
+            //hlMap.emplace(key, HeightLayer(line[1], hlPos, sizeXY*4u, stof(line[4])));
             continue;
         }
 
         if (section == "objects") {
             if (key == "object") {
                 if (line[1] == "model")
-                    specVec.emplace_back(line[2], ObjType::Model, get_min());
+                    specVec.emplace_back(line[2], ObjType::Model, *this);
                 else if (line[1] == "liquid")
-                    specVec.emplace_back(line[2], ObjType::Liquid, get_min());
+                    specVec.emplace_back(line[2], ObjType::Liquid, *this);
                 else if (line[1] == "reflector")
-                    specVec.emplace_back(line[2], ObjType::Reflector, get_min());
+                    specVec.emplace_back(line[2], ObjType::Reflector, *this);
                 else if (line[1] == "light")
-                    specVec.emplace_back(line[2], ObjType::Light, get_min());
+                    specVec.emplace_back(line[2], ObjType::Light, *this);
             } else specVec.back().parse_line(line);
             continue;
         }
     }
 
-    sizeXY = maxXY - minXY;
-    sizeZ = maxZ - minZ;
-
-    for (ObjectSpec& spec : specVec) {
+    for (ObjSpec& spec : specVec) {
         Object* ptr = nullptr;
         if (spec.type == ObjType::Model)
             ptr = new Model(spec);
@@ -128,16 +120,4 @@ void Cell::calc(double _accum) {
     for (auto& strObj : objMap) {
         strObj.second->calc(_accum);
     }
-}
-
-glm::vec3 Cell::get_min() const {
-    return glm::vec3(minXY.x, minXY.y, minZ);
-}
-
-glm::vec3 Cell::get_max() const {
-    return glm::vec3(maxXY.x, maxXY.y, maxZ);
-}
-
-glm::vec3 Cell::get_size() const {
-    return glm::vec3(sizeXY.x, sizeXY.y, sizeZ);
 }

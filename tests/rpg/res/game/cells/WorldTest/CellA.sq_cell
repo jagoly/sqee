@@ -1,8 +1,7 @@
 # SQEE RPG Map Format
 
 { header
-sizeXY 32 32
-sizeZ 8.0
+size 32.0 32.0 8.0
 }
 
 { heightlayers
@@ -46,6 +45,12 @@ object model Dice
 f3 pos 11 16 0
 s1 mesh Test/Dice
 s1 skin Test/DiceWhite
+flags shad
+
+object model Sphere
+f3 pos 10 17 4
+s1 mesh Test/Sphere
+s1 skin Test/PureWhite
 flags shad
 
 object model Terrain

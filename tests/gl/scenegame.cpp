@@ -3,6 +3,7 @@
 
 #include <sqee/gl/gl_ext_3_3.hpp>
 #include <sqee/gl/shaders.hpp>
+#include <sqee/app/application.hpp>
 #include <sqee/misc/files.hpp>
 #include <sqee/models/mesh.hpp>
 
@@ -18,7 +19,7 @@ SceneGame::SceneGame(sq::Application& _app) : sq::Scene(_app), camera(true) {
     camera.range = {0.1f, 100.f};
     camera.size = {4, 3};
     camera.fov = 1.f;
-    camera.strictAspect = 0.f;
+    camera.aspect = 0.f;
     camera.update();
 }
 
@@ -56,7 +57,8 @@ void SceneGame::update() {
 void SceneGame::render(float) {
     static sq::Mesh mesh;
 
-    static sq::Shader vert, frag;
+    static sq::Shader vert(gl::VERTEX_SHADER);
+    static sq::Shader frag(gl::FRAGMENT_SHADER);
     static sq::Pipeline pipe;
 
     static bool first = true;
@@ -64,8 +66,8 @@ void SceneGame::render(float) {
         gl::Enable(gl::DEPTH_TEST);
         gl::ClearColor(0.3f, 0.3f, 0.5f, 1.f);
 
-        vert.load("vert1_vs", gl::VERTEX_SHADER);
-        frag.load("frag1_fs", gl::FRAGMENT_SHADER);
+        vert.load(app.preproc("vert1_vs"));
+        frag.load(app.preproc("frag1_fs"));
 
         vert.add_uniform("viewMat"); // mat4
         vert.add_uniform("projMat"); // mat4

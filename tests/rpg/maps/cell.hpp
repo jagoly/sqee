@@ -19,20 +19,14 @@ public:
 class Cell {
 public:
     Cell(const string& _filePath, const string& _name,
-         const std::vector<string>& _loads, glm::ivec2 _posXY, float _posZ);
+         const std::vector<string>& _loads, glm::vec3 _pos);
     const string name;
     const std::vector<string> loads;
 
-    glm::ivec2 minXY; float minZ;
-    glm::ivec2 maxXY; float maxZ;
-    glm::uvec2 sizeXY; float sizeZ;
+    glm::vec3 pos, size;
 
     void tick();
     void calc(double _accum);
-
-    glm::vec3 get_min() const;
-    glm::vec3 get_max() const;
-    glm::vec3 get_size() const;
 
     std::map<string, HeightLayer> hlMap;
     std::map<string, std::unique_ptr<Object>> objMap;

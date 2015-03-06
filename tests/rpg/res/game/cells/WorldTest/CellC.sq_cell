@@ -1,8 +1,7 @@
 # SQEE RPG Map Format
 
 { header
-sizeXY 32 32
-sizeZ 8.0
+size 32.0 32.0 8.0
 }
 
 { heightlayers

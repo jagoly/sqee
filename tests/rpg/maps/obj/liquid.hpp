@@ -8,7 +8,7 @@ namespace sqt {
 
 class Liquid : public Object {
 public:
-    Liquid(const ObjectSpec& _spec);
+    Liquid(const ObjSpec& _spec);
 
     float wScale;
     float wSmooth;
@@ -36,6 +36,11 @@ private:
     glm::vec2 flowOffsA, flowOffsB;
 
     sq::Mesh* mesh;
+};
+
+
+template<> struct ObjTraits<Liquid> {
+    static constexpr ObjType type() { return ObjType::Liquid; }
 };
 
 }

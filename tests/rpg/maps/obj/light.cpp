@@ -3,12 +3,13 @@
 
 #include <sqee/gl/gl_ext_3_3.hpp>
 
+#include "../cell.hpp"
 #include "light.hpp"
 
 using namespace sqt;
 
-Light::Light(const ObjectSpec& _spec) : Object(_spec) {
-    pos       = glm::make_vec3(_spec.fMap.at("pos").data()) + cellPos;
+Light::Light(const ObjSpec& _spec) : Object(_spec) {
+    pos       = glm::make_vec3(_spec.fMap.at("pos").data()) + cell.pos;
     dir       = glm::make_vec3(_spec.fMap.at("dir").data());
     colour    = glm::make_vec3(_spec.fMap.at("colour").data());
     angle     = glm::radians(_spec.fMap.at("angIntSft")[0]) / 2.f;
