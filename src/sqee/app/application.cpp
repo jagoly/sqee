@@ -9,7 +9,7 @@
 
 using namespace sq;
 
-Application::Application(glm::uvec2 _size, bool _resizable) {
+Application::Application(uvec2 _size, bool _resizable) {
     sf::ContextSettings sfmlSettings;
     sfmlSettings.depthBits        = 24,
     sfmlSettings.stencilBits       = 8,
@@ -48,14 +48,16 @@ int Application::run() {
     retCode = -1;
     sf::Clock clockFT;
 
-    while (retCode == -1) {
-        for (const auto& _id : sceneSweep) {
-            sceneIM.del(_id);
-        } sceneSweep.clear();
+    set_size(get_size());
 
-        for (const auto& _id : handlerSweep) {
+    while (retCode == -1) {
+        for (auto& _id : sceneSweep)
+            sceneIM.del(_id);
+        sceneSweep.clear();
+
+        for (auto& _id : handlerSweep)
             handlerIM.del(_id);
-        } handlerSweep.clear();
+        handlerSweep.clear();
 
         sndMan.clean();
 
@@ -92,13 +94,13 @@ void Application::quit(int _code) {
 }
 
 
-void Application::set_size(glm::uvec2 _size) {
+void Application::set_size(uvec2 _size) {
     window.setSize({_size.x, _size.y});
     for (Scene::Ptr& scene : sceneIM) {
         scene->resize(_size);
     }
 }
-glm::uvec2 Application::get_size() {
+uvec2 Application::get_size() {
     return {window.getSize().x, window.getSize().y};
 }
 

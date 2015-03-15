@@ -21,7 +21,6 @@ public:
 
     GLuint ubo = 0;
 
-
 private:
     struct Item {
         Item(uint _offs, uint _size)

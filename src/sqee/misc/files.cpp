@@ -2,7 +2,6 @@
 #include <sstream>
 
 #include "app/logging.hpp"
-
 #include "misc/files.hpp"
 
 using namespace sq;

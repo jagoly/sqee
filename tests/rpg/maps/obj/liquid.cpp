@@ -26,7 +26,7 @@ Liquid::Liquid(const ObjSpec& _spec) : Object(_spec) {
     gl::BindVertexArray(vao);
     gl::EnableVertexAttribArray(0);
 
-    glm::vec3 pos = glm::make_vec3(_spec.fMap.at("pos").data());
+    vec3 pos = glm::make_vec3(_spec.fMap.at("pos").data());
     string texDir = _spec.sMap.at("texDir")[0];
 
     const string& mPath = _spec.sMap.at("mesh")[0];
@@ -41,7 +41,7 @@ Liquid::Liquid(const ObjSpec& _spec) : Object(_spec) {
     colour = glm::make_vec3(_spec.fMap.at("colour").data());
     thickness = _spec.fMap.at("thickness")[0];
 
-    glm::mat4 reflMat {
+    mat4 reflMat {
         1, 0, 0, 0,
         0, 1, 0, 0,
         0, 0, -1, 0,
@@ -50,7 +50,7 @@ Liquid::Liquid(const ObjSpec& _spec) : Object(_spec) {
 
     if (!(normArray = sq::res::texture().get("waternorms_"+texDir))) {
         normArray = sq::res::texture().add("waternorms_"+texDir);
-        normArray->create(gl::TEXTURE_2D_ARRAY, gl::RGB, gl::RGB8, sq::Texture::Preset::L_R);
+        normArray->create(gl::TEXTURE_2D_ARRAY, gl::RGB, gl::RGB8, 3, sq::Texture::Preset::L_R);
         normArray->resize({1024, 1024, 4});
         normArray->buffer_file("static/water/"+texDir+"/0", 0);
         normArray->buffer_file("static/water/"+texDir+"/1", 1);

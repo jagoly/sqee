@@ -10,7 +10,7 @@ namespace sq {
 class Skin {
 public:
     struct Mode {
-        enum : int { norm=1, diff=2, spec=4, ambi=8, all=1|2|4|8};
+        enum : int { norm=1, diff=2, spec=4, all=1|2|4};
     };
 
     struct Material {
@@ -18,7 +18,6 @@ public:
         sq::Texture* norm = nullptr;
         sq::Texture* diff = nullptr;
         sq::Texture* spec = nullptr;
-        sq::Texture* ambi = nullptr;
     };
 
     void create(const string& _filePath);

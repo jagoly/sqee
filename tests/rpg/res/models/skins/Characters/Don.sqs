@@ -6,14 +6,14 @@ mCount 3
 
 { materials
 material
-filter_wrap linear clamp
+wrap clamp
 diff Characters/Don/Head
 
 material
-filter_wrap linear clamp
+wrap clamp
 diff Characters/Don/Mid
 
 material
-filter_wrap linear clamp
+wrap clamp
 diff Characters/Don/Legs
 }

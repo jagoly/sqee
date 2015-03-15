@@ -1,10 +1,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
-#include <cassert>
-
 #include "app/logging.hpp"
 #include "gl/gl_ext_3_3.hpp"
-
 #include "gl/shaders.hpp"
 
 using namespace sq;
@@ -93,15 +90,15 @@ template<> struct Trait<glmtype> { \
 template void Shader::set_glmvec<glmtype>(const string& _name, const glmtype& _value); \
 template void Shader::set_ptrvec<glmtype>(const string& _name, const datatype* _value);
 
-UFORM_DEFINE(glm::vec2,  GLfloat, gl::ProgramUniform2fv)
-UFORM_DEFINE(glm::vec3,  GLfloat, gl::ProgramUniform3fv)
-UFORM_DEFINE(glm::vec4,  GLfloat, gl::ProgramUniform4fv)
-UFORM_DEFINE(glm::ivec2, GLint,   gl::ProgramUniform2iv)
-UFORM_DEFINE(glm::ivec3, GLint,   gl::ProgramUniform3iv)
-UFORM_DEFINE(glm::ivec4, GLint,   gl::ProgramUniform4iv)
-UFORM_DEFINE(glm::uvec2, GLuint,  gl::ProgramUniform2uiv)
-UFORM_DEFINE(glm::uvec3, GLuint,  gl::ProgramUniform3uiv)
-UFORM_DEFINE(glm::uvec4, GLuint,  gl::ProgramUniform4uiv)
+UFORM_DEFINE(vec2,  GLfloat, gl::ProgramUniform2fv)
+UFORM_DEFINE(vec3,  GLfloat, gl::ProgramUniform3fv)
+UFORM_DEFINE(vec4,  GLfloat, gl::ProgramUniform4fv)
+UFORM_DEFINE(ivec2, GLint,   gl::ProgramUniform2iv)
+UFORM_DEFINE(ivec3, GLint,   gl::ProgramUniform3iv)
+UFORM_DEFINE(ivec4, GLint,   gl::ProgramUniform4iv)
+UFORM_DEFINE(uvec2, GLuint,  gl::ProgramUniform2uiv)
+UFORM_DEFINE(uvec3, GLuint,  gl::ProgramUniform3uiv)
+UFORM_DEFINE(uvec4, GLuint,  gl::ProgramUniform4uiv)
 #undef UFORM_DEFINE
 
 #define UFORM_DEFINE(glmtype, f) \
@@ -111,15 +108,15 @@ template<> struct Trait<glmtype> { \
 template void Shader::set_glmmat<glmtype>(const string& _name, const glmtype& _value, bool _transpose); \
 template void Shader::set_ptrmat<glmtype>(const string& _name, const GLfloat* _value, bool _transpose);
 
-UFORM_DEFINE(glm::mat2,   gl::ProgramUniformMatrix2fv)
-UFORM_DEFINE(glm::mat2x3, gl::ProgramUniformMatrix2x3fv)
-UFORM_DEFINE(glm::mat2x4, gl::ProgramUniformMatrix2x4fv)
-UFORM_DEFINE(glm::mat3,   gl::ProgramUniformMatrix3fv)
-UFORM_DEFINE(glm::mat3x2, gl::ProgramUniformMatrix3x2fv)
-UFORM_DEFINE(glm::mat3x4, gl::ProgramUniformMatrix3x4fv)
-UFORM_DEFINE(glm::mat4,   gl::ProgramUniformMatrix4fv)
-UFORM_DEFINE(glm::mat4x2, gl::ProgramUniformMatrix4x2fv)
-UFORM_DEFINE(glm::mat4x3, gl::ProgramUniformMatrix4x3fv)
+UFORM_DEFINE(mat2,   gl::ProgramUniformMatrix2fv)
+UFORM_DEFINE(mat2x3, gl::ProgramUniformMatrix2x3fv)
+UFORM_DEFINE(mat2x4, gl::ProgramUniformMatrix2x4fv)
+UFORM_DEFINE(mat3,   gl::ProgramUniformMatrix3fv)
+UFORM_DEFINE(mat3x2, gl::ProgramUniformMatrix3x2fv)
+UFORM_DEFINE(mat3x4, gl::ProgramUniformMatrix3x4fv)
+UFORM_DEFINE(mat4,   gl::ProgramUniformMatrix4fv)
+UFORM_DEFINE(mat4x2, gl::ProgramUniformMatrix4x2fv)
+UFORM_DEFINE(mat4x3, gl::ProgramUniformMatrix4x3fv)
 #undef UFORM_DEFINE
 
 

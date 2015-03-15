@@ -1,10 +1,9 @@
 #include <glm/geometric.hpp>
 
-#include "app/logging.hpp"
 #include "gl/gl_ext_3_3.hpp"
+#include "app/logging.hpp"
 #include "misc/files.hpp"
 #include "misc/strtonum.hpp"
-
 #include "models/mesh.hpp"
 
 using namespace sq;
@@ -85,7 +84,7 @@ void Mesh::create(const string& _filePath) {
     #endif
 
     for (uint i = 0; i < mtrlVec.size(); i++) {
-        std::vector<std::array<uint, 3>>& faceVec = mtrlVec[i];
+        std::vector<array<uint, 3>>& faceVec = mtrlVec[i];
         iboVec.emplace_back(0, faceVec.size() * 3);
         std::pair<GLuint, uint>& ibo = iboVec.back();
         gl::GenBuffers(1, &ibo.first);
@@ -118,8 +117,12 @@ void Mesh::create(const string& _filePath) {
     int bones[vCount * 8];
     float weights[vCount * 8];
 
+    minPos = {INFINITY, INFINITY, INFINITY};
+    maxPos = {-INFINITY, -INFINITY, -INFINITY};
     for (uint i = 0; i < vCount; i++) {
         const Vertex& vert = vertVec[i];
+        minPos = glm::min(minPos, {vert.x, vert.y, vert.z});
+        maxPos = glm::max(maxPos, {vert.x, vert.y, vert.z});
         points[i*3 +0] = vert.x;
         points[i*3 +1] = vert.y;
         points[i*3 +2] = vert.z;
@@ -127,9 +130,9 @@ void Mesh::create(const string& _filePath) {
             normals[i*3 +0] = vert.nx;
             normals[i*3 +1] = vert.ny;
             normals[i*3 +2] = vert.nz;
-            glm::vec3 norm(vert.nx, vert.ny, vert.nz);
-            glm::vec3 t1(glm::cross(norm, {0, 1, 0})), t2(glm::cross(norm, {0, 0, 1}));
-            glm::vec3 tangent = glm::normalize(glm::length(t1) > glm::length(t2) ? t1 : t2);
+            vec3 norm(vert.nx, vert.ny, vert.nz);
+            vec3 t1(glm::cross(norm, {0, 1, 0})), t2(glm::cross(norm, {0, 0, 1}));
+            vec3 tangent = glm::normalize(glm::length(t1) > glm::length(t2) ? t1 : t2);
             tangents[i*3 +0] = tangent.x;
             tangents[i*3 +1] = tangent.y;
             tangents[i*3 +2] = tangent.z;

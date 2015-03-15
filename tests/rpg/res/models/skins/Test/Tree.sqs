@@ -6,10 +6,10 @@ mCount 2
 
 { materials
 material
-filter_wrap linear clamp
+wrap clamp
 diff Test/TreeBark
 
 material
-filter_wrap linear clamp
+wrap clamp
 diff Test/TreeBranch
 }

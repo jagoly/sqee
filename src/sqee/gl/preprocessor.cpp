@@ -2,8 +2,6 @@
 #include "misc/files.hpp"
 #include "gl/preprocessor.hpp"
 
-#include <iostream>
-
 using namespace sq;
 
 void Preprocessor::import_header(const string& _path) {

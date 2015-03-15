@@ -2,8 +2,8 @@
 
 { materials
 material
-filter_wrap linear clamp
-norm Test/Dice
-diff Test/DiceWhite
+wrap clamp
+#norm Test/Dice
+diff Test/Dice
 spec FFFFFF80
 }

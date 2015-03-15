@@ -1,13 +1,13 @@
 # SQEE RPG World Format
 
 { defaults
-ambiColour 0.4 0.4 0.4
+ambiColour 0.6 0.6 0.6
 #ambiColour 0.0 0.0 0.0
 skylEnable true
-skylDir -0.1 -0.25 -0.65
-#skylDir 0.0 0.0 -1.0
-skylColour 0.45 0.45 0.45
-#skylColour 1.0 1.0 1.0
+skylDirection -0.1 -0.25 -0.65
+#skylDirection 0.0 0.0 -1.0
+skylColour 0.7 0.7 0.7
+#skylColour 0.0 0.0 0.0
 }
 
 { cells

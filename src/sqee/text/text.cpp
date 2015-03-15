@@ -1,8 +1,6 @@
-#include <array>
 #include <vector>
 
 #include "gl/gl_ext_3_3.hpp"
-
 #include "text/text.hpp"
 
 using namespace sq;
@@ -10,8 +8,8 @@ using namespace sq;
 extern "C" const uchar ttTexture[256*16*16];
 extern "C" const uchar ttIndices[2048*6*2];
 
-void sq::draw_tiny_text(const std::string& _text, float _scale, Alignment _align,
-                        glm::vec2 _pos,  glm::uvec2 _viewport) {
+void sq::draw_tiny_text(const string& _text, float _scale, Alignment _align,
+                        vec2 _pos,  uvec2 _viewport) {
     static GLuint tex = 0;
     static GLuint prog = 0;
     static GLuint ibo = 0;
@@ -95,11 +93,11 @@ void sq::draw_tiny_text(const std::string& _text, float _scale, Alignment _align
 
     }
 
-    const glm::vec2 charSize(16.f*_scale / _viewport.x, 16.f*_scale / _viewport.y);
-    const glm::vec2 textPos(_pos.x / _viewport.x*2-1, _pos.y / _viewport.y*2-1);
+    const vec2 charSize(16.f*_scale / _viewport.x, 16.f*_scale / _viewport.y);
+    const vec2 textPos(_pos.x / _viewport.x*2-1, _pos.y / _viewport.y*2-1);
 
-    std::vector<std::array<glm::vec2, 4>> posData;
-    std::vector<std::array<glm::u8vec3, 4>> crdData;
+    std::vector<array<vec2, 4>> posData;
+    std::vector<array<glm::u8vec3, 4>> crdData;
 
     glm::vec2 crntPos(textPos);
     for (const char& c : _text) {
@@ -133,6 +131,7 @@ void sq::draw_tiny_text(const std::string& _text, float _scale, Alignment _align
     gl::BindBuffer(gl::ARRAY_BUFFER, vboCrd);
     gl::BufferData(gl::ARRAY_BUFFER, crdData.size()*12, crdData.data(), gl::DYNAMIC_DRAW);
 
+    gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
     gl::Enable(gl::BLEND);
     gl::UseProgram(prog);
     gl::ActiveTexture(gl::TEXTURE0);

@@ -2,9 +2,8 @@
 
 { materials
 material
-filter_wrap linear clamp
+wrap clamp
 norm Test/BridgeStart
 diff Test/BridgeStart
 spec Test/BridgeStart
-#ambi Test/BridgeEast
 }

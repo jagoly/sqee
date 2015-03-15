@@ -12,7 +12,7 @@ public:
 
     void update();
     void render(float _ft);
-    void resize(glm::uvec2 _size);
+    void resize(uvec2 _size);
 
     void exec();
     void handle_character(char _char);

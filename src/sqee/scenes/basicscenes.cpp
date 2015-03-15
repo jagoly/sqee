@@ -1,6 +1,5 @@
 #include "app/application.hpp"
 #include "text/text.hpp"
-
 #include "scenes/basicscenes.hpp"
 
 using namespace sq;
@@ -15,4 +14,4 @@ void SceneFPS::render(float _ft) {
     sq::draw_tiny_text(rounded, 5, Alignment::TL, {8, 10}, app.get_size());
 }
 
-void SceneFPS::resize(glm::uvec2 _size) {}
+void SceneFPS::resize(uvec2 _size) {}

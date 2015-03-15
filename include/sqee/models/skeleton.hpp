@@ -1,7 +1,6 @@
 #pragma once
 #include "forward.hpp"
 
-#include <utility>
 #include <vector>
 
 #include "models/animation.hpp"

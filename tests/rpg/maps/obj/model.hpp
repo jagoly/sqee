@@ -8,7 +8,7 @@ class Model : public Object {
 public:
     Model(const ObjSpec& _spec);
 
-    glm::mat4 modelMat;
+    mat4 modelMat;
 
     sq::Mesh* mesh;
     sq::Skin* skin;

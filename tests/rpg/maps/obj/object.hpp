@@ -2,10 +2,10 @@
 #include <sqee/forward.hpp>
 
 #include <forward_list>
+#include <functional>
 #include <map>
 #include <set>
 #include <vector>
-#include <functional>
 
 namespace sqt {
 

@@ -4,7 +4,6 @@
 
 #include "app/logging.hpp"
 #include "misc/files.hpp"
-
 #include "models/skeleton.hpp"
 
 using namespace sq;
@@ -72,9 +71,9 @@ void Skeleton::calc(double _accum) {
             quatData[i*4+2] = quatC.y;
             quatData[i*4+3] = quatC.z;
 
-            glm::vec3 offsA(o1[i*3+0], o1[i*3+1], o1[i*3+2]);
-            glm::vec3 offsB(o2[i*3+0], o2[i*3+1], o2[i*3+2]);
-            glm::vec3 offsC(glm::mix(offsA, offsB, percent));
+            vec3 offsA(o1[i*3+0], o1[i*3+1], o1[i*3+2]);
+            vec3 offsB(o2[i*3+0], o2[i*3+1], o2[i*3+2]);
+            vec3 offsC(glm::mix(offsA, offsB, percent));
             offsData[i*3+0] = offsC.x;
             offsData[i*3+1] = offsC.y;
             offsData[i*3+2] = offsC.z;

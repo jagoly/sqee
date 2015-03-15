@@ -1,7 +1,7 @@
 #include <sqee/gl/gl_ext_3_3.hpp>
+#include <sqee/models/animation.hpp>
 #include <sqee/models/mesh.hpp>
 #include <sqee/models/skin.hpp>
-#include <sqee/models/animation.hpp>
 
 #include "model.hpp"
 

@@ -1,15 +1,14 @@
-#include <array>
-
 #include <glm/common.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <sqee/gl/gl_ext_3_3.hpp>
-#include <sqee/gl/maths.hpp>
 #include <sqee/app/application.hpp>
 #include <sqee/app/logging.hpp>
+#include <sqee/gl/gl_ext_3_3.hpp>
+#include <sqee/gl/maths.hpp>
 #include <sqee/misc/files.hpp>
 #include <sqee/misc/strtonum.hpp>
 
+#include "../render/camera.hpp"
 #include "../scenegame.hpp"
 #include "world.hpp"
 
@@ -17,12 +16,6 @@ using namespace sqt;
 
 World::World(sq::Application& _app) : app(_app) {
     ubo.reserve("ambiColour", 3);
-    ubo.reserve("skylEnable", 1);
-    ubo.reserve("skylDir", 4);
-    ubo.reserve("skylColour", 4);
-    ubo.reserve("skylMatArr", 16*6);
-    ubo.reserve("spotCount", 4);
-    ubo.reserve("spotArr", 76*8);
     ubo.create();
 }
 
@@ -33,7 +26,7 @@ void World::load_base(const string& _filePath) {
     struct Spec {
         Spec(const string& _name) : name(_name) {}
         string name, path;
-        glm::vec3 pos;
+        vec3 pos;
         std::vector<string> loads;
     };
     std::vector<Spec> specVec;
@@ -62,11 +55,12 @@ void World::load_base(const string& _filePath) {
             if (key == "ambiColour")
                 ambiColour = {stof(line[1]), stof(line[2]), stof(line[3])};
             else if (key == "skylEnable")
-                skylEnable = line[1] == "true";
-            else if (key == "skylDir")
-                skylDir = {stof(line[1]), stof(line[2]), stof(line[3])};
+                SKYL.enable = line[1] == "true";
             else if (key == "skylColour")
-                skylColour = {stof(line[1]), stof(line[2]), stof(line[3])};
+                SKYL.colour = {stof(line[1]), stof(line[2]), stof(line[3])};
+            else if (key == "skylDirection")
+                SKYL.direction = {stof(line[1]), stof(line[2]), stof(line[3])};
+
             else throw;
             continue;
         }
@@ -169,21 +163,6 @@ void World::set_active_cell(const string& _cell) {
 
     ubo.bind(1);
     ubo.update("ambiColour", &ambiColour);
-    ubo.update("skylEnable", &skylEnable);
-    ubo.update("skylDir", &skylDir);
-    ubo.update("skylColour", &skylColour);
-
-    ubo.update("spotCount", &spotCount);
-//    for (uint i = 0; i < lightVec.size(); i++) {
-//        const Light* light = lightVec[i];
-//        ubo.update("spots", &light->pos,       i*12+0, 3);
-//        ubo.update("spots", &light->angle,     i*12+3, 1);
-//        ubo.update("spots", &light->dir,       i*12+4, 3);
-//        ubo.update("spots", &light->intensity, i*12+7, 1);
-//        ubo.update("spots", &light->colour,    i*12+8, 3);
-//        ubo.update("spots", &light->softness,  i*12+11, 1);
-//        ubo.update("spotMats", &light->shadMat, i*16, 16);
-//    }
 
     updateScene = true;
 }
@@ -199,40 +178,6 @@ void World::set_active_tile(glm::ivec2 _tile) {
 }
 
 void World::tick() {
-    static sq::Camera& cam = static_cast<SceneGame*>(app.sceneIM.get("game").get())->camera;
-
-    skylMatVec.clear();
-
-    glm::vec3 t1(glm::cross(skylDir, {0, 1, 0})), t2(glm::cross(skylDir, {0, 1, 0}));
-    glm::vec3 tangent = glm::normalize(glm::length(t1) > glm::length(t2) ? t1 : t2);
-    for (auto& csm : cam.csmVecA) {\
-        glm::vec3 frusCentre = sq::calc_frusCentre(csm.second);
-        glm::mat4 viewMat = glm::lookAt(frusCentre-skylDir, frusCentre, tangent);
-        glm::vec3 arr[8] {
-            glm::vec3(viewMat * glm::vec4(csm.second.xyz, 1)),
-            glm::vec3(viewMat * glm::vec4(csm.second.xyZ, 1)),
-            glm::vec3(viewMat * glm::vec4(csm.second.xYz, 1)),
-            glm::vec3(viewMat * glm::vec4(csm.second.xYZ, 1)),
-            glm::vec3(viewMat * glm::vec4(csm.second.Xyz, 1)),
-            glm::vec3(viewMat * glm::vec4(csm.second.XyZ, 1)),
-            glm::vec3(viewMat * glm::vec4(csm.second.XYz, 1)),
-            glm::vec3(viewMat * glm::vec4(csm.second.XYZ, 1))
-        };
-
-        glm::vec3 minO = {INFINITY, INFINITY, INFINITY};
-        glm::vec3 maxO = {-INFINITY, -INFINITY, -INFINITY};
-        for (auto& vec : arr) {
-            minO = glm::min(minO, vec);
-            maxO = glm::max(maxO, vec);
-        }
-
-        glm::mat4 projMat = sq::make_orthMat(minO, maxO);
-        skylMatVec.push_back(projMat * viewMat);
-    }
-
-    ubo.bind(1);
-    ubo.update("skylMatArr", skylMatVec.data(), 0, skylMatVec.size()*16);
-
     for (auto& scPair : cellMap)
         scPair.second.tick();
 }

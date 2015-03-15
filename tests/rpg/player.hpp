@@ -4,6 +4,7 @@
 #include <sqee/events/handler.hpp>
 
 #include "entities/model.hpp"
+#include "render/camera.hpp"
 
 namespace sqt {
 
@@ -26,9 +27,9 @@ public:
     void tick();
     void calc(double _accum);
 
-
-    sq::Camera* camera = nullptr;
+    MainCamera* camera = nullptr;
     World* world = nullptr;
+    sq::SettingMap* settings = nullptr;
 
 private:
     string layer;
@@ -36,12 +37,14 @@ private:
     float zCam = 0;
 
     sq::Direction moveDir;
-    glm::ivec2 moveVal;
+    ivec2 moveVal;
     uint moveCntr = 0;
     bool stopped = true;
 
-    glm::ivec2 gridCrnt, gridPrev;
-    glm::vec3 posCrnt, posNext;
+    ivec2 gridCrnt, gridPrev;
+    vec3 posCrnt, posNext;
+
+    vec3 lookCrnt, lookNext;
 };
 
 }

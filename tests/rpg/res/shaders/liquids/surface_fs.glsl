@@ -1,9 +1,9 @@
 #version 330
 #extension GL_ARB_shading_language_420pack : enable
 
-#include "headers/camera_block"
-#include "headers/world_block"
-#include "headers/liquid_block"
+#include "headers/blocks/camera"
+#include "headers/blocks/world"
+#include "headers/blocks/liquid"
 #include "headers/sample_shadow"
 
 in vec3 w_pos, v_pos;

@@ -9,7 +9,8 @@ layout(location = 5) in ivec4 V_bonesEFGH;
 layout(location = 6) in vec4 V_weightsABCD;
 layout(location = 7) in vec4 V_weightsEFGH;
 
-uniform mat4 shadMat, modelMat;
+uniform mat4 modelMat;
+uniform mat4 shadMat;
 uniform vec4 skelQuat[40];
 uniform vec3 skelOffs[40];
 
@@ -51,7 +52,7 @@ void main() {
 
     gl_Position = shadMat * modelMat * vec4(a_pos, 1.f);
 
-    #ifdef PUNCH    
+  #ifdef PUNCH
     texcrd = V_texcrd;
-    #endif
+  #endif
 }

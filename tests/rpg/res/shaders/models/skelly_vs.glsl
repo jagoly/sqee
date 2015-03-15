@@ -1,9 +1,9 @@
 #version 330
 #extension GL_ARB_shading_language_420pack : enable
 
-#include "headers/camera_block"
-#include "headers/world_block"
-#include "headers/liquid_block"
+#include "headers/blocks/camera"
+#include "headers/blocks/world"
+#include "headers/blocks/liquid"
 
 layout(location = 0) in vec3 V_pos;
 layout(location = 1) in vec3 V_norm;
@@ -27,8 +27,6 @@ uniform bool useRefl;
 out vec3 w_pos, v_pos;
 out vec3 N, T, B;
 out vec2 texcrd;
-out vec3 slShadcrd[6];
-out vec3 spShadcrd[8];
 
 out gl_PerVertex {
     vec4 gl_Position;
@@ -68,14 +66,6 @@ void main() {
     v_pos = vec4(CB.view * vec4(w_pos, 1)).xyz;
 
     texcrd = V_texcrd;
-    for (int i = 0; i < 6; i++) {
-        vec4 sc = WB.skylMatArr[i] * vec4(w_pos, 1);
-        slShadcrd[i] = sc.xyz / sc.w * 0.5f + 0.5f;
-    }
-    for (uint i = 0u; i < WB.spotCount; i++) {
-        vec4 sc = WB.spotArr[i].matArr[0] * vec4(w_pos, 1);
-        spShadcrd[i] = vec3(sc.xyz / sc.w) * 0.5f + 0.5f;
-    }
 
     N = normalize(normMat * a_norm);
     T = normalize(normMat * a_tan);

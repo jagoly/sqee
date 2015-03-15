@@ -6,23 +6,23 @@ mCount 5
 
 { materials
 material
-filter_wrap linear repeat
+wrap repeat
 diff WorldTest/Margin_DarkGrass
 
 material
-filter_wrap linear repeat
+wrap repeat
 diff WorldTest/Edge_Grass-DarkGrass
 
 material
-filter_wrap linear clamp
+wrap clamp
 diff WorldTest/GrassDirt
 
 material
-filter_wrap linear clamp
+wrap clamp
 diff WorldTest/GrassPath
 norm WorldTest/GrassPath
 
 material
-filter_wrap linear clamp
+wrap clamp
 diff WorldTest/GrassSand
 }

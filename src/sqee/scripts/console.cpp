@@ -4,7 +4,6 @@
 #include "app/logging.hpp"
 #include "scripts/chaiscript.hpp"
 #include "text/text.hpp"
-
 #include "scripts/console.hpp"
 
 using namespace sq;
@@ -20,7 +19,7 @@ void SceneConsole::render(float _ft) {
         sq::draw_tiny_text(pretty_print(), 5, Alignment::TL, {8, 10}, app.get_size());
     }
 }
-void SceneConsole::resize(glm::uvec2 _size) {}
+void SceneConsole::resize(uvec2 _size) {}
 
 void SceneConsole::toggle_active() {
     static bool prevKR = false;

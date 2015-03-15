@@ -2,7 +2,6 @@
 
 #include "app/logging.hpp"
 #include "misc/files.hpp"
-
 #include "models/animation.hpp"
 
 using namespace sq;
@@ -17,8 +16,8 @@ void Animation::create(const string& _filePath) {
     std::vector<std::vector<string>> fileVec(sq::get_words_from_file(filePath));
 
     int pNum = 0;
-    std::vector<std::array<float, 4>> qVec; qVec.reserve(40);
-    std::vector<std::array<float, 3>> oVec; oVec.reserve(40);
+    std::vector<array<float, 4>> qVec; qVec.reserve(40);
+    std::vector<array<float, 3>> oVec; oVec.reserve(40);
     std::vector<std::pair<uint, int>> kVec;
 
     string section = "";

@@ -2,7 +2,6 @@
 #include "forward.hpp"
 
 #include <list>
-#include <memory>
 #include <unordered_map>
 
 namespace sq {

@@ -12,8 +12,8 @@ public:
 
     float wScale;
     float wSmooth;
-    glm::vec2 flow;
-    glm::vec3 colour;
+    vec2 flow;
+    vec3 colour;
     float thickness;
 
     GLuint vao;
@@ -30,10 +30,10 @@ public:
     void calc(double _accum);
 
 private:
-    glm::vec3 normInfo;
-    glm::vec2 flowOffs;
+    vec3 normInfo;
+    vec2 flowOffs;
     double normOffsA, normOffsB;
-    glm::vec2 flowOffsA, flowOffsB;
+    vec2 flowOffsA, flowOffsB;
 
     sq::Mesh* mesh;
 };

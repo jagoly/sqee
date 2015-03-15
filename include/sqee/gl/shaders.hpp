@@ -8,7 +8,7 @@ namespace sq {
 class Shader : NonCopyable {
 friend class Pipeline;
 public:
-    Shader(const GLenum _stage);
+    Shader(GLenum _stage);
     ~Shader();
 
     void load(const string& _shaderStr);

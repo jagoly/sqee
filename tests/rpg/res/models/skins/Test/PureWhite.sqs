@@ -2,6 +2,6 @@
 
 { materials
 material
-filter_wrap linear clamp
+wrap clamp
 diff FFFFFF
 }

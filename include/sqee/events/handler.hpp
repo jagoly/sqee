@@ -1,15 +1,13 @@
 #pragma once
 #include "forward.hpp"
 
-#include <memory>
-
 #include <SFML/Window/Event.hpp>
 
 namespace sq {
 
 class Handler : NonCopyable {
 public:
-    typedef std::unique_ptr<Handler> Ptr;
+    using Ptr = unique_ptr<Handler>;
 
     Handler(Application& _app) : app(_app) {}
 

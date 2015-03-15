@@ -7,6 +7,7 @@ set(SOURCES
     "player.hpp"              "player.cpp"
     "render/light.hpp"        "render/light.cpp"
     "render/camera.hpp"       "render/camera.cpp"
+    "render/shaders.hpp"      "render/shaders.cpp"
     "entities/model.hpp"      "entities/model.cpp"
     "maps/cell.hpp"           "maps/cell.cpp"
     "maps/world.hpp"          "maps/world.cpp"

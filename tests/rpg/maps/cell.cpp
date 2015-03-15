@@ -1,21 +1,19 @@
 #include <fstream>
 
-#include <sqee/gl/gl_ext_3_3.hpp>
 #include <sqee/app/logging.hpp>
+#include <sqee/gl/gl_ext_3_3.hpp>
 #include <sqee/misc/files.hpp>
 
-#include "obj/model.hpp"
-#include "obj/liquid.hpp"
 #include "obj/light.hpp"
+#include "obj/liquid.hpp"
+#include "obj/model.hpp"
 #include "obj/reflector.hpp"
 
 #include "cell.hpp"
 
 using namespace sqt;
 
-HeightLayer::HeightLayer(const string& _filePath, glm::ivec2 _min,
-                         glm::ivec2 _max, float _offs)
-{
+HeightLayer::HeightLayer(const string& _filePath, ivec2 _min, ivec2 _max, float _offs) {
     const string filePath = "res/game/heightlayers/" + _filePath + ".sq_hl";
     std::ifstream src(filePath, std::ios::binary);
 
@@ -46,8 +44,7 @@ float HeightLayer::get_z(uint _x, uint _y) const {
     return floatVV[_y][_x];
 }
 
-Cell::Cell(const string& _filePath, const string& _name,
-           const std::vector<string>& _loads, glm::vec3 _pos)
+Cell::Cell(const string& _filePath, const string& _name, const std::vector<string>& _loads, vec3 _pos)
     : name(_name), loads(_loads), pos(_pos)
 {
     string filePath = "res/game/cells/" + _filePath + ".sq_cell";

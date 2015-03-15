@@ -4,32 +4,24 @@
 
 using namespace sq;
 
-Frustum sq::make_worldFrustum(const glm::mat4& _invProjView) {
-    Frustum fr; glm::vec4 temp;
+Frustum sq::make_Frustum(const mat4& _invProjView) {
+    Frustum fr; vec4 temp;
 
-    temp = _invProjView * glm::vec4(-1, -1, -1, 1);
-    fr.xyz = glm::vec3(temp) / temp.w;
-    temp = _invProjView * glm::vec4(-1, -1,  1, 1);
-    fr.xyZ = glm::vec3(temp) / temp.w;
-    temp = _invProjView * glm::vec4(-1,  1, -1, 1);
-    fr.xYz = glm::vec3(temp) / temp.w;
-    temp = _invProjView * glm::vec4(-1,  1,  1, 1);
-    fr.xYZ = glm::vec3(temp) / temp.w;
-    temp = _invProjView * glm::vec4( 1, -1, -1, 1);
-    fr.Xyz = glm::vec3(temp) / temp.w;
-    temp = _invProjView * glm::vec4( 1, -1,  1, 1);
-    fr.XyZ = glm::vec3(temp) / temp.w;
-    temp = _invProjView * glm::vec4( 1,  1, -1, 1);
-    fr.XYz = glm::vec3(temp) / temp.w;
-    temp = _invProjView * glm::vec4( 1,  1,  1, 1);
-    fr.XYZ = glm::vec3(temp) / temp.w;
+    temp = _invProjView * vec4(-1, -1, -1, 1); fr.xyz = vec3(temp) / temp.w;
+    temp = _invProjView * vec4(-1, -1,  1, 1); fr.xyZ = vec3(temp) / temp.w;
+    temp = _invProjView * vec4(-1,  1, -1, 1); fr.xYz = vec3(temp) / temp.w;
+    temp = _invProjView * vec4(-1,  1,  1, 1); fr.xYZ = vec3(temp) / temp.w;
+    temp = _invProjView * vec4( 1, -1, -1, 1); fr.Xyz = vec3(temp) / temp.w;
+    temp = _invProjView * vec4( 1, -1,  1, 1); fr.XyZ = vec3(temp) / temp.w;
+    temp = _invProjView * vec4( 1,  1, -1, 1); fr.XYz = vec3(temp) / temp.w;
+    temp = _invProjView * vec4( 1,  1,  1, 1); fr.XYZ = vec3(temp) / temp.w;
 
     return fr;
 }
 
-glm::vec3 sq::calc_frusCentre(const Frustum& _frus) {
-    glm::vec3 min(INFINITY, INFINITY, INFINITY);
-    glm::vec3 max(-INFINITY, -INFINITY, -INFINITY);
+vec3 sq::calc_frusCentre(const Frustum& _frus) {
+    vec3 min(INFINITY, INFINITY, INFINITY);
+    vec3 max(-INFINITY, -INFINITY, -INFINITY);
     for (auto& vec : {_frus.xyz, _frus.xyZ, _frus.xYz, _frus.xYZ,
                       _frus.Xyz, _frus.XyZ, _frus.XYz, _frus.XYZ}) {
         min = glm::min(min, vec);
@@ -38,15 +30,25 @@ glm::vec3 sq::calc_frusCentre(const Frustum& _frus) {
     return (min + max) / 2.f;
 }
 
-glm::mat4 sq::make_viewMat(const glm::vec3& _pos, const glm::vec3& _dir) {
-    // TODO: fix for up vector
-    return glm::lookAt(_pos, _pos+_dir, {0.f, 0.f, 1.f});
-}
+Frustum sq::make_boxFrustum(const mat4& _invProjView) {
+    Frustum frus = make_Frustum(_invProjView);
 
-glm::mat4 sq::make_persMat(const glm::vec2& _range, const glm::vec2& _size, float _fov) {
-    return glm::perspective(_fov, _size.x / _size.y, _range.x, _range.y);
-}
+    vec3 min(INFINITY, INFINITY, INFINITY);
+    vec3 max(-INFINITY, -INFINITY, -INFINITY);
+    for (auto& vec : {frus.xyz, frus.xyZ, frus.xYz, frus.xYZ,
+                      frus.Xyz, frus.XyZ, frus.XYz, frus.XYZ}) {
+        min = glm::min(min, vec);
+        max = glm::max(max, vec);
+    }
 
-glm::mat4 sq::make_orthMat(const glm::vec3& _min, const glm::vec3& _max) {
-    return glm::ortho(_min.x, _max.x, _min.y, _max.y, _min.z, _max.z);
+    frus.xyz = {min.x, min.y, min.z};
+    frus.xyZ = {min.x, min.y, max.z};
+    frus.xYz = {min.x, max.y, min.z};
+    frus.xYZ = {min.x, max.y, max.z};
+    frus.Xyz = {max.x, min.y, min.z};
+    frus.XyZ = {max.x, min.y, max.z};
+    frus.XYz = {max.x, max.y, min.z};
+    frus.XYZ = {max.x, max.y, max.z};
+
+    return frus;
 }

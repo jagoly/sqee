@@ -174,243 +174,15 @@ namespace gl
 			int m_numMissing;
 		};
 		
-		extern LoadTest var_ARB_compressed_texture_pixel_storage;
-		extern LoadTest var_ARB_conservative_depth;
-		extern LoadTest var_ARB_ES2_compatibility;
-		extern LoadTest var_ARB_get_program_binary;
-		extern LoadTest var_ARB_explicit_uniform_location;
-		extern LoadTest var_ARB_internalformat_query;
-		extern LoadTest var_ARB_internalformat_query2;
-		extern LoadTest var_ARB_map_buffer_alignment;
-		extern LoadTest var_ARB_program_interface_query;
 		extern LoadTest var_ARB_separate_shader_objects;
 		extern LoadTest var_ARB_shading_language_420pack;
-		extern LoadTest var_ARB_shading_language_packing;
-		extern LoadTest var_ARB_texture_buffer_range;
-		extern LoadTest var_ARB_texture_storage;
-		extern LoadTest var_ARB_texture_view;
-		extern LoadTest var_ARB_vertex_attrib_binding;
-		extern LoadTest var_ARB_viewport_array;
-		extern LoadTest var_ARB_arrays_of_arrays;
-		extern LoadTest var_ARB_clear_buffer_object;
 		extern LoadTest var_ARB_copy_image;
-		extern LoadTest var_ARB_ES3_compatibility;
-		extern LoadTest var_ARB_fragment_layer_viewport;
-		extern LoadTest var_ARB_framebuffer_no_attachments;
-		extern LoadTest var_ARB_invalidate_subdata;
-		extern LoadTest var_ARB_robust_buffer_access_behavior;
-		extern LoadTest var_ARB_stencil_texturing;
-		extern LoadTest var_ARB_texture_query_levels;
-		extern LoadTest var_ARB_texture_storage_multisample;
 		extern LoadTest var_KHR_debug;
+		extern LoadTest var_ARB_texture_storage;
 		
 	} //namespace exts
 	enum
 	{
-		PACK_COMPRESSED_BLOCK_DEPTH      = 0x912D,
-		PACK_COMPRESSED_BLOCK_HEIGHT     = 0x912C,
-		PACK_COMPRESSED_BLOCK_SIZE       = 0x912E,
-		PACK_COMPRESSED_BLOCK_WIDTH      = 0x912B,
-		UNPACK_COMPRESSED_BLOCK_DEPTH    = 0x9129,
-		UNPACK_COMPRESSED_BLOCK_HEIGHT   = 0x9128,
-		UNPACK_COMPRESSED_BLOCK_SIZE     = 0x912A,
-		UNPACK_COMPRESSED_BLOCK_WIDTH    = 0x9127,
-		
-		FIXED                            = 0x140C,
-		HIGH_FLOAT                       = 0x8DF2,
-		HIGH_INT                         = 0x8DF5,
-		IMPLEMENTATION_COLOR_READ_FORMAT = 0x8B9B,
-		IMPLEMENTATION_COLOR_READ_TYPE   = 0x8B9A,
-		LOW_FLOAT                        = 0x8DF0,
-		LOW_INT                          = 0x8DF3,
-		MAX_FRAGMENT_UNIFORM_VECTORS     = 0x8DFD,
-		MAX_VARYING_VECTORS              = 0x8DFC,
-		MAX_VERTEX_UNIFORM_VECTORS       = 0x8DFB,
-		MEDIUM_FLOAT                     = 0x8DF1,
-		MEDIUM_INT                       = 0x8DF4,
-		NUM_SHADER_BINARY_FORMATS        = 0x8DF9,
-		RGB565                           = 0x8D62,
-		SHADER_BINARY_FORMATS            = 0x8DF8,
-		SHADER_COMPILER                  = 0x8DFA,
-		
-		NUM_PROGRAM_BINARY_FORMATS       = 0x87FE,
-		PROGRAM_BINARY_FORMATS           = 0x87FF,
-		PROGRAM_BINARY_LENGTH            = 0x8741,
-		PROGRAM_BINARY_RETRIEVABLE_HINT  = 0x8257,
-		
-		MAX_UNIFORM_LOCATIONS            = 0x826E,
-		
-		NUM_SAMPLE_COUNTS                = 0x9380,
-		
-		AUTO_GENERATE_MIPMAP             = 0x8295,
-		CAVEAT_SUPPORT                   = 0x82B8,
-		CLEAR_BUFFER                     = 0x82B4,
-		COLOR_COMPONENTS                 = 0x8283,
-		COLOR_ENCODING                   = 0x8296,
-		COLOR_RENDERABLE                 = 0x8286,
-		COMPUTE_TEXTURE                  = 0x82A0,
-		DEPTH_COMPONENTS                 = 0x8284,
-		DEPTH_RENDERABLE                 = 0x8287,
-		FILTER                           = 0x829A,
-		FRAGMENT_TEXTURE                 = 0x829F,
-		FRAMEBUFFER_BLEND                = 0x828B,
-		FRAMEBUFFER_RENDERABLE           = 0x8289,
-		FRAMEBUFFER_RENDERABLE_LAYERED   = 0x828A,
-		FULL_SUPPORT                     = 0x82B7,
-		GEOMETRY_TEXTURE                 = 0x829E,
-		GET_TEXTURE_IMAGE_FORMAT         = 0x8291,
-		GET_TEXTURE_IMAGE_TYPE           = 0x8292,
-		IMAGE_CLASS_10_10_10_2           = 0x82C3,
-		IMAGE_CLASS_11_11_10             = 0x82C2,
-		IMAGE_CLASS_1_X_16               = 0x82BE,
-		IMAGE_CLASS_1_X_32               = 0x82BB,
-		IMAGE_CLASS_1_X_8                = 0x82C1,
-		IMAGE_CLASS_2_X_16               = 0x82BD,
-		IMAGE_CLASS_2_X_32               = 0x82BA,
-		IMAGE_CLASS_2_X_8                = 0x82C0,
-		IMAGE_CLASS_4_X_16               = 0x82BC,
-		IMAGE_CLASS_4_X_32               = 0x82B9,
-		IMAGE_CLASS_4_X_8                = 0x82BF,
-		IMAGE_COMPATIBILITY_CLASS        = 0x82A8,
-		IMAGE_FORMAT_COMPATIBILITY_TYPE  = 0x90C7,
-		IMAGE_PIXEL_FORMAT               = 0x82A9,
-		IMAGE_PIXEL_TYPE                 = 0x82AA,
-		IMAGE_TEXEL_SIZE                 = 0x82A7,
-		INTERNALFORMAT_ALPHA_SIZE        = 0x8274,
-		INTERNALFORMAT_ALPHA_TYPE        = 0x827B,
-		INTERNALFORMAT_BLUE_SIZE         = 0x8273,
-		INTERNALFORMAT_BLUE_TYPE         = 0x827A,
-		INTERNALFORMAT_DEPTH_SIZE        = 0x8275,
-		INTERNALFORMAT_DEPTH_TYPE        = 0x827C,
-		INTERNALFORMAT_GREEN_SIZE        = 0x8272,
-		INTERNALFORMAT_GREEN_TYPE        = 0x8279,
-		INTERNALFORMAT_PREFERRED         = 0x8270,
-		INTERNALFORMAT_RED_SIZE          = 0x8271,
-		INTERNALFORMAT_RED_TYPE          = 0x8278,
-		INTERNALFORMAT_SHARED_SIZE       = 0x8277,
-		INTERNALFORMAT_STENCIL_SIZE      = 0x8276,
-		INTERNALFORMAT_STENCIL_TYPE      = 0x827D,
-		INTERNALFORMAT_SUPPORTED         = 0x826F,
-		MANUAL_GENERATE_MIPMAP           = 0x8294,
-		MAX_COMBINED_DIMENSIONS          = 0x8282,
-		MAX_DEPTH                        = 0x8280,
-		MAX_HEIGHT                       = 0x827F,
-		MAX_LAYERS                       = 0x8281,
-		MAX_WIDTH                        = 0x827E,
-		MIPMAP                           = 0x8293,
-		//NUM_SAMPLE_COUNTS taken from ext: ARB_internalformat_query
-		READ_PIXELS                      = 0x828C,
-		READ_PIXELS_FORMAT               = 0x828D,
-		READ_PIXELS_TYPE                 = 0x828E,
-		RENDERBUFFER                     = 0x8D41,
-		SAMPLES                          = 0x80A9,
-		SHADER_IMAGE_ATOMIC              = 0x82A6,
-		SHADER_IMAGE_LOAD                = 0x82A4,
-		SHADER_IMAGE_STORE               = 0x82A5,
-		SIMULTANEOUS_TEXTURE_AND_DEPTH_TEST = 0x82AC,
-		SIMULTANEOUS_TEXTURE_AND_DEPTH_WRITE = 0x82AE,
-		SIMULTANEOUS_TEXTURE_AND_STENCIL_TEST = 0x82AD,
-		SIMULTANEOUS_TEXTURE_AND_STENCIL_WRITE = 0x82AF,
-		SRGB_DECODE_ARB                  = 0x8299,
-		SRGB_READ                        = 0x8297,
-		SRGB_WRITE                       = 0x8298,
-		STENCIL_COMPONENTS               = 0x8285,
-		STENCIL_RENDERABLE               = 0x8288,
-		TESS_CONTROL_TEXTURE             = 0x829C,
-		TESS_EVALUATION_TEXTURE          = 0x829D,
-		TEXTURE_1D                       = 0x0DE0,
-		TEXTURE_1D_ARRAY                 = 0x8C18,
-		TEXTURE_2D                       = 0x0DE1,
-		TEXTURE_2D_ARRAY                 = 0x8C1A,
-		TEXTURE_2D_MULTISAMPLE           = 0x9100,
-		TEXTURE_2D_MULTISAMPLE_ARRAY     = 0x9102,
-		TEXTURE_3D                       = 0x806F,
-		TEXTURE_BUFFER                   = 0x8C2A,
-		TEXTURE_COMPRESSED               = 0x86A1,
-		TEXTURE_COMPRESSED_BLOCK_HEIGHT  = 0x82B2,
-		TEXTURE_COMPRESSED_BLOCK_SIZE    = 0x82B3,
-		TEXTURE_COMPRESSED_BLOCK_WIDTH   = 0x82B1,
-		TEXTURE_CUBE_MAP                 = 0x8513,
-		TEXTURE_CUBE_MAP_ARRAY           = 0x9009,
-		TEXTURE_GATHER                   = 0x82A2,
-		TEXTURE_GATHER_SHADOW            = 0x82A3,
-		TEXTURE_IMAGE_FORMAT             = 0x828F,
-		TEXTURE_IMAGE_TYPE               = 0x8290,
-		TEXTURE_RECTANGLE                = 0x84F5,
-		TEXTURE_SHADOW                   = 0x82A1,
-		TEXTURE_VIEW                     = 0x82B5,
-		VERTEX_TEXTURE                   = 0x829B,
-		VIEW_CLASS_128_BITS              = 0x82C4,
-		VIEW_CLASS_16_BITS               = 0x82CA,
-		VIEW_CLASS_24_BITS               = 0x82C9,
-		VIEW_CLASS_32_BITS               = 0x82C8,
-		VIEW_CLASS_48_BITS               = 0x82C7,
-		VIEW_CLASS_64_BITS               = 0x82C6,
-		VIEW_CLASS_8_BITS                = 0x82CB,
-		VIEW_CLASS_96_BITS               = 0x82C5,
-		VIEW_CLASS_BPTC_FLOAT            = 0x82D3,
-		VIEW_CLASS_BPTC_UNORM            = 0x82D2,
-		VIEW_CLASS_RGTC1_RED             = 0x82D0,
-		VIEW_CLASS_RGTC2_RG              = 0x82D1,
-		VIEW_CLASS_S3TC_DXT1_RGB         = 0x82CC,
-		VIEW_CLASS_S3TC_DXT1_RGBA        = 0x82CD,
-		VIEW_CLASS_S3TC_DXT3_RGBA        = 0x82CE,
-		VIEW_CLASS_S3TC_DXT5_RGBA        = 0x82CF,
-		VIEW_COMPATIBILITY_CLASS         = 0x82B6,
-		
-		MIN_MAP_BUFFER_ALIGNMENT         = 0x90BC,
-		
-		ACTIVE_RESOURCES                 = 0x92F5,
-		ACTIVE_VARIABLES                 = 0x9305,
-		ARRAY_SIZE                       = 0x92FB,
-		ARRAY_STRIDE                     = 0x92FE,
-		ATOMIC_COUNTER_BUFFER            = 0x92C0,
-		ATOMIC_COUNTER_BUFFER_INDEX      = 0x9301,
-		BLOCK_INDEX                      = 0x92FD,
-		BUFFER_BINDING                   = 0x9302,
-		BUFFER_DATA_SIZE                 = 0x9303,
-		BUFFER_VARIABLE                  = 0x92E5,
-		COMPATIBLE_SUBROUTINES           = 0x8E4B,
-		COMPUTE_SUBROUTINE               = 0x92ED,
-		COMPUTE_SUBROUTINE_UNIFORM       = 0x92F3,
-		FRAGMENT_SUBROUTINE              = 0x92EC,
-		FRAGMENT_SUBROUTINE_UNIFORM      = 0x92F2,
-		GEOMETRY_SUBROUTINE              = 0x92EB,
-		GEOMETRY_SUBROUTINE_UNIFORM      = 0x92F1,
-		IS_PER_PATCH                     = 0x92E7,
-		IS_ROW_MAJOR                     = 0x9300,
-		LOCATION                         = 0x930E,
-		LOCATION_INDEX                   = 0x930F,
-		MATRIX_STRIDE                    = 0x92FF,
-		MAX_NAME_LENGTH                  = 0x92F6,
-		MAX_NUM_ACTIVE_VARIABLES         = 0x92F7,
-		MAX_NUM_COMPATIBLE_SUBROUTINES   = 0x92F8,
-		NAME_LENGTH                      = 0x92F9,
-		NUM_ACTIVE_VARIABLES             = 0x9304,
-		NUM_COMPATIBLE_SUBROUTINES       = 0x8E4A,
-		OFFSET                           = 0x92FC,
-		PROGRAM_INPUT                    = 0x92E3,
-		PROGRAM_OUTPUT                   = 0x92E4,
-		REFERENCED_BY_COMPUTE_SHADER     = 0x930B,
-		REFERENCED_BY_FRAGMENT_SHADER    = 0x930A,
-		REFERENCED_BY_GEOMETRY_SHADER    = 0x9309,
-		REFERENCED_BY_TESS_CONTROL_SHADER = 0x9307,
-		REFERENCED_BY_TESS_EVALUATION_SHADER = 0x9308,
-		REFERENCED_BY_VERTEX_SHADER      = 0x9306,
-		SHADER_STORAGE_BLOCK             = 0x92E6,
-		TESS_CONTROL_SUBROUTINE          = 0x92E9,
-		TESS_CONTROL_SUBROUTINE_UNIFORM  = 0x92EF,
-		TESS_EVALUATION_SUBROUTINE       = 0x92EA,
-		TESS_EVALUATION_SUBROUTINE_UNIFORM = 0x92F0,
-		TOP_LEVEL_ARRAY_SIZE             = 0x930C,
-		TOP_LEVEL_ARRAY_STRIDE           = 0x930D,
-		TRANSFORM_FEEDBACK_VARYING       = 0x92F4,
-		TYPE                             = 0x92FA,
-		UNIFORM                          = 0x92E1,
-		UNIFORM_BLOCK                    = 0x92E2,
-		VERTEX_SUBROUTINE                = 0x92E8,
-		VERTEX_SUBROUTINE_UNIFORM        = 0x92EE,
-		
 		ACTIVE_PROGRAM                   = 0x8259,
 		ALL_SHADER_BITS                  = 0xFFFFFFFF,
 		FRAGMENT_SHADER_BIT              = 0x00000002,
@@ -420,66 +192,6 @@ namespace gl
 		TESS_CONTROL_SHADER_BIT          = 0x00000008,
 		TESS_EVALUATION_SHADER_BIT       = 0x00000010,
 		VERTEX_SHADER_BIT                = 0x00000001,
-		
-		TEXTURE_BUFFER_OFFSET            = 0x919D,
-		TEXTURE_BUFFER_OFFSET_ALIGNMENT  = 0x919F,
-		TEXTURE_BUFFER_SIZE              = 0x919E,
-		
-		TEXTURE_IMMUTABLE_FORMAT         = 0x912F,
-		
-		TEXTURE_IMMUTABLE_LEVELS         = 0x82DF,
-		TEXTURE_VIEW_MIN_LAYER           = 0x82DD,
-		TEXTURE_VIEW_MIN_LEVEL           = 0x82DB,
-		TEXTURE_VIEW_NUM_LAYERS          = 0x82DE,
-		TEXTURE_VIEW_NUM_LEVELS          = 0x82DC,
-		
-		MAX_VERTEX_ATTRIB_BINDINGS       = 0x82DA,
-		MAX_VERTEX_ATTRIB_RELATIVE_OFFSET = 0x82D9,
-		VERTEX_ATTRIB_BINDING            = 0x82D4,
-		VERTEX_ATTRIB_RELATIVE_OFFSET    = 0x82D5,
-		VERTEX_BINDING_DIVISOR           = 0x82D6,
-		VERTEX_BINDING_OFFSET            = 0x82D7,
-		VERTEX_BINDING_STRIDE            = 0x82D8,
-		
-		DEPTH_RANGE                      = 0x0B70,
-		FIRST_VERTEX_CONVENTION          = 0x8E4D,
-		LAST_VERTEX_CONVENTION           = 0x8E4E,
-		LAYER_PROVOKING_VERTEX           = 0x825E,
-		MAX_VIEWPORTS                    = 0x825B,
-		PROVOKING_VERTEX                 = 0x8E4F,
-		SCISSOR_BOX                      = 0x0C10,
-		SCISSOR_TEST                     = 0x0C11,
-		UNDEFINED_VERTEX                 = 0x8260,
-		VIEWPORT                         = 0x0BA2,
-		VIEWPORT_BOUNDS_RANGE            = 0x825D,
-		VIEWPORT_INDEX_PROVOKING_VERTEX  = 0x825F,
-		VIEWPORT_SUBPIXEL_BITS           = 0x825C,
-		
-		ANY_SAMPLES_PASSED_CONSERVATIVE  = 0x8D6A,
-		COMPRESSED_R11_EAC               = 0x9270,
-		COMPRESSED_RG11_EAC              = 0x9272,
-		COMPRESSED_RGB8_ETC2             = 0x9274,
-		COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2 = 0x9276,
-		COMPRESSED_RGBA8_ETC2_EAC        = 0x9278,
-		COMPRESSED_SIGNED_R11_EAC        = 0x9271,
-		COMPRESSED_SIGNED_RG11_EAC       = 0x9273,
-		COMPRESSED_SRGB8_ALPHA8_ETC2_EAC = 0x9279,
-		COMPRESSED_SRGB8_ETC2            = 0x9275,
-		COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2 = 0x9277,
-		MAX_ELEMENT_INDEX                = 0x8D6B,
-		PRIMITIVE_RESTART_FIXED_INDEX    = 0x8D69,
-		
-		FRAMEBUFFER_DEFAULT_FIXED_SAMPLE_LOCATIONS = 0x9314,
-		FRAMEBUFFER_DEFAULT_HEIGHT       = 0x9311,
-		FRAMEBUFFER_DEFAULT_LAYERS       = 0x9312,
-		FRAMEBUFFER_DEFAULT_SAMPLES      = 0x9313,
-		FRAMEBUFFER_DEFAULT_WIDTH        = 0x9310,
-		MAX_FRAMEBUFFER_HEIGHT           = 0x9316,
-		MAX_FRAMEBUFFER_LAYERS           = 0x9317,
-		MAX_FRAMEBUFFER_SAMPLES          = 0x9318,
-		MAX_FRAMEBUFFER_WIDTH            = 0x9315,
-		
-		DEPTH_STENCIL_TEXTURE_MODE       = 0x90EA,
 		
 		BUFFER                           = 0x82E0,
 		CONTEXT_FLAG_DEBUG_BIT           = 0x00000002,
@@ -523,6 +235,8 @@ namespace gl
 		STACK_UNDERFLOW                  = 0x0504,
 		VERTEX_ARRAY                     = 0x8074,
 		
+		TEXTURE_IMMUTABLE_FORMAT         = 0x912F,
+		
 		ALPHA                            = 0x1906,
 		ALWAYS                           = 0x0207,
 		AND                              = 0x1501,
@@ -554,7 +268,7 @@ namespace gl
 		DEPTH_CLEAR_VALUE                = 0x0B73,
 		DEPTH_COMPONENT                  = 0x1902,
 		DEPTH_FUNC                       = 0x0B74,
-		//DEPTH_RANGE taken from ext: ARB_viewport_array
+		DEPTH_RANGE                      = 0x0B70,
 		DEPTH_TEST                       = 0x0B71,
 		DEPTH_WRITEMASK                  = 0x0B72,
 		DITHER                           = 0x0BD0,
@@ -668,8 +382,8 @@ namespace gl
 		RGBA4                            = 0x8056,
 		RGBA8                            = 0x8058,
 		RIGHT                            = 0x0407,
-		//SCISSOR_BOX taken from ext: ARB_viewport_array
-		//SCISSOR_TEST taken from ext: ARB_viewport_array
+		SCISSOR_BOX                      = 0x0C10,
+		SCISSOR_TEST                     = 0x0C11,
 		SET                              = 0x150F,
 		SHORT                            = 0x1402,
 		SRC_ALPHA                        = 0x0302,
@@ -690,8 +404,8 @@ namespace gl
 		STEREO                           = 0x0C33,
 		SUBPIXEL_BITS                    = 0x0D50,
 		TEXTURE                          = 0x1702,
-		//TEXTURE_1D taken from ext: ARB_internalformat_query2
-		//TEXTURE_2D taken from ext: ARB_internalformat_query2
+		TEXTURE_1D                       = 0x0DE0,
+		TEXTURE_2D                       = 0x0DE1,
 		TEXTURE_ALPHA_SIZE               = 0x805F,
 		TEXTURE_BINDING_1D               = 0x8068,
 		TEXTURE_BINDING_2D               = 0x8069,
@@ -721,7 +435,7 @@ namespace gl
 		UNSIGNED_SHORT                   = 0x1403,
 		VENDOR                           = 0x1F00,
 		VERSION                          = 0x1F02,
-		//VIEWPORT taken from ext: ARB_viewport_array
+		VIEWPORT                         = 0x0BA2,
 		XOR                              = 0x1506,
 		ZERO                             = 0,
 		
@@ -739,7 +453,7 @@ namespace gl
 		SMOOTH_LINE_WIDTH_RANGE          = 0x0B22,
 		SMOOTH_POINT_SIZE_GRANULARITY    = 0x0B13,
 		SMOOTH_POINT_SIZE_RANGE          = 0x0B12,
-		//TEXTURE_3D taken from ext: ARB_internalformat_query2
+		TEXTURE_3D                       = 0x806F,
 		TEXTURE_BASE_LEVEL               = 0x813C,
 		TEXTURE_BINDING_3D               = 0x806A,
 		TEXTURE_DEPTH                    = 0x8071,
@@ -771,7 +485,7 @@ namespace gl
 		MULTISAMPLE                      = 0x809D,
 		NUM_COMPRESSED_TEXTURE_FORMATS   = 0x86A2,
 		PROXY_TEXTURE_CUBE_MAP           = 0x851B,
-		//SAMPLES taken from ext: ARB_internalformat_query2
+		SAMPLES                          = 0x80A9,
 		SAMPLE_ALPHA_TO_COVERAGE         = 0x809E,
 		SAMPLE_ALPHA_TO_ONE              = 0x809F,
 		SAMPLE_BUFFERS                   = 0x80A8,
@@ -811,10 +525,10 @@ namespace gl
 		TEXTURE8                         = 0x84C8,
 		TEXTURE9                         = 0x84C9,
 		TEXTURE_BINDING_CUBE_MAP         = 0x8514,
-		//TEXTURE_COMPRESSED taken from ext: ARB_internalformat_query2
+		TEXTURE_COMPRESSED               = 0x86A1,
 		TEXTURE_COMPRESSED_IMAGE_SIZE    = 0x86A0,
 		TEXTURE_COMPRESSION_HINT         = 0x84EF,
-		//TEXTURE_CUBE_MAP taken from ext: ARB_internalformat_query2
+		TEXTURE_CUBE_MAP                 = 0x8513,
 		TEXTURE_CUBE_MAP_NEGATIVE_X      = 0x8516,
 		TEXTURE_CUBE_MAP_NEGATIVE_Y      = 0x8518,
 		TEXTURE_CUBE_MAP_NEGATIVE_Z      = 0x851A,
@@ -1104,7 +818,7 @@ namespace gl
 		READ_FRAMEBUFFER                 = 0x8CA8,
 		READ_FRAMEBUFFER_BINDING         = 0x8CAA,
 		RED_INTEGER                      = 0x8D94,
-		//RENDERBUFFER taken from ext: ARB_internalformat_query2
+		RENDERBUFFER                     = 0x8D41,
 		RENDERBUFFER_ALPHA_SIZE          = 0x8D53,
 		RENDERBUFFER_BINDING             = 0x8CA7,
 		RENDERBUFFER_BLUE_SIZE           = 0x8D52,
@@ -1158,8 +872,8 @@ namespace gl
 		STENCIL_INDEX16                  = 0x8D49,
 		STENCIL_INDEX4                   = 0x8D47,
 		STENCIL_INDEX8                   = 0x8D48,
-		//TEXTURE_1D_ARRAY taken from ext: ARB_internalformat_query2
-		//TEXTURE_2D_ARRAY taken from ext: ARB_internalformat_query2
+		TEXTURE_1D_ARRAY                 = 0x8C18,
+		TEXTURE_2D_ARRAY                 = 0x8C1A,
 		TEXTURE_ALPHA_TYPE               = 0x8C13,
 		TEXTURE_BINDING_1D_ARRAY         = 0x8C1C,
 		TEXTURE_BINDING_2D_ARRAY         = 0x8C1D,
@@ -1226,9 +940,9 @@ namespace gl
 		SIGNED_NORMALIZED                = 0x8F9C,
 		TEXTURE_BINDING_BUFFER           = 0x8C2C,
 		TEXTURE_BINDING_RECTANGLE        = 0x84F6,
-		//TEXTURE_BUFFER taken from ext: ARB_internalformat_query2
+		TEXTURE_BUFFER                   = 0x8C2A,
 		TEXTURE_BUFFER_DATA_STORE_BINDING = 0x8C2D,
-		//TEXTURE_RECTANGLE taken from ext: ARB_internalformat_query2
+		TEXTURE_RECTANGLE                = 0x84F5,
 		UNIFORM_ARRAY_STRIDE             = 0x8A3C,
 		UNIFORM_BLOCK_ACTIVE_UNIFORMS    = 0x8A42,
 		UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES = 0x8A43,
@@ -1258,7 +972,7 @@ namespace gl
 		CONTEXT_CORE_PROFILE_BIT         = 0x00000001,
 		CONTEXT_PROFILE_MASK             = 0x9126,
 		DEPTH_CLAMP                      = 0x864F,
-		//FIRST_VERTEX_CONVENTION taken from ext: ARB_viewport_array
+		FIRST_VERTEX_CONVENTION          = 0x8E4D,
 		FRAMEBUFFER_ATTACHMENT_LAYERED   = 0x8DA7,
 		FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS = 0x8DA8,
 		GEOMETRY_INPUT_TYPE              = 0x8917,
@@ -1267,7 +981,7 @@ namespace gl
 		GEOMETRY_VERTICES_OUT            = 0x8916,
 		INT_SAMPLER_2D_MULTISAMPLE       = 0x9109,
 		INT_SAMPLER_2D_MULTISAMPLE_ARRAY = 0x910C,
-		//LAST_VERTEX_CONVENTION taken from ext: ARB_viewport_array
+		LAST_VERTEX_CONVENTION           = 0x8E4E,
 		LINES_ADJACENCY                  = 0x000A,
 		LINE_STRIP_ADJACENCY             = 0x000B,
 		MAX_COLOR_TEXTURE_SAMPLES        = 0x910E,
@@ -1285,7 +999,7 @@ namespace gl
 		MAX_VERTEX_OUTPUT_COMPONENTS     = 0x9122,
 		OBJECT_TYPE                      = 0x9112,
 		PROGRAM_POINT_SIZE               = 0x8642,
-		//PROVOKING_VERTEX taken from ext: ARB_viewport_array
+		PROVOKING_VERTEX                 = 0x8E4F,
 		PROXY_TEXTURE_2D_MULTISAMPLE     = 0x9101,
 		PROXY_TEXTURE_2D_MULTISAMPLE_ARRAY = 0x9103,
 		QUADS_FOLLOW_PROVOKING_VERTEX_CONVENTION = 0x8E4C,
@@ -1301,8 +1015,8 @@ namespace gl
 		SYNC_FLUSH_COMMANDS_BIT          = 0x00000001,
 		SYNC_GPU_COMMANDS_COMPLETE       = 0x9117,
 		SYNC_STATUS                      = 0x9114,
-		//TEXTURE_2D_MULTISAMPLE taken from ext: ARB_internalformat_query2
-		//TEXTURE_2D_MULTISAMPLE_ARRAY taken from ext: ARB_internalformat_query2
+		TEXTURE_2D_MULTISAMPLE           = 0x9100,
+		TEXTURE_2D_MULTISAMPLE_ARRAY     = 0x9102,
 		TEXTURE_BINDING_2D_MULTISAMPLE   = 0x9104,
 		TEXTURE_BINDING_2D_MULTISAMPLE_ARRAY = 0x9105,
 		TEXTURE_CUBE_MAP_SEAMLESS        = 0x884F,
@@ -1338,31 +1052,6 @@ namespace gl
 	
 	namespace _detail
 	{
-		
-		
-		extern void (CODEGEN_FUNCPTR *ClearDepthf)(GLfloat d);
-		extern void (CODEGEN_FUNCPTR *DepthRangef)(GLfloat n, GLfloat f);
-		extern void (CODEGEN_FUNCPTR *GetShaderPrecisionFormat)(GLenum shadertype, GLenum precisiontype, GLint * range, GLint * precision);
-		extern void (CODEGEN_FUNCPTR *ReleaseShaderCompiler)();
-		extern void (CODEGEN_FUNCPTR *ShaderBinary)(GLsizei count, const GLuint * shaders, GLenum binaryformat, const GLvoid * binary, GLsizei length);
-		
-		extern void (CODEGEN_FUNCPTR *GetProgramBinary)(GLuint program, GLsizei bufSize, GLsizei * length, GLenum * binaryFormat, GLvoid * binary);
-		extern void (CODEGEN_FUNCPTR *ProgramBinary)(GLuint program, GLenum binaryFormat, const GLvoid * binary, GLsizei length);
-		extern void (CODEGEN_FUNCPTR *ProgramParameteri)(GLuint program, GLenum pname, GLint value);
-		
-		
-		extern void (CODEGEN_FUNCPTR *GetInternalformativ)(GLenum target, GLenum internalformat, GLenum pname, GLsizei bufSize, GLint * params);
-		
-		extern void (CODEGEN_FUNCPTR *GetInternalformati64v)(GLenum target, GLenum internalformat, GLenum pname, GLsizei bufSize, GLint64 * params);
-		
-		
-		extern void (CODEGEN_FUNCPTR *GetProgramInterfaceiv)(GLuint program, GLenum programInterface, GLenum pname, GLint * params);
-		extern GLuint (CODEGEN_FUNCPTR *GetProgramResourceIndex)(GLuint program, GLenum programInterface, const GLchar * name);
-		extern GLint (CODEGEN_FUNCPTR *GetProgramResourceLocation)(GLuint program, GLenum programInterface, const GLchar * name);
-		extern GLint (CODEGEN_FUNCPTR *GetProgramResourceLocationIndex)(GLuint program, GLenum programInterface, const GLchar * name);
-		extern void (CODEGEN_FUNCPTR *GetProgramResourceName)(GLuint program, GLenum programInterface, GLuint index, GLsizei bufSize, GLsizei * length, GLchar * name);
-		extern void (CODEGEN_FUNCPTR *GetProgramResourceiv)(GLuint program, GLenum programInterface, GLuint index, GLsizei propCount, const GLenum * props, GLsizei bufSize, GLsizei * length, GLint * params);
-		
 		extern void (CODEGEN_FUNCPTR *ActiveShaderProgram)(GLuint pipeline, GLuint program);
 		extern void (CODEGEN_FUNCPTR *BindProgramPipeline)(GLuint pipeline);
 		extern GLuint (CODEGEN_FUNCPTR *CreateShaderProgramv)(GLenum type, GLsizei count, const GLchar *const* strings);
@@ -1425,56 +1114,7 @@ namespace gl
 		extern void (CODEGEN_FUNCPTR *ValidateProgramPipeline)(GLuint pipeline);
 		
 		
-		
-		extern void (CODEGEN_FUNCPTR *TexBufferRange)(GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size);
-		
-		extern void (CODEGEN_FUNCPTR *TexStorage1D)(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width);
-		extern void (CODEGEN_FUNCPTR *TexStorage2D)(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
-		extern void (CODEGEN_FUNCPTR *TexStorage3D)(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
-		
-		extern void (CODEGEN_FUNCPTR *TextureView)(GLuint texture, GLenum target, GLuint origtexture, GLenum internalformat, GLuint minlevel, GLuint numlevels, GLuint minlayer, GLuint numlayers);
-		
-		extern void (CODEGEN_FUNCPTR *BindVertexBuffer)(GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride);
-		extern void (CODEGEN_FUNCPTR *VertexAttribBinding)(GLuint attribindex, GLuint bindingindex);
-		extern void (CODEGEN_FUNCPTR *VertexAttribFormat)(GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset);
-		extern void (CODEGEN_FUNCPTR *VertexAttribIFormat)(GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset);
-		extern void (CODEGEN_FUNCPTR *VertexAttribLFormat)(GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset);
-		extern void (CODEGEN_FUNCPTR *VertexBindingDivisor)(GLuint bindingindex, GLuint divisor);
-		
-		extern void (CODEGEN_FUNCPTR *DepthRangeArrayv)(GLuint first, GLsizei count, const GLdouble * v);
-		extern void (CODEGEN_FUNCPTR *DepthRangeIndexed)(GLuint index, GLdouble n, GLdouble f);
-		extern void (CODEGEN_FUNCPTR *GetDoublei_v)(GLenum target, GLuint index, GLdouble * data);
-		extern void (CODEGEN_FUNCPTR *GetFloati_v)(GLenum target, GLuint index, GLfloat * data);
-		extern void (CODEGEN_FUNCPTR *ScissorArrayv)(GLuint first, GLsizei count, const GLint * v);
-		extern void (CODEGEN_FUNCPTR *ScissorIndexed)(GLuint index, GLint left, GLint bottom, GLsizei width, GLsizei height);
-		extern void (CODEGEN_FUNCPTR *ScissorIndexedv)(GLuint index, const GLint * v);
-		extern void (CODEGEN_FUNCPTR *ViewportArrayv)(GLuint first, GLsizei count, const GLfloat * v);
-		extern void (CODEGEN_FUNCPTR *ViewportIndexedf)(GLuint index, GLfloat x, GLfloat y, GLfloat w, GLfloat h);
-		extern void (CODEGEN_FUNCPTR *ViewportIndexedfv)(GLuint index, const GLfloat * v);
-		
-		
-		extern void (CODEGEN_FUNCPTR *ClearBufferData)(GLenum target, GLenum internalformat, GLenum format, GLenum type, const void * data);
-		extern void (CODEGEN_FUNCPTR *ClearBufferSubData)(GLenum target, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void * data);
-		
 		extern void (CODEGEN_FUNCPTR *CopyImageSubData)(GLuint srcName, GLenum srcTarget, GLint srcLevel, GLint srcX, GLint srcY, GLint srcZ, GLuint dstName, GLenum dstTarget, GLint dstLevel, GLint dstX, GLint dstY, GLint dstZ, GLsizei srcWidth, GLsizei srcHeight, GLsizei srcDepth);
-		
-		
-		
-		extern void (CODEGEN_FUNCPTR *FramebufferParameteri)(GLenum target, GLenum pname, GLint param);
-		extern void (CODEGEN_FUNCPTR *GetFramebufferParameteriv)(GLenum target, GLenum pname, GLint * params);
-		
-		extern void (CODEGEN_FUNCPTR *InvalidateBufferData)(GLuint buffer);
-		extern void (CODEGEN_FUNCPTR *InvalidateBufferSubData)(GLuint buffer, GLintptr offset, GLsizeiptr length);
-		extern void (CODEGEN_FUNCPTR *InvalidateFramebuffer)(GLenum target, GLsizei numAttachments, const GLenum * attachments);
-		extern void (CODEGEN_FUNCPTR *InvalidateSubFramebuffer)(GLenum target, GLsizei numAttachments, const GLenum * attachments, GLint x, GLint y, GLsizei width, GLsizei height);
-		extern void (CODEGEN_FUNCPTR *InvalidateTexImage)(GLuint texture, GLint level);
-		extern void (CODEGEN_FUNCPTR *InvalidateTexSubImage)(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth);
-		
-		
-		
-		
-		extern void (CODEGEN_FUNCPTR *TexStorage2DMultisample)(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations);
-		extern void (CODEGEN_FUNCPTR *TexStorage3DMultisample)(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations);
 		
 		extern void (CODEGEN_FUNCPTR *DebugMessageCallback)(GLDEBUGPROC callback, const void * userParam);
 		extern void (CODEGEN_FUNCPTR *DebugMessageControl)(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint * ids, GLboolean enabled);
@@ -1487,6 +1127,10 @@ namespace gl
 		extern void (CODEGEN_FUNCPTR *ObjectPtrLabel)(const void * ptr, GLsizei length, const GLchar * label);
 		extern void (CODEGEN_FUNCPTR *PopDebugGroup)();
 		extern void (CODEGEN_FUNCPTR *PushDebugGroup)(GLenum source, GLuint id, GLsizei length, const GLchar * message);
+		
+		extern void (CODEGEN_FUNCPTR *TexStorage1D)(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width);
+		extern void (CODEGEN_FUNCPTR *TexStorage2D)(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
+		extern void (CODEGEN_FUNCPTR *TexStorage3D)(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
 		
 		extern void (CODEGEN_FUNCPTR *BlendFunc)(GLenum sfactor, GLenum dfactor);
 		extern void (CODEGEN_FUNCPTR *Clear)(GLbitfield mask);
@@ -1846,31 +1490,6 @@ namespace gl
 		
 	} //namespace _detail
 	
-	
-	
-	inline void ClearDepthf(GLfloat d){_detail::ClearDepthf(d);}
-	inline void DepthRangef(GLfloat n, GLfloat f){_detail::DepthRangef(n, f);}
-	inline void GetShaderPrecisionFormat(GLenum shadertype, GLenum precisiontype, GLint * range, GLint * precision){_detail::GetShaderPrecisionFormat(shadertype, precisiontype, range, precision);}
-	inline void ReleaseShaderCompiler(){_detail::ReleaseShaderCompiler();}
-	inline void ShaderBinary(GLsizei count, const GLuint * shaders, GLenum binaryformat, const GLvoid * binary, GLsizei length){_detail::ShaderBinary(count, shaders, binaryformat, binary, length);}
-	
-	inline void GetProgramBinary(GLuint program, GLsizei bufSize, GLsizei * length, GLenum * binaryFormat, GLvoid * binary){_detail::GetProgramBinary(program, bufSize, length, binaryFormat, binary);}
-	inline void ProgramBinary(GLuint program, GLenum binaryFormat, const GLvoid * binary, GLsizei length){_detail::ProgramBinary(program, binaryFormat, binary, length);}
-	inline void ProgramParameteri(GLuint program, GLenum pname, GLint value){_detail::ProgramParameteri(program, pname, value);}
-	
-	
-	inline void GetInternalformativ(GLenum target, GLenum internalformat, GLenum pname, GLsizei bufSize, GLint * params){_detail::GetInternalformativ(target, internalformat, pname, bufSize, params);}
-	
-	inline void GetInternalformati64v(GLenum target, GLenum internalformat, GLenum pname, GLsizei bufSize, GLint64 * params){_detail::GetInternalformati64v(target, internalformat, pname, bufSize, params);}
-	
-	
-	inline void GetProgramInterfaceiv(GLuint program, GLenum programInterface, GLenum pname, GLint * params){_detail::GetProgramInterfaceiv(program, programInterface, pname, params);}
-	inline GLuint GetProgramResourceIndex(GLuint program, GLenum programInterface, const GLchar * name){return _detail::GetProgramResourceIndex(program, programInterface, name);}
-	inline GLint GetProgramResourceLocation(GLuint program, GLenum programInterface, const GLchar * name){return _detail::GetProgramResourceLocation(program, programInterface, name);}
-	inline GLint GetProgramResourceLocationIndex(GLuint program, GLenum programInterface, const GLchar * name){return _detail::GetProgramResourceLocationIndex(program, programInterface, name);}
-	inline void GetProgramResourceName(GLuint program, GLenum programInterface, GLuint index, GLsizei bufSize, GLsizei * length, GLchar * name){_detail::GetProgramResourceName(program, programInterface, index, bufSize, length, name);}
-	inline void GetProgramResourceiv(GLuint program, GLenum programInterface, GLuint index, GLsizei propCount, const GLenum * props, GLsizei bufSize, GLsizei * length, GLint * params){_detail::GetProgramResourceiv(program, programInterface, index, propCount, props, bufSize, length, params);}
-	
 	inline void ActiveShaderProgram(GLuint pipeline, GLuint program){_detail::ActiveShaderProgram(pipeline, program);}
 	inline void BindProgramPipeline(GLuint pipeline){_detail::BindProgramPipeline(pipeline);}
 	inline GLuint CreateShaderProgramv(GLenum type, GLsizei count, const GLchar *const* strings){return _detail::CreateShaderProgramv(type, count, strings);}
@@ -1933,56 +1552,7 @@ namespace gl
 	inline void ValidateProgramPipeline(GLuint pipeline){_detail::ValidateProgramPipeline(pipeline);}
 	
 	
-	
-	inline void TexBufferRange(GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size){_detail::TexBufferRange(target, internalformat, buffer, offset, size);}
-	
-	inline void TexStorage1D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width){_detail::TexStorage1D(target, levels, internalformat, width);}
-	inline void TexStorage2D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height){_detail::TexStorage2D(target, levels, internalformat, width, height);}
-	inline void TexStorage3D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth){_detail::TexStorage3D(target, levels, internalformat, width, height, depth);}
-	
-	inline void TextureView(GLuint texture, GLenum target, GLuint origtexture, GLenum internalformat, GLuint minlevel, GLuint numlevels, GLuint minlayer, GLuint numlayers){_detail::TextureView(texture, target, origtexture, internalformat, minlevel, numlevels, minlayer, numlayers);}
-	
-	inline void BindVertexBuffer(GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride){_detail::BindVertexBuffer(bindingindex, buffer, offset, stride);}
-	inline void VertexAttribBinding(GLuint attribindex, GLuint bindingindex){_detail::VertexAttribBinding(attribindex, bindingindex);}
-	inline void VertexAttribFormat(GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset){_detail::VertexAttribFormat(attribindex, size, type, normalized, relativeoffset);}
-	inline void VertexAttribIFormat(GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset){_detail::VertexAttribIFormat(attribindex, size, type, relativeoffset);}
-	inline void VertexAttribLFormat(GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset){_detail::VertexAttribLFormat(attribindex, size, type, relativeoffset);}
-	inline void VertexBindingDivisor(GLuint bindingindex, GLuint divisor){_detail::VertexBindingDivisor(bindingindex, divisor);}
-	
-	inline void DepthRangeArrayv(GLuint first, GLsizei count, const GLdouble * v){_detail::DepthRangeArrayv(first, count, v);}
-	inline void DepthRangeIndexed(GLuint index, GLdouble n, GLdouble f){_detail::DepthRangeIndexed(index, n, f);}
-	inline void GetDoublei_v(GLenum target, GLuint index, GLdouble * data){_detail::GetDoublei_v(target, index, data);}
-	inline void GetFloati_v(GLenum target, GLuint index, GLfloat * data){_detail::GetFloati_v(target, index, data);}
-	inline void ScissorArrayv(GLuint first, GLsizei count, const GLint * v){_detail::ScissorArrayv(first, count, v);}
-	inline void ScissorIndexed(GLuint index, GLint left, GLint bottom, GLsizei width, GLsizei height){_detail::ScissorIndexed(index, left, bottom, width, height);}
-	inline void ScissorIndexedv(GLuint index, const GLint * v){_detail::ScissorIndexedv(index, v);}
-	inline void ViewportArrayv(GLuint first, GLsizei count, const GLfloat * v){_detail::ViewportArrayv(first, count, v);}
-	inline void ViewportIndexedf(GLuint index, GLfloat x, GLfloat y, GLfloat w, GLfloat h){_detail::ViewportIndexedf(index, x, y, w, h);}
-	inline void ViewportIndexedfv(GLuint index, const GLfloat * v){_detail::ViewportIndexedfv(index, v);}
-	
-	
-	inline void ClearBufferData(GLenum target, GLenum internalformat, GLenum format, GLenum type, const void * data){_detail::ClearBufferData(target, internalformat, format, type, data);}
-	inline void ClearBufferSubData(GLenum target, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void * data){_detail::ClearBufferSubData(target, internalformat, offset, size, format, type, data);}
-	
 	inline void CopyImageSubData(GLuint srcName, GLenum srcTarget, GLint srcLevel, GLint srcX, GLint srcY, GLint srcZ, GLuint dstName, GLenum dstTarget, GLint dstLevel, GLint dstX, GLint dstY, GLint dstZ, GLsizei srcWidth, GLsizei srcHeight, GLsizei srcDepth){_detail::CopyImageSubData(srcName, srcTarget, srcLevel, srcX, srcY, srcZ, dstName, dstTarget, dstLevel, dstX, dstY, dstZ, srcWidth, srcHeight, srcDepth);}
-	
-	
-	
-	inline void FramebufferParameteri(GLenum target, GLenum pname, GLint param){_detail::FramebufferParameteri(target, pname, param);}
-	inline void GetFramebufferParameteriv(GLenum target, GLenum pname, GLint * params){_detail::GetFramebufferParameteriv(target, pname, params);}
-	
-	inline void InvalidateBufferData(GLuint buffer){_detail::InvalidateBufferData(buffer);}
-	inline void InvalidateBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr length){_detail::InvalidateBufferSubData(buffer, offset, length);}
-	inline void InvalidateFramebuffer(GLenum target, GLsizei numAttachments, const GLenum * attachments){_detail::InvalidateFramebuffer(target, numAttachments, attachments);}
-	inline void InvalidateSubFramebuffer(GLenum target, GLsizei numAttachments, const GLenum * attachments, GLint x, GLint y, GLsizei width, GLsizei height){_detail::InvalidateSubFramebuffer(target, numAttachments, attachments, x, y, width, height);}
-	inline void InvalidateTexImage(GLuint texture, GLint level){_detail::InvalidateTexImage(texture, level);}
-	inline void InvalidateTexSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth){_detail::InvalidateTexSubImage(texture, level, xoffset, yoffset, zoffset, width, height, depth);}
-	
-	
-	
-	
-	inline void TexStorage2DMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations){_detail::TexStorage2DMultisample(target, samples, internalformat, width, height, fixedsamplelocations);}
-	inline void TexStorage3DMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations){_detail::TexStorage3DMultisample(target, samples, internalformat, width, height, depth, fixedsamplelocations);}
 	
 	inline void DebugMessageCallback(GLDEBUGPROC callback, const void * userParam){_detail::DebugMessageCallback(callback, userParam);}
 	inline void DebugMessageControl(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint * ids, GLboolean enabled){_detail::DebugMessageControl(source, type, severity, count, ids, enabled);}
@@ -1995,6 +1565,10 @@ namespace gl
 	inline void ObjectPtrLabel(const void * ptr, GLsizei length, const GLchar * label){_detail::ObjectPtrLabel(ptr, length, label);}
 	inline void PopDebugGroup(){_detail::PopDebugGroup();}
 	inline void PushDebugGroup(GLenum source, GLuint id, GLsizei length, const GLchar * message){_detail::PushDebugGroup(source, id, length, message);}
+	
+	inline void TexStorage1D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width){_detail::TexStorage1D(target, levels, internalformat, width);}
+	inline void TexStorage2D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height){_detail::TexStorage2D(target, levels, internalformat, width, height);}
+	inline void TexStorage3D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth){_detail::TexStorage3D(target, levels, internalformat, width, height, depth);}
 	
 	inline void BlendFunc(GLenum sfactor, GLenum dfactor){_detail::BlendFunc(sfactor, dfactor);}
 	inline void Clear(GLbitfield mask){_detail::Clear(mask);}

@@ -3,7 +3,7 @@
 
 // define LAYER
 
-in vec2 texcoord;
+in vec2 texcrd;
 
 #ifdef LAYER
 uniform int layer;
@@ -17,8 +17,8 @@ out vec4 fragColour;
 
 void main() {
   #ifdef LAYER
-    fragColour = texture(tex, vec3(texcoord, layer));
+    fragColour = texture(tex, vec3(texcrd, layer));
   #else
-    fragColour = texture(tex, texcoord);
+    fragColour = texture(tex, texcrd);
   #endif
 }

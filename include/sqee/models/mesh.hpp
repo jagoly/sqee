@@ -1,7 +1,6 @@
 #pragma once
 #include "forward.hpp"
 
-#include <array>
 #include <vector>
 
 #include "misc/resholder.hpp"
@@ -34,10 +33,12 @@ public:
     std::vector<std::pair<GLuint, uint>> iboVec;
 
     std::vector<Vertex> vertVec;
-    std::vector<std::vector<std::array<uint, 3>>> mtrlVec;
+    std::vector<std::vector<array<uint, 3>>> mtrlVec;
 
     void bind_vao();
     void draw_ibo(uint _mtrl = 0);
+
+    vec3 minPos, maxPos;
 };
 
 namespace res { ResHolder<Mesh>& mesh(); }

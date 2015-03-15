@@ -8,11 +8,11 @@ class Light : public Object {
 public:
     Light(const ObjSpec& _spec);
 
-    glm::vec3 pos, dir;
-    glm::vec3 colour;
+    vec3 pos, dir;
+    vec3 colour;
     float angle, intensity, softness;
     uint texSize;
-    glm::mat4 shadMat;
+    mat4 shadMat;
 };
 
 }

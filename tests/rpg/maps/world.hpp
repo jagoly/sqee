@@ -5,15 +5,14 @@
 #include <map>
 #include <vector>
 
-
 #include <sqee/gl/uniformbuffers.hpp>
 
 #include "cell.hpp"
 #include "obj/object.hpp"
-#include "obj/model.hpp"
-#include "obj/liquid.hpp"
-#include "obj/reflector.hpp"
 #include "obj/light.hpp"
+#include "obj/liquid.hpp"
+#include "obj/model.hpp"
+#include "obj/reflector.hpp"
 
 namespace sqt {
 
@@ -21,19 +20,18 @@ class World : NonCopyable {
 public:
     World(sq::Application& _app);
 
-    void load_base(const std::string& _filePath);
-
+    void load_base(const string& _filePath);
     void tick();
     void calc(double _accum);
 
-    void set_active_tile(glm::ivec2 _tile);
-    void set_active_cell(const std::string& _cell);
-    const glm::ivec2& get_active_tile();
-    const std::string& get_active_cell();
+    void set_active_tile(ivec2 _tile);
+    void set_active_cell(const string& _cell);
+    const ivec2& get_active_tile();
+    const string& get_active_cell();
 
-    float get_maxZ4(const std::string& _layer, int _xPos, int _yPos);
+    float get_maxZ4(const string& _layer, int _xPos, int _yPos);
 
-    glm::vec3 minPos, maxPos;
+    vec3 minPos, maxPos;
 
     std::forward_list<Object*> objectList;
     template<class T>
@@ -41,20 +39,21 @@ public:
         return filter_objs(objectList.begin(), objectList.end(), _func);
     }
 
-    glm::vec3 ambiColour;
-    bool skylEnable;
-    glm::vec3 skylDir;
-    glm::vec3 skylColour;
-    std::vector<glm::mat4> skylMatVec;
-    uint spotCount;
-
     sq::UniformBuffer ubo;
 
     bool updateScene = false;
 
+    vec3 ambiColour;
+
+    struct {
+        bool enable;
+        vec3 colour;
+        vec3 direction;
+    } SKYL;
+
 private:
-    std::map<std::string, Cell> cellMap;
-    std::map<std::string, std::vector<std::pair<std::string, std::string>>> hlMap;
+    std::map<string, Cell> cellMap;
+    std::map<string, std::vector<std::pair<string, string>>> hlMap;
 
     sq::Application& app;
 };

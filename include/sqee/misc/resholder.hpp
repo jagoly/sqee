@@ -1,7 +1,6 @@
 #pragma once
 #include "forward.hpp"
 
-#include <memory>
 #include <unordered_map>
 
 namespace sq {
@@ -16,7 +15,7 @@ public:
     template<typename... TvArgs>
     T* add(const string& _key, TvArgs&&... _args) {
         if (has(_key)) theMap.erase(_key);
-        theMap[_key] = std::unique_ptr<T>(new T(_args...));
+        theMap[_key] = unique_ptr<T>(new T(_args...));
         return theMap.at(_key).get();
     }
 
@@ -34,7 +33,7 @@ public:
     }
 
 protected:
-    std::unordered_map<string, std::unique_ptr<T>> theMap;
+    std::unordered_map<string, unique_ptr<T>> theMap;
 };
 
 }

@@ -11,7 +11,7 @@
 
 using namespace sqt;
 
-SceneGame::SceneGame(sq::Application& _app) : sq::Scene(_app), camera(true) {
+SceneGame::SceneGame(sq::Application& _app) : sq::Scene(_app) {
     tickRate = 60;
 
     camera.pos = {0, 0, 0};
@@ -19,7 +19,6 @@ SceneGame::SceneGame(sq::Application& _app) : sq::Scene(_app), camera(true) {
     camera.range = {0.1f, 100.f};
     camera.size = {4, 3};
     camera.fov = 1.f;
-    camera.aspect = 0.f;
     camera.update();
 }
 

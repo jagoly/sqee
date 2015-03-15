@@ -2,7 +2,7 @@
 #include <vector>
 #include <string.h>
 #include <stddef.h>
-#include <gl/gl_ext_3_3.hpp>
+#include "gl/gl_ext_3_3.hpp"
 
 #if defined(__APPLE__)
 #include <mach-o/dyld.h>
@@ -100,139 +100,16 @@ namespace gl
 {
 	namespace exts
 	{
-		LoadTest var_ARB_compressed_texture_pixel_storage;
-		LoadTest var_ARB_conservative_depth;
-		LoadTest var_ARB_ES2_compatibility;
-		LoadTest var_ARB_get_program_binary;
-		LoadTest var_ARB_explicit_uniform_location;
-		LoadTest var_ARB_internalformat_query;
-		LoadTest var_ARB_internalformat_query2;
-		LoadTest var_ARB_map_buffer_alignment;
-		LoadTest var_ARB_program_interface_query;
 		LoadTest var_ARB_separate_shader_objects;
 		LoadTest var_ARB_shading_language_420pack;
-		LoadTest var_ARB_shading_language_packing;
-		LoadTest var_ARB_texture_buffer_range;
-		LoadTest var_ARB_texture_storage;
-		LoadTest var_ARB_texture_view;
-		LoadTest var_ARB_vertex_attrib_binding;
-		LoadTest var_ARB_viewport_array;
-		LoadTest var_ARB_arrays_of_arrays;
-		LoadTest var_ARB_clear_buffer_object;
 		LoadTest var_ARB_copy_image;
-		LoadTest var_ARB_ES3_compatibility;
-		LoadTest var_ARB_fragment_layer_viewport;
-		LoadTest var_ARB_framebuffer_no_attachments;
-		LoadTest var_ARB_invalidate_subdata;
-		LoadTest var_ARB_robust_buffer_access_behavior;
-		LoadTest var_ARB_stencil_texturing;
-		LoadTest var_ARB_texture_query_levels;
-		LoadTest var_ARB_texture_storage_multisample;
 		LoadTest var_KHR_debug;
+		LoadTest var_ARB_texture_storage;
 		
 	} //namespace exts
 	
 	namespace _detail
 	{
-		typedef void (CODEGEN_FUNCPTR *PFNCLEARDEPTHF)(GLfloat);
-		PFNCLEARDEPTHF ClearDepthf = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNDEPTHRANGEF)(GLfloat, GLfloat);
-		PFNDEPTHRANGEF DepthRangef = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNGETSHADERPRECISIONFORMAT)(GLenum, GLenum, GLint *, GLint *);
-		PFNGETSHADERPRECISIONFORMAT GetShaderPrecisionFormat = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNRELEASESHADERCOMPILER)();
-		PFNRELEASESHADERCOMPILER ReleaseShaderCompiler = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNSHADERBINARY)(GLsizei, const GLuint *, GLenum, const GLvoid *, GLsizei);
-		PFNSHADERBINARY ShaderBinary = 0;
-		
-		static int Load_ARB_ES2_compatibility()
-		{
-			int numFailed = 0;
-			ClearDepthf = reinterpret_cast<PFNCLEARDEPTHF>(IntGetProcAddress("glClearDepthf"));
-			if(!ClearDepthf) ++numFailed;
-			DepthRangef = reinterpret_cast<PFNDEPTHRANGEF>(IntGetProcAddress("glDepthRangef"));
-			if(!DepthRangef) ++numFailed;
-			GetShaderPrecisionFormat = reinterpret_cast<PFNGETSHADERPRECISIONFORMAT>(IntGetProcAddress("glGetShaderPrecisionFormat"));
-			if(!GetShaderPrecisionFormat) ++numFailed;
-			ReleaseShaderCompiler = reinterpret_cast<PFNRELEASESHADERCOMPILER>(IntGetProcAddress("glReleaseShaderCompiler"));
-			if(!ReleaseShaderCompiler) ++numFailed;
-			ShaderBinary = reinterpret_cast<PFNSHADERBINARY>(IntGetProcAddress("glShaderBinary"));
-			if(!ShaderBinary) ++numFailed;
-			return numFailed;
-		}
-		
-		typedef void (CODEGEN_FUNCPTR *PFNGETPROGRAMBINARY)(GLuint, GLsizei, GLsizei *, GLenum *, GLvoid *);
-		PFNGETPROGRAMBINARY GetProgramBinary = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNPROGRAMBINARY)(GLuint, GLenum, const GLvoid *, GLsizei);
-		PFNPROGRAMBINARY ProgramBinary = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNPROGRAMPARAMETERI)(GLuint, GLenum, GLint);
-		PFNPROGRAMPARAMETERI ProgramParameteri = 0;
-		
-		static int Load_ARB_get_program_binary()
-		{
-			int numFailed = 0;
-			GetProgramBinary = reinterpret_cast<PFNGETPROGRAMBINARY>(IntGetProcAddress("glGetProgramBinary"));
-			if(!GetProgramBinary) ++numFailed;
-			ProgramBinary = reinterpret_cast<PFNPROGRAMBINARY>(IntGetProcAddress("glProgramBinary"));
-			if(!ProgramBinary) ++numFailed;
-			ProgramParameteri = reinterpret_cast<PFNPROGRAMPARAMETERI>(IntGetProcAddress("glProgramParameteri"));
-			if(!ProgramParameteri) ++numFailed;
-			return numFailed;
-		}
-		
-		typedef void (CODEGEN_FUNCPTR *PFNGETINTERNALFORMATIV)(GLenum, GLenum, GLenum, GLsizei, GLint *);
-		PFNGETINTERNALFORMATIV GetInternalformativ = 0;
-		
-		static int Load_ARB_internalformat_query()
-		{
-			int numFailed = 0;
-			GetInternalformativ = reinterpret_cast<PFNGETINTERNALFORMATIV>(IntGetProcAddress("glGetInternalformativ"));
-			if(!GetInternalformativ) ++numFailed;
-			return numFailed;
-		}
-		
-		typedef void (CODEGEN_FUNCPTR *PFNGETINTERNALFORMATI64V)(GLenum, GLenum, GLenum, GLsizei, GLint64 *);
-		PFNGETINTERNALFORMATI64V GetInternalformati64v = 0;
-		
-		static int Load_ARB_internalformat_query2()
-		{
-			int numFailed = 0;
-			GetInternalformati64v = reinterpret_cast<PFNGETINTERNALFORMATI64V>(IntGetProcAddress("glGetInternalformati64v"));
-			if(!GetInternalformati64v) ++numFailed;
-			return numFailed;
-		}
-		
-		typedef void (CODEGEN_FUNCPTR *PFNGETPROGRAMINTERFACEIV)(GLuint, GLenum, GLenum, GLint *);
-		PFNGETPROGRAMINTERFACEIV GetProgramInterfaceiv = 0;
-		typedef GLuint (CODEGEN_FUNCPTR *PFNGETPROGRAMRESOURCEINDEX)(GLuint, GLenum, const GLchar *);
-		PFNGETPROGRAMRESOURCEINDEX GetProgramResourceIndex = 0;
-		typedef GLint (CODEGEN_FUNCPTR *PFNGETPROGRAMRESOURCELOCATION)(GLuint, GLenum, const GLchar *);
-		PFNGETPROGRAMRESOURCELOCATION GetProgramResourceLocation = 0;
-		typedef GLint (CODEGEN_FUNCPTR *PFNGETPROGRAMRESOURCELOCATIONINDEX)(GLuint, GLenum, const GLchar *);
-		PFNGETPROGRAMRESOURCELOCATIONINDEX GetProgramResourceLocationIndex = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNGETPROGRAMRESOURCENAME)(GLuint, GLenum, GLuint, GLsizei, GLsizei *, GLchar *);
-		PFNGETPROGRAMRESOURCENAME GetProgramResourceName = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNGETPROGRAMRESOURCEIV)(GLuint, GLenum, GLuint, GLsizei, const GLenum *, GLsizei, GLsizei *, GLint *);
-		PFNGETPROGRAMRESOURCEIV GetProgramResourceiv = 0;
-		
-		static int Load_ARB_program_interface_query()
-		{
-			int numFailed = 0;
-			GetProgramInterfaceiv = reinterpret_cast<PFNGETPROGRAMINTERFACEIV>(IntGetProcAddress("glGetProgramInterfaceiv"));
-			if(!GetProgramInterfaceiv) ++numFailed;
-			GetProgramResourceIndex = reinterpret_cast<PFNGETPROGRAMRESOURCEINDEX>(IntGetProcAddress("glGetProgramResourceIndex"));
-			if(!GetProgramResourceIndex) ++numFailed;
-			GetProgramResourceLocation = reinterpret_cast<PFNGETPROGRAMRESOURCELOCATION>(IntGetProcAddress("glGetProgramResourceLocation"));
-			if(!GetProgramResourceLocation) ++numFailed;
-			GetProgramResourceLocationIndex = reinterpret_cast<PFNGETPROGRAMRESOURCELOCATIONINDEX>(IntGetProcAddress("glGetProgramResourceLocationIndex"));
-			if(!GetProgramResourceLocationIndex) ++numFailed;
-			GetProgramResourceName = reinterpret_cast<PFNGETPROGRAMRESOURCENAME>(IntGetProcAddress("glGetProgramResourceName"));
-			if(!GetProgramResourceName) ++numFailed;
-			GetProgramResourceiv = reinterpret_cast<PFNGETPROGRAMRESOURCEIV>(IntGetProcAddress("glGetProgramResourceiv"));
-			if(!GetProgramResourceiv) ++numFailed;
-			return numFailed;
-		}
-		
 		typedef void (CODEGEN_FUNCPTR *PFNACTIVESHADERPROGRAM)(GLuint, GLuint);
 		PFNACTIVESHADERPROGRAM ActiveShaderProgram = 0;
 		typedef void (CODEGEN_FUNCPTR *PFNBINDPROGRAMPIPELINE)(GLuint);
@@ -480,140 +357,6 @@ namespace gl
 			return numFailed;
 		}
 		
-		typedef void (CODEGEN_FUNCPTR *PFNTEXBUFFERRANGE)(GLenum, GLenum, GLuint, GLintptr, GLsizeiptr);
-		PFNTEXBUFFERRANGE TexBufferRange = 0;
-		
-		static int Load_ARB_texture_buffer_range()
-		{
-			int numFailed = 0;
-			TexBufferRange = reinterpret_cast<PFNTEXBUFFERRANGE>(IntGetProcAddress("glTexBufferRange"));
-			if(!TexBufferRange) ++numFailed;
-			return numFailed;
-		}
-		
-		typedef void (CODEGEN_FUNCPTR *PFNTEXSTORAGE1D)(GLenum, GLsizei, GLenum, GLsizei);
-		PFNTEXSTORAGE1D TexStorage1D = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNTEXSTORAGE2D)(GLenum, GLsizei, GLenum, GLsizei, GLsizei);
-		PFNTEXSTORAGE2D TexStorage2D = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNTEXSTORAGE3D)(GLenum, GLsizei, GLenum, GLsizei, GLsizei, GLsizei);
-		PFNTEXSTORAGE3D TexStorage3D = 0;
-		
-		static int Load_ARB_texture_storage()
-		{
-			int numFailed = 0;
-			TexStorage1D = reinterpret_cast<PFNTEXSTORAGE1D>(IntGetProcAddress("glTexStorage1D"));
-			if(!TexStorage1D) ++numFailed;
-			TexStorage2D = reinterpret_cast<PFNTEXSTORAGE2D>(IntGetProcAddress("glTexStorage2D"));
-			if(!TexStorage2D) ++numFailed;
-			TexStorage3D = reinterpret_cast<PFNTEXSTORAGE3D>(IntGetProcAddress("glTexStorage3D"));
-			if(!TexStorage3D) ++numFailed;
-			return numFailed;
-		}
-		
-		typedef void (CODEGEN_FUNCPTR *PFNTEXTUREVIEW)(GLuint, GLenum, GLuint, GLenum, GLuint, GLuint, GLuint, GLuint);
-		PFNTEXTUREVIEW TextureView = 0;
-		
-		static int Load_ARB_texture_view()
-		{
-			int numFailed = 0;
-			TextureView = reinterpret_cast<PFNTEXTUREVIEW>(IntGetProcAddress("glTextureView"));
-			if(!TextureView) ++numFailed;
-			return numFailed;
-		}
-		
-		typedef void (CODEGEN_FUNCPTR *PFNBINDVERTEXBUFFER)(GLuint, GLuint, GLintptr, GLsizei);
-		PFNBINDVERTEXBUFFER BindVertexBuffer = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNVERTEXATTRIBBINDING)(GLuint, GLuint);
-		PFNVERTEXATTRIBBINDING VertexAttribBinding = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNVERTEXATTRIBFORMAT)(GLuint, GLint, GLenum, GLboolean, GLuint);
-		PFNVERTEXATTRIBFORMAT VertexAttribFormat = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNVERTEXATTRIBIFORMAT)(GLuint, GLint, GLenum, GLuint);
-		PFNVERTEXATTRIBIFORMAT VertexAttribIFormat = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNVERTEXATTRIBLFORMAT)(GLuint, GLint, GLenum, GLuint);
-		PFNVERTEXATTRIBLFORMAT VertexAttribLFormat = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNVERTEXBINDINGDIVISOR)(GLuint, GLuint);
-		PFNVERTEXBINDINGDIVISOR VertexBindingDivisor = 0;
-		
-		static int Load_ARB_vertex_attrib_binding()
-		{
-			int numFailed = 0;
-			BindVertexBuffer = reinterpret_cast<PFNBINDVERTEXBUFFER>(IntGetProcAddress("glBindVertexBuffer"));
-			if(!BindVertexBuffer) ++numFailed;
-			VertexAttribBinding = reinterpret_cast<PFNVERTEXATTRIBBINDING>(IntGetProcAddress("glVertexAttribBinding"));
-			if(!VertexAttribBinding) ++numFailed;
-			VertexAttribFormat = reinterpret_cast<PFNVERTEXATTRIBFORMAT>(IntGetProcAddress("glVertexAttribFormat"));
-			if(!VertexAttribFormat) ++numFailed;
-			VertexAttribIFormat = reinterpret_cast<PFNVERTEXATTRIBIFORMAT>(IntGetProcAddress("glVertexAttribIFormat"));
-			if(!VertexAttribIFormat) ++numFailed;
-			VertexAttribLFormat = reinterpret_cast<PFNVERTEXATTRIBLFORMAT>(IntGetProcAddress("glVertexAttribLFormat"));
-			if(!VertexAttribLFormat) ++numFailed;
-			VertexBindingDivisor = reinterpret_cast<PFNVERTEXBINDINGDIVISOR>(IntGetProcAddress("glVertexBindingDivisor"));
-			if(!VertexBindingDivisor) ++numFailed;
-			return numFailed;
-		}
-		
-		typedef void (CODEGEN_FUNCPTR *PFNDEPTHRANGEARRAYV)(GLuint, GLsizei, const GLdouble *);
-		PFNDEPTHRANGEARRAYV DepthRangeArrayv = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNDEPTHRANGEINDEXED)(GLuint, GLdouble, GLdouble);
-		PFNDEPTHRANGEINDEXED DepthRangeIndexed = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNGETDOUBLEI_V)(GLenum, GLuint, GLdouble *);
-		PFNGETDOUBLEI_V GetDoublei_v = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNGETFLOATI_V)(GLenum, GLuint, GLfloat *);
-		PFNGETFLOATI_V GetFloati_v = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNSCISSORARRAYV)(GLuint, GLsizei, const GLint *);
-		PFNSCISSORARRAYV ScissorArrayv = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNSCISSORINDEXED)(GLuint, GLint, GLint, GLsizei, GLsizei);
-		PFNSCISSORINDEXED ScissorIndexed = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNSCISSORINDEXEDV)(GLuint, const GLint *);
-		PFNSCISSORINDEXEDV ScissorIndexedv = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNVIEWPORTARRAYV)(GLuint, GLsizei, const GLfloat *);
-		PFNVIEWPORTARRAYV ViewportArrayv = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNVIEWPORTINDEXEDF)(GLuint, GLfloat, GLfloat, GLfloat, GLfloat);
-		PFNVIEWPORTINDEXEDF ViewportIndexedf = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNVIEWPORTINDEXEDFV)(GLuint, const GLfloat *);
-		PFNVIEWPORTINDEXEDFV ViewportIndexedfv = 0;
-		
-		static int Load_ARB_viewport_array()
-		{
-			int numFailed = 0;
-			DepthRangeArrayv = reinterpret_cast<PFNDEPTHRANGEARRAYV>(IntGetProcAddress("glDepthRangeArrayv"));
-			if(!DepthRangeArrayv) ++numFailed;
-			DepthRangeIndexed = reinterpret_cast<PFNDEPTHRANGEINDEXED>(IntGetProcAddress("glDepthRangeIndexed"));
-			if(!DepthRangeIndexed) ++numFailed;
-			GetDoublei_v = reinterpret_cast<PFNGETDOUBLEI_V>(IntGetProcAddress("glGetDoublei_v"));
-			if(!GetDoublei_v) ++numFailed;
-			GetFloati_v = reinterpret_cast<PFNGETFLOATI_V>(IntGetProcAddress("glGetFloati_v"));
-			if(!GetFloati_v) ++numFailed;
-			ScissorArrayv = reinterpret_cast<PFNSCISSORARRAYV>(IntGetProcAddress("glScissorArrayv"));
-			if(!ScissorArrayv) ++numFailed;
-			ScissorIndexed = reinterpret_cast<PFNSCISSORINDEXED>(IntGetProcAddress("glScissorIndexed"));
-			if(!ScissorIndexed) ++numFailed;
-			ScissorIndexedv = reinterpret_cast<PFNSCISSORINDEXEDV>(IntGetProcAddress("glScissorIndexedv"));
-			if(!ScissorIndexedv) ++numFailed;
-			ViewportArrayv = reinterpret_cast<PFNVIEWPORTARRAYV>(IntGetProcAddress("glViewportArrayv"));
-			if(!ViewportArrayv) ++numFailed;
-			ViewportIndexedf = reinterpret_cast<PFNVIEWPORTINDEXEDF>(IntGetProcAddress("glViewportIndexedf"));
-			if(!ViewportIndexedf) ++numFailed;
-			ViewportIndexedfv = reinterpret_cast<PFNVIEWPORTINDEXEDFV>(IntGetProcAddress("glViewportIndexedfv"));
-			if(!ViewportIndexedfv) ++numFailed;
-			return numFailed;
-		}
-		
-		typedef void (CODEGEN_FUNCPTR *PFNCLEARBUFFERDATA)(GLenum, GLenum, GLenum, GLenum, const void *);
-		PFNCLEARBUFFERDATA ClearBufferData = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNCLEARBUFFERSUBDATA)(GLenum, GLenum, GLintptr, GLsizeiptr, GLenum, GLenum, const void *);
-		PFNCLEARBUFFERSUBDATA ClearBufferSubData = 0;
-		
-		static int Load_ARB_clear_buffer_object()
-		{
-			int numFailed = 0;
-			ClearBufferData = reinterpret_cast<PFNCLEARBUFFERDATA>(IntGetProcAddress("glClearBufferData"));
-			if(!ClearBufferData) ++numFailed;
-			ClearBufferSubData = reinterpret_cast<PFNCLEARBUFFERSUBDATA>(IntGetProcAddress("glClearBufferSubData"));
-			if(!ClearBufferSubData) ++numFailed;
-			return numFailed;
-		}
-		
 		typedef void (CODEGEN_FUNCPTR *PFNCOPYIMAGESUBDATA)(GLuint, GLenum, GLint, GLint, GLint, GLint, GLuint, GLenum, GLint, GLint, GLint, GLint, GLsizei, GLsizei, GLsizei);
 		PFNCOPYIMAGESUBDATA CopyImageSubData = 0;
 		
@@ -622,67 +365,6 @@ namespace gl
 			int numFailed = 0;
 			CopyImageSubData = reinterpret_cast<PFNCOPYIMAGESUBDATA>(IntGetProcAddress("glCopyImageSubData"));
 			if(!CopyImageSubData) ++numFailed;
-			return numFailed;
-		}
-		
-		typedef void (CODEGEN_FUNCPTR *PFNFRAMEBUFFERPARAMETERI)(GLenum, GLenum, GLint);
-		PFNFRAMEBUFFERPARAMETERI FramebufferParameteri = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNGETFRAMEBUFFERPARAMETERIV)(GLenum, GLenum, GLint *);
-		PFNGETFRAMEBUFFERPARAMETERIV GetFramebufferParameteriv = 0;
-		
-		static int Load_ARB_framebuffer_no_attachments()
-		{
-			int numFailed = 0;
-			FramebufferParameteri = reinterpret_cast<PFNFRAMEBUFFERPARAMETERI>(IntGetProcAddress("glFramebufferParameteri"));
-			if(!FramebufferParameteri) ++numFailed;
-			GetFramebufferParameteriv = reinterpret_cast<PFNGETFRAMEBUFFERPARAMETERIV>(IntGetProcAddress("glGetFramebufferParameteriv"));
-			if(!GetFramebufferParameteriv) ++numFailed;
-			return numFailed;
-		}
-		
-		typedef void (CODEGEN_FUNCPTR *PFNINVALIDATEBUFFERDATA)(GLuint);
-		PFNINVALIDATEBUFFERDATA InvalidateBufferData = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNINVALIDATEBUFFERSUBDATA)(GLuint, GLintptr, GLsizeiptr);
-		PFNINVALIDATEBUFFERSUBDATA InvalidateBufferSubData = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNINVALIDATEFRAMEBUFFER)(GLenum, GLsizei, const GLenum *);
-		PFNINVALIDATEFRAMEBUFFER InvalidateFramebuffer = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNINVALIDATESUBFRAMEBUFFER)(GLenum, GLsizei, const GLenum *, GLint, GLint, GLsizei, GLsizei);
-		PFNINVALIDATESUBFRAMEBUFFER InvalidateSubFramebuffer = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNINVALIDATETEXIMAGE)(GLuint, GLint);
-		PFNINVALIDATETEXIMAGE InvalidateTexImage = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNINVALIDATETEXSUBIMAGE)(GLuint, GLint, GLint, GLint, GLint, GLsizei, GLsizei, GLsizei);
-		PFNINVALIDATETEXSUBIMAGE InvalidateTexSubImage = 0;
-		
-		static int Load_ARB_invalidate_subdata()
-		{
-			int numFailed = 0;
-			InvalidateBufferData = reinterpret_cast<PFNINVALIDATEBUFFERDATA>(IntGetProcAddress("glInvalidateBufferData"));
-			if(!InvalidateBufferData) ++numFailed;
-			InvalidateBufferSubData = reinterpret_cast<PFNINVALIDATEBUFFERSUBDATA>(IntGetProcAddress("glInvalidateBufferSubData"));
-			if(!InvalidateBufferSubData) ++numFailed;
-			InvalidateFramebuffer = reinterpret_cast<PFNINVALIDATEFRAMEBUFFER>(IntGetProcAddress("glInvalidateFramebuffer"));
-			if(!InvalidateFramebuffer) ++numFailed;
-			InvalidateSubFramebuffer = reinterpret_cast<PFNINVALIDATESUBFRAMEBUFFER>(IntGetProcAddress("glInvalidateSubFramebuffer"));
-			if(!InvalidateSubFramebuffer) ++numFailed;
-			InvalidateTexImage = reinterpret_cast<PFNINVALIDATETEXIMAGE>(IntGetProcAddress("glInvalidateTexImage"));
-			if(!InvalidateTexImage) ++numFailed;
-			InvalidateTexSubImage = reinterpret_cast<PFNINVALIDATETEXSUBIMAGE>(IntGetProcAddress("glInvalidateTexSubImage"));
-			if(!InvalidateTexSubImage) ++numFailed;
-			return numFailed;
-		}
-		
-		typedef void (CODEGEN_FUNCPTR *PFNTEXSTORAGE2DMULTISAMPLE)(GLenum, GLsizei, GLenum, GLsizei, GLsizei, GLboolean);
-		PFNTEXSTORAGE2DMULTISAMPLE TexStorage2DMultisample = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNTEXSTORAGE3DMULTISAMPLE)(GLenum, GLsizei, GLenum, GLsizei, GLsizei, GLsizei, GLboolean);
-		PFNTEXSTORAGE3DMULTISAMPLE TexStorage3DMultisample = 0;
-		
-		static int Load_ARB_texture_storage_multisample()
-		{
-			int numFailed = 0;
-			TexStorage2DMultisample = reinterpret_cast<PFNTEXSTORAGE2DMULTISAMPLE>(IntGetProcAddress("glTexStorage2DMultisample"));
-			if(!TexStorage2DMultisample) ++numFailed;
-			TexStorage3DMultisample = reinterpret_cast<PFNTEXSTORAGE3DMULTISAMPLE>(IntGetProcAddress("glTexStorage3DMultisample"));
-			if(!TexStorage3DMultisample) ++numFailed;
 			return numFailed;
 		}
 		
@@ -734,6 +416,25 @@ namespace gl
 			if(!PopDebugGroup) ++numFailed;
 			PushDebugGroup = reinterpret_cast<PFNPUSHDEBUGGROUP>(IntGetProcAddress("glPushDebugGroup"));
 			if(!PushDebugGroup) ++numFailed;
+			return numFailed;
+		}
+		
+		typedef void (CODEGEN_FUNCPTR *PFNTEXSTORAGE1D)(GLenum, GLsizei, GLenum, GLsizei);
+		PFNTEXSTORAGE1D TexStorage1D = 0;
+		typedef void (CODEGEN_FUNCPTR *PFNTEXSTORAGE2D)(GLenum, GLsizei, GLenum, GLsizei, GLsizei);
+		PFNTEXSTORAGE2D TexStorage2D = 0;
+		typedef void (CODEGEN_FUNCPTR *PFNTEXSTORAGE3D)(GLenum, GLsizei, GLenum, GLsizei, GLsizei, GLsizei);
+		PFNTEXSTORAGE3D TexStorage3D = 0;
+		
+		static int Load_ARB_texture_storage()
+		{
+			int numFailed = 0;
+			TexStorage1D = reinterpret_cast<PFNTEXSTORAGE1D>(IntGetProcAddress("glTexStorage1D"));
+			if(!TexStorage1D) ++numFailed;
+			TexStorage2D = reinterpret_cast<PFNTEXSTORAGE2D>(IntGetProcAddress("glTexStorage2D"));
+			if(!TexStorage2D) ++numFailed;
+			TexStorage3D = reinterpret_cast<PFNTEXSTORAGE3D>(IntGetProcAddress("glTexStorage3D"));
+			if(!TexStorage3D) ++numFailed;
 			return numFailed;
 		}
 		
@@ -2166,69 +1867,21 @@ namespace gl
 			
 			void InitializeMappingTable(std::vector<MapEntry> &table)
 			{
-				table.reserve(29);
-				table.push_back(MapEntry("GL_ARB_compressed_texture_pixel_storage", &exts::var_ARB_compressed_texture_pixel_storage));
-				table.push_back(MapEntry("GL_ARB_conservative_depth", &exts::var_ARB_conservative_depth));
-				table.push_back(MapEntry("GL_ARB_ES2_compatibility", &exts::var_ARB_ES2_compatibility, _detail::Load_ARB_ES2_compatibility));
-				table.push_back(MapEntry("GL_ARB_get_program_binary", &exts::var_ARB_get_program_binary, _detail::Load_ARB_get_program_binary));
-				table.push_back(MapEntry("GL_ARB_explicit_uniform_location", &exts::var_ARB_explicit_uniform_location));
-				table.push_back(MapEntry("GL_ARB_internalformat_query", &exts::var_ARB_internalformat_query, _detail::Load_ARB_internalformat_query));
-				table.push_back(MapEntry("GL_ARB_internalformat_query2", &exts::var_ARB_internalformat_query2, _detail::Load_ARB_internalformat_query2));
-				table.push_back(MapEntry("GL_ARB_map_buffer_alignment", &exts::var_ARB_map_buffer_alignment));
-				table.push_back(MapEntry("GL_ARB_program_interface_query", &exts::var_ARB_program_interface_query, _detail::Load_ARB_program_interface_query));
+				table.reserve(5);
 				table.push_back(MapEntry("GL_ARB_separate_shader_objects", &exts::var_ARB_separate_shader_objects, _detail::Load_ARB_separate_shader_objects));
 				table.push_back(MapEntry("GL_ARB_shading_language_420pack", &exts::var_ARB_shading_language_420pack));
-				table.push_back(MapEntry("GL_ARB_shading_language_packing", &exts::var_ARB_shading_language_packing));
-				table.push_back(MapEntry("GL_ARB_texture_buffer_range", &exts::var_ARB_texture_buffer_range, _detail::Load_ARB_texture_buffer_range));
-				table.push_back(MapEntry("GL_ARB_texture_storage", &exts::var_ARB_texture_storage, _detail::Load_ARB_texture_storage));
-				table.push_back(MapEntry("GL_ARB_texture_view", &exts::var_ARB_texture_view, _detail::Load_ARB_texture_view));
-				table.push_back(MapEntry("GL_ARB_vertex_attrib_binding", &exts::var_ARB_vertex_attrib_binding, _detail::Load_ARB_vertex_attrib_binding));
-				table.push_back(MapEntry("GL_ARB_viewport_array", &exts::var_ARB_viewport_array, _detail::Load_ARB_viewport_array));
-				table.push_back(MapEntry("GL_ARB_arrays_of_arrays", &exts::var_ARB_arrays_of_arrays));
-				table.push_back(MapEntry("GL_ARB_clear_buffer_object", &exts::var_ARB_clear_buffer_object, _detail::Load_ARB_clear_buffer_object));
 				table.push_back(MapEntry("GL_ARB_copy_image", &exts::var_ARB_copy_image, _detail::Load_ARB_copy_image));
-				table.push_back(MapEntry("GL_ARB_ES3_compatibility", &exts::var_ARB_ES3_compatibility));
-				table.push_back(MapEntry("GL_ARB_fragment_layer_viewport", &exts::var_ARB_fragment_layer_viewport));
-				table.push_back(MapEntry("GL_ARB_framebuffer_no_attachments", &exts::var_ARB_framebuffer_no_attachments, _detail::Load_ARB_framebuffer_no_attachments));
-				table.push_back(MapEntry("GL_ARB_invalidate_subdata", &exts::var_ARB_invalidate_subdata, _detail::Load_ARB_invalidate_subdata));
-				table.push_back(MapEntry("GL_ARB_robust_buffer_access_behavior", &exts::var_ARB_robust_buffer_access_behavior));
-				table.push_back(MapEntry("GL_ARB_stencil_texturing", &exts::var_ARB_stencil_texturing));
-				table.push_back(MapEntry("GL_ARB_texture_query_levels", &exts::var_ARB_texture_query_levels));
-				table.push_back(MapEntry("GL_ARB_texture_storage_multisample", &exts::var_ARB_texture_storage_multisample, _detail::Load_ARB_texture_storage_multisample));
 				table.push_back(MapEntry("GL_KHR_debug", &exts::var_KHR_debug, _detail::Load_KHR_debug));
+				table.push_back(MapEntry("GL_ARB_texture_storage", &exts::var_ARB_texture_storage, _detail::Load_ARB_texture_storage));
 			}
 			
 			void ClearExtensionVars()
 			{
-				exts::var_ARB_compressed_texture_pixel_storage = exts::LoadTest();
-				exts::var_ARB_conservative_depth = exts::LoadTest();
-				exts::var_ARB_ES2_compatibility = exts::LoadTest();
-				exts::var_ARB_get_program_binary = exts::LoadTest();
-				exts::var_ARB_explicit_uniform_location = exts::LoadTest();
-				exts::var_ARB_internalformat_query = exts::LoadTest();
-				exts::var_ARB_internalformat_query2 = exts::LoadTest();
-				exts::var_ARB_map_buffer_alignment = exts::LoadTest();
-				exts::var_ARB_program_interface_query = exts::LoadTest();
 				exts::var_ARB_separate_shader_objects = exts::LoadTest();
 				exts::var_ARB_shading_language_420pack = exts::LoadTest();
-				exts::var_ARB_shading_language_packing = exts::LoadTest();
-				exts::var_ARB_texture_buffer_range = exts::LoadTest();
-				exts::var_ARB_texture_storage = exts::LoadTest();
-				exts::var_ARB_texture_view = exts::LoadTest();
-				exts::var_ARB_vertex_attrib_binding = exts::LoadTest();
-				exts::var_ARB_viewport_array = exts::LoadTest();
-				exts::var_ARB_arrays_of_arrays = exts::LoadTest();
-				exts::var_ARB_clear_buffer_object = exts::LoadTest();
 				exts::var_ARB_copy_image = exts::LoadTest();
-				exts::var_ARB_ES3_compatibility = exts::LoadTest();
-				exts::var_ARB_fragment_layer_viewport = exts::LoadTest();
-				exts::var_ARB_framebuffer_no_attachments = exts::LoadTest();
-				exts::var_ARB_invalidate_subdata = exts::LoadTest();
-				exts::var_ARB_robust_buffer_access_behavior = exts::LoadTest();
-				exts::var_ARB_stencil_texturing = exts::LoadTest();
-				exts::var_ARB_texture_query_levels = exts::LoadTest();
-				exts::var_ARB_texture_storage_multisample = exts::LoadTest();
 				exts::var_KHR_debug = exts::LoadTest();
+				exts::var_ARB_texture_storage = exts::LoadTest();
 			}
 			
 			void LoadExtByName(std::vector<MapEntry> &table, const char *extensionName)

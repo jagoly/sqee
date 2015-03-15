@@ -8,10 +8,9 @@ namespace ent {
 
 class Model {
 public:
-    void load(const string& _meshPath, const string& _skinPath,
-              const string& _animPath);
+    void load(const string& _meshPath, const string& _skinPath, const string& _animPath);
 
-    glm::mat4 modelMat;
+    mat4 modelMat;
 
     sq::Mesh* mesh;
     sq::Skin* skin;

@@ -1,7 +1,6 @@
 #include <cstdarg>
 #include <ctime>
 #include <iostream>
-#include <memory>
 
 #include "app/logging.hpp"
 

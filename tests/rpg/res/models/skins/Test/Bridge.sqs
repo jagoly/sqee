@@ -2,9 +2,8 @@
 
 { materials
 material
-filter_wrap linear clamp
+wrap clamp
 norm Test/Bridge
 diff Test/Bridge
 spec Test/Bridge
-#ambi Test/Bridge
 }

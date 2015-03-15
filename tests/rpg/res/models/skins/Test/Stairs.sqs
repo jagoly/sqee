@@ -2,9 +2,9 @@
 
 { materials
 material
-filter_wrap linear clamp
+wrap clamp
 norm Test/Stairs
 diff Test/Stairs
 spec Test/Stairs
-ambi Test/Stairs
+#ambi Test/Stairs
 }

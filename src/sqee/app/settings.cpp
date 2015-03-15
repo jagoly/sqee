@@ -1,5 +1,3 @@
-#include <cstring>
-
 #include "app/settings.hpp"
 
 using namespace sq;

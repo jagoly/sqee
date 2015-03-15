@@ -3,7 +3,7 @@
 
 layout(location = 0) in vec4 V_pos_tc;
 
-out vec2 texcoord;
+out vec2 texcrd;
 
 out gl_PerVertex {
     vec4 gl_Position;
@@ -11,6 +11,6 @@ out gl_PerVertex {
 
 
 void main() {
-    texcoord = V_pos_tc.zw;
+    texcrd = V_pos_tc.zw;
     gl_Position = vec4(V_pos_tc.xy, 0.f, 1.f);
 }

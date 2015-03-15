@@ -41,6 +41,21 @@ s1 mesh Test/Tree
 s1 skin Test/Tree
 flags shad pnch
 
+object model Peepel
+f3 pos 8 14.2 0.0
+f3 sca 1.0 1.0 1.0
+f3 rot 0.0 0.0 180.0
+s1 mesh Characters/Don
+s1 skin Characters/Don
+flags shad
+
+object model Peep2
+f3 pos 8 12.8 0.0
+f3 sca 1.0 1.0 1.0
+s1 mesh Characters/Don
+s1 skin Characters/Don
+flags shad
+
 object model Dice
 f3 pos 11 16 0
 s1 mesh Test/Dice
@@ -48,7 +63,7 @@ s1 skin Test/DiceWhite
 flags shad
 
 object model Sphere
-f3 pos 10 17 4
+f3 pos 8 17 2
 s1 mesh Test/Sphere
 s1 skin Test/PureWhite
 flags shad
@@ -57,7 +72,7 @@ object model Terrain
 f3 pos 0.0 0.0 0.0
 s1 mesh WorldTest/TerrainA
 s1 skin WorldTest/Terrain
-flags refl refr
+flags refl refr shad
 
 object model StairsA
 f3 pos 11.0 14.0 0.0
