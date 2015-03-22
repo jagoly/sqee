@@ -7,13 +7,19 @@ mCount 3
 { materials
 material
 wrap clamp
+punch no
+shadow yes
 diff Characters/Don/Head
 
 material
 wrap clamp
+punch no
+shadow yes
 diff Characters/Don/Mid
 
 material
 wrap clamp
+punch no
+shadow yes
 diff Characters/Don/Legs
 }

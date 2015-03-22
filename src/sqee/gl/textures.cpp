@@ -1,5 +1,6 @@
 #include "app/logging.hpp"
 #include "gl/gl_ext_3_3.hpp"
+#include "misc/files.hpp"
 #include "redist/stb_image.hpp"
 #include "gl/textures.hpp"
 
@@ -9,8 +10,7 @@ Texture::~Texture() {
     gl::DeleteTextures(1, &tex);
 }
 
-void Texture::create(GLenum _target, GLenum _format, GLenum _iFormat, uint _channels,
-                     Preset _preset, const string& _path) {
+void Texture::create(GLenum _target, GLenum _format, GLenum _iFormat, uint _channels, Preset _preset) {
     #ifdef SQEE_DEBUG
     // Add something in here
     #endif
@@ -18,8 +18,7 @@ void Texture::create(GLenum _target, GLenum _format, GLenum _iFormat, uint _chan
     format = _format;
     iFormat = _iFormat;
     channels = _channels;
-    if (format == gl::DEPTH_STENCIL) dataType = gl::UNSIGNED_INT_24_8;
-    else dataType = gl::UNSIGNED_BYTE;
+    dataType = gl::UNSIGNED_BYTE;
 
     if (target == gl::TEXTURE_1D) dimensions = 1;
     else if (target == gl::TEXTURE_1D_ARRAY || target == gl::TEXTURE_2D) dimensions = 2;
@@ -28,8 +27,6 @@ void Texture::create(GLenum _target, GLenum _format, GLenum _iFormat, uint _chan
 
     gl::GenTextures(1, &tex);
     set_preset(_preset);
-
-    if (!_path.empty()) buffer_file(_path);
 }
 
 void Texture::resize(uvec3 _size) {
@@ -45,20 +42,21 @@ void Texture::resize(uvec3 _size) {
 
 void Texture::buffer_memory(const void* _data, uint _z) {
     gl::BindTexture(target, tex);
-    if      (dimensions == 1) gl::TexImage1D(target, 0, iFormat, size.x,
-                                             0, format, dataType, _data);
-    else if (dimensions == 2) gl::TexImage2D(target, 0, iFormat, size.x, size.y,
-                                             0, format, dataType, _data);
-    else if (dimensions == 3) gl::TexSubImage3D(target, 0, 0, 0, _z, size.x, size.y, 1,
-                                               format, dataType, _data);
+    if (dimensions == 1)
+        gl::TexImage1D(target, 0, iFormat, size.x, 0, format, dataType, _data);
+    else if (dimensions == 2)
+        gl::TexImage2D(target, 0, iFormat, size.x, size.y, 0, format, dataType, _data);
+    else if (dimensions == 3)
+        gl::TexSubImage3D(target, 0, 0, 0, _z, size.x, size.y, 1, format, dataType, _data);
 }
 
-void Texture::buffer_file(const string& _filePath, uint _z) {
-    string fPath = "res/textures/" + _filePath + ".png";
-    // ADD FILE FOUND CHECK!!!
+void Texture::buffer_file(const string& _path, uint _z) {
+    string path = "res/textures/" + _path;
+    if (check_file_exists(path+".png")) path += ".png";
+    else if (check_file_exists(path+".jpg")) path += ".jpg";
 
     int w, h;
-    uchar* data = stbi_load(fPath.c_str(), &w, &h, nullptr, channels);
+    uchar* data = stbi_load(path.c_str(), &w, &h, nullptr, channels);
     uchar* top; uchar* btm; uchar temp;
     int wBytes = w * channels; int halfH = h / 2;
     for (int y = 0; y < halfH; y++) {
@@ -72,28 +70,21 @@ void Texture::buffer_file(const string& _filePath, uint _z) {
     if (dimensions < 3) size = {w, h, 1};
 
     #ifdef SQEE_DEBUG
-    if (!data) log_error("Failed to load texture from $0", fPath);
+    if (!data) log_error("Failed to load texture from $0", path);
     #endif
 
-    bind();
-    if (dimensions == 1)
-        gl::TexImage1D(target, 0, iFormat, size.x, 0, format, dataType, data);
-    else if (dimensions == 2)
-        gl::TexImage2D(target, 0, iFormat, size.x, size.y, 0, format, dataType, data);
-    else if (dimensions == 3)
-        gl::TexSubImage3D(target, 0, 0, 0, _z, size.x, size.y, 1, format, dataType, data);
-
+    buffer_memory(data, _z);
     free(data);
 }
 
 void Texture::set_preset(Preset _preset) {
     gl::BindTexture(target, tex);
 
-    if (_preset == Preset::L_C || _preset == Preset::L_R) {
+    if (_preset == Preset::L_C || _preset == Preset::L_R || _preset == Preset::L_M) {
         gl::TexParameteri(target, gl::TEXTURE_MIN_FILTER, gl::LINEAR);
         gl::TexParameteri(target, gl::TEXTURE_MAG_FILTER, gl::LINEAR);
     }
-    if (_preset == Preset::N_C || _preset == Preset::N_R) {
+    if (_preset == Preset::N_C || _preset == Preset::N_R || _preset == Preset::N_M) {
         gl::TexParameteri(target, gl::TEXTURE_MIN_FILTER, gl::NEAREST);
         gl::TexParameteri(target, gl::TEXTURE_MAG_FILTER, gl::NEAREST);
     }
@@ -105,7 +96,11 @@ void Texture::set_preset(Preset _preset) {
         gl::TexParameteri(target, gl::TEXTURE_WRAP_S, gl::REPEAT);
         gl::TexParameteri(target, gl::TEXTURE_WRAP_T, gl::REPEAT);
     }
-    if (_preset == Preset::M_C || _preset == Preset::M_R) {
+    if (_preset == Preset::L_M || _preset == Preset::N_M || _preset == Preset::M_M) {
+        gl::TexParameteri(target, gl::TEXTURE_WRAP_S, gl::MIRRORED_REPEAT);
+        gl::TexParameteri(target, gl::TEXTURE_WRAP_T, gl::MIRRORED_REPEAT);
+    }
+    if (_preset == Preset::M_C || _preset == Preset::M_R || _preset == Preset::M_M) {
         gl::TexParameteri(target, gl::TEXTURE_MIN_FILTER, gl::LINEAR_MIPMAP_LINEAR);
         gl::TexParameteri(target, gl::TEXTURE_MAG_FILTER, gl::LINEAR);
     }

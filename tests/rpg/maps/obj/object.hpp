@@ -50,16 +50,11 @@ public:
 
 
 template<class T, class IterT>
-std::forward_list<T*> filter_objs(const IterT& _begin, const IterT& _end,
-                                  std::function<bool(const T&)> _func) {
+std::forward_list<T*> filter_objs(const IterT& _begin, const IterT& _end) {
     std::forward_list<T*> retList;
-    for (auto iter = _begin; iter != _end; iter++) {
-        if ((*iter)->type != ObjTraits<T>::type()) continue;
-        if (_func(static_cast<T&>(**iter)))
+    for (auto iter = _begin; iter != _end; iter++)
+        if ((*iter)->type == ObjTraits<T>::type())
             retList.push_front(static_cast<T*>(*iter));
-
-    }
-
     return retList;
 }
 

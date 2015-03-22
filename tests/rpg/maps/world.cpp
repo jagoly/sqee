@@ -1,20 +1,18 @@
 #include <glm/common.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <sqee/app/application.hpp>
+//#include <sqee/app/application.hpp>
 #include <sqee/app/logging.hpp>
 #include <sqee/gl/gl_ext_3_3.hpp>
 #include <sqee/gl/maths.hpp>
 #include <sqee/misc/files.hpp>
 #include <sqee/misc/strtonum.hpp>
 
-#include "../render/camera.hpp"
-#include "../scenegame.hpp"
 #include "world.hpp"
 
 using namespace sqt;
 
-World::World(sq::Application& _app) : app(_app) {
+World::World() {
     ubo.reserve("ambiColour", 3);
     ubo.create();
 }
@@ -92,7 +90,7 @@ void World::load_base(const string& _filePath) {
     for (const auto& val : hlVec)
         hlMap.insert(val);
 
-    set_active_cell("CellA");
+    set_active_cell("Sponza");
 }
 
 float World::get_maxZ4(const string& _layer, int _x, int _y) {
@@ -163,8 +161,6 @@ void World::set_active_cell(const string& _cell) {
 
     ubo.bind(1);
     ubo.update("ambiColour", &ambiColour);
-
-    updateScene = true;
 }
 
 void World::set_active_tile(glm::ivec2 _tile) {
@@ -185,6 +181,4 @@ void World::tick() {
 void World::calc(double _accum) {
     for (auto& scPair : cellMap)
         scPair.second.calc(_accum);
-
-    if (app.settings.check_update("World")) updateScene = true;
 }

@@ -47,7 +47,7 @@ void main() {
             0, 0, 0, 1
         ));
 
-        a_pos += (bone * vec4(V_pos, 1)).xyz * weights[i];
+        a_pos += vec4(bone * vec4(V_pos, 1.f)).xyz * weights[i];
     }
 
     gl_Position = shadMat * modelMat * vec4(a_pos, 1.f);

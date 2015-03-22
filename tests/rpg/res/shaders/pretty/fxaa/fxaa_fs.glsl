@@ -6,7 +6,7 @@
 
 in vec2 texcoord;
 
-uniform vec2 vpPixSize;
+uniform vec2 pixSize;
 layout(binding=0) uniform sampler2D screenTex;
 
 out vec4 fragColour;
@@ -809,7 +809,7 @@ void main() {
     FxaaPixelShader(
         texcoord,
         screenTex,
-        vpPixSize,
+        pixSize,
         paramSUBPIX,
         paramEDGETHRES,
         paramEDGETHRESMIN

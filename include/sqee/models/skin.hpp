@@ -1,35 +1,31 @@
 #pragma once
 #include "forward.hpp"
 
+#include <forward_list>
 #include <vector>
 
 #include "misc/resholder.hpp"
 
 namespace sq {
 
-class Skin {
+class Skin : NonCopyable {
 public:
-    struct Mode {
-        enum : int { norm=1, diff=2, spec=4, all=1|2|4};
-    };
+    void create(const string& _path);
+    ~Skin();
 
     struct Material {
-        int mode = 0;
+        bool punch, shadow;
         sq::Texture* norm = nullptr;
         sq::Texture* diff = nullptr;
         sq::Texture* spec = nullptr;
+        int glMode = 0;
     };
-
-    void create(const string& _filePath);
-    ~Skin();
-
-    void bind_textures(uint _mtrl = 0, int _override = Mode::all);
-
-    int get_mode(uint _i);
-    uint get_count();
-
-private:
     std::vector<Material> mtrlVec;
+
+    std::forward_list<uint> filtered(char _punch, char _shadow);
+
+    void bind_textures(uint _mtrl);
+    void bind_textures(uint _mtrl, bool _norm, bool _diff, bool _spec);
 };
 
 namespace res { ResHolder<Skin>& skin(); }

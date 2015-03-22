@@ -1,7 +1,6 @@
 #pragma once
 #include "forward.hpp"
 
-#include <utility>
 #include <vector>
 
 #include "misc/resholder.hpp"
@@ -10,23 +9,19 @@ namespace sq {
 
 class Animation : NonCopyable {
 public:
-    struct Pose {
-        Pose(uint _bCount, const float* _quatData, const float* _offsData);
-        float quatData[40*4];
-        float offsData[40*3];
-    };
+    void create(const string& _path);
 
-    void create(const string& _filePath);
-
-    uint bCount;
+    uint bCount = 0;
     uint pCount = 0;
-    uint kCount = 0;
-    std::vector<std::pair<uint, Pose&>> kfrVec;
+    uint tCount = 0;
 
-private:
+    using Pose = std::pair<std::vector<vec4>, std::vector<vec3>>;
+    using Keyframe = std::pair<Pose&, uint>;
+    using Timeline = std::vector<Keyframe>;
     std::vector<Pose> poseVec;
+    std::vector<Timeline> timelineVec;
 };
 
-namespace res { ResHolder<Animation>& animation(); }
+namespace res { ResHolder<Animation>& anim(); }
 
 }

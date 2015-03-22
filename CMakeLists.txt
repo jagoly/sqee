@@ -30,9 +30,8 @@ set(SOURCES
 
 # SQEE Headers
     "${INCDIR}/sqee/forward.hpp"
-    "${INCDIR}/sqee/debug/freecam.hpp"
     "${INCDIR}/sqee/debug/glcallback.hpp"
-    "${INCDIR}/sqee/debug/miscdraw.hpp"
+    "${INCDIR}/sqee/debug/misc.hpp"
     "${INCDIR}/sqee/gl/gl_ext_3_3.hpp"
     "${INCDIR}/sqee/gl/maths.hpp"
     "${INCDIR}/sqee/gl/misc.hpp"
@@ -59,6 +58,8 @@ set(SOURCES
     "${INCDIR}/sqee/models/skin.hpp"
     "${INCDIR}/sqee/models/animation.hpp"
     "${INCDIR}/sqee/models/skeleton.hpp"
+    "${INCDIR}/sqee/models/modelstatic.hpp"
+    "${INCDIR}/sqee/models/modelskelly.hpp"
     "${INCDIR}/sqee/misc/resholder.hpp"
     "${INCDIR}/sqee/misc/indexedmap.hpp"
     "${INCDIR}/sqee/misc/files.hpp"
@@ -72,9 +73,7 @@ set(SOURCES
     "${SRCDIR}/sqee/redist/stb_image.cpp"
 
 # SQEE Source
-    "${SRCDIR}/sqee/debug/freecam.cpp"
-    "${SRCDIR}/sqee/debug/glcallback.cpp"
-    "${SRCDIR}/sqee/debug/miscdraw.cpp"
+    "${SRCDIR}/sqee/debug/misc.cpp"
     "${SRCDIR}/sqee/gl/gl_ext_3_3.cpp"
     "${SRCDIR}/sqee/gl/maths.cpp"
     "${SRCDIR}/sqee/gl/misc.cpp"
@@ -99,6 +98,8 @@ set(SOURCES
     "${SRCDIR}/sqee/models/skin.cpp"
     "${SRCDIR}/sqee/models/animation.cpp"
     "${SRCDIR}/sqee/models/skeleton.cpp"
+    "${SRCDIR}/sqee/models/modelstatic.cpp"
+    "${SRCDIR}/sqee/models/modelskelly.cpp"
     "${SRCDIR}/sqee/misc/files.cpp"
     "${SRCDIR}/sqee/scenes/basicscenes.cpp"
     "${SRCDIR}/sqee/sounds/soundmanager.cpp"

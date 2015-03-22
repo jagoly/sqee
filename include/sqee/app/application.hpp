@@ -25,11 +25,13 @@ public:
     void set_size(uvec2 _size);
     uvec2 get_size();
 
+    vec2 mouse_relatify();
+
     void sweep_handler(const string& _id);
     void sweep_scene(const string& _id);
 
-    IndexedMap<string, std::unique_ptr<Scene>> sceneIM;
-    IndexedMap<string, std::unique_ptr<Handler>> handlerIM;
+    IndexedMap<string, unique_ptr<Scene>> sceneIM;
+    IndexedMap<string, unique_ptr<Handler>> handlerIM;
 
     chai::ChaiScript cs;
     SoundManager sndMan;

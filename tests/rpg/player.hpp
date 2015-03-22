@@ -2,49 +2,33 @@
 #include <sqee/forward.hpp>
 
 #include <sqee/events/handler.hpp>
-
-#include "entities/model.hpp"
-#include "render/camera.hpp"
+#include <sqee/models/skeleton.hpp>
 
 namespace sqt {
 
+class MainCamera;
 class World;
 
 class Player {
 public:
-    ent::Model model;
-
-    sq::Skeleton* skelStill;
-    sq::Skeleton* skelWalk;
-
-    float rot = 0.f;
-
-    bool moving = false;
+    unique_ptr<sq::ModelSkelly> model;
 
     void test_init();
-    void attempt_move(sq::Direction _moveDir);
 
     void tick();
     void calc(double _accum);
 
+    sq::Application* app = nullptr;
     MainCamera* camera = nullptr;
     World* world = nullptr;
-    sq::SettingMap* settings = nullptr;
 
 private:
-    string layer;
-
-    float zCam = 0;
-
-    sq::Direction moveDir;
-    ivec2 moveVal;
-    uint moveCntr = 0;
-    bool stopped = true;
-
-    ivec2 gridCrnt, gridPrev;
+    float rotXCrnt = 0.f, rotXNext = 0.f;
+    float rotZCrnt = 0.f, rotZNext = 0.f;
+    float zCam = 0.f;
     vec3 posCrnt, posNext;
 
-    vec3 lookCrnt, lookNext;
+    sq::Direction moveDir;
 };
 
 }

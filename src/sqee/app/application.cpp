@@ -93,17 +93,23 @@ void Application::quit(int _code) {
     retCode = _code;
 }
 
-
 void Application::set_size(uvec2 _size) {
     window.setSize({_size.x, _size.y});
-    for (Scene::Ptr& scene : sceneIM) {
+    for (auto& scene : sceneIM) {
         scene->resize(_size);
     }
 }
+
 uvec2 Application::get_size() {
     return {window.getSize().x, window.getSize().y};
 }
 
+vec2 Application::mouse_relatify() {
+    sf::Vector2i winCentre(window.getSize() / 2u);
+    sf::Vector2i mouseMove = winCentre - sf::Mouse::getPosition(window);
+    sf::Mouse::setPosition(winCentre, window);
+    return glm::vec2(mouseMove.x, mouseMove.y);
+}
 
 void Application::sweep_handler(const string& _id) {
     handlerSweep.emplace(_id);

@@ -9,7 +9,11 @@ struct AABbox {
 
 };
 
+vec3 make_tangent(vec3 _norm);
+
 struct Frustum { vec3 xyz, xyZ, xYz, xYZ, Xyz, XyZ, XYz, XYZ; };
+
+bool point_in_tri(vec2 _p, vec2 _t0, vec2 _t1, vec2 _t2);
 
 template<class T>
 bool within_box(const T& _val, const T& _min, const T& _max) {

@@ -5,10 +5,10 @@
 #include "headers/blocks/world"
 #include "headers/blocks/liquid"
 
-layout(location = 0) in vec3 V_pos;
-layout(location = 1) in vec3 V_norm;
-layout(location = 2) in vec3 V_tan;
-layout(location = 3) in vec2 V_texcrd;
+layout(location=0) in vec3 V_pos;
+layout(location=1) in vec3 V_norm;
+layout(location=2) in vec3 V_tan;
+layout(location=3) in vec2 V_texcrd;
 
 layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
 layout(std140, binding=1) uniform WORLDBLOCk { WorldBlock WB; };

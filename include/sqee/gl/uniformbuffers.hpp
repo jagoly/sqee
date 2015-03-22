@@ -5,9 +5,9 @@
 
 namespace sq {
 
-class UniformBuffer : NonCopyable {
+class Uniformbuffer : NonCopyable {
 public:
-    ~UniformBuffer();
+    ~Uniformbuffer();
 
     void reserve(const string& _name, uint _size);
     void create();

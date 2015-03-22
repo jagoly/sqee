@@ -5,14 +5,14 @@
 #include "headers/blocks/world"
 #include "headers/blocks/liquid"
 
-layout(location = 0) in vec3 V_pos;
-layout(location = 1) in vec3 V_norm;
-layout(location = 2) in vec3 V_tan;
-layout(location = 3) in vec2 V_texcrd;
-layout(location = 4) in ivec4 V_bonesABCD;
-layout(location = 5) in ivec4 V_bonesEFGH;
-layout(location = 6) in vec4 V_weightsABCD;
-layout(location = 7) in vec4 V_weightsEFGH;
+layout(location=0) in vec3 V_pos;
+layout(location=1) in vec3 V_norm;
+layout(location=2) in vec3 V_tan;
+layout(location=3) in vec2 V_texcrd;
+layout(location=4) in ivec4 V_bonesABCD;
+layout(location=5) in ivec4 V_bonesEFGH;
+layout(location=6) in vec4 V_weightsABCD;
+layout(location=7) in vec4 V_weightsEFGH;
 
 layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
 layout(std140, binding=1) uniform WORLDBLOCk { WorldBlock WB; };
@@ -47,7 +47,7 @@ void main() {
 
     vec3 a_pos = vec3(0), a_norm = vec3(0), a_tan = vec3(0);
     for (int i = 0; i < 8; i++) {
-        int b = bones[i]; if (b < 0) break;
+        int b = bones[i]; if (b == -1) break;
         float w = skelQuat[b].r; float x = skelQuat[b].g;
         float y = skelQuat[b].b; float z = skelQuat[b].a;
         mat4 bone = transpose(mat4(

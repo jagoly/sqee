@@ -3,7 +3,7 @@
 #include <sqee/scenes/basicscenes.hpp>
 #include <sqee/scripts/console.hpp>
 
-#include "scenegame.hpp"
+#include "scenemain.hpp"
 #include "rpgapp.hpp"
 
 namespace sqt {
@@ -13,9 +13,9 @@ RpgApp::RpgApp() : sq::Application({1280, 720}, true) {
     handlerIM.append("resize", new sq::HandlerResize(*this));
     handlerIM.append("framelimit", new sq::HandlerFramelimit(*this));
 
-    sceneIM.append("game", new SceneGame(*this));
+    sceneIM.append("game", new SceneMain(*this));
     sceneIM.append("fps", new sq::SceneFPS(*this));
-    handlerIM.append("game", new HandlerGame(*this));
+    handlerIM.append("game", new HandlerMain(*this));
 
     sceneIM.append("console", new sq::SceneConsole(*this));
     handlerIM.prepend("console", new sq::HandlerConsole(*this));

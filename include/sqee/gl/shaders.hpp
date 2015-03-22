@@ -17,17 +17,17 @@ public:
     template <class T>
     void set_sca(const string& _name, const T& _value);
     template <class T>
-    void set_ptr(const string& _name, const T* _value);
+    void set_scaptr(const string& _name, const T* _value);
 
     template <class T>
-    void set_glmvec(const string& _name, const T& _value);
+    void set_vec(const string& _name, const T& _value);
     template <class T, class D>
-    void set_ptrvec(const string& _name, const D* _value);
+    void set_vecptr(const string& _name, const D* _value);
 
     template <class T>
-    void set_glmmat(const string& _name, const T& _value, bool _transpose = false);
+    void set_mat(const string& _name, const T& _value, bool _transpose = false);
     template <class T, class D>
-    void set_ptrmat(const string& _name, const D* _value, bool _transpose = false);
+    void set_matptr(const string& _name, const D* _value, bool _transpose = false);
 
 private:
     GLuint prog = 0;

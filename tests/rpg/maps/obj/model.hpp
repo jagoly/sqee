@@ -8,12 +8,9 @@ class Model : public Object {
 public:
     Model(const ObjSpec& _spec);
 
-    mat4 modelMat;
+    unique_ptr<sq::ModelStatic> model;
 
-    sq::Mesh* mesh;
-    sq::Skin* skin;
-
-    bool shad, pnch, refl, refr;
+    bool refl, refr;
 };
 
 template<> struct ObjTraits<Model> {

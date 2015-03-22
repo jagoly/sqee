@@ -1,23 +1,24 @@
 #version 330
 #extension GL_ARB_shading_language_420pack : enable
 
-in vec2 texcoord;
+in vec2 texcrd;
 
-layout(binding=0) uniform sampler2D tex;
+uniform vec2 pixSize;
+layout(binding=4) uniform sampler2D tex;
 
-uniform vec2 viewSize;
+out float fragColour;
 
-out vec2 fragColour;
 
 void main() {
-    vec2 pixSize = vec2(1.f, 1.f) / viewSize;
-
     float blur = 0.f;
-    blur += texture(tex, texcoord + vec2(-0.5f, -0.5f)*pixSize).r;
-    blur += texture(tex, texcoord + vec2(-0.5f,  0.5f)*pixSize).r;
-    blur += texture(tex, texcoord + vec2( 0.5f, -0.5f)*pixSize).r;
-    blur += texture(tex, texcoord + vec2( 0.5f,  0.5f)*pixSize).r;
-
-//    fragColour = vec2(texture(tex, texcoord).r, blur/4.f);
-    fragColour = texture(tex, texcoord).rr;
+    blur += texture(tex, vec2(texcrd.x,             texcrd.y            )).r * 0.16f;
+    blur += texture(tex, vec2(texcrd.x - pixSize.x, texcrd.y            )).r * 0.12f;
+    blur += texture(tex, vec2(texcrd.x + pixSize.x, texcrd.y            )).r * 0.12f;
+    blur += texture(tex, vec2(texcrd.x,             texcrd.y - pixSize.x)).r * 0.12f;
+    blur += texture(tex, vec2(texcrd.x,             texcrd.y + pixSize.x)).r * 0.12f;
+    blur += texture(tex, vec2(texcrd.x - pixSize.x, texcrd.y - pixSize.y)).r * 0.09f;
+    blur += texture(tex, vec2(texcrd.x + pixSize.x, texcrd.y - pixSize.y)).r * 0.09f;
+    blur += texture(tex, vec2(texcrd.x - pixSize.x, texcrd.y + pixSize.y)).r * 0.09f;
+    blur += texture(tex, vec2(texcrd.x + pixSize.x, texcrd.y + pixSize.y)).r * 0.09f;
+    fragColour = blur;
 }

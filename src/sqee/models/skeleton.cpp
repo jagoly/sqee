@@ -1,91 +1,97 @@
-#include <cstring>
-
 #include <glm/gtc/quaternion.hpp>
 
-#include "app/logging.hpp"
-#include "misc/files.hpp"
 #include "models/skeleton.hpp"
 
 using namespace sq;
 
-void Skeleton::setup(Animation* _anim) {
-    animCrnt = _anim;
-    kfrCount = animCrnt->kfrVec.size();
-    poseCrnt = &animCrnt->kfrVec.front().second;
-    if (kfrCount > 1) {
-        span = animCrnt->kfrVec.front().first;
-        poseNext = &animCrnt->kfrVec[1].second;
-    }
+void Skeleton::use_restPose(Animation::Pose& _pose) {
+    restPose = &_pose;
+    quatVec = restPose->first;
+    offsVec = restPose->second;
+}
+
+void Skeleton::use_timeline(Animation::Timeline& _timeline) {
+    timeline = &_timeline;
+}
+
+void Skeleton::play_anim(bool _loop, uint _spanA, uint _spanB) {
+    looping = _loop;
+    span = _spanA;
+    spanB = _spanB;
+    running = true;
+    index = -1;
+    ticks = 0;
+
+    transPose.first = quatVec;
+    transPose.second = offsVec;
+    poseCrnt = &transPose;
+    poseNext = &(*timeline)[0].first;
+}
+
+void Skeleton::stop_anim(uint _span) {
+    index = -2;
+    ticks = 0;
+    span = _span;
+
+    transPose.first = quatVec;
+    transPose.second = offsVec;
+    poseCrnt = &transPose;
+    poseNext = restPose;
 }
 
 void Skeleton::tick() {
-    if (animNext != nullptr) {
-        if (++progress == span) {
-            animCrnt = animNext;
-            animNext = nullptr;
-            kfrCount = animCrnt->kfrVec.size();
+    if (!running) return;
+    ticks += 1;
+
+    if (index == -1) { // starting
+        if (ticks == span) {
+            index = 1;
             poseCrnt = poseNext;
-            if (kfrCount > 1) {
-                span = animCrnt->kfrVec[kfrInd].first;
-                poseNext = &animCrnt->kfrVec[++kfrInd].second;
-                progress = 0;
-            }
-        }
-    } else {
-        if (kfrCount > 1) {
-            if (++progress == span) {
-                if (kfrInd == kfrCount) kfrInd = 0;
-                uint kfrNext = kfrInd+1;
-                if (kfrNext == kfrCount) kfrNext = 0;
+            poseNext = &(*timeline)[index].first;
+            span = (*timeline)[index].second;
+            ticks = 0;
+        } return;
+    }
 
-                span = animCrnt->kfrVec[kfrInd].first;
-                poseCrnt = &animCrnt->kfrVec[kfrInd].second;
-                poseNext = &animCrnt->kfrVec[kfrNext].second;
+    if (index == -2) { // stoping
+        if (ticks == span) {
+            quatVec = restPose->first;
+            offsVec = restPose->second;
+            running = false;
+        } return;
+    }
 
-                progress = 0;
-                kfrInd++;
-            }
-        } else {
-            std::memcpy(quatData, poseCrnt->quatData, animCrnt->bCount * 4 * sizeof(float));
-            std::memcpy(offsData, poseCrnt->offsData, animCrnt->bCount * 3 * sizeof(float));
+    if (ticks == span) {
+        poseCrnt = poseNext;
+        ticks = 0;
+        index += 1;
+        if (uint(index) == timeline->size()) {
+            if (looping) index = 0;
+            else { stop_anim(spanB); return; }
         }
     }
-}
 
+    if (running) {
+        poseNext = &(*timeline)[index].first;
+        span = (*timeline)[index].second;
+    }
+}
 
 void Skeleton::calc(double _accum) {
-    if (kfrCount > 1) {
-        const float* q1 = poseCrnt->quatData;
-        const float* q2 = poseNext->quatData;
-        const float* o1 = poseCrnt->offsData;
-        const float* o2 = poseNext->offsData;
+    if (!running) return;
 
-        float percent = (progress + _accum * 24.0) / double(span);
+    const auto& q1 = poseCrnt->first;
+    const auto& q2 = poseNext->first;
+    const auto& o1 = poseCrnt->second;
+    const auto& o2 = poseNext->second;
+    quatVec.clear(); offsVec.clear();
 
-        for (uint i = 0; i < animCrnt->bCount; i++) {
-            glm::quat quatA(q1[i*4+0], q1[i*4+1], q1[i*4+2], q1[i*4+3]);
-            glm::quat quatB(q2[i*4+0], q2[i*4+1], q2[i*4+2], q2[i*4+3]);
-            glm::quat quatC(glm::slerp(quatA, quatB, percent));
-            quatData[i*4+0] = quatC.w;
-            quatData[i*4+1] = quatC.x;
-            quatData[i*4+2] = quatC.y;
-            quatData[i*4+3] = quatC.z;
-
-            vec3 offsA(o1[i*3+0], o1[i*3+1], o1[i*3+2]);
-            vec3 offsB(o2[i*3+0], o2[i*3+1], o2[i*3+2]);
-            vec3 offsC(glm::mix(offsA, offsB, percent));
-            offsData[i*3+0] = offsC.x;
-            offsData[i*3+1] = offsC.y;
-            offsData[i*3+2] = offsC.z;
-        }
+    float percent = (ticks + _accum*double(tickRate)) / double(span);
+    for (uint i = 0; i < restPose->first.size(); i++) {
+        glm::quat a(q1[i].x, q1[i].y, q1[i].z, q1[i].w);
+        glm::quat b(q2[i].x, q2[i].y, q2[i].z, q2[i].w);
+        glm::quat ab(glm::slerp(a, b, percent));
+        quatVec.emplace_back(ab.w, ab.x, ab.y, ab.z);
+        offsVec.emplace_back(glm::mix(o1[i], o2[i], percent));
     }
-}
-
-void Skeleton::transition(Animation* _anim, uint _kfrInd, uint _span) {
-    animNext = _anim;
-    kfrInd = _kfrInd;
-    poseNext = &animNext->kfrVec[kfrInd].second;
-    span = _span;
-    progress = 0;
-    kfrCount = 2;
 }

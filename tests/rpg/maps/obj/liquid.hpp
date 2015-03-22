@@ -20,7 +20,7 @@ public:
     GLuint vboP, vboTc;
     sq::Texture* normArray;
 
-    sq::UniformBuffer ubo;
+    sq::Uniformbuffer ubo;
 
     void update_ubo();
     void bind_ubo();

@@ -14,8 +14,8 @@ layout(std140, binding=1) uniform WORLDBLOCk { WorldBlock WB; };
 layout(std140, binding=2) uniform LIQUIDBLOCK { LiquidBlock LB; };
 
 uniform int mode;
-layout(binding=0) uniform sampler2D texNorm; // X/Y/Z
-layout(binding=1) uniform sampler2D texDiff; // R/G/B/Emmisive
+layout(binding=0) uniform sampler2D texNorm; // X/Y/Z/Emmissive
+layout(binding=1) uniform sampler2D texDiff; // R/G/B/Alpha
 layout(binding=2) uniform sampler2D texSpec; // R/G/B/Exponent
 
 layout(location=0) out vec3 fragNorm;

@@ -1,0 +1,169 @@
+# SQEE Skin Format
+
+{ header
+mCount 23
+}
+
+{ materials
+material
+wrap repeat
+punch yes
+shadow yes
+norm Sponza/thorn
+diff Sponza/thorn
+spec Sponza/thorn
+
+material
+wrap repeat
+punch no
+shadow yes
+norm Sponza/vase_round
+diff Sponza/vase_round
+spec Sponza/vase_round
+
+material
+wrap repeat
+punch yes
+shadow yes
+diff Sponza/vase_plant
+spec Sponza/vase_plant
+
+material
+wrap repeat
+punch no
+norm Sponza/background
+diff Sponza/background
+
+material
+wrap repeat
+punch no
+shadow yes
+norm Sponza/bricks
+diff Sponza/bricks
+spec Sponza/bricks
+
+material
+wrap repeat
+punch no
+shadow yes
+norm Sponza/arch
+diff Sponza/arch
+spec Sponza/arch
+
+material
+wrap repeat
+punch no
+shadow yes
+diff Sponza/ceiling
+spec Sponza/ceiling
+
+material
+wrap repeat
+punch no
+shadow yes
+norm Sponza/column_a
+diff Sponza/column_a
+spec Sponza/column_a
+
+material
+wrap repeat
+punch no
+shadow yes
+diff Sponza/floor
+spec Sponza/floor
+
+material
+wrap repeat
+punch no
+shadow yes
+norm Sponza/column_c
+diff Sponza/column_c
+spec Sponza/column_c
+
+material
+wrap repeat
+punch no
+shadow yes
+diff Sponza/details
+spec Sponza/details
+
+material
+wrap repeat
+punch no
+shadow yes
+norm Sponza/column_b
+diff Sponza/column_b
+spec Sponza/column_b
+
+material
+wrap repeat
+punch no
+shadow yes
+diff Sponza/flagpole
+spec Sponza/flagpole
+
+material
+wrap repeat
+punch no
+shadow yes
+diff Sponza/fabric_green
+spec Sponza/fabric
+
+material
+wrap repeat
+punch no
+shadow yes
+diff Sponza/fabric_blue
+spec Sponza/fabric
+
+material
+wrap repeat
+punch no
+shadow yes
+diff Sponza/fabric_red
+spec Sponza/fabric
+
+material
+wrap repeat
+punch no
+shadow yes
+diff Sponza/curtain_blue
+
+material
+wrap repeat
+punch no
+shadow yes
+diff Sponza/curtain_red
+
+material
+wrap repeat
+punch no
+shadow yes
+diff Sponza/curtain_green
+
+material
+wrap repeat
+punch yes
+shadow yes
+norm Sponza/chain
+diff Sponza/chain
+
+material
+wrap repeat
+punch no
+shadow yes
+diff Sponza/vase_hanging
+
+material
+wrap repeat
+punch no
+shadow yes
+norm Sponza/lion
+diff Sponza/lion
+
+material
+wrap repeat
+punch no
+shadow yes
+diff Sponza/roof
+}

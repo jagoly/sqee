@@ -9,15 +9,7 @@ namespace sq {
 
 class Mesh : NonCopyable {
 public:
-    struct Vertex {
-        float x=0, y=0, z=0;
-        float nx=0, ny=0, nz=0;
-        float u=0, v=0;
-        int b[8] {-1};
-        float w[8] {0};
-    };
-
-    void create(const string& _filePath);
+    void create(const string& _path);
     ~Mesh();
 
     bool hasNM = false;
@@ -26,19 +18,25 @@ public:
     bool hasMT = false;
     uint vCount = 0;
     uint fCount = 0;
-
-    GLuint vboP, vboN, vboT, vboB, vboW, vboTc;
+    uint mCount = 0;
 
     GLuint vao;
+    GLuint vboP, vboN, vboT, vboTc, vboBA, vboBB, vboWA, vboWB;
     std::vector<std::pair<GLuint, uint>> iboVec;
 
-    std::vector<Vertex> vertVec;
-    std::vector<std::vector<array<uint, 3>>> mtrlVec;
-
     void bind_vao();
-    void draw_ibo(uint _mtrl = 0);
+    void draw_ibo(uint _mtrl);
 
     vec3 minPos, maxPos;
+
+private:
+    void load_ascii(const string& _path);
+    void load_binary(const string& _path);
+    void load_final(const std::vector<vec3>& points, const std::vector<vec3>& normals,
+                    const std::vector<vec3>& tangents, const std::vector<vec2>& texcrds,
+                    const std::vector<ivec4>& bonesA, const std::vector<ivec4>& bonesB,
+                    const std::vector<vec4>& weightsA, const std::vector<vec4>& weightsB,
+                    const std::vector<std::vector<uvec3>>& faceVec);
 };
 
 namespace res { ResHolder<Mesh>& mesh(); }

@@ -7,9 +7,9 @@ in vec2 texcrd;
 
 #ifdef LAYER
 uniform int layer;
-uniform sampler2DArray tex;
+layout(binding=0) uniform sampler2DArray tex;
 #else
-uniform sampler2D tex;
+layout(binding=0) uniform sampler2D tex;
 #endif
 
 out vec4 fragColour;

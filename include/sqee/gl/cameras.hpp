@@ -27,7 +27,7 @@ class UboCamera : public Camera {
 public:
     UboCamera();
 
-    UniformBuffer ubo;
+    Uniformbuffer ubo;
     GLuint binding = 0;
 
     void update();

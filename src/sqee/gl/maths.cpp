@@ -4,6 +4,23 @@
 
 using namespace sq;
 
+vec3 sq::make_tangent(vec3 _norm) {
+    vec3 t1(glm::cross(_norm, {1, 0, 0})), t2(glm::cross(_norm, {0, 1, 0}));
+    return glm::normalize(glm::length(t1) > glm::length(t2) ? t1 : t2);
+}
+
+inline float sign(vec2 _t0, vec2 _t1, vec2 _t2) {
+    return (_t0.x - _t2.x) * (_t1.y - _t2.y) - (_t1.x - _t2.x) * (_t0.y - _t2.y);
+}
+
+bool sq::point_in_tri(vec2 _p, vec2 _t0, vec2 _t1, vec2 _t2) {
+    bool b0, b1, b2;
+    b0 = sign(_p, _t0, _t1) < 0.f;
+    b1 = sign(_p, _t1, _t2) < 0.f;
+    b2 = sign(_p, _t2, _t0) < 0.f;
+    return (b0 == b1) && (b1 == b2);
+}
+
 Frustum sq::make_Frustum(const mat4& _invProjView) {
     Frustum fr; vec4 temp;
 

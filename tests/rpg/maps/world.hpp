@@ -18,7 +18,7 @@ namespace sqt {
 
 class World : NonCopyable {
 public:
-    World(sq::Application& _app);
+    World();
 
     void load_base(const string& _filePath);
     void tick();
@@ -35,13 +35,11 @@ public:
 
     std::forward_list<Object*> objectList;
     template<class T>
-    std::forward_list<T*> filtered(std::function<bool(const T&)>&& _func = AlwaysTrue<T>()) {
-        return filter_objs(objectList.begin(), objectList.end(), _func);
+    std::forward_list<T*> filtered() {
+        return filter_objs<T>(objectList.begin(), objectList.end());
     }
 
-    sq::UniformBuffer ubo;
-
-    bool updateScene = false;
+    sq::Uniformbuffer ubo;
 
     vec3 ambiColour;
 
@@ -54,8 +52,6 @@ public:
 private:
     std::map<string, Cell> cellMap;
     std::map<string, std::vector<std::pair<string, string>>> hlMap;
-
-    sq::Application& app;
 };
 
 }

@@ -10,7 +10,7 @@
 
 namespace sqt {
 
-class SkyLight {
+class SkyLight : NonCopyable {
 public:
     SkyLight();
 
@@ -20,19 +20,19 @@ public:
     vec3 colour;
     vec3 direction;
     array<mat4, 4> matArr;
-    sq::UniformBuffer ubo;
+    sq::Uniformbuffer ubo;
 
     MainCamera* camera = nullptr;
 };
 
-class SpotLight {
+class SpotLight : NonCopyable {
 public:
     SpotLight();
 
     void update();
     void bind_ubo();
 
-    uint baseSize = 256u;
+    uint baseSize;
     vec3 position;
     float angle;
     vec3 direction;
@@ -40,16 +40,14 @@ public:
     vec3 colour;
     float softness;
     mat4 matrix;
-    sq::UniformBuffer ubo;
+    sq::Uniformbuffer ubo;
+
+    void draw();
 
     MainCamera* camera = nullptr;
-};
 
-class PointLight {
-public:
-    void update();
-    void render(float _ft);
-
+private:
+    sq::Frustum frustum;
     std::vector<vec2> shape;
 };
 

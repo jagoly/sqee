@@ -9,31 +9,34 @@ namespace sq {
 
 class Skeleton : NonCopyable {
 public:
-    void setup(Animation* _anim);
+    uint tickRate = 60;
 
-    float quatData[40*4];
-    float offsData[40*3];
+    void use_restPose(Animation::Pose& _pose);
+    void use_timeline(Animation::Timeline& _timeline);
+    void play_anim(bool _looped, uint _spanA, uint _spanB);
+    void stop_anim(uint _span);
+    void pause_anim();
+
+    std::vector<vec4> quatVec;
+    std::vector<vec3> offsVec;
 
     void tick();
-    void jump(int _frame);
-    void pause();
     void calc(double _accum);
 
-    void transition(Animation* _anim, uint _kfrInd, uint _span);
+private:
+    Animation::Pose* restPose;
+    Animation::Timeline* timeline;
+    int index = 0;
+    uint ticks = 0;
+    bool looping = false;
+    bool running = false;
 
-protected:
-    Animation* animCrnt;
-    Animation* animNext = nullptr;
+    uint span = 0;
+    uint spanB = 0;
 
-    uint kfrCount;
-
-    Animation::Pose* poseCrnt;
+    Animation::Pose* poseCrnt = nullptr;
     Animation::Pose* poseNext = nullptr;
-
-    uint span;
-
-    uint progress = 0;
-    uint kfrInd = 0;
+    Animation::Pose transPose;
 };
 
 }

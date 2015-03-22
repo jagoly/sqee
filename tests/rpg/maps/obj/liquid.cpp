@@ -82,7 +82,7 @@ void Liquid::bind_ubo() {
 void Liquid::draw() {
     normArray->bind(gl::TEXTURE3);
     mesh->bind_vao();
-    mesh->draw_ibo();
+    mesh->draw_ibo(0);
 }
 
 void Liquid::tick() {

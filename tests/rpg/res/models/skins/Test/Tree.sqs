@@ -7,9 +7,13 @@ mCount 2
 { materials
 material
 wrap clamp
+punch no
+shadow yes
 diff Test/TreeBark
 
 material
 wrap clamp
+punch yes
+shadow yes
 diff Test/TreeBranch
 }

@@ -55,33 +55,29 @@ struct NonCopyable {
     NonCopyable& operator=(const NonCopyable&) = delete;
 };
 
-template <class T>
-struct AlwaysTrue {
-    bool operator()(const T&) const { return true; }
-};
-
 namespace sq {
 
 class Scene;
 class Handler;
 class SettingMap;
-class SettingValue;
 class Application;
 class SoundManager;
 
 class Mesh;
+class Skin;
 class Animation;
 class Skeleton;
-class Skin;
+class ModelStatic;
+class ModelSkelly;
 
 class Camera;
 
 class Texture;
 class Framebuffer;
-class FramebufferRaw;
+class Preprocessor;
 class Shader;
 class Pipeline;
-class UniformBuffer;
+class Uniformbuffer;
 
 template <class Tk, class Tv>
 class IndexedMap;
@@ -89,7 +85,7 @@ class IndexedMap;
 template <class T>
 class ResHolder;
 
-enum class Direction { Zero, North, East, South, West };
+enum class Direction { None, North, East, South, West };
 enum class Alignment { TL, TC, TR, CL, CC, CR, BL, BC, BR };
 enum class Grid4x4 { AA, AB, AC, AD, BA, BB, BC, BD, CA, CB, CC, CD, DA, DB, DC, DD };
 

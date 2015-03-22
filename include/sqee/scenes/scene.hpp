@@ -3,12 +3,8 @@
 
 namespace sq {
 
-class Application;
-
 class Scene : NonCopyable {
 public:
-    using Ptr = unique_ptr<Scene>;
-
     Scene(Application& _app) : app(_app) {}
 
     double accum = 0.0;

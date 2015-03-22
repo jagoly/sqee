@@ -4,32 +4,37 @@
 ambiColour 0.6 0.6 0.6
 #ambiColour 0.0 0.0 0.0
 skylEnable true
-skylDirection -0.1 -0.25 -0.65
+skylDirection -0.1 -0.15 -0.75
 #skylDirection 0.0 0.0 -1.0
 skylColour 0.7 0.7 0.7
 #skylColour 0.0 0.0 0.0
 }
 
 { cells
-cell CellA
-path WorldTest/CellA
-loads CellB CellC
+#cell CellA
+#path WorldTest/CellA
+#loads
+#pos 0.0 0.0 0.0
+
+#cell CellB
+#path WorldTest/CellB
+#loads CellA CellC
+#pos 32.0 0.0 0.0
+
+#cell CellC
+#path WorldTest/CellC
+#loads CellB CellA
+#pos 64.0 0.0 0.0
+
+cell Sponza
+path Sponza
+loads
 pos 0.0 0.0 0.0
-
-cell CellB
-path WorldTest/CellB
-loads CellA CellC
-pos 32.0 0.0 0.0
-
-cell CellC
-path WorldTest/CellC
-loads CellB CellA
-pos 64.0 0.0 0.0
 }
 
 { heightlayers
-layer Terrain
-CellA Terrain
-CellB Terrain
-CellC Terrain
+#layer Terrain
+#CellA Terrain
+#CellB Terrain
+#CellC Terrain
 }

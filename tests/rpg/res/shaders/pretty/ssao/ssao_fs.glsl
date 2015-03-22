@@ -5,25 +5,19 @@
 
 in vec2 texcrd;
 
-layout(binding=0) uniform sampler2D texSurf;
-layout(binding=1) uniform sampler2D texDepth;
-
-uniform vec2 viewSize;
+uniform vec2 pixSize;
 uniform mat4 invProjMat;
+layout(binding=1) uniform sampler2D texSurf;
+layout(binding=5) uniform sampler2D texDepth;
 
 out float fragColour;
 
-vec3 get_view_pos(in vec2 _tc) {
-    float dep = texture(texDepth, _tc).r * 2.f - 1.f;
-    vec4 p_pos = vec4(_tc * 2.f - 1.f, dep, 1.f);
-    vec4 v_pos = invProjMat * p_pos;
-    return v_pos.xyz / v_pos.w;
-}
 
 #ifdef HIGH
 const float distThres = 0.7f;
 const float filterSize = 110.f;
-const vec2 disk24[24] = {
+const int diskSize = 24;
+const vec2 disk[24] = {
 vec2( 0.000000,  0.041667),
 vec2(-0.021568, -0.080494),
 vec2( 0.062500,  0.108253),
@@ -52,15 +46,8 @@ vec2( 0.258819, -0.965926),
 #else
 const float distThres = 0.5f;
 const float filterSize = 50.f;
-const vec2 disk8[10] = {
-//vec2( 0.000000,  0.125000),
-//vec2(-0.176777, -0.176777),
-//vec2( 0.375000, -0.000000),
-//vec2(-0.353553,  0.353553),
-//vec2(-0.000000, -0.625000),
-//vec2( 0.530330,  0.530330),
-//vec2(-0.875000,  0.000000),
-//vec2( 0.707107, -0.707107),
+const int diskSize = 10;
+const vec2 disk[10] = {
 vec2(0.000000, 0.100000),
 vec2(-0.117557, -0.161803),
 vec2(0.285317, 0.092705),
@@ -74,13 +61,20 @@ vec2(0.587785, -0.809017),
 };
 #endif
 
+vec3 get_view_pos(in vec2 _tc) {
+    float dep = texture(texDepth, _tc).r * 2.f - 1.f;
+    vec4 p_pos = vec4(_tc * 2.f - 1.f, dep, 1.f);
+    vec4 v_pos = invProjMat * p_pos;
+    return v_pos.xyz / v_pos.w;
+}
+
 float rand(vec2 _crd){
     return fract(sin(dot(_crd, vec2(12.9898f,78.233f))) * 43758.5453);
 }
 
 void main() {
     vec3 pos = get_view_pos(texcrd);
-
+    vec2 fsvspz = filterSize * pixSize / pos.z;
     vec3 v_surf = normalize(texture(texSurf, texcrd).rgb * 2.f - 1.f);
 
     float angle = rand(texcrd.xy);
@@ -88,36 +82,17 @@ void main() {
     float c = cos(angle);
 
     float ambiOcc = 0.f;
-    // perform AO
-  #ifdef HIGH
-    for (int i = 0; i < 24; i++) {
-        vec2 offs = disk24[i];
-  #else
-    for (int i = 0; i < 10; i++) {
-        vec2 offs = disk8[i];
-  #endif
+    for (int i = 0; i < diskSize; i++) {
+        vec2 offs = disk[i];
         offs = vec2(c * offs.x - s * offs.y, c * offs.y + s * offs.x);
-        vec2 sampCrd = texcrd + (offs * (filterSize / viewSize / pos.z));
-        vec3 sampPos = get_view_pos(sampCrd);
+        vec3 sampPos = get_view_pos(texcrd + offs * fsvspz);
         vec3 sampDir = normalize(sampPos - pos);
+        float dist = distance(pos, sampPos);
 
-        // angle between SURFACE-NORMAL and SAMPLE-DIRECTION (vector from SURFACE-POSITION to SAMPLE-POSITION)
-        float NdotS = max(dot(v_surf, sampDir), 0.f);
-        // distance between SURFACE-POSITION and SAMPLE-POSITION
-        float VPdistSP = distance(pos, sampPos);
-
-        // a = distance function
-        float a = 1.f - smoothstep(distThres, distThres * 2.f, VPdistSP);
-        // b = dot-Product
-        float b = NdotS;
-
+        float a = max(dot(v_surf, sampDir), 0.f);
+        float b = 1.f - smoothstep(distThres, distThres * 2.f, dist);
         ambiOcc += a * b;
     }
 
-  #ifdef HIGH
-    fragColour = 1.f - ambiOcc / 24.f;
-  #else
-    fragColour = 1.f - ambiOcc / 10.f;
-  #endif
-
+    fragColour = 1.f - ambiOcc / float(diskSize);
 }

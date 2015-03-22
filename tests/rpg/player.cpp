@@ -1,122 +1,116 @@
-#include <glm/common.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/rotate_vector.hpp>
-#include <glm/trigonometric.hpp>
 
-#include <sqee/app/logging.hpp>
-#include <sqee/app/settings.hpp>
+#include <sqee/app/application.hpp>
 #include <sqee/gl/cameras.hpp>
 #include <sqee/gl/gl_ext_3_3.hpp>
-#include <sqee/models/animation.hpp>
+#include <sqee/models/modelskelly.hpp>
 
-#include "maps/world.hpp"
+#include "render/camera.hpp"
 #include "player.hpp"
 
 using namespace sqt;
 
 void Player::test_init() {
-    layer = "Terrain";
+    model.reset(new sq::ModelSkelly());
+    model->skel.tickRate = 24;
+    if (!(model->mesh = sq::res::mesh().get("Characters/Don")))
+        model->mesh = sq::res::mesh().add("Characters/Don"),
+        model->mesh->create("Characters/Don");
+    if (!(model->skin = sq::res::skin().get("Characters/Don")))
+        model->skin = sq::res::skin().add("Characters/Don"),
+        model->skin->create("Characters/Don");
 
-    model.load("Characters/Don", "Characters/Don", "Characters/Don/Walking");
-
-    sq::Animation* anim = sq::res::animation().add("Characters/Don/Standing");
-    anim->create("Characters/Don/Standing");
-
-    lookNext = {0,1,0};
-}
-
-void Player::attempt_move(sq::Direction _moveDir) {
-    static sq::Animation* anWalking = sq::res::animation().get("Characters/Don/Walking");
-
-    if (!moving && _moveDir != sq::Direction::Zero) {
-        // add collision code here
-        gridPrev = gridCrnt;
-        moveDir = _moveDir;
-        moving = true;
-        moveCntr = 0;
-
-        moveVal = {0, 0};
-        if      (moveDir == sq::Direction::North) moveVal.y = 1,  rot = glm::radians(180.f);
-        else if (moveDir == sq::Direction::East)  moveVal.x = 1,  rot = glm::radians(90.f);
-        else if (moveDir == sq::Direction::South) moveVal.y = -1, rot = glm::radians(0.f);
-        else if (moveDir == sq::Direction::West)  moveVal.x = -1, rot = glm::radians(-90.f);
-
-        gridCrnt += moveVal;
-
-        world->set_active_tile(gridCrnt);
-
-        if (stopped) {
-            model.skeleton.transition(anWalking, 1, 4);
-            stopped = false;
-        }
-    }
+    sq::Animation* anim;
+    if (!(anim = sq::res::anim().get("Characters/Don/Forwards")))
+        anim = sq::res::anim().add("Characters/Don/Forwards"),
+        anim->create("Characters/Don/Forwards");
+    if (!(anim = sq::res::anim().get("Characters/Don/Backwards")))
+        anim = sq::res::anim().add("Characters/Don/Backwards"),
+        anim->create("Characters/Don/Backwards");
+    if (!(anim = sq::res::anim().get("Characters/Don/Standing")))
+        anim = sq::res::anim().add("Characters/Don/Standing"),
+        anim->create("Characters/Don/Standing");
+    model->skel.use_restPose(anim->poseVec[0]);
 }
 
 void Player::tick() {
-    static sq::Animation* anStanding = sq::res::animation().get("Characters/Don/Standing");
-
-    model.skeleton.tick();
+    using KB = sf::Keyboard;
 
     posCrnt = posNext;
+    //posNext = {8.f, 6.f, 4.f};
 
     /////
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::PageUp)) zCam += 0.05f;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::PageDown)) zCam -= 0.05f;
+    if (KB::isKeyPressed(KB::PageUp)) zCam += 0.05f;
+    if (KB::isKeyPressed(KB::PageDown)) zCam -= 0.05f;
     /////
 
-    if (moving) {
-        int prgrs4 = ++moveCntr / 2;
-        posNext.z = world->get_maxZ4(layer, (gridPrev.x*4+1) + prgrs4*moveVal.x,
-                                            (gridPrev.y*4+1) + prgrs4*moveVal.y);
-        if (moveCntr % 2) {
-            posNext.z += world->get_maxZ4(layer, (gridPrev.x*4+1) + (prgrs4+1)*moveVal.x,
-                                                 (gridPrev.y*4+1) + (prgrs4+1)*moveVal.y);
-            posNext.z /= 2.f;
-        }
+    //zCam = 4.f;
 
-        posNext = vec3(glm::mix(vec2(gridPrev), vec2(gridCrnt), moveCntr / 8.f), posNext.z);
+    sq::Direction newMoveDir = sq::Direction::None;
 
-        if (moveCntr == 8) moving = false;
-    } else if (!stopped) {
-        model.skeleton.transition(anStanding, 0, 4);
-        stopped = true;
+    if (KB::isKeyPressed(KB::Right) && !KB::isKeyPressed(KB::Left)) {
+        newMoveDir = sq::Direction::East;
+        posNext += glm::rotateZ(vec3(0.08f, 0.f, 0.f), rotZNext);
+    } else if (KB::isKeyPressed(KB::Left) && !KB::isKeyPressed(KB::Right)) {
+        newMoveDir = sq::Direction::West;
+        posNext += glm::rotateZ(vec3(-0.08f, 0.f, 0.f), rotZNext);
     }
 
-    if (settings->crnt<bool>("mouseFocus")) {
-        sf::Vector2i mPos = sf::Mouse::getPosition();
-        vec2 mMove = {400.f-mPos.x, 300.f-mPos.y};
+    if (KB::isKeyPressed(KB::Up) && !KB::isKeyPressed(KB::Down)) {
+        newMoveDir = sq::Direction::North;
+        posNext += glm::rotateZ(vec3(0.f, 0.08f, 0.f), rotZNext);
+    } else if (KB::isKeyPressed(KB::Down) && !KB::isKeyPressed(KB::Up)) {
+        newMoveDir = sq::Direction::South,
+        posNext += glm::rotateZ(vec3(0.f, -0.08f, 0.f), rotZNext);
+    }
 
-        lookCrnt = lookNext;
-        float nextZ = glm::clamp(lookCrnt.z + mMove.y/400.f, -0.99f, 0.99f);
-        vec3 nextXY = glm::rotateZ(vec3(lookCrnt.x, lookCrnt.y, 0.f), mMove.x/200.f);
-        lookNext = vec3(nextXY.x, nextXY.y, nextZ);
+    if (moveDir != newMoveDir) {
+        moveDir = newMoveDir;
+        if (moveDir == sq::Direction::North) {
+            model->skel.use_timeline(sq::res::anim().get("Characters/Don/Forwards")->timelineVec[0]);
+            model->skel.play_anim(true, 2, 0);
+        }
+        if (moveDir == sq::Direction::South) {
+            model->skel.use_timeline(sq::res::anim().get("Characters/Don/Backwards")->timelineVec[0]);
+            model->skel.play_anim(true, 2, 0);
+        }
+        if (moveDir == sq::Direction::None) {
+            model->skel.stop_anim(2);
+        }
+    }
 
-        sf::Mouse::setPosition({400, 300});
+    model->skel.tick();
+
+    //if (false) {
+    if (app->settings.crnt<bool>("mouseFocus")) {
+        vec2 mMove = app->mouse_relatify();
+        rotXCrnt = rotXNext;
+        rotZCrnt = rotZNext;
+        rotZNext = rotZNext + mMove.x/200.f;
+        rotXNext = glm::clamp(rotXNext + mMove.y/400.f, -1.1f, 1.1f);
     }
 }
 
 void Player::calc(double _accum) {
-    model.skeleton.calc(_accum);
+    model->skel.calc(_accum);
 
     const double dt = 1.0 / 24.0;
     vec3 pos = glm::mix(posCrnt, posNext, _accum / dt);
-    pos.x += 0.5f; pos.y += 0.5f;
 
-    camera->pos.x = pos.x;
-    camera->pos.y = pos.y;// - 4.5f;
-    camera->pos.z = pos.z + zCam;
-    //if (moveDir == sq::Direction::North) camera->dir = {0.f, 1.f, 0.f};
-    //if (moveDir == sq::Direction::East)  camera->dir = {1.f, 0.f, 0.f};
-    //if (moveDir == sq::Direction::South) camera->dir = {0.f, -1.f, 0.f};
-    //if (moveDir == sq::Direction::West)  camera->dir = {-1.f, 0.f, 0.f};
+    camera->pos = pos;
+    camera->pos.z += zCam;
 
-    if (settings->crnt<bool>("mouseFocus"))
-    camera->dir = glm::normalize(glm::mix(lookCrnt, lookNext, _accum / dt));
+    float rotX = glm::mix(rotXCrnt, rotXNext, _accum / dt);
+    float rotZ = glm::mix(rotZCrnt, rotZNext, _accum / dt);
+
+    if (app->settings.crnt<bool>("mouseFocus")) {
+        camera->dir = glm::rotateZ(glm::rotateX(vec3(0,1,0), rotX), rotZ);
+    }
 
     camera->update();
     camera->recalc_frustums();
 
-    model.modelMat = glm::translate(mat4(), pos);
-    model.modelMat = glm::rotate(model.modelMat, rot, {0, 0, 1});
+    model->matrix = glm::translate(mat4(), pos);
+    model->matrix = glm::rotate(model->matrix, rotZ, {0, 0, 1});
 }

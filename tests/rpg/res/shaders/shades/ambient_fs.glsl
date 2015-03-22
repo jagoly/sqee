@@ -11,13 +11,12 @@ layout(binding=3) uniform sampler2D texSpec;
 layout(binding=4) uniform sampler2D texAmbi;
 layout(binding=5) uniform sampler2D texDep;
 
-out vec4 fragColour;
+out vec3 fragColour;
 
 
 void main() {
+    float ambi = texture(texAmbi, texcrd).r;
     vec3 diff = texture(texDiff, texcrd).rgb;
-    vec3 ambi = texture(texAmbi, texcrd).g * lightColour * diff;
 
-    fragColour = vec4(ambi, 1.f);
-//    fragColour.rgb = lightColour * diff;
+    fragColour = ambi * diff * lightColour;
 }
