@@ -1,13 +1,13 @@
-#include "gl/gl_ext_3_3.hpp"
-#include "app/logging.hpp"
-#include "gl/textures.hpp"
-#include "misc/files.hpp"
-#include "models/skin.hpp"
+#include "sqee/redist/gl_ext_3_3.hpp"
+#include "sqee/app/logging.hpp"
+#include "sqee/gl/textures.hpp"
+#include "sqee/misc/files.hpp"
+#include "sqee/models/skin.hpp"
 
 using namespace sq;
 
 void Skin::create(const string& _path) {
-    string path = "res/models/skins/" + _path + ".sqs";
+    string path = res::skin_path() + _path + ".sqs";
     std::vector<std::vector<string>> fileVec(sq::get_words_from_file(path));
 
     struct TexPaths {
@@ -55,10 +55,10 @@ void Skin::create(const string& _path) {
                 else if (line[1] == "yes") TexPathsVec.back().shadow = true;
                 else throw;
             }
-            else if (key == "norm")
-                TexPathsVec.back().norm = line[1];
             else if (key == "diff")
                 TexPathsVec.back().diff = line[1];
+            else if (key == "norm")
+                TexPathsVec.back().norm = line[1];
             else if (key == "spec")
                 TexPathsVec.back().spec = line[1];
             else throw;
@@ -83,15 +83,6 @@ void Skin::create(const string& _path) {
         else if (paths.wrapMode == 1) preset = Texture::Preset::M_R;
         else if (paths.wrapMode == 2) preset = Texture::Preset::M_M;
 
-        if (!paths.norm.empty()) {
-            const string name = "models/norm/" + paths.norm;
-            if (!(mtrl.norm = res::texture().get(name))) {
-                mtrl.norm = res::texture().add(name);
-                mtrl.norm->create(gl::TEXTURE_2D, gl::RGB, gl::RGB8, 3, preset);
-                mtrl.norm->buffer_file(name, 0);
-                mtrl.norm->gen_mipmap();
-            } mtrl.glMode = mtrl.glMode | 1;
-        }
         if (!paths.diff.empty()) {
             const string name = "models/diff/" + paths.diff;
             if (!(mtrl.diff = res::texture().get(name))) {
@@ -99,6 +90,15 @@ void Skin::create(const string& _path) {
                 mtrl.diff->create(gl::TEXTURE_2D, gl::RGBA, gl::RGBA8, 4, preset);
                 mtrl.diff->buffer_file(name, 0);
                 mtrl.diff->gen_mipmap();
+            } mtrl.glMode = mtrl.glMode | 1;
+        }
+        if (!paths.norm.empty()) {
+            const string name = "models/norm/" + paths.norm;
+            if (!(mtrl.norm = res::texture().get(name))) {
+                mtrl.norm = res::texture().add(name);
+                mtrl.norm->create(gl::TEXTURE_2D, gl::RGB, gl::RGB8, 3, preset);
+                mtrl.norm->buffer_file(name, 0);
+                mtrl.norm->gen_mipmap();
             } mtrl.glMode = mtrl.glMode | 2;
         }
         if (!paths.spec.empty()) {
@@ -128,15 +128,15 @@ std::forward_list<uint> Skin::filtered(char _punch, char _shadow) {
 
 void Skin::bind_textures(uint _mtrl) {
     const Material& mtrl = mtrlVec[_mtrl];
-    if (mtrl.norm != nullptr) mtrl.norm->bind(gl::TEXTURE0);
-    if (mtrl.diff != nullptr) mtrl.diff->bind(gl::TEXTURE1);
+    if (mtrl.diff != nullptr) mtrl.diff->bind(gl::TEXTURE0);
+    if (mtrl.norm != nullptr) mtrl.norm->bind(gl::TEXTURE1);
     if (mtrl.spec != nullptr) mtrl.spec->bind(gl::TEXTURE2);
 }
 
-void Skin::bind_textures(uint _mtrl, bool _norm, bool _diff, bool _spec) {
+void Skin::bind_textures(uint _mtrl, bool _diff, bool _norm, bool _spec) {
     const Material& mtrl = mtrlVec[_mtrl];
-    if (_norm) mtrl.norm->bind(gl::TEXTURE0);
-    if (_diff) mtrl.diff->bind(gl::TEXTURE1);
+    if (_diff) mtrl.diff->bind(gl::TEXTURE0);
+    if (_norm) mtrl.norm->bind(gl::TEXTURE1);
     if (_spec) mtrl.spec->bind(gl::TEXTURE2);
 }
 
@@ -144,4 +144,8 @@ void Skin::bind_textures(uint _mtrl, bool _norm, bool _diff, bool _spec) {
 ResHolder<Skin>& sq::res::skin() {
     static ResHolder<Skin> holder;
     return holder;
+}
+string& sq::res::skin_path() {
+    static string path;
+    return path;
 }

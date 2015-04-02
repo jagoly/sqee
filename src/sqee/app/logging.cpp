@@ -2,7 +2,7 @@
 #include <ctime>
 #include <iostream>
 
-#include "app/logging.hpp"
+#include "sqee/app/logging.hpp"
 
 using namespace sq;
 

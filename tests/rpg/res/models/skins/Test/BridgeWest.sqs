@@ -9,7 +9,7 @@ material
 wrap clamp
 punch no
 shadow yes
-norm Test/BridgeStart
 diff Test/BridgeStart
+norm Test/BridgeStart
 spec Test/BridgeStart
 }

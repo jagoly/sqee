@@ -9,16 +9,16 @@ material
 wrap repeat
 punch yes
 shadow yes
-norm Sponza/thorn
 diff Sponza/thorn
+norm Sponza/thorn
 spec Sponza/thorn
 
 material
 wrap repeat
 punch no
 shadow yes
-norm Sponza/vase_round
 diff Sponza/vase_round
+norm Sponza/vase_round
 spec Sponza/vase_round
 
 material
@@ -31,23 +31,24 @@ spec Sponza/vase_plant
 material
 wrap repeat
 punch no
-norm Sponza/background
+shadow yes
 diff Sponza/background
+norm Sponza/background
 
 material
 wrap repeat
 punch no
 shadow yes
-norm Sponza/bricks
 diff Sponza/bricks
+norm Sponza/bricks
 spec Sponza/bricks
 
 material
 wrap repeat
 punch no
 shadow yes
-norm Sponza/arch
 diff Sponza/arch
+norm Sponza/arch
 spec Sponza/arch
 
 material
@@ -61,8 +62,8 @@ material
 wrap repeat
 punch no
 shadow yes
-norm Sponza/column_a
 diff Sponza/column_a
+norm Sponza/column_a
 spec Sponza/column_a
 
 material
@@ -76,8 +77,8 @@ material
 wrap repeat
 punch no
 shadow yes
-norm Sponza/column_c
 diff Sponza/column_c
+norm Sponza/column_c
 spec Sponza/column_c
 
 material
@@ -91,8 +92,8 @@ material
 wrap repeat
 punch no
 shadow yes
-norm Sponza/column_b
 diff Sponza/column_b
+norm Sponza/column_b
 spec Sponza/column_b
 
 material
@@ -145,8 +146,8 @@ material
 wrap repeat
 punch yes
 shadow yes
-norm Sponza/chain
 diff Sponza/chain
+norm Sponza/chain
 
 material
 wrap repeat
@@ -158,8 +159,8 @@ material
 wrap repeat
 punch no
 shadow yes
-norm Sponza/lion
 diff Sponza/lion
+norm Sponza/lion
 
 material
 wrap repeat

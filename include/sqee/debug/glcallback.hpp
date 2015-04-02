@@ -1,9 +1,9 @@
 #pragma once
-#include "forward.hpp"
+#include <sqee/forward.hpp>
 
 #include <iostream>
 
-#include "gl/gl_ext_3_3.hpp"
+#include <sqee/redist/gl_ext_3_3.hpp>
 
 namespace sq {
 

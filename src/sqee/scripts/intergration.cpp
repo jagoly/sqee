@@ -1,13 +1,13 @@
-#include "app/application.hpp"
-#include "events/handler.hpp"
-#include "gl/gl_ext_3_3.hpp"
-#include "models/animation.hpp"
-#include "models/mesh.hpp"
-#include "models/skeleton.hpp"
-#include "models/skin.hpp"
-#include "scenes/scene.hpp"
-#include "sounds/soundmanager.hpp"
-#include "scripts/intergration.hpp"
+#include "sqee/app/application.hpp"
+#include "sqee/events/handler.hpp"
+#include "sqee/redist/gl_ext_3_3.hpp"
+#include "sqee/models/animation.hpp"
+#include "sqee/models/mesh.hpp"
+#include "sqee/models/skeleton.hpp"
+#include "sqee/models/skin.hpp"
+#include "sqee/scenes/scene.hpp"
+#include "sqee/sounds/soundmanager.hpp"
+#include "sqee/scripts/intergration.hpp"
 
 using namespace sq;
 

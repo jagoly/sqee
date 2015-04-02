@@ -1,6 +1,6 @@
 #include <glm/geometric.hpp>
 
-#include <sqee/gl/gl_ext_3_3.hpp>
+#include <sqee/redist/gl_ext_3_3.hpp>
 #include <sqee/gl/shaders.hpp>
 #include <sqee/misc/files.hpp>
 #include <sqee/app/application.hpp>

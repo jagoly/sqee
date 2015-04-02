@@ -1,8 +1,8 @@
-#include "app/logging.hpp"
-#include "gl/gl_ext_3_3.hpp"
-#include "misc/files.hpp"
-#include "redist/stb_image.hpp"
-#include "gl/textures.hpp"
+#include "sqee/app/logging.hpp"
+#include "sqee/redist/gl_ext_3_3.hpp"
+#include "sqee/misc/files.hpp"
+#include "sqee/redist/stb_image.hpp"
+#include "sqee/gl/textures.hpp"
 
 using namespace sq;
 
@@ -51,7 +51,7 @@ void Texture::buffer_memory(const void* _data, uint _z) {
 }
 
 void Texture::buffer_file(const string& _path, uint _z) {
-    string path = "res/textures/" + _path;
+    string path = res::texture_path() + _path;
     if (check_file_exists(path+".png")) path += ".png";
     else if (check_file_exists(path+".jpg")) path += ".jpg";
 
@@ -129,4 +129,8 @@ void Texture::gen_mipmap() {
 ResHolder<Texture>& sq::res::texture() {
     static ResHolder<Texture> holder;
     return holder;
+}
+string& sq::res::texture_path() {
+    static string path;
+    return path;
 }

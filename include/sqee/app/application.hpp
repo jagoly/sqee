@@ -1,17 +1,17 @@
 #pragma once
-#include "forward.hpp"
+#include <sqee/forward.hpp>
 
 #include <set>
 
 #include <SFML/Window/Window.hpp>
 
-#include "app/settings.hpp"
-#include "events/handler.hpp"
-#include "gl/preprocessor.hpp"
-#include "misc/indexedmap.hpp"
-#include "scenes/scene.hpp"
-#include "scripts/chaiscript.hpp"
-#include "sounds/soundmanager.hpp"
+#include <sqee/app/settings.hpp>
+#include <sqee/events/handler.hpp>
+#include <sqee/gl/preprocessor.hpp>
+#include <sqee/misc/indexedmap.hpp>
+#include <sqee/scenes/scene.hpp>
+#include <sqee/scripts/chaiscript.hpp>
+#include <sqee/sounds/soundmanager.hpp>
 
 namespace sq {
 

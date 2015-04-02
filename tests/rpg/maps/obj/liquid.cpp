@@ -1,6 +1,6 @@
 #include <glm/gtc/type_ptr.hpp>
 
-#include <sqee/gl/gl_ext_3_3.hpp>
+#include <sqee/redist/gl_ext_3_3.hpp>
 #include <sqee/gl/textures.hpp>
 #include <sqee/models/mesh.hpp>
 

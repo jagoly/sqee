@@ -1,4 +1,4 @@
-#include "forward.hpp"
+#include <sqee/forward.hpp>
 
 namespace sq {
 

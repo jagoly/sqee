@@ -1,16 +1,15 @@
 #include <glm/geometric.hpp>
 
-#include "gl/gl_ext_3_3.hpp"
-#include "gl/maths.hpp"
-#include "app/logging.hpp"
-#include "misc/files.hpp"
-#include "misc/strtonum.hpp"
-#include "models/mesh.hpp"
+#include "sqee/redist/gl_ext_3_3.hpp"
+#include "sqee/gl/maths.hpp"
+#include "sqee/app/logging.hpp"
+#include "sqee/misc/files.hpp"
+#include "sqee/models/mesh.hpp"
 
 using namespace sq;
 
 void Mesh::create(const string& _path) {
-    string path = "res/models/meshes/" + _path + ".sqm";
+    string path = res::mesh_path() + _path + ".sqm";
     if (get_file_first_byte(path) == '#') load_ascii(path);
     else load_binary(path);
 }
@@ -29,10 +28,10 @@ Mesh::~Mesh() {
         gl::DeleteBuffers(1, &vboTc);
     }
     if (hasBW) {
-        gl::DeleteBuffers(1, &vboBA);
-        gl::DeleteBuffers(1, &vboBB);
-        gl::DeleteBuffers(1, &vboWA);
-        gl::DeleteBuffers(1, &vboWB);
+        gl::DeleteBuffers(1, &vboBa);
+        gl::DeleteBuffers(1, &vboBb);
+        gl::DeleteBuffers(1, &vboWa);
+        gl::DeleteBuffers(1, &vboWb);
     }
 }
 
@@ -199,26 +198,26 @@ void Mesh::load_final(const std::vector<vec3>& points, const std::vector<vec3>& 
     }
 
     if (hasBW) {
-        gl::GenBuffers(1, &vboBA);
-        gl::BindBuffer(gl::ARRAY_BUFFER, vboBA);
+        gl::GenBuffers(1, &vboBa);
+        gl::BindBuffer(gl::ARRAY_BUFFER, vboBa);
         gl::BufferData(gl::ARRAY_BUFFER, vCount*4*4, bonesA.data(), gl::STATIC_DRAW);
         gl::VertexAttribIPointer(4, 4, gl::INT, 0, nullptr);
         gl::EnableVertexAttribArray(4);
 
-        gl::GenBuffers(1, &vboBB);
-        gl::BindBuffer(gl::ARRAY_BUFFER, vboBB);
+        gl::GenBuffers(1, &vboBb);
+        gl::BindBuffer(gl::ARRAY_BUFFER, vboBb);
         gl::BufferData(gl::ARRAY_BUFFER, vCount*4*4, bonesB.data(), gl::STATIC_DRAW);
         gl::VertexAttribIPointer(5, 4, gl::INT, 0, nullptr);
         gl::EnableVertexAttribArray(5);
 
-        gl::GenBuffers(1, &vboWA);
-        gl::BindBuffer(gl::ARRAY_BUFFER, vboWA);
+        gl::GenBuffers(1, &vboWa);
+        gl::BindBuffer(gl::ARRAY_BUFFER, vboWa);
         gl::BufferData(gl::ARRAY_BUFFER, vCount*4*4, weightsA.data(), gl::STATIC_DRAW);
         gl::VertexAttribPointer(6, 4, gl::FLOAT, false, 0, nullptr);
         gl::EnableVertexAttribArray(6);
 
-        gl::GenBuffers(1, &vboWB);
-        gl::BindBuffer(gl::ARRAY_BUFFER, vboWB);
+        gl::GenBuffers(1, &vboWb);
+        gl::BindBuffer(gl::ARRAY_BUFFER, vboWb);
         gl::BufferData(gl::ARRAY_BUFFER, vCount*4*4, weightsB.data(), gl::STATIC_DRAW);
         gl::VertexAttribPointer(7, 4, gl::FLOAT, false, 0, nullptr);
         gl::EnableVertexAttribArray(7);
@@ -236,4 +235,8 @@ void Mesh::load_final(const std::vector<vec3>& points, const std::vector<vec3>& 
 ResHolder<Mesh>& sq::res::mesh() {
     static ResHolder<Mesh> holder;
     return holder;
+}
+string& sq::res::mesh_path() {
+    static string path;
+    return path;
 }

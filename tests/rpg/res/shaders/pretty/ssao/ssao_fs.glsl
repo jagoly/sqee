@@ -7,7 +7,7 @@ in vec2 texcrd;
 
 uniform vec2 pixSize;
 uniform mat4 invProjMat;
-layout(binding=1) uniform sampler2D texSurf;
+layout(binding=2) uniform sampler2D texSurf;
 layout(binding=5) uniform sampler2D texDepth;
 
 out float fragColour;

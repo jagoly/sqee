@@ -1,5 +1,5 @@
 #pragma once
-#include "forward.hpp"
+#include <sqee/forward.hpp>
 
 #include <unordered_map>
 

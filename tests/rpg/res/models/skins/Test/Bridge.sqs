@@ -9,7 +9,7 @@ material
 wrap clamp
 punch yes
 shadow yes
-norm Test/Bridge
 diff Test/Bridge
+norm Test/Bridge
 spec Test/Bridge
 }

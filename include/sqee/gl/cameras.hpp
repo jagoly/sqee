@@ -1,9 +1,9 @@
 #pragma once
-#include "forward.hpp"
+#include <sqee/forward.hpp>
 
 #include <vector>
 
-#include "gl/uniformbuffers.hpp"
+#include <sqee/gl/uniformbuffers.hpp>
 
 namespace sq {
 

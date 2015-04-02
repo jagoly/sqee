@@ -1,9 +1,9 @@
 #pragma once
-#include "forward.hpp"
+#include <sqee/forward.hpp>
 
 #include <vector>
 
-#include "redist/jsoncpp.hpp"
+#include <sqee/redist/jsoncpp.hpp>
 
 namespace sq {
 
@@ -20,3 +20,7 @@ std::vector<char> get_bytes_from_file(const string& _path);
 std::vector<std::vector<string>> get_words_from_file(const string& _path);
 
 }
+
+inline uint stou(const string& _str, size_t* _idx = 0, int _base = 10) {
+    return (uint)std::stoul(_str, _idx, _base);
+} using std::stoi; using std::stof;

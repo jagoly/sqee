@@ -14,19 +14,19 @@ layout(std140, binding=1) uniform WORLDBLOCk { WorldBlock WB; };
 layout(std140, binding=2) uniform LIQUIDBLOCK { LiquidBlock LB; };
 
 uniform int mode;
-layout(binding=0) uniform sampler2D texNorm; // X/Y/Z/Emmissive
-layout(binding=1) uniform sampler2D texDiff; // R/G/B/Alpha
+layout(binding=0) uniform sampler2D texDiff; // R/G/B/Alpha
+layout(binding=1) uniform sampler2D texNorm; // X/Y/Z/Emmissive
 layout(binding=2) uniform sampler2D texSpec; // R/G/B/Exponent
 
-layout(location=0) out vec3 fragNorm;
-layout(location=1) out vec3 fragSurf;
-layout(location=2) out vec4 fragDiff;
+layout(location=0) out vec4 fragDiff;
+layout(location=1) out vec3 fragNorm;
+layout(location=2) out vec3 fragSurf;
 layout(location=3) out vec4 fragSpec;
 
 
 void main() {
-    bool useNorm = bool(mode & 1);
-    bool useDiff = bool(mode & 2);
+    bool useDiff = bool(mode & 1);
+    bool useNorm = bool(mode & 2);
     bool useSpec = bool(mode & 4);
 
     vec3 diff = vec3(1.f);

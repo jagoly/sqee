@@ -2,7 +2,7 @@
 #include <vector>
 #include <string.h>
 #include <stddef.h>
-#include "gl/gl_ext_3_3.hpp"
+#include "sqee/redist/gl_ext_3_3.hpp"
 
 #if defined(__APPLE__)
 #include <mach-o/dyld.h>

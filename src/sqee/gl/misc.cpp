@@ -1,4 +1,4 @@
-#include "gl/misc.hpp"
+#include "sqee/gl/misc.hpp"
 
 using namespace sq;
 

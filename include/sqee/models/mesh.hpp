@@ -1,9 +1,9 @@
 #pragma once
-#include "forward.hpp"
+#include <sqee/forward.hpp>
 
 #include <vector>
 
-#include "misc/resholder.hpp"
+#include <sqee/misc/resholder.hpp>
 
 namespace sq {
 
@@ -21,7 +21,7 @@ public:
     uint mCount = 0;
 
     GLuint vao;
-    GLuint vboP, vboN, vboT, vboTc, vboBA, vboBB, vboWA, vboWB;
+    GLuint vboP, vboN, vboT, vboTc, vboBa, vboBb, vboWa, vboWb;
     std::vector<std::pair<GLuint, uint>> iboVec;
 
     void bind_vao();
@@ -39,6 +39,9 @@ private:
                     const std::vector<std::vector<uvec3>>& faceVec);
 };
 
-namespace res { ResHolder<Mesh>& mesh(); }
+namespace res {
+ResHolder<Mesh>& mesh();
+string& mesh_path();
+}
 
 }

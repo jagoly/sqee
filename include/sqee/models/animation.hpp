@@ -1,9 +1,9 @@
 #pragma once
-#include "forward.hpp"
+#include <sqee/forward.hpp>
 
 #include <vector>
 
-#include "misc/resholder.hpp"
+#include <sqee/misc/resholder.hpp>
 
 namespace sq {
 
@@ -22,6 +22,9 @@ public:
     std::vector<Timeline> timelineVec;
 };
 
-namespace res { ResHolder<Animation>& anim(); }
+namespace res {
+ResHolder<Animation>& anim();
+string& anim_path();
+}
 
 }

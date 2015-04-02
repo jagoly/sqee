@@ -1,8 +1,8 @@
 #pragma once
-#include "forward.hpp"
+#include <sqee/forward.hpp>
 
-#include "events/handler.hpp"
-#include "scenes/scene.hpp"
+#include <sqee/events/handler.hpp>
+#include <sqee/scenes/scene.hpp>
 
 namespace sq {
 

@@ -1,8 +1,8 @@
 #include <glm/gtc/type_ptr.hpp>
 
-#include "app/logging.hpp"
-#include "gl/gl_ext_3_3.hpp"
-#include "gl/shaders.hpp"
+#include "sqee/app/logging.hpp"
+#include "sqee/redist/gl_ext_3_3.hpp"
+#include "sqee/gl/shaders.hpp"
 
 using namespace sq;
 

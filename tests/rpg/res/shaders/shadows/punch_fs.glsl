@@ -3,7 +3,7 @@
 
 in vec2 texcrd;
 
-layout(binding=1) uniform sampler2D texDiff;
+layout(binding=0) uniform sampler2D texDiff;
 
 
 void main() {

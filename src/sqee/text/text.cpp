@@ -1,7 +1,7 @@
 #include <vector>
 
-#include "gl/gl_ext_3_3.hpp"
-#include "text/text.hpp"
+#include "sqee/redist/gl_ext_3_3.hpp"
+#include "sqee/text/text.hpp"
 
 using namespace sq;
 

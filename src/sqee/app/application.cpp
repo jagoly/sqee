@@ -1,11 +1,11 @@
 #ifdef SQEE_DEBUG
-#include "debug/glcallback.hpp"
+#include "sqee/debug/glcallback.hpp"
 #endif
 
-#include "app/logging.hpp"
-#include "gl/gl_ext_3_3.hpp"
-#include "scripts/intergration.hpp"
-#include "app/application.hpp"
+#include "sqee/app/logging.hpp"
+#include "sqee/redist/gl_ext_3_3.hpp"
+#include "sqee/scripts/intergration.hpp"
+#include "sqee/app/application.hpp"
 
 using namespace sq;
 

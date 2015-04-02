@@ -4,9 +4,9 @@
 in vec2 texcrd;
 
 uniform vec3 lightColour;
-layout(binding=0) uniform sampler2D texNorm;
-layout(binding=1) uniform sampler2D texSurf;
-layout(binding=2) uniform sampler2D texDiff;
+layout(binding=0) uniform sampler2D texDiff;
+layout(binding=1) uniform sampler2D texNorm;
+layout(binding=2) uniform sampler2D texSurf;
 layout(binding=3) uniform sampler2D texSpec;
 layout(binding=4) uniform sampler2D texAmbi;
 layout(binding=5) uniform sampler2D texDep;

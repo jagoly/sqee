@@ -1,4 +1,4 @@
-#include "sounds/soundmanager.hpp"
+#include "sqee/sounds/soundmanager.hpp"
 
 namespace sq {
 

@@ -1,4 +1,4 @@
-#include <sqee/gl/gl_ext_3_3.hpp>
+#include <sqee/redist/gl_ext_3_3.hpp>
 #include <sqee/events/basichandlers.hpp>
 
 #include "scenegame.hpp"

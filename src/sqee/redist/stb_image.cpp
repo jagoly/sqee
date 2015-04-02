@@ -1,4 +1,4 @@
-#include "redist/stb_image.hpp"
+#include "sqee/redist/stb_image.hpp"
 
 #define STBI_ONLY_JPEG
 #define STBI_ONLY_PNG

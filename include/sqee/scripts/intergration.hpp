@@ -1,7 +1,7 @@
 #pragma once
-#include "forward.hpp"
+#include <sqee/forward.hpp>
 
-#include "scripts/chaiscript.hpp"
+#include <sqee/scripts/chaiscript.hpp>
 
 namespace sq {
 

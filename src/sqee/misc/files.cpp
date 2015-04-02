@@ -1,8 +1,8 @@
 #include <fstream>
 #include <sstream>
 
-#include "app/logging.hpp"
-#include "misc/files.hpp"
+#include "sqee/app/logging.hpp"
+#include "sqee/misc/files.hpp"
 
 using namespace sq;
 

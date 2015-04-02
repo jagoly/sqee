@@ -1,4 +1,4 @@
-#include "menus/basicmenu.hpp"
+#include "sqee/menus/basicmenu.hpp"
 
 namespace sq {
 

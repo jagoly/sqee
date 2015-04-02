@@ -1,10 +1,10 @@
 #pragma once
-#include "forward.hpp"
+#include <sqee/forward.hpp>
 
 #include <forward_list>
 #include <vector>
 
-#include "misc/resholder.hpp"
+#include <sqee/misc/resholder.hpp>
 
 namespace sq {
 
@@ -15,8 +15,8 @@ public:
 
     struct Material {
         bool punch, shadow;
-        sq::Texture* norm = nullptr;
         sq::Texture* diff = nullptr;
+        sq::Texture* norm = nullptr;
         sq::Texture* spec = nullptr;
         int glMode = 0;
     };
@@ -25,9 +25,12 @@ public:
     std::forward_list<uint> filtered(char _punch, char _shadow);
 
     void bind_textures(uint _mtrl);
-    void bind_textures(uint _mtrl, bool _norm, bool _diff, bool _spec);
+    void bind_textures(uint _mtrl, bool _diff, bool _norm, bool _spec);
 };
 
-namespace res { ResHolder<Skin>& skin(); }
+namespace res {
+ResHolder<Skin>& skin();
+string& skin_path();
+}
 
 }

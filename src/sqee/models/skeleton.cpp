@@ -1,6 +1,6 @@
 #include <glm/gtc/quaternion.hpp>
 
-#include "models/skeleton.hpp"
+#include "sqee/models/skeleton.hpp"
 
 using namespace sq;
 

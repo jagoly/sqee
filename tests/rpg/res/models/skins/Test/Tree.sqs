@@ -6,7 +6,7 @@ mCount 2
 
 { materials
 material
-wrap clamp
+wrap repeat
 punch no
 shadow yes
 diff Test/TreeBark

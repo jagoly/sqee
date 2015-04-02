@@ -73,7 +73,7 @@ license you like.
 
 
 // EDITED FOR SQEE
-#include <redist/jsoncpp.hpp>
+#include "sqee/redist/jsoncpp.hpp"
 
 
 // //////////////////////////////////////////////////////////////////////

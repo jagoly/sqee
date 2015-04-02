@@ -1,9 +1,9 @@
 #pragma once
-#include "forward.hpp"
+#include <sqee/forward.hpp>
 
-#include "models/mesh.hpp"
-#include "models/skin.hpp"
-#include "models/skeleton.hpp"
+#include <sqee/models/mesh.hpp>
+#include <sqee/models/skin.hpp>
+#include <sqee/models/skeleton.hpp>
 
 namespace sq {
 

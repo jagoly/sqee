@@ -1,4 +1,4 @@
-#include "gl/bounds.hpp"
+#include "sqee/gl/bounds.hpp"
 
 using namespace sq;
 

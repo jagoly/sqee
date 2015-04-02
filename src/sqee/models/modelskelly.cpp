@@ -1,5 +1,5 @@
-#include "app/logging.hpp"
-#include "models/modelskelly.hpp"
+#include "sqee/app/logging.hpp"
+#include "sqee/models/modelskelly.hpp"
 
 using namespace sq;
 

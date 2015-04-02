@@ -1,9 +1,9 @@
 #include <glm/geometric.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "gl/gl_ext_3_3.hpp"
-#include "app/logging.hpp"
-#include "gl/cameras.hpp"
+#include "sqee/redist/gl_ext_3_3.hpp"
+#include "sqee/app/logging.hpp"
+#include "sqee/gl/cameras.hpp"
 
 using namespace sq;
 

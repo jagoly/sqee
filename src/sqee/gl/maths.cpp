@@ -1,6 +1,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "gl/maths.hpp"
+#include "sqee/gl/maths.hpp"
 
 using namespace sq;
 

@@ -69,9 +69,9 @@ private:
     } FB;
 
     struct {
+        unique_ptr<sq::Texture> defrDiff;
         unique_ptr<sq::Texture> defrNorm;
         unique_ptr<sq::Texture> defrSurf;
-        unique_ptr<sq::Texture> defrDiff;
         unique_ptr<sq::Texture> defrSpec;
         unique_ptr<sq::Texture> defrDepth;
         unique_ptr<sq::Texture> ssaoGreyA;

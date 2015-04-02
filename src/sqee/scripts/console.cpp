@@ -1,10 +1,8 @@
-#include <cctype>
-
-#include "app/application.hpp"
-#include "app/logging.hpp"
-#include "scripts/chaiscript.hpp"
-#include "text/text.hpp"
-#include "scripts/console.hpp"
+#include "sqee/app/application.hpp"
+#include "sqee/app/logging.hpp"
+#include "sqee/scripts/chaiscript.hpp"
+#include "sqee/text/text.hpp"
+#include "sqee/scripts/console.hpp"
 
 using namespace sq;
 

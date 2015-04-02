@@ -1,12 +1,11 @@
-#include "app/logging.hpp"
-#include "misc/files.hpp"
-#include "misc/strtonum.hpp"
-#include "models/animation.hpp"
+#include "sqee/app/logging.hpp"
+#include "sqee/misc/files.hpp"
+#include "sqee/models/animation.hpp"
 
 using namespace sq;
 
 void Animation::create(const string& _path) {
-    string path = "res/models/animations/" + _path + ".sqa";
+    string path = res::anim_path() + _path + ".sqa";
     std::vector<std::vector<string>> fileVec(sq::get_words_from_file(path));
 
     string section = "";
@@ -50,4 +49,8 @@ void Animation::create(const string& _path) {
 ResHolder<Animation>& sq::res::anim() {
     static ResHolder<Animation> holder;
     return holder;
+}
+string& sq::res::anim_path() {
+    static string path;
+    return path;
 }

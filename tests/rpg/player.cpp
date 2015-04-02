@@ -3,7 +3,7 @@
 
 #include <sqee/app/application.hpp>
 #include <sqee/gl/cameras.hpp>
-#include <sqee/gl/gl_ext_3_3.hpp>
+#include <sqee/redist/gl_ext_3_3.hpp>
 #include <sqee/models/modelskelly.hpp>
 
 #include "render/camera.hpp"

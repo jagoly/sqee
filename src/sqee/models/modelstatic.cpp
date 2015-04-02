@@ -1,5 +1,5 @@
-#include "app/logging.hpp"
-#include "models/modelstatic.hpp"
+#include "sqee/app/logging.hpp"
+#include "sqee/models/modelstatic.hpp"
 
 using namespace sq;
 

@@ -1,7 +1,7 @@
 #pragma once
-#include "forward.hpp"
+#include <sqee/forward.hpp>
 
-#include "misc/resholder.hpp"
+#include <sqee/misc/resholder.hpp>
 
 namespace sq {
 
@@ -34,6 +34,9 @@ private:
     uint dimensions;
 };
 
-namespace res { ResHolder<Texture>& texture(); }
+namespace res {
+ResHolder<Texture>& texture();
+string& texture_path();
+}
 
 }

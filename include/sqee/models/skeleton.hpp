@@ -1,9 +1,9 @@
 #pragma once
-#include "forward.hpp"
+#include <sqee/forward.hpp>
 
 #include <vector>
 
-#include "models/animation.hpp"
+#include <sqee/models/animation.hpp>
 
 namespace sq {
 

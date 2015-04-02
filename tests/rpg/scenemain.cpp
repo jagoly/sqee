@@ -12,7 +12,7 @@
 #include <sqee/app/application.hpp>
 #include <sqee/app/logging.hpp>
 #include <sqee/gl/framebuffers.hpp>
-#include <sqee/gl/gl_ext_3_3.hpp>
+#include <sqee/redist/gl_ext_3_3.hpp>
 #include <sqee/gl/misc.hpp>
 #include <sqee/gl/shaders.hpp>
 #include <sqee/gl/textures.hpp>
@@ -118,9 +118,9 @@ SceneMain::SceneMain(sq::Application& _app) : sq::Scene(_app) {
 
     /// Setup Textures
     using TexPreset = sq::Texture::Preset;
+    TX.defrDiff->create(gl::TEXTURE_2D, gl::RGBA, gl::RGBA8, 4, TexPreset::L_C);
     TX.defrNorm->create(gl::TEXTURE_2D, gl::RGB, gl::RGB16, 3, TexPreset::L_C);
     TX.defrSurf->create(gl::TEXTURE_2D, gl::RGB, gl::RGB16, 3, TexPreset::L_C);
-    TX.defrDiff->create(gl::TEXTURE_2D, gl::RGBA, gl::RGBA8, 4, TexPreset::L_C);
     TX.defrSpec->create(gl::TEXTURE_2D, gl::RGBA, gl::RGBA8, 4, TexPreset::L_C);
     TX.defrDepth->create(gl::TEXTURE_2D, gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT32, 1, TexPreset::L_C);
     TX.ssaoGreyA->create(gl::TEXTURE_2D, gl::RED, gl::R8, 1, TexPreset::L_C);
@@ -137,9 +137,9 @@ SceneMain::SceneMain(sq::Application& _app) : sq::Scene(_app) {
 
     /// Setup Framebuffers
     FB.defr->bind();
-    FB.defr->attach(gl::COLOR_ATTACHMENT0, *TX.defrNorm);
-    FB.defr->attach(gl::COLOR_ATTACHMENT1, *TX.defrSurf);
-    FB.defr->attach(gl::COLOR_ATTACHMENT2, *TX.defrDiff);
+    FB.defr->attach(gl::COLOR_ATTACHMENT0, *TX.defrDiff);
+    FB.defr->attach(gl::COLOR_ATTACHMENT1, *TX.defrNorm);
+    FB.defr->attach(gl::COLOR_ATTACHMENT2, *TX.defrSurf);
     FB.defr->attach(gl::COLOR_ATTACHMENT3, *TX.defrSpec);
     FB.defr->attach(gl::DEPTH_ATTACHMENT, *TX.defrDepth);
     FB.ssaoA->bind();
@@ -366,12 +366,13 @@ void SceneMain::render(float _ft) {
         }
     }
 
+
     pipeLine->use_shader(*VS.gnrc_quad);
     gl::Disable(gl::DEPTH_TEST);
 
-    TX.defrNorm->bind(gl::TEXTURE0);
-    TX.defrSurf->bind(gl::TEXTURE1);
-    TX.defrDiff->bind(gl::TEXTURE2);
+    TX.defrDiff->bind(gl::TEXTURE0);
+    TX.defrNorm->bind(gl::TEXTURE1);
+    TX.defrSurf->bind(gl::TEXTURE2);
     TX.defrSpec->bind(gl::TEXTURE3);
     TX.ssaoGreyA->bind(gl::TEXTURE4);
     TX.defrDepth->bind(gl::TEXTURE5);
@@ -500,7 +501,7 @@ void SceneMain::draw_skylight() {
             VS.shad_static_punch->set_mat<mat4>("modelMat", obj->model->matrix);
             obj->model->mesh->bind_vao();
             for (auto& i : fList) {
-                obj->model->skin->bind_textures(i, 0, 1, 0);
+                obj->model->skin->bind_textures(i, 1, 0, 0);
                 obj->model->mesh->draw_ibo(i);
             }
         }
@@ -551,7 +552,7 @@ void SceneMain::draw_spotlight() {
             VS.shad_static_punch->set_mat<mat4>("modelMat", obj->model->matrix);
             obj->model->mesh->bind_vao();
             for (auto& i : fList) {
-                obj->model->skin->bind_textures(i, 0, 1, 0);
+                obj->model->skin->bind_textures(i, 1, 0, 0);
                 obj->model->mesh->draw_ibo(i);
             }
         }

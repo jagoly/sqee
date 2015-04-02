@@ -1,12 +1,10 @@
 #include <glm/common.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-//#include <sqee/app/application.hpp>
 #include <sqee/app/logging.hpp>
-#include <sqee/gl/gl_ext_3_3.hpp>
+#include <sqee/redist/gl_ext_3_3.hpp>
 #include <sqee/gl/maths.hpp>
 #include <sqee/misc/files.hpp>
-#include <sqee/misc/strtonum.hpp>
 
 #include "world.hpp"
 

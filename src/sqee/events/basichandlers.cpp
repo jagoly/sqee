@@ -1,6 +1,5 @@
-#include <app/application.hpp>
-
-#include <events/basichandlers.hpp>
+#include "sqee/app/application.hpp"
+#include "sqee/events/basichandlers.hpp"
 
 using namespace sq;
 
