@@ -16,7 +16,7 @@ World::World() {
 }
 
 void World::load_base(const string& _filePath) {
-    string filePath = "res/game/worlds/" + _filePath + ".sq_world";
+    string filePath = "assets/worlds/" + _filePath + ".sq_world";
     std::vector<std::vector<string>> fileVec(sq::get_words_from_file(filePath));
 
     struct Spec {

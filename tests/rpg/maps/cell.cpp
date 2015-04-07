@@ -13,41 +13,11 @@
 
 using namespace sqt;
 
-HeightLayer::HeightLayer(const string& _filePath, ivec2 _min, ivec2 _max, float _offs) {
-    const string filePath = "res/game/heightlayers/" + _filePath + ".sq_hl";
-    std::ifstream src(filePath, std::ios::binary);
-
-    #ifdef SQEE_DEBUG
-    if (!src.is_open())
-        sq::log_error("Couldn't open file $0", filePath);
-    #endif
-
-    int xSize, ySize;
-    src.read((char*)&xSize, 4);
-    src.read((char*)&ySize, 4);
-
-    float fBuf;
-    for (int y = 0; y < _max.y; y++) {
-        floatVV.emplace_back();
-        for (int x = 0; x < _max.x; x++) {
-            if (x < _min.x || x >= _min.x + xSize || y < _min.y || y >= _min.y + ySize)
-                floatVV.back().emplace_back(5.f);
-            else {
-                src.read((char*)&fBuf, 4);
-                floatVV.back().emplace_back(_offs + fBuf);
-            }
-        }
-    }
-}
-
-float HeightLayer::get_z(uint _x, uint _y) const {
-    return floatVV[_y][_x];
-}
 
 Cell::Cell(const string& _filePath, const string& _name, const std::vector<string>& _loads, vec3 _pos)
     : name(_name), loads(_loads), pos(_pos)
 {
-    string filePath = "res/game/cells/" + _filePath + ".sq_cell";
+    string filePath = "assets/cells/" + _filePath + ".sq_cell";
     std::vector<std::vector<string>> fileVec(sq::get_words_from_file(filePath));
 
     std::vector<ObjSpec> specVec;
@@ -103,7 +73,7 @@ Cell::Cell(const string& _filePath, const string& _name, const std::vector<strin
             ptr = new Liquid(spec);
         else if (spec.type == ObjType::Reflector)
             ptr = new Reflector(spec);
-        objMap.emplace(spec.name, std::unique_ptr<Object>(ptr));
+        objMap.emplace(spec.name, unique_ptr<Object>(ptr));
     }
 }
 

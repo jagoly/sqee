@@ -21,4 +21,4 @@ add_executable(sqee_rpg ${SOURCES})
 target_link_libraries(sqee_rpg sqee)
 include_directories("${PROJECT_SOURCE_DIR}/include")
 
-file(COPY "res" DESTINATION "${CMAKE_BINARY_DIR}/build/tests/rpg/")
+file(COPY "assets" DESTINATION "${CMAKE_BINARY_DIR}/build/tests/rpg/")

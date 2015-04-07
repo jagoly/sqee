@@ -9,13 +9,6 @@
 
 namespace sqt {
 
-class HeightLayer {
-public:
-    HeightLayer(const string& _filePath, ivec2 _minXY, ivec2 _maxXY, float _offs);
-    float get_z(uint _x, uint _y) const;
-    std::vector<std::vector<float>> floatVV;
-};
-
 class Cell {
 public:
     Cell(const string& _filePath, const string& _name, const std::vector<string>& _loads, vec3 _pos);
@@ -27,7 +20,6 @@ public:
     void tick();
     void calc(double _accum);
 
-    std::map<string, HeightLayer> hlMap;
     std::map<string, unique_ptr<Object>> objMap;
 };
 

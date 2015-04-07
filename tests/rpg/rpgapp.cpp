@@ -13,10 +13,10 @@
 namespace sqt {
 
 RpgApp::RpgApp() : sq::Application({1280, 720}, true) {
-    sq::res::texture_path() = "res/textures/";
-    sq::res::anim_path() = "res/models/animations/";
-    sq::res::mesh_path() = "res/models/meshes/";
-    sq::res::skin_path() = "res/models/skins/";
+    sq::res::texture_path() = "assets/textures/";
+    sq::res::anim_path() = "assets/animations/";
+    sq::res::mesh_path() = "assets/meshes/";
+    sq::res::skin_path() = "assets/skins/";
 
     handlerIM.append("close", new sq::HandlerClose(*this));
     handlerIM.append("resize", new sq::HandlerResize(*this));
