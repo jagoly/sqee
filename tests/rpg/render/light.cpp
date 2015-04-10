@@ -22,33 +22,20 @@ SkyLight::SkyLight() {
 }
 
 void SkyLight::update() {
-    vec3 t1(glm::cross(direction, {1, 0, 0})), t2(glm::cross(direction, {0, 1, 0}));
-    vec3 tangent = glm::normalize(glm::length(t1) > glm::length(t2) ? t1 : t2);
+    vec3 tangent = sq::make_tangent(direction);
     for (int i = 0; i < 4; i++) {
         const auto& csm = camera->csmArr[i];
         vec3 frusCentre = sq::calc_frusCentre(csm.second);
+
+        double qStep = csm.first / 1024.0;
+        frusCentre.x = std::round(frusCentre.x / qStep) * qStep;
+        frusCentre.y = std::round(frusCentre.y / qStep) * qStep;
+        frusCentre.z = std::round(frusCentre.z / qStep) * qStep;
+
+        //sq::log_only(glm::to_string(frusCentre));
+
         mat4 viewMat = glm::lookAt(frusCentre-direction, frusCentre, tangent);
-        vec3 arr[8] {
-            vec3(viewMat * vec4(csm.second.xyz, 1)),
-            vec3(viewMat * vec4(csm.second.xyZ, 1)),
-            vec3(viewMat * vec4(csm.second.xYz, 1)),
-            vec3(viewMat * vec4(csm.second.xYZ, 1)),
-            vec3(viewMat * vec4(csm.second.Xyz, 1)),
-            vec3(viewMat * vec4(csm.second.XyZ, 1)),
-            vec3(viewMat * vec4(csm.second.XYz, 1)),
-            vec3(viewMat * vec4(csm.second.XYZ, 1))
-        };
-
-        vec3 minO = {INFINITY, INFINITY, INFINITY};
-        vec3 maxO = {-INFINITY, -INFINITY, -INFINITY};
-        for (auto& vec : arr) {
-            minO = glm::min(minO, vec);
-            maxO = glm::max(maxO, vec);
-        }
-        minO.z = glm::min(minO.z, glm::min(minO.x, minO.y));
-        maxO.z = glm::max(maxO.z, glm::max(maxO.x, maxO.y));
-
-        mat4 projMat = glm::ortho(minO.x, maxO.x, minO.y, maxO.y, minO.z, maxO.z);
+        mat4 projMat = glm::ortho(-csm.first, csm.first, -csm.first, csm.first, -csm.first, csm.first);
         matArr[i] = projMat * viewMat;
     }
 }
@@ -77,11 +64,11 @@ SpotLight::SpotLight() {
 }
 
 void SpotLight::update() {
-    vec3 t1(glm::cross(direction, {1, 0, 0})), t2(glm::cross(direction, {0, 1, 0}));
-    vec3 tangent = glm::normalize(glm::length(t1) > glm::length(t2) ? t1 : t2);
+    vec3 tangent = sq::make_tangent(direction);
     mat4 viewMat = glm::lookAt(position, position+direction, tangent);
     mat4 projMat = glm::perspective(angle * 2.f, 1.f, 1.5f, intensity);
     matrix = projMat * viewMat;
+
 //    frustum = sq::make_Frustum(glm::inverse(matrix));
 
 //    array<vec2, 8> points = {

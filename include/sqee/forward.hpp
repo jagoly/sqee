@@ -2,9 +2,11 @@
 
 #include <string>
 #include <array>
+#include <vector>
 #include <memory>
 using std::string;
 using std::array;
+using std::vector;
 using std::unique_ptr;
 using std::shared_ptr;
 using std::weak_ptr;
@@ -22,11 +24,15 @@ using std::weak_ptr;
 #include <glm/mat4x3.hpp>
 #include <glm/mat4x4.hpp>
 using glm::vec2; using glm::vec3; using glm::vec4;
+using glm::dvec2; using glm::dvec3; using glm::dvec4;
 using glm::ivec2; using glm::ivec3; using glm::ivec4;
 using glm::uvec2; using glm::uvec3; using glm::uvec4;
 using glm::mat2; using glm::mat2x3; using glm::mat2x4;
 using glm::mat3x2; using glm::mat3; using glm::mat3x4;
 using glm::mat4x2; using glm::mat4x3; using glm::mat4;
+using glm::dmat2; using glm::dmat2x3; using glm::dmat2x4;
+using glm::dmat3x2; using glm::dmat3; using glm::dmat3x4;
+using glm::dmat4x2; using glm::dmat4x3; using glm::dmat4;
 
 typedef unsigned int    uint;
 typedef unsigned short  ushort;

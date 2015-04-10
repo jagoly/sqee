@@ -1,0 +1,12 @@
+# SQEE RPG Map Format
+
+{ header
+size 46.0 29.0 20.0
+}
+
+{ objects
+object model Sponza
+s1 mesh Sponza/Main
+s1 skin Sponza/Main
+flags shadow
+}

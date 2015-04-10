@@ -32,7 +32,7 @@ public:
 private:
     vec3 normInfo;
     vec2 flowOffs;
-    double normOffsA, normOffsB;
+    float normOffsA, normOffsB;
     vec2 flowOffsA, flowOffsB;
 
     sq::Mesh* mesh;

@@ -3,6 +3,7 @@
 
 #include <vector>
 
+#include <sqee/gl/maths.hpp>
 #include <sqee/gl/uniformbuffers.hpp>
 
 namespace sq {
@@ -16,6 +17,7 @@ public:
 
     mat4 projMat;
     mat4 viewMat;
+    Frustum frus;
 
     vec2 size;
     float fov;

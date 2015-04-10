@@ -1,5 +1,3 @@
-#include <fstream>
-
 #include <sqee/app/logging.hpp>
 #include <sqee/redist/gl_ext_3_3.hpp>
 #include <sqee/misc/files.hpp>

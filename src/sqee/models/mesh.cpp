@@ -71,7 +71,8 @@ void Mesh::load_ascii(const string& _path) {
         }
 
         if (section == "header") {
-            if      (key == "vCount") vCount = stou(line[1]);
+            if      (key == "sphere") sphere = {stof(line[1]), stof(line[2]), stof(line[3]), stof(line[4])};
+            else if (key == "vCount") vCount = stou(line[1]);
             else if (key == "fCount") fCount = stou(line[1]);
             else if (key == "mCount") mCount = stou(line[1]), faceVec.resize(mCount);
             else if (key == "hasNM") hasNM = true;

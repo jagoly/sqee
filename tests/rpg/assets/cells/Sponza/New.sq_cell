@@ -1,0 +1,1189 @@
+# SQEE RPG Map Format
+
+{ header
+size 16.0 16.0 8.0
+}
+
+{ objects
+object model ShadowBox
+f3 pos 0.0 0.0 0.0
+s1 mesh Sponza/ShadowBox
+s1 skin Sponza/Arch
+flags shadow 
+
+object model Peepel
+f3 pos 3.0 0.0 0.0
+f3 rot 0.0 0.0 90.0
+s1 mesh Characters/Don
+s1 skin Characters/Don
+flags shadow
+
+object model ArchAA_A1
+f3 pos -8.887 2.86 3.8
+s1 mesh Sponza/ArchAA
+s1 skin Sponza/Arch
+flags shadow 
+
+object model ArchAA_A2
+f3 pos -4.439 2.86 3.8
+s1 mesh Sponza/ArchAA
+s1 skin Sponza/Arch
+flags shadow 
+
+object model ArchAA_A3
+f3 pos 0.0 2.86 3.8
+f3 sca 0.996 1.0 1.0
+s1 mesh Sponza/ArchAA
+s1 skin Sponza/Arch
+flags shadow 
+
+object model ArchAA_A4
+f3 pos 4.439 2.86 3.8
+s1 mesh Sponza/ArchAA
+s1 skin Sponza/Arch
+flags shadow 
+
+object model ArchAA_A5
+f3 pos 8.887 2.86 3.8
+s1 mesh Sponza/ArchAA
+s1 skin Sponza/Arch
+flags shadow 
+
+object model ArchAA_B1
+f3 pos -8.887 -2.86 3.8
+f3 rot 0.0 0.0 180.0
+s1 mesh Sponza/ArchAA
+s1 skin Sponza/Arch
+flags shadow 
+
+object model ArchAA_B2
+f3 pos -4.439 -2.86 3.8
+f3 rot 0.0 0.0 180.0
+s1 mesh Sponza/ArchAA
+s1 skin Sponza/Arch
+flags shadow 
+
+object model ArchAA_B3
+f3 pos 0.0 -2.86 3.8
+f3 rot 0.0 0.0 180.0
+f3 sca 0.996 1.0 1.0
+s1 mesh Sponza/ArchAA
+s1 skin Sponza/Arch
+flags shadow 
+
+object model ArchAA_B4
+f3 pos 4.439 -2.86 3.8
+f3 rot 0.0 0.0 180.0
+s1 mesh Sponza/ArchAA
+s1 skin Sponza/Arch
+flags shadow 
+
+object model ArchAA_B5
+f3 pos 8.887 -2.86 3.8
+f3 rot 0.0 0.0 180.0
+s1 mesh Sponza/ArchAA
+s1 skin Sponza/Arch
+flags shadow 
+
+object model ArchAB_1
+f3 pos -11.38 0.0 3.8
+s1 mesh Sponza/ArchAB
+s1 skin Sponza/Arch
+flags shadow 
+
+object model ArchAB_2
+f3 pos 11.38 0.0 3.8
+f3 rot 0.0 0.0 180.0
+s1 mesh Sponza/ArchAB
+s1 skin Sponza/Arch
+flags shadow 
+
+object model ArchBA_A1
+f3 pos -8.887 2.86 9.09
+s1 mesh Sponza/ArchBA
+s1 skin Sponza/Arch
+flags shadow 
+
+object model ArchBA_A2
+f3 pos -4.439 2.86 9.09
+s1 mesh Sponza/ArchBA
+s1 skin Sponza/Arch
+flags shadow 
+
+object model ArchBA_A3
+f3 pos 0.0 2.86 9.09
+f3 sca 0.996 1.0 1.0
+s1 mesh Sponza/ArchBA
+s1 skin Sponza/Arch
+flags shadow 
+
+object model ArchBA_A4
+f3 pos 4.439 2.86 9.09
+s1 mesh Sponza/ArchBA
+s1 skin Sponza/Arch
+flags shadow 
+
+object model ArchBA_A5
+f3 pos 8.887 2.86 9.09
+s1 mesh Sponza/ArchBA
+s1 skin Sponza/Arch
+flags shadow 
+
+object model ArchBA_B1
+f3 pos -8.887 -2.86 9.09
+f3 rot 0.0 0.0 180.0
+s1 mesh Sponza/ArchBA
+s1 skin Sponza/Arch
+flags shadow 
+
+object model ArchBA_B2
+f3 pos -4.439 -2.86 9.09
+f3 rot 0.0 0.0 180.0
+s1 mesh Sponza/ArchBA
+s1 skin Sponza/Arch
+flags shadow 
+
+object model ArchBA_B3
+f3 pos 0.0 -2.86 9.09
+f3 rot 0.0 0.0 180.0
+f3 sca 0.996 1.0 1.0
+s1 mesh Sponza/ArchBA
+s1 skin Sponza/Arch
+flags shadow 
+
+object model ArchBA_B4
+f3 pos 4.439 -2.86 9.09
+f3 rot 0.0 0.0 180.0
+s1 mesh Sponza/ArchBA
+s1 skin Sponza/Arch
+flags shadow 
+
+object model ArchBA_B5
+f3 pos 8.887 -2.86 9.09
+f3 rot 0.0 0.0 180.0
+s1 mesh Sponza/ArchBA
+s1 skin Sponza/Arch
+flags shadow 
+
+object model ArchBB_1
+f3 pos -11.3 0.0 9.08
+s1 mesh Sponza/ArchBB
+s1 skin Sponza/Arch
+flags shadow 
+
+object model ArchBB_2
+f3 pos 11.3 0.0 9.08
+f3 rot 0.0 0.0 180.0
+s1 mesh Sponza/ArchBB
+s1 skin Sponza/Arch
+flags shadow 
+
+object model CeilingRoof_A1
+f3 pos 0.0 0.0 3.63
+s1 mesh Sponza/CeilingRoof
+s1 skin Sponza/CeilingRoof
+flags shadow 
+
+object model CeilingRoof_A2
+f3 pos 0.0 0.0 3.63
+f3 sca 1.0 -1.0 1.0
+s1 mesh Sponza/CeilingRoof
+s1 skin Sponza/CeilingRoof
+flags shadow 
+
+object model CeilingRoof_A3
+f3 pos 0.0 0.0 3.63
+f3 sca -1.0 -1.0 1.0
+s1 mesh Sponza/CeilingRoof
+s1 skin Sponza/CeilingRoof
+flags shadow 
+
+object model CeilingRoof_A4
+f3 pos 0.0 0.0 3.63
+f3 sca -1.0 1.0 1.0
+s1 mesh Sponza/CeilingRoof
+s1 skin Sponza/CeilingRoof
+flags shadow 
+
+object model CeilingRoof_B1
+f3 pos 0.0 0.0 9.343
+s1 mesh Sponza/CeilingRoof
+s1 skin Sponza/CeilingRoof
+flags shadow 
+
+object model CeilingRoof_B2
+f3 pos 0.0 0.0 9.343
+f3 sca 1.0 -1.0 1.0
+s1 mesh Sponza/CeilingRoof
+s1 skin Sponza/CeilingRoof
+flags shadow 
+
+object model CeilingRoof_B3
+f3 pos 0.0 0.0 9.343
+f3 sca -1.0 -1.0 1.0
+s1 mesh Sponza/CeilingRoof
+s1 skin Sponza/CeilingRoof
+flags shadow 
+
+object model CeilingRoof_B4
+f3 pos 0.0 0.0 9.343
+f3 sca -1.0 1.0 1.0
+s1 mesh Sponza/CeilingRoof
+s1 skin Sponza/CeilingRoof
+flags shadow 
+
+object model CeilingSide_1
+f3 pos 0.0 0.0 9.7
+s1 mesh Sponza/CeilingSide
+s1 skin Sponza/CeilingSide
+flags shadow 
+
+object model CeilingSide_2
+f3 pos 0.0 0.0 9.7
+f3 sca 1.0 -1.0 1.0
+s1 mesh Sponza/CeilingSide
+s1 skin Sponza/CeilingSide
+flags shadow 
+
+object model CeilingSide_3
+f3 pos 0.0 0.0 9.7
+f3 sca -1.0 -1.0 1.0
+s1 mesh Sponza/CeilingSide
+s1 skin Sponza/CeilingSide
+flags shadow 
+
+object model CeilingSide_4
+f3 pos 0.0 0.0 9.7
+f3 sca -1.0 1.0 1.0
+s1 mesh Sponza/CeilingSide
+s1 skin Sponza/CeilingSide
+flags shadow 
+
+object model ColumnA_A1
+f3 pos -6.663 2.9 1.32
+s1 mesh Sponza/ColumnA
+s1 skin Sponza/ColumnA
+flags shadow 
+
+object model ColumnA_A2
+f3 pos -2.21 2.9 1.32
+s1 mesh Sponza/ColumnA
+s1 skin Sponza/ColumnA
+flags shadow 
+
+object model ColumnA_A3
+f3 pos 2.21 2.9 1.32
+s1 mesh Sponza/ColumnA
+s1 skin Sponza/ColumnA
+flags shadow 
+
+object model ColumnA_A4
+f3 pos 6.663 2.9 1.32
+s1 mesh Sponza/ColumnA
+s1 skin Sponza/ColumnA
+flags shadow 
+
+object model ColumnA_B1
+f3 pos -6.663 -2.9 1.32
+s1 mesh Sponza/ColumnA
+s1 skin Sponza/ColumnA
+flags shadow 
+
+object model ColumnA_B2
+f3 pos -2.21 -2.9 1.32
+s1 mesh Sponza/ColumnA
+s1 skin Sponza/ColumnA
+flags shadow 
+
+object model ColumnA_B3
+f3 pos 2.21 -2.9 1.32
+s1 mesh Sponza/ColumnA
+s1 skin Sponza/ColumnA
+flags shadow 
+
+object model ColumnA_B4
+f3 pos 6.663 -2.9 1.32
+s1 mesh Sponza/ColumnA
+s1 skin Sponza/ColumnA
+flags shadow 
+
+object model ColumnACnr_1
+f3 pos -11.25 2.77 1.32
+s1 mesh Sponza/ColumnACorner
+s1 skin Sponza/ColumnA
+flags shadow 
+
+object model ColumnACnr_2
+f3 pos 11.25 2.77 1.32
+f3 rot 0.0 0.0 -90.0
+s1 mesh Sponza/ColumnACorner
+s1 skin Sponza/ColumnA
+flags shadow 
+
+object model ColumnACnr_3
+f3 pos 11.25 -2.77 1.32
+f3 rot 0.0 0.0 180.0
+s1 mesh Sponza/ColumnACorner
+s1 skin Sponza/ColumnA
+flags shadow 
+
+object model ColumnACnr_4
+f3 pos -11.25 -2.77 1.32
+f3 rot 0.0 0.0 90.0
+s1 mesh Sponza/ColumnACorner
+s1 skin Sponza/ColumnA
+flags shadow 
+
+object model ColumnB_A1
+f3 pos -8.887 2.89 7.22
+s1 mesh Sponza/ColumnB
+s1 skin Sponza/ColumnB
+flags shadow 
+
+object model ColumnB_A2
+f3 pos -4.439 2.89 7.22
+s1 mesh Sponza/ColumnB
+s1 skin Sponza/ColumnB
+flags shadow 
+
+object model ColumnB_A3
+f3 pos 0.0 2.89 7.22
+s1 mesh Sponza/ColumnB
+s1 skin Sponza/ColumnB
+flags shadow 
+
+object model ColumnB_A4
+f3 pos 4.439 2.89 7.22
+s1 mesh Sponza/ColumnB
+s1 skin Sponza/ColumnB
+flags shadow 
+
+object model ColumnB_A5
+f3 pos 8.887 2.89 7.22
+s1 mesh Sponza/ColumnB
+s1 skin Sponza/ColumnB
+flags shadow 
+
+object model ColumnB_B1
+f3 pos -8.887 -2.89 7.22
+s1 mesh Sponza/ColumnB
+s1 skin Sponza/ColumnB
+flags shadow 
+
+object model ColumnB_B2
+f3 pos -4.439 -2.89 7.22
+s1 mesh Sponza/ColumnB
+s1 skin Sponza/ColumnB
+flags shadow 
+
+object model ColumnB_B3
+f3 pos 0.0 -2.89 7.22
+s1 mesh Sponza/ColumnB
+s1 skin Sponza/ColumnB
+flags shadow 
+
+object model ColumnB_B4
+f3 pos 4.439 -2.89 7.22
+s1 mesh Sponza/ColumnB
+s1 skin Sponza/ColumnB
+flags shadow 
+
+object model ColumnB_B5
+f3 pos 8.887 -2.89 7.22
+s1 mesh Sponza/ColumnB
+s1 skin Sponza/ColumnB
+flags shadow 
+
+object model ColumnB_C1
+f3 pos -11.33 0.0 7.24
+f3 sca 0.865 0.865 1.018
+s1 mesh Sponza/ColumnB
+s1 skin Sponza/ColumnB
+flags shadow 
+
+object model ColumnB_C2
+f3 pos 11.33 0.0 7.24
+f3 sca 0.865 0.865 1.018
+s1 mesh Sponza/ColumnB
+s1 skin Sponza/ColumnB
+flags shadow 
+
+object model ColumnC_A1
+f3 pos -6.663 2.89 7.22
+s1 mesh Sponza/ColumnC
+s1 skin Sponza/ColumnC
+flags shadow 
+
+object model ColumnC_A2
+f3 pos -2.21 2.89 7.22
+s1 mesh Sponza/ColumnC
+s1 skin Sponza/ColumnC
+flags shadow 
+
+object model ColumnC_A3
+f3 pos 2.21 2.89 7.22
+s1 mesh Sponza/ColumnC
+s1 skin Sponza/ColumnC
+flags shadow 
+
+object model ColumnC_A4
+f3 pos 6.663 2.89 7.22
+s1 mesh Sponza/ColumnC
+s1 skin Sponza/ColumnC
+flags shadow 
+
+object model ColumnC_B1
+f3 pos -6.663 -2.89 7.22
+s1 mesh Sponza/ColumnC
+s1 skin Sponza/ColumnC
+flags shadow 
+
+object model ColumnC_B2
+f3 pos -2.21 -2.89 7.22
+s1 mesh Sponza/ColumnC
+s1 skin Sponza/ColumnC
+flags shadow 
+
+object model ColumnC_B3
+f3 pos 2.21 -2.89 7.22
+s1 mesh Sponza/ColumnC
+s1 skin Sponza/ColumnC
+flags shadow 
+
+object model ColumnC_B4
+f3 pos 6.663 -2.89 7.22
+s1 mesh Sponza/ColumnC
+s1 skin Sponza/ColumnC
+flags shadow 
+
+object model ColumnCCnr_1
+f3 pos -11.21 2.77 7.22
+s1 mesh Sponza/ColumnCCorner
+s1 skin Sponza/ColumnC
+flags shadow 
+
+object model ColumnCCnr_2
+f3 pos 11.21 2.77 7.22
+f3 rot 0.0 0.0 -90.0
+s1 mesh Sponza/ColumnCCorner
+s1 skin Sponza/ColumnC
+flags shadow 
+
+object model ColumnCCnr_3
+f3 pos 11.21 -2.77 7.22
+f3 rot 0.0 0.0 180.0
+s1 mesh Sponza/ColumnCCorner
+s1 skin Sponza/ColumnC
+flags shadow 
+
+object model ColumnCCnr_4
+f3 pos -11.21 -2.77 7.22
+f3 rot 0.0 0.0 90.0
+s1 mesh Sponza/ColumnCCorner
+s1 skin Sponza/ColumnC
+flags shadow 
+
+object model CurtainA_A1
+f3 pos -8.887 2.9 1.762
+s1 mesh Sponza/curtainA
+s1 skin Sponza/CurtainRed
+flags shadow 
+
+object model CurtainB_A2
+f3 pos -4.439 2.96 1.762
+s1 mesh Sponza/curtainB
+s1 skin Sponza/CurtainBlue
+flags shadow 
+
+object model CurtainA_A3
+f3 pos 0.0 2.9 1.762
+s1 mesh Sponza/curtainA
+s1 skin Sponza/CurtainGreen
+flags shadow 
+
+object model CurtainB_A4
+f3 pos 4.439 2.96 1.762
+s1 mesh Sponza/curtainB
+s1 skin Sponza/CurtainRed
+flags shadow 
+
+object model CurtainA_A5
+f3 pos 8.887 2.9 1.762
+s1 mesh Sponza/curtainA
+s1 skin Sponza/CurtainBlue
+flags shadow 
+
+object model CurtainA_B1
+f3 pos -8.887 -2.96 1.762
+s1 mesh Sponza/curtainA
+s1 skin Sponza/CurtainGreen
+flags shadow 
+
+object model CurtainB_B2
+f3 pos -4.439 -2.9 1.762
+s1 mesh Sponza/curtainB
+s1 skin Sponza/CurtainRed
+flags shadow 
+
+object model CurtainA_B3
+f3 pos 0.0 -2.96 1.762
+s1 mesh Sponza/curtainA
+s1 skin Sponza/CurtainBlue
+flags shadow 
+
+object model CurtainB_B4
+f3 pos 4.439 -2.9 1.762
+s1 mesh Sponza/curtainB
+s1 skin Sponza/CurtainGreen
+flags shadow 
+
+object model CurtainA_B5
+f3 pos 8.887 -2.96 1.762
+s1 mesh Sponza/curtainA
+s1 skin Sponza/CurtainRed
+flags shadow 
+
+object model DoorRound_1
+f3 pos 0.0 7.31 1.8
+s1 mesh Sponza/DoorRound
+s1 skin Sponza/Details
+flags shadow 
+
+object model DoorRound_2
+f3 pos 16.41 0.0 6.8
+f3 rot 0.0 0.0 -90.0
+s1 mesh Sponza/DoorRound
+s1 skin Sponza/Details
+flags shadow 
+
+object model DoorSquare
+f3 pos 0.0 -7.325 1.46
+s1 mesh Sponza/DoorSquare
+s1 skin Sponza/Details
+flags shadow 
+
+object model Drape_A1
+f3 pos -6.676 2.88 5.16
+s1 mesh Sponza/Drape
+s1 skin Sponza/DrapeBlue
+flags shadow 
+
+object model Drape_A2
+f3 pos -2.223 2.88 5.16
+s1 mesh Sponza/Drape
+s1 skin Sponza/DrapeRed
+flags shadow 
+
+object model Drape_A3
+f3 pos 2.197 2.88 5.16
+s1 mesh Sponza/Drape
+s1 skin Sponza/DrapeGreen
+flags shadow 
+
+object model Drape_A4
+f3 pos 6.65 2.88 5.16
+s1 mesh Sponza/Drape
+s1 skin Sponza/DrapeBlue
+flags shadow 
+
+object model Drape_B1
+f3 pos -6.65 -2.88 5.16
+f3 rot 0.0 0.0 180.0
+s1 mesh Sponza/Drape
+s1 skin Sponza/DrapeGreen
+flags shadow 
+
+object model Drape_B2
+f3 pos -2.197 -2.88 5.16
+f3 rot 0.0 0.0 180.0
+s1 mesh Sponza/Drape
+s1 skin Sponza/DrapeBlue
+flags shadow 
+
+object model Drape_B3
+f3 pos 2.223 -2.88 5.16
+f3 rot 0.0 0.0 180.0
+s1 mesh Sponza/Drape
+s1 skin Sponza/DrapeRed
+flags shadow 
+
+object model Drape_B4
+f3 pos 6.676 -2.88 5.16
+f3 rot 0.0 0.0 180.0
+s1 mesh Sponza/Drape
+s1 skin Sponza/DrapeGreen
+flags shadow 
+
+object model EdgeCover_A1
+f3 pos 0.0 0.0 6.01
+s1 mesh Sponza/EdgeCover
+s1 skin Sponza/Arch
+flags shadow 
+
+object model EdgeCover_A2
+f3 pos 0.0 0.0 6.01
+f3 sca 1.0 -1.0 1.0
+s1 mesh Sponza/EdgeCover
+s1 skin Sponza/Arch
+flags shadow 
+
+object model EdgeCover_A3
+f3 pos 0.0 0.0 6.01
+f3 sca -1.0 -1.0 1.0
+s1 mesh Sponza/EdgeCover
+s1 skin Sponza/Arch
+flags shadow 
+
+object model EdgeCover_A4
+f3 pos 0.0 0.0 6.01
+f3 sca -1.0 1.0 1.0
+s1 mesh Sponza/EdgeCover
+s1 skin Sponza/Arch
+flags shadow 
+
+object model EdgeCover_B1
+f3 pos 0.0 0.0 11.0
+s1 mesh Sponza/EdgeCover
+s1 skin Sponza/Arch
+flags shadow 
+
+object model EdgeCover_B2
+f3 pos 0.0 0.0 11.0
+f3 sca 1.0 -1.0 1.0
+s1 mesh Sponza/EdgeCover
+s1 skin Sponza/Arch
+flags shadow 
+
+object model EdgeCover_B3
+f3 pos 0.0 0.0 11.0
+f3 sca -1.0 -1.0 1.0
+s1 mesh Sponza/EdgeCover
+s1 skin Sponza/Arch
+flags shadow 
+
+object model EdgeCover_B4
+f3 pos 0.0 0.0 11.0
+f3 sca -1.0 1.0 1.0
+s1 mesh Sponza/EdgeCover
+s1 skin Sponza/Arch
+flags shadow 
+
+object model FlagPole_A1
+f3 pos -6.663 1.61 10.29
+s1 mesh Sponza/FlagPole
+s1 skin Sponza/FlagPole
+flags shadow 
+
+object model FlagPole_A2
+f3 pos -2.21 1.61 10.29
+s1 mesh Sponza/FlagPole
+s1 skin Sponza/FlagPole
+flags shadow 
+
+object model FlagPole_A3
+f3 pos 2.21 1.61 10.29
+s1 mesh Sponza/FlagPole
+s1 skin Sponza/FlagPole
+flags shadow 
+
+object model FlagPole_A4
+f3 pos 6.663 1.61 10.29
+s1 mesh Sponza/FlagPole
+s1 skin Sponza/FlagPole
+flags shadow 
+
+object model FlagPole_B1
+f3 pos -6.663 -1.61 10.29
+f3 rot 0.0 0.0 180.0
+s1 mesh Sponza/FlagPole
+s1 skin Sponza/FlagPole
+flags shadow 
+
+object model FlagPole_B2
+f3 pos -2.21 -1.61 10.29
+f3 rot 0.0 0.0 180.0
+s1 mesh Sponza/FlagPole
+s1 skin Sponza/FlagPole
+flags shadow 
+
+object model FlagPole_B3
+f3 pos 2.21 -1.61 10.29
+f3 rot 0.0 0.0 180.0
+s1 mesh Sponza/FlagPole
+s1 skin Sponza/FlagPole
+flags shadow 
+
+object model FlagPole_B4
+f3 pos 6.663 -1.61 10.29
+f3 rot 0.0 0.0 180.0
+s1 mesh Sponza/FlagPole
+s1 skin Sponza/FlagPole
+flags shadow 
+
+object model HangVase_A1
+f3 pos -6.663 2.2 1.89
+s1 mesh Sponza/HangVase
+s1 skin Sponza/HangVase
+flags shadow 
+
+object model HangVase_A2
+f3 pos 6.663 2.2 1.89
+s1 mesh Sponza/HangVase
+s1 skin Sponza/HangVase
+flags shadow 
+
+object model HangVase_B1
+f3 pos -6.663 -2.2 1.89
+f3 rot 0.0 0.0 180.0
+s1 mesh Sponza/HangVase
+s1 skin Sponza/HangVase
+flags shadow 
+
+object model HangVase_B2
+f3 pos 6.663 -2.2 1.89
+f3 rot 0.0 0.0 180.0
+s1 mesh Sponza/HangVase
+s1 skin Sponza/HangVase
+flags shadow 
+
+object model Lion_1
+f3 pos -16.425 0.0 2.225
+s1 mesh Sponza/Lion
+s1 skin Sponza/Lion
+flags shadow 
+
+object model Lion_2
+f3 pos 16.425 0.0 2.225
+f3 rot 0.0 0.0 180.0
+s1 mesh Sponza/Lion
+s1 skin Sponza/Lion
+flags shadow 
+
+object model Plaque_1
+f3 pos -16.425 0.0 2.25
+s1 mesh Sponza/Plaque
+s1 skin Sponza/Plaque
+flags shadow 
+
+object model Plaque_2
+f3 pos 16.425 0.0 2.25
+f3 rot 0.0 0.0 180.0
+s1 mesh Sponza/Plaque
+s1 skin Sponza/Plaque
+flags shadow 
+
+object model Plaque_3
+f3 pos -16.425 0.0 8.0
+s1 mesh Sponza/Plaque
+s1 skin Sponza/Plaque
+flags shadow 
+
+object model PotPlant_A1
+f3 pos -10.7 2.27 0.0
+s1 mesh Sponza/PotPlant
+s1 skin Sponza/PotPlant
+flags shadow 
+
+object model PotPlant_A2
+f3 pos -2.21 2.27 0.0
+s1 mesh Sponza/PotPlant
+s1 skin Sponza/PotPlant
+flags shadow 
+
+object model PotPlant_A3
+f3 pos 2.21 2.27 0.0
+s1 mesh Sponza/PotPlant
+s1 skin Sponza/PotPlant
+flags shadow 
+
+object model PotPlant_A4
+f3 pos 10.7 2.27 0.0
+s1 mesh Sponza/PotPlant
+s1 skin Sponza/PotPlant
+flags shadow 
+
+object model PotPlant_B1
+f3 pos -10.7 -2.27 0.0
+s1 mesh Sponza/PotPlant
+s1 skin Sponza/PotPlant
+flags shadow 
+
+object model PotPlant_B2
+f3 pos -2.21 -2.27 0.0
+s1 mesh Sponza/PotPlant
+s1 skin Sponza/PotPlant
+flags shadow 
+
+object model PotPlant_B3
+f3 pos 2.21 -2.27 0.0
+s1 mesh Sponza/PotPlant
+s1 skin Sponza/PotPlant
+flags shadow 
+
+object model PotPlant_B4
+f3 pos 10.7 -2.27 0.0
+s1 mesh Sponza/PotPlant
+s1 skin Sponza/PotPlant
+flags shadow 
+
+object model Window_1
+f3 pos 4.454 -7.325 2.439
+s1 mesh Sponza/Window
+s1 skin Sponza/Details
+flags shadow 
+
+object model Window_2
+f3 pos -4.454 -7.325 2.439
+s1 mesh Sponza/Window
+s1 skin Sponza/Details
+flags shadow 
+
+object model MouldingA_1
+f3 pos 0.0 0.0 5.02
+s1 mesh Sponza/MouldingA
+s1 skin Sponza/Arch
+flags shadow 
+
+object model MouldingA_2
+f3 pos 0.0 0.0 5.02
+f3 sca 1.0 -1.0 1.0
+s1 mesh Sponza/MouldingA
+s1 skin Sponza/Arch
+flags shadow 
+
+object model MouldingA_3
+f3 pos 0.0 0.0 5.02
+f3 sca -1.0 -1.0 1.0
+s1 mesh Sponza/MouldingA
+s1 skin Sponza/Arch
+flags shadow 
+
+object model MouldingA_4
+f3 pos 0.0 0.0 5.02
+f3 sca -1.0 1.0 1.0
+s1 mesh Sponza/MouldingA
+s1 skin Sponza/Arch
+flags shadow 
+
+object model MouldingB_A1
+s1 mesh Sponza/MouldingB
+s1 skin Sponza/Arch
+flags shadow 
+
+object model MouldingB_A2
+f3 sca 1.0 -1.0 1.0
+s1 mesh Sponza/MouldingB
+s1 skin Sponza/Arch
+flags shadow 
+
+object model MouldingB_A3
+f3 sca -1.0 -1.0 1.0
+s1 mesh Sponza/MouldingB
+s1 skin Sponza/Arch
+flags shadow 
+
+object model MouldingB_A4
+f3 sca -1.0 1.0 1.0
+s1 mesh Sponza/MouldingB
+s1 skin Sponza/Arch
+flags shadow 
+
+object model MouldingB_B1
+f3 pos 0.0 0.0 5.0
+s1 mesh Sponza/MouldingB
+s1 skin Sponza/Arch
+flags shadow 
+
+object model MouldingB_B2
+f3 pos 0.0 0.0 5.0
+f3 sca 1.0 -1.0 1.0
+s1 mesh Sponza/MouldingB
+s1 skin Sponza/Arch
+flags shadow 
+
+object model MouldingB_B3
+f3 pos 0.0 0.0 5.0
+f3 sca -1.0 -1.0 1.0
+s1 mesh Sponza/MouldingB
+s1 skin Sponza/Arch
+flags shadow 
+
+object model MouldingB_B4
+f3 pos 0.0 0.0 5.0
+f3 sca -1.0 1.0 1.0
+s1 mesh Sponza/MouldingB
+s1 skin Sponza/Arch
+flags shadow 
+
+object model HoleA_A1
+f3 pos -8.887 2.69 11.6
+s1 mesh Sponza/HoleA
+s1 skin Sponza/Arch
+flags shadow 
+
+object model HoleA_A2
+f3 pos -4.439 2.69 11.6
+s1 mesh Sponza/HoleA
+s1 skin Sponza/Arch
+flags shadow 
+
+object model HoleA_A3
+f3 pos 0.0 2.69 11.6
+s1 mesh Sponza/HoleA
+s1 skin Sponza/Arch
+flags shadow 
+
+object model HoleA_A4
+f3 pos 4.439 2.69 11.6
+s1 mesh Sponza/HoleA
+s1 skin Sponza/Arch
+flags shadow 
+
+object model HoleA_A5
+f3 pos 8.887 2.69 11.6
+s1 mesh Sponza/HoleA
+s1 skin Sponza/Arch
+flags shadow 
+
+object model HoleA_B1
+f3 pos -8.887 -2.69 11.6
+f3 rot 0.0 0.0 180.0
+s1 mesh Sponza/HoleA
+s1 skin Sponza/Arch
+flags shadow 
+
+object model HoleA_B2
+f3 pos -4.439 -2.69 11.6
+f3 rot 0.0 0.0 180.0
+s1 mesh Sponza/HoleA
+s1 skin Sponza/Arch
+flags shadow 
+
+object model HoleA_B3
+f3 pos 0.0 -2.69 11.6
+f3 rot 0.0 0.0 180.0
+s1 mesh Sponza/HoleA
+s1 skin Sponza/Arch
+flags shadow 
+
+object model HoleA_B4
+f3 pos 4.439 -2.69 11.6
+f3 rot 0.0 0.0 180.0
+s1 mesh Sponza/HoleA
+s1 skin Sponza/Arch
+flags shadow 
+
+object model HoleA_B5
+f3 pos 8.887 -2.69 11.6
+f3 rot 0.0 0.0 180.0
+s1 mesh Sponza/HoleA
+s1 skin Sponza/Arch
+flags shadow 
+
+object model HoleA_C
+f3 pos -11.25 0.0 11.6
+f3 rot 0.0 0.0 90.0
+s1 mesh Sponza/HoleA
+s1 skin Sponza/Arch
+flags shadow 
+
+object model HoleB_A1
+f3 pos -6.85 2.64 14.9
+s1 mesh Sponza/HoleB
+s1 skin Sponza/HoleB
+flags shadow 
+
+object model HoleB_A2
+f3 pos -2.41 2.64 14.9
+s1 mesh Sponza/HoleB
+s1 skin Sponza/HoleB
+flags shadow 
+
+object model HoleB_A3
+f3 pos 2.41 2.64 14.9
+s1 mesh Sponza/HoleB
+s1 skin Sponza/HoleB
+flags shadow 
+
+object model HoleB_A4
+f3 pos 6.85 2.64 14.9
+s1 mesh Sponza/HoleB
+s1 skin Sponza/HoleB
+flags shadow 
+
+object model HoleB_B1
+f3 pos -6.85 -2.64 14.9
+f3 rot 0.0 0.0 180.0
+s1 mesh Sponza/HoleB
+s1 skin Sponza/HoleB
+flags shadow 
+
+object model HoleB_B2
+f3 pos -2.41 -2.64 14.9
+f3 rot 0.0 0.0 180.0
+s1 mesh Sponza/HoleB
+s1 skin Sponza/HoleB
+flags shadow 
+
+object model HoleB_B3
+f3 pos 2.41 -2.64 14.9
+f3 rot 0.0 0.0 180.0
+s1 mesh Sponza/HoleB
+s1 skin Sponza/HoleB
+flags shadow 
+
+object model HoleB_B4
+f3 pos 6.85 -2.64 14.9
+f3 rot 0.0 0.0 180.0
+s1 mesh Sponza/HoleB
+s1 skin Sponza/HoleB
+flags shadow 
+
+object model HoleB_C
+f3 pos -11.14 0.0 14.9
+f3 rot 0.0 0.0 90.0
+s1 mesh Sponza/HoleB
+s1 skin Sponza/HoleB
+flags shadow 
+
+object model FloorA
+s1 mesh Sponza/FloorA
+s1 skin Sponza/Floor
+flags shadow 
+
+object model FloorB
+f3 pos 0.0 0.0 5.0
+s1 mesh Sponza/FloorB
+s1 skin Sponza/Floor
+flags shadow 
+
+object model Roof_1
+f3 pos 0.0 0.0 16.25
+s1 mesh Sponza/Roof
+s1 skin Sponza/Roof
+flags shadow 
+
+object model Roof_2
+f3 pos 0.0 0.0 16.25
+f3 sca 1.0 -1.0 1.0
+s1 mesh Sponza/Roof
+s1 skin Sponza/Roof
+flags shadow 
+
+object model Roof_3
+f3 pos 0.0 0.0 16.25
+f3 sca -1.0 -1.0 1.0
+s1 mesh Sponza/Roof
+s1 skin Sponza/Roof
+flags shadow 
+
+object model Roof_4
+f3 pos 0.0 0.0 16.25
+f3 sca -1.0 1.0 1.0
+s1 mesh Sponza/Roof
+s1 skin Sponza/Roof
+flags shadow 
+
+object model WallA_1
+f3 pos 0.0 0.0 4.37
+s1 mesh Sponza/WallA
+s1 skin Sponza/Bricks
+flags shadow 
+
+object model WallA_2
+f3 pos 0.0 0.0 4.37
+f3 rot 0.0 0.0 180.0
+s1 mesh Sponza/WallA
+s1 skin Sponza/Bricks
+flags shadow 
+
+object model WallB_1
+f3 pos 0.0 0.0 5.45
+s1 mesh Sponza/WallB
+s1 skin Sponza/Bricks
+flags shadow 
+
+object model WallB_2
+f3 pos 0.0 0.0 5.45
+f3 rot 0.0 0.0 180.0
+s1 mesh Sponza/WallB
+s1 skin Sponza/Bricks
+flags shadow 
+
+object model WallC_1
+f3 pos 0.0 0.0 9.7
+s1 mesh Sponza/WallC
+s1 skin Sponza/Bricks
+flags shadow 
+
+object model WallC_2
+f3 pos 0.0 0.0 9.7
+f3 rot 0.0 0.0 180.0
+s1 mesh Sponza/WallC
+s1 skin Sponza/Bricks
+flags shadow 
+
+object model WallD_A1
+f3 pos 0.0 0.0 2.34
+f3 sca 1.0 1.0 0.92
+s1 mesh Sponza/WallD
+s1 skin Sponza/Bricks
+flags shadow 
+
+object model WallD_A2
+f3 pos 0.0 0.0 2.34
+f3 rot 0.0 0.0 180.0
+f3 sca 1.0 1.0 0.92
+s1 mesh Sponza/WallD
+s1 skin Sponza/Bricks
+flags shadow 
+
+object model WallD_B1
+f3 pos 0.0 0.0 7.7
+f3 sca 1.0 1.0 1.06
+s1 mesh Sponza/WallD
+s1 skin Sponza/Bricks
+flags shadow 
+
+object model WallD_B2
+f3 pos 0.0 0.0 7.7
+f3 rot 0.0 0.0 180.0
+f3 sca 1.0 1.0 1.06
+s1 mesh Sponza/WallD
+s1 skin Sponza/Bricks
+flags shadow 
+
+object model WallD_C1
+f3 pos 0.0 0.0 13.35
+f3 sca 0.72 0.462 0.92
+s1 mesh Sponza/WallD
+s1 skin Sponza/Bricks
+flags shadow 
+
+object model WallD_C2
+f3 pos 0.0 0.0 13.35
+f3 rot 0.0 0.0 180.0
+f3 sca 0.72 0.462 0.92
+s1 mesh Sponza/WallD
+s1 skin Sponza/Bricks
+flags shadow 
+
+object model WallE_1
+f3 pos 0.0 0.0 13.3
+s1 mesh Sponza/WallE
+s1 skin Sponza/Bricks
+flags shadow 
+
+object model WallE_2
+f3 pos 0.0 0.0 13.3
+f3 rot 0.0 0.0 180.0
+s1 mesh Sponza/WallE
+s1 skin Sponza/Bricks
+flags shadow 
+
+object model WallEFill
+f3 pos 11.11 0.0 13.3
+s1 mesh Sponza/WallEFill
+s1 skin Sponza/Bricks
+flags 
+}

@@ -2,6 +2,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <sqee/redist/gl_ext_3_3.hpp>
+#include <sqee/gl/maths.hpp>
 
 #include "../cell.hpp"
 #include "light.hpp"
@@ -17,8 +18,7 @@ Light::Light(const ObjSpec& _spec) : Object(_spec) {
     softness  = _spec.fMap.at("angIntSft")[2];
     texSize   = _spec.iMap.at("texSize")[0];
 
-    vec3 t1(glm::cross(dir, {0, 1, 0})), t2(glm::cross(dir, {0, 0, 1}));
-    vec3 tangent = glm::normalize(glm::length(t1) > glm::length(t2) ? t1 : t2);
+    vec3 tangent = sq::make_tangent(dir);
     mat4 viewMat = glm::lookAt(pos, pos+dir, tangent);
     mat4 projMat = glm::perspective(angle * 2.f, 1.f, 0.1f, intensity);
 

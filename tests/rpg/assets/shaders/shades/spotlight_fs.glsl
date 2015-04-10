@@ -54,9 +54,8 @@ void main() {
     // Shadow
     vec4 sc = LB.matrix * vec4(w_pos+w_surf*0.06f, 1.f);
     vec3 shadcrd = sc.xyz / sc.w * 0.5f + 0.5f;
-
-    float bias = get_bias(v_surf, dirToSpot);
     float vis = 0.f;
+    float bias = get_bias(v_surf, dirToSpot);
     if (shadFilter < 2) vis = sample_shadow(shadcrd, bias, texShad);
     else {
         if (shadQuality == 0) vis = sample_shadow_d4(shadcrd, bias, texShad);

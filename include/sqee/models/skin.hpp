@@ -2,7 +2,6 @@
 #include <sqee/forward.hpp>
 
 #include <forward_list>
-#include <vector>
 
 #include <sqee/misc/resholder.hpp>
 
@@ -20,7 +19,7 @@ public:
         sq::Texture* spec = nullptr;
         int glMode = 0;
     };
-    std::vector<Material> mtrlVec;
+    vector<Material> mtrlVec;
 
     std::forward_list<uint> filtered(char _punch, char _shadow);
 

@@ -1,0 +1,14 @@
+# SQEE Skin Format
+
+{ header
+mCount 1
+}
+
+{ materials
+material
+wrap repeat
+punch no
+shadow yes
+diff Sponza/fabric_blue
+spec Sponza/fabric
+}

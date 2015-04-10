@@ -11,11 +11,11 @@ using namespace sq;
 
 Application::Application(uvec2 _size, bool _resizable) {
     sf::ContextSettings sfmlSettings;
-    sfmlSettings.depthBits        = 24,
-    sfmlSettings.stencilBits       = 8,
+    sfmlSettings.depthBits = 24,
+    sfmlSettings.stencilBits = 8,
     sfmlSettings.antialiasingLevel = 0,
-    sfmlSettings.majorVersion      = 3,
-    sfmlSettings.minorVersion      = 3;
+    sfmlSettings.majorVersion = 3,
+    sfmlSettings.minorVersion = 3;
 
     window.create({_size.x, _size.y}, "",
                   _resizable ? sf::Style::Default : sf::Style::Close | sf::Style::Titlebar,
@@ -26,14 +26,14 @@ Application::Application(uvec2 _size, bool _resizable) {
     #ifdef SQEE_DEBUG
     const GLubyte* renderer = gl::GetString(gl::RENDERER);
     const GLubyte* version = gl::GetString(gl::VERSION);
-    log_info("Renderer $0", (char*)renderer);
-    log_info("Version $0", (char*)version);
+    log_info("Renderer %s", (char*)renderer);
+    log_info("Version %s", (char*)version);
     gl::Enable(gl::DEBUG_OUTPUT);
     gl::Enable(gl::DEBUG_OUTPUT_SYNCHRONOUS);
     gl::DebugMessageCallback(debug_callback, nullptr);
     #endif
 
-    settings.add<bool>("app_vsync", false);
+    settings.add<bool>("app_vsync", true);
     settings.add<bool>("app_keyrepeat", false);
     settings.add<string>("app_title", "SQEE Application");
 

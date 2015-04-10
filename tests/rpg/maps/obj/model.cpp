@@ -27,9 +27,7 @@ Model::Model(const ObjSpec& _spec) : Object(_spec) {
         model->skin->create(sPath);
     }
 
-    glm::vec3 pos = {0, 0, 0};
-    glm::vec3 rot = {0, 0, 0};
-    glm::vec3 sca = {1, 1, 1};
+    vec3 pos(0,0,0), rot(0,0,0), sca(1,1,1);
     if (_spec.fMap.count("pos"))
         pos = glm::make_vec3(_spec.fMap.at("pos").data());
     if (_spec.fMap.count("rot"))
@@ -37,10 +35,10 @@ Model::Model(const ObjSpec& _spec) : Object(_spec) {
     if (_spec.fMap.count("sca"))
         sca = glm::make_vec3(_spec.fMap.at("sca").data());
 
-    model->matrix = glm::translate(glm::mat4(), pos);
+    model->matrix = glm::translate(mat4(), pos);
     model->matrix = glm::translate(model->matrix, cell.pos);
-    model->matrix = glm::rotate(model->matrix, rot.x, {1, 0, 0});
-    model->matrix = glm::rotate(model->matrix, rot.y, {0, 1, 0});
-    model->matrix = glm::rotate(model->matrix, rot.z, {0, 0, 1});
+    model->matrix = glm::rotate(model->matrix, glm::radians(rot.x), {1,0,0});
+    model->matrix = glm::rotate(model->matrix, glm::radians(rot.y), {0,1,0});
+    model->matrix = glm::rotate(model->matrix, glm::radians(rot.z), {0,0,1});
     model->matrix = glm::scale(model->matrix, sca);
 }

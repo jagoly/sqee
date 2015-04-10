@@ -68,7 +68,7 @@ void Skin::create(const string& _path) {
 
     #ifdef SQEE_DEBUG
     if (mtrlVec.size() != TexPathsVec.size())
-        log_warning("mCount mismatch when loading skin from $0", path);
+        log_warning("mCount mismatch when loading skin from %s", path);
     #endif
 
     for (uint i = 0; i < TexPathsVec.size(); i++) {
@@ -84,7 +84,7 @@ void Skin::create(const string& _path) {
         else if (paths.wrapMode == 2) preset = Texture::Preset::M_M;
 
         if (!paths.diff.empty()) {
-            const string name = "models/diff/" + paths.diff;
+            const string name = "diff/" + paths.diff;
             if (!(mtrl.diff = res::texture().get(name))) {
                 mtrl.diff = res::texture().add(name);
                 mtrl.diff->create(gl::TEXTURE_2D, gl::RGBA, gl::RGBA8, 4, preset);
@@ -93,7 +93,7 @@ void Skin::create(const string& _path) {
             } mtrl.glMode = mtrl.glMode | 1;
         }
         if (!paths.norm.empty()) {
-            const string name = "models/norm/" + paths.norm;
+            const string name = "norm/" + paths.norm;
             if (!(mtrl.norm = res::texture().get(name))) {
                 mtrl.norm = res::texture().add(name);
                 mtrl.norm->create(gl::TEXTURE_2D, gl::RGB, gl::RGB8, 3, preset);
@@ -102,7 +102,7 @@ void Skin::create(const string& _path) {
             } mtrl.glMode = mtrl.glMode | 2;
         }
         if (!paths.spec.empty()) {
-            const string name = "models/spec/" + paths.spec;
+            const string name = "spec/" + paths.spec;
             if (!(mtrl.spec = res::texture().get(name))) {
                 mtrl.spec = res::texture().add(name);
                 mtrl.spec->create(gl::TEXTURE_2D, gl::RGBA, gl::RGBA8, 4, preset);

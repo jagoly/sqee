@@ -75,8 +75,8 @@ void SceneGame::render(float) {
         pipe.use_shader(vert);
         pipe.use_shader(frag);
 
-        vert.set_mat("viewMat", camera.viewMat);
-        vert.set_mat("projMat", camera.projMat);
+        vert.set_mat<mat4>("viewMat", camera.viewMat);
+        vert.set_mat<mat4>("projMat", camera.projMat);
 
         mesh.create("Dice");
     }

@@ -21,7 +21,8 @@ bool HandlerResize::handle(const sf::Event& _event) {
 
 bool HandlerFramelimit::handle(const sf::Event& _event) {
     if (_event.type == sf::Event::KeyPressed && _event.key.code == sf::Keyboard::V) {
-        //app.set_vsync(!app.vsync);
+        app.settings.mod<bool>("app_vsync", !app.settings.crnt<bool>("app_vsync"));
+        app.settings.apply();
         return true;
     }
     return false;

@@ -1,8 +1,6 @@
 #pragma once
 #include <sqee/forward.hpp>
 
-#include <vector>
-
 #include <sqee/models/animation.hpp>
 
 namespace sq {
@@ -17,8 +15,8 @@ public:
     void stop_anim(uint _span);
     void pause_anim();
 
-    std::vector<vec4> quatVec;
-    std::vector<vec3> offsVec;
+    vector<vec4> quatVec;
+    vector<vec3> offsVec;
 
     void tick();
     void calc(double _accum);

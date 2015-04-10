@@ -15,7 +15,7 @@ public:
     const string name;
     const std::vector<string> loads;
 
-    glm::vec3 pos, size;
+    vec3 pos, size;
 
     void tick();
     void calc(double _accum);

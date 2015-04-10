@@ -9,10 +9,10 @@
 #include <sqee/debug/misc.hpp>
 #endif
 
+#include <sqee/redist/gl_ext_3_3.hpp>
 #include <sqee/app/application.hpp>
 #include <sqee/app/logging.hpp>
 #include <sqee/gl/framebuffers.hpp>
-#include <sqee/redist/gl_ext_3_3.hpp>
 #include <sqee/gl/misc.hpp>
 #include <sqee/gl/shaders.hpp>
 #include <sqee/gl/textures.hpp>
@@ -25,9 +25,6 @@
 #include "render/light.hpp"
 #include "scenemain.hpp"
 
-inline mat3 to_norm_mat(const mat4& _mvMat) {
-    return mat3(glm::transpose(glm::inverse(_mvMat)));
-}
 
 using namespace sqt;
 
@@ -58,28 +55,17 @@ SceneMain::SceneMain(sq::Application& _app) : sq::Scene(_app) {
 
     spotlightVec.emplace_back();
     spotlightVec.back().reset(new SpotLight());
-    spotlightVec.back()->baseSize = 256;
-    spotlightVec.back()->position = {2.7f, -4.f, 9.5f};
+    spotlightVec.back()->baseSize = 512;
+    spotlightVec.back()->position = {-5.f, 0.f, 1.f};
     spotlightVec.back()->angle = glm::radians(50.f) / 2.f;
-    spotlightVec.back()->direction = {0.f, 0.3f, -0.7f};
-    spotlightVec.back()->intensity = 25.f;
+    spotlightVec.back()->direction = {1.f, 0.f, 0.f};
+    spotlightVec.back()->intensity = 45.f;
     spotlightVec.back()->colour = {2.f, 2.f, 2.f};
-    spotlightVec.back()->softness = 0.8f;
+    spotlightVec.back()->softness = 0.2f;
     spotlightVec.back()->camera = camera.get();
 
-//    spotlightVec.emplace_back();
-//    spotlightVec.back().reset(new SpotLight());
-//    spotlightVec.back()->baseSize = 1024;
-//    spotlightVec.back()->position = {19.f, 14.f, 15.f};
-//    spotlightVec.back()->angle = glm::radians(70.f) / 2.f;
-//    spotlightVec.back()->direction = {0.f, 0.f, -1.f};
-//    spotlightVec.back()->intensity = 45.f;
-//    spotlightVec.back()->colour = {2.f, 2.f, 2.f};
-//    spotlightVec.back()->softness = 0.3f;
-//    spotlightVec.back()->camera = &camera;
-
-    FB.spotVec.resize(2);
-    TX.spotDepthVec.resize(2);
+    FB.spotVec.resize(1);
+    TX.spotDepthVec.resize(1);
 
     /// Add Settings
     app.settings.add<float>("viewDistance", 120.f);
@@ -344,7 +330,7 @@ void SceneMain::render(float _ft) {
     { // will become loop
         player->model->mesh->bind_vao();
         VS.modl_skelly->set_mat<mat4>("modelMat", player->model->matrix);
-        VS.modl_skelly->set_mat<mat3>("normMat", to_norm_mat(camera->viewMat * player->model->matrix));
+        VS.modl_skelly->set_mat<mat3>("normMat", sq::make_normMat(camera->viewMat * player->model->matrix));
         VS.modl_skelly->set_vecptr<vec4>("skelQuat", (float*)player->model->skel.quatVec.data());
         VS.modl_skelly->set_vecptr<vec3>("skelOffs", (float*)player->model->skel.offsVec.data());
         for (uint i = 0; i < player->model->mesh->mCount; i++) {
@@ -356,9 +342,11 @@ void SceneMain::render(float _ft) {
 
     pipeLine->use_shader(*VS.modl_static);
     for (auto& obj : world->filtered<Model>()) {
+        if (sq::sphere_in_frus(obj->model->mesh->sphere, obj->model->matrix, camera->frus)) continue;
+        gl::FrontFace(glm::determinant(obj->model->matrix) < 0.f ? gl::CW : gl::CCW);
         obj->model->mesh->bind_vao();
         VS.modl_static->set_mat<mat4>("modelMat", obj->model->matrix);
-        VS.modl_static->set_mat<mat3>("normMat", to_norm_mat(camera->viewMat * obj->model->matrix));
+        VS.modl_static->set_mat<mat3>("normMat", sq::make_normMat(camera->viewMat*obj->model->matrix));
         for (uint i = 0; i < obj->model->mesh->mCount; i++) {
             FS.modl_write->set_sca("mode", obj->model->skin->mtrlVec[i].glMode);
             obj->model->skin->bind_textures(i);
@@ -486,6 +474,7 @@ void SceneMain::draw_skylight() {
         for (auto& obj : world->filtered<Model>()) {
             auto fList = obj->model->skin->filtered(0, 1);
             if (fList.empty()) continue;
+            gl::FrontFace(glm::determinant(obj->model->matrix) < 0.f ? gl::CW : gl::CCW);
             VS.shad_static->set_mat<mat4>("modelMat", obj->model->matrix);
             obj->model->mesh->bind_vao();
             for (auto& i : fList) {
@@ -498,6 +487,7 @@ void SceneMain::draw_skylight() {
         for (auto& obj : world->filtered<Model>()) {
             auto fList = obj->model->skin->filtered(1, 1);
             if (fList.empty()) continue;
+            gl::FrontFace(glm::determinant(obj->model->matrix) < 0.f ? gl::CW : gl::CCW);
             VS.shad_static_punch->set_mat<mat4>("modelMat", obj->model->matrix);
             obj->model->mesh->bind_vao();
             for (auto& i : fList) {

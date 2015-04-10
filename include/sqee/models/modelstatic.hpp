@@ -9,7 +9,6 @@ namespace sq {
 class ModelStatic : NonCopyable {
 public:
     mat4 matrix;
-
     Mesh* mesh = nullptr;
     Skin* skin = nullptr;
 

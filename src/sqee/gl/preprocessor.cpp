@@ -6,14 +6,14 @@ using namespace sq;
 
 void Preprocessor::import_header(const string& _path) {
     #ifdef SQEE_DEBUG
-    log_info("Importing shader from $0", _path);
+    log_info("Importing shader from %s", _path);
     #endif
     headerMap.emplace(_path, get_string_from_file("assets/shaders/"+_path+".glsl"));
 }
 
 string Preprocessor::operator()(const string& _path, const string& _extra) {
     #ifdef SQEE_DEBUG
-    log_info("Preprocessing shader from $0", _path);
+    log_info("Preprocessing shader from %s", _path);
     #endif
 
     string retStr = get_string_from_file("assets/shaders/"+_path+".glsl");

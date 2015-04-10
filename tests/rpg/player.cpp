@@ -51,18 +51,18 @@ void Player::tick() {
 
     if (KB::isKeyPressed(KB::Right) && !KB::isKeyPressed(KB::Left)) {
         newMoveDir = sq::Direction::East;
-        posNext += glm::rotateZ(vec3(0.08f, 0.f, 0.f), rotZNext);
+        posNext += glm::rotateZ(vec3(0.08f, 0.f, 0.f), rotZ);
     } else if (KB::isKeyPressed(KB::Left) && !KB::isKeyPressed(KB::Right)) {
         newMoveDir = sq::Direction::West;
-        posNext += glm::rotateZ(vec3(-0.08f, 0.f, 0.f), rotZNext);
+        posNext += glm::rotateZ(vec3(-0.08f, 0.f, 0.f), rotZ);
     }
 
     if (KB::isKeyPressed(KB::Up) && !KB::isKeyPressed(KB::Down)) {
         newMoveDir = sq::Direction::North;
-        posNext += glm::rotateZ(vec3(0.f, 0.08f, 0.f), rotZNext);
+        posNext += glm::rotateZ(vec3(0.f, 0.08f, 0.f), rotZ);
     } else if (KB::isKeyPressed(KB::Down) && !KB::isKeyPressed(KB::Up)) {
         newMoveDir = sq::Direction::South,
-        posNext += glm::rotateZ(vec3(0.f, -0.08f, 0.f), rotZNext);
+        posNext += glm::rotateZ(vec3(0.f, -0.08f, 0.f), rotZ);
     }
 
     if (moveDir != newMoveDir) {
@@ -83,13 +83,13 @@ void Player::tick() {
     model->skel.tick();
 
     //if (false) {
-    if (app->settings.crnt<bool>("mouseFocus")) {
-        vec2 mMove = app->mouse_relatify();
-        rotXCrnt = rotXNext;
-        rotZCrnt = rotZNext;
-        rotZNext = rotZNext + mMove.x/200.f;
-        rotXNext = glm::clamp(rotXNext + mMove.y/400.f, -1.1f, 1.1f);
-    }
+//    if (app->settings.crnt<bool>("mouseFocus")) {
+//        vec2 mMove = app->mouse_relatify();
+//        rotXCrnt = rotXNext;
+//        rotZCrnt = rotZNext;
+//        rotZNext = rotZNext + mMove.x/200.f;
+//        rotXNext = glm::clamp(rotXNext + mMove.y/400.f, -1.1f, 1.1f);
+//    }
 }
 
 void Player::calc(double _accum) {
@@ -101,8 +101,11 @@ void Player::calc(double _accum) {
     camera->pos = pos;
     camera->pos.z += zCam;
 
-    float rotX = glm::mix(rotXCrnt, rotXNext, _accum / dt);
-    float rotZ = glm::mix(rotZCrnt, rotZNext, _accum / dt);
+    if (app->settings.crnt<bool>("mouseFocus")) {
+        vec2 mMove = app->mouse_relatify();
+        rotZ = rotZ + mMove.x/800.f;
+        rotX = glm::clamp(rotX + mMove.y/1600.f, -1.1f, 1.1f);
+    }
 
     if (app->settings.crnt<bool>("mouseFocus")) {
         camera->dir = glm::rotateZ(glm::rotateX(vec3(0,1,0), rotX), rotZ);

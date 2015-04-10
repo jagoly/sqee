@@ -1,0 +1,20 @@
+# SQEE Skin Format
+
+{ header
+mCount 2
+}
+
+{ materials
+material
+wrap repeat
+punch yes
+shadow yes
+diff Sponza/chain
+norm Sponza/chain
+
+material
+wrap repeat
+punch no
+shadow yes
+diff Sponza/vase_hanging
+}

@@ -7,7 +7,6 @@ set(SOURCES
     "scenemain.hpp"           "scenemain.cpp"
     "render/light.hpp"        "render/light.cpp"
     "render/camera.hpp"       "render/camera.cpp"
-    "render/shaders.hpp"      "render/shaders.cpp"
     "maps/cell.hpp"           "maps/cell.cpp"
     "maps/world.hpp"          "maps/world.cpp"
     "maps/obj/object.hpp"     "maps/obj/object.cpp"

@@ -75,8 +75,8 @@ void SceneGame::render(float) {
         pipe.use_shader(vert);
         pipe.use_shader(frag);
 
-        vert.set_mat("viewMat", camera.viewMat);
-        vert.set_mat("projMat", camera.projMat);
+        vert.set_mat<mat4>("viewMat", camera.viewMat);
+        vert.set_mat<mat4>("projMat", camera.projMat);
 
         mesh.create("Dice");
     }
@@ -84,7 +84,7 @@ void SceneGame::render(float) {
     gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 
     pipe.bind();
-    vert.set_vec("translation", translation);
+    vert.set_vec<vec3>("translation", translation);
 
     mesh.bind_vao();
     mesh.draw_ibo(0);

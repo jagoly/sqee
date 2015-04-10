@@ -32,8 +32,8 @@ material
 wrap repeat
 punch no
 shadow yes
-diff Sponza/background
-norm Sponza/background
+diff Sponza/plaque
+norm Sponza/plaque
 
 material
 wrap repeat

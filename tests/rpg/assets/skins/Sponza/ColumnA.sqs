@@ -1,0 +1,15 @@
+# SQEE Skin Format
+
+{ header
+mCount 1
+}
+
+{ materials
+material
+wrap repeat
+punch no
+shadow yes
+diff Sponza/column_a
+norm Sponza/column_a
+spec Sponza/column_a
+}

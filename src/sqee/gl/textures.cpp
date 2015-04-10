@@ -23,7 +23,7 @@ void Texture::create(GLenum _target, GLenum _format, GLenum _iFormat, uint _chan
     if (target == gl::TEXTURE_1D) dimensions = 1;
     else if (target == gl::TEXTURE_1D_ARRAY || target == gl::TEXTURE_2D) dimensions = 2;
     else if (target == gl::TEXTURE_2D_ARRAY || target == gl::TEXTURE_3D) dimensions = 3;
-    else log_error("ERROR: Unsupported texture target given");
+    else log_error("Unsupported texture target given");
 
     gl::GenTextures(1, &tex);
     set_preset(_preset);
@@ -70,7 +70,7 @@ void Texture::buffer_file(const string& _path, uint _z) {
     if (dimensions < 3) size = {w, h, 1};
 
     #ifdef SQEE_DEBUG
-    if (!data) log_error("Failed to load texture from $0", path);
+    if (!data) log_error("Failed to load texture from %s", path);
     #endif
 
     buffer_memory(data, _z);

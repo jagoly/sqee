@@ -1,8 +1,6 @@
 #pragma once
 #include <sqee/forward.hpp>
 
-#include <vector>
-
 #include <sqee/misc/resholder.hpp>
 
 namespace sq {
@@ -15,11 +13,11 @@ public:
     uint pCount = 0;
     uint tCount = 0;
 
-    using Pose = std::pair<std::vector<vec4>, std::vector<vec3>>;
+    using Pose = std::pair<vector<vec4>, vector<vec3>>;
     using Keyframe = std::pair<Pose&, uint>;
-    using Timeline = std::vector<Keyframe>;
-    std::vector<Pose> poseVec;
-    std::vector<Timeline> timelineVec;
+    using Timeline = vector<Keyframe>;
+    vector<Pose> poseVec;
+    vector<Timeline> timelineVec;
 };
 
 namespace res {

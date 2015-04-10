@@ -23,8 +23,7 @@ public:
     World* world = nullptr;
 
 private:
-    float rotXCrnt = 0.f, rotXNext = 0.f;
-    float rotZCrnt = 0.f, rotZNext = 0.f;
+    float rotX = 0.f, rotZ = 0.f;
     float zCam = 0.f;
     vec3 posCrnt, posNext;
 

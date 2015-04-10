@@ -27,7 +27,9 @@ set(SOURCES
 # 3rd Party Headers
     "${INCDIR}/redist/gl_ext_3_3.hpp"
     "${INCDIR}/redist/jsoncpp.hpp"
+    "${INCDIR}/redist/lmccop.hpp"
     "${INCDIR}/redist/stb_image.hpp"
+    "${INCDIR}/redist/tinyformat.hpp"
 
 # SQEE Headers
     "${INCDIR}/forward.hpp"
@@ -35,7 +37,6 @@ set(SOURCES
     "${INCDIR}/debug/misc.hpp"
     "${INCDIR}/gl/maths.hpp"
     "${INCDIR}/gl/misc.hpp"
-    "${INCDIR}/gl/bounds.hpp"
     "${INCDIR}/gl/cameras.hpp"
     "${INCDIR}/gl/framebuffers.hpp"
     "${INCDIR}/gl/preprocessor.hpp"
@@ -52,7 +53,6 @@ set(SOURCES
     "${INCDIR}/events/basichandlers.hpp"
     "${INCDIR}/text/font.hpp"
     "${INCDIR}/text/text.hpp"
-    "${INCDIR}/maths/physics.hpp"
     "${INCDIR}/menus/basicmenu.hpp"
     "${INCDIR}/models/mesh.hpp"
     "${INCDIR}/models/skin.hpp"
@@ -76,7 +76,6 @@ set(SOURCES
     "${SRCDIR}/debug/misc.cpp"
     "${SRCDIR}/gl/maths.cpp"
     "${SRCDIR}/gl/misc.cpp"
-    "${SRCDIR}/gl/bounds.cpp"
     "${SRCDIR}/gl/cameras.cpp"
     "${SRCDIR}/gl/framebuffers.cpp"
     "${SRCDIR}/gl/preprocessor.cpp"
@@ -91,7 +90,6 @@ set(SOURCES
     "${SRCDIR}/events/basichandlers.cpp"
     "${SRCDIR}/text/font.cpp"
     "${SRCDIR}/text/text.cpp"
-    "${SRCDIR}/maths/physics.cpp"
     "${SRCDIR}/menus/basicmenu.cpp"
     "${SRCDIR}/models/mesh.cpp"
     "${SRCDIR}/models/skin.cpp"
