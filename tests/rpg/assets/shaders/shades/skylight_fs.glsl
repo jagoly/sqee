@@ -78,7 +78,7 @@ void main() {
     vec3 txSpec = texture(texSpec, texcrd).rgb;
     vec3 reflection = reflect(lightDir, v_norm);
     vec3 dirFromCam = normalize(vec4(CB.view * vec4(CB.pos, 1.f)).xyz - v_pos);
-    float factor = pow(max(dot(reflection, dirFromCam), 0.f), 50.f);
+    float factor = pow(max(dot(dirFromCam, reflection), 0.f), 50.f);
     vec3 outSpec = LB.colour * txSpec * factor * vis;
 
     fragColour = outDiff + outSpec;

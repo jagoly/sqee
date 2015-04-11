@@ -74,7 +74,7 @@ void main() {
 
     // Specular
     vec3 txSpec = texture(texSpec, texcrd).rgb;
-    vec3 reflection = reflect(vec4(CB.view * vec4(spotDir, 0)).xyz, v_norm);
+    vec3 reflection = reflect(spotDir, v_norm);
     vec3 dirFromCam = normalize(vec4(CB.view * vec4(CB.pos, 1.f)).xyz - v_pos);
     float factor = pow(max(dot(dirFromCam, reflection), 0.f), 50.f);
     vec3 outSpec = LB.colour * txSpec * factor * rolloff * vis;
