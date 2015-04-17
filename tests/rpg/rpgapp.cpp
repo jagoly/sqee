@@ -13,7 +13,7 @@
 namespace sqt {
 
 RpgApp::RpgApp() : sq::Application({1280, 720}, true) {
-    sq::res::texture_path() = "assets/textures/";
+    sq::res::tex2D_path() = "assets/textures/";
     sq::res::anim_path() = "assets/animations/";
     sq::res::mesh_path() = "assets/meshes/";
     sq::res::skin_path() = "assets/skins/";

@@ -48,15 +48,14 @@ Liquid::Liquid(const ObjSpec& _spec) : Object(_spec) {
         0, 0, 2.f*pos.z, 1
     };
 
-    if (!(normArray = sq::res::texture().get("waternorms_"+texDir))) {
-        normArray = sq::res::texture().add("waternorms_"+texDir);
-        normArray->create(gl::TEXTURE_2D_ARRAY, gl::RGB, gl::RGB8, 3, sq::Texture::Preset::L_R);
-        normArray->resize({1024, 1024, 4});
-        normArray->buffer_file("static/water/"+texDir+"/0", 0);
-        normArray->buffer_file("static/water/"+texDir+"/1", 1);
-        normArray->buffer_file("static/water/"+texDir+"/2", 2);
-        normArray->buffer_file("static/water/"+texDir+"/3", 3);
-    }
+    normArray.reset(new sq::Texture2DArray());
+    normArray->create(gl::RGB, gl::RGB8, 3);
+    normArray->set_preset(sq::Texture2DArray::L_R());
+    normArray->resize({1024, 1024, 4});
+    normArray->buffer_file("static/water/"+texDir+"/0", 0);
+    normArray->buffer_file("static/water/"+texDir+"/1", 1);
+    normArray->buffer_file("static/water/"+texDir+"/2", 2);
+    normArray->buffer_file("static/water/"+texDir+"/3", 3);
 
     update_ubo();
     ubo.update("reflMat", &reflMat);

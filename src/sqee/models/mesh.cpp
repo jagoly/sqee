@@ -45,17 +45,17 @@ void Mesh::draw_ibo(uint _mtrl) {
 }
 
 void Mesh::load_ascii(const string& _path) {
-    std::vector<std::vector<string>> fileVec(get_words_from_file(_path));
+    vector<vector<string>> fileVec(get_words_from_file(_path));
 
-    std::vector<vec3> points;
-    std::vector<vec3> normals;
-    std::vector<vec3> tangents;
-    std::vector<vec2> texcrds;
-    std::vector<ivec4> bonesA;
-    std::vector<ivec4> bonesB;
-    std::vector<vec4> weightsA;
-    std::vector<vec4> weightsB;
-    std::vector<std::vector<uvec3>> faceVec;
+    vector<vec3> points;
+    vector<vec3> normals;
+    vector<vec3> tangents;
+    vector<vec2> texcrds;
+    vector<ivec4> bonesA;
+    vector<ivec4> bonesB;
+    vector<vec4> weightsA;
+    vector<vec4> weightsB;
+    vector<vector<uvec3>> faceVec;
 
     string section = "";
     for (const auto& line : fileVec) {
@@ -71,7 +71,9 @@ void Mesh::load_ascii(const string& _path) {
         }
 
         if (section == "header") {
-            if      (key == "sphere") sphere = {stof(line[1]), stof(line[2]), stof(line[3]), stof(line[4])};
+            if (key == "bounds") bbox.origin = {stof(line[1]), stof(line[2]), stof(line[3])},
+                                 bbox.radius = stof(line[4]),
+                                 bbox.size = {stof(line[5]), stof(line[6]), stof(line[7])};
             else if (key == "vCount") vCount = stou(line[1]);
             else if (key == "fCount") fCount = stou(line[1]);
             else if (key == "mCount") mCount = stou(line[1]), faceVec.resize(mCount);
@@ -113,7 +115,7 @@ void Mesh::load_ascii(const string& _path) {
 }
 
 void Mesh::load_binary(const string& _path) {
-    std::vector<char> data = get_bytes_from_file(_path);
+    vector<char> data = get_bytes_from_file(_path);
     char* ptr = data.data();
 
     vCount = *(uint*)ptr; ptr += 4;
@@ -124,15 +126,15 @@ void Mesh::load_binary(const string& _path) {
     hasBW = bool(*ptr); ptr += 1;
     hasMT = bool(*ptr); ptr += 1;
 
-    std::vector<vec3> points;
-    std::vector<vec3> normals;
-    std::vector<vec3> tangents;
-    std::vector<vec2> texcrds;
-    std::vector<ivec4> bonesA;
-    std::vector<ivec4> bonesB;
-    std::vector<vec4> weightsA;
-    std::vector<vec4> weightsB;
-    std::vector<std::vector<uvec3>> faceVec(mCount);
+    vector<vec3> points;
+    vector<vec3> normals;
+    vector<vec3> tangents;
+    vector<vec2> texcrds;
+    vector<ivec4> bonesA;
+    vector<ivec4> bonesB;
+    vector<vec4> weightsA;
+    vector<vec4> weightsB;
+    vector<vector<uvec3>> faceVec(mCount);
 
     float* fPtr = (float*)ptr;
     for (uint i = 0; i < vCount; i++) {
@@ -162,11 +164,11 @@ void Mesh::load_binary(const string& _path) {
     load_final(points, normals, tangents, texcrds, bonesA, bonesB, weightsA, weightsB, faceVec);
 }
 
-void Mesh::load_final(const std::vector<vec3>& points, const std::vector<vec3>& normals,
-                      const std::vector<vec3>& tangents, const std::vector<vec2>& texcrds,
-                      const std::vector<ivec4>& bonesA, const std::vector<ivec4>& bonesB,
-                      const std::vector<vec4>& weightsA, const std::vector<vec4>& weightsB,
-                      const std::vector<std::vector<uvec3>>& faceVec) {
+void Mesh::load_final(const vector<vec3>& points, const vector<vec3>& normals,
+                      const vector<vec3>& tangents, const vector<vec2>& texcrds,
+                      const vector<ivec4>& bonesA, const vector<ivec4>& bonesB,
+                      const vector<vec4>& weightsA, const vector<vec4>& weightsB,
+                      const vector<vector<uvec3>>& faceVec) {
     gl::GenVertexArrays(1, &vao);
     gl::BindVertexArray(vao);
 

@@ -2,7 +2,6 @@
 #include <sqee/forward.hpp>
 
 #include <set>
-#include <vector>
 
 namespace sq {
 
@@ -12,15 +11,17 @@ public:
 
     GLuint fbo;
 
-    void attach(GLenum _attach, Texture& _tex);
-    void attach_layer(GLenum _attach, Texture& _tex, GLint _layer);
+    void attach(GLenum _attach, Texture2D& _tex);
+    void attach(GLenum _attach, Texture2DArray& _tex, GLint _layer);
+    void attach(GLenum _attach, TextureCube& _tex, GLint _layer);
 
     void bind();
+    void draw_bufs();
     bool check();
     void use();
 
 protected:
-    std::vector<GLenum> drawBufs;
+    vector<GLenum> drawBufs;
     std::set<GLenum> bufSet;
     void add_buf(GLenum _attach);
 };

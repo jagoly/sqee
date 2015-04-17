@@ -1,7 +1,7 @@
 # SQEE Mesh Format
 
 { header
-sphere 0.0 0.0 8.405 20.026384
+bounds 0.0 0.0 8.405 20.026384 16.5 7.4 8.605
 vCount 9
 fCount 10
 mCount 1

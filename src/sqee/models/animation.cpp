@@ -6,7 +6,7 @@ using namespace sq;
 
 void Animation::create(const string& _path) {
     string path = res::anim_path() + _path + ".sqa";
-    std::vector<std::vector<string>> fileVec(sq::get_words_from_file(path));
+    vector<vector<string>> fileVec(sq::get_words_from_file(path));
 
     string section = "";
     for (const auto& line : fileVec) {

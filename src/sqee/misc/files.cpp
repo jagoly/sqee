@@ -14,7 +14,7 @@ bool sq::check_file_exists(const string& _path) {
 char sq::get_file_first_byte(const string& _path) {
     std::ifstream src(_path);
     if (!src.is_open()) {
-        log_error("Couldn't open file $0", _path);
+        log_error("Couldn't open file %s", _path);
         return -1;
     }
     return src.get();
@@ -23,13 +23,13 @@ char sq::get_file_first_byte(const string& _path) {
 Json::Value sq::get_json_from_file(const string& _path) {
     std::ifstream src(_path);
     if (!src.is_open()) {
-        log_error("Couldn't open file $0", _path);
+        log_error("Couldn't open file %s", _path);
         return Json::Value();
     }
 
     Json::Reader reader; Json::Value root;
     if (!reader.parse(src, root)) {
-        log_error("Failed to load json from $0$L$1$L", _path, reader.getFormattedErrorMessages());
+        log_error("Failed to load json from %s\n%s\n", _path, reader.getFormattedErrorMessages());
         return Json::Value();
     }
 
@@ -39,7 +39,7 @@ Json::Value sq::get_json_from_file(const string& _path) {
 string sq::get_string_from_file(const string& _path) {
     std::ifstream src(_path);
     if (!src.is_open()) {
-        log_error("Couldn't open file $0", _path);
+        log_error("Couldn't open file %s", _path);
         return string();
     }
 
@@ -51,7 +51,7 @@ string sq::get_string_from_file(const string& _path) {
 std::vector<char> sq::get_bytes_from_file(const string& _path) {
     std::ifstream src(_path, std::ios::binary | std::ios::ate);
     if (!src.is_open()) {
-        log_error("Couldn't open file $0", _path);
+        log_error("Couldn't open file %s", _path);
         return std::vector<char>();
     }
 
@@ -66,7 +66,7 @@ std::vector<std::vector<string>> sq::get_words_from_file(const string& _path) {
     std::ifstream src(_path);
     std::vector<std::vector<string>> vec;
     if (!src.is_open()) {
-        log_error("Couldn't open file $0", _path);
+        log_error("Couldn't open file %s", _path);
         return vec;
     }
 

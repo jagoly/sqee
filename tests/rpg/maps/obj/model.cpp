@@ -3,6 +3,7 @@
 
 #include <sqee/redist/gl_ext_3_3.hpp>
 #include <sqee/models/modelstatic.hpp>
+#include <sqee/gl/maths.hpp>
 
 #include "../cell.hpp"
 #include "model.hpp"
@@ -41,4 +42,5 @@ Model::Model(const ObjSpec& _spec) : Object(_spec) {
     model->matrix = glm::rotate(model->matrix, glm::radians(rot.y), {0,1,0});
     model->matrix = glm::rotate(model->matrix, glm::radians(rot.z), {0,0,1});
     model->matrix = glm::scale(model->matrix, sca);
+    model->bbox = sq::bbox_by_model(model->mesh->bbox, model->matrix);
 }

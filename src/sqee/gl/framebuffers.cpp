@@ -8,18 +8,27 @@ Framebuffer::Framebuffer() {
     gl::GenFramebuffers(1, &fbo);
 }
 
-void Framebuffer::attach(GLenum _attach, Texture& _tex) {
-    add_buf(_attach);
+void Framebuffer::attach(GLenum _attach, Texture2D& _tex) {
+    add_buf(_attach); _tex.bind(); bind();
     gl::FramebufferTexture(gl::FRAMEBUFFER, _attach, _tex.tex, 0);
 }
 
-void Framebuffer::attach_layer(GLenum _attach, Texture& _tex, GLint _layer) {
-    add_buf(_attach);
+void Framebuffer::attach(GLenum _attach, Texture2DArray& _tex, GLint _layer) {
+    add_buf(_attach); _tex.bind(); bind();
     gl::FramebufferTextureLayer(gl::FRAMEBUFFER, _attach, _tex.tex, 0, _layer);
+}
+
+void Framebuffer::attach(GLenum _attach, TextureCube& _tex, GLint _layer) {
+    add_buf(_attach); _tex.bind(); bind();
+    gl::FramebufferTexture2D(gl::FRAMEBUFFER, _attach, gl::TEXTURE_CUBE_MAP_POSITIVE_X+_layer, _tex.tex, 0);
 }
 
 void Framebuffer::bind() {
     gl::BindFramebuffer(gl::FRAMEBUFFER, fbo);
+}
+
+void Framebuffer::draw_bufs() {
+    gl::DrawBuffers(drawBufs.size(), drawBufs.data());
 }
 
 bool Framebuffer::check() {

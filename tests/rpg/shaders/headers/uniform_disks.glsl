@@ -88,6 +88,7 @@ vec2(-0.693039, 0.693039),
 vec2(0.382683, -0.923880),
 };
 
-float rand(vec2 _crd){
-    return fract(sin(dot(_crd, vec2(12.9898f,78.233f))) * 43758.5453);
-}
+const vec3 magicVec = vec3(12.9898f,78.233f, 151.7182f);
+float rand1(float _seed) { return fract(sin(_seed * magicVec.x) * 43758.5453f); }
+float rand2(vec2 _seed) { return fract(sin(dot(_seed, magicVec.xy)) * 43758.5453f); }
+float rand3(vec3 _seed) { return fract(sin(dot(_seed, magicVec.xyz)) * 43758.5453f); }

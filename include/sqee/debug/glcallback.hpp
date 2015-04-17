@@ -61,4 +61,9 @@ void APIENTRY debug_callback(GLenum _source, GLenum _type, GLuint /*_id*/, GLenu
 
 }
 
+void debug_message(const string& _message) {
+    gl::DebugMessageInsert(gl::DEBUG_SOURCE_APPLICATION, gl::DEBUG_TYPE_MARKER, 0,
+                           gl::DEBUG_SEVERITY_NOTIFICATION, _message.size(), _message.c_str());
+}
+
 }

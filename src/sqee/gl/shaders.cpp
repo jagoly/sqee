@@ -1,7 +1,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
-#include "sqee/app/logging.hpp"
 #include "sqee/redist/gl_ext_3_3.hpp"
+#include "sqee/app/logging.hpp"
 #include "sqee/gl/shaders.hpp"
 
 using namespace sq;
@@ -26,7 +26,7 @@ void Shader::load(const string& _shaderStr) {
     prog = gl::CreateShaderProgramv(stage, 1, &src);
     int length = 0; char log[2048];
     gl::GetProgramInfoLog(prog, 2048, &length, log);
-    if (length > 0) log_error("Failed to compile shader\n$0", log);
+    if (length > 0) log_error("Failed to compile shader\n%s", log);
 }
 
 void Shader::add_uniform(const string& _name, uint _cnt) {

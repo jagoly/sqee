@@ -5,8 +5,7 @@
 
 layout(location = 0) in vec3 V_pos;
 
-uniform mat4 modelMat;
-uniform mat4 shadMat;
+uniform mat4 matrix;
 
 #ifdef PUNCH
 layout(location = 3) in vec2 V_texcrd;
@@ -19,9 +18,9 @@ out gl_PerVertex {
 
 
 void main() {
-    gl_Position = shadMat * modelMat * vec4(V_pos, 1.f);
+    gl_Position = matrix * vec4(V_pos, 1.f);
 
-  #ifdef PUNCH
+   #ifdef PUNCH
     texcrd = V_texcrd;
-  #endif
+   #endif
 }

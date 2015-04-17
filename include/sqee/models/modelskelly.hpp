@@ -10,6 +10,7 @@ namespace sq {
 class ModelSkelly : NonCopyable {
 public:
     mat4 matrix;
+    BoundBox bbox;
     Mesh* mesh = nullptr;
     Skin* skin = nullptr;
     Skeleton skel;

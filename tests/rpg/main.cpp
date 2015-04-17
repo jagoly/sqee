@@ -13,6 +13,7 @@ const op::Descriptor usage[] = {
 
 int main(int argc, char* argv[]) {
     argc-=(argc>0); argv+=(argc>0);
+
     op::Stats stats(usage, argc, argv);
     std::vector<op::Option> options(stats.options_max);
     std::vector<op::Option> buffer(stats.buffer_max);

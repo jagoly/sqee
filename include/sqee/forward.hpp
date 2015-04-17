@@ -6,6 +6,7 @@
 #include <memory>
 using std::string;
 using std::array;
+using std::pair;
 using std::vector;
 using std::unique_ptr;
 using std::shared_ptr;
@@ -77,8 +78,13 @@ class ModelStatic;
 class ModelSkelly;
 
 class Camera;
+class SkyLight;
+class SpotLight;
+class PointLight;
 
-class Texture;
+class Texture2D;
+class Texture2DArray;
+class TextureCube;
 class Framebuffer;
 class Preprocessor;
 class Shader;

@@ -8,7 +8,7 @@ class Model : public Object {
 public:
     Model(const ObjSpec& _spec);
 
-    unique_ptr<sq::ModelStatic> model;
+    shared_ptr<sq::ModelStatic> model;
 
     bool refl, refr;
 };

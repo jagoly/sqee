@@ -1,9 +1,6 @@
 #pragma once
 #include <sqee/forward.hpp>
 
-#include <sqee/events/handler.hpp>
-#include <sqee/models/skeleton.hpp>
-
 namespace sqt {
 
 class MainCamera;
@@ -11,7 +8,7 @@ class World;
 
 class Player {
 public:
-    unique_ptr<sq::ModelSkelly> model;
+    shared_ptr<sq::ModelSkelly> model;
 
     void test_init();
 

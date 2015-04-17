@@ -9,8 +9,7 @@ layout(location = 5) in ivec4 V_bonesEFGH;
 layout(location = 6) in vec4 V_weightsABCD;
 layout(location = 7) in vec4 V_weightsEFGH;
 
-uniform mat4 modelMat;
-uniform mat4 shadMat;
+uniform mat4 matrix;
 uniform vec4 skelQuat[40];
 uniform vec3 skelOffs[40];
 
@@ -35,7 +34,7 @@ void main() {
         V_weightsEFGH.r, V_weightsEFGH.g, V_weightsEFGH.b, V_weightsEFGH.a
     };
 
-    vec3 a_pos = vec3(0);
+    vec3 a_pos = vec3(0.f);
     for (int i = 0; i < 8; i++) {
         int b = bones[i]; if (b < 0) break;
         float w = skelQuat[b].r; float x = skelQuat[b].g; 
@@ -47,12 +46,12 @@ void main() {
             0, 0, 0, 1
         ));
 
-        a_pos += vec4(bone * vec4(V_pos, 1.f)).xyz * weights[i];
+        a_pos += vec3(bone * vec4(V_pos, 1.f)) * weights[i];
     }
 
-    gl_Position = shadMat * modelMat * vec4(a_pos, 1.f);
+    gl_Position = matrix * vec4(a_pos, 1.f);
 
-  #ifdef PUNCH
+   #ifdef PUNCH
     texcrd = V_texcrd;
-  #endif
+   #endif
 }

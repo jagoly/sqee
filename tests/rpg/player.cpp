@@ -1,9 +1,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 
-#include <sqee/app/application.hpp>
-#include <sqee/gl/cameras.hpp>
 #include <sqee/redist/gl_ext_3_3.hpp>
+#include <sqee/app/application.hpp>
 #include <sqee/models/modelskelly.hpp>
 
 #include "render/camera.hpp"
@@ -38,14 +37,11 @@ void Player::tick() {
     using KB = sf::Keyboard;
 
     posCrnt = posNext;
-    //posNext = {8.f, 6.f, 4.f};
 
     /////
-    if (KB::isKeyPressed(KB::PageUp)) zCam += 0.05f;
-    if (KB::isKeyPressed(KB::PageDown)) zCam -= 0.05f;
+    if (KB::isKeyPressed(KB::PageUp)) posNext.z += 0.05f;
+    if (KB::isKeyPressed(KB::PageDown)) posNext.z -= 0.05f;
     /////
-
-    //zCam = 4.f;
 
     sq::Direction newMoveDir = sq::Direction::None;
 
@@ -82,14 +78,6 @@ void Player::tick() {
 
     model->skel.tick();
 
-    //if (false) {
-//    if (app->settings.crnt<bool>("mouseFocus")) {
-//        vec2 mMove = app->mouse_relatify();
-//        rotXCrnt = rotXNext;
-//        rotZCrnt = rotZNext;
-//        rotZNext = rotZNext + mMove.x/200.f;
-//        rotXNext = glm::clamp(rotXNext + mMove.y/400.f, -1.1f, 1.1f);
-//    }
 }
 
 void Player::calc(double _accum) {
@@ -101,13 +89,12 @@ void Player::calc(double _accum) {
     camera->pos = pos;
     camera->pos.z += zCam;
 
-    if (app->settings.crnt<bool>("mouseFocus")) {
-        vec2 mMove = app->mouse_relatify();
-        rotZ = rotZ + mMove.x/800.f;
-        rotX = glm::clamp(rotX + mMove.y/1600.f, -1.1f, 1.1f);
-    }
+    pos.z = 0.f;
 
     if (app->settings.crnt<bool>("mouseFocus")) {
+        vec2 mMove = app->mouse_relatify();
+        rotZ = rotZ + mMove.x/600.f;
+        rotX = glm::clamp(rotX + mMove.y/900.f, -1.1f, 1.1f);
         camera->dir = glm::rotateZ(glm::rotateX(vec3(0,1,0), rotX), rotZ);
     }
 
@@ -115,5 +102,6 @@ void Player::calc(double _accum) {
     camera->recalc_frustums();
 
     model->matrix = glm::translate(mat4(), pos);
-    model->matrix = glm::rotate(model->matrix, rotZ, {0, 0, 1});
+    model->matrix = glm::rotate(model->matrix, rotZ, {0,0,1});
+    model->bbox = sq::bbox_by_model(model->mesh->bbox, model->matrix);
 }

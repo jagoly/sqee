@@ -13,7 +13,7 @@ float sample_shadow(vec3 _sc, int _layer, float _bias, sampler2DArrayShadow _tex
 }
 
 float sample_shadow_d6(vec3 _sc, int _layer, float _bias, float _radius, sampler2DArrayShadow _tex) {
-    float angle = rand(_sc.xy);
+    float angle = rand2(_sc.xy);
     float s = sin(angle);
     float c = cos(angle);
     float vis = 0.f;
@@ -26,7 +26,7 @@ float sample_shadow_d6(vec3 _sc, int _layer, float _bias, float _radius, sampler
 }
 
 float sample_shadow_d12(vec3 _sc, int _layer, float _bias, float _radius, sampler2DArrayShadow _tex) {
-    float angle = rand(_sc.xy);
+    float angle = rand2(_sc.xy);
     float s = sin(angle);
     float c = cos(angle);
     float vis = 0.f;
@@ -39,7 +39,7 @@ float sample_shadow_d12(vec3 _sc, int _layer, float _bias, float _radius, sample
 }
 
 float sample_shadow_d24(vec3 _sc, int _layer, float _bias, float _radius, sampler2DArrayShadow _tex) {
-    float angle = rand(_sc.xy);
+    float angle = rand2(_sc.xy);
     float s = sin(angle);
     float c = cos(angle);
     float vis = 0.f;

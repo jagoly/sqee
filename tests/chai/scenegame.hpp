@@ -1,7 +1,6 @@
 #pragma once
 
-#include <sqee/gl/textures.hpp>
-#include <sqee/gl/cameras.hpp>
+#include <sqee/render/cameras.hpp>
 #include <sqee/scenes/scene.hpp>
 #include <sqee/events/handler.hpp>
 
@@ -15,10 +14,10 @@ public:
 
     void update();
     void render(float _ft);
-    void resize(glm::uvec2 _size) {}
+    void resize(uvec2 _size) {}
 
 private:
-    glm::vec3 translation = {0.f, 0.f, -4.f};
+    vec3 translation = {0.f, 0.f, -4.f};
 };
 
 class HandlerGame : public sq::Handler {

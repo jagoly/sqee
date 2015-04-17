@@ -27,7 +27,7 @@ out vec3 fragColour;
 vec3 get_view_pos(in vec2 _tc) {
     float dep = texture(texDepth, _tc).r * 2.f - 1.f;
     vec4 p_pos = vec4(_tc * 2.f - 1.f, dep, 1.f);
-    vec4 v_pos = inverse(CB.proj) * p_pos;
+    vec4 v_pos = CB.invProj * p_pos;
     return v_pos.xyz / v_pos.w;
 }
 
@@ -36,14 +36,12 @@ void main() {
     vec3 lightDir = vec4(CB.view * vec4(LB.direction, 0.f)).xyz;
     if (dot(-lightDir, v_norm) < -0.25f) discard;
 
-    mat4 invView = inverse(CB.view);
     vec3 v_pos = get_view_pos(texcrd);
-    vec4 wp = invView * vec4(v_pos, 1.f);
-    vec3 w_pos = vec3(wp.xyz / wp.w);
+    vec4 wp = CB.invView * vec4(v_pos, 1.f);
+    vec3 w_pos = wp.xyz / wp.w;
     vec3 v_surf = normalize(texture(texSurf, texcrd).rgb * 2.f - 1.f);
-    mat4 trnView = transpose(CB.view);
-    vec3 w_norm = normalize(vec4(trnView * vec4(v_norm, 0.f)).xyz);
-    vec3 w_surf = normalize(vec4(trnView * vec4(v_surf, 0.f)).xyz);
+    vec3 w_norm = normalize(vec4(CB.trnView * vec4(v_norm, 0.f)).xyz);
+    vec3 w_surf = normalize(vec4(CB.trnView * vec4(v_surf, 0.f)).xyz);
 
     // Shadow
     int index = 0;

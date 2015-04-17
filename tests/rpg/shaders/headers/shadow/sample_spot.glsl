@@ -13,20 +13,20 @@ float sample_shadow(vec3 _sc, float _bias, sampler2DShadow _tex) {
 }
 
 float sample_shadow_d4(vec3 _sc, float _bias, sampler2DShadow _tex) {
-    float angle = rand(_sc.xy);
+    float angle = rand2(_sc.xy);
     float s = sin(angle);
     float c = cos(angle);
     float vis = 0.f;
     for (int ind = 0; ind < 4; ind++) {
         vec2 offs = disk4[ind] * (1.f / 512.f);
         offs = vec2(c * offs.x - s * offs.y, c * offs.y + s * offs.x);
-        vis += texture(_tex, vec3(_sc.x+offs.x, _sc.y+offs.y, _sc.z - _bias));
+        vis += texture(_tex, vec3(_sc.x+offs.x, _sc.y+offs.y, _sc.z), _bias);
     }
     return vis / 4.f;
 }
 
 float sample_shadow_d8(vec3 _sc, float _bias, sampler2DShadow _tex) {
-    float angle = rand(_sc.xy);
+    float angle = rand2(_sc.xy);
     float s = sin(angle);
     float c = cos(angle);
     float vis = 0.f;
@@ -39,7 +39,7 @@ float sample_shadow_d8(vec3 _sc, float _bias, sampler2DShadow _tex) {
 }
 
 float sample_shadow_d16(vec3 _sc, float _bias, sampler2DShadow _tex) {
-    float angle = rand(_sc.xy);
+    float angle = rand2(_sc.xy);
     float s = sin(angle);
     float c = cos(angle);
     float vis = 0.f;

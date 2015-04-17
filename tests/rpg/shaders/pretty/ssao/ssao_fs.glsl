@@ -1,12 +1,16 @@
 #version 330
 #extension GL_ARB_shading_language_420pack : enable
 
+#include "headers/blocks/camera"
+
 // define HIGH
+
 
 in vec2 texcrd;
 
+layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
+
 uniform vec2 pixSize;
-uniform mat4 invProjMat;
 layout(binding=2) uniform sampler2D texSurf;
 layout(binding=5) uniform sampler2D texDepth;
 
@@ -64,7 +68,7 @@ vec2(0.587785, -0.809017),
 vec3 get_view_pos(in vec2 _tc) {
     float dep = texture(texDepth, _tc).r * 2.f - 1.f;
     vec4 p_pos = vec4(_tc * 2.f - 1.f, dep, 1.f);
-    vec4 v_pos = invProjMat * p_pos;
+    vec4 v_pos = CB.invProj * p_pos;
     return v_pos.xyz / v_pos.w;
 }
 

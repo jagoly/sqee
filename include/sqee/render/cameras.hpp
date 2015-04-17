@@ -1,10 +1,7 @@
 #pragma once
 #include <sqee/forward.hpp>
 
-#include <vector>
-
 #include <sqee/gl/maths.hpp>
-#include <sqee/gl/uniformbuffers.hpp>
 
 namespace sq {
 
@@ -14,26 +11,24 @@ public:
 
     vec3 pos, dir;
     vec2 range;
+    vec2 size;
+    float fov;
 
     mat4 projMat;
     mat4 viewMat;
     Frustum frus;
-
-    vec2 size;
-    float fov;
 
     virtual void update();
 };
 
 class UboCamera : public Camera {
 public:
-    UboCamera();
+    UboCamera(const vector<pair<string, uint>>& _extra);
 
-    Uniformbuffer ubo;
+    unique_ptr<Uniformbuffer> ubo;
     GLuint binding = 0;
 
     void update();
 };
-
 
 }

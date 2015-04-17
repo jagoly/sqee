@@ -1,6 +1,7 @@
 #pragma once
 #include <sqee/forward.hpp>
 
+#include <sqee/gl/maths.hpp>
 #include <sqee/misc/resholder.hpp>
 
 namespace sq {
@@ -25,8 +26,7 @@ public:
     void bind_vao();
     void draw_ibo(uint _mtrl);
 
-    vec3 minPos, maxPos;
-    vec4 sphere;
+    BoundBox bbox;
 
 private:
     void load_ascii(const string& _path);

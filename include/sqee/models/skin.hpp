@@ -14,9 +14,9 @@ public:
 
     struct Material {
         bool punch, shadow;
-        sq::Texture* diff = nullptr;
-        sq::Texture* norm = nullptr;
-        sq::Texture* spec = nullptr;
+        sq::Texture2D* diff = nullptr;
+        sq::Texture2D* norm = nullptr;
+        sq::Texture2D* spec = nullptr;
         int glMode = 0;
     };
     vector<Material> mtrlVec;

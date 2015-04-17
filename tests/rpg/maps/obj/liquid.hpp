@@ -18,7 +18,7 @@ public:
 
     GLuint vao;
     GLuint vboP, vboTc;
-    sq::Texture* normArray;
+    unique_ptr<sq::Texture2DArray> normArray;
 
     sq::Uniformbuffer ubo;
 

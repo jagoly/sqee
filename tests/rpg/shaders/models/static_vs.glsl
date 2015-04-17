@@ -43,6 +43,6 @@ void main() {
         gl_Position = CB.proj * CB.view * vec4(vec4(LB.reflMat * vec4(w_pos, 1)).xyz, 1);
     } else {
         gl_ClipDistance[0] = -(w_pos.z - LB.translation.z);
-        gl_Position = CB.proj * vec4(v_pos, 1.f);
+        gl_Position = CB.proj * vec4(v_pos, 1);
     }
 }

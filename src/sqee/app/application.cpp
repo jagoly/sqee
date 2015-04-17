@@ -33,7 +33,7 @@ Application::Application(uvec2 _size, bool _resizable) {
     gl::DebugMessageCallback(debug_callback, nullptr);
     #endif
 
-    settings.add<bool>("app_vsync", true);
+    settings.add<bool>("app_vsync", false);
     settings.add<bool>("app_keyrepeat", false);
     settings.add<string>("app_title", "SQEE Application");
 

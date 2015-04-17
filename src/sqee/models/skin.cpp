@@ -8,13 +8,13 @@ using namespace sq;
 
 void Skin::create(const string& _path) {
     string path = res::skin_path() + _path + ".sqs";
-    std::vector<std::vector<string>> fileVec(sq::get_words_from_file(path));
+    vector<vector<string>> fileVec(sq::get_words_from_file(path));
 
     struct TexPaths {
         bool punch, shadow;
         int wrapMode = -1;
         string norm, diff, spec;
-    }; std::vector<TexPaths> TexPathsVec;
+    }; vector<TexPaths> TexPathsVec;
 
     string section = "";
     for (auto& line : fileVec) {
@@ -79,34 +79,37 @@ void Skin::create(const string& _path) {
         mtrl.shadow = paths.shadow;
 
         Texture::Preset preset;
-        if      (paths.wrapMode == 0) preset = Texture::Preset::M_C;
-        else if (paths.wrapMode == 1) preset = Texture::Preset::M_R;
-        else if (paths.wrapMode == 2) preset = Texture::Preset::M_M;
+        if      (paths.wrapMode == 0) preset = Texture2D::M_C();
+        else if (paths.wrapMode == 1) preset = Texture2D::M_R();
+        else if (paths.wrapMode == 2) preset = Texture2D::M_M();
 
         if (!paths.diff.empty()) {
             const string name = "diff/" + paths.diff;
-            if (!(mtrl.diff = res::texture().get(name))) {
-                mtrl.diff = res::texture().add(name);
-                mtrl.diff->create(gl::TEXTURE_2D, gl::RGBA, gl::RGBA8, 4, preset);
-                mtrl.diff->buffer_file(name, 0);
+            if (!(mtrl.diff = res::tex2D().get(name))) {
+                mtrl.diff = res::tex2D().add(name);
+                mtrl.diff->create(gl::RGBA, gl::RGBA8, 4);
+                mtrl.diff->set_preset(preset);
+                mtrl.diff->buffer_file(name);
                 mtrl.diff->gen_mipmap();
             } mtrl.glMode = mtrl.glMode | 1;
         }
         if (!paths.norm.empty()) {
             const string name = "norm/" + paths.norm;
-            if (!(mtrl.norm = res::texture().get(name))) {
-                mtrl.norm = res::texture().add(name);
-                mtrl.norm->create(gl::TEXTURE_2D, gl::RGB, gl::RGB8, 3, preset);
-                mtrl.norm->buffer_file(name, 0);
+            if (!(mtrl.norm = res::tex2D().get(name))) {
+                mtrl.norm = res::tex2D().add(name);
+                mtrl.norm->create(gl::RGB, gl::RGB8, 3);
+                mtrl.norm->set_preset(preset);
+                mtrl.norm->buffer_file(name);
                 mtrl.norm->gen_mipmap();
             } mtrl.glMode = mtrl.glMode | 2;
         }
         if (!paths.spec.empty()) {
             const string name = "spec/" + paths.spec;
-            if (!(mtrl.spec = res::texture().get(name))) {
-                mtrl.spec = res::texture().add(name);
-                mtrl.spec->create(gl::TEXTURE_2D, gl::RGBA, gl::RGBA8, 4, preset);
-                mtrl.spec->buffer_file(name, 0);
+            if (!(mtrl.spec = res::tex2D().get(name))) {
+                mtrl.spec = res::tex2D().add(name);
+                mtrl.spec->create(gl::RGBA, gl::RGBA8, 4);
+                mtrl.spec->set_preset(preset);
+                mtrl.spec->buffer_file(name);
                 mtrl.spec->gen_mipmap();
             } mtrl.glMode = mtrl.glMode | 4;
         }
