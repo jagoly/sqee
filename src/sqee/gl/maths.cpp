@@ -76,9 +76,9 @@ bool sq::bbox_in_frus(BoundBox _bbox, Frustum _frus) {
 
 bool sq::frus_in_frus(Frustum _frusA, Frustum _frusB) {
     // NEEDS IMPROVEMENT
+    const auto& planes = {_frusB.pT, _frusB.pB, _frusB.pL, _frusB.pR, _frusB.pN, _frusB.pF};
     const auto& points = {_frusA.xyz, _frusA.xyZ, _frusA.xYz, _frusA.xYZ,
                           _frusA.Xyz, _frusA.XyZ, _frusA.XYz, _frusA.XYZ};
-    const auto& planes = {_frusB.pT, _frusB.pB, _frusB.pL, _frusB.pR, _frusB.pN, _frusB.pF};
     for (const auto& plane : planes) {
         bool less = false, more = false;
         for (const auto& point : points) {

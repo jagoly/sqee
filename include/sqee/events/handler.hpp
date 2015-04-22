@@ -8,7 +8,6 @@ namespace sq {
 class Handler : NonCopyable {
 public:
     Handler(Application& _app) : app(_app) {}
-
     virtual bool handle(const sf::Event& _event) = 0;
 
 protected:

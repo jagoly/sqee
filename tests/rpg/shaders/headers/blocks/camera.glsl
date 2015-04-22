@@ -10,6 +10,5 @@ struct CameraBlock {
     float near;   // 1
     vec3 dir;     // 3
     float far;    // 1
-    vec4 splits;  // 4
-    // Size: 94
+    // Size: 90
 };

@@ -1,16 +1,16 @@
 #include <sqee/redist/gl_ext_3_3.hpp>
 #include <sqee/events/basichandlers.hpp>
-#include <sqee/scripts/console.hpp>
+#include <sqee/scripts/scene.hpp>
+#include <sqee/scripts/handler.hpp>
 
 #include "scenegame.hpp"
 #include "app.hpp"
 
 namespace sqt {
 
-ChaiApp::ChaiApp() : sq::Application({960, 720}, true) {
+ChaiApp::ChaiApp() : sq::Application(true, {960, 720}) {
     handlerIM.append("close", new sq::HandlerClose(*this));
     handlerIM.append("resize", new sq::HandlerResize(*this));
-    handlerIM.append("framelimit", new sq::HandlerFramelimit(*this));
 
     sceneIM.append("game", new SceneGame(*this));
     handlerIM.append("game", new HandlerGame(*this));

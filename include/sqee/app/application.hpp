@@ -17,7 +17,7 @@ namespace sq {
 
 class Application : NonCopyable {
 public:
-    Application(uvec2 _size, bool _resizable);
+    Application(bool _resizable, uvec2 _size);
 
     int run();
     void quit(int _code);

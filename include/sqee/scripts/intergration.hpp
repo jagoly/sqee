@@ -14,5 +14,6 @@ void cs_setup_mesh(chai::ChaiScript& _cs);
 void cs_setup_skeleton(chai::ChaiScript& _cs);
 void cs_setup_skin(chai::ChaiScript& _cs);
 void cs_setup_soundmanager(chai::ChaiScript& _cs);
+void cs_setup_console(chai::ChaiScript& _cs);
 
 }

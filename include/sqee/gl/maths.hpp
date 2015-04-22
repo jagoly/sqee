@@ -18,10 +18,6 @@ dvec3 make_tangent(dvec3 _norm);
 
 dmat3 make_normMat(dmat4 _viewModelMat);
 
-struct Frustum { dvec3 xyz, xyZ, xYz, xYZ, Xyz, XyZ, XYz, XYZ; dvec4 pT, pB, pL, pR, pN, pF; };
-
-struct BoundBox { dvec3 origin, size; double radius; dvec3 nX{1,0,0}, nY{0,1,0}, nZ{0,0,1}; };
-
 bool point_in_tri(dvec2 _p, dvec2 _t0, dvec2 _t1, dvec2 _t2);
 
 dvec3 norm_from_tri(dvec3 _t0, dvec3 _t1, dvec3 _t2);

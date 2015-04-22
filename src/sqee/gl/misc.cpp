@@ -1,3 +1,4 @@
+#include "sqee/redist/gl_ext_3_3.hpp"
 #include "sqee/gl/misc.hpp"
 
 using namespace sq;

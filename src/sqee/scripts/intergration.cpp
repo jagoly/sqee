@@ -1,12 +1,13 @@
 #include "sqee/app/application.hpp"
 #include "sqee/events/handler.hpp"
 #include "sqee/redist/gl_ext_3_3.hpp"
-#include "sqee/models/animation.hpp"
-#include "sqee/models/mesh.hpp"
-#include "sqee/models/skeleton.hpp"
-#include "sqee/models/skin.hpp"
+#include "sqee/render/animation.hpp"
+#include "sqee/render/mesh.hpp"
+#include "sqee/render/skeleton.hpp"
+#include "sqee/render/skin.hpp"
 #include "sqee/scenes/scene.hpp"
 #include "sqee/sounds/soundmanager.hpp"
+#include "sqee/scripts/scene.hpp"
 #include "sqee/scripts/intergration.hpp"
 
 using namespace sq;
@@ -75,9 +76,9 @@ void sq::cs_setup_application(chai::ChaiScript& _cs) {
 
     add_class<Application>(*m, "Application", {
         }, {{fun(&Application::settings), "settings"},
-            {fun(&Application::quit), "quit"},
             {fun(&Application::set_size), "set_size"},
-            {fun(&Application::get_size), "get_size"}});
+            {fun(&Application::get_size), "get_size"},
+            {fun(&Application::quit), "quit"}});
 
     _cs.add(m);
 }
@@ -103,6 +104,17 @@ void sq::cs_setup_settings(chai::ChaiScript& _cs) {
             {fun(&SettingMap::crnt<string>), "crntS"},
             {fun(&SettingMap::next<string>), "nextS"},
             {fun(&SettingMap::apply), "apply"}});
+
+    _cs.add(m);
+}
+
+void sq::cs_setup_console(chai::ChaiScript& _cs) {
+    chai::ModulePtr m(new chai::Module());
+
+    add_class<SceneConsole>(*m, "Console", {
+        }, {{fun(&SceneConsole::cs_print), "print"},
+            {fun(&SceneConsole::cs_clear), "clear"},
+            {fun(&SceneConsole::cs_history), "history"}});
 
     _cs.add(m);
 }

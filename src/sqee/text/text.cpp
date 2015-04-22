@@ -1,5 +1,3 @@
-#include <vector>
-
 #include "sqee/redist/gl_ext_3_3.hpp"
 #include "sqee/text/text.hpp"
 
@@ -8,8 +6,7 @@ using namespace sq;
 extern "C" const uchar ttTexture[256*16*16];
 extern "C" const uchar ttIndices[2048*6*2];
 
-void sq::draw_tiny_text(const string& _text, float _scale, Alignment _align,
-                        vec2 _pos,  uvec2 _viewport) {
+void sq::draw_tiny_text(const string& _text, float _scale, Alignment _align, vec2 _pos, uvec2 _viewport) {
     static GLuint tex = 0;
     static GLuint prog = 0;
     static GLuint ibo = 0;
@@ -63,17 +60,13 @@ void sq::draw_tiny_text(const string& _text, float _scale, Alignment _align,
         int vCnt = sizeof(vShadStr);
         int fCnt = sizeof(fShadStr);
 
-        gl::ShaderSource(vShad, 1, &vSrc, &vCnt);
-        gl::CompileShader(vShad);
-
-        gl::ShaderSource(fShad, 1, &fSrc, &fCnt);
-        gl::CompileShader(fShad);
+        gl::ShaderSource(vShad, 1, &vSrc, &vCnt); gl::CompileShader(vShad);
+        gl::ShaderSource(fShad, 1, &fSrc, &fCnt); gl::CompileShader(fShad);
 
         prog = gl::CreateProgram();
         gl::AttachShader(prog, vShad);
         gl::AttachShader(prog, fShad);
         gl::LinkProgram(prog);
-
 
         gl::GenBuffers(1, &ibo);
         gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ibo);
@@ -90,38 +83,70 @@ void sq::draw_tiny_text(const string& _text, float _scale, Alignment _align,
         gl::GenBuffers(1, &vboCrd);
         gl::BindBuffer(gl::ARRAY_BUFFER, vboCrd);
         gl::VertexAttribPointer(1, 3, gl::UNSIGNED_BYTE, false, 0, 0);
-
     }
 
-    const vec2 charSize(16.f*_scale / _viewport.x, 16.f*_scale / _viewport.y);
-    const vec2 textPos(_pos.x / _viewport.x*2-1, _pos.y / _viewport.y*2-1);
+    vector<array<vec2, 4>> posData;
+    vector<array<glm::u8vec3, 4>> crdData;
+    const vec2 charSize(14.f*_scale / _viewport.x, 16.f*_scale / _viewport.y);
 
-    std::vector<array<vec2, 4>> posData;
-    std::vector<array<glm::u8vec3, 4>> crdData;
+    if (_align == Alignment::BL) {
+        const vec2 textPos((_pos.x / _viewport.x) * 2.f - 1.f,
+                           (_pos.y / _viewport.y) * 2.f - 1.f);
+        vec2 crntPos(textPos);
+        for (const char& c : _text) {
+            if (c == ' ') crntPos.x += charSize.x * 0.6f;
+            else if (c == '\n') crntPos.x = textPos.x, crntPos.y += charSize.y;
+            else {
+                posData.emplace_back();
+                crdData.emplace_back();
+                array<vec2, 4>& pos = posData.back();
+                array<glm::u8vec3, 4>& crd = crdData.back();
+                pos[0] = {crntPos.x, crntPos.y + charSize.y};
+                pos[1] = crntPos + charSize;
+                pos[2] = crntPos;
+                pos[3] = {crntPos.x + charSize.x, crntPos.y};
+                const uchar id = c;
+                crd[0] = {0, 0, id};
+                crd[1] = {1, 0, id};
+                crd[2] = {0, 1, id};
+                crd[3] = {1, 1, id};
 
-    glm::vec2 crntPos(textPos);
-    for (const char& c : _text) {
-        if (c == ' ') crntPos.x += charSize.x * 0.625f;
-        else if (c == '\n') { crntPos.x = textPos.x; crntPos.y += charSize.y; }
-        else {
-            posData.emplace_back();
-            crdData.emplace_back();
-            std::array<glm::vec2, 4>& pos = posData.back();
-            std::array<glm::u8vec3, 4>& crd = crdData.back();
-            pos[0] = {crntPos.x, crntPos.y + charSize.y};
-            pos[1] = crntPos + charSize;
-            pos[2] = crntPos;
-            pos[3] = {crntPos.x + charSize.x, crntPos.y};
-            const uchar id = c;
-            crd[0] = {0, 0, id};
-            crd[1] = {1, 0, id};
-            crd[2] = {0, 1, id};
-            crd[3] = {1, 1, id};
+                crntPos.x += charSize.x * 0.6f;
+                if (crntPos.x > 1.f-charSize.x) {
+                    crntPos.y += charSize.y;
+                    crntPos.x = textPos.x;
+                }
+            }
+        }
+    }
 
-            crntPos.x += charSize.x * 0.625f;
-            if (crntPos.x > 1.f-charSize.x) {
-                crntPos.y += charSize.y * 1.25f;
-                crntPos.x = textPos.x;
+    if (_align == Alignment::TL) {
+        const vec2 textPos((_pos.x / _viewport.x) * 2.f - 1.f,
+                           (1.f - (_pos.y / _viewport.y)) * 2.f - 1.f - charSize.y);
+        vec2 crntPos(textPos);
+        for (const char& c : _text) {
+            if (c == ' ') crntPos.x += charSize.x * 0.6f;
+            else if (c == '\n') crntPos.x = textPos.x, crntPos.y -= charSize.y;
+            else {
+                posData.emplace_back();
+                crdData.emplace_back();
+                array<vec2, 4>& pos = posData.back();
+                array<glm::u8vec3, 4>& crd = crdData.back();
+                pos[0] = {crntPos.x, crntPos.y + charSize.y};
+                pos[1] = crntPos + charSize;
+                pos[2] = crntPos;
+                pos[3] = {crntPos.x + charSize.x, crntPos.y};
+                const uchar id = c;
+                crd[0] = {0, 0, id};
+                crd[1] = {1, 0, id};
+                crd[2] = {0, 1, id};
+                crd[3] = {1, 1, id};
+
+                crntPos.x += charSize.x * 0.6f;
+                if (crntPos.x > 1.f-charSize.x) {
+                    crntPos.y -= charSize.y;
+                    crntPos.x = textPos.x;
+                }
             }
         }
     }

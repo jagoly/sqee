@@ -45,7 +45,7 @@ void main() {
 
     // Shadow
     int index = 0;
-    float splits[4] = { CB.splits.x, CB.splits.y, CB.splits.z, CB.splits.w };
+    float splits[4] = { LB.splits.x, LB.splits.y, LB.splits.z, LB.splits.w };
     for (int i = 0; i < 4; i++) {
         if (-v_pos.z > splits[i]) index++;
         else break;

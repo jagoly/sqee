@@ -9,17 +9,17 @@
 
 using namespace sq;
 
-Application::Application(uvec2 _size, bool _resizable) {
+Application::Application(bool _resizable, uvec2 _size) {
     sf::ContextSettings sfmlSettings;
     sfmlSettings.depthBits = 24,
     sfmlSettings.stencilBits = 8,
     sfmlSettings.antialiasingLevel = 0,
     sfmlSettings.majorVersion = 3,
     sfmlSettings.minorVersion = 3;
+    sf::Uint32 winStyle = sf::Style::Close | sf::Style::Titlebar;
+    if (_resizable) winStyle = winStyle | sf::Style::Resize;
 
-    window.create({_size.x, _size.y}, "",
-                  _resizable ? sf::Style::Default : sf::Style::Close | sf::Style::Titlebar,
-                  sfmlSettings);
+    window.create({_size.x, _size.y}, "", winStyle, sfmlSettings);
 
     gl::sys::LoadFunctions();
 
@@ -40,6 +40,7 @@ Application::Application(uvec2 _size, bool _resizable) {
     sq::cs_setup_glm(cs);
     sq::cs_setup_application(cs);
     sq::cs_setup_settings(cs);
+    sq::cs_setup_console(cs);
 }
 
 int Application::run() {

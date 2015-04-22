@@ -4,7 +4,7 @@
 #include <sqee/gl/shaders.hpp>
 #include <sqee/misc/files.hpp>
 #include <sqee/app/application.hpp>
-#include <sqee/models/mesh.hpp>
+#include <sqee/render/mesh.hpp>
 #include <sqee/text/text.hpp>
 
 #include "scenegame.hpp"

@@ -5,18 +5,18 @@
 using namespace sq;
 
 void Preprocessor::import_header(const string& _path) {
-    #ifdef SQEE_DEBUG
+   #ifdef SQEE_DEBUG
     log_info("Importing shader from %s", _path);
-    #endif
-    headerMap.emplace(_path, get_string_from_file("assets/shaders/"+_path+".glsl"));
+   #endif
+    headerMap.emplace(_path, get_string_from_file("shaders/"+_path+".glsl"));
 }
 
 string Preprocessor::operator()(const string& _path, const string& _extra) {
-    #ifdef SQEE_DEBUG
+   #ifdef SQEE_DEBUG
     log_info("Preprocessing shader from %s", _path);
-    #endif
+   #endif
 
-    string retStr = get_string_from_file("assets/shaders/"+_path+".glsl");
+    string retStr = get_string_from_file("shaders/"+_path+".glsl");
 
     auto lineStart = retStr.find("#version");
     lineStart = retStr.find('\n', lineStart)+1;

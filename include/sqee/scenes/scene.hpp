@@ -10,9 +10,9 @@ public:
     double accum = 0.0;
     uint tickRate = 60;
 
-    virtual void update() = 0;
-    virtual void render(float _ft) = 0;
-    virtual void resize(uvec2 _size) = 0;
+    virtual void update() {};
+    virtual void render(float _ft) {};
+    virtual void resize(uvec2 _size) {};
 
 protected:
     Application& app;

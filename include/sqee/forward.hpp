@@ -62,6 +62,11 @@ struct NonCopyable {
     NonCopyable& operator=(const NonCopyable&) = delete;
 };
 
+template<class T, class U>
+weak_ptr<T> static_wptr_cast(weak_ptr<U> const& _wptr) {
+    return std::static_pointer_cast<T>(shared_ptr<U>(_wptr));
+}
+
 namespace sq {
 
 class Scene;
@@ -70,17 +75,15 @@ class SettingMap;
 class Application;
 class SoundManager;
 
+class Camera;
+class UboCamera;
 class Mesh;
 class Skin;
 class Animation;
 class Skeleton;
-class ModelStatic;
-class ModelSkelly;
-
-class Camera;
-class SkyLight;
-class SpotLight;
-class PointLight;
+class LightSky;
+class LightSpot;
+class LightPoint;
 
 class Texture2D;
 class Texture2DArray;
@@ -100,5 +103,7 @@ class ResHolder;
 enum class Direction { None, North, East, South, West };
 enum class Alignment { TL, TC, TR, CL, CC, CR, BL, BC, BR };
 enum class Grid4x4 { AA, AB, AC, AD, BA, BB, BC, BD, CA, CB, CC, CD, DA, DB, DC, DD };
+struct Frustum { dvec3 xyz, xyZ, xYz, xYZ, Xyz, XyZ, XYz, XYZ; dvec4 pT, pB, pL, pR, pN, pF; };
+struct BoundBox { dvec3 origin, size; double radius; dvec3 nX{1,0,0}, nY{0,1,0}, nZ{0,0,1}; };
 
 }

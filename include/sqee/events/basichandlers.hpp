@@ -18,11 +18,4 @@ public:
     bool handle(const sf::Event& _event);
 };
 
-
-class HandlerFramelimit : public Handler {
-public:
-    using Handler::Handler;
-    bool handle(const sf::Event& _event);
-};
-
 }

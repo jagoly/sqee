@@ -6,10 +6,9 @@
 
 namespace sqt {
 
-GlApp::GlApp() : sq::Application({960, 720}, true) {
+GlApp::GlApp() : sq::Application(true, {960, 720}) {
     handlerIM.append("close", new sq::HandlerClose(*this));
     handlerIM.append("resize", new sq::HandlerResize(*this));
-    handlerIM.append("framelimit", new sq::HandlerFramelimit(*this));
 
     sceneIM.append("game", new SceneGame(*this));
     handlerIM.append("game", new HandlerGame(*this));
