@@ -7,164 +7,121 @@ mCount 23
 { materials
 material
 wrap repeat
-punch yes
-shadow yes
 diff Sponza/thorn
 norm Sponza/thorn
 spec Sponza/thorn
+extra punch
 
 material
 wrap repeat
-punch no
-shadow yes
 diff Sponza/vase_round
 norm Sponza/vase_round
 spec Sponza/vase_round
 
 material
 wrap repeat
-punch yes
-shadow yes
 diff Sponza/vase_plant
 spec Sponza/vase_plant
+extra punch
 
 material
 wrap repeat
-punch no
-shadow yes
 diff Sponza/plaque
 norm Sponza/plaque
 
 material
 wrap repeat
-punch no
-shadow yes
 diff Sponza/bricks
 norm Sponza/bricks
 spec Sponza/bricks
 
 material
 wrap repeat
-punch no
-shadow yes
 diff Sponza/arch
 norm Sponza/arch
 spec Sponza/arch
 
 material
 wrap repeat
-punch no
-shadow yes
 diff Sponza/ceiling
 spec Sponza/ceiling
 
 material
 wrap repeat
-punch no
-shadow yes
 diff Sponza/column_a
 norm Sponza/column_a
 spec Sponza/column_a
 
 material
 wrap repeat
-punch no
-shadow yes
 diff Sponza/floor
 spec Sponza/floor
 
 material
 wrap repeat
-punch no
-shadow yes
 diff Sponza/column_c
 norm Sponza/column_c
 spec Sponza/column_c
 
 material
 wrap repeat
-punch no
-shadow yes
 diff Sponza/details
 spec Sponza/details
 
 material
 wrap repeat
-punch no
-shadow yes
 diff Sponza/column_b
 norm Sponza/column_b
 spec Sponza/column_b
 
 material
 wrap repeat
-punch no
-shadow yes
 diff Sponza/flagpole
 spec Sponza/flagpole
 
 material
 wrap repeat
-punch no
-shadow yes
 diff Sponza/fabric_green
 spec Sponza/fabric
 
 material
 wrap repeat
-punch no
-shadow yes
 diff Sponza/fabric_blue
 spec Sponza/fabric
 
 material
 wrap repeat
-punch no
-shadow yes
 diff Sponza/fabric_red
 spec Sponza/fabric
 
 material
 wrap repeat
-punch no
-shadow yes
 diff Sponza/curtain_blue
 
 material
 wrap repeat
-punch no
-shadow yes
 diff Sponza/curtain_red
 
 material
 wrap repeat
-punch no
-shadow yes
 diff Sponza/curtain_green
 
 material
 wrap repeat
-punch yes
-shadow yes
 diff Sponza/chain
 norm Sponza/chain
+extra punch
 
 material
 wrap repeat
-punch no
-shadow yes
 diff Sponza/vase_hanging
 
 material
 wrap repeat
-punch no
-shadow yes
 diff Sponza/lion
 norm Sponza/lion
 
 material
 wrap repeat
-punch no
-shadow yes
 diff Sponza/roof
 }

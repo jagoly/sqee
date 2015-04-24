@@ -1,8 +1,6 @@
 #pragma once
 #include <sqee/forward.hpp>
 
-#include <unordered_map>
-
 namespace sqt { namespace wcoe {
 
 enum class ObjType;
@@ -25,7 +23,7 @@ public:
     void tick();
     void calc(double _accum);
 
-    std::unordered_map<string, shared_ptr<Object>> objMap;
+    unordered_map<string, shared_ptr<Object>> objMap;
 };
 
 }}

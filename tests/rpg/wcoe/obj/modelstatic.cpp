@@ -14,8 +14,10 @@ ModelStatic::ModelStatic(const string& _name, const Cell& _cell)
     : Object(ObjType::ModelStatic, _name, _cell) {}
 
 void ModelStatic::load_from_spec(const ObjSpec& _spec) {
-    refl = _spec.flags.count("refl");
-    refr = _spec.flags.count("refr");
+    shadow = _spec.flags.count("shadow");
+    render = _spec.flags.count("render");
+    reflect = _spec.flags.count("reflect");
+    refract = _spec.flags.count("refract");
 
     const string& mPath = _spec.sMap.at("mesh")[0];
     if (!(mesh = sq::res::mesh().get(mPath))) {

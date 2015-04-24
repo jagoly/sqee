@@ -1,8 +1,6 @@
 #pragma once
 #include <sqee/forward.hpp>
 
-#include <set>
-
 namespace sq {
 
 class Framebuffer : NonCopyable {
@@ -22,7 +20,7 @@ public:
 
 protected:
     vector<GLenum> drawBufs;
-    std::set<GLenum> bufSet;
+    unordered_set<GLenum> bufSet;
     void add_buf(GLenum _attach);
 };
 

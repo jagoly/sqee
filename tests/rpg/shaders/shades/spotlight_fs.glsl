@@ -11,6 +11,7 @@ in vec2 texcrd;
 layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
 layout(std140, binding=1) uniform SPOTLIGHTBLOCK { SpotLightBlock LB; };
 
+uniform int mode;
 uniform int shadQuality;
 uniform int shadFilter;
 layout(binding=0) uniform sampler2D texDiff;
@@ -31,52 +32,67 @@ vec3 get_view_pos(in vec2 _tc) {
     return v_pos.xyz / v_pos.w;
 }
 
+float get_shadow_value(vec3 _wpos, vec3 _wsurf) {
+    vec3 normPos = _wpos + _wsurf*0.04f;
+    vec4 sc = LB.matrix * vec4(normPos, 1.f);
+    vec3 shadcrd = sc.xyz / sc.w * 0.5f + 0.5f;
+
+    float bias = get_bias(_wsurf, normalize(normPos - LB.position));
+    if (shadFilter < 2) return sample_shadow(shadcrd, bias, texShad);
+    else {
+        if (shadQuality == 0) return sample_shadow_x4(shadcrd, bias, texShad);
+        if (shadQuality == 1) return sample_shadow_x8(shadcrd, bias, texShad);
+        if (shadQuality == 2) return sample_shadow_x16(shadcrd, bias, texShad);
+    }
+}
+
+vec3 get_diffuse_value(vec3 _lightDir, vec3 _normal) {
+    vec3 txDiff = texture(texDiff, texcrd).rgb;
+    float dotProd = max(dot(-_lightDir, _normal), 0.f);
+    return LB.colour * txDiff * dotProd;
+}
+
+vec3 get_specular_value(vec3 _lightDir, vec3 _normal, vec3 _position) {
+    vec3 txSpec = texture(texSpec, texcrd).rgb;
+    vec3 reflection = reflect(_lightDir, _normal);
+    vec3 dirFromCam = normalize(-_position);
+    float factor = pow(max(dot(dirFromCam, reflection), 0.f), 50.f);
+    return LB.colour * txSpec * factor;
+}
+
 void main() {
     vec3 v_pos = get_view_pos(texcrd);
     vec3 v_norm = normalize(texture(texNorm, texcrd).rgb * 2.f - 1.f);
-    vec3 dirToSpot = normalize(vec3(CB.view * vec4(LB.position, 1.f)) - v_pos);
-    if (dot(dirToSpot, v_norm) < -0.25f) discard;
+    vec3 lightDir = normalize(v_pos - vec3(CB.view * vec4(LB.position, 1.f)));
+    if (dot(-lightDir, v_norm) < -0.25f) discard;
 
     vec4 wp = CB.invView * vec4(v_pos, 1.f);
     vec3 w_pos = wp.xyz / wp.w;
     vec3 v_surf = normalize(texture(texSurf, texcrd).rgb * 2.f - 1.f);
-    vec3 w_norm = normalize(vec3(CB.trnView * vec4(v_norm, 0.f)));
     vec3 w_surf = normalize(vec3(CB.trnView * vec4(v_surf, 0.f)));
     
-    // Cutoff / Rolloff
     vec3 spotDir = normalize(vec3(CB.view * vec4(LB.direction, 0.f)));
-    float distToSpot = distance(LB.position, w_pos);
-    float angle = acos(dot(-dirToSpot, spotDir));
-    if (angle > LB.angle || distToSpot > LB.intensity) discard;
+    float spotDist = distance(LB.position, w_pos);
+    float angle = acos(dot(lightDir, spotDir));
+    if (angle > LB.angle || spotDist > LB.intensity) discard;
 
-    // Shadow
-    vec3 normPos = w_pos + w_surf*0.06f;
-    vec4 sc = LB.matrix * vec4(normPos, 1.f);
-    vec3 shadcrd = sc.xyz / sc.w * 0.5f + 0.5f;
-    float vis = 0.f;
-    float bias = get_bias(w_surf, normalize(normPos - LB.position));
-    if (shadFilter < 2) vis = sample_shadow(shadcrd, bias, texShad);
-    else {
-        if (shadQuality == 0) vis = sample_shadow_d4(shadcrd, bias, texShad);
-        if (shadQuality == 1) vis = sample_shadow_d8(shadcrd, bias, texShad);
-        if (shadQuality == 2) vis = sample_shadow_d16(shadcrd, bias, texShad);
-    } if (vis == 0.f) discard;
+    bool doShad = bool(mode & 1);
+    bool doDiff = bool(mode & 2);
+    bool doSpec = bool(mode & 4);
+
+    float shad = 1.f;
+    if (doShad) shad = get_shadow_value(w_pos, w_surf);
+    if (shad == 0.f) discard;
+
+    vec3 diff = vec3(0.f, 0.f, 0.f);
+    if (doDiff) diff = get_diffuse_value(lightDir, v_norm);
+
+    vec3 spec = vec3(0.f, 0.f, 0.f);
+    if (doSpec) spec = get_specular_value(lightDir, v_norm, v_pos);
 
     float fovRolf = pow((LB.angle - angle) / (1.f - LB.angle), sqrt(LB.softness));
-    float dstRolf = 1.f - distToSpot / LB.intensity;
+    float dstRolf = 1.f - spotDist / LB.intensity;
     float rolloff = fovRolf * dstRolf;
 
-    // Diffuse
-    vec3 txDiff = texture(texDiff, texcrd).rgb;
-    float dotProd = max(dot(dirToSpot, v_norm), 0.f);
-    vec3 outDiff = LB.colour * txDiff * dotProd * rolloff * vis;
-
-    // Specular
-    vec3 txSpec = texture(texSpec, texcrd).rgb;
-    vec3 reflection = reflect(-dirToSpot, v_norm);
-    vec3 dirFromCam = normalize(vec4(CB.view * vec4(CB.pos, 1.f)).xyz - v_pos);
-    float factor = pow(max(dot(dirFromCam, reflection), 0.f), 50.f);
-    vec3 outSpec = LB.colour * txSpec * factor * rolloff * vis;
-
-    fragColour = outDiff + outSpec;
+    fragColour = (diff + spec) * shad * rolloff;
 }

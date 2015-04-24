@@ -152,8 +152,6 @@ SceneMain::SceneMain(sq::Application& _app) : sq::Scene(_app) {
     FS.shds_pointlight.reset(new sq::Shader(gl::FRAGMENT_SHADER));
     VS.shad_static.reset(new sq::Shader(gl::VERTEX_SHADER));
     VS.shad_skelly.reset(new sq::Shader(gl::VERTEX_SHADER));
-    VS.shad_static_punch.reset(new sq::Shader(gl::VERTEX_SHADER));
-    VS.shad_skelly_punch.reset(new sq::Shader(gl::VERTEX_SHADER));
     FS.shad_punch.reset(new sq::Shader(gl::FRAGMENT_SHADER));
     FS.prty_fxaa_fxaa_low.reset(new sq::Shader(gl::FRAGMENT_SHADER));
     FS.prty_fxaa_fxaa_high.reset(new sq::Shader(gl::FRAGMENT_SHADER));
@@ -178,8 +176,6 @@ SceneMain::SceneMain(sq::Application& _app) : sq::Scene(_app) {
     FS.shds_pointlight->load(app.preproc("shades/pointlight_fs"));
     VS.shad_static->load(app.preproc("shadows/static_vs"));
     VS.shad_skelly->load(app.preproc("shadows/skelly_vs"));
-    VS.shad_static_punch->load(app.preproc("shadows/static_vs", "#define PUNCH"));
-    VS.shad_skelly_punch->load(app.preproc("shadows/skelly_vs", "#define PUNCH"));
     FS.shad_punch->load(app.preproc("shadows/punch_fs"));
     FS.prty_fxaa_fxaa_low->load(app.preproc("pretty/fxaa/fxaa_fs", "#define FXAA_QUALITY__PRESET 10"));
     FS.prty_fxaa_fxaa_high->load(app.preproc("pretty/fxaa/fxaa_fs", "#define FXAA_QUALITY__PRESET 39"));
@@ -204,15 +200,14 @@ SceneMain::SceneMain(sq::Application& _app) : sq::Scene(_app) {
     VS.shad_skelly->add_uniform("matrix"); // mat4
     VS.shad_skelly->add_uniform("skelQuat", 40); // vec4
     VS.shad_skelly->add_uniform("skelOffs", 40); // vec3
-    VS.shad_static_punch->add_uniform("matrix"); // mat4
-    VS.shad_skelly_punch->add_uniform("matrix"); // mat4
-    VS.shad_skelly_punch->add_uniform("skelQuat", 40); // vec4
-    VS.shad_skelly_punch->add_uniform("skelOffs", 40); // vec3
     FS.modl_write->add_uniform("mode"); // int
+    FS.shds_skylight->add_uniform("mode"); // int
     FS.shds_skylight->add_uniform("shadQuality"); // int
     FS.shds_skylight->add_uniform("shadFilter"); // int
+    FS.shds_spotlight->add_uniform("mode"); // int
     FS.shds_spotlight->add_uniform("shadQuality"); // int
     FS.shds_spotlight->add_uniform("shadFilter"); // int
+    FS.shds_pointlight->add_uniform("mode"); // int
     FS.shds_pointlight->add_uniform("shadQuality"); // int
     FS.shds_pointlight->add_uniform("shadFilter"); // int
     FS.prty_fxaa_fxaa_low->add_uniform("pixSize"); // vec2
@@ -237,8 +232,6 @@ SceneMain::SceneMain(sq::Application& _app) : sq::Scene(_app) {
     graph->VS.modl_skelly = VS.modl_skelly.get();
     graph->VS.shad_static = VS.shad_static.get();
     graph->VS.shad_skelly = VS.shad_skelly.get();
-    graph->VS.shad_static_punch = VS.shad_static_punch.get();
-    graph->VS.shad_skelly_punch = VS.shad_skelly_punch.get();
     graph->FS.modl_write = FS.modl_write.get();
     graph->FS.shad_punch = FS.shad_punch.get();
     graph->FS.shds_ambient = FS.shds_ambient.get();
@@ -326,6 +319,7 @@ void SceneMain::render(float _ft) {
 
 
     /// Light Shadows ///
+    pipeline->disable_stages(gl::FRAGMENT_SHADER_BIT);
     graph->render_shadows_sky();
     graph->render_shadows_spot();
     graph->render_shadows_point();
@@ -414,16 +408,7 @@ void SceneMain::render(float _ft) {
         gl::Disable(gl::BLEND);
     }
 
-
-//    pipeline->use_shader(*VS.gnrc_quad);
-//    pipeline->use_shader(*FS.gnrc_passthru_layer);
-//    graph->lightSkyList.front().lock()->sky->tex->set_param(gl::TEXTURE_COMPARE_MODE, gl::NONE);
-//    graph->lightSkyList.front().lock()->sky->tex->bind(gl::TEXTURE0);
-//    sq::draw_grid4x4_quad<sq::Grid4x4::AD>();
-//    graph->lightSkyList.front().lock()->sky->tex->set_param(gl::TEXTURE_COMPARE_MODE, gl::COMPARE_REF_TO_TEXTURE);
-
-
-
+    gl::BindProgramPipeline(0);
     gl::BindVertexArray(0);
 }
 

@@ -1,9 +1,6 @@
 #pragma once
 #include <sqee/forward.hpp>
 
-#include <map>
-#include <set>
-
 namespace sq {
 
 class SettingMap {
@@ -24,12 +21,11 @@ public:
     bool check_update(const string& _object);
 
 private:
-    std::map<const string, std::pair<int, int>> iMap;
-    std::map<const string, std::pair<bool, bool>> bMap;
-    std::map<const string, std::pair<float, float>> fMap;
-    std::map<const string, std::pair<string, string>> sMap;
-
-    std::set<string> updateSet;
+    unordered_map<string, pair<int, int>> iMap;
+    unordered_map<string, pair<bool, bool>> bMap;
+    unordered_map<string, pair<float, float>> fMap;
+    unordered_map<string, pair<string, string>> sMap;
+    unordered_set<string> updateSet;
 };
 
 }

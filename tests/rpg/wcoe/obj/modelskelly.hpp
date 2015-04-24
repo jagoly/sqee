@@ -12,7 +12,8 @@ public:
     sq::Mesh* mesh = nullptr;
     sq::Skin* skin = nullptr;
     unique_ptr<sq::Skeleton> skel;
-    bool refl, refr;
+    bool shadow = false, render = false,
+        reflect = false, refract = false;
 
     mat4 matrix;
     sq::BoundBox bbox;

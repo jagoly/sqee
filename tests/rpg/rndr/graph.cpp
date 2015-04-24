@@ -57,16 +57,19 @@ void Graph::update() {
 void Graph::update_settings() {
     for (const auto& lptr : lightSkyList) {
         const wcoe::LightSky& light = *lptr.lock();
+        if (light.sky->shadow == false) continue;
         light.sky->resize_texture(settings->crnt<int>("shadQuality"));
         light.sky->filter_texture(settings->crnt<int>("shadFilter"));
     }
     for (const auto& lptr : lightSpotList) {
         const wcoe::LightSpot& light = *lptr.lock();
+        if (light.spot->shadow == false) continue;
         light.spot->resize_texture(settings->crnt<int>("shadQuality"));
         light.spot->filter_texture(settings->crnt<int>("shadFilter"));
     }
     for (const auto& lptr : lightPointList) {
         const wcoe::LightPoint& light = *lptr.lock();
+        if (light.point->shadow == false) continue;
         light.point->resize_texture(settings->crnt<int>("shadQuality"));
         light.point->filter_texture(settings->crnt<int>("shadFilter"));
     }
@@ -79,6 +82,7 @@ void Graph::render_models() {
     pipeline->use_shader(*VS.modl_static);
     for (const auto& mptr : modelStaticList) {
         const wcoe::ModelStatic& model = *mptr.lock();
+        if (model.render == false) continue;
         if (sq::bbox_in_frus(model.bbox, camera->frus)) continue;
         gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
         VS.modl_static->set_mat<mat4>("modelMat", model.matrix);
@@ -93,6 +97,7 @@ void Graph::render_models() {
     pipeline->use_shader(*VS.modl_skelly);
     for (const auto& mptr : modelSkellyList) {
         const wcoe::ModelSkelly& model = *mptr.lock();
+        if (model.render == false) continue;
         if (sq::bbox_in_frus(model.bbox, camera->frus)) continue;
         gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
         VS.modl_skelly->set_mat<mat4>("modelMat", model.matrix);
@@ -111,6 +116,7 @@ void Graph::render_models() {
 void Graph::render_shadows_sky() {
     for (const auto& lptr : lightSkyList) {
         const wcoe::LightSky& light = *lptr.lock();
+        if (light.sky->shadow == false) continue;
 
         light.sky->ubo->bind(1);
         gl::Viewport(0, 0, light.sky->tex->size.x, light.sky->tex->size.y);
@@ -119,58 +125,38 @@ void Graph::render_shadows_sky() {
             light.sky->fboArr[csm]->use();
             gl::Clear(gl::DEPTH_BUFFER_BIT);
 
-            pipeline->disable_stages(gl::FRAGMENT_SHADER_BIT);
-
-            pipeline->use_shader(*VS.shad_static_punch);
+            pipeline->use_shader(*VS.shad_static);
             for (const auto& mptr : modelStaticList) {
                 const wcoe::ModelStatic& model = *mptr.lock();
-                auto fList = model.skin->filtered(0, 1); if (fList.empty()) continue;
+                if (model.shadow == false) continue;
                 gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
-                VS.shad_static_punch->set_mat<mat4>("matrix", light.sky->matArr[csm] * model.matrix);
+                VS.shad_static->set_mat<mat4>("matrix", light.sky->matArr[csm] * model.matrix);
                 model.mesh->bind_vao();
-                for (auto& i : fList)
+                for (uint i = 0; i < model.skin->mtrlVec.size(); i++) {
+                    if (model.skin->mtrlVec[i].punch == true)
+                        pipeline->use_shader(*FS.shad_punch),
+                        model.skin->bind_textures(i, 1, 0, 0);
+                    else pipeline->disable_stages(gl::FRAGMENT_SHADER_BIT);
                     model.mesh->draw_ibo(i);
+                }
             }
 
-            pipeline->use_shader(*VS.shad_skelly_punch);
+            pipeline->use_shader(*VS.shad_skelly);
             for (const auto& mptr : modelSkellyList) {
                 const wcoe::ModelSkelly& model = *mptr.lock();
-                auto fList = model.skin->filtered(0, 1); if (fList.empty()) continue;
+                if (model.shadow == false) continue;
                 gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
-                VS.shad_skelly_punch->set_mat<mat4>("matrix", light.sky->matArr[csm] * model.matrix);
-                VS.shad_skelly_punch->set_vecptr<vec4>("skelQuat", (float*)model.skel->quatVec.data());
-                VS.shad_skelly_punch->set_vecptr<vec3>("skelOffs", (float*)model.skel->offsVec.data());
+                VS.shad_skelly->set_mat<mat4>("matrix", light.sky->matArr[csm] * model.matrix);
+                VS.shad_skelly->set_vecptr<vec4>("skelQuat", (float*)model.skel->quatVec.data());
+                VS.shad_skelly->set_vecptr<vec3>("skelOffs", (float*)model.skel->offsVec.data());
                 model.mesh->bind_vao();
-                for (auto& i : fList)
+                for (uint i = 0; i < model.skin->mtrlVec.size(); i++) {
+                    if (model.skin->mtrlVec[i].punch == true)
+                        pipeline->use_shader(*FS.shad_punch),
+                        model.skin->bind_textures(i, 1, 0, 0);
+                    else pipeline->disable_stages(gl::FRAGMENT_SHADER_BIT);
                     model.mesh->draw_ibo(i);
-            }
-
-            pipeline->use_shader(*FS.shad_punch);
-
-            pipeline->use_shader(*VS.shad_static_punch);
-            for (const auto& mptr : modelStaticList) {
-                const wcoe::ModelStatic& model = *mptr.lock();
-                auto fList = model.skin->filtered(1, 1); if (fList.empty()) continue;
-                gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
-                VS.shad_static_punch->set_mat<mat4>("matrix", light.sky->matArr[csm] * model.matrix);
-                model.mesh->bind_vao();
-                for (auto& i : fList)
-                    model.skin->bind_textures(i, 1, 0, 0),
-                    model.mesh->draw_ibo(i);
-            }
-
-            pipeline->use_shader(*VS.shad_skelly_punch);
-            for (const auto& mptr : modelSkellyList) {
-                const wcoe::ModelSkelly& model = *mptr.lock();
-                auto fList = model.skin->filtered(1, 1); if (fList.empty()) continue;
-                gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
-                VS.shad_skelly_punch->set_mat<mat4>("matrix", light.sky->matArr[csm] * model.matrix);
-                VS.shad_skelly_punch->set_vecptr<vec4>("skelQuat", (float*)model.skel->quatVec.data());
-                VS.shad_skelly_punch->set_vecptr<vec3>("skelOffs", (float*)model.skel->offsVec.data());
-                model.mesh->bind_vao();
-                for (auto& i : fList)
-                    model.skin->bind_textures(i, 1, 0, 0),
-                    model.mesh->draw_ibo(i);
+                }
             }
         }
         gl::Disable(gl::DEPTH_CLAMP);
@@ -181,6 +167,7 @@ void Graph::render_shadows_sky() {
 void Graph::render_shadows_spot() {
     for (const auto& lptr : lightSpotList) {
         const wcoe::LightSpot& light = *lptr.lock();
+        if (light.spot->shadow == false) continue;
         if (sq::frus_in_frus(light.spot->frus, camera->frus)) continue;
 
         light.spot->ubo->bind(1);
@@ -188,62 +175,40 @@ void Graph::render_shadows_spot() {
         light.spot->fbo->use();
         gl::Clear(gl::DEPTH_BUFFER_BIT);
 
-        pipeline->disable_stages(gl::FRAGMENT_SHADER_BIT);
-
-        pipeline->use_shader(*VS.shad_static_punch);
+        pipeline->use_shader(*VS.shad_static);
         for (const auto& mptr : modelStaticList) {
             const wcoe::ModelStatic& model = *mptr.lock();
-            auto fList = model.skin->filtered(0, 1); if (fList.empty()) continue;
+            if (model.shadow == false) continue;
             if (sq::bbox_in_frus(model.bbox, light.spot->frus)) continue;
             gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
-            VS.shad_static_punch->set_mat<mat4>("matrix", light.spot->matrix * model.matrix);
+            VS.shad_static->set_mat<mat4>("matrix", light.spot->matrix * model.matrix);
             model.mesh->bind_vao();
-            for (auto& i : fList)
+            for (uint i = 0; i < model.skin->mtrlVec.size(); i++) {
+                if (model.skin->mtrlVec[i].punch == true)
+                    pipeline->use_shader(*FS.shad_punch),
+                    model.skin->bind_textures(i, 1, 0, 0);
+                else pipeline->disable_stages(gl::FRAGMENT_SHADER_BIT);
                 model.mesh->draw_ibo(i);
+            }
         }
 
-        pipeline->use_shader(*VS.shad_skelly_punch);
+        pipeline->use_shader(*VS.shad_skelly);
         for (const auto& mptr : modelSkellyList) {
             const wcoe::ModelSkelly& model = *mptr.lock();
-            auto fList = model.skin->filtered(0, 1); if (fList.empty()) continue;
+            if (model.shadow == false) continue;
             if (sq::bbox_in_frus(model.bbox, light.spot->frus)) continue;
             gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
-            VS.shad_skelly_punch->set_mat<mat4>("matrix", light.spot->matrix * model.matrix);
-            VS.shad_skelly_punch->set_vecptr<vec4>("skelQuat", (float*)model.skel->quatVec.data());
-            VS.shad_skelly_punch->set_vecptr<vec3>("skelOffs", (float*)model.skel->offsVec.data());
+            VS.shad_skelly->set_mat<mat4>("matrix", light.spot->matrix * model.matrix);
+            VS.shad_skelly->set_vecptr<vec4>("skelQuat", (float*)model.skel->quatVec.data());
+            VS.shad_skelly->set_vecptr<vec3>("skelOffs", (float*)model.skel->offsVec.data());
             model.mesh->bind_vao();
-            for (auto& i : fList)
+            for (uint i = 0; i < model.skin->mtrlVec.size(); i++) {
+                if (model.skin->mtrlVec[i].punch == true)
+                    pipeline->use_shader(*FS.shad_punch),
+                    model.skin->bind_textures(i, 1, 0, 0);
+                else pipeline->disable_stages(gl::FRAGMENT_SHADER_BIT);
                 model.mesh->draw_ibo(i);
-        }
-
-        pipeline->use_shader(*FS.shad_punch);
-
-        pipeline->use_shader(*VS.shad_static_punch);
-        for (const auto& mptr : modelStaticList) {
-            const wcoe::ModelStatic& model = *mptr.lock();
-            auto fList = model.skin->filtered(1, 1); if (fList.empty()) continue;
-            if (sq::bbox_in_frus(model.bbox, light.spot->frus)) continue;
-            gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
-            VS.shad_static_punch->set_mat<mat4>("matrix", light.spot->matrix * model.matrix);
-            model.mesh->bind_vao();
-            for (auto& i : fList)
-                model.skin->bind_textures(i, 1, 0, 0),
-                model.mesh->draw_ibo(i);
-        }
-
-        pipeline->use_shader(*VS.shad_skelly_punch);
-        for (const auto& mptr : modelSkellyList) {
-            const wcoe::ModelSkelly& model = *mptr.lock();
-            auto fList = model.skin->filtered(1, 1); if (fList.empty()) continue;
-            if (sq::bbox_in_frus(model.bbox, light.spot->frus)) continue;
-            gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
-            VS.shad_skelly_punch->set_mat<mat4>("matrix", light.spot->matrix * model.matrix);
-            VS.shad_skelly_punch->set_vecptr<vec4>("skelQuat", (float*)model.skel->quatVec.data());
-            VS.shad_skelly_punch->set_vecptr<vec3>("skelOffs", (float*)model.skel->offsVec.data());
-            model.mesh->bind_vao();
-            for (auto& i : fList)
-                model.skin->bind_textures(i, 1, 0, 0),
-                model.mesh->draw_ibo(i);
+            }
         }
     }
 }
@@ -252,7 +217,8 @@ void Graph::render_shadows_spot() {
 void Graph::render_shadows_point() {
     for (const auto& lptr : lightPointList) {
         const wcoe::LightPoint& light = *lptr.lock();
-        if (sq::sphere_in_frus(vec4(light.point->position, light.point->intensity), camera->frus)) continue;
+        if (light.point->shadow == false) continue;
+        if (sq::sphr_in_frus(light.point->sphere, camera->frus)) continue;
 
         light.point->ubo->bind(1);
         gl::Viewport(0, 0, light.point->tex->size, light.point->tex->size);
@@ -261,62 +227,40 @@ void Graph::render_shadows_point() {
             light.point->fboArr[face]->use();
             gl::Clear(gl::DEPTH_BUFFER_BIT);
 
-            pipeline->disable_stages(gl::FRAGMENT_SHADER_BIT);
-
             pipeline->use_shader(*VS.shad_static);
             for (const auto& mptr : modelStaticList) {
                 const wcoe::ModelStatic& model = *mptr.lock();
-                auto fList = model.skin->filtered(0, 1); if (fList.empty()) continue;
+                if (model.shadow == false) continue;
                 if (sq::bbox_in_frus(model.bbox, light.point->frusArr[face])) continue;
                 gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
                 VS.shad_static->set_mat<mat4>("matrix", light.point->matArr[face] * model.matrix);
                 model.mesh->bind_vao();
-                for (auto& i : fList)
+                for (uint i = 0; i < model.skin->mtrlVec.size(); i++) {
+                    if (model.skin->mtrlVec[i].punch == true)
+                        pipeline->use_shader(*FS.shad_punch),
+                        model.skin->bind_textures(i, 1, 0, 0);
+                    else pipeline->disable_stages(gl::FRAGMENT_SHADER_BIT);
                     model.mesh->draw_ibo(i);
+                }
             }
 
             pipeline->use_shader(*VS.shad_skelly);
             for (const auto& mptr : modelSkellyList) {
                 const wcoe::ModelSkelly& model = *mptr.lock();
-                auto fList = model.skin->filtered(0, 1); if (fList.empty()) continue;
+                if (model.shadow == false) continue;
                 if (sq::bbox_in_frus(model.bbox, light.point->frusArr[face])) continue;
                 gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
                 VS.shad_skelly->set_mat<mat4>("matrix", light.point->matArr[face] * model.matrix);
                 VS.shad_skelly->set_vecptr<vec4>("skelQuat", (float*)model.skel->quatVec.data());
                 VS.shad_skelly->set_vecptr<vec3>("skelOffs", (float*)model.skel->offsVec.data());
                 model.mesh->bind_vao();
-                for (auto& i : fList)
+                for (uint i = 0; i < model.skin->mtrlVec.size(); i++) {
+                    if (model.skin->mtrlVec[i].punch == true)
+                        pipeline->use_shader(*FS.shad_punch),
+                        model.skin->bind_textures(i, 1, 0, 0);
+                    else pipeline->disable_stages(gl::FRAGMENT_SHADER_BIT);
                     model.mesh->draw_ibo(i);
-            }
-
-            pipeline->use_shader(*FS.shad_punch);
-
-            pipeline->use_shader(*VS.shad_static_punch);
-            for (const auto& mptr : modelStaticList) {
-                const wcoe::ModelStatic& model = *mptr.lock();
-                auto fList = model.skin->filtered(1, 1); if (fList.empty()) continue;
-                if (sq::bbox_in_frus(model.bbox, light.point->frusArr[face])) continue;
-                gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
-                VS.shad_static_punch->set_mat<mat4>("matrix", light.point->matArr[face] * model.matrix);
-                model.mesh->bind_vao();
-                for (auto& i : fList)
-                    model.skin->bind_textures(i, 1, 0, 0),
-                    model.mesh->draw_ibo(i);
-            }
-
-            pipeline->use_shader(*VS.shad_skelly_punch);
-            for (const auto& mptr : modelSkellyList) {
-                const wcoe::ModelSkelly& model = *mptr.lock();
-                auto fList = model.skin->filtered(1, 1); if (fList.empty()) continue;
-                if (sq::bbox_in_frus(model.bbox, light.point->frusArr[face])) continue;
-                gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
-                VS.shad_skelly_punch->set_mat<mat4>("matrix", light.point->matArr[face] * model.matrix);
-                VS.shad_skelly_punch->set_vecptr<vec4>("skelQuat", (float*)model.skel->quatVec.data());
-                VS.shad_skelly_punch->set_vecptr<vec3>("skelOffs", (float*)model.skel->offsVec.data());
-                model.mesh->bind_vao();
-                for (auto& i : fList)
-                    model.skin->bind_textures(i, 1, 0, 0),
-                    model.mesh->draw_ibo(i);
+                }
             }
         }
         gl::Disable(gl::DEPTH_CLAMP);
@@ -328,9 +272,18 @@ void Graph::render_lights_sky() {
     pipeline->use_shader(*FS.shds_skylight);
     for (const auto& lptr : lightSkyList) {
         const wcoe::LightSky& light = *lptr.lock();
+        int mode = 1 * light.shadow | 2 * light.diffuse | 4 * light.specular;
+        if (light.shadow) light.sky->tex->bind(gl::TEXTURE6);
+        FS.shds_skylight->set_sca<int>("mode", mode);
         light.sky->ubo->bind(1);
-        light.sky->tex->bind(gl::TEXTURE6);
+
+       #ifdef SQEE_DEBUG
+        gl::Disable(gl::DEBUG_OUTPUT);
+       #endif
         sq::draw_screen_quad();
+       #ifdef SQEE_DEBUG
+        gl::Enable(gl::DEBUG_OUTPUT);
+       #endif
     }
 }
 
@@ -340,9 +293,18 @@ void Graph::render_lights_spot() {
     for (const auto& lptr : lightSpotList) {
         const wcoe::LightSpot& light = *lptr.lock();
         if (sq::frus_in_frus(light.spot->frus, camera->frus)) continue;
+        int mode = 1 * light.shadow | 2 * light.diffuse | 4 * light.specular;
+        if (light.shadow) light.spot->tex->bind(gl::TEXTURE6);
+        FS.shds_spotlight->set_sca<int>("mode", mode);
         light.spot->ubo->bind(1);
-        light.spot->tex->bind(gl::TEXTURE6);
+
+       #ifdef SQEE_DEBUG
+        gl::Disable(gl::DEBUG_OUTPUT);
+       #endif
         sq::draw_screen_quad();
+       #ifdef SQEE_DEBUG
+        gl::Enable(gl::DEBUG_OUTPUT);
+       #endif
     }
 }
 
@@ -351,9 +313,18 @@ void Graph::render_lights_point() {
     pipeline->use_shader(*FS.shds_pointlight);
     for (const auto& lptr : lightPointList) {
         const wcoe::LightPoint& light = *lptr.lock();
-        if (sq::sphere_in_frus(vec4(light.point->position, light.point->intensity), camera->frus)) continue;
+        if (sq::sphr_in_frus(light.point->sphere, camera->frus)) continue;
+        int mode = 1 * light.shadow | 2 * light.diffuse | 4 * light.specular;
+        if (light.shadow) light.point->tex->bind(gl::TEXTURE6);
+        FS.shds_pointlight->set_sca<int>("mode", mode);
         light.point->ubo->bind(1);
-        light.point->tex->bind(gl::TEXTURE6);
+
+       #ifdef SQEE_DEBUG
+        gl::Disable(gl::DEBUG_OUTPUT);
+       #endif
         sq::draw_screen_quad();
+       #ifdef SQEE_DEBUG
+        gl::Enable(gl::DEBUG_OUTPUT);
+       #endif
     }
 }

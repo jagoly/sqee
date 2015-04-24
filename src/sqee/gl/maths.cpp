@@ -89,11 +89,11 @@ bool sq::frus_in_frus(Frustum _frusA, Frustum _frusB) {
     } return false;
 }
 
-bool sq::sphere_in_frus(dvec4 _sphere, Frustum _frus) {
+bool sq::sphr_in_frus(Sphere _sphere, Frustum _frus) {
     const auto& planes = {_frus.pT, _frus.pB, _frus.pL, _frus.pR, _frus.pN, _frus.pF};
     for (const auto& plane : planes) {
-        double dist = glm::dot(dvec3(_sphere), dvec3(plane)) + plane.w;
-        if (dist >= _sphere.w) return true;
+        double dist = glm::dot(_sphere.origin, dvec3(plane)) + plane.w;
+        if (dist >= _sphere.radius) return true;
     } return false;
 }
 

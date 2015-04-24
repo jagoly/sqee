@@ -25,18 +25,19 @@ LightPoint::LightPoint(bool _shadow) : shadow(_shadow) {
 }
 
 void LightPoint::update() {
+    sphere.origin = position; sphere.radius = intensity;
+    mat4 projMat = glm::perspective(glm::radians(90.f), 1.f, 0.2f, intensity);
+    for (int i = 0; i < 6; i++) {
+        mat4 viewMat = glm::lookAt(position, position+sq::cubeNrms[i], sq::cubeTans[i]);
+        matArr[i] = projMat * viewMat;
+        frusArr[i] = sq::make_Frustum(glm::inverse(matArr[i]));
+    }
+
     ubo->bind(1);
     ubo->update("position", &position);
     ubo->update("colour", &colour);
     ubo->update("intensity", &intensity);
-    if (shadow) {
-        mat4 projMat = glm::perspective(glm::radians(90.f), 1.f, 0.2f, intensity);
-        for (int i = 0; i < 6; i++) {
-            mat4 viewMat = glm::lookAt(position, position+sq::cubeNrms[i], sq::cubeTans[i]);
-            matArr[i] = projMat * viewMat;
-            frusArr[i] = sq::make_Frustum(glm::inverse(matArr[i]));
-        } ubo->update("matArr", matArr.data());
-    }
+    if (shadow) ubo->update("matArr", matArr.data());
 }
 
 void LightPoint::resize_texture(uint _power) {

@@ -1,16 +1,22 @@
 #pragma once
 
-#include <string>
 #include <array>
+#include <string>
 #include <vector>
 #include <memory>
-using std::string;
-using std::array;
+#include <forward_list>
+#include <unordered_set>
+#include <unordered_map>
 using std::pair;
+using std::array;
+using std::string;
 using std::vector;
-using std::unique_ptr;
-using std::shared_ptr;
 using std::weak_ptr;
+using std::shared_ptr;
+using std::unique_ptr;
+using std::forward_list;
+using std::unordered_set;
+using std::unordered_map;
 
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
@@ -104,6 +110,7 @@ enum class Direction { None, North, East, South, West };
 enum class Alignment { TL, TC, TR, CL, CC, CR, BL, BC, BR };
 enum class Grid4x4 { AA, AB, AC, AD, BA, BB, BC, BD, CA, CB, CC, CD, DA, DB, DC, DD };
 struct Frustum { dvec3 xyz, xyZ, xYz, xYZ, Xyz, XyZ, XYz, XYZ; dvec4 pT, pB, pL, pR, pN, pF; };
+struct Sphere { dvec3 origin; double radius; };
 struct BoundBox { dvec3 origin, size; double radius; dvec3 nX{1,0,0}, nY{0,1,0}, nZ{0,0,1}; };
 
 }

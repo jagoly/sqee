@@ -2,7 +2,6 @@
 #include <sqee/forward.hpp>
 
 #include <list>
-#include <unordered_map>
 
 namespace sq {
 
@@ -51,7 +50,7 @@ public:
 
 protected:
     std::list<Tv> theList;
-    std::unordered_map<Tk, Tv&> theMap;
+    unordered_map<Tk, Tv&> theMap;
 };
 
 }

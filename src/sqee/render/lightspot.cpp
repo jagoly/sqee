@@ -27,6 +27,12 @@ LightSpot::LightSpot(bool _shadow) : shadow(_shadow) {
 }
 
 void LightSpot::update() {
+    vec3 tangent = make_tangent(direction);
+    mat4 viewMat = glm::lookAt(position, position+direction, tangent);
+    mat4 projMat = glm::perspective(angle * 2.f, 1.f, 0.2f, intensity);
+    matrix = projMat * viewMat;
+    frus = make_Frustum(glm::inverse(matrix));
+
     ubo->bind(1);
     ubo->update("position", &position);
     ubo->update("angle", &angle);
@@ -34,14 +40,7 @@ void LightSpot::update() {
     ubo->update("intensity", &intensity);
     ubo->update("colour", &colour);
     ubo->update("softness", &softness);
-    if (shadow) {
-        vec3 tangent = make_tangent(direction);
-        mat4 viewMat = glm::lookAt(position, position+direction, tangent);
-        mat4 projMat = glm::perspective(angle * 2.f, 1.f, 0.2f, intensity);
-        matrix = projMat * viewMat;
-        frus = make_Frustum(glm::inverse(matrix));
-        ubo->update("matrix", &matrix);
-    }
+    if (shadow) ubo->update("matrix", &matrix);
 }
 
 void LightSpot::resize_texture(uint _power) {

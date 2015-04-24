@@ -1,8 +1,6 @@
 #pragma once
 #include <sqee/forward.hpp>
 
-#include <unordered_map>
-
 namespace sq {
 
 class Shader : NonCopyable {
@@ -38,7 +36,7 @@ private:
         Uniform(GLint _ref, uint _cnt) : ref(_ref), cnt(_cnt) {}
         const GLint ref; const uint cnt;
     };
-    std::unordered_map<string, Uniform> uniforms;
+    unordered_map<string, Uniform> uniforms;
 };
 
 

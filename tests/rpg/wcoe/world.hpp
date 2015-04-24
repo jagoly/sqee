@@ -1,9 +1,6 @@
 #pragma once
 #include <sqee/forward.hpp>
 
-#include <forward_list>
-#include <unordered_map>
-
 #include "cell.hpp"
 #include "obj/object.hpp"
 
@@ -22,20 +19,20 @@ public:
     void enable_cell(const string& _cell);
     void disable_cell(const string& _cell);
     bool get_cell_enabled(const string& _cell);
-    std::forward_list<weak_ptr<Object>> objectList;
+    forward_list<weak_ptr<Object>> objectList;
 
     template<class T>
-    std::forward_list<weak_ptr<T>> filtered();
+    forward_list<weak_ptr<T>> filtered();
 
-    std::unordered_map<string, shared_ptr<Cell>> cellMap;
+    unordered_map<string, shared_ptr<Cell>> cellMap;
 
     MainCamera* camera = nullptr;
     sq::SettingMap* settings = nullptr;
 };
 
 template<class T>
-std::forward_list<weak_ptr<T>> World::filtered() {
-    std::forward_list<weak_ptr<T>> retList;
+forward_list<weak_ptr<T>> World::filtered() {
+    forward_list<weak_ptr<T>> retList;
     for (const auto& obj : objectList)
         if (obj.lock()->type == ObjTraits<T>::type())
             retList.emplace_front(static_wptr_cast<T>(obj));

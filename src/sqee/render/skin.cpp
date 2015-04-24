@@ -11,8 +11,8 @@ void Skin::create(const string& _path) {
     vector<vector<string>> fileVec(sq::get_words_from_file(path));
 
     struct TexPaths {
-        bool punch, shadow;
         int wrapMode = -1;
+        unordered_set<string> extraSet;
         string norm, diff, spec;
     }; vector<TexPaths> TexPathsVec;
 
@@ -37,30 +37,19 @@ void Skin::create(const string& _path) {
         }
 
         if (section == "materials") {
-            if (key == "material")
-                TexPathsVec.emplace_back();
+            if (key == "material") TexPathsVec.emplace_back();
             else if (key == "wrap") {
                 if      (line[1] == "clamp") TexPathsVec.back().wrapMode = 0;
                 else if (line[1] == "repeat") TexPathsVec.back().wrapMode = 1;
                 else if (line[1] == "mirror") TexPathsVec.back().wrapMode = 2;
                 else throw;
             }
-            else if (key == "punch") {
-                if      (line[1] == "no") TexPathsVec.back().punch = false;
-                else if (line[1] == "yes") TexPathsVec.back().punch = true;
-                else throw;
-            }
-            else if (key == "shadow") {
-                if      (line[1] == "no") TexPathsVec.back().shadow = false;
-                else if (line[1] == "yes") TexPathsVec.back().shadow = true;
-                else throw;
-            }
-            else if (key == "diff")
-                TexPathsVec.back().diff = line[1];
-            else if (key == "norm")
-                TexPathsVec.back().norm = line[1];
-            else if (key == "spec")
-                TexPathsVec.back().spec = line[1];
+            else if (key == "diff") TexPathsVec.back().diff = line[1];
+            else if (key == "norm") TexPathsVec.back().norm = line[1];
+            else if (key == "spec") TexPathsVec.back().spec = line[1];
+            else if (key == "extra")
+                for (uint i = 1u; i < line.size(); i++)
+                    TexPathsVec.back().extraSet.emplace(line[i]);
             else throw;
             continue;
         }
@@ -75,8 +64,7 @@ void Skin::create(const string& _path) {
         const TexPaths& paths = TexPathsVec[i];
         Material& mtrl = mtrlVec[i];
 
-        mtrl.punch = paths.punch;
-        mtrl.shadow = paths.shadow;
+        mtrl.punch = paths.extraSet.count("punch");
 
         Texture::Preset preset;
         if      (paths.wrapMode == 0) preset = Texture2D::M_C();
@@ -118,15 +106,6 @@ void Skin::create(const string& _path) {
 
 Skin::~Skin() {
     // No cleanup needed
-}
-
-std::forward_list<uint> Skin::filtered(char _punch, char _shadow) {
-    std::forward_list<uint> retList;
-    for (uint i = 0; i < mtrlVec.size(); i++) {
-        if (_punch != -1 && _punch != mtrlVec[i].punch) continue;
-        if (_shadow != -1 && _shadow != mtrlVec[i].shadow) continue;
-        retList.push_front(i);
-    } return retList;
 }
 
 void Skin::bind_textures(uint _mtrl) {

@@ -1,8 +1,6 @@
 #pragma once
 #include <sqee/forward.hpp>
 
-#include <unordered_map>
-
 namespace sq {
 
 class Uniformbuffer : NonCopyable {
@@ -27,7 +25,7 @@ private:
             : offs(_offs), size(_size) {}
         const uint offs, size;
     };
-    std::unordered_map<string, Item> itemMap;
+    unordered_map<string, Item> itemMap;
     uint crntSize = 0;
 };
 

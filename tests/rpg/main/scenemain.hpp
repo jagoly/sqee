@@ -33,8 +33,6 @@ private:
         unique_ptr<sq::Shader> modl_skelly;
         unique_ptr<sq::Shader> shad_static;
         unique_ptr<sq::Shader> shad_skelly;
-        unique_ptr<sq::Shader> shad_static_punch;
-        unique_ptr<sq::Shader> shad_skelly_punch;
         unique_ptr<sq::Shader> gnrc_quad;
         unique_ptr<sq::Shader> gnrc_lines;
     } VS;

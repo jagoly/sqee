@@ -10,7 +10,7 @@ public:
     virtual ~Texture();
     void create_base();
 
-    using Preset = vector<std::pair<GLenum, GLenum>>;
+    using Preset = vector<pair<GLenum, GLenum>>;
     void set_param(GLenum _name, GLenum _value);
     void set_preset(Preset _preset);
 

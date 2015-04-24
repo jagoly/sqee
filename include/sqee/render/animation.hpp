@@ -13,8 +13,8 @@ public:
     uint pCount = 0;
     uint tCount = 0;
 
-    using Pose = std::pair<vector<vec4>, vector<vec3>>;
-    using Keyframe = std::pair<Pose&, uint>;
+    using Pose = pair<vector<vec4>, vector<vec3>>;
+    using Keyframe = pair<Pose&, uint>;
     using Timeline = vector<Keyframe>;
     vector<Pose> poseVec;
     vector<Timeline> timelineVec;

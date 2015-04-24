@@ -12,6 +12,7 @@ public:
     void tick();
 
     unique_ptr<sq::LightSpot> spot;
+    bool shadow = false, diffuse = false, specular = false;
 };
 
 template<> struct ObjTraits<LightSpot> {

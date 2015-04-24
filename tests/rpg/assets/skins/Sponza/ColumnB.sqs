@@ -7,8 +7,6 @@ mCount 1
 { materials
 material
 wrap repeat
-punch no
-shadow yes
 diff Sponza/column_b
 norm Sponza/column_b
 spec Sponza/column_b

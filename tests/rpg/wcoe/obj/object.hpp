@@ -1,9 +1,6 @@
 #pragma once
 #include <sqee/forward.hpp>
 
-#include <unordered_map>
-#include <unordered_set>
-
 namespace sqt { namespace wcoe {
 
 class Cell;
@@ -17,11 +14,11 @@ template<class T> struct ObjTraits {
 };
 
 struct ObjSpec {
-    using IntMap = std::unordered_map<string, vector<int>>;
-    using BoolMap = std::unordered_map<string, vector<bool>>;
-    using FloatMap = std::unordered_map<string, vector<float>>;
-    using StringMap = std::unordered_map<string, vector<string>>;
-    using FlagSet = std::unordered_set<string>;
+    using IntMap = unordered_map<string, vector<int>>;
+    using BoolMap = unordered_map<string, vector<bool>>;
+    using FloatMap = unordered_map<string, vector<float>>;
+    using StringMap = unordered_map<string, vector<string>>;
+    using FlagSet = unordered_set<string>;
 
     IntMap iMap; BoolMap bMap; FloatMap fMap; StringMap sMap; FlagSet flags;
     void parse_line(const vector<string>& _line);

@@ -1,8 +1,6 @@
 #pragma once
 #include <sqee/forward.hpp>
 
-#include <set>
-
 #include <SFML/Window/Window.hpp>
 
 #include <sqee/app/settings.hpp>
@@ -42,8 +40,8 @@ protected:
     sf::Window window;
     int retCode;
 
-    std::set<string> handlerSweep;
-    std::set<string> sceneSweep;
+    unordered_set<string> handlerSweep;
+    unordered_set<string> sceneSweep;
 
     void update_settings();
 };

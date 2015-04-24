@@ -18,7 +18,6 @@ public:
 
     uint texSize;
     array<mat4, 4> matArr;
-    array<Frustum, 4> frusArr;
     Camera* camera = nullptr;
 
     array<float, 4> splitArr;

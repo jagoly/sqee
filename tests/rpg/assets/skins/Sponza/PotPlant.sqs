@@ -7,15 +7,12 @@ mCount 2
 { materials
 material
 wrap repeat
-punch yes
-shadow yes
 diff Sponza/vase_plant
 spec Sponza/vase_plant
+extra punch
 
 material
 wrap repeat
-punch no
-shadow yes
 diff Sponza/vase_round
 norm Sponza/vase_round
 spec Sponza/vase_round

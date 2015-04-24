@@ -40,7 +40,7 @@ void LightSky::update() {
             splitArr[sliceInd] = splitMix;
             csmfrArr[sliceInd] = sq::make_Frustum(glm::inverse(proj * camera->viewMat));
             prevSplit = splitMix;
-        }
+        } ubo->update("splits", splitArr.data());
 
         vec3 tangent = sq::make_tangent(direction);
         for (int i = 0; i < 4; i++) {
@@ -49,8 +49,7 @@ void LightSky::update() {
             mat4 viewMat = glm::lookAt(frusCentre-direction, frusCentre, tangent);
             mat4 projMat = glm::ortho(-split, split, -split, split, -split, split);
             matArr[i] = projMat * viewMat;
-            frusArr[i] = sq::make_Frustum(glm::inverse(matArr[i]));
-        } ubo->update("splits", splitArr.data()); ubo->update("matArr", matArr.data());
+        } ubo->update("matArr", matArr.data());
     }
 }
 

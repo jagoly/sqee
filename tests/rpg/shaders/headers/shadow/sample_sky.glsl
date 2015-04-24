@@ -1,6 +1,6 @@
 // GLSL Header File
 
-// require "float rand(vec2)" "vec2 disk4[4]" "vec2 disk8[8]" "vec2 disk16[16]"
+// require "float rand2(vec2)" "vec2 disk6[6]" "vec2 disk12[12]" "vec2 disk24[24]"
 
 float get_bias(vec3 _normal, vec3 _lightDir) {
     float lightDot = dot(_normal, -_lightDir);
@@ -12,7 +12,7 @@ float sample_shadow(vec3 _sc, int _layer, float _bias, sampler2DArrayShadow _tex
     return texture(_tex, vec4(_sc.xy, _layer, _sc.z - _bias));
 }
 
-float sample_shadow_d6(vec3 _sc, int _layer, float _bias, float _radius, sampler2DArrayShadow _tex) {
+float sample_shadow_x6(vec3 _sc, int _layer, float _bias, float _radius, sampler2DArrayShadow _tex) {
     float angle = rand2(_sc.xy);
     float s = sin(angle);
     float c = cos(angle);
@@ -25,7 +25,7 @@ float sample_shadow_d6(vec3 _sc, int _layer, float _bias, float _radius, sampler
     return vis / 6.f;
 }
 
-float sample_shadow_d12(vec3 _sc, int _layer, float _bias, float _radius, sampler2DArrayShadow _tex) {
+float sample_shadow_x12(vec3 _sc, int _layer, float _bias, float _radius, sampler2DArrayShadow _tex) {
     float angle = rand2(_sc.xy);
     float s = sin(angle);
     float c = cos(angle);
@@ -38,7 +38,7 @@ float sample_shadow_d12(vec3 _sc, int _layer, float _bias, float _radius, sample
     return vis / 12.f;
 }
 
-float sample_shadow_d24(vec3 _sc, int _layer, float _bias, float _radius, sampler2DArrayShadow _tex) {
+float sample_shadow_x24(vec3 _sc, int _layer, float _bias, float _radius, sampler2DArrayShadow _tex) {
     float angle = rand2(_sc.xy);
     float s = sin(angle);
     float c = cos(angle);

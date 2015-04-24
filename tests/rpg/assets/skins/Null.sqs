@@ -6,7 +6,4 @@ mCount 1
 
 { materials
 material
-wrap repeat
-diff Sponza/fabric_blue
-spec Sponza/fabric
 }

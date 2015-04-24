@@ -1,14 +1,12 @@
 #pragma once
 #include <sqee/forward.hpp>
 
-#include <unordered_map>
-
 namespace sq {
 
 template <class T>
 class ResHolder {
 public:
-    using iterator = typename std::unordered_map<string, T>::iterator;
+    using iterator = typename unordered_map<string, T>::iterator;
     iterator begin() { return theMap.begin(); }
     iterator end()   { return theMap.end(); }
 
@@ -33,7 +31,7 @@ public:
     }
 
 protected:
-    std::unordered_map<string, unique_ptr<T>> theMap;
+    unordered_map<string, unique_ptr<T>> theMap;
 };
 
 }

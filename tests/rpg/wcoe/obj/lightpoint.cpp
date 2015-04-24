@@ -12,16 +12,18 @@
 using namespace sqt::wcoe;
 
 LightPoint::LightPoint(const string& _name, const Cell& _cell)
-    : Object(ObjType::LightPoint, _name, _cell) {
-    point.reset(new sq::LightPoint(false));
-}
+    : Object(ObjType::LightPoint, _name, _cell) {}
 
 void LightPoint::load_from_spec(const ObjSpec& _spec) {
-    if (_spec.flags.count("shadow")) point.reset(new sq::LightPoint(true));
+    shadow = _spec.flags.count("shadow");
+    diffuse = _spec.flags.count("diffuse");
+    specular = _spec.flags.count("specular");
+
+    point.reset(new sq::LightPoint(shadow));
     point->position  = glm::make_vec3(_spec.fMap.at("position").data());
     point->colour    = glm::make_vec3(_spec.fMap.at("colour").data());
     point->intensity = _spec.fMap.at("intensity")[0];
-    if (point->shadow) point->texSize = _spec.iMap.at("texsize")[0];
+    if (shadow) point->texSize = _spec.iMap.at("texsize")[0];
 
     point->position += cell.position;
 }

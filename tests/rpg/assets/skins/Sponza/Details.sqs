@@ -7,8 +7,6 @@ mCount 1
 { materials
 material
 wrap repeat
-punch no
-shadow yes
 diff Sponza/details
 spec Sponza/details
 }

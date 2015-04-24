@@ -7,14 +7,11 @@ mCount 2
 { materials
 material
 wrap repeat
-punch yes
-shadow yes
 diff Sponza/chain
 norm Sponza/chain
+extra punch
 
 material
 wrap repeat
-punch no
-shadow yes
 diff Sponza/vase_hanging
 }

@@ -32,8 +32,6 @@ public:
         sq::Shader* modl_skelly = nullptr;
         sq::Shader* shad_static = nullptr;
         sq::Shader* shad_skelly = nullptr;
-        sq::Shader* shad_static_punch = nullptr;
-        sq::Shader* shad_skelly_punch = nullptr;
     } VS;
 
     struct {

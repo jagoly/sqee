@@ -1,8 +1,6 @@
 #pragma once
 #include <sqee/forward.hpp>
 
-#include <unordered_map>
-
 namespace sq {
 
 class Preprocessor : NonCopyable {
@@ -11,7 +9,7 @@ public:
     string operator()(const string& _path, const string& _extra = "");
 
 private:
-    std::unordered_map<string, string> headerMap;
+    unordered_map<string, string> headerMap;
 };
 
 }

@@ -20,6 +20,7 @@ public:
     uint texSize;
     array<mat4, 6> matArr;
     array<sq::Frustum, 6> frusArr;
+    sq::Sphere sphere;
 
     unique_ptr<Uniformbuffer> ubo;
     unique_ptr<TextureCube> tex;

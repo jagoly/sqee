@@ -21,7 +21,7 @@ public:
 
     GLuint vao;
     GLuint vboP, vboN, vboT, vboTc, vboBa, vboBb, vboWa, vboWb;
-    vector<std::pair<GLuint, uint>> iboVec;
+    vector<pair<GLuint, uint>> iboVec;
 
     void bind_vao();
     void draw_ibo(uint _mtrl);

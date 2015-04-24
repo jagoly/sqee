@@ -1,8 +1,6 @@
 #pragma once
 #include <sqee/forward.hpp>
 
-#include <forward_list>
-
 #include <sqee/scenes/scene.hpp>
 
 namespace sq {
@@ -32,7 +30,7 @@ public:
 private:
     uint curPos = 0;
     vector<string> history;
-    std::forward_list<string> output;
+    forward_list<string> output;
     string input;
 };
 

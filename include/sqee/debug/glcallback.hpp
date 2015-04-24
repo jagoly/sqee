@@ -7,10 +7,8 @@
 
 namespace sq {
 
-void APIENTRY debug_callback(GLenum _source, GLenum _type, GLuint /*_id*/, GLenum _severity,
+void APIENTRY debug_callback(GLenum _source, GLenum _type, GLuint _id, GLenum _severity,
                              GLsizei /*_length*/, const GLchar* _message, const void* /*_param*/) {
-    if (_severity == gl::DEBUG_SEVERITY_NOTIFICATION) return;
-
     string source;
     if (_source == gl::DEBUG_SOURCE_API)
         source = "API";
@@ -58,6 +56,7 @@ void APIENTRY debug_callback(GLenum _source, GLenum _type, GLuint /*_id*/, GLenu
     std::cout << "\nSource: " << source
               << " | Severity: " << severity
               << " | Type: " << type
+              << " | ID: " << _id
               << "\nMessage: " << _message
               << std::endl;
 

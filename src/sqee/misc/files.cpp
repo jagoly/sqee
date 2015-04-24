@@ -52,19 +52,19 @@ std::vector<char> sq::get_bytes_from_file(const string& _path) {
     std::ifstream src(_path, std::ios::binary | std::ios::ate);
     if (!src.is_open()) {
         log_error("Couldn't open file %s", _path);
-        return std::vector<char>();
+        return vector<char>();
     }
 
-    std::vector<char> retVec(src.tellg());
+    vector<char> retVec(src.tellg());
     src.seekg(0, src.beg);
     src.read((char*)&retVec[0], retVec.size());
 
     return retVec;
 }
 
-std::vector<std::vector<string>> sq::get_words_from_file(const string& _path) {
+vector<vector<string>> sq::get_words_from_file(const string& _path) {
     std::ifstream src(_path);
-    std::vector<std::vector<string>> vec;
+    vector<vector<string>> vec;
     if (!src.is_open()) {
         log_error("Couldn't open file %s", _path);
         return vec;
