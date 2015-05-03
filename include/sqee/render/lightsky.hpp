@@ -7,26 +7,29 @@ namespace sq {
 
 class LightSky : NonCopyable {
 public:
-    LightSky(bool _shadow);
+    LightSky();
     void update();
+    vec3 colour, direction;
+    unique_ptr<Uniformbuffer> ubo;
+};
+
+class ShadowSky : NonCopyable {
+public:
+    ShadowSky();
+    void update();
+    uint texSize;
+    vec3 colour, direction;
+    unique_ptr<Uniformbuffer> ubo;
 
     void resize_texture(uint _power);
     void filter_texture(bool _enable);
 
-    vec3 colour;
-    vec3 direction;
-
-    uint texSize;
     array<mat4, 4> matArr;
-    Camera* camera = nullptr;
-
     array<float, 4> splitArr;
     array<Frustum, 4> csmfrArr;
-    unique_ptr<Uniformbuffer> ubo;
     unique_ptr<Texture2DArray> tex;
     array<unique_ptr<Framebuffer>, 4> fboArr;
-
-    const bool shadow;
+    const Camera* camera = nullptr;
 };
 
 }

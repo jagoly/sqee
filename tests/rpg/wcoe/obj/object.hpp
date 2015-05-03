@@ -27,12 +27,15 @@ struct ObjSpec {
 
 class Object : NonCopyable {
 public:
-    Object(ObjType _type, const string& _name, const Cell& _cell);
+    Object(ObjType _type, const string& _name, const Cell* _cell);
+    virtual ~Object() = default;
+
     virtual void load_from_spec(const ObjSpec& _spec) = 0;
+    virtual void update_from_data() = 0;
 
     const ObjType type;
     const string name;
-    const Cell& cell;
+    const Cell* const cell;
 
     virtual void tick() {}
     virtual void calc(double _accum) {}

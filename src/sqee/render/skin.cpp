@@ -8,7 +8,7 @@ using namespace sq;
 
 void Skin::create(const string& _path) {
     string path = res::skin_path() + _path + ".sqs";
-    vector<vector<string>> fileVec(sq::get_words_from_file(path));
+    vector<vector<string>> fileVec(get_words_from_file(path));
 
     struct TexPaths {
         int wrapMode = -1;
@@ -31,7 +31,7 @@ void Skin::create(const string& _path) {
 
         if (section == "header") {
             if (key == "mCount")
-                mtrlVec.resize(std::stoi(line[1]));
+                mtrlVec.resize(stoi(line[1]));
             else throw;
             continue;
         }
@@ -79,7 +79,7 @@ void Skin::create(const string& _path) {
                 mtrl.diff->set_preset(preset);
                 mtrl.diff->buffer_file(name);
                 mtrl.diff->gen_mipmap();
-            } mtrl.glMode = mtrl.glMode | 1;
+            } mtrl.glDNS = mtrl.glDNS | 1;
         }
         if (!paths.norm.empty()) {
             const string name = "norm/" + paths.norm;
@@ -89,7 +89,7 @@ void Skin::create(const string& _path) {
                 mtrl.norm->set_preset(preset);
                 mtrl.norm->buffer_file(name);
                 mtrl.norm->gen_mipmap();
-            } mtrl.glMode = mtrl.glMode | 2;
+            } mtrl.glDNS = mtrl.glDNS | 2;
         }
         if (!paths.spec.empty()) {
             const string name = "spec/" + paths.spec;
@@ -99,7 +99,7 @@ void Skin::create(const string& _path) {
                 mtrl.spec->set_preset(preset);
                 mtrl.spec->buffer_file(name);
                 mtrl.spec->gen_mipmap();
-            } mtrl.glMode = mtrl.glMode | 4;
+            } mtrl.glDNS = mtrl.glDNS | 4;
         }
     }
 }

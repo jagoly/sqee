@@ -4,19 +4,27 @@ cmake_minimum_required(VERSION 2.8)
 set(SQEE_USE_BUNDLED_LIBS FALSE CACHE BOOLEAN "Use libraries and headers in the extlibs dir")
 set(SQEE_STATIC_LIB FALSE CACHE BOOLEAN "Build SQEE as a static library")
 set(SQEE_STATIC_DEPS FALSE CACHE BOOLEAN "Link some libraries statically (varies by platform)")
+set(SQEE_OS_NAME "NOTSET" CACHE STRING "The System to build for (Linux, Windows, Android)")
+# android not currently implemented
 
-set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -Wextra -Wno-unused-parameter -Wno-missing-braces")
-if(SQEE_STATIC_DEPS)
+set(SQEE_LINUX ${SQEE_OS_NAME} MATCHES "Linux")
+set(SQEE_WINOWS ${SQEE_OS_NAME} MATCHES "Windows")
+set(SQEE_ANDROID ${SQEE_OS_NAME} MATCHES "Android")
+
+set(CMAKE_CXX_FLAGS "-std=c++11 -O2 -Wall -Wextra -Wno-unused-parameter -Wno-missing-braces")
+if(${SQEE_WINDOWS})
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wa,-mbig-obj -mwindows")
+endif()
+
+if(${SQEE_STATIC_DEPS})
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSFML_STATIC")
-    if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    if(${SQEE_WINDOWS})
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static -static-libgcc -static-libstdc++")
     endif()
 endif()
 
 if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSQEE_DEBUG")
-else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s")
 endif()
 
 set(SRCDIR "${PROJECT_SOURCE_DIR}/src/sqee")
@@ -83,6 +91,7 @@ set(SOURCES
     "${SRCDIR}/gl/shaders.cpp"
     "${SRCDIR}/gl/uniformbuffers.cpp"
     "${SRCDIR}/gl/textures.cpp"
+    "${SRCDIR}/scripts/chaiscript.cpp"
     "${SRCDIR}/scripts/scene.cpp"
     "${SRCDIR}/scripts/handler.cpp"
     "${SRCDIR}/scripts/intergration.cpp"
@@ -128,10 +137,10 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build")
 include_directories("${PROJECT_SOURCE_DIR}/include")
 if(${SQEE_USE_BUNDLED_LIBS})
     include_directories("${PROJECT_SOURCE_DIR}/extlibs/include/all")
-    if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    if(${SQEE_LINUX})
         include_directories("${PROJECT_SOURCE_DIR}/extlibs/include/lin64")
-    elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-        include_directories("${PROJECT_SOURCE_DIR}/extlibs/include/win32")
+    elseif(${SQEE_WINDOWS})
+        include_directories("${PROJECT_SOURCE_DIR}/extlibs/include/win64")
     endif()
 endif()
 
@@ -142,10 +151,10 @@ else()
 endif()
 
 if(${SQEE_USE_BUNDLED_LIBS})
-    if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    if(${SQEE_LINUX})
         list(APPEND CMAKE_FIND_ROOT_PATH ${CMAKE_SOURCE_DIR}/extlibs/libs/lin64)
-    elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-        list(APPEND CMAKE_FIND_ROOT_PATH ${CMAKE_SOURCE_DIR}/extlibs/libs/win32)
+    elseif(${SQEE_WINDOWS})
+        list(APPEND CMAKE_FIND_ROOT_PATH ${CMAKE_SOURCE_DIR}/extlibs/libs/win64)
     endif()
 endif()
 
@@ -169,13 +178,13 @@ target_link_libraries(sqee
 )
 
 if(${SQEE_STATIC_DEPS})
-    if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    if(${SQEE_LINUX})
         target_link_libraries(sqee pthread udev X11 Xrandr)
-    elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    elseif(${SQEE_WINDOWS})
         target_link_libraries(sqee winmm gdi32)
     endif()
 endif()
-	
+
 #add_subdirectory("tests/soko")
 #add_subdirectory("tests/fb")
 add_subdirectory("tests/gl")

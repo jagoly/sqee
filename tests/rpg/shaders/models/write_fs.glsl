@@ -13,7 +13,7 @@ layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
 layout(std140, binding=1) uniform WORLDBLOCk { WorldBlock WB; };
 layout(std140, binding=2) uniform LIQUIDBLOCK { LiquidBlock LB; };
 
-uniform int mode;
+uniform int diff_norm_spec;
 layout(binding=0) uniform sampler2D texDiff; // R/G/B/Alpha
 layout(binding=1) uniform sampler2D texNorm; // X/Y/Z/Emmissive
 layout(binding=2) uniform sampler2D texSpec; // R/G/B/Exponent
@@ -25,9 +25,9 @@ layout(location=3) out vec4 fragSpec;
 
 
 void main() {
-    bool useDiff = bool(mode & 1);
-    bool useNorm = bool(mode & 2);
-    bool useSpec = bool(mode & 4);
+    bool useDiff = bool(diff_norm_spec & 1);
+    bool useNorm = bool(diff_norm_spec & 2);
+    bool useSpec = bool(diff_norm_spec & 4);
 
     vec3 diff = vec3(1.f);
     if (useDiff) {

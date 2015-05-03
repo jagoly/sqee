@@ -88,8 +88,11 @@ class Skin;
 class Animation;
 class Skeleton;
 class LightSky;
+class ShadowSky;
 class LightSpot;
+class ShadowSpot;
 class LightPoint;
+class ShadowPoint;
 
 class Texture2D;
 class Texture2DArray;
@@ -109,8 +112,9 @@ class ResHolder;
 enum class Direction { None, North, East, South, West };
 enum class Alignment { TL, TC, TR, CL, CC, CR, BL, BC, BR };
 enum class Grid4x4 { AA, AB, AC, AD, BA, BB, BC, BD, CA, CB, CC, CD, DA, DB, DC, DD };
-struct Frustum { dvec3 xyz, xyZ, xYz, xYZ, Xyz, XyZ, XYz, XYZ; dvec4 pT, pB, pL, pR, pN, pF; };
+struct Plane { dvec3 normal; double offset; };
 struct Sphere { dvec3 origin; double radius; };
 struct BoundBox { dvec3 origin, size; double radius; dvec3 nX{1,0,0}, nY{0,1,0}, nZ{0,0,1}; };
+struct Frustum { Plane pT, pB, pL, pR, pN, pF; dvec3 xyz, xyZ, xYz, xYZ, Xyz, XyZ, XYz, XYZ; };
 
 }

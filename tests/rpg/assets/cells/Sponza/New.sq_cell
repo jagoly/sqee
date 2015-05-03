@@ -15,7 +15,9 @@ object lightspot SpotA
 f3 position 7.0 0.0 7.0
 f3 direction 1.0 0.0 0.0
 f3 colour 1.0 1.0 1.0
-f3 angintsft 60.0 20.0 0.25
+f1 angle 22.0
+f1 intensity 32.0
+f1 softness 0.3
 i1 texsize 256
 flags shadow diffuse specular
 
@@ -23,14 +25,14 @@ object lightpoint PointA
 f3 position -15.0 0.0 2.0
 f3 colour 1.0 1.0 1.0
 f1 intensity 6.0
-i1 texsize 256
+i1 texsize 128
 flags shadow diffuse specular
 
 object lightpoint PointB
 f3 position 15.0 0.0 2.0
 f3 colour 1.0 1.0 1.0
 f1 intensity 6.0
-i1 texsize 256
+i1 texsize 128
 flags shadow diffuse specular
 
 object modelstatic ShadowBox

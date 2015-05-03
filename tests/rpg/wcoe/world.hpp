@@ -11,7 +11,7 @@ namespace wcoe {
 class World : NonCopyable {
 public:
     void add_cell(const string& _name, vec3 _position);
-    void add_cell(const string& _name, vec3 _position, const string& _path);
+    Cell& get_cell(const string& _name);
 
     void tick();
     void calc(double _accum);

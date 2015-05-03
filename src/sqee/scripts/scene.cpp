@@ -7,7 +7,7 @@
 using namespace sq;
 
 SceneConsole::SceneConsole(Application& _app) : Scene(_app) {
-    app.cs.add(chai::var(this), "console");
+    app.cs->add(chai::var(this), "console");
 }
 
 void SceneConsole::update() {}
@@ -26,7 +26,7 @@ void SceneConsole::resize(uvec2 _size) {}
 
 
 void SceneConsole::exec() {
-    try { app.cs(input); }
+    try { app.cs->eval(input); }
     catch (chai::exception::eval_error &err) {
         output.emplace_front(err.what());
     } input.clear(); curPos = 0;

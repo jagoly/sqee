@@ -6,6 +6,7 @@ set(SOURCES
     "main/camera.hpp"           "main/camera.cpp"
     "main/scenemain.hpp"        "main/scenemain.cpp"
     "main/handlermain.hpp"      "main/handlermain.cpp"
+    "main/scripting.hpp"        "main/scripting.cpp"
     "rndr/graph.hpp"            "rndr/graph.cpp"
     "wcoe/cell.hpp"             "wcoe/cell.cpp"
     "wcoe/world.hpp"            "wcoe/world.cpp"

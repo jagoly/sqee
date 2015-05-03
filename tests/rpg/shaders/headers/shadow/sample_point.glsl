@@ -5,7 +5,7 @@
 float get_bias(vec3 _normal, vec3 _lightDir) {
     float lightDot = dot(_normal, -_lightDir);
     float magicTan = sqrt(1.f - lightDot * lightDot) / lightDot;
-    return clamp(0.006f * magicTan, 0.f, 0.03f);
+    return clamp(0.0004f * magicTan, 0.f, 0.004f);
 }
 
 float sample_shadow(vec4 _sc, float _bias, samplerCubeShadow _tex) {

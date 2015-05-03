@@ -49,7 +49,7 @@ bool sq::bbox_in_frus(BoundBox _bbox, Frustum _frus) {
     // Sphere Test
     bool intersect = false;
     for (const auto& plane : planes) {
-        double dist = glm::dot(_bbox.origin, dvec3(plane)) + plane.w;
+        double dist = glm::dot(_bbox.origin, plane.normal) + plane.offset;
         if (dist >= _bbox.radius) return true;
         if (dist < -_bbox.radius) intersect = true;
     } if (!intersect) return false;
@@ -64,10 +64,11 @@ bool sq::bbox_in_frus(BoundBox _bbox, Frustum _frus) {
         _bbox.origin +oX -oY -oZ, _bbox.origin +oX -oY +oZ,
         _bbox.origin +oX +oY -oZ, _bbox.origin +oX +oY +oZ
     };
+
     for (const auto& plane : planes) {
         bool less = false, more = false;
         for (const auto& point : points) {
-            double dist = glm::dot(point, dvec3(plane)) + plane.w;
+            double dist = glm::dot(point, plane.normal) + plane.offset;
             if (dist >= 0.0) more = true;
             if (dist <= 0.0) less = true;
         } if (more && !less) return true;
@@ -82,7 +83,7 @@ bool sq::frus_in_frus(Frustum _frusA, Frustum _frusB) {
     for (const auto& plane : planes) {
         bool less = false, more = false;
         for (const auto& point : points) {
-            double dist = glm::dot(point, dvec3(plane)) + plane.w;
+            double dist = glm::dot(point, plane.normal) + plane.offset;
             if (dist >= 0.0) more = true;
             if (dist <= 0.0) less = true;
         } if (more && !less) return true;
@@ -92,27 +93,27 @@ bool sq::frus_in_frus(Frustum _frusA, Frustum _frusB) {
 bool sq::sphr_in_frus(Sphere _sphere, Frustum _frus) {
     const auto& planes = {_frus.pT, _frus.pB, _frus.pL, _frus.pR, _frus.pN, _frus.pF};
     for (const auto& plane : planes) {
-        double dist = glm::dot(_sphere.origin, dvec3(plane)) + plane.w;
+        double dist = glm::dot(_sphere.origin, plane.normal) + plane.offset;
         if (dist >= _sphere.radius) return true;
     } return false;
 }
 
-Frustum sq::make_Frustum(dmat4 _invProjViewMat) {
-    Frustum fr; dvec4 tmp4; dvec3 tmp3;
-    tmp4 = _invProjViewMat * dvec4(-1, -1, -1, 1); fr.xyz = dvec3(tmp4) / tmp4.w;
-    tmp4 = _invProjViewMat * dvec4(-1, -1,  1, 1); fr.xyZ = dvec3(tmp4) / tmp4.w;
-    tmp4 = _invProjViewMat * dvec4(-1,  1, -1, 1); fr.xYz = dvec3(tmp4) / tmp4.w;
-    tmp4 = _invProjViewMat * dvec4(-1,  1,  1, 1); fr.xYZ = dvec3(tmp4) / tmp4.w;
-    tmp4 = _invProjViewMat * dvec4( 1, -1, -1, 1); fr.Xyz = dvec3(tmp4) / tmp4.w;
-    tmp4 = _invProjViewMat * dvec4( 1, -1,  1, 1); fr.XyZ = dvec3(tmp4) / tmp4.w;
-    tmp4 = _invProjViewMat * dvec4( 1,  1, -1, 1); fr.XYz = dvec3(tmp4) / tmp4.w;
-    tmp4 = _invProjViewMat * dvec4( 1,  1,  1, 1); fr.XYZ = dvec3(tmp4) / tmp4.w;
-    tmp3 = norm_from_tri(fr.xYz, fr.XYz, fr.xYZ); fr.pT = dvec4(tmp3, glm::dot(-tmp3, fr.xYz));
-    tmp3 = norm_from_tri(fr.XyZ, fr.Xyz, fr.xyZ); fr.pB = dvec4(tmp3, glm::dot(-tmp3, fr.XyZ));
-    tmp3 = norm_from_tri(fr.xyz, fr.xYz, fr.xyZ); fr.pL = dvec4(tmp3, glm::dot(-tmp3, fr.xyz));
-    tmp3 = norm_from_tri(fr.XYZ, fr.XYz, fr.XyZ); fr.pR = dvec4(tmp3, glm::dot(-tmp3, fr.XYZ));
-    tmp3 = norm_from_tri(fr.xyz, fr.Xyz, fr.xYz); fr.pN = dvec4(tmp3, glm::dot(-tmp3, fr.xyz));
-    tmp3 = norm_from_tri(fr.XYZ, fr.XyZ, fr.xYZ); fr.pF = dvec4(tmp3, glm::dot(-tmp3, fr.XYZ));
+Frustum sq::make_Frustum(dmat4 _projViewMatrix) {
+    dmat4 matrix = glm::inverse(_projViewMatrix); Frustum fr; dvec4 tmp4; dvec3 tmp3;
+    tmp4 = matrix * dvec4(-1, -1, -1, 1); fr.xyz = dvec3(tmp4) / tmp4.w;
+    tmp4 = matrix * dvec4(-1, -1,  1, 1); fr.xyZ = dvec3(tmp4) / tmp4.w;
+    tmp4 = matrix * dvec4(-1,  1, -1, 1); fr.xYz = dvec3(tmp4) / tmp4.w;
+    tmp4 = matrix * dvec4(-1,  1,  1, 1); fr.xYZ = dvec3(tmp4) / tmp4.w;
+    tmp4 = matrix * dvec4( 1, -1, -1, 1); fr.Xyz = dvec3(tmp4) / tmp4.w;
+    tmp4 = matrix * dvec4( 1, -1,  1, 1); fr.XyZ = dvec3(tmp4) / tmp4.w;
+    tmp4 = matrix * dvec4( 1,  1, -1, 1); fr.XYz = dvec3(tmp4) / tmp4.w;
+    tmp4 = matrix * dvec4( 1,  1,  1, 1); fr.XYZ = dvec3(tmp4) / tmp4.w;
+    tmp3 = norm_from_tri(fr.xYz, fr.XYz, fr.xYZ); fr.pT = {tmp3, glm::dot(-tmp3, fr.xYz)};
+    tmp3 = norm_from_tri(fr.XyZ, fr.Xyz, fr.xyZ); fr.pB = {tmp3, glm::dot(-tmp3, fr.XyZ)};
+    tmp3 = norm_from_tri(fr.xyz, fr.xYz, fr.xyZ); fr.pL = {tmp3, glm::dot(-tmp3, fr.xyz)};
+    tmp3 = norm_from_tri(fr.XYZ, fr.XYz, fr.XyZ); fr.pR = {tmp3, glm::dot(-tmp3, fr.XYZ)};
+    tmp3 = norm_from_tri(fr.xyz, fr.Xyz, fr.xYz); fr.pN = {tmp3, glm::dot(-tmp3, fr.xyz)};
+    tmp3 = norm_from_tri(fr.XYZ, fr.XyZ, fr.xYZ); fr.pF = {tmp3, glm::dot(-tmp3, fr.XYZ)};
     return fr;
 }
 

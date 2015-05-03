@@ -11,17 +11,16 @@
 using namespace sqt::wcoe;
 
 void World::add_cell(const string& _name, vec3 _position) {
-    Cell* ptr = new Cell(_name, _position, *this);
+    Cell* ptr = new Cell(_name, _position, this);
     cellMap.emplace(_name, shared_ptr<Cell>(ptr));
 }
 
-void World::add_cell(const string& _name, vec3 _position, const string& _path) {
-    add_cell(_name, _position);
-    cellMap.at(_name)->load_from_file(_path);
+Cell& World::get_cell(const string& _name) {
+    return *cellMap.at(_name);
 }
 
 void World::enable_cell(const string& _cell) {
-    for (const auto& so : cellMap.at(_cell)->objMap) {
+    for (const auto& so : cellMap.at(_cell)->objectMap) {
         objectList.remove_if([so](const weak_ptr<Object>& val) {
             return val.lock().get() == so.second.get(); });
         objectList.emplace_front(so.second);

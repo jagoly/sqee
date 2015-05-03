@@ -14,21 +14,35 @@
 
 using namespace sqt::wcoe;
 
-LightSky::LightSky(const string& _name, const Cell& _cell)
+LightSky::LightSky(const string& _name, const Cell* _cell)
     : Object(ObjType::LightSky, _name, _cell) {}
 
 void LightSky::load_from_spec(const ObjSpec& _spec) {
-    shadow = _spec.flags.count("shadow");
-    diffuse = _spec.flags.count("diffuse");
-    specular = _spec.flags.count("specular");
+    DATA.shadow = _spec.flags.count("shadow");
+    DATA.diffuse = _spec.flags.count("diffuse");
+    DATA.specular = _spec.flags.count("specular");
 
-    sky.reset(new sq::LightSky(shadow));
-    sky->direction = glm::make_vec3(_spec.fMap.at("direction").data());
-    sky->colour    = glm::make_vec3(_spec.fMap.at("colour").data());
-    if (shadow) sky->texSize = _spec.iMap.at("texsize")[0],
-                sky->camera = static_cast<sq::Camera*>(cell.world.camera);
+    DATA.direction = glm::make_vec3(_spec.fMap.at("direction").data());
+    DATA.colour    = glm::make_vec3(_spec.fMap.at("colour").data());
+    if (DATA.shadow) DATA.texsize = _spec.iMap.at("texsize")[0];
+}
+
+void LightSky::update_from_data() {
+    if (DATA.shadow) {
+        sSky.reset(new sq::ShadowSky()); lSky.reset();
+        sSky->direction = DATA.direction;
+        sSky->colour = DATA.colour;
+        sSky->camera = cell->world->camera;
+        sSky->texSize = DATA.texsize;
+        sSky->update();
+    } else {
+        lSky.reset(new sq::LightSky()); sSky.reset();
+        lSky->direction = DATA.direction;
+        lSky->colour = DATA.colour;
+        lSky->update();
+    }
 }
 
 void LightSky::tick() {
-    sky->update();
+    if (DATA.shadow) sSky->update();
 }

@@ -7,28 +7,29 @@ namespace sq {
 
 class LightSpot : NonCopyable {
 public:
-    LightSpot(bool _shadow);
+    LightSpot();
     void update();
+    vec3 position, direction, colour;
+    float angle, intensity, softness;
+    unique_ptr<Uniformbuffer> ubo;
+    mat4 matrix;
+};
+
+class ShadowSpot : NonCopyable {
+public:
+    ShadowSpot();
+    void update();
+    uint texSize;
+    vec3 position, direction, colour;
+    float angle, intensity, softness;
+    unique_ptr<Uniformbuffer> ubo;
+    mat4 matrix;
 
     void resize_texture(uint _power);
     void filter_texture(bool _enable);
 
-    vec3 position;
-    vec3 direction;
-    vec3 colour;
-    float angle;
-    float intensity;
-    float softness;
-
-    uint texSize;
-    mat4 matrix;
-    Frustum frus;
-
-    unique_ptr<Uniformbuffer> ubo;
     unique_ptr<Texture2D> tex;
     unique_ptr<Framebuffer> fbo;
-
-    const bool shadow;
 };
 
 }

@@ -1,3 +1,5 @@
+#include <chaiscript/utility/utility.hpp>
+
 #include "sqee/app/application.hpp"
 #include "sqee/events/handler.hpp"
 #include "sqee/redist/gl_ext_3_3.hpp"

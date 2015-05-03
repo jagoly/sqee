@@ -1,9 +1,6 @@
-#ifdef SQEE_DEBUG
 #include "sqee/debug/glcallback.hpp"
-#endif
-
-#include "sqee/app/logging.hpp"
 #include "sqee/redist/gl_ext_3_3.hpp"
+#include "sqee/app/logging.hpp"
 #include "sqee/scripts/intergration.hpp"
 #include "sqee/app/application.hpp"
 
@@ -39,14 +36,15 @@ Application::Application(bool _resizable, uvec2 _size) {
     settings.add<bool>("app_keyrepeat", false);
     settings.add<string>("app_title", "SQEE Application");
 
-    sq::cs_setup_glm(cs);
-    sq::cs_setup_application(cs);
-    sq::cs_setup_settings(cs);
-    sq::cs_setup_console(cs);
+    cs.reset(make_ChaiScript());
+    cs_setup_glm(*cs);
+    cs_setup_application(*cs);
+    cs_setup_settings(*cs);
+    cs_setup_console(*cs);
 }
 
 int Application::run() {
-    cs.add(chai::var(this), "app");
+    cs->add(chai::var(this), "app");
 
     retCode = -1;
     sf::Clock clockFT;
@@ -62,7 +60,7 @@ int Application::run() {
             handlerIM.del(_id);
         handlerSweep.clear();
 
-        sndMan.clean();
+        soundMan.clean();
 
         static sf::Event event;
         while (window.pollEvent(event))

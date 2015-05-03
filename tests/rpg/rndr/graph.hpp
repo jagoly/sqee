@@ -41,6 +41,9 @@ public:
         sq::Shader* shds_skylight = nullptr;
         sq::Shader* shds_spotlight = nullptr;
         sq::Shader* shds_pointlight = nullptr;
+        sq::Shader* shds_skylight_shad = nullptr;
+        sq::Shader* shds_spotlight_shad = nullptr;
+        sq::Shader* shds_pointlight_shad = nullptr;
     } FS;
 
     MainCamera* camera = nullptr;

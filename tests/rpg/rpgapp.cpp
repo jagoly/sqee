@@ -10,6 +10,7 @@
 
 #include "main/scenemain.hpp"
 #include "main/handlermain.hpp"
+#include "main/scripting.hpp"
 #include "rpgapp.hpp"
 
 namespace sqt {
@@ -27,6 +28,10 @@ RpgApp::RpgApp() : sq::Application(true, {1280, 720}) {
     handlerIM.append("resize", new sq::HandlerResize(*this));
     handlerIM.prepend("console", new sq::HandlerConsole(*this));
     handlerIM.append("main", new HandlerMain(*this));
+
+    cs_setup_main(*cs);
+    cs_setup_wcoe(*cs);
+    cs_setup_rndr(*cs);
 }
 
 }

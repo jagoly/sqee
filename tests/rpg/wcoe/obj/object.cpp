@@ -43,5 +43,5 @@ void ObjSpec::parse_line(const vector<string>& _line) {
 }
 
 
-Object::Object(ObjType _type, const string& _name, const Cell& _cell)
+Object::Object(ObjType _type, const string& _name, const Cell* _cell)
     : type(_type), name(_name), cell(_cell) {}

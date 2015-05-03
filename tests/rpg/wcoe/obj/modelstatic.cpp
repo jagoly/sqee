@@ -10,14 +10,14 @@
 
 using namespace sqt::wcoe;
 
-ModelStatic::ModelStatic(const string& _name, const Cell& _cell)
+ModelStatic::ModelStatic(const string& _name, const Cell* _cell)
     : Object(ObjType::ModelStatic, _name, _cell) {}
 
 void ModelStatic::load_from_spec(const ObjSpec& _spec) {
-    shadow = _spec.flags.count("shadow");
-    render = _spec.flags.count("render");
-    reflect = _spec.flags.count("reflect");
-    refract = _spec.flags.count("refract");
+    DATA.shadow = _spec.flags.count("shadow");
+    DATA.render = _spec.flags.count("render");
+    DATA.reflect = _spec.flags.count("reflect");
+    DATA.refract = _spec.flags.count("refract");
 
     const string& mPath = _spec.sMap.at("mesh")[0];
     if (!(mesh = sq::res::mesh().get(mPath))) {
@@ -31,16 +31,18 @@ void ModelStatic::load_from_spec(const ObjSpec& _spec) {
         skin->create(sPath);
     }
 
-    vec3 pos(0,0,0), rot(0,0,0), sca(1,1,1);
-    if (_spec.fMap.count("pos")) pos = glm::make_vec3(_spec.fMap.at("pos").data());
-    if (_spec.fMap.count("rot")) rot = glm::make_vec3(_spec.fMap.at("rot").data());
-    if (_spec.fMap.count("sca")) sca = glm::make_vec3(_spec.fMap.at("sca").data());
+    if (_spec.fMap.count("pos")) DATA.pos = glm::make_vec3(_spec.fMap.at("pos").data());
+    if (_spec.fMap.count("rot")) DATA.rot = glm::make_vec3(_spec.fMap.at("rot").data());
+    if (_spec.fMap.count("sca")) DATA.sca = glm::make_vec3(_spec.fMap.at("sca").data());
+}
 
-    matrix = glm::translate(mat4(), pos + cell.position);
-    matrix = glm::rotate(matrix, glm::radians(rot.x), {1,0,0});
-    matrix = glm::rotate(matrix, glm::radians(rot.y), {0,1,0});
-    matrix = glm::rotate(matrix, glm::radians(rot.z), {0,0,1});
-    matrix = glm::scale(matrix, sca);
-    bbox = sq::bbox_by_model(mesh->bbox, matrix);
+void ModelStatic::update_from_data() {
+    matrix = glm::translate(mat4(), DATA.pos + cell->position);
+    matrix = glm::rotate(matrix, glm::radians(DATA.rot.x), {1,0,0});
+    matrix = glm::rotate(matrix, glm::radians(DATA.rot.y), {0,1,0});
+    matrix = glm::rotate(matrix, glm::radians(DATA.rot.z), {0,0,1});
+    matrix = glm::scale(matrix, DATA.sca);
     negScale = glm::determinant(matrix) < 0.f;
+    bbox = sq::bbox_by_model(mesh->bbox, matrix);
+
 }

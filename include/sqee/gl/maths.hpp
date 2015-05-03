@@ -24,13 +24,13 @@ dvec3 norm_from_tri(dvec3 _t0, dvec3 _t1, dvec3 _t2);
 
 BoundBox bbox_by_model(BoundBox _bbox, dmat4 _modelMat);
 
-bool frus_in_frus(Frustum _frusA, Frustum _frusB);
-
 bool bbox_in_frus(BoundBox _bbox, Frustum _frus);
+
+bool frus_in_frus(Frustum _frusA, Frustum _frusB);
 
 bool sphr_in_frus(Sphere _sphere, Frustum _frus);
 
-Frustum make_Frustum(dmat4 _invProjViewMat);
+Frustum make_Frustum(dmat4 _projViewMatrix);
 
 dvec3 calc_frusCentre(Frustum _frus);
 

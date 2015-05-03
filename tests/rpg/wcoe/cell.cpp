@@ -13,14 +13,12 @@
 
 using namespace sqt::wcoe;
 
-Cell::Cell(const string& _name, vec3 _position, const World& _world)
+Cell::Cell(const string& _name, vec3 _position, const World* _world)
     : name(_name), position(_position), world(_world) {}
 
 void Cell::load_from_file(const string& _path) {
     vector<vector<string>> fileVec(sq::get_words_from_file("assets/cells/" + _path + ".sq_cell"));
-    struct SpecExtra { SpecExtra(string _name, ObjType _type) : name(_name), type(_type) {};
-                       string name; ObjType type; ObjSpec spec; };
-    vector<SpecExtra> specVec;
+    vector<pair<string, ObjSpec>> specVec;
 
     string section = "";
     for (const auto& line : fileVec) {
@@ -37,45 +35,29 @@ void Cell::load_from_file(const string& _path) {
 
         if (section == "objects") {
             if (key == "object") {
-                ObjType type;
-                if      (line[1] == "modelstatic") type = ObjType::ModelStatic;
-                else if (line[1] == "modelskelly") type = ObjType::ModelSkelly;
-                else if (line[1] == "lightsky")    type = ObjType::LightSky;
-                else if (line[1] == "lightspot")   type = ObjType::LightSpot;
-                else if (line[1] == "lightpoint")  type = ObjType::LightPoint;
-                else if (line[1] == "liquid")      type = ObjType::Liquid;
-                else if (line[1] == "reflector")   type = ObjType::Reflector;
+                if      (line[1] == "modelstatic") add_object<ModelStatic>(line[2]);
+                else if (line[1] == "modelskelly") add_object<ModelSkelly>(line[2]);
+                else if (line[1] == "lightsky")    add_object<LightSky>(line[2]);
+                else if (line[1] == "lightspot")   add_object<LightSpot>(line[2]);
+                else if (line[1] == "lightpoint")  add_object<LightPoint>(line[2]);
+                else if (line[1] == "liquid")      add_object<Liquid>(line[2]);
+                else if (line[1] == "reflector")   add_object<Reflector>(line[2]);
                 else throw; // invalid object type
-                specVec.emplace_back(line[2], type);
-            } else specVec.back().spec.parse_line(line);
+                specVec.emplace_back(line[2], ObjSpec());
+            } else specVec.back().second.parse_line(line);
             continue;
         }
     }
 
-    for (const auto& spec : specVec) add_object(spec.name, spec.type, spec.spec);
-}
-
-void Cell::add_object(const string& _name, ObjType _type) {
-    Object* ptr = nullptr;
-    if      (_type == ObjType::ModelStatic) ptr = new ModelStatic(_name, *this);
-    else if (_type == ObjType::ModelSkelly) ptr = new ModelSkelly(_name, *this);
-    else if (_type == ObjType::LightSky)    ptr = new LightSky(_name, *this);
-    else if (_type == ObjType::LightSpot)   ptr = new LightSpot(_name, *this);
-    else if (_type == ObjType::LightPoint)  ptr = new LightPoint(_name, *this);
-    else if (_type == ObjType::Liquid)      ptr = new Liquid(_name, *this);
-    else if (_type == ObjType::Reflector)   ptr = new Reflector(_name, *this);
-    objMap.emplace(_name, shared_ptr<Object>(ptr));
-}
-
-void Cell::add_object(const string& _name, ObjType _type, const ObjSpec& _spec) {
-    add_object(_name, _type);
-    objMap.at(_name)->load_from_spec(_spec);
+    for (const auto& ss : specVec)
+        get_object(ss.first).load_from_spec(ss.second),
+        get_object(ss.first).update_from_data();
 }
 
 void Cell::tick() {
-    for (auto& so : objMap) so.second->tick();
+    for (auto& so : objectMap) so.second->tick();
 }
 
 void Cell::calc(double _accum) {
-    for (auto& so : objMap) so.second->calc(_accum);
+    for (auto& so : objectMap) so.second->calc(_accum);
 }

@@ -4,11 +4,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 
-#ifdef SQEE_DEBUG
-#include <sqee/debug/misc.hpp>
-#include <sqee/debug/glcallback.hpp>
-#endif
-
 #include <sqee/redist/gl_ext_3_3.hpp>
 #include <sqee/app/application.hpp>
 #include <sqee/app/logging.hpp>
@@ -37,23 +32,27 @@ SceneMain::SceneMain(sq::Application& _app) : sq::Scene(_app) {
 
     camera.reset(new MainCamera());
     world.reset(new wcoe::World());
-    world->camera = camera.get();
-    world->settings = &app.settings;
     graph.reset(new rndr::Graph());
+    world->camera = camera.get();
     graph->camera = camera.get();
+    world->settings = &app.settings;
     graph->settings = &app.settings;
-    pipeline.reset(new sq::Pipeline());
 
-    camera->pos = {0, -1, 1};
+    app.cs->add(chai::var(camera), "camera");
+    app.cs->add(chai::var(world), "world");
+    app.cs->add(chai::var(graph), "graph");
+
+    camera->pos = {0.f, -1.f, 1.f};
     camera->dir = {0.1, 0.8, -0.1};
-    camera->range = {0.25f, 120.f};
+    camera->range = {0.2f, 120.f};
     camera->size = {16.f, 10.f};
     camera->fov = 1.f;
-    camera->binding = 0;
+    camera->binding = 0u;
     camera->update();
 
     world->add_cell("GLOBAL", {0,0,0});
-    world->add_cell("Sponza", {0,0,0}, "Sponza/New");
+    world->add_cell("Sponza", {0,0,0});
+    world->get_cell("Sponza").load_from_file("Sponza/New");
     world->enable_cell("GLOBAL");
     world->enable_cell("Sponza");
 
@@ -137,6 +136,7 @@ SceneMain::SceneMain(sq::Application& _app) : sq::Scene(_app) {
     app.preproc.import_header("headers/shadow/sample_point");
 
     /// Create Shaders
+    pipeline.reset(new sq::Pipeline());
     VS.gnrc_quad.reset(new sq::Shader(gl::VERTEX_SHADER));
     VS.gnrc_lines.reset(new sq::Shader(gl::VERTEX_SHADER));
     FS.gnrc_passthru.reset(new sq::Shader(gl::FRAGMENT_SHADER));
@@ -150,6 +150,9 @@ SceneMain::SceneMain(sq::Application& _app) : sq::Scene(_app) {
     FS.shds_skylight.reset(new sq::Shader(gl::FRAGMENT_SHADER));
     FS.shds_spotlight.reset(new sq::Shader(gl::FRAGMENT_SHADER));
     FS.shds_pointlight.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.shds_skylight_shad.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.shds_spotlight_shad.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.shds_pointlight_shad.reset(new sq::Shader(gl::FRAGMENT_SHADER));
     VS.shad_static.reset(new sq::Shader(gl::VERTEX_SHADER));
     VS.shad_skelly.reset(new sq::Shader(gl::VERTEX_SHADER));
     FS.shad_punch.reset(new sq::Shader(gl::FRAGMENT_SHADER));
@@ -174,6 +177,9 @@ SceneMain::SceneMain(sq::Application& _app) : sq::Scene(_app) {
     FS.shds_skylight->load(app.preproc("shades/skylight_fs"));
     FS.shds_spotlight->load(app.preproc("shades/spotlight_fs"));
     FS.shds_pointlight->load(app.preproc("shades/pointlight_fs"));
+    FS.shds_skylight_shad->load(app.preproc("shades/skylight_fs", "#define SHADOW"));
+    FS.shds_spotlight_shad->load(app.preproc("shades/spotlight_fs", "#define SHADOW"));
+    FS.shds_pointlight_shad->load(app.preproc("shades/pointlight_fs", "#define SHADOW"));
     VS.shad_static->load(app.preproc("shadows/static_vs"));
     VS.shad_skelly->load(app.preproc("shadows/skelly_vs"));
     FS.shad_punch->load(app.preproc("shadows/punch_fs"));
@@ -200,16 +206,19 @@ SceneMain::SceneMain(sq::Application& _app) : sq::Scene(_app) {
     VS.shad_skelly->add_uniform("matrix"); // mat4
     VS.shad_skelly->add_uniform("skelQuat", 40); // vec4
     VS.shad_skelly->add_uniform("skelOffs", 40); // vec3
-    FS.modl_write->add_uniform("mode"); // int
-    FS.shds_skylight->add_uniform("mode"); // int
-    FS.shds_skylight->add_uniform("shadQuality"); // int
-    FS.shds_skylight->add_uniform("shadFilter"); // int
-    FS.shds_spotlight->add_uniform("mode"); // int
-    FS.shds_spotlight->add_uniform("shadQuality"); // int
-    FS.shds_spotlight->add_uniform("shadFilter"); // int
-    FS.shds_pointlight->add_uniform("mode"); // int
-    FS.shds_pointlight->add_uniform("shadQuality"); // int
-    FS.shds_pointlight->add_uniform("shadFilter"); // int
+    FS.modl_write->add_uniform("diff_norm_spec"); // int
+    FS.shds_skylight->add_uniform("diff_spec"); // int
+    FS.shds_spotlight->add_uniform("diff_spec"); // int
+    FS.shds_pointlight->add_uniform("diff_spec"); // int
+    FS.shds_skylight_shad->add_uniform("diff_spec"); // int
+    FS.shds_skylight_shad->add_uniform("shadQuality"); // int
+    FS.shds_skylight_shad->add_uniform("shadFilter"); // int
+    FS.shds_spotlight_shad->add_uniform("diff_spec"); // int
+    FS.shds_spotlight_shad->add_uniform("shadQuality"); // int
+    FS.shds_spotlight_shad->add_uniform("shadFilter"); // int
+    FS.shds_pointlight_shad->add_uniform("diff_spec"); // int
+    FS.shds_pointlight_shad->add_uniform("shadQuality"); // int
+    FS.shds_pointlight_shad->add_uniform("shadFilter"); // int
     FS.prty_fxaa_fxaa_low->add_uniform("pixSize"); // vec2
     FS.prty_fxaa_fxaa_high->add_uniform("pixSize"); // vec2
     FS.prty_ssao_ssao_low->add_uniform("pixSize"); // vec2
@@ -238,6 +247,9 @@ SceneMain::SceneMain(sq::Application& _app) : sq::Scene(_app) {
     graph->FS.shds_skylight = FS.shds_skylight.get();
     graph->FS.shds_spotlight = FS.shds_spotlight.get();
     graph->FS.shds_pointlight = FS.shds_pointlight.get();
+    graph->FS.shds_skylight_shad = FS.shds_skylight_shad.get();
+    graph->FS.shds_spotlight_shad = FS.shds_spotlight_shad.get();
+    graph->FS.shds_pointlight_shad = FS.shds_pointlight_shad.get();
     graph->pipeline = pipeline.get();
 }
 
@@ -434,10 +446,10 @@ void SceneMain::update_settings() {
 
     graph->update_settings();
 
-    FS.shds_skylight->set_sca<int>("shadQuality", INFO.shadQuality);
-    FS.shds_skylight->set_sca<int>("shadFilter", INFO.shadFilter);
-    FS.shds_spotlight->set_sca<int>("shadQuality", INFO.shadQuality);
-    FS.shds_spotlight->set_sca<int>("shadFilter", INFO.shadFilter);
-    FS.shds_pointlight->set_sca<int>("shadQuality", INFO.shadQuality);
-    FS.shds_pointlight->set_sca<int>("shadFilter", INFO.shadFilter);
+    FS.shds_skylight_shad->set_sca<int>("shadQuality", INFO.shadQuality);
+    FS.shds_skylight_shad->set_sca<int>("shadFilter", INFO.shadFilter);
+    FS.shds_spotlight_shad->set_sca<int>("shadQuality", INFO.shadQuality);
+    FS.shds_spotlight_shad->set_sca<int>("shadFilter", INFO.shadFilter);
+    FS.shds_pointlight_shad->set_sca<int>("shadQuality", INFO.shadQuality);
+    FS.shds_pointlight_shad->set_sca<int>("shadFilter", INFO.shadFilter);
 }

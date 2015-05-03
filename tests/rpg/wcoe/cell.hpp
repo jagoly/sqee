@@ -3,27 +3,39 @@
 
 namespace sqt { namespace wcoe {
 
-enum class ObjType;
-class ObjSpec;
 class Object;
 class World;
 
 class Cell : NonCopyable {
 public:
-    Cell(const string& _name, vec3 _position, const World& _world);
+    Cell(const string& _name, vec3 _position, const World* _world);
 
     const string name;
     const vec3 position;
-    const World& world;
+    const World* const world;
 
     void load_from_file(const string& _path);
-    void add_object(const string& _name, ObjType _type);
-    void add_object(const string& _name, ObjType _type, const ObjSpec& _spec);
+
+    template<class T>
+    void add_object(const string& _name);
+    template<class T = Object>
+    T& get_object(const string& _name);
 
     void tick();
     void calc(double _accum);
 
-    unordered_map<string, shared_ptr<Object>> objMap;
+    unordered_map<string, shared_ptr<Object>> objectMap;
 };
+
+template<class T>
+void Cell::add_object(const string& _name) {
+    Object* ptr = new T(_name, this);
+    objectMap.emplace(_name, shared_ptr<Object>(ptr));
+}
+
+template<class T>
+T& Cell::get_object(const string& _name) {
+    return static_cast<T&>(*objectMap.at(_name));
+}
 
 }}

@@ -5,7 +5,7 @@
 
 namespace sqt {
 
-namespace wcoe { class World; class ModelSkelly; }
+namespace wcoe { class World; }
 namespace rndr { class Graph; }
 
 class MainCamera;
@@ -19,14 +19,15 @@ public:
     void render(float _ft);
 
 private:
-    unique_ptr<MainCamera> camera;
-    unique_ptr<wcoe::World> world;
-    unique_ptr<rndr::Graph> graph;
-    unique_ptr<sq::Pipeline> pipeline;
+    shared_ptr<MainCamera> camera;
+    shared_ptr<wcoe::World> world;
+    shared_ptr<rndr::Graph> graph;
 
     sq::Direction moveDir;
     vec3 posCrnt, posNext;
     float rotX, rotZ;
+
+    unique_ptr<sq::Pipeline> pipeline;
 
     struct {
         unique_ptr<sq::Shader> modl_static;
@@ -43,6 +44,9 @@ private:
         unique_ptr<sq::Shader> shds_skylight;
         unique_ptr<sq::Shader> shds_spotlight;
         unique_ptr<sq::Shader> shds_pointlight;
+        unique_ptr<sq::Shader> shds_skylight_shad;
+        unique_ptr<sq::Shader> shds_spotlight_shad;
+        unique_ptr<sq::Shader> shds_pointlight_shad;
         unique_ptr<sq::Shader> shad_punch;
         unique_ptr<sq::Shader> gnrc_passthru;
         unique_ptr<sq::Shader> gnrc_passthru_layer;
