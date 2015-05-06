@@ -10,7 +10,7 @@ public:
     ~Shader();
 
     void load(const string& _shaderStr);
-    void add_uniform(const string& _name, uint _cnt = 1);
+    void add_uniform(const string& _name, uint _cnt = 1u);
 
     template <class T>
     void set_sca(const string& _name, const T& _value);
@@ -28,13 +28,13 @@ public:
     void set_matptr(const string& _name, const D* _value, bool _transpose = false);
 
 private:
-    GLuint prog = 0;
+    GLuint prog = 0u;
     GLenum stage;
     GLbitfield stageBit;
 
     struct Uniform {
-        Uniform(GLint _ref, uint _cnt) : ref(_ref), cnt(_cnt) {}
-        const GLint ref; const uint cnt;
+        Uniform(uint _cnt) : cnt(_cnt) {}
+        const uint cnt; GLint ref;
     };
     unordered_map<string, Uniform> uniforms;
 };

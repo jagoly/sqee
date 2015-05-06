@@ -23,51 +23,51 @@ void sq::cs_setup_glm(chai::ChaiScript& _cs) {
     chai::ModulePtr m(new chai::Module());
 
     add_class<vec2>(*m, "vec2", {
-            constructor<vec2(const float&, const float&)>(),
-            constructor<vec2(const vec2&)>()
-        }, {{fun(&vec2::x), "x"}, {fun(&vec2::y), "y"}}
+            constructor<vec2(float, float)>(), constructor<vec2(const vec2&)>()
+        }, {{fun<vec2& (vec2::*)(const vec2&)>(&vec2::operator=), "="},
+            {fun(&vec2::x), "x"}, {fun(&vec2::y), "y"}}
     );
     add_class<vec3>(*m, "vec3", {
-            constructor<vec3(const float&, const float&, const float&)>(),
-            constructor<vec3(const vec3&)>()
-        }, {{fun(&vec2::x), "x"}, {fun(&vec2::y), "y"}, {fun(&vec3::z), "z"}}
+            constructor<vec3(float, float, float)>(), constructor<vec3(const vec3&)>()
+        }, {{fun<vec3& (vec3::*)(const vec3&)>(&vec3::operator=), "="},
+            {fun(&vec3::x), "x"}, {fun(&vec3::y), "y"}, {fun(&vec3::z), "z"}}
     );
     add_class<vec4>(*m, "vec4", {
-            constructor<vec4(const float&, const float&, const float&, const float&)>(),
-            constructor<vec4(const vec4&)>()
-        }, {{fun(&vec4::x), "x"}, {fun(&vec4::y), "y"}, {fun(&vec4::z), "z"}, {fun(&vec4::w), "w"}}
+            constructor<vec4(float, float, float, float)>(), constructor<vec4(const vec4&)>()
+        }, {{fun<vec4& (vec4::*)(const vec4&)>(&vec4::operator=), "="},
+            {fun(&vec4::x), "x"}, {fun(&vec4::y), "y"}, {fun(&vec4::z), "z"}, {fun(&vec4::w), "w"}}
     );
 
     add_class<ivec2>(*m, "ivec2", {
-            constructor<ivec2(const int&, const int&)>(),
-            constructor<ivec2(const ivec2&)>()
-        }, {{fun(&ivec2::x), "x"}, {fun(&ivec2::y), "y"}}
+            constructor<ivec2(int, int)>(), constructor<ivec2(const ivec2&)>()
+        }, {{fun<ivec2& (ivec2::*)(const ivec2&)>(&ivec2::operator=), "="},
+            {fun(&ivec2::x), "x"}, {fun(&ivec2::y), "y"}}
     );
     add_class<ivec3>(*m, "ivec3", {
-            constructor<ivec3(const int&, const int&, const int&)>(),
-            constructor<ivec3(const ivec3&)>()
-        }, {{fun(&ivec2::x), "x"}, {fun(&ivec2::y), "y"}, {fun(&ivec3::z), "z"}}
+            constructor<ivec3(int, int, int)>(), constructor<ivec3(const ivec3&)>()
+        }, {{fun<ivec3& (ivec3::*)(const ivec3&)>(&ivec3::operator=), "="},
+            {fun(&ivec3::x), "x"}, {fun(&ivec3::y), "y"}, {fun(&ivec3::z), "z"}}
     );
     add_class<ivec4>(*m, "ivec4", {
-            constructor<ivec4(const int&, const int&, const int&, const int&)>(),
-            constructor<ivec4(const ivec4&)>()
-        }, {{fun(&ivec4::x), "x"}, {fun(&ivec4::y), "y"}, {fun(&ivec4::z), "z"}, {fun(&ivec4::w), "w"}}
+            constructor<ivec4(int, int, int, int)>(), constructor<ivec4(const ivec4&)>()
+        }, {{fun<ivec4& (ivec4::*)(const ivec4&)>(&ivec4::operator=), "="},
+            {fun(&ivec4::x), "x"}, {fun(&ivec4::y), "y"}, {fun(&ivec4::z), "z"}, {fun(&ivec4::w), "w"}}
     );
 
     add_class<uvec2>(*m, "uvec2", {
-            constructor<uvec2(const uint&, const uint&)>(),
-            constructor<uvec2(const uvec2&)>()
-        }, {{fun(&uvec2::x), "x"}, {fun(&uvec2::y), "y"}}
+            constructor<uvec2(uint, uint)>(), constructor<uvec2(const uvec2&)>()
+        }, {{fun<uvec2& (uvec2::*)(const uvec2&)>(&uvec2::operator=), "="},
+            {fun(&uvec2::x), "x"}, {fun(&uvec2::y), "y"}}
     );
     add_class<uvec3>(*m, "uvec3", {
-            constructor<uvec3(const uint&, const uint&, const uint&)>(),
-            constructor<uvec3(const uvec3&)>()
-        }, {{fun(&uvec2::x), "x"}, {fun(&uvec2::y), "y"}, {fun(&uvec3::z), "z"}}
+            constructor<uvec3(uint, uint, uint)>(), constructor<uvec3(const uvec3&)>()
+        }, {{fun<uvec3& (uvec3::*)(const uvec3&)>(&uvec3::operator=), "="},
+            {fun(&uvec3::x), "x"}, {fun(&uvec3::y), "y"}, {fun(&uvec3::z), "z"}}
     );
     add_class<uvec4>(*m, "uvec4", {
-            constructor<uvec4(const uint&, const uint&, const uint&, const uint&)>(),
-            constructor<uvec4(const uvec4&)>()
-        }, {{fun(&uvec4::x), "x"}, {fun(&uvec4::y), "y"}, {fun(&uvec4::z), "z"}, {fun(&uvec4::w), "w"}}
+            constructor<uvec4(uint, uint, uint, uint)>(), constructor<uvec4(const uvec4&)>()
+        }, {{fun<uvec4& (uvec4::*)(const uvec4&)>(&uvec4::operator=), "="},
+            {fun(&uvec4::x), "x"}, {fun(&uvec4::y), "y"}, {fun(&uvec4::z), "z"}, {fun(&uvec4::w), "w"}}
     );
 
     _cs.add(m);

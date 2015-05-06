@@ -13,9 +13,8 @@ set(SOURCES
     "wcoe/obj/object.hpp"       "wcoe/obj/object.cpp"
     "wcoe/obj/modelstatic.hpp"  "wcoe/obj/modelstatic.cpp"
     "wcoe/obj/modelskelly.hpp"  "wcoe/obj/modelskelly.cpp"
-    "wcoe/obj/lightsky.hpp"     "wcoe/obj/lightsky.cpp"
-    "wcoe/obj/lightspot.hpp"    "wcoe/obj/lightspot.cpp"
-    "wcoe/obj/lightpoint.hpp"   "wcoe/obj/lightpoint.cpp"
+    "wcoe/obj/spotlight.hpp"    "wcoe/obj/spotlight.cpp"
+    "wcoe/obj/pointlight.hpp"   "wcoe/obj/pointlight.cpp"
     "wcoe/obj/liquid.hpp"       "wcoe/obj/liquid.cpp"
     "wcoe/obj/reflector.hpp"    "wcoe/obj/reflector.cpp"
 )

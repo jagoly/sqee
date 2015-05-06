@@ -19,19 +19,18 @@ Shader::~Shader() {
 }
 
 void Shader::load(const string& _shaderStr) {
-    uniforms.clear();
     gl::DeleteProgram(prog);
-
     const char* src = _shaderStr.c_str();
     prog = gl::CreateShaderProgramv(stage, 1, &src);
     int length = 0; char log[2048];
     gl::GetProgramInfoLog(prog, 2048, &length, log);
     if (length > 0) log_error("Failed to compile shader\n%s", log);
+    for (auto& uform : uniforms)
+        uform.second.ref = gl::GetUniformLocation(prog, uform.first.c_str());
 }
 
 void Shader::add_uniform(const string& _name, uint _cnt) {
-    GLint ref = gl::GetUniformLocation(prog, _name.c_str());
-    uniforms.emplace(_name, Uniform(ref, _cnt));
+    uniforms.emplace(_name, _cnt);
 }
 
 

@@ -2,16 +2,12 @@
 #extension GL_ARB_shading_language_420pack : enable
 
 #include "headers/blocks/camera"
-#include "headers/blocks/world"
-#include "headers/blocks/liquid"
 
 in vec3 w_pos, v_pos;
 in vec3 N, T, B;
 in vec2 texcrd;
 
 layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
-layout(std140, binding=1) uniform WORLDBLOCk { WorldBlock WB; };
-layout(std140, binding=2) uniform LIQUIDBLOCK { LiquidBlock LB; };
 
 uniform int diff_norm_spec;
 layout(binding=0) uniform sampler2D texDiff; // R/G/B/Alpha

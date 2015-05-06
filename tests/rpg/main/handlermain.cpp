@@ -10,34 +10,34 @@ bool HandlerMain::handle(const sf::Event& _event) {
 
     if (_event.type == sf::Event::KeyPressed) {
         if (_event.key.code == sf::Keyboard::S) {
-            int crnt = app.settings.crnt<int>("shadQuality");
-            if      (crnt == 0) app.settings.mod<int>("shadQuality", 1);
-            else if (crnt == 1) app.settings.mod<int>("shadQuality", 2);
-            else if (crnt == 2) app.settings.mod<int>("shadQuality", 0);
+            int crnt = app.settings.crnt<int>("shadQlty");
+            if      (crnt == 0) app.settings.mod<int>("shadQlty", 1);
+            else if (crnt == 1) app.settings.mod<int>("shadQlty", 2);
+            else if (crnt == 2) app.settings.mod<int>("shadQlty", 0);
             app.settings.apply();
             return true;
         }
         if (_event.key.code == sf::Keyboard::F) {
-            int crnt = app.settings.crnt<int>("shadFilter");
-            if      (crnt == 0) app.settings.mod<int>("shadFilter", 1);
-            else if (crnt == 1) app.settings.mod<int>("shadFilter", 2);
-            else if (crnt == 2) app.settings.mod<int>("shadFilter", 0);
+            int crnt = app.settings.crnt<int>("shadFltr");
+            if      (crnt == 0) app.settings.mod<int>("shadFltr", 1);
+            else if (crnt == 1) app.settings.mod<int>("shadFltr", 2);
+            else if (crnt == 2) app.settings.mod<int>("shadFltr", 0);
             app.settings.apply();
             return true;
         }
         if (_event.key.code == sf::Keyboard::O) {
-            int crnt = app.settings.crnt<int>("ssaoQuality");
-            if      (crnt == 0) app.settings.mod<int>("ssaoQuality", 1);
-            else if (crnt == 1) app.settings.mod<int>("ssaoQuality", 2);
-            else if (crnt == 2) app.settings.mod<int>("ssaoQuality", 0);
+            int crnt = app.settings.crnt<int>("ssaoQlty");
+            if      (crnt == 0) app.settings.mod<int>("ssaoQlty", 1);
+            else if (crnt == 1) app.settings.mod<int>("ssaoQlty", 2);
+            else if (crnt == 2) app.settings.mod<int>("ssaoQlty", 0);
             app.settings.apply();
             return true;
         }
         if (_event.key.code == sf::Keyboard::A) {
-            int crnt = app.settings.crnt<int>("fxaaQuality");
-            if      (crnt == 0) app.settings.mod<int>("fxaaQuality", 1);
-            else if (crnt == 1) app.settings.mod<int>("fxaaQuality", 2);
-            else if (crnt == 2) app.settings.mod<int>("fxaaQuality", 0);
+            int crnt = app.settings.crnt<int>("fxaaQlty");
+            if      (crnt == 0) app.settings.mod<int>("fxaaQlty", 1);
+            else if (crnt == 1) app.settings.mod<int>("fxaaQlty", 2);
+            else if (crnt == 2) app.settings.mod<int>("fxaaQlty", 0);
             app.settings.apply();
             return true;
         }

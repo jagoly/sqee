@@ -5,9 +5,7 @@ namespace sqt { namespace wcoe {
 
 class Cell;
 
-enum class ObjType { ModelStatic, ModelSkelly,
-                     LightSky, LightSpot, LightPoint,
-                     Reflector, Liquid };
+enum class ObjType { ModelStatic, ModelSkelly, SpotLight, PointLight, Reflector, Liquid };
 
 template<class T> struct ObjTraits {
     template<T> static constexpr ObjType type();

@@ -12,16 +12,13 @@
 #include <sqee/render/mesh.hpp>
 #include <sqee/render/skin.hpp>
 #include <sqee/render/skeleton.hpp>
-#include <sqee/render/lightsky.hpp>
-#include <sqee/render/lightspot.hpp>
-#include <sqee/render/lightpoint.hpp>
 
 #include "../main/camera.hpp"
+#include "../wcoe/world.hpp"
 #include "../wcoe/obj/modelstatic.hpp"
 #include "../wcoe/obj/modelskelly.hpp"
-#include "../wcoe/obj/lightsky.hpp"
-#include "../wcoe/obj/lightspot.hpp"
-#include "../wcoe/obj/lightpoint.hpp"
+#include "../wcoe/obj/spotlight.hpp"
+#include "../wcoe/obj/pointlight.hpp"
 #include "graph.hpp"
 
 using namespace sqt::rndr;
@@ -37,45 +34,63 @@ void Graph::update() {
         const wcoe::ModelSkelly& obj = *iter->lock();
     }
 
-    for (auto iter = lightSkyList.begin(); iter != lightSkyList.end(); iter++) {
-        if (iter->expired()) { lightSkyList.erase(iter--); continue; }
-        const wcoe::LightSky& obj = *iter->lock();
+    for (auto iter = spotLightList.begin(); iter != spotLightList.end(); iter++) {
+        if (iter->expired()) { spotLightList.erase(iter--); continue; }
+        const wcoe::SpotLight& obj = *iter->lock();
     }
 
-    for (auto iter = lightSpotList.begin(); iter != lightSpotList.end(); iter++) {
-        if (iter->expired()) { lightSpotList.erase(iter--); continue; }
-        const wcoe::LightSpot& obj = *iter->lock();
-    }
-
-    for (auto iter = lightPointList.begin(); iter != lightPointList.end(); iter++) {
-        if (iter->expired()) { lightPointList.erase(iter--); continue; }
-        const wcoe::LightPoint& obj = *iter->lock();
+    for (auto iter = pointLightList.begin(); iter != pointLightList.end(); iter++) {
+        if (iter->expired()) { pointLightList.erase(iter--); continue; }
+        const wcoe::PointLight& obj = *iter->lock();
     }
 }
 
 
 void Graph::update_settings() {
-    for (const auto& lptr : lightSkyList) {
-        const wcoe::LightSky& light = *lptr.lock();
-        if (light.DATA.shadow == true) {
-            light.sSky->resize_texture(settings->crnt<int>("shadQuality"));
-            light.sSky->filter_texture(settings->crnt<int>("shadFilter"));
+    int shadQlty = settings->crnt<int>("shadQlty");
+    int shadFltr = settings->crnt<int>("shadFltr");
+
+    uint adjSize = 1024u * std::pow(2, shadQlty);
+    world->skylight.tex->resize(uvec3(adjSize, adjSize, 4u));
+    if (shadFltr > 0) world->skylight.tex->set_preset(sq::Texture2DArray::L_C());
+    else world->skylight.tex->set_preset(sq::Texture2DArray::N_C());
+
+    for (const auto& lptr : spotLightList) {
+        const wcoe::SpotLight& light = *lptr.lock();
+        if (light.DAT_shadow == true) {
+            adjSize = light.DAT_texsize * std::pow(2, shadQlty);
+            light.tex->resize(uvec2(adjSize, adjSize));
+            if (shadFltr > 0) light.tex->set_preset(sq::Texture2D::L_C());
+            else light.tex->set_preset(sq::Texture2D::N_C());
         }
     }
-    for (const auto& lptr : lightSpotList) {
-        const wcoe::LightSpot& light = *lptr.lock();
-        if (light.DATA.shadow == true) {
-            light.sSpot->resize_texture(settings->crnt<int>("shadQuality"));
-            light.sSpot->filter_texture(settings->crnt<int>("shadFilter"));
+    for (const auto& lptr : pointLightList) {
+        const wcoe::PointLight& light = *lptr.lock();
+        if (light.DAT_shadow == true) {
+            adjSize = light.DAT_texsize * std::pow(2, shadQlty);
+            light.tex->resize(adjSize);
+            if (shadFltr > 0) light.tex->set_preset(sq::TextureCube::L_C());
+            else light.tex->set_preset(sq::TextureCube::N_C());
         }
     }
-    for (const auto& lptr : lightPointList) {
-        const wcoe::LightPoint& light = *lptr.lock();
-        if (light.DATA.shadow == true) {
-            light.sPoint->resize_texture(settings->crnt<int>("shadQuality"));
-            light.sPoint->filter_texture(settings->crnt<int>("shadFilter"));
-        }
-    }
+}
+
+
+void Graph::update_from_world() {
+    modelStaticList.clear();
+    modelSkellyList.clear();
+    spotLightList.clear();
+    pointLightList.clear();
+    for (const auto& model : world->filtered<wcoe::ModelStatic>())
+        modelStaticList.push_back(model);
+    for (const auto& model : world->filtered<wcoe::ModelSkelly>())
+        modelSkellyList.emplace_back(model);
+    for (const auto& light : world->filtered<wcoe::SpotLight>())
+        spotLightList.emplace_back(light);
+    for (const auto& light : world->filtered<wcoe::PointLight>())
+        pointLightList.emplace_back(light);
+
+    update(); update_settings();
 }
 
 
@@ -85,7 +100,7 @@ void Graph::render_models() {
     pipeline->use_shader(*VS.modl_static);
     for (const auto& mptr : modelStaticList) {
         const wcoe::ModelStatic& model = *mptr.lock();
-        if (model.DATA.render == false) continue;
+        if (model.DAT_render == false) continue;
         if (sq::bbox_in_frus(model.bbox, camera->frus)) continue;
         gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
         VS.modl_static->set_mat<mat4>("modelMat", model.matrix);
@@ -100,7 +115,7 @@ void Graph::render_models() {
     pipeline->use_shader(*VS.modl_skelly);
     for (const auto& mptr : modelSkellyList) {
         const wcoe::ModelSkelly& model = *mptr.lock();
-        if (model.DATA.render == false) continue;
+        if (model.DAT_render == false) continue;
         if (sq::bbox_in_frus(model.bbox, camera->frus)) continue;
         gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
         VS.modl_skelly->set_mat<mat4>("modelMat", model.matrix);
@@ -117,74 +132,22 @@ void Graph::render_models() {
 
 
 void Graph::render_shadows_sky() {
-    for (const auto& lptr : lightSkyList) {
-        const wcoe::LightSky& light = *lptr.lock();
-        if (light.DATA.shadow == false) continue;
+    if (!world->skylight.enabled) return;
+    const wcoe::SkyLight& light = world->skylight;
 
-        light.sSky->ubo->bind(1);
-        gl::Viewport(0, 0, light.sSky->tex->size.x, light.sSky->tex->size.y);
-        gl::Enable(gl::DEPTH_CLAMP);
-        for (int csm = 0; csm < 4; csm++) {
-            light.sSky->fboArr[csm]->use();
-            gl::Clear(gl::DEPTH_BUFFER_BIT);
-
-            pipeline->use_shader(*VS.shad_static);
-            for (const auto& mptr : modelStaticList) {
-                const wcoe::ModelStatic& model = *mptr.lock();
-                if (model.DATA.shadow == false) continue;
-                gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
-                VS.shad_static->set_mat<mat4>("matrix", light.sSky->matArr[csm] * model.matrix);
-                model.mesh->bind_vao();
-                for (uint i = 0; i < model.skin->mtrlVec.size(); i++) {
-                    if (model.skin->mtrlVec[i].punch == true)
-                        pipeline->use_shader(*FS.shad_punch),
-                        model.skin->bind_textures(i, 1, 0, 0);
-                    else pipeline->disable_stages(gl::FRAGMENT_SHADER_BIT);
-                    model.mesh->draw_ibo(i);
-                }
-            }
-
-            pipeline->use_shader(*VS.shad_skelly);
-            for (const auto& mptr : modelSkellyList) {
-                const wcoe::ModelSkelly& model = *mptr.lock();
-                if (model.DATA.shadow == false) continue;
-                gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
-                VS.shad_skelly->set_mat<mat4>("matrix", light.sSky->matArr[csm] * model.matrix);
-                VS.shad_skelly->set_vecptr<vec4>("skelQuat", (float*)model.skel->quatVec.data());
-                VS.shad_skelly->set_vecptr<vec3>("skelOffs", (float*)model.skel->offsVec.data());
-                model.mesh->bind_vao();
-                for (uint i = 0; i < model.skin->mtrlVec.size(); i++) {
-                    if (model.skin->mtrlVec[i].punch == true)
-                        pipeline->use_shader(*FS.shad_punch),
-                        model.skin->bind_textures(i, 1, 0, 0);
-                    else pipeline->disable_stages(gl::FRAGMENT_SHADER_BIT);
-                    model.mesh->draw_ibo(i);
-                }
-            }
-        }
-        gl::Disable(gl::DEPTH_CLAMP);
-    }
-}
-
-
-void Graph::render_shadows_spot() {
-    for (const auto& lptr : lightSpotList) {
-        const wcoe::LightSpot& light = *lptr.lock();
-        if (light.DATA.shadow == false) continue;
-        if (sq::frus_in_frus(light.frus, camera->frus)) continue;
-
-        light.sSpot->ubo->bind(1);
-        gl::Viewport(0, 0, light.sSpot->tex->size.x, light.sSpot->tex->size.y);
-        light.sSpot->fbo->use();
+    light.ubo->bind(1);
+    gl::Viewport(0, 0, light.tex->size.x, light.tex->size.y);
+    gl::Enable(gl::DEPTH_CLAMP);
+    for (int csm = 0; csm < 4; csm++) {
+        light.fboArr[csm]->use();
         gl::Clear(gl::DEPTH_BUFFER_BIT);
 
         pipeline->use_shader(*VS.shad_static);
         for (const auto& mptr : modelStaticList) {
             const wcoe::ModelStatic& model = *mptr.lock();
-            if (model.DATA.shadow == false) continue;
-            if (sq::bbox_in_frus(model.bbox, light.frus)) continue;
+            if (model.DAT_shadow == false) continue;
             gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
-            VS.shad_static->set_mat<mat4>("matrix", light.sSpot->matrix * model.matrix);
+            VS.shad_static->set_mat<mat4>("matrix", light.matArr[csm] * model.matrix);
             model.mesh->bind_vao();
             for (uint i = 0; i < model.skin->mtrlVec.size(); i++) {
                 if (model.skin->mtrlVec[i].punch == true)
@@ -198,10 +161,59 @@ void Graph::render_shadows_spot() {
         pipeline->use_shader(*VS.shad_skelly);
         for (const auto& mptr : modelSkellyList) {
             const wcoe::ModelSkelly& model = *mptr.lock();
-            if (model.DATA.shadow == false) continue;
+            if (model.DAT_shadow == false) continue;
+            gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
+            VS.shad_skelly->set_mat<mat4>("matrix", light.matArr[csm] * model.matrix);
+            VS.shad_skelly->set_vecptr<vec4>("skelQuat", (float*)model.skel->quatVec.data());
+            VS.shad_skelly->set_vecptr<vec3>("skelOffs", (float*)model.skel->offsVec.data());
+            model.mesh->bind_vao();
+            for (uint i = 0; i < model.skin->mtrlVec.size(); i++) {
+                if (model.skin->mtrlVec[i].punch == true)
+                    pipeline->use_shader(*FS.shad_punch),
+                    model.skin->bind_textures(i, 1, 0, 0);
+                else pipeline->disable_stages(gl::FRAGMENT_SHADER_BIT);
+                model.mesh->draw_ibo(i);
+            }
+        }
+    }
+    gl::Disable(gl::DEPTH_CLAMP);
+}
+
+
+void Graph::render_shadows_spot() {
+    for (const auto& lptr : spotLightList) {
+        const wcoe::SpotLight& light = *lptr.lock();
+        if (light.DAT_shadow == false) continue;
+        if (sq::frus_in_frus(light.frus, camera->frus)) continue;
+
+        light.ubo->bind(1); light.fbo->use();
+        gl::Viewport(0, 0, light.tex->size.x, light.tex->size.y);
+        gl::Clear(gl::DEPTH_BUFFER_BIT);
+
+        pipeline->use_shader(*VS.shad_static);
+        for (const auto& mptr : modelStaticList) {
+            const wcoe::ModelStatic& model = *mptr.lock();
+            if (model.DAT_shadow == false) continue;
             if (sq::bbox_in_frus(model.bbox, light.frus)) continue;
             gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
-            VS.shad_skelly->set_mat<mat4>("matrix", light.sSpot->matrix * model.matrix);
+            VS.shad_static->set_mat<mat4>("matrix", light.matrix * model.matrix);
+            model.mesh->bind_vao();
+            for (uint i = 0; i < model.skin->mtrlVec.size(); i++) {
+                if (model.skin->mtrlVec[i].punch == true)
+                    pipeline->use_shader(*FS.shad_punch),
+                    model.skin->bind_textures(i, 1, 0, 0);
+                else pipeline->disable_stages(gl::FRAGMENT_SHADER_BIT);
+                model.mesh->draw_ibo(i);
+            }
+        }
+
+        pipeline->use_shader(*VS.shad_skelly);
+        for (const auto& mptr : modelSkellyList) {
+            const wcoe::ModelSkelly& model = *mptr.lock();
+            if (model.DAT_shadow == false) continue;
+            if (sq::bbox_in_frus(model.bbox, light.frus)) continue;
+            gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
+            VS.shad_skelly->set_mat<mat4>("matrix", light.matrix * model.matrix);
             VS.shad_skelly->set_vecptr<vec4>("skelQuat", (float*)model.skel->quatVec.data());
             VS.shad_skelly->set_vecptr<vec3>("skelOffs", (float*)model.skel->offsVec.data());
             model.mesh->bind_vao();
@@ -218,25 +230,26 @@ void Graph::render_shadows_spot() {
 
 
 void Graph::render_shadows_point() {
-    for (const auto& lptr : lightPointList) {
-        const wcoe::LightPoint& light = *lptr.lock();
-        if (light.DATA.shadow == false) continue;
+    for (const auto& lptr : pointLightList) {
+        const wcoe::PointLight& light = *lptr.lock();
+        if (light.DAT_shadow == false) continue;
         if (sq::sphr_in_frus(light.sphere, camera->frus)) continue;
 
-        light.sPoint->ubo->bind(1);
-        gl::Viewport(0, 0, light.sPoint->tex->size, light.sPoint->tex->size);
+        light.ubo->bind(1);
+        gl::Viewport(0, 0, light.tex->size, light.tex->size);
         for (int face = 0; face < 6; face++) {
             if (sq::frus_in_frus(light.frusArr[face], camera->frus)) continue;
-            light.sPoint->fboArr[face]->use();
+
+            light.fboArr[face]->use();
             gl::Clear(gl::DEPTH_BUFFER_BIT);
 
             pipeline->use_shader(*VS.shad_static);
             for (const auto& mptr : modelStaticList) {
                 const wcoe::ModelStatic& model = *mptr.lock();
-                if (model.DATA.shadow == false) continue;
+                if (model.DAT_shadow == false) continue;
                 if (sq::bbox_in_frus(model.bbox, light.frusArr[face])) continue;
                 gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
-                VS.shad_static->set_mat<mat4>("matrix", light.sPoint->matArr[face] * model.matrix);
+                VS.shad_static->set_mat<mat4>("matrix", light.matArr[face] * model.matrix);
                 model.mesh->bind_vao();
                 for (uint i = 0; i < model.skin->mtrlVec.size(); i++) {
                     if (model.skin->mtrlVec[i].punch == true)
@@ -250,10 +263,10 @@ void Graph::render_shadows_point() {
             pipeline->use_shader(*VS.shad_skelly);
             for (const auto& mptr : modelSkellyList) {
                 const wcoe::ModelSkelly& model = *mptr.lock();
-                if (model.DATA.shadow == false) continue;
+                if (model.DAT_shadow == false) continue;
                 if (sq::bbox_in_frus(model.bbox, light.frusArr[face])) continue;
                 gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
-                VS.shad_skelly->set_mat<mat4>("matrix", light.sPoint->matArr[face] * model.matrix);
+                VS.shad_skelly->set_mat<mat4>("matrix", light.matArr[face] * model.matrix);
                 VS.shad_skelly->set_vecptr<vec4>("skelQuat", (float*)model.skel->quatVec.data());
                 VS.shad_skelly->set_vecptr<vec3>("skelOffs", (float*)model.skel->offsVec.data());
                 model.mesh->bind_vao();
@@ -271,57 +284,59 @@ void Graph::render_shadows_point() {
 }
 
 
-void Graph::render_lights_sky() {
-    for (const auto& lptr : lightSkyList) {
-        const wcoe::LightSky& light = *lptr.lock();
-        int diff_spec = 1 * light.DATA.diffuse | 2 * light.DATA.specular;
-        if (light.DATA.shadow) {
-            pipeline->use_shader(*FS.shds_skylight_shad);
-            FS.shds_skylight_shad->set_sca<int>("diff_spec", diff_spec);
-            light.sSky->ubo->bind(1);
-            light.sSky->tex->bind(gl::TEXTURE6);
-        } else {
-            pipeline->use_shader(*FS.shds_skylight);
-            FS.shds_skylight->set_sca<int>("diff_spec", diff_spec);
-            light.lSky->ubo->bind(1);
-        } sq::draw_screen_quad();
-    }
+void Graph::render_skybox() {
+    if (!world->skybox.enabled) return;
+    pipeline->use_shader(*VS.shds_skybox);
+    pipeline->use_shader(*FS.shds_skybox);
+    world->skybox.tex->bind(gl::TEXTURE0);
+    sq::draw_screen_quad();
 }
 
 
-void Graph::render_lights_spot() {
-    for (const auto& lptr : lightSpotList) {
-        const wcoe::LightSpot& light = *lptr.lock();
+void Graph::render_ambient() {
+    if (!world->ambient.enabled) return;
+    pipeline->use_shader(*VS.gnrc_quad);
+    pipeline->use_shader(*FS.shds_ambient);
+    world->ambient.ubo->bind(1);
+    sq::draw_screen_quad();
+}
+
+
+void Graph::render_skylight() {
+    if (!world->skylight.enabled) return;
+    pipeline->use_shader(*VS.gnrc_quad);
+    pipeline->use_shader(*FS.shds_skylight);
+    world->skylight.tex->bind(gl::TEXTURE6);
+    world->skylight.ubo->bind(1);
+    sq::draw_screen_quad();
+}
+
+
+void Graph::render_spotlights() {
+    pipeline->use_shader(*VS.gnrc_quad);
+    for (const auto& lptr : spotLightList) {
+        const wcoe::SpotLight& light = *lptr.lock();
         if (sq::frus_in_frus(light.frus, camera->frus)) continue;
-        int diff_spec = 1 * light.DATA.diffuse | 2 * light.DATA.specular;
-        if (light.DATA.shadow) {
-            pipeline->use_shader(*FS.shds_spotlight_shad);
-            FS.shds_spotlight_shad->set_sca<int>("diff_spec", diff_spec);
-            light.sSpot->ubo->bind(1);
-            light.sSpot->tex->bind(gl::TEXTURE6);
-        } else {
-            pipeline->use_shader(*FS.shds_spotlight);
-            FS.shds_spotlight->set_sca<int>("diff_spec", diff_spec);
-            light.lSpot->ubo->bind(1);
-        } sq::draw_screen_quad();
+        if (!light.DAT_shadow && !light.DAT_specular) pipeline->use_shader(*FS.shds_spot_none);
+        if ( light.DAT_shadow && !light.DAT_specular) pipeline->use_shader(*FS.shds_spot_shad);
+        if (!light.DAT_shadow &&  light.DAT_specular) pipeline->use_shader(*FS.shds_spot_spec);
+        if ( light.DAT_shadow &&  light.DAT_specular) pipeline->use_shader(*FS.shds_spot_both);
+        if (light.DAT_shadow) light.tex->bind(gl::TEXTURE6);
+        light.ubo->bind(1); sq::draw_screen_quad();
     }
 }
 
 
-void Graph::render_lights_point() {
-    for (const auto& lptr : lightPointList) {
-        const wcoe::LightPoint& light = *lptr.lock();
+void Graph::render_pointlights() {
+    pipeline->use_shader(*VS.gnrc_quad);
+    for (const auto& lptr : pointLightList) {
+        const wcoe::PointLight& light = *lptr.lock();
         if (sq::sphr_in_frus(light.sphere, camera->frus)) continue;
-        int diff_spec = 1 * light.DATA.diffuse | 2 * light.DATA.specular;
-        if (light.DATA.shadow) {
-            pipeline->use_shader(*FS.shds_pointlight_shad);
-            FS.shds_pointlight_shad->set_sca<int>("diff_spec", diff_spec);
-            light.sPoint->ubo->bind(1);
-            light.sPoint->tex->bind(gl::TEXTURE6);
-        } else {
-            pipeline->use_shader(*FS.shds_pointlight);
-            FS.shds_pointlight->set_sca<int>("diff_spec", diff_spec);
-            light.lPoint->ubo->bind(1);
-        } sq::draw_screen_quad();
+        if (!light.DAT_shadow && !light.DAT_specular) pipeline->use_shader(*FS.shds_point_none);
+        if ( light.DAT_shadow && !light.DAT_specular) pipeline->use_shader(*FS.shds_point_shad);
+        if (!light.DAT_shadow &&  light.DAT_specular) pipeline->use_shader(*FS.shds_point_spec);
+        if ( light.DAT_shadow &&  light.DAT_specular) pipeline->use_shader(*FS.shds_point_both);
+        if (light.DAT_shadow) light.tex->bind(gl::TEXTURE6);
+        light.ubo->bind(1); sq::draw_screen_quad();
     }
 }

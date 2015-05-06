@@ -17,6 +17,7 @@ namespace sqt {
 
 RpgApp::RpgApp() : sq::Application(true, {1280, 720}) {
     sq::res::tex2D_path() = "assets/textures/";
+    sq::res::texCube_path() = "assets/textures/";
     sq::res::anim_path() = "assets/animations/";
     sq::res::mesh_path() = "assets/meshes/";
     sq::res::skin_path() = "assets/skins/";
@@ -32,6 +33,7 @@ RpgApp::RpgApp() : sq::Application(true, {1280, 720}) {
     cs_setup_main(*cs);
     cs_setup_wcoe(*cs);
     cs_setup_rndr(*cs);
+    cs->eval_file("assets/test_init.chai");
 }
 
 }

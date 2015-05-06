@@ -67,6 +67,9 @@ class TextureCube : public Texture {
 public:
     void create(GLenum _format, GLenum _iFormat, uint _channels);
     void resize(uint _size);
+    void buffer_memory(const void* _data, uint _face);
+    void buffer_file(const string& _filePath, uint _face);
+    void buffer_full(const string& _filePath, uint _size);
     uint size;
 
     static const Preset& N_C();
@@ -77,6 +80,9 @@ public:
 namespace res {
 ResHolder<Texture2D>& tex2D();
 string& tex2D_path();
+
+ResHolder<TextureCube>& texCube();
+string& texCube_path();
 }
 
 }

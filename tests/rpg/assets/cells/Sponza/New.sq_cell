@@ -5,13 +5,7 @@
 }
 
 { objects
-object lightsky SunLight
-f3 direction 0.0 0.0 -1.0
-f3 colour 0.9 0.9 0.9
-i1 texsize 1024
-flags shadow diffuse specular
-
-object lightspot SpotA
+object spotlight SpotA
 f3 position 7.0 0.0 7.0
 f3 direction 1.0 0.0 0.0
 f3 colour 1.0 1.0 1.0
@@ -19,34 +13,27 @@ f1 angle 22.0
 f1 intensity 32.0
 f1 softness 0.3
 i1 texsize 256
-flags shadow diffuse specular
+flags shadow specular
 
-object lightpoint PointA
+object pointlight PointA
 f3 position -15.0 0.0 2.0
 f3 colour 1.0 1.0 1.0
 f1 intensity 6.0
 i1 texsize 128
-flags shadow diffuse specular
+flags shadow specular
 
-object lightpoint PointB
+object pointlight PointB
 f3 position 15.0 0.0 2.0
 f3 colour 1.0 1.0 1.0
 f1 intensity 6.0
 i1 texsize 128
-flags shadow diffuse specular
+flags shadow specular
 
 object modelstatic ShadowBox
 f3 pos 0.0 0.0 0.0
 s1 mesh Sponza/ShadowBox
 s1 skin Null
 flags shadow
-
-object modelstatic Peepel
-f3 pos 3.0 0.0 0.0
-f3 rot 0.0 0.0 90.0
-s1 mesh Characters/Don
-s1 skin Characters/Don
-flags shadow render
 
 object modelstatic ArchAA_A1
 f3 pos -8.887 2.86 3.8

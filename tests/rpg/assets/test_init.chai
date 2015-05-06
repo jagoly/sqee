@@ -1,0 +1,25 @@
+world.add_cell("Sponza", vec3(0.0f, 0.0f, 0.0f));
+world.get_cell("Sponza").load_from_file("Sponza/New");
+world.get_cell("Sponza").add_ModelStatic("Person");
+world.get_cell("Sponza").get_ModelStatic("Person").pos = vec3(-0.6f, -4.0f, 5.0f);
+world.get_cell("Sponza").get_ModelStatic("Person").rot = vec3(0.0f, 0.0f, -20.0f);
+world.get_cell("Sponza").get_ModelStatic("Person").shadow = true;
+world.get_cell("Sponza").get_ModelStatic("Person").render = true;
+world.get_cell("Sponza").get_ModelStatic("Person").mPath = "Characters/Don";
+world.get_cell("Sponza").get_ModelStatic("Person").sPath = "Characters/Don";
+world.get_cell("Sponza").get_ModelStatic("Person").refresh();
+world.enable_cell("Sponza");
+graph.update_from_world();
+
+world.skybox.set_colour(vec3(1.0f, 1.0f, 1.0f));
+world.skybox.set_texture("cloudy");
+world.skybox.enabled = true;
+
+world.ambient.set_colour(vec3(0.5f, 0.5f, 0.5f));
+world.ambient.enabled = true;
+
+world.skylight.set_colour(vec3(0.9f, 0.9f, 0.9f));
+world.skylight.set_direction(vec3(-0.36f, -0.46f, -0.81f));
+world.skylight.enabled = true;
+
+console.print("Welcome to SQEE!")

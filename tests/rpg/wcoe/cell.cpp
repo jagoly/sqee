@@ -4,9 +4,8 @@
 
 #include "obj/modelstatic.hpp"
 #include "obj/modelskelly.hpp"
-#include "obj/lightsky.hpp"
-#include "obj/lightspot.hpp"
-#include "obj/lightpoint.hpp"
+#include "obj/spotlight.hpp"
+#include "obj/pointlight.hpp"
 #include "obj/liquid.hpp"
 #include "obj/reflector.hpp"
 #include "cell.hpp"
@@ -37,9 +36,8 @@ void Cell::load_from_file(const string& _path) {
             if (key == "object") {
                 if      (line[1] == "modelstatic") add_object<ModelStatic>(line[2]);
                 else if (line[1] == "modelskelly") add_object<ModelSkelly>(line[2]);
-                else if (line[1] == "lightsky")    add_object<LightSky>(line[2]);
-                else if (line[1] == "lightspot")   add_object<LightSpot>(line[2]);
-                else if (line[1] == "lightpoint")  add_object<LightPoint>(line[2]);
+                else if (line[1] == "spotlight")   add_object<SpotLight>(line[2]);
+                else if (line[1] == "pointlight")  add_object<PointLight>(line[2]);
                 else if (line[1] == "liquid")      add_object<Liquid>(line[2]);
                 else if (line[1] == "reflector")   add_object<Reflector>(line[2]);
                 else throw; // invalid object type

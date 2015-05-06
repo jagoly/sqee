@@ -87,12 +87,6 @@ class Mesh;
 class Skin;
 class Animation;
 class Skeleton;
-class LightSky;
-class ShadowSky;
-class LightSpot;
-class ShadowSpot;
-class LightPoint;
-class ShadowPoint;
 
 class Texture2D;
 class Texture2DArray;

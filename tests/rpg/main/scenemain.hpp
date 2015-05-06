@@ -32,6 +32,7 @@ private:
     struct {
         unique_ptr<sq::Shader> modl_static;
         unique_ptr<sq::Shader> modl_skelly;
+        unique_ptr<sq::Shader> shds_skybox;
         unique_ptr<sq::Shader> shad_static;
         unique_ptr<sq::Shader> shad_skelly;
         unique_ptr<sq::Shader> gnrc_quad;
@@ -40,22 +41,24 @@ private:
 
     struct {
         unique_ptr<sq::Shader> modl_write;
+        unique_ptr<sq::Shader> shds_skybox;
         unique_ptr<sq::Shader> shds_ambient;
         unique_ptr<sq::Shader> shds_skylight;
-        unique_ptr<sq::Shader> shds_spotlight;
-        unique_ptr<sq::Shader> shds_pointlight;
-        unique_ptr<sq::Shader> shds_skylight_shad;
-        unique_ptr<sq::Shader> shds_spotlight_shad;
-        unique_ptr<sq::Shader> shds_pointlight_shad;
+        unique_ptr<sq::Shader> shds_spot_none;
+        unique_ptr<sq::Shader> shds_spot_shad;
+        unique_ptr<sq::Shader> shds_spot_spec;
+        unique_ptr<sq::Shader> shds_spot_both;
+        unique_ptr<sq::Shader> shds_point_none;
+        unique_ptr<sq::Shader> shds_point_shad;
+        unique_ptr<sq::Shader> shds_point_spec;
+        unique_ptr<sq::Shader> shds_point_both;
         unique_ptr<sq::Shader> shad_punch;
         unique_ptr<sq::Shader> gnrc_passthru;
         unique_ptr<sq::Shader> gnrc_passthru_layer;
         unique_ptr<sq::Shader> gnrc_lumalpha;
         unique_ptr<sq::Shader> gnrc_tonemap;
-        unique_ptr<sq::Shader> prty_fxaa_fxaa_low;
-        unique_ptr<sq::Shader> prty_fxaa_fxaa_high;
-        unique_ptr<sq::Shader> prty_ssao_ssao_low;
-        unique_ptr<sq::Shader> prty_ssao_ssao_high;
+        unique_ptr<sq::Shader> prty_fxaa_fxaa;
+        unique_ptr<sq::Shader> prty_ssao_ssao;
         unique_ptr<sq::Shader> prty_ssao_blur;
         unique_ptr<sq::Shader> prty_vignette;
     } FS;
@@ -84,17 +87,20 @@ private:
     struct {
         float viewDistance;
         float farDistance;
-        int shadQuality;
-        int shadFilter;
-        int ssaoQuality;
-        int fxaaQuality;
+        int shadQlty;
+        int shadFltr;
+        int ssaoQlty;
+        int fxaaQlty;
         bool mouseFocus;
         bool vignetting;
         uvec2 fullSize;
         uvec2 halfSize;
+        vec2 fPixSize;
+        vec2 hPixSize;
     } INFO;
 
     void update_settings();
+    void reload_shaders();
 };
 
 }

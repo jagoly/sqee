@@ -49,10 +49,12 @@ void Texture::bind() {
 
 void Texture2D::create(GLenum _format, GLenum _iFormat, uint _channels) {
     target = gl::TEXTURE_2D;
-    dataType = gl::UNSIGNED_BYTE;
     format = _format;
     iFormat = _iFormat;
     channels = _channels;
+    if (format == gl::DEPTH_STENCIL)
+        dataType = gl::UNSIGNED_INT_24_8;
+    else dataType = gl::UNSIGNED_BYTE;
     create_base();
 }
 
@@ -267,6 +269,70 @@ void TextureCube::resize(uint _size) {
     gl::TexImage2D(gl::TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, iFormat, size, size, 0, format, dataType, nullptr);
 }
 
+void TextureCube::buffer_memory(const void* _data, uint _face) {
+    gl::BindTexture(target, tex);
+    uint face = gl::TEXTURE_CUBE_MAP_POSITIVE_X + _face;
+    gl::TexImage2D(face, 0, iFormat, size, size, 0, format, dataType, _data);
+}
+
+void TextureCube::buffer_file(const string& _path, uint _face) {
+    string path = res::tex2D_path() + _path;
+    if (check_file_exists(path+".png")) path += ".png";
+    else if (check_file_exists(path+".jpg")) path += ".jpg";
+
+    int w, h;
+    uchar* data = stbi_load(path.c_str(), &w, &h, nullptr, channels);
+    uchar* top; uchar* btm; uchar temp;
+    int wBytes = w * channels; int halfH = h / 2;
+    for (int y = 0; y < halfH; y++) {
+        top = data + y * wBytes;
+        btm = data + (h - y - 1) * wBytes;
+        for (int x = 0; x < wBytes; x++) {
+            temp = *top; *top = *btm; *btm = temp;
+            top++; btm++;
+        }
+    }
+
+    #ifdef SQEE_DEBUG
+    if (!data) log_error("Failed to load texture from %s", path);
+    #endif
+
+    buffer_memory(data, _face);
+    free(data);
+}
+
+void TextureCube::buffer_full(const string& _path, uint _size) {
+    string path = res::texCube_path() + _path;
+    if (check_file_exists(path+".png")) path += ".png";
+    else if (check_file_exists(path+".jpg")) path += ".jpg";
+
+    int w, h;
+    uchar* data = stbi_load(path.c_str(), &w, &h, nullptr, channels);
+    uchar* top; uchar* btm; uchar temp;
+    int wBytes = w * channels; int halfH = h / 2;
+    for (int y = 0; y < halfH; y++) {
+        top = data + y * wBytes;
+        btm = data + (h - y - 1) * wBytes;
+        for (int x = 0; x < wBytes; x++) {
+            temp = *top; *top = *btm; *btm = temp;
+            top++; btm++;
+        }
+    }
+
+    #ifdef SQEE_DEBUG
+    if (!data) log_error("Failed to load texture from %s", path);
+    #endif
+
+    resize(_size);
+    buffer_memory(data + 5*size*size*channels, 0);
+    buffer_memory(data + 4*size*size*channels, 1);
+    buffer_memory(data + 3*size*size*channels, 2);
+    buffer_memory(data + 2*size*size*channels, 3);
+    buffer_memory(data + 1*size*size*channels, 4);
+    buffer_memory(data + 0*size*size*channels, 5);
+    free(data);
+}
+
 const Texture::Preset& TextureCube::N_C() {
     static const Preset preset = {
         {gl::TEXTURE_MIN_FILTER, gl::NEAREST},
@@ -292,6 +358,15 @@ ResHolder<Texture2D>& sq::res::tex2D() {
     return holder;
 }
 string& sq::res::tex2D_path() {
+    static string path;
+    return path;
+}
+
+ResHolder<TextureCube>& sq::res::texCube() {
+    static ResHolder<TextureCube> holder;
+    return holder;
+}
+string& sq::res::texCube_path() {
     static string path;
     return path;
 }

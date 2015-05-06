@@ -9,6 +9,7 @@ class World;
 class Cell : NonCopyable {
 public:
     Cell(const string& _name, vec3 _position, const World* _world);
+    bool enabled = false;
 
     const string name;
     const vec3 position;

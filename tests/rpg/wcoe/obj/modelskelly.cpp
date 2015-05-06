@@ -17,10 +17,10 @@ ModelSkelly::ModelSkelly(const string& _name, const Cell* _cell)
 }
 
 void ModelSkelly::load_from_spec(const ObjSpec& _spec) {
-    DATA.shadow = _spec.flags.count("shadow");
-    DATA.render = _spec.flags.count("render");
-    DATA.reflect = _spec.flags.count("reflect");
-    DATA.refract = _spec.flags.count("refract");
+    DAT_shadow = _spec.flags.count("shadow");
+    DAT_render = _spec.flags.count("render");
+    DAT_reflect = _spec.flags.count("reflect");
+    DAT_refract = _spec.flags.count("refract");
 
     const string& mPath = _spec.sMap.at("mesh")[0];
     if (!(mesh = sq::res::mesh().get(mPath))) {
@@ -34,17 +34,17 @@ void ModelSkelly::load_from_spec(const ObjSpec& _spec) {
         skin->create(sPath);
     }
 
-    if (_spec.fMap.count("pos")) DATA.pos = glm::make_vec3(_spec.fMap.at("pos").data());
-    if (_spec.fMap.count("rot")) DATA.rot = glm::make_vec3(_spec.fMap.at("rot").data());
-    if (_spec.fMap.count("sca")) DATA.sca = glm::make_vec3(_spec.fMap.at("sca").data());
+    if (_spec.fMap.count("pos")) DAT_pos = glm::make_vec3(_spec.fMap.at("pos").data());
+    if (_spec.fMap.count("rot")) DAT_rot = glm::make_vec3(_spec.fMap.at("rot").data());
+    if (_spec.fMap.count("sca")) DAT_sca = glm::make_vec3(_spec.fMap.at("sca").data());
 }
 
 void ModelSkelly::update_from_data() {
-    matrix = glm::translate(mat4(), DATA.pos + cell->position);
-    matrix = glm::rotate(matrix, glm::radians(DATA.rot.x), {1,0,0});
-    matrix = glm::rotate(matrix, glm::radians(DATA.rot.y), {0,1,0});
-    matrix = glm::rotate(matrix, glm::radians(DATA.rot.z), {0,0,1});
-    matrix = glm::scale(matrix, DATA.sca);
+    matrix = glm::translate(mat4(), DAT_pos + cell->position);
+    matrix = glm::rotate(matrix, glm::radians(DAT_rot.x), {1,0,0});
+    matrix = glm::rotate(matrix, glm::radians(DAT_rot.y), {0,1,0});
+    matrix = glm::rotate(matrix, glm::radians(DAT_rot.z), {0,0,1});
+    matrix = glm::scale(matrix, DAT_sca);
     negScale = glm::determinant(matrix) < 0.f;
     bbox = sq::bbox_by_model(mesh->bbox, matrix);
 }

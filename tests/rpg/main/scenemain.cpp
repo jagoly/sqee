@@ -3,6 +3,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/rotate_vector.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 #include <sqee/redist/gl_ext_3_3.hpp>
 #include <sqee/app/application.hpp>
@@ -13,15 +14,13 @@
 #include <sqee/gl/textures.hpp>
 #include <sqee/gl/uniformbuffers.hpp>
 #include <sqee/render/cameras.hpp>
-#include <sqee/render/lightsky.hpp>
 
 #include "../rndr/graph.hpp"
 #include "../wcoe/world.hpp"
 #include "../wcoe/obj/modelstatic.hpp"
 #include "../wcoe/obj/modelskelly.hpp"
-#include "../wcoe/obj/lightsky.hpp"
-#include "../wcoe/obj/lightspot.hpp"
-#include "../wcoe/obj/lightpoint.hpp"
+#include "../wcoe/obj/spotlight.hpp"
+#include "../wcoe/obj/pointlight.hpp"
 #include "camera.hpp"
 #include "scenemain.hpp"
 
@@ -30,12 +29,18 @@ using namespace sqt;
 SceneMain::SceneMain(sq::Application& _app) : sq::Scene(_app) {
     tickRate = 24;
 
+    pipeline.reset(new sq::Pipeline());
     camera.reset(new MainCamera());
     world.reset(new wcoe::World());
     graph.reset(new rndr::Graph());
     world->camera = camera.get();
-    graph->camera = camera.get();
+    world->skybox.camera = camera.get();
+    world->ambient.camera = camera.get();
+    world->skylight.camera = camera.get();
     world->settings = &app.settings;
+    graph->camera = camera.get();
+    graph->world = world.get();
+    graph->pipeline = pipeline.get();
     graph->settings = &app.settings;
 
     app.cs->add(chai::var(camera), "camera");
@@ -51,10 +56,7 @@ SceneMain::SceneMain(sq::Application& _app) : sq::Scene(_app) {
     camera->update();
 
     world->add_cell("GLOBAL", {0,0,0});
-    world->add_cell("Sponza", {0,0,0});
-    world->get_cell("Sponza").load_from_file("Sponza/New");
     world->enable_cell("GLOBAL");
-    world->enable_cell("Sponza");
 
 
     /// Player Model
@@ -63,18 +65,18 @@ SceneMain::SceneMain(sq::Application& _app) : sq::Scene(_app) {
     /// Add Settings
     app.settings.add<float>("viewDistance", 120.f);
     app.settings.add<float>("farDistance", 1200.f);
-    app.settings.add<int>("shadQuality", 2); // 0=1024, 1=2048, 2=4096
-    app.settings.add<int>("shadFilter", 2); // 0=Off, 1=Minimal, 2=Full
-    app.settings.add<int>("ssaoQuality", 2); // 0=Off, 1=Low, 2=High
-    app.settings.add<int>("fxaaQuality", 2); // 0=Off, 1=Low, 2=High
+    app.settings.add<int>("shadQlty", 2); // 0=1024, 1=2048, 2=4096
+    app.settings.add<int>("shadFltr", 2); // 0=Off, 1=Minimal, 2=Full
+    app.settings.add<int>("ssaoQlty", 2); // 0=Off, 1=Low, 2=High
+    app.settings.add<int>("fxaaQlty", 2); // 0=Off, 1=Low, 2=High
     app.settings.add<bool>("mouseFocus", true);
     app.settings.add<bool>("vignetting", true);
 
     /// Create Framebuffers
     FB.defr.reset(new sq::Framebuffer());
+    FB.hdr.reset(new sq::Framebuffer());
     FB.ssaoA.reset(new sq::Framebuffer());
     FB.ssaoB.reset(new sq::Framebuffer());
-    FB.hdr.reset(new sq::Framebuffer());
     FB.basic.reset(new sq::Framebuffer());
 
     /// Create Textures
@@ -94,12 +96,12 @@ SceneMain::SceneMain(sq::Application& _app) : sq::Scene(_app) {
     TX.defrNorm->create(gl::RGB, gl::RGB16, 3);
     TX.defrSurf->create(gl::RGB, gl::RGB16, 3);
     TX.defrSpec->create(gl::RGBA, gl::RGBA8, 4);
-    TX.defrDepth->create(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT32, 1);
+    TX.defrDepth->create(gl::DEPTH_STENCIL, gl::DEPTH24_STENCIL8, 1);
     TX.ssaoGreyA->create(gl::RED, gl::R8, 1);
     TX.ssaoGreyB->create(gl::RED, gl::R8, 1);
     TX.hdrColour->create(gl::RGBA, gl::RGBA16F, 4);
     TX.basicColour->create(gl::RGBA, gl::RGBA8, 4);
-    TX.basicDepth->create(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT32, 1);
+    TX.basicDepth->create(gl::DEPTH_STENCIL, gl::DEPTH24_STENCIL8, 1);
     TX.defrDiff->set_preset(sq::Texture2D::L_C());
     TX.defrNorm->set_preset(sq::Texture2D::L_C());
     TX.defrSurf->set_preset(sq::Texture2D::L_C());
@@ -116,17 +118,18 @@ SceneMain::SceneMain(sq::Application& _app) : sq::Scene(_app) {
     FB.defr->attach(gl::COLOR_ATTACHMENT1, *TX.defrNorm);
     FB.defr->attach(gl::COLOR_ATTACHMENT2, *TX.defrSurf);
     FB.defr->attach(gl::COLOR_ATTACHMENT3, *TX.defrSpec);
-    FB.defr->attach(gl::DEPTH_ATTACHMENT, *TX.defrDepth);
+    FB.defr->attach(gl::DEPTH_STENCIL_ATTACHMENT, *TX.defrDepth);
     FB.ssaoA->attach(gl::COLOR_ATTACHMENT0, *TX.ssaoGreyA);
     FB.ssaoB->attach(gl::COLOR_ATTACHMENT0, *TX.ssaoGreyB);
     FB.hdr->attach(gl::COLOR_ATTACHMENT0, *TX.hdrColour);
+    FB.hdr->attach(gl::DEPTH_STENCIL_ATTACHMENT, *TX.defrDepth);
     FB.basic->attach(gl::COLOR_ATTACHMENT0, *TX.basicColour);
-    FB.basic->attach(gl::DEPTH_ATTACHMENT, *TX.basicDepth);
+    FB.basic->attach(gl::DEPTH_STENCIL_ATTACHMENT, *TX.basicDepth);
 
     /// Import GLSL Headers
     app.preproc.import_header("headers/blocks/camera");
-    app.preproc.import_header("headers/blocks/world");
-    app.preproc.import_header("headers/blocks/liquid");
+    app.preproc.import_header("headers/blocks/skybox");
+    app.preproc.import_header("headers/blocks/ambient");
     app.preproc.import_header("headers/blocks/skylight");
     app.preproc.import_header("headers/blocks/spotlight");
     app.preproc.import_header("headers/blocks/pointlight");
@@ -136,7 +139,6 @@ SceneMain::SceneMain(sq::Application& _app) : sq::Scene(_app) {
     app.preproc.import_header("headers/shadow/sample_point");
 
     /// Create Shaders
-    pipeline.reset(new sq::Pipeline());
     VS.gnrc_quad.reset(new sq::Shader(gl::VERTEX_SHADER));
     VS.gnrc_lines.reset(new sq::Shader(gl::VERTEX_SHADER));
     FS.gnrc_passthru.reset(new sq::Shader(gl::FRAGMENT_SHADER));
@@ -146,22 +148,41 @@ SceneMain::SceneMain(sq::Application& _app) : sq::Scene(_app) {
     VS.modl_static.reset(new sq::Shader(gl::VERTEX_SHADER));
     VS.modl_skelly.reset(new sq::Shader(gl::VERTEX_SHADER));
     FS.modl_write.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    VS.shds_skybox.reset(new sq::Shader(gl::VERTEX_SHADER));
+    FS.shds_skybox.reset(new sq::Shader(gl::FRAGMENT_SHADER));
     FS.shds_ambient.reset(new sq::Shader(gl::FRAGMENT_SHADER));
     FS.shds_skylight.reset(new sq::Shader(gl::FRAGMENT_SHADER));
-    FS.shds_spotlight.reset(new sq::Shader(gl::FRAGMENT_SHADER));
-    FS.shds_pointlight.reset(new sq::Shader(gl::FRAGMENT_SHADER));
-    FS.shds_skylight_shad.reset(new sq::Shader(gl::FRAGMENT_SHADER));
-    FS.shds_spotlight_shad.reset(new sq::Shader(gl::FRAGMENT_SHADER));
-    FS.shds_pointlight_shad.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.shds_spot_none.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.shds_spot_shad.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.shds_spot_spec.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.shds_spot_both.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.shds_point_none.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.shds_point_shad.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.shds_point_spec.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.shds_point_both.reset(new sq::Shader(gl::FRAGMENT_SHADER));
     VS.shad_static.reset(new sq::Shader(gl::VERTEX_SHADER));
     VS.shad_skelly.reset(new sq::Shader(gl::VERTEX_SHADER));
     FS.shad_punch.reset(new sq::Shader(gl::FRAGMENT_SHADER));
-    FS.prty_fxaa_fxaa_low.reset(new sq::Shader(gl::FRAGMENT_SHADER));
-    FS.prty_fxaa_fxaa_high.reset(new sq::Shader(gl::FRAGMENT_SHADER));
-    FS.prty_ssao_ssao_low.reset(new sq::Shader(gl::FRAGMENT_SHADER));
-    FS.prty_ssao_ssao_high.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.prty_fxaa_fxaa.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.prty_ssao_ssao.reset(new sq::Shader(gl::FRAGMENT_SHADER));
     FS.prty_ssao_blur.reset(new sq::Shader(gl::FRAGMENT_SHADER));
     FS.prty_vignette.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+
+
+    /// Add Uniforms to Shaders
+    VS.gnrc_lines->add_uniform("projViewMat"); // mat4
+    FS.gnrc_passthru_layer->add_uniform("layer"); // int
+    VS.modl_static->add_uniform("modelMat"); // mat4
+    VS.modl_static->add_uniform("normMat"); // mat3
+    VS.modl_skelly->add_uniform("modelMat"); // mat4
+    VS.modl_skelly->add_uniform("normMat"); // mat3
+    VS.modl_skelly->add_uniform("skelQuat", 40); // vec4
+    VS.modl_skelly->add_uniform("skelOffs", 40); // vec3
+    VS.shad_static->add_uniform("matrix"); // mat4
+    VS.shad_skelly->add_uniform("matrix"); // mat4
+    VS.shad_skelly->add_uniform("skelQuat", 40); // vec4
+    VS.shad_skelly->add_uniform("skelOffs", 40); // vec3
+    FS.modl_write->add_uniform("diff_norm_spec"); // int
 
     /// Load Shaders
     VS.gnrc_quad->load(app.preproc("generic/quad_vs"));
@@ -173,92 +194,42 @@ SceneMain::SceneMain(sq::Application& _app) : sq::Scene(_app) {
     VS.modl_static->load(app.preproc("models/static_vs"));
     VS.modl_skelly->load(app.preproc("models/skelly_vs"));
     FS.modl_write->load(app.preproc("models/write_fs"));
+    VS.shds_skybox->load(app.preproc("shades/skybox_vs"));
+    FS.shds_skybox->load(app.preproc("shades/skybox_fs"));
     FS.shds_ambient->load(app.preproc("shades/ambient_fs"));
-    FS.shds_skylight->load(app.preproc("shades/skylight_fs"));
-    FS.shds_spotlight->load(app.preproc("shades/spotlight_fs"));
-    FS.shds_pointlight->load(app.preproc("shades/pointlight_fs"));
-    FS.shds_skylight_shad->load(app.preproc("shades/skylight_fs", "#define SHADOW"));
-    FS.shds_spotlight_shad->load(app.preproc("shades/spotlight_fs", "#define SHADOW"));
-    FS.shds_pointlight_shad->load(app.preproc("shades/pointlight_fs", "#define SHADOW"));
     VS.shad_static->load(app.preproc("shadows/static_vs"));
     VS.shad_skelly->load(app.preproc("shadows/skelly_vs"));
     FS.shad_punch->load(app.preproc("shadows/punch_fs"));
-    FS.prty_fxaa_fxaa_low->load(app.preproc("pretty/fxaa/fxaa_fs", "#define FXAA_QUALITY__PRESET 10"));
-    FS.prty_fxaa_fxaa_high->load(app.preproc("pretty/fxaa/fxaa_fs", "#define FXAA_QUALITY__PRESET 39"));
-    FS.prty_ssao_ssao_low->load(app.preproc("pretty/ssao/ssao_fs"));
-    FS.prty_ssao_ssao_high->load(app.preproc("pretty/ssao/ssao_fs", "#define HIGH"));
-    FS.prty_ssao_blur->load(app.preproc("pretty/ssao/blur_fs"));
     FS.prty_vignette->load(app.preproc("pretty/vignette/vignette_fs"));
 
-    /// Add Uniforms to Shaders
-    VS.gnrc_lines->add_uniform("projViewMat"); // mat4
-    FS.gnrc_passthru_layer->add_uniform("layer"); // int
-    VS.modl_static->add_uniform("modelMat"); // mat4
-    VS.modl_static->add_uniform("normMat"); // mat3
-    VS.modl_static->add_uniform("useRefl"); // bool
-    VS.modl_skelly->add_uniform("modelMat"); // mat4
-    VS.modl_skelly->add_uniform("normMat"); // mat3
-    VS.modl_skelly->add_uniform("skelQuat", 40); // vec4
-    VS.modl_skelly->add_uniform("skelOffs", 40); // vec3
-    VS.modl_skelly->add_uniform("useRefl"); // bool
-    FS.shds_ambient->add_uniform("lightColour"); // vec3
-    VS.shad_static->add_uniform("matrix"); // mat4
-    VS.shad_skelly->add_uniform("matrix"); // mat4
-    VS.shad_skelly->add_uniform("skelQuat", 40); // vec4
-    VS.shad_skelly->add_uniform("skelOffs", 40); // vec3
-    FS.modl_write->add_uniform("diff_norm_spec"); // int
-    FS.shds_skylight->add_uniform("diff_spec"); // int
-    FS.shds_spotlight->add_uniform("diff_spec"); // int
-    FS.shds_pointlight->add_uniform("diff_spec"); // int
-    FS.shds_skylight_shad->add_uniform("diff_spec"); // int
-    FS.shds_skylight_shad->add_uniform("shadQuality"); // int
-    FS.shds_skylight_shad->add_uniform("shadFilter"); // int
-    FS.shds_spotlight_shad->add_uniform("diff_spec"); // int
-    FS.shds_spotlight_shad->add_uniform("shadQuality"); // int
-    FS.shds_spotlight_shad->add_uniform("shadFilter"); // int
-    FS.shds_pointlight_shad->add_uniform("diff_spec"); // int
-    FS.shds_pointlight_shad->add_uniform("shadQuality"); // int
-    FS.shds_pointlight_shad->add_uniform("shadFilter"); // int
-    FS.prty_fxaa_fxaa_low->add_uniform("pixSize"); // vec2
-    FS.prty_fxaa_fxaa_high->add_uniform("pixSize"); // vec2
-    FS.prty_ssao_ssao_low->add_uniform("pixSize"); // vec2
-    FS.prty_ssao_ssao_high->add_uniform("pixSize"); // vec2
-    FS.prty_ssao_blur->add_uniform("pixSize"); // vec2
-
-
-    for (const auto& model : world->filtered<wcoe::ModelStatic>())
-        graph->modelStaticList.push_back(model);
-    for (const auto& model : world->filtered<wcoe::ModelSkelly>())
-        graph->modelSkellyList.emplace_back(model);
-    for (const auto& light : world->filtered<wcoe::LightSky>())
-        graph->lightSkyList.emplace_back(light);
-    for (const auto& light : world->filtered<wcoe::LightSpot>())
-        graph->lightSpotList.emplace_back(light);
-    for (const auto& light : world->filtered<wcoe::LightPoint>())
-        graph->lightPointList.emplace_back(light);
-
+    /// Set Graph Shaders
+    graph->VS.gnrc_quad = VS.gnrc_quad.get();
     graph->VS.modl_static = VS.modl_static.get();
     graph->VS.modl_skelly = VS.modl_skelly.get();
+    graph->VS.shds_skybox = VS.shds_skybox.get();
     graph->VS.shad_static = VS.shad_static.get();
     graph->VS.shad_skelly = VS.shad_skelly.get();
     graph->FS.modl_write = FS.modl_write.get();
     graph->FS.shad_punch = FS.shad_punch.get();
+    graph->FS.shds_skybox = FS.shds_skybox.get();
     graph->FS.shds_ambient = FS.shds_ambient.get();
     graph->FS.shds_skylight = FS.shds_skylight.get();
-    graph->FS.shds_spotlight = FS.shds_spotlight.get();
-    graph->FS.shds_pointlight = FS.shds_pointlight.get();
-    graph->FS.shds_skylight_shad = FS.shds_skylight_shad.get();
-    graph->FS.shds_spotlight_shad = FS.shds_spotlight_shad.get();
-    graph->FS.shds_pointlight_shad = FS.shds_pointlight_shad.get();
-    graph->pipeline = pipeline.get();
+    graph->FS.shds_spot_none = FS.shds_spot_none.get();
+    graph->FS.shds_spot_shad = FS.shds_spot_shad.get();
+    graph->FS.shds_spot_spec = FS.shds_spot_spec.get();
+    graph->FS.shds_spot_both = FS.shds_spot_both.get();
+    graph->FS.shds_point_none = FS.shds_point_none.get();
+    graph->FS.shds_point_shad = FS.shds_point_shad.get();
+    graph->FS.shds_point_spec = FS.shds_point_spec.get();
+    graph->FS.shds_point_both = FS.shds_point_both.get();
 }
 
 void SceneMain::resize(uvec2 _size) {
     INFO.fullSize = _size;
     INFO.halfSize = _size / 2u;
+    INFO.fPixSize = 1.f / vec2(INFO.fullSize);
+    INFO.hPixSize = 1.f / vec2(INFO.halfSize);
     camera->size = vec2(_size);
-    vec2 fullPixSize = 1.f / vec2(INFO.fullSize);
-    vec2 halfPixSize = 1.f / vec2(INFO.halfSize);
 
     TX.defrNorm->resize(INFO.fullSize);
     TX.defrSurf->resize(INFO.fullSize);
@@ -271,11 +242,7 @@ void SceneMain::resize(uvec2 _size) {
     TX.basicColour->resize(INFO.fullSize);
     TX.basicDepth->resize(INFO.fullSize);
 
-    FS.prty_ssao_ssao_low->set_vec<vec2>("pixSize", halfPixSize);
-    FS.prty_ssao_ssao_high->set_vec<vec2>("pixSize", halfPixSize);
-    FS.prty_ssao_blur->set_vec<vec2>("pixSize", halfPixSize);
-    FS.prty_fxaa_fxaa_low->set_vec<vec2>("pixSize", fullPixSize);
-    FS.prty_fxaa_fxaa_high->set_vec<vec2>("pixSize", fullPixSize);
+    reload_shaders();
 }
 
 void SceneMain::update() {
@@ -316,22 +283,16 @@ void SceneMain::render(float _ft) {
     world->calc(accum);
 
 
-    /// World Updates ///
-
-        FS.shds_ambient->set_vec<vec3>("lightColour", {0.5,0.5,0.5});
-        // spotlight stuff...
-
-
     /// Per-frame setup ///
     pipeline->bind();
-    gl::Disable(gl::BLEND);
-    gl::Enable(gl::DEPTH_TEST);
+    pipeline->disable_stages(gl::FRAGMENT_SHADER_BIT);
     gl::Enable(gl::CULL_FACE);
     gl::CullFace(gl::BACK);
 
 
     /// Light Shadows ///
-    pipeline->disable_stages(gl::FRAGMENT_SHADER_BIT);
+    gl::Disable(gl::BLEND);
+    gl::Enable(gl::DEPTH_TEST);
     graph->render_shadows_sky();
     graph->render_shadows_spot();
     graph->render_shadows_point();
@@ -344,9 +305,15 @@ void SceneMain::render(float _ft) {
 
     /// Main Rendering ///
     FB.defr->use();
+
     gl::Viewport(0, 0, INFO.fullSize.x, INFO.fullSize.y);
-    gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
+    gl::Enable(gl::STENCIL_TEST); gl::StencilMask(0xff);
+    gl::StencilOp(gl::KEEP, gl::KEEP, gl::REPLACE);
+    gl::StencilFunc(gl::ALWAYS, 0x01, 0xff);
+    gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT | gl::STENCIL_BUFFER_BIT);
     graph->render_models(); gl::FrontFace(gl::CCW);
+    gl::StencilOp(gl::KEEP, gl::KEEP, gl::KEEP);
+    gl::Disable(gl::STENCIL_TEST);
 
 
     /// Set up Screen Space ///
@@ -362,9 +329,8 @@ void SceneMain::render(float _ft) {
 
 
     /// SSAO ///
-    if (INFO.ssaoQuality > 0) {
-        if (INFO.ssaoQuality == 1) pipeline->use_shader(*FS.prty_ssao_ssao_low);
-        if (INFO.ssaoQuality == 2) pipeline->use_shader(*FS.prty_ssao_ssao_high);
+    if (INFO.ssaoQlty > 0) {
+        pipeline->use_shader(*FS.prty_ssao_ssao);
 
         FB.ssaoA->use();
         gl::Viewport(0, 0, INFO.halfSize.x, INFO.halfSize.y);
@@ -379,19 +345,25 @@ void SceneMain::render(float _ft) {
     FB.hdr->use();
     gl::Viewport(0, 0, INFO.fullSize.x, INFO.fullSize.y);
     gl::Clear(gl::COLOR_BUFFER_BIT);
-    gl::BlendFunc(gl::ONE, gl::ONE);
+
+    graph->render_skybox();
+
+    gl::Enable(gl::STENCIL_TEST); gl::StencilMask(0x00);
+    gl::StencilFunc(gl::EQUAL, 0x01, 0xff);
+
+    TX.defrDiff->bind(gl::TEXTURE0);
+    graph->render_ambient();
+
     gl::Enable(gl::BLEND);
+    gl::BlendFunc(gl::ONE, gl::ONE);
 
-    pipeline->use_shader(*FS.shds_ambient);
-    sq::draw_screen_quad();
-
-
-    graph->render_lights_sky();
-    graph->render_lights_spot();
-    graph->render_lights_point();
-
+    graph->render_skylight();
+    graph->render_spotlights();
+    graph->render_pointlights();
 
     gl::Disable(gl::BLEND);
+    gl::Disable(gl::STENCIL_TEST);
+
     TX.hdrColour->bind(gl::TEXTURE0);
     pipeline->use_shader(*FS.gnrc_lumalpha);
     sq::draw_screen_quad();
@@ -402,11 +374,10 @@ void SceneMain::render(float _ft) {
 
     /// FXAA ///
     TX.basicColour->bind(gl::TEXTURE0);
-    if (INFO.fxaaQuality > 0) {
+    if (INFO.fxaaQlty > 0) {
         pipeline->use_shader(*FS.gnrc_lumalpha);
         sq::draw_screen_quad();
-        if (INFO.fxaaQuality == 1) pipeline->use_shader(*FS.prty_fxaa_fxaa_low);
-        if (INFO.fxaaQuality == 2) pipeline->use_shader(*FS.prty_fxaa_fxaa_high);
+        pipeline->use_shader(*FS.prty_fxaa_fxaa);
     } else pipeline->use_shader(*FS.gnrc_passthru);
 
     gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
@@ -428,15 +399,15 @@ void SceneMain::render(float _ft) {
 void SceneMain::update_settings() {
     INFO.viewDistance = app.settings.crnt<float>("viewDistance");
     INFO.farDistance = app.settings.crnt<float>("farDistance");
-    INFO.shadQuality = app.settings.crnt<int>("shadQuality");
-    INFO.shadFilter = app.settings.crnt<int>("shadFilter");
-    INFO.ssaoQuality = app.settings.crnt<int>("ssaoQuality");
-    INFO.fxaaQuality = app.settings.crnt<int>("fxaaQuality");
+    INFO.shadQlty = app.settings.crnt<int>("shadQlty");
+    INFO.shadFltr = app.settings.crnt<int>("shadFltr");
+    INFO.ssaoQlty = app.settings.crnt<int>("ssaoQlty");
+    INFO.fxaaQlty = app.settings.crnt<int>("fxaaQlty");
     INFO.vignetting = app.settings.crnt<bool>("vignetting");
 
     camera->range.y = INFO.viewDistance;
 
-    if (INFO.ssaoQuality == 0) {
+    if (INFO.ssaoQlty == 0) {
         FB.ssaoA->use();
         gl::Viewport(0, 0, INFO.halfSize.x, INFO.halfSize.y);
         gl::ClearColor(1.f, 1.f, 1.f, 1.f);
@@ -445,11 +416,42 @@ void SceneMain::update_settings() {
     }
 
     graph->update_settings();
+    reload_shaders();
+}
 
-    FS.shds_skylight_shad->set_sca<int>("shadQuality", INFO.shadQuality);
-    FS.shds_skylight_shad->set_sca<int>("shadFilter", INFO.shadFilter);
-    FS.shds_spotlight_shad->set_sca<int>("shadQuality", INFO.shadQuality);
-    FS.shds_spotlight_shad->set_sca<int>("shadFilter", INFO.shadFilter);
-    FS.shds_pointlight_shad->set_sca<int>("shadQuality", INFO.shadQuality);
-    FS.shds_pointlight_shad->set_sca<int>("shadFilter", INFO.shadFilter);
+
+void SceneMain::reload_shaders() {
+    /// Lighting
+    string defines = "#define SHADQLTY " + std::to_string(INFO.shadQlty) + "\n"
+                     "#define SHADFLTR " + std::to_string(INFO.shadFltr);
+    string definesShad = defines + "\n#define SHADOW";
+    string definesSpec = defines + "\n#define SPECULAR";
+    string definesBoth = defines + "\n#define SHADOW\n#define SPECULAR";
+    FS.shds_skylight->load(app.preproc("shades/skylight_fs", defines));
+    FS.shds_spot_none->load(app.preproc("shades/spotlight_fs", defines));
+    FS.shds_spot_shad->load(app.preproc("shades/spotlight_fs", definesShad));
+    FS.shds_spot_spec->load(app.preproc("shades/spotlight_fs", definesSpec));
+    FS.shds_spot_both->load(app.preproc("shades/spotlight_fs", definesBoth));
+    FS.shds_point_none->load(app.preproc("shades/pointlight_fs", defines));
+    FS.shds_point_shad->load(app.preproc("shades/pointlight_fs", definesShad));
+    FS.shds_point_spec->load(app.preproc("shades/pointlight_fs", definesSpec));
+    FS.shds_point_both->load(app.preproc("shades/pointlight_fs", definesBoth));
+
+    /// FXAA
+    if (INFO.fxaaQlty == 1) {
+        defines = "#define PIXSIZE " + glm::to_string(INFO.fPixSize);
+        FS.prty_fxaa_fxaa->load(app.preproc("pretty/fxaa/fxaa_fs", defines)); }
+    if (INFO.fxaaQlty == 2) {
+        defines = "#define HIGH\n#define PIXSIZE " + glm::to_string(INFO.fPixSize);
+        FS.prty_fxaa_fxaa->load(app.preproc("pretty/fxaa/fxaa_fs", defines)); }
+
+    /// SSAO
+    if (INFO.ssaoQlty == 1) {
+        defines = "#define PIXSIZE " + glm::to_string(INFO.hPixSize);
+        FS.prty_ssao_ssao->load(app.preproc("pretty/ssao/ssao_fs", defines));
+        FS.prty_ssao_blur->load(app.preproc("pretty/ssao/blur_fs", defines)); }
+    if (INFO.ssaoQlty == 2) {
+        defines = "#define HIGH\n#define PIXSIZE " + glm::to_string(INFO.hPixSize);
+        FS.prty_ssao_ssao->load(app.preproc("pretty/ssao/ssao_fs", defines));
+        FS.prty_ssao_blur->load(app.preproc("pretty/ssao/blur_fs", defines)); }
 }

@@ -2,17 +2,22 @@
 #extension GL_ARB_gpu_shader5 : enable
 #extension GL_ARB_shading_language_420pack : enable
 
-// define FXAA_QUALITY__PRESET
+// define HIGH
+// define PIXSIZE vec2
 
 in vec2 texcoord;
 
-uniform vec2 pixSize;
 layout(binding=0) uniform sampler2D screenTex;
 
 out vec4 fragColour;
 
 #define FXAA_PC 1
 #define FXAA_GLSL_130 1
+#ifdef HIGH
+#define FXAA_QUALITY__PRESET 39
+#else
+#define FXAA_QUALITY__PRESET 10
+#endif
 
 /*============================================================================
 
@@ -809,7 +814,7 @@ void main() {
     FxaaPixelShader(
         texcoord,
         screenTex,
-        pixSize,
+        PIXSIZE,
         paramSUBPIX,
         paramEDGETHRES,
         paramEDGETHRESMIN

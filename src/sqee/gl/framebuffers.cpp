@@ -43,8 +43,6 @@ void Framebuffer::use() {
 
 void Framebuffer::add_buf(GLenum _attach) {
     if (_attach != gl::DEPTH_ATTACHMENT && _attach != gl::STENCIL_ATTACHMENT &&
-        _attach != gl::DEPTH_STENCIL_ATTACHMENT && !bufSet.count(_attach)) {
-        drawBufs.emplace_back(_attach);
-        bufSet.emplace(_attach);
-    }
+        _attach != gl::DEPTH_STENCIL_ATTACHMENT && !bufSet.count(_attach))
+        drawBufs.emplace_back(_attach), bufSet.emplace(_attach);
 }
