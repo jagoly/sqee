@@ -18,11 +18,11 @@ public:
     uint DAT_texsize = 0u;
 
     array<mat4, 6> matArr;
-    sq::Sphere sphere;
-    array<sq::Frustum, 6> frusArr;
     unique_ptr<sq::Uniformbuffer> ubo;
     unique_ptr<sq::TextureCube> tex;
     array<unique_ptr<sq::Framebuffer>, 6> fboArr;
+    sq::Sphere sphere; mat4 modelMat;
+    array<sq::Frustum, 6> frusArr;
 };
 
 template<> struct ObjTraits<PointLight> {

@@ -3,7 +3,7 @@
 
 in vec3 cubeNorm;
 
-layout(binding=0) uniform samplerCube texSkyBox;
+layout(binding=5) uniform samplerCube texSkyBox;
 
 out vec4 fragColour;
 

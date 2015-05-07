@@ -34,15 +34,21 @@ public:
     std::list<weak_ptr<wcoe::PointLight>> pointLightList;
 
     struct {
-        sq::Shader* gnrc_quad = nullptr;
+        sq::Shader* gnrc_screen = nullptr;
+        sq::Shader* gnrc_volume = nullptr;
         sq::Shader* modl_static = nullptr;
         sq::Shader* modl_skelly = nullptr;
         sq::Shader* shad_static = nullptr;
         sq::Shader* shad_skelly = nullptr;
         sq::Shader* shds_skybox = nullptr;
+        sq::Shader* shds_spotstncl = nullptr;
+        sq::Shader* shds_pointstncl = nullptr;
     } VS;
 
     struct {
+        sq::Shader* gnrc_fillwith = nullptr;
+        sq::Shader* gnrc_lumalpha = nullptr;
+        sq::Shader* gnrc_passthru = nullptr;
         sq::Shader* modl_write = nullptr;
         sq::Shader* shad_punch = nullptr;
         sq::Shader* shds_skybox = nullptr;
@@ -56,6 +62,7 @@ public:
         sq::Shader* shds_point_shad = nullptr;
         sq::Shader* shds_point_spec = nullptr;
         sq::Shader* shds_point_both = nullptr;
+
     } FS;
 
     struct {

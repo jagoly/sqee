@@ -18,8 +18,7 @@ layout(binding=0) uniform sampler2D texDiff;
 layout(binding=1) uniform sampler2D texNorm;
 layout(binding=2) uniform sampler2D texSurf;
 layout(binding=3) uniform sampler2D texSpec;
-layout(binding=4) uniform sampler2D texAmbi;
-layout(binding=5) uniform sampler2D texDepth;
+layout(binding=4) uniform sampler2D texDepth;
 
 out vec3 fragColour;
 
@@ -27,7 +26,7 @@ out vec3 fragColour;
 #ifdef SHADOW
 #include "headers/uniform_disks"
 #include "headers/shadow/sample_point"
-layout(binding=6) uniform samplerCubeShadow texShad;
+layout(binding=5) uniform samplerCubeShadow texShad;
 float get_shadow_value(vec3 _wpos, vec3 _wsurf) {
     vec3 cubeNorm = _wpos + _wsurf*0.05f - LB.position;
     vec3 absVec = abs(cubeNorm); cubeNorm = normalize(cubeNorm);

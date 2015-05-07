@@ -11,7 +11,7 @@ in vec2 texcrd;
 layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
 
 layout(binding=2) uniform sampler2D texSurf;
-layout(binding=5) uniform sampler2D texDepth;
+layout(binding=4) uniform sampler2D texDepth;
 
 out float fragColour;
 

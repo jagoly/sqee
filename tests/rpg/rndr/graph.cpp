@@ -288,14 +288,14 @@ void Graph::render_skybox() {
     if (!world->skybox.enabled) return;
     pipeline->use_shader(*VS.shds_skybox);
     pipeline->use_shader(*FS.shds_skybox);
-    world->skybox.tex->bind(gl::TEXTURE0);
+    world->skybox.tex->bind(gl::TEXTURE5);
     sq::draw_screen_quad();
 }
 
 
 void Graph::render_ambient() {
     if (!world->ambient.enabled) return;
-    pipeline->use_shader(*VS.gnrc_quad);
+    pipeline->use_shader(*VS.gnrc_screen);
     pipeline->use_shader(*FS.shds_ambient);
     world->ambient.ubo->bind(1);
     sq::draw_screen_quad();
@@ -304,39 +304,71 @@ void Graph::render_ambient() {
 
 void Graph::render_skylight() {
     if (!world->skylight.enabled) return;
-    pipeline->use_shader(*VS.gnrc_quad);
+    pipeline->use_shader(*VS.gnrc_screen);
     pipeline->use_shader(*FS.shds_skylight);
-    world->skylight.tex->bind(gl::TEXTURE6);
+    world->skylight.tex->bind(gl::TEXTURE5);
     world->skylight.ubo->bind(1);
     sq::draw_screen_quad();
 }
 
 
 void Graph::render_spotlights() {
-    pipeline->use_shader(*VS.gnrc_quad);
+    pipeline->use_shader(*VS.gnrc_screen);
     for (const auto& lptr : spotLightList) {
         const wcoe::SpotLight& light = *lptr.lock();
         if (sq::frus_in_frus(light.frus, camera->frus)) continue;
+
+        light.ubo->bind(1);
+
+        gl::Enable(gl::DEPTH_TEST); gl::StencilMask(0xff);
+        gl::Clear(gl::STENCIL_BUFFER_BIT);
+        gl::StencilOpSeparate(gl::BACK, gl::KEEP, gl::INCR_WRAP, gl::KEEP);
+        gl::StencilOpSeparate(gl::FRONT, gl::KEEP, gl::DECR_WRAP, gl::KEEP);
+        gl::StencilFunc(gl::ALWAYS, 0xff, 0xff);
+        pipeline->use_shader(*VS.shds_spotstncl);
+        pipeline->disable_stages(gl::FRAGMENT_SHADER_BIT);
+        sq::draw_volume_cone(); gl::Disable(gl::DEPTH_TEST);
+
         if (!light.DAT_shadow && !light.DAT_specular) pipeline->use_shader(*FS.shds_spot_none);
         if ( light.DAT_shadow && !light.DAT_specular) pipeline->use_shader(*FS.shds_spot_shad);
         if (!light.DAT_shadow &&  light.DAT_specular) pipeline->use_shader(*FS.shds_spot_spec);
         if ( light.DAT_shadow &&  light.DAT_specular) pipeline->use_shader(*FS.shds_spot_both);
-        if (light.DAT_shadow) light.tex->bind(gl::TEXTURE6);
-        light.ubo->bind(1); sq::draw_screen_quad();
+        if (light.DAT_shadow) light.tex->bind(gl::TEXTURE5);
+
+        gl::StencilFunc(gl::EQUAL, 0x01, 0x01);
+        gl::StencilOp(gl::KEEP, gl::KEEP, gl::KEEP);
+        pipeline->use_shader(*VS.gnrc_screen);
+        gl::StencilMask(0x00); sq::draw_screen_quad();
     }
 }
 
 
 void Graph::render_pointlights() {
-    pipeline->use_shader(*VS.gnrc_quad);
+    pipeline->use_shader(*VS.gnrc_screen);
     for (const auto& lptr : pointLightList) {
         const wcoe::PointLight& light = *lptr.lock();
         if (sq::sphr_in_frus(light.sphere, camera->frus)) continue;
+
+        light.ubo->bind(1);
+
+        gl::Enable(gl::DEPTH_TEST); gl::StencilMask(0xff);
+        gl::Clear(gl::STENCIL_BUFFER_BIT);
+        gl::StencilOpSeparate(gl::BACK, gl::KEEP, gl::INCR_WRAP, gl::KEEP);
+        gl::StencilOpSeparate(gl::FRONT, gl::KEEP, gl::DECR_WRAP, gl::KEEP);
+        gl::StencilFunc(gl::ALWAYS, 0xff, 0xff);
+        pipeline->use_shader(*VS.shds_pointstncl);
+        pipeline->disable_stages(gl::FRAGMENT_SHADER_BIT);
+        sq::draw_volume_sphere(); gl::Disable(gl::DEPTH_TEST);
+
         if (!light.DAT_shadow && !light.DAT_specular) pipeline->use_shader(*FS.shds_point_none);
         if ( light.DAT_shadow && !light.DAT_specular) pipeline->use_shader(*FS.shds_point_shad);
         if (!light.DAT_shadow &&  light.DAT_specular) pipeline->use_shader(*FS.shds_point_spec);
         if ( light.DAT_shadow &&  light.DAT_specular) pipeline->use_shader(*FS.shds_point_both);
-        if (light.DAT_shadow) light.tex->bind(gl::TEXTURE6);
-        light.ubo->bind(1); sq::draw_screen_quad();
+        if (light.DAT_shadow) light.tex->bind(gl::TEXTURE5);
+
+        gl::StencilFunc(gl::EQUAL, 0x01, 0x01);
+        gl::StencilOp(gl::KEEP, gl::KEEP, gl::KEEP);
+        pipeline->use_shader(*VS.gnrc_screen);
+        gl::StencilMask(0x00); sq::draw_screen_quad();
     }
 }

@@ -21,10 +21,10 @@ public:
     uint DAT_texsize = 0u;
 
     mat4 matrix;
-    sq::Frustum frus;
     unique_ptr<sq::Uniformbuffer> ubo;
     unique_ptr<sq::Texture2D> tex;
     unique_ptr<sq::Framebuffer> fbo;
+    sq::Frustum frus; mat4 modelMat;
 };
 
 template<> struct ObjTraits<SpotLight> {

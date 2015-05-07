@@ -19,6 +19,7 @@ PointLight::PointLight(const string& _name, const Cell* _cell)
     ubo->reserve("colour", 3);
     ubo->reserve("intensity", 1);
     ubo->reserve("matArr", 6*16);
+    ubo->reserve("modelMat", 16);
     ubo->create();
 }
 
@@ -47,7 +48,13 @@ void PointLight::update_from_data() {
     matArr[3] = projMat * glm::lookAt(position, position+sq::cubeNrms[3], sq::cubeTans[3]);
     matArr[4] = projMat * glm::lookAt(position, position+sq::cubeNrms[4], sq::cubeTans[4]);
     matArr[5] = projMat * glm::lookAt(position, position+sq::cubeNrms[5], sq::cubeTans[5]);
+    for (int i=0; i<6; i++) frusArr[i] = sq::make_Frustum(matArr[i]);
+
+    sphere.origin = position; sphere.radius = DAT_intensity;
+    modelMat = glm::scale(glm::translate(mat4(), position), vec3(DAT_intensity*2.f));
+
     ubo->update("matArr", matArr.data());
+    ubo->update("modelMat", &modelMat);
 
     if (DAT_shadow == true) {
         tex.reset(new sq::TextureCube());
@@ -60,6 +67,4 @@ void PointLight::update_from_data() {
         fboArr[4].reset(new sq::Framebuffer()); fboArr[4]->attach(gl::DEPTH_ATTACHMENT, *tex, 4);
         fboArr[5].reset(new sq::Framebuffer()); fboArr[5]->attach(gl::DEPTH_ATTACHMENT, *tex, 5);
     } else { tex.reset(); for (int i=0; i<6; i++) fboArr[i].reset(); }
-    sphere.origin = position; sphere.radius = DAT_intensity;
-    for (int i=0; i<6; i++) frusArr[i] = sq::make_Frustum(matArr[i]);
 }

@@ -15,7 +15,7 @@ world.skybox.set_colour(vec3(1.0f, 1.0f, 1.0f));
 world.skybox.set_texture("cloudy");
 world.skybox.enabled = true;
 
-world.ambient.set_colour(vec3(0.5f, 0.5f, 0.5f));
+world.ambient.set_colour(vec3(0.4f, 0.4f, 0.4f));
 world.ambient.enabled = true;
 
 world.skylight.set_colour(vec3(0.9f, 0.9f, 0.9f));

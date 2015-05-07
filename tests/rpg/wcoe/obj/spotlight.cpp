@@ -23,6 +23,7 @@ SpotLight::SpotLight(const string& _name, const Cell* _cell)
     ubo->reserve("colour", 3);
     ubo->reserve("softness", 1);
     ubo->reserve("matrix", 16);
+    ubo->reserve("modelMat", 16);
     ubo->create();
 }
 
@@ -53,8 +54,15 @@ void SpotLight::update_from_data() {
 
     vec3 tangent = sq::make_tangent(DAT_direction);
     mat4 viewMat = glm::lookAt(position, position+DAT_direction, tangent);
-    mat4 projMat = glm::perspective(2.f * angle, 1.f, 0.2f, DAT_intensity);
-    matrix = projMat*viewMat; ubo->update("matrix", &matrix);
+    mat4 projMat = glm::perspective(2.f*angle, 1.f, 0.2f, DAT_intensity);
+    matrix = projMat*viewMat; frus = sq::make_Frustum(matrix);
+
+    float tanAngle = glm::tan(angle*2.f);
+    vec3 scale = -vec3(tanAngle, tanAngle, 1.f) * DAT_intensity;
+    modelMat = glm::inverse(viewMat) * glm::scale(mat4(), scale);
+
+    ubo->update("matrix", &matrix);
+    ubo->update("modelMat", &modelMat);
 
     if (DAT_shadow == true) {
         tex.reset(new sq::Texture2D());
@@ -62,5 +70,4 @@ void SpotLight::update_from_data() {
         tex->set_param(gl::TEXTURE_COMPARE_MODE, gl::COMPARE_REF_TO_TEXTURE);
         fbo.reset(new sq::Framebuffer()); fbo->attach(gl::DEPTH_ATTACHMENT, *tex);
     } else { tex.reset(); fbo.reset(); }
-    frus = sq::make_Frustum(matrix);
 }

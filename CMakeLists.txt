@@ -107,6 +107,9 @@ set(SOURCES
     "${SRCDIR}/misc/files.cpp"
     "${SRCDIR}/scenes/basicscenes.cpp"
     "${SRCDIR}/sounds/soundmanager.cpp"
+
+# Compiled-In Data
+    "${SRCDIR}/data/volumes.c"
 )
 
 make_directory(${CMAKE_CURRENT_BINARY_DIR}/work)

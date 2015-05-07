@@ -1,6 +1,8 @@
 #version 330
 #extension GL_ARB_shading_language_420pack : enable
 
+// define SSAO
+
 #include "headers/blocks/camera"
 #include "headers/blocks/ambient"
 
@@ -10,14 +12,20 @@ layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
 layout(std140, binding=1) uniform AMBIENTBLOCK { AmbientBlock LB; };
 
 layout(binding=0) uniform sampler2D texDiff;
-layout(binding=4) uniform sampler2D texAmbi;
+
+#ifdef SSAO
+layout(binding=5) uniform sampler2D texAmbi;
+#endif
 
 out vec3 fragColour;
 
 
 void main() {
-    float ambi = texture(texAmbi, texcrd).r;
-    vec3 diff = texture(texDiff, texcrd).rgb;
+    vec3 value = texture(texDiff, texcrd).rgb;
 
-    fragColour = ambi * diff * LB.colour;
+    #ifdef SSAO
+    value *= texture(texAmbi, texcrd).r;
+    #endif
+
+    fragColour = value * LB.colour;
 }

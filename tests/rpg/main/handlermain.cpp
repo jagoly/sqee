@@ -33,6 +33,14 @@ bool HandlerMain::handle(const sf::Event& _event) {
             app.settings.apply();
             return true;
         }
+        if (_event.key.code == sf::Keyboard::B) {
+            int crnt = app.settings.crnt<int>("hdrbQlty");
+            if      (crnt == 0) app.settings.mod<int>("hdrbQlty", 1);
+            else if (crnt == 1) app.settings.mod<int>("hdrbQlty", 2);
+            else if (crnt == 2) app.settings.mod<int>("hdrbQlty", 0);
+            app.settings.apply();
+            return true;
+        }
         if (_event.key.code == sf::Keyboard::A) {
             int crnt = app.settings.crnt<int>("fxaaQlty");
             if      (crnt == 0) app.settings.mod<int>("fxaaQlty", 1);
