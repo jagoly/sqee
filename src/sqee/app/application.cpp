@@ -94,11 +94,13 @@ void Application::quit(int _code) {
     retCode = _code;
 }
 
+void Application::resize_scenes(uvec2 _size) {
+    for (auto& scene : sceneIM) scene->resize(_size);
+}
+
 void Application::set_size(uvec2 _size) {
     window.setSize({_size.x, _size.y});
-    for (auto& scene : sceneIM) {
-        scene->resize(_size);
-    }
+    resize_scenes(_size);
 }
 
 uvec2 Application::get_size() {

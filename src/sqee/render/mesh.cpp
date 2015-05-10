@@ -1,7 +1,7 @@
 #include <glm/geometric.hpp>
 
 #include "sqee/redist/gl_ext_3_3.hpp"
-#include "sqee/gl/maths.hpp"
+#include "sqee/maths/general.hpp"
 #include "sqee/app/logging.hpp"
 #include "sqee/misc/files.hpp"
 #include "sqee/render/mesh.hpp"
@@ -58,12 +58,12 @@ void Mesh::load_ascii(const string& _path) {
     vector<vector<uvec3>> faceVec;
 
     string section = "";
-    for (const auto& line : fileVec) {
-        const string& key = line[0];
+    for (const auto& ln : fileVec) {
+        const string& key = ln[0];
         if (key[0] == '#') continue;
         if (key == "{") {
             if (!section.empty()) throw;
-            section = line[1]; continue;
+            section = ln[1]; continue;
         }
         if (key == "}") {
             if (section.empty()) throw;
@@ -71,12 +71,11 @@ void Mesh::load_ascii(const string& _path) {
         }
 
         if (section == "header") {
-            if (key == "bounds") bbox.origin = {stof(line[1]), stof(line[2]), stof(line[3])},
-                                 bbox.radius = stof(line[4]),
-                                 bbox.size = {stof(line[5]), stof(line[6]), stof(line[7])};
-            else if (key == "vCount") vCount = stou(line[1]);
-            else if (key == "fCount") fCount = stou(line[1]);
-            else if (key == "mCount") mCount = stou(line[1]), faceVec.resize(mCount);
+            if (key == "bounds") bbox.sphere = {{stof(ln[1]), stof(ln[2]), stof(ln[3])}, stof(ln[4])},
+                                 bbox.size = {stof(ln[5]), stof(ln[6]), stof(ln[7])};
+            else if (key == "vCount") vCount = stou(ln[1]);
+            else if (key == "fCount") fCount = stou(ln[1]);
+            else if (key == "mCount") mCount = stou(ln[1]), faceVec.resize(mCount);
             else if (key == "hasNM") hasNM = true;
             else if (key == "hasUV") hasUV = true;
             else if (key == "hasBW") hasBW = true;
@@ -87,26 +86,23 @@ void Mesh::load_ascii(const string& _path) {
 
         if (section == "vertices") {
             int n = 0;
-            points.emplace_back(stof(line[n+0]), stof(line[n+1]), stof(line[n+2]));n+=3;
+            points.emplace_back(stof(ln[n+0]), stof(ln[n+1]), stof(ln[n+2])); n+=3;
             if (hasNM) {
-                normals.emplace_back(stof(line[n+0]), stof(line[n+1]), stof(line[n+2]));n+=3;
+                normals.emplace_back(stof(ln[n+0]), stof(ln[n+1]), stof(ln[n+2])); n+=3;
                 tangents.emplace_back(make_tangent(normals.back()));
-            }
-            if (hasUV) {
-                texcrds.emplace_back(stof(line[n+0]), stof(line[n+1]));n+=2;
-            }
-            if (hasBW) {
-                bonesA.emplace_back(stoi(line[n+0]), stoi(line[n+1]), stoi(line[n+2]), stoi(line[n+3]));n+=4;
-                bonesB.emplace_back(stoi(line[n+0]), stoi(line[n+1]), stoi(line[n+2]), stoi(line[n+3]));n+=4;
-                weightsA.emplace_back(stof(line[n+0]), stof(line[n+1]), stof(line[n+2]), stof(line[n+3]));n+=4;
-                weightsB.emplace_back(stof(line[n+0]), stof(line[n+1]), stof(line[n+2]), stof(line[n+3]));n+=4;
-            }
-            continue;
+            } if (hasUV) {
+                texcrds.emplace_back(stof(ln[n+0]), stof(ln[n+1])); n+=2;
+            } if (hasBW) {
+                bonesA.emplace_back(stoi(ln[n+0]), stoi(ln[n+1]), stoi(ln[n+2]), stoi(ln[n+3])); n+=4;
+                bonesB.emplace_back(stoi(ln[n+0]), stoi(ln[n+1]), stoi(ln[n+2]), stoi(ln[n+3])); n+=4;
+                weightsA.emplace_back(stof(ln[n+0]), stof(ln[n+1]), stof(ln[n+2]), stof(ln[n+3])); n+=4;
+                weightsB.emplace_back(stof(ln[n+0]), stof(ln[n+1]), stof(ln[n+2]), stof(ln[n+3])); n+=4;
+            } continue;
         }
 
         if (section == "faces") {
-            if (hasMT) faceVec[stou(line[0])].emplace_back(stou(line[1]), stou(line[2]), stou(line[3]));
-            else faceVec[0].emplace_back(stou(line[0]), stou(line[1]), stou(line[2]));
+            if (hasMT) faceVec[stou(ln[0])].emplace_back(stou(ln[1]), stou(ln[2]), stou(ln[3]));
+            else faceVec[0].emplace_back(stou(ln[0]), stou(ln[1]), stou(ln[2]));
             continue;
         }
     }

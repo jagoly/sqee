@@ -12,6 +12,8 @@
 #include <sqee/render/mesh.hpp>
 #include <sqee/render/skin.hpp>
 #include <sqee/render/skeleton.hpp>
+#include <sqee/maths/culling.hpp>
+#include <sqee/maths/general.hpp>
 
 #include "../main/camera.hpp"
 #include "../wcoe/world.hpp"

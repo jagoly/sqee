@@ -64,15 +64,14 @@ SceneMain::SceneMain(sq::Application& _app) : sq::Scene(_app) {
 
 
     /// Add Settings
-    app.settings.add<float>("viewDistance", 120.f);
-    app.settings.add<float>("farDistance", 1200.f);
+    app.settings.add<float>("viewDist", 120.f);
     app.settings.add<int>("shadQlty", 2); // 0=1024, 1=2048, 2=4096
     app.settings.add<int>("shadFltr", 2); // 0=Off, 1=Minimal, 2=Full
     app.settings.add<int>("ssaoQlty", 2); // 0=Off, 1=Low, 2=High
     app.settings.add<int>("hdrbQlty", 2); // 0=Off, 1=Low, 2=High
     app.settings.add<int>("fxaaQlty", 2); // 0=Off, 1=Low, 2=High
+    app.settings.add<bool>("vignette", true);
     app.settings.add<bool>("mouseFocus", false);
-    app.settings.add<bool>("vignetting", true);
 
     /// Create Framebuffers
     FB.defr.reset(new sq::Framebuffer());
@@ -390,8 +389,6 @@ void SceneMain::render(float _ft) {
             FB.bloomB->use(); sq::draw_screen_quad(); TX.bloomB->bind();
             FB.bloomA->use(); sq::draw_screen_quad(); TX.bloomA->bind();
             FB.bloomB->use(); sq::draw_screen_quad(); TX.bloomB->bind();
-            FB.bloomA->use(); sq::draw_screen_quad(); TX.bloomA->bind();
-            FB.bloomB->use(); sq::draw_screen_quad(); TX.bloomB->bind();
         }
     }
 
@@ -408,13 +405,12 @@ void SceneMain::render(float _ft) {
         sq::draw_screen_quad();
         pipeline->use_shader(*FS.prty_fxaa_fxaa);
     } else pipeline->use_shader(*FS.gnrc_passthru);
-
     gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
     sq::draw_screen_quad();
 
 
     /// Vignetting Effect
-    if (INFO.vignetting == true) {
+    if (INFO.vignette == true) {
         gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
         gl::Enable(gl::BLEND);
         pipeline->use_shader(*FS.prty_vignette);
@@ -428,16 +424,15 @@ void SceneMain::render(float _ft) {
 
 
 void SceneMain::update_settings() {
-    INFO.viewDistance = app.settings.crnt<float>("viewDistance");
-    INFO.farDistance = app.settings.crnt<float>("farDistance");
+    INFO.viewDist = app.settings.crnt<float>("viewDist");
     INFO.shadQlty = app.settings.crnt<int>("shadQlty");
     INFO.shadFltr = app.settings.crnt<int>("shadFltr");
     INFO.ssaoQlty = app.settings.crnt<int>("ssaoQlty");
     INFO.hdrbQlty = app.settings.crnt<int>("hdrbQlty");
     INFO.fxaaQlty = app.settings.crnt<int>("fxaaQlty");
-    INFO.vignetting = app.settings.crnt<bool>("vignetting");
+    INFO.vignette = app.settings.crnt<bool>("vignette");
 
-    camera->range.y = INFO.viewDistance;
+    camera->range.y = INFO.viewDist;
 
     graph->update_settings();
     reload_shaders();
@@ -465,12 +460,12 @@ void SceneMain::reload_shaders() {
     if (INFO.hdrbQlty == 0) FS.prty_hdr_tonemap->load(app.preproc("pretty/hdr/tonemap_fs"));
     else FS.prty_hdr_tonemap->load(app.preproc("pretty/hdr/tonemap_fs", "#define HDRB"));
     if (INFO.hdrbQlty > 0) {
-        defines = "#define PIXSIZE " + glm::to_string(INFO.qPixSize);
+        defines = "#define PIXSIZE " + glm::to_string(INFO.qPixSize*2.5f);
         FS.prty_hdr_blmblur->load(app.preproc("pretty/hdr/blmblur_fs", defines)); }
 
     /// FXAA
     if (INFO.fxaaQlty == 1) {
-        defines = "#define PIXSIZE " + glm::to_string(INFO.fPixSize*2.5f);
+        defines = "#define PIXSIZE " + glm::to_string(INFO.fPixSize);
         FS.prty_fxaa_fxaa->load(app.preproc("pretty/fxaa/fxaa_fs", defines)); }
     if (INFO.fxaaQlty == 2) {
         defines = "#define HIGH\n#define PIXSIZE " + glm::to_string(INFO.fPixSize);

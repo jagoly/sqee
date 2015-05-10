@@ -3,11 +3,11 @@
 
 #include <sqee/app/logging.hpp>
 #include <sqee/redist/gl_ext_3_3.hpp>
-#include <sqee/gl/maths.hpp>
 #include <sqee/gl/uniformbuffers.hpp>
 #include <sqee/gl/framebuffers.hpp>
 #include <sqee/gl/textures.hpp>
 #include <sqee/misc/files.hpp>
+#include <sqee/maths/general.hpp>
 
 #include "../main/camera.hpp"
 #include "world.hpp"
@@ -87,7 +87,7 @@ void SkyLight::tick() {
         float splitLog = camera->range.x * glm::pow(camera->range.y / camera->range.x, f);
         float splitMix = glm::mix(splitUni, splitLog, weight);
         mat4 proj = glm::perspective(camera->fov, camera->size.x/camera->size.y, prevSplit, splitMix);
-        frusArr[sliceInd] = sq::make_Frustum(proj * camera->viewMat);
+        frusArr[sliceInd] = sq::make_Frustum(proj*camera->viewMat, camera->pos, camera->dir, camera->range);
         splitArr[sliceInd] = splitMix; prevSplit = splitMix;
     } ubo->update("splits", splitArr.data());
 

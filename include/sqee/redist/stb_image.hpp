@@ -1,4 +1,4 @@
-/* stb_image - v2.02 - public domain image loader - http://nothings.org/stb_image.h
+/* stb_image - v2.05 - public domain image loader - http://nothings.org/stb_image.h
                                      no warranty implied; use at your own risk
 
    Do this:
@@ -143,6 +143,11 @@
 
 
    Latest revision history:
+      2.05  (2015-04-19) fix bug in progressive JPEG handling, fix warning
+      2.04  (2015-04-15) try to re-enable SIMD on MinGW 64-bit
+      2.03  (2015-04-12) additional corruption checking
+                         stbi_set_flip_vertically_on_load
+                         fix NEON support; fix mingw support
       2.02  (2015-01-19) fix incorrect assert, fix warning
       2.01  (2015-01-17) fix various warnings
       2.00b (2014-12-25) fix STBI_MALLOC in progressive JPEG
@@ -156,8 +161,6 @@
       1.47  (2014-12-14) 1/2/4-bit PNG support (both grayscale and paletted)
                          optimize PNG
                          fix bug in interlaced PNG with user-specified channel count
-      1.46  (2014-08-26) fix broken tRNS chunk in non-paletted PNG
-      1.45  (2014-08-16) workaround MSVC-ARM internal compiler error by wrapping malloc
 
    See end of file for full revision history.
 
@@ -180,7 +183,7 @@
     James "moose2000" Brown (iPhone PNG)         Roy Eltham
     Ben "Disch" Wenger (io callbacks)            Luke Graham
     Omar Cornut (1/2/4-bit PNG)                  Thomas Ruf
-                                                 John Bartholomew
+    Nicolas Guillemot (vertical flip)            John Bartholomew
                                                  Ken Hamada
  Optimizations & bugfixes                        Cort Stratton
     Fabian "ryg" Giesen                          Blazej Dariusz Roszkowski
@@ -196,6 +199,9 @@
                                                  Sergio Gonzalez
                                                  Cass Everitt
                                                  Engin Manap
+                                                 Martins Mozeiko
+                                                 Joseph Thomson
+                                                 Phil Jordan
 
 License:
    This software is in the public domain. Where that dedication is not
@@ -487,6 +493,8 @@ STBIDEF void stbi_set_unpremultiply_on_load(int flag_true_if_should_unpremultipl
 // or just pass them through "as-is"
 STBIDEF void stbi_convert_iphone_png_to_rgb(int flag_true_if_should_convert);
 
+// flip the image vertically, so the first pixel in the output array is the bottom left
+STBIDEF void stbi_set_flip_vertically_on_load(int flag_true_if_should_flip);
 
 // ZLIB client - used by PNG, available for other purposes
 

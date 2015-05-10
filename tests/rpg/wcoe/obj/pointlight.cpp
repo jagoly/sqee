@@ -2,10 +2,11 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <sqee/redist/gl_ext_3_3.hpp>
-#include <sqee/gl/maths.hpp>
 #include <sqee/gl/textures.hpp>
 #include <sqee/gl/framebuffers.hpp>
 #include <sqee/gl/uniformbuffers.hpp>
+#include <sqee/maths/culling.hpp>
+#include <sqee/maths/general.hpp>
 
 #include "../cell.hpp"
 #include "pointlight.hpp"
@@ -48,7 +49,12 @@ void PointLight::update_from_data() {
     matArr[3] = projMat * glm::lookAt(position, position+sq::cubeNrms[3], sq::cubeTans[3]);
     matArr[4] = projMat * glm::lookAt(position, position+sq::cubeNrms[4], sq::cubeTans[4]);
     matArr[5] = projMat * glm::lookAt(position, position+sq::cubeNrms[5], sq::cubeTans[5]);
-    for (int i=0; i<6; i++) frusArr[i] = sq::make_Frustum(matArr[i]);
+    frusArr[0] = sq::make_Frustum(matArr[0], position, sq::cubeNrms[0], {0.2, DAT_intensity});
+    frusArr[1] = sq::make_Frustum(matArr[1], position, sq::cubeNrms[1], {0.2, DAT_intensity});
+    frusArr[2] = sq::make_Frustum(matArr[2], position, sq::cubeNrms[2], {0.2, DAT_intensity});
+    frusArr[3] = sq::make_Frustum(matArr[3], position, sq::cubeNrms[3], {0.2, DAT_intensity});
+    frusArr[4] = sq::make_Frustum(matArr[4], position, sq::cubeNrms[4], {0.2, DAT_intensity});
+    frusArr[5] = sq::make_Frustum(matArr[5], position, sq::cubeNrms[5], {0.2, DAT_intensity});
 
     sphere.origin = position; sphere.radius = DAT_intensity;
     modelMat = glm::scale(glm::translate(mat4(), position), vec3(DAT_intensity*2.f));

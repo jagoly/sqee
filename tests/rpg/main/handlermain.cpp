@@ -50,8 +50,8 @@ bool HandlerMain::handle(const sf::Event& _event) {
             return true;
         }
         if (_event.key.code == sf::Keyboard::C) {
-            bool crnt = app.settings.crnt<bool>("vignetting");
-            app.settings.mod<bool>("vignetting", !crnt);
+            bool crnt = app.settings.crnt<bool>("vignette");
+            app.settings.mod<bool>("vignette", !crnt);
             app.settings.apply();
             return true;
         }

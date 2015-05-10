@@ -4,7 +4,7 @@
 #include <sqee/render/skeleton.hpp>
 #include <sqee/render/mesh.hpp>
 #include <sqee/render/skin.hpp>
-#include <sqee/gl/maths.hpp>
+#include <sqee/maths/general.hpp>
 
 #include "../cell.hpp"
 #include "modelskelly.hpp"

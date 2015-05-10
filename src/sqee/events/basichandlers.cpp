@@ -13,7 +13,7 @@ bool HandlerClose::handle(const sf::Event& _event) {
 
 bool HandlerResize::handle(const sf::Event& _event) {
     if (_event.type == sf::Event::Resized) {
-        app.set_size({_event.size.width, _event.size.height});
+        app.resize_scenes({_event.size.width, _event.size.height});
         return true;
     } return false;
 }

@@ -20,6 +20,7 @@ public:
     int run();
     void quit(int _code);
 
+    void resize_scenes(uvec2 _size);
     void set_size(uvec2 _size);
     uvec2 get_size();
 

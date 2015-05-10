@@ -18,20 +18,6 @@ dvec3 make_tangent(dvec3 _norm);
 
 dmat3 make_normMat(dmat4 _viewModelMat);
 
-bool point_in_tri(dvec2 _p, dvec2 _t0, dvec2 _t1, dvec2 _t2);
-
 dvec3 norm_from_tri(dvec3 _t0, dvec3 _t1, dvec3 _t2);
-
-BoundBox bbox_by_model(BoundBox _bbox, dmat4 _modelMat);
-
-bool bbox_in_frus(BoundBox _bbox, Frustum _frus);
-
-bool frus_in_frus(Frustum _frusA, Frustum _frusB);
-
-bool sphr_in_frus(Sphere _sphere, Frustum _frus);
-
-Frustum make_Frustum(dmat4 _projViewMatrix);
-
-dvec3 calc_frusCentre(Frustum _frus);
 
 }

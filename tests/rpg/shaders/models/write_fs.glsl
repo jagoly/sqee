@@ -11,7 +11,7 @@ layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
 
 uniform int diff_norm_spec;
 layout(binding=0) uniform sampler2D texDiff; // R/G/B/Alpha
-layout(binding=1) uniform sampler2D texNorm; // X/Y/Z/Emmissive
+layout(binding=1) uniform sampler2D texNorm; // X/Y/Z
 layout(binding=2) uniform sampler2D texSpec; // R/G/B/Exponent
 
 layout(location=0) out vec4 fragDiff;

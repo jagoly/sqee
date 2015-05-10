@@ -1,7 +1,7 @@
 #pragma once
 #include <sqee/forward.hpp>
 
-#include <sqee/gl/maths.hpp>
+#include <sqee/maths/culling.hpp>
 
 namespace sq {
 

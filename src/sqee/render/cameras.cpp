@@ -11,7 +11,7 @@ Camera::Camera() {}
 void Camera::update() {
     viewMat = glm::lookAt(pos, pos+dir, {0,0,1});
     projMat = glm::perspective(fov, size.x / size.y, range.x, range.y);
-    frus = make_Frustum(projMat * viewMat);
+    frus = make_Frustum(projMat*viewMat, pos, dir, range);
 }
 
 

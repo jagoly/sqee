@@ -3,24 +3,15 @@ cmake_minimum_required(VERSION 2.8)
 
 set(SQEE_USE_BUNDLED_LIBS FALSE CACHE BOOLEAN "Use libraries and headers in the extlibs dir")
 set(SQEE_STATIC_LIB FALSE CACHE BOOLEAN "Build SQEE as a static library")
-set(SQEE_STATIC_DEPS FALSE CACHE BOOLEAN "Link some libraries statically (varies by platform)")
-set(SQEE_OS_NAME "NOTSET" CACHE STRING "The System to build for (Linux, Windows, Android)")
+
+set(SQEE_LINUX FALSE CACHE BOOLEAN "Build for Linux")
+set(SQEE_WINOWS FALSE CACHE BOOLEAN "Build for Windows")
+set(SQEE_ANDROID FALSE CACHE BOOLEAN "Build for Android")
 # android not currently implemented
 
-set(SQEE_LINUX ${SQEE_OS_NAME} MATCHES "Linux")
-set(SQEE_WINOWS ${SQEE_OS_NAME} MATCHES "Windows")
-set(SQEE_ANDROID ${SQEE_OS_NAME} MATCHES "Android")
-
-set(CMAKE_CXX_FLAGS "-std=c++11 -O2 -Wall -Wextra -Wno-unused-parameter -Wno-missing-braces")
+set(CMAKE_CXX_FLAGS "-std=c++11 -O2 -Wall -Wextra -Wno-unused-parameter -Wno-missing-braces -Wno-comment -Wno-strict-aliasing")
 if(${SQEE_WINDOWS})
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wa,-mbig-obj -mwindows")
-endif()
-
-if(${SQEE_STATIC_DEPS})
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSFML_STATIC")
-    if(${SQEE_WINDOWS})
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static -static-libgcc -static-libstdc++")
-    endif()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mwindows -static-libstdc++ -static-libgcc")
 endif()
 
 if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
@@ -43,7 +34,6 @@ set(SOURCES
     "${INCDIR}/forward.hpp"
     "${INCDIR}/debug/glcallback.hpp"
     "${INCDIR}/debug/misc.hpp"
-    "${INCDIR}/gl/maths.hpp"
     "${INCDIR}/gl/misc.hpp"
     "${INCDIR}/gl/framebuffers.hpp"
     "${INCDIR}/gl/preprocessor.hpp"
@@ -61,6 +51,8 @@ set(SOURCES
     "${INCDIR}/events/basichandlers.hpp"
     "${INCDIR}/text/font.hpp"
     "${INCDIR}/text/text.hpp"
+    "${INCDIR}/maths/culling.hpp"
+    "${INCDIR}/maths/general.hpp"
     "${INCDIR}/menus/basicmenu.hpp"
     "${INCDIR}/render/cameras.hpp"
     "${INCDIR}/render/mesh.hpp"
@@ -81,7 +73,6 @@ set(SOURCES
 
 # SQEE Source
     "${SRCDIR}/debug/misc.cpp"
-    "${SRCDIR}/gl/maths.cpp"
     "${SRCDIR}/gl/misc.cpp"
     "${SRCDIR}/gl/framebuffers.cpp"
     "${SRCDIR}/gl/preprocessor.cpp"
@@ -98,6 +89,8 @@ set(SOURCES
     "${SRCDIR}/events/basichandlers.cpp"
     "${SRCDIR}/text/font.cpp"
     "${SRCDIR}/text/text.cpp"
+    "${SRCDIR}/maths/culling.cpp"
+    "${SRCDIR}/maths/general.cpp"
     "${SRCDIR}/menus/basicmenu.cpp"
     "${SRCDIR}/render/cameras.cpp"
     "${SRCDIR}/render/mesh.cpp"
@@ -109,6 +102,7 @@ set(SOURCES
     "${SRCDIR}/sounds/soundmanager.cpp"
 
 # Compiled-In Data
+    "${SRCDIR}/data/textfont.c"
     "${SRCDIR}/data/volumes.c"
 )
 
@@ -124,21 +118,13 @@ macro (addbin input varname)
     message(STATUS "Added binary file \"${input}\"")
 endmacro ()
 
-addbin("tinytext/texture.bin" ttTexture)
-addbin("tinytext/indices.bin" ttIndices)
-
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build")
 
 include_directories("${PROJECT_SOURCE_DIR}/include")
 if(${SQEE_USE_BUNDLED_LIBS})
-    include_directories("${PROJECT_SOURCE_DIR}/extlibs/include/all")
-    if(${SQEE_LINUX})
-        include_directories("${PROJECT_SOURCE_DIR}/extlibs/include/lin64")
-    elseif(${SQEE_WINDOWS})
-        include_directories("${PROJECT_SOURCE_DIR}/extlibs/include/win64")
-    endif()
+    include_directories("${PROJECT_SOURCE_DIR}/extlibs/include/")
 endif()
 
 if(${SQEE_STATIC_LIB})
@@ -155,32 +141,17 @@ if(${SQEE_USE_BUNDLED_LIBS})
     endif()
 endif()
 
-if(${SQEE_STATIC_DEPS})
-    find_library(SFML_WINDOW_LIB sfml-window-s /)
-    find_library(SFML_SYSTEM_LIB sfml-system-s /)
-    find_library(SFML_AUDIO_LIB sfml-audio-s /)
-else()
-    find_library(SFML_WINDOW_LIB sfml-window /)
-    find_library(SFML_SYSTEM_LIB sfml-system /)
-    find_library(SFML_AUDIO_LIB sfml-audio /)
-endif()
 
+find_library(SFML_WINDOW_LIB sfml-window /)
+find_library(SFML_SYSTEM_LIB sfml-system /)
+find_library(SFML_AUDIO_LIB sfml-audio /)
 find_library(OPENGL_LIB NAMES GL opengl32 PATHS /)
 find_library(OPENAL_LIB NAMES openal openal32 PATHS /)
-find_library(SNDFILE_LIB sndfile /)
 
 target_link_libraries(sqee
     ${SFML_WINDOW_LIB} ${SFML_SYSTEM_LIB} ${SFML_AUDIO_LIB}
-    ${OPENGL_LIB} ${OPENAL_LIB} ${SNDFILE_LIB}
+    ${OPENGL_LIB} ${OPENAL_LIB}
 )
-
-if(${SQEE_STATIC_DEPS})
-    if(${SQEE_LINUX})
-        target_link_libraries(sqee pthread udev X11 Xrandr)
-    elseif(${SQEE_WINDOWS})
-        target_link_libraries(sqee winmm gdi32)
-    endif()
-endif()
 
 #add_subdirectory("tests/soko")
 #add_subdirectory("tests/fb")

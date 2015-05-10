@@ -2,10 +2,11 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <sqee/redist/gl_ext_3_3.hpp>
-#include <sqee/gl/maths.hpp>
 #include <sqee/gl/textures.hpp>
 #include <sqee/gl/framebuffers.hpp>
 #include <sqee/gl/uniformbuffers.hpp>
+#include <sqee/maths/culling.hpp>
+#include <sqee/maths/general.hpp>
 
 #include "../cell.hpp"
 #include "../world.hpp"
@@ -54,8 +55,8 @@ void SpotLight::update_from_data() {
 
     vec3 tangent = sq::make_tangent(DAT_direction);
     mat4 viewMat = glm::lookAt(position, position+DAT_direction, tangent);
-    mat4 projMat = glm::perspective(2.f*angle, 1.f, 0.2f, DAT_intensity);
-    matrix = projMat*viewMat; frus = sq::make_Frustum(matrix);
+    matrix = glm::perspective(2.f*angle, 1.f, 0.2f, DAT_intensity) * viewMat;
+    frus = sq::make_Frustum(matrix, position, DAT_direction, {0.2, DAT_intensity});
 
     float tanAngle = glm::tan(angle*2.f);
     vec3 scale = -vec3(tanAngle, tanAngle, 1.f) * DAT_intensity;

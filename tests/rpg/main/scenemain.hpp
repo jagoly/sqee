@@ -92,15 +92,14 @@ private:
     } TX;
 
     struct {
-        float viewDistance;
-        float farDistance;
+        float viewDist;
         int shadQlty;
         int shadFltr;
         int ssaoQlty;
         int hdrbQlty;
         int fxaaQlty;
+        bool vignette;
         bool mouseFocus;
-        bool vignetting;
         uvec2 fullSize;
         uvec2 halfSize;
         uvec2 qterSize;

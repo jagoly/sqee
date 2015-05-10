@@ -108,7 +108,7 @@ enum class Alignment { TL, TC, TR, CL, CC, CR, BL, BC, BR };
 enum class Grid4x4 { AA, AB, AC, AD, BA, BB, BC, BD, CA, CB, CC, CD, DA, DB, DC, DD };
 struct Plane { dvec3 normal; double offset; };
 struct Sphere { dvec3 origin; double radius; };
-struct BoundBox { dvec3 origin, size; double radius; dvec3 nX{1,0,0}, nY{0,1,0}, nZ{0,0,1}; };
-struct Frustum { Plane pT, pB, pL, pR, pN, pF; dvec3 xyz, xyZ, xYz, xYZ, Xyz, XyZ, XYz, XYZ; };
+struct Frustum { Sphere sphere; Plane pN, pT, pB, pL, pR; dvec3 xy, xY, Xy, XY; };
+struct BoundBox { Sphere sphere; dvec3 size, nX{1,0,0}, nY{0,1,0}, nZ{0,0,1}; };
 
 }

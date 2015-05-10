@@ -86,7 +86,7 @@ vec3 get_view_pos(in vec2 _tc) {
 }
 
 float rand(vec2 _crd){
-    return fract(sin(dot(_crd, vec2(12.9898f,78.233f))) * 43758.5453);
+    return fract(sin(dot(_crd, vec2(12.9898f,78.233f))) * 43758.5453f);
 }
 
 void main() {
@@ -94,9 +94,8 @@ void main() {
     vec2 fsvspz = filterSize * PIXSIZE / pos.z;
     vec3 v_surf = normalize(texture(texSurf, texcrd).rgb * 2.f - 1.f);
 
-    float angle = rand(texcrd.xy);
-    float s = sin(angle);
-    float c = cos(angle);
+    float angle = rand(texcrd);
+    float s = sin(angle), c = cos(angle);
 
     float ambiOcc = 0.f;
     for (int i = 0; i < diskSize; i++) {
