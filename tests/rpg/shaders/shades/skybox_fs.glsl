@@ -8,5 +8,5 @@ layout(binding=5) uniform samplerCube texSkyBox;
 out vec4 fragColour;
 
 void main() {
-    fragColour = texture(texSkyBox, cubeNorm.xyz);
+    fragColour = texture(texSkyBox, cubeNorm);
 }

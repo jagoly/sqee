@@ -8,32 +8,31 @@ Framebuffer::Framebuffer() {
     gl::GenFramebuffers(1, &fbo);
 }
 
+Framebuffer::~Framebuffer() {
+    gl::DeleteFramebuffers(1, &fbo);
+}
+
 void Framebuffer::attach(GLenum _attach, Texture2D& _tex) {
-    add_buf(_attach); _tex.bind(); bind();
+    bind(gl::FRAMEBUFFER); _tex.bind(); add_buf(_attach);
     gl::FramebufferTexture(gl::FRAMEBUFFER, _attach, _tex.tex, 0);
 }
 
 void Framebuffer::attach(GLenum _attach, Texture2DArray& _tex, GLint _layer) {
-    add_buf(_attach); _tex.bind(); bind();
+    bind(gl::FRAMEBUFFER); _tex.bind(); add_buf(_attach);
     gl::FramebufferTextureLayer(gl::FRAMEBUFFER, _attach, _tex.tex, 0, _layer);
 }
 
 void Framebuffer::attach(GLenum _attach, TextureCube& _tex, GLint _layer) {
-    add_buf(_attach); _tex.bind(); bind();
-    gl::FramebufferTexture2D(gl::FRAMEBUFFER, _attach, gl::TEXTURE_CUBE_MAP_POSITIVE_X+_layer, _tex.tex, 0);
+    bind(gl::FRAMEBUFFER); _tex.bind(); add_buf(_attach);
+    gl::FramebufferTexture2D(gl::FRAMEBUFFER, _attach, 0x8515+_layer, _tex.tex, 0);
 }
 
-void Framebuffer::bind() {
-    gl::BindFramebuffer(gl::FRAMEBUFFER, fbo);
+void Framebuffer::bind(GLenum _target) {
+    gl::BindFramebuffer(_target, fbo);
 }
 
 void Framebuffer::draw_bufs() {
     gl::DrawBuffers(drawBufs.size(), drawBufs.data());
-}
-
-bool Framebuffer::check() {
-    gl::BindFramebuffer(gl::FRAMEBUFFER, fbo);
-    return gl::CheckFramebufferStatus(gl::FRAMEBUFFER) != gl::FRAMEBUFFER_COMPLETE;
 }
 
 void Framebuffer::use() {

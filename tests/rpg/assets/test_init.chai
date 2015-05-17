@@ -20,6 +20,7 @@ world.ambient.enabled = true;
 
 world.skylight.set_colour(vec3(0.9f, 0.9f, 0.9f));
 world.skylight.set_direction(vec3(-0.36f, -0.46f, -0.81f));
+//world.skylight.set_direction(vec3(0.0f, 0.0f, -1.0f));
 world.skylight.enabled = true;
 
 console.print("Welcome to SQEE!")

@@ -101,6 +101,10 @@ void Texture2D::gen_mipmap() {
     gl::GenerateMipmap(target);
 }
 
+void Texture2D::viewport() {
+    gl::Viewport(0, 0, size.x, size.y);
+}
+
 const Texture::Preset& Texture2D::N_C() {
     static const Preset preset = {
         {gl::TEXTURE_MIN_FILTER, gl::NEAREST},
@@ -225,6 +229,10 @@ void Texture2DArray::buffer_file(const string& _path, uint _z) {
     free(data);
 }
 
+void Texture2DArray::viewport() {
+    gl::Viewport(0, 0, size.x, size.y);
+}
+
 const Texture::Preset& Texture2DArray::N_C() {
     return Texture2D::N_C();
 }
@@ -331,6 +339,10 @@ void TextureCube::buffer_full(const string& _path, uint _size) {
     buffer_memory(data + 1*size*size*channels, 4);
     buffer_memory(data + 0*size*size*channels, 5);
     free(data);
+}
+
+void TextureCube::viewport() {
+    gl::Viewport(0, 0, size, size);
 }
 
 const Texture::Preset& TextureCube::N_C() {

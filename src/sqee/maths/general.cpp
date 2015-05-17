@@ -5,6 +5,8 @@
 #include "sqee/app/logging.hpp"
 #include "sqee/maths/general.hpp"
 
+#include <glm/gtx/string_cast.hpp>
+
 using namespace sq;
 
 dvec3 sq::make_tangent(dvec3 _norm) {
@@ -13,7 +15,8 @@ dvec3 sq::make_tangent(dvec3 _norm) {
 }
 
 dmat3 sq::make_normMat(dmat4 _viewModelMat) {
-    return dmat3(glm::transpose(glm::inverse(_viewModelMat)));
+    return glm::transpose(glm::inverse(dmat3(_viewModelMat)));
+
 }
 
 dvec3 sq::norm_from_tri(dvec3 _t0, dvec3 _t1, dvec3 _t2) {

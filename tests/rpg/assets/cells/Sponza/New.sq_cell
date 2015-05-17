@@ -5,6 +5,20 @@
 }
 
 { objects
+
+object reflector FloorA
+s1 mesh Sponza/FloorA
+s1 skin Sponza/Floor
+f3 normal 0.0 0.0 1.0
+flags shadow
+
+object reflector FloorB
+f3 pos 0.0 0.0 5.0
+s1 mesh Sponza/FloorB
+s1 skin Sponza/Floor
+f3 normal 0.0 0.0 1.0
+flags shadow
+
 object spotlight SpotN
 f3 position 0.0 7.0 3.3
 f3 direction 0.0 -0.7 -0.3
@@ -526,61 +540,61 @@ flags shadow render
 
 object modelstatic CurtainA_A1
 f3 pos -8.887 2.9 1.762
-s1 mesh Sponza/curtainA
+s1 mesh Sponza/CurtainA
 s1 skin Sponza/CurtainRed
 flags shadow render
 
 object modelstatic CurtainB_A2
 f3 pos -4.439 2.96 1.762
-s1 mesh Sponza/curtainB
+s1 mesh Sponza/CurtainB
 s1 skin Sponza/CurtainBlue
 flags shadow render
 
 object modelstatic CurtainA_A3
 f3 pos 0.0 2.9 1.762
-s1 mesh Sponza/curtainA
+s1 mesh Sponza/CurtainA
 s1 skin Sponza/CurtainGreen
 flags shadow render
 
 object modelstatic CurtainB_A4
 f3 pos 4.439 2.96 1.762
-s1 mesh Sponza/curtainB
+s1 mesh Sponza/CurtainB
 s1 skin Sponza/CurtainRed
 flags shadow render
 
 object modelstatic CurtainA_A5
 f3 pos 8.887 2.9 1.762
-s1 mesh Sponza/curtainA
+s1 mesh Sponza/CurtainA
 s1 skin Sponza/CurtainBlue
 flags shadow render
 
 object modelstatic CurtainA_B1
 f3 pos -8.887 -2.96 1.762
-s1 mesh Sponza/curtainA
+s1 mesh Sponza/CurtainA
 s1 skin Sponza/CurtainGreen
 flags shadow render
 
 object modelstatic CurtainB_B2
 f3 pos -4.439 -2.9 1.762
-s1 mesh Sponza/curtainB
+s1 mesh Sponza/CurtainB
 s1 skin Sponza/CurtainRed
 flags shadow render
 
 object modelstatic CurtainA_B3
 f3 pos 0.0 -2.96 1.762
-s1 mesh Sponza/curtainA
+s1 mesh Sponza/CurtainA
 s1 skin Sponza/CurtainBlue
 flags shadow render
 
 object modelstatic CurtainB_B4
 f3 pos 4.439 -2.9 1.762
-s1 mesh Sponza/curtainB
+s1 mesh Sponza/CurtainB
 s1 skin Sponza/CurtainGreen
 flags shadow render
 
 object modelstatic CurtainA_B5
 f3 pos 8.887 -2.96 1.762
-s1 mesh Sponza/curtainA
+s1 mesh Sponza/CurtainA
 s1 skin Sponza/CurtainRed
 flags shadow render
 
@@ -1085,17 +1099,6 @@ f3 pos -11.14 0.0 14.9
 f3 rot 0.0 0.0 90.0
 s1 mesh Sponza/HoleB
 s1 skin Sponza/HoleB
-flags shadow render
-
-object modelstatic FloorA
-s1 mesh Sponza/FloorA
-s1 skin Sponza/Floor
-flags shadow render
-
-object modelstatic FloorB
-f3 pos 0.0 0.0 5.0
-s1 mesh Sponza/FloorB
-s1 skin Sponza/Floor
 flags shadow render
 
 object modelstatic Roof_1

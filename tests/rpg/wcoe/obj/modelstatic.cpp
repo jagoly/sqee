@@ -3,6 +3,7 @@
 
 #include <sqee/render/mesh.hpp>
 #include <sqee/render/skin.hpp>
+#include <sqee/maths/culling.hpp>
 #include <sqee/maths/general.hpp>
 
 #include "../cell.hpp"
@@ -41,6 +42,5 @@ void ModelStatic::update_from_data() {
     matrix = glm::rotate(matrix, glm::radians(DAT_rot.z), {0,0,1});
     matrix = glm::scale(matrix, DAT_sca);
     negScale = glm::determinant(matrix) < 0.f;
-    bbox = sq::bbox_by_model(mesh->bbox, matrix);
-
+    bbox = sq::make_BoundBox(matrix, mesh->origin, mesh->size, mesh->radius);
 }

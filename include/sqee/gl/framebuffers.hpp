@@ -6,6 +6,7 @@ namespace sq {
 class Framebuffer : NonCopyable {
 public:
     Framebuffer();
+    ~Framebuffer();
 
     GLuint fbo;
 
@@ -13,9 +14,8 @@ public:
     void attach(GLenum _attach, Texture2DArray& _tex, GLint _layer);
     void attach(GLenum _attach, TextureCube& _tex, GLint _layer);
 
-    void bind();
+    void bind(GLenum _target);
     void draw_bufs();
-    bool check();
     void use();
 
 protected:

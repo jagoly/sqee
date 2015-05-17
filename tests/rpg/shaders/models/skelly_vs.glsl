@@ -19,9 +19,8 @@ uniform mat3 normMat;
 uniform vec4 skelQuat[40];
 uniform vec3 skelOffs[40];
 
-out vec3 w_pos, v_pos;
-out vec3 N, T, B;
 out vec2 texcrd;
+out vec3 N, T, B;
 
 out gl_PerVertex { vec4 gl_Position; };
 
@@ -54,14 +53,10 @@ void main() {
         a_tan  += vec4(bone * vec4(V_tan, 1)).xyz * weights[i];
     }
 
-    w_pos = vec4(modelMat * vec4(a_pos, 1)).xyz;
-    v_pos = vec4(CB.view * vec4(w_pos, 1)).xyz;
-
     texcrd = V_texcrd;
-
     N = normalize(normMat * a_norm);
     T = normalize(normMat * a_tan);
     B = normalize(normMat * -cross(a_norm, a_tan));
 
-    gl_Position = CB.proj * vec4(v_pos, 1);
+    gl_Position = CB.proj * CB.view * modelMat * vec4(a_pos, 1);
 }

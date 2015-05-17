@@ -45,8 +45,10 @@ public:
     bool enabled = false;
 
     unique_ptr<sq::Uniformbuffer> ubo;
-    unique_ptr<sq::Texture2DArray> tex;
-    array<unique_ptr<sq::Framebuffer>, 4> fboArr;
+    unique_ptr<sq::Texture2DArray> texA;
+    unique_ptr<sq::Texture2DArray> texB;
+    array<unique_ptr<sq::Framebuffer>, 4> fboArrA;
+    array<unique_ptr<sq::Framebuffer>, 2> fboArrB;
     const MainCamera* camera = nullptr;
 
     vec3 colour = {1.f, 1.f, 1.f};
@@ -55,9 +57,12 @@ public:
     void set_colour(const vec3& _colour);
     void set_direction(const vec3& _direction);
 
-    array<mat4, 4> matArr;
-    array<float, 4> splitArr;
-    array<sq::Frustum, 4> frusArr;
+    array<mat4, 4> matArrA;
+    array<mat4, 2> matArrB;
+    array<float, 4> splitArrA;
+    array<float, 2> splitArrB;
+    array<sq::Frustum, 4> frusArrA;
+    array<sq::Sphere, 2> sphrArrB;
 };
 
 

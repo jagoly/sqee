@@ -71,8 +71,9 @@ void Mesh::load_ascii(const string& _path) {
         }
 
         if (section == "header") {
-            if (key == "bounds") bbox.sphere = {{stof(ln[1]), stof(ln[2]), stof(ln[3])}, stof(ln[4])},
-                                 bbox.size = {stof(ln[5]), stof(ln[6]), stof(ln[7])};
+            if (key == "bounds") origin = {stof(ln[1]), stof(ln[2]), stof(ln[3])},
+                                 size = {stof(ln[5]), stof(ln[6]), stof(ln[7])},
+                                 radius = stof(ln[4]);
             else if (key == "vCount") vCount = stou(ln[1]);
             else if (key == "fCount") fCount = stou(ln[1]);
             else if (key == "mCount") mCount = stou(ln[1]), faceVec.resize(mCount);

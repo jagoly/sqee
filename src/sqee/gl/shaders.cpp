@@ -131,8 +131,10 @@ void Pipeline::use_shader(const Shader& _shader) {
     gl::UseProgramStages(pipeline, _shader.stageBit, _shader.prog);
 }
 
-void Pipeline::disable_stages(GLbitfield _stageBits) {
-    gl::UseProgramStages(pipeline, _stageBits, 0);
+void Pipeline::disable_stages(bool _vert, bool _geom, bool _frag) {
+    gl::UseProgramStages(pipeline, gl::FRAGMENT_SHADER_BIT * _frag |
+                                   gl::GEOMETRY_SHADER_BIT * _geom |
+                                   gl::VERTEX_SHADER_BIT * _vert, 0);
 }
 
 void Pipeline::bind() {

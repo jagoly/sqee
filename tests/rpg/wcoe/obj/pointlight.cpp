@@ -37,11 +37,6 @@ void PointLight::load_from_spec(const ObjSpec& _spec) {
 void PointLight::update_from_data() {
     vec3 position = DAT_position + cell->position;
 
-    ubo->bind(1);
-    ubo->update("position", &position);
-    ubo->update("colour", &DAT_colour);
-    ubo->update("intensity", &DAT_intensity);
-
     mat4 projMat = glm::perspective(glm::radians(90.f), 1.f, 0.2f, DAT_intensity);
     matArr[0] = projMat * glm::lookAt(position, position+sq::cubeNrms[0], sq::cubeTans[0]);
     matArr[1] = projMat * glm::lookAt(position, position+sq::cubeNrms[1], sq::cubeTans[1]);
@@ -59,9 +54,6 @@ void PointLight::update_from_data() {
     sphere.origin = position; sphere.radius = DAT_intensity;
     modelMat = glm::scale(glm::translate(mat4(), position), vec3(DAT_intensity*2.f));
 
-    ubo->update("matArr", matArr.data());
-    ubo->update("modelMat", &modelMat);
-
     if (DAT_shadow == true) {
         tex.reset(new sq::TextureCube());
         tex->create(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT16, 1);
@@ -73,4 +65,11 @@ void PointLight::update_from_data() {
         fboArr[4].reset(new sq::Framebuffer()); fboArr[4]->attach(gl::DEPTH_ATTACHMENT, *tex, 4);
         fboArr[5].reset(new sq::Framebuffer()); fboArr[5]->attach(gl::DEPTH_ATTACHMENT, *tex, 5);
     } else { tex.reset(); for (int i=0; i<6; i++) fboArr[i].reset(); }
+
+    ubo->bind(1);
+    ubo->update("position", &position);
+    ubo->update("colour", &DAT_colour);
+    ubo->update("intensity", &DAT_intensity);
+    ubo->update("matArr", matArr.data());
+    ubo->update("modelMat", &modelMat);
 }

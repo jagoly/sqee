@@ -95,7 +95,7 @@ void Skin::create(const string& _path) {
             const string name = "spec/" + paths.spec;
             if (!(mtrl.spec = res::tex2D().get(name))) {
                 mtrl.spec = res::tex2D().add(name);
-                mtrl.spec->create(gl::RGBA, gl::RGBA8, 4);
+                mtrl.spec->create(gl::RGB, gl::RGB8, 3);
                 mtrl.spec->set_preset(preset);
                 mtrl.spec->buffer_file(name);
                 mtrl.spec->gen_mipmap();

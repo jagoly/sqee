@@ -26,32 +26,34 @@ bool HandlerMain::handle(const sf::Event& _event) {
             return true;
         }
         if (_event.key.code == sf::Keyboard::O) {
-            int crnt = app.settings.crnt<int>("ssaoQlty");
-            if      (crnt == 0) app.settings.mod<int>("ssaoQlty", 1);
-            else if (crnt == 1) app.settings.mod<int>("ssaoQlty", 2);
-            else if (crnt == 2) app.settings.mod<int>("ssaoQlty", 0);
+            int crnt = app.settings.crnt<int>("ssaoMode");
+            if      (crnt == 0) app.settings.mod<int>("ssaoMode", 1);
+            else if (crnt == 1) app.settings.mod<int>("ssaoMode", 2);
+            else if (crnt == 2) app.settings.mod<int>("ssaoMode", 0);
             app.settings.apply();
             return true;
         }
         if (_event.key.code == sf::Keyboard::B) {
-            int crnt = app.settings.crnt<int>("hdrbQlty");
-            if      (crnt == 0) app.settings.mod<int>("hdrbQlty", 1);
-            else if (crnt == 1) app.settings.mod<int>("hdrbQlty", 2);
-            else if (crnt == 2) app.settings.mod<int>("hdrbQlty", 0);
+            int crnt = app.settings.crnt<int>("hdrbMode");
+            if      (crnt == 0) app.settings.mod<int>("hdrbMode", 1);
+            else if (crnt == 1) app.settings.mod<int>("hdrbMode", 2);
+            else if (crnt == 2) app.settings.mod<int>("hdrbMode", 0);
             app.settings.apply();
             return true;
         }
         if (_event.key.code == sf::Keyboard::A) {
-            int crnt = app.settings.crnt<int>("fxaaQlty");
-            if      (crnt == 0) app.settings.mod<int>("fxaaQlty", 1);
-            else if (crnt == 1) app.settings.mod<int>("fxaaQlty", 2);
-            else if (crnt == 2) app.settings.mod<int>("fxaaQlty", 0);
+            int crnt = app.settings.crnt<int>("fxaaMode");
+            if      (crnt == 0) app.settings.mod<int>("fxaaMode", 1);
+            else if (crnt == 1) app.settings.mod<int>("fxaaMode", 2);
+            else if (crnt == 2) app.settings.mod<int>("fxaaMode", 0);
             app.settings.apply();
             return true;
         }
         if (_event.key.code == sf::Keyboard::C) {
-            bool crnt = app.settings.crnt<bool>("vignette");
-            app.settings.mod<bool>("vignette", !crnt);
+            int crnt = app.settings.crnt<int>("vignMode");
+            if      (crnt == 0) app.settings.mod<int>("vignMode", 1);
+            else if (crnt == 1) app.settings.mod<int>("vignMode", 2);
+            else if (crnt == 2) app.settings.mod<int>("vignMode", 0);
             app.settings.apply();
             return true;
         }

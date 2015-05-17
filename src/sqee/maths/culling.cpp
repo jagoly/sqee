@@ -2,11 +2,17 @@
 #include <glm/gtx/rotate_normalized_axis.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 
-#include "sqee/app/logging.hpp"
+#include <sqee/app/logging.hpp>
+#include <glm/gtx/string_cast.hpp>
+
 #include "sqee/maths/general.hpp"
 #include "sqee/maths/culling.hpp"
 
 using namespace sq;
+
+inline dvec3 reflect(dvec3 _val, dvec3 _normal, dvec3 _trans) {
+    return glm::reflect(_val - _trans, _normal) + _trans;
+}
 
 Frustum sq::make_Frustum(dmat4 _matrix, dvec3 _pos, dvec3 _dir, dvec2 _range) {
     Frustum fr; dvec4 tmp4; dvec3 tmp3;
@@ -24,22 +30,37 @@ Frustum sq::make_Frustum(dmat4 _matrix, dvec3 _pos, dvec3 _dir, dvec2 _range) {
     return fr;
 }
 
-BoundBox sq::bbox_by_model(BoundBox _bbox, dmat4 _modelMat) {
-    BoundBox retBox;
-    dmat3 normMat = make_normMat(_modelMat);
-    double scaX(glm::length(_modelMat[0])),
-           scaY(glm::length(_modelMat[1])),
-           scaZ(glm::length(_modelMat[2]));
-    retBox.sphere.origin = dvec3(_modelMat * dvec4(_bbox.sphere.origin, 1));
-    retBox.sphere.radius = _bbox.sphere.radius * glm::max(scaX, glm::max(scaY, scaZ));
-    retBox.size = _bbox.size * dvec3(scaX, scaY, scaZ);
-    retBox.nX = glm::normalize(normMat * _bbox.nX);
-    retBox.nY = glm::normalize(normMat * _bbox.nY);
-    retBox.nZ = glm::normalize(normMat * _bbox.nZ);
-    return retBox;
+BoundBox sq::make_BoundBox(dmat4 _matrix, dvec3 _origin, dvec3 _size, double _radius) {
+    BoundBox bb;
+    double scaX = glm::length(_matrix[0]),
+           scaY = glm::length(_matrix[1]),
+           scaZ = glm::length(_matrix[2]);
+    dmat3 normMat = make_normMat(_matrix);
+    bb.sphere.origin = dvec3(_matrix * dvec4(_origin, 1.0));
+    bb.sphere.radius = _radius * glm::max(scaX, glm::max(scaY, scaZ));
+    bb.size = _size * dvec3(scaX, scaY, scaZ);
+    bb.nX = glm::normalize(normMat * dvec3(1.0, 0.0, 0.0));
+    bb.nY = glm::normalize(normMat * dvec3(0.0, 1.0, 0.0));
+    bb.nZ = glm::normalize(normMat * dvec3(0.0, 0.0, 1.0));
+    return bb;
 }
 
-dvec3 sq::calc_frusCentre(Frustum _frus) {
+Frustum sq::reflect_Frustum(const Frustum& _frus, dvec3 _normal, dvec3 _trans) {
+    Frustum fr = _frus; dvec3 tmp;
+    fr.pN = {-_normal, glm::dot(-_normal, _trans)};
+    fr.sphere.origin = glm::reflect(_frus.sphere.origin - _trans, _normal) + _trans;
+    tmp = glm::reflect(_frus.pT.normal, _normal); fr.pT = {tmp, glm::dot(-tmp, fr.sphere.origin)};
+    tmp = glm::reflect(_frus.pB.normal, _normal); fr.pB = {tmp, glm::dot(-tmp, fr.sphere.origin)};
+    tmp = glm::reflect(_frus.pL.normal, _normal); fr.pL = {tmp, glm::dot(-tmp, fr.sphere.origin)};
+    tmp = glm::reflect(_frus.pR.normal, _normal); fr.pR = {tmp, glm::dot(-tmp, fr.sphere.origin)};
+    fr.xy = glm::reflect(_frus.xy - _trans, _normal) + _trans;
+    fr.xY = glm::reflect(_frus.xY - _trans, _normal) + _trans;
+    fr.Xy = glm::reflect(_frus.Xy - _trans, _normal) + _trans;
+    fr.XY = glm::reflect(_frus.XY - _trans, _normal) + _trans;
+    return fr;
+}
+
+dvec3 sq::calc_frusCentre(const Frustum& _frus) {
     dvec3 min(INFINITY, INFINITY, INFINITY), max(-INFINITY, -INFINITY, -INFINITY);
     for (const dvec3& vec : {_frus.sphere.origin, _frus.xy, _frus.xY, _frus.Xy, _frus.XY})
         min = glm::min(min, vec), max = glm::max(max, vec);

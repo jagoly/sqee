@@ -45,14 +45,6 @@ void SpotLight::update_from_data() {
     vec3 position = DAT_position + cell->position;
     float angle = glm::radians(DAT_angle);
 
-    ubo->bind(1);
-    ubo->update("position", &position);
-    ubo->update("angle", &angle);
-    ubo->update("direction", &DAT_direction);
-    ubo->update("intensity", &DAT_intensity);
-    ubo->update("colour", &DAT_colour);
-    ubo->update("softness", &DAT_softness);
-
     vec3 tangent = sq::make_tangent(DAT_direction);
     mat4 viewMat = glm::lookAt(position, position+DAT_direction, tangent);
     matrix = glm::perspective(2.f*angle, 1.f, 0.2f, DAT_intensity) * viewMat;
@@ -62,13 +54,20 @@ void SpotLight::update_from_data() {
     vec3 scale = -vec3(tanAngle, tanAngle, 1.f) * DAT_intensity;
     modelMat = glm::inverse(viewMat) * glm::scale(mat4(), scale);
 
-    ubo->update("matrix", &matrix);
-    ubo->update("modelMat", &modelMat);
-
     if (DAT_shadow == true) {
         tex.reset(new sq::Texture2D());
         tex->create(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT16, 1);
         tex->set_param(gl::TEXTURE_COMPARE_MODE, gl::COMPARE_REF_TO_TEXTURE);
         fbo.reset(new sq::Framebuffer()); fbo->attach(gl::DEPTH_ATTACHMENT, *tex);
     } else { tex.reset(); fbo.reset(); }
+
+    ubo->bind(1);
+    ubo->update("position", &position);
+    ubo->update("angle", &angle);
+    ubo->update("direction", &DAT_direction);
+    ubo->update("intensity", &DAT_intensity);
+    ubo->update("colour", &DAT_colour);
+    ubo->update("softness", &DAT_softness);
+    ubo->update("matrix", &matrix);
+    ubo->update("modelMat", &modelMat);
 }

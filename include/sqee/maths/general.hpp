@@ -18,6 +18,8 @@ dvec3 make_tangent(dvec3 _norm);
 
 dmat3 make_normMat(dmat4 _viewModelMat);
 
+dmat3 make_normMat(dmat4 _viewMat, dmat4 _modelMat);
+
 dvec3 norm_from_tri(dvec3 _t0, dvec3 _t1, dvec3 _t2);
 
 }

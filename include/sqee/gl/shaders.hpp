@@ -46,7 +46,7 @@ public:
     ~Pipeline();
 
     void use_shader(const Shader& _shader);
-    void disable_stages(GLbitfield _stageBits);
+    void disable_stages(bool _vert, bool _geom, bool _frag);
     void bind();
 
 private:

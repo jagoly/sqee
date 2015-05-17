@@ -13,17 +13,16 @@ out float fragColour;
 
 void main() {
     float blur = 0.f;
-    blur += texture(tex, vec2(texcrd.x - PIXSIZE.x, texcrd.y - PIXSIZE.y)).r * 0.11f;
-    blur += texture(tex, vec2(texcrd.x,             texcrd.y - PIXSIZE.x)).r * 0.11f;
-    blur += texture(tex, vec2(texcrd.x + PIXSIZE.x, texcrd.y - PIXSIZE.y)).r * 0.11f;
+    blur += texture(tex, vec2(texcrd.x - PIXSIZE.x, texcrd.y - PIXSIZE.y)).r * 0.10f;
+    blur += texture(tex, vec2(texcrd.x,             texcrd.y - PIXSIZE.x)).r * 0.12f;
+    blur += texture(tex, vec2(texcrd.x + PIXSIZE.x, texcrd.y - PIXSIZE.y)).r * 0.10f;
 
-
-    blur += texture(tex, vec2(texcrd.x - PIXSIZE.x, texcrd.y)).r * 0.11f;
+    blur += texture(tex, vec2(texcrd.x - PIXSIZE.x, texcrd.y)).r * 0.12f;
     blur += texture(tex, vec2(texcrd.x,             texcrd.y)).r * 0.12f;
-    blur += texture(tex, vec2(texcrd.x + PIXSIZE.x, texcrd.y)).r * 0.11f;
+    blur += texture(tex, vec2(texcrd.x + PIXSIZE.x, texcrd.y)).r * 0.12f;
 
-    blur += texture(tex, vec2(texcrd.x - PIXSIZE.x, texcrd.y + PIXSIZE.y)).r * 0.11f;
-    blur += texture(tex, vec2(texcrd.x,             texcrd.y + PIXSIZE.x)).r * 0.11f;
-    blur += texture(tex, vec2(texcrd.x + PIXSIZE.x, texcrd.y + PIXSIZE.y)).r * 0.11f;
+    blur += texture(tex, vec2(texcrd.x - PIXSIZE.x, texcrd.y + PIXSIZE.y)).r * 0.10f;
+    blur += texture(tex, vec2(texcrd.x,             texcrd.y + PIXSIZE.x)).r * 0.12f;
+    blur += texture(tex, vec2(texcrd.x + PIXSIZE.x, texcrd.y + PIXSIZE.y)).r * 0.10f;
     fragColour = blur;
 }
