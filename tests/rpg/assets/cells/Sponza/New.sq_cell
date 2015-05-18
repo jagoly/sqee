@@ -10,6 +10,7 @@ object reflector FloorA
 s1 mesh Sponza/FloorA
 s1 skin Sponza/Floor
 f3 normal 0.0 0.0 1.0
+f1 factor 0.25
 flags shadow
 
 object reflector FloorB
@@ -17,6 +18,7 @@ f3 pos 0.0 0.0 5.0
 s1 mesh Sponza/FloorB
 s1 skin Sponza/Floor
 f3 normal 0.0 0.0 1.0
+f1 factor 0.25
 flags shadow
 
 object spotlight SpotN
@@ -24,7 +26,7 @@ f3 position 0.0 7.0 3.3
 f3 direction 0.0 -0.7 -0.3
 f3 colour 1.0 1.0 1.0
 f1 angle 35.0
-f1 intensity 21.0
+f1 intensity 20.0
 f1 softness 0.3
 i1 texsize 256
 flags shadow specular
@@ -34,7 +36,7 @@ f3 position 0.0 -7.0 3.3
 f3 direction 0.0 0.7 -0.3
 f3 colour 1.0 1.0 1.0
 f1 angle 35.0
-f1 intensity 21.0
+f1 intensity 20.0
 f1 softness 0.3
 i1 texsize 256
 flags shadow specular

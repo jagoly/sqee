@@ -23,7 +23,8 @@ Reflector::Reflector(const string& _name, const Cell* _cell)
     ubo.reset(new sq::Uniformbuffer());
     ubo->reserve("matrix", 16);
     ubo->reserve("normal", 4);
-    ubo->reserve("trans", 4);
+    ubo->reserve("trans", 3);
+    ubo->reserve("factor", 1);
     ubo->create();
 
     texDepth.reset(new sq::Texture2D());
@@ -51,6 +52,7 @@ Reflector::Reflector(const string& _name, const Cell* _cell)
 void Reflector::load_from_spec(const ObjSpec& _spec) {
     DAT_shadow = _spec.flags.count("shadow");
     DAT_normal = glm::make_vec3(_spec.fMap.at("normal").data());
+    DAT_factor = _spec.fMap.at("factor")[0];
     DAT_mPath = _spec.sMap.at("mesh")[0];
     DAT_sPath = _spec.sMap.at("skin")[0];
     if (_spec.fMap.count("pos")) DAT_pos = glm::make_vec3(_spec.fMap.at("pos").data());
@@ -81,4 +83,5 @@ void Reflector::update_from_data() {
     ubo->update("matrix", &matrix);
     ubo->update("normal", &normal);
     ubo->update("trans", &trans);
+    ubo->update("factor", &DAT_factor);
 }

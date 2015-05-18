@@ -44,7 +44,8 @@ Application::Application(bool _resizable, uvec2 _size) {
 }
 
 int Application::run() {
-    cs->add(chai::var(this), "app");
+    cs->add_global(chai::var(this), "application");
+    cs->add_global(chai::var(settings), "settings");
 
     retCode = -1;
     sf::Clock clockFT;

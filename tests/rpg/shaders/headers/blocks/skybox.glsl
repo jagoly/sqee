@@ -1,6 +1,6 @@
 // GLSL Header File
 
 struct SkyBoxBlock {
-    vec3 colour; // 4
+    vec4 colour; // 4
     // Size: 4
 };

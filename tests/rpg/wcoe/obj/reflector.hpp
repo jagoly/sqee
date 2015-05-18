@@ -14,6 +14,7 @@ public:
     vec3 DAT_rot = {0,0,0};
     vec3 DAT_sca = {1,1,1};
     vec3 DAT_normal = {0,0,1};
+    float DAT_factor = 1.f;
     bool DAT_shadow = false;
     string DAT_mPath;
     string DAT_sPath;

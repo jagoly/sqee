@@ -53,30 +53,40 @@ using namespace rndr;
 
 
 void Graph::update() {
-    for (auto iter = modelStaticList.begin(); iter != modelStaticList.end(); iter++) {
-        if (iter->second.expired()) { modelStaticList.erase(iter--); continue; }
-        const wcoe::ModelStatic& obj = *iter->second.lock();
-    }
+    for (auto iter = modelStaticList.begin(); iter != modelStaticList.end(); iter++)
+        if (iter->expired()) modelStaticList.erase(iter--);
+    for (auto iter = modelSkellyList.begin(); iter != modelSkellyList.end(); iter++)
+        if (iter->expired()) modelSkellyList.erase(iter--);
+    for (auto iter = spotLightList.begin(); iter != spotLightList.end(); iter++)
+        if (iter->expired()) spotLightList.erase(iter--);
+    for (auto iter = pointLightList.begin(); iter != pointLightList.end(); iter++)
+        if (iter->expired()) pointLightList.erase(iter--);
+    for (auto iter = reflectorList.begin(); iter != reflectorList.end(); iter++)
+        if (iter->expired()) reflectorList.erase(iter--);
 
-    for (auto iter = modelSkellyList.begin(); iter != modelSkellyList.end(); iter++) {
-        if (iter->second.expired()) { modelSkellyList.erase(iter--); continue; }
-        const wcoe::ModelSkelly& obj = *iter->second.lock();
-    }
+    modelStaticList.sort([this] (ModelStaticList::value_type& a,
+                                 ModelStaticList::value_type& b) {
+       return glm::distance(camera->pos, vec3(a.lock()->bbox.sphere.origin))
+            < glm::distance(camera->pos, vec3(b.lock()->bbox.sphere.origin));
+    });
 
-    for (auto iter = spotLightList.begin(); iter != spotLightList.end(); iter++) {
-        if (iter->second.expired()) { spotLightList.erase(iter--); continue; }
-        const wcoe::SpotLight& obj = *iter->second.lock();
-    }
+    modelSkellyList.sort([this] (ModelSkellyList::value_type& a,
+                                 ModelSkellyList::value_type& b) {
+       return glm::distance(camera->pos, vec3(a.lock()->bbox.sphere.origin))
+            < glm::distance(camera->pos, vec3(b.lock()->bbox.sphere.origin));
+    });
 
-    for (auto iter = pointLightList.begin(); iter != pointLightList.end(); iter++) {
-        if (iter->second.expired()) { pointLightList.erase(iter--); continue; }
-        const wcoe::PointLight& obj = *iter->second.lock();
-    }
+    spotLightList.sort([this] (SpotLightList::value_type& a,
+                               SpotLightList::value_type& b) {
+       return glm::distance(camera->pos, vec3(a.lock()->frus.sphere.origin))
+            < glm::distance(camera->pos, vec3(b.lock()->frus.sphere.origin));
+    });
 
-    for (auto iter = reflectorList.begin(); iter != reflectorList.end(); iter++) {
-        if (iter->second.expired()) { reflectorList.erase(iter--); continue; }
-        const wcoe::Reflector& obj = *iter->second.lock();
-    }
+    pointLightList.sort([this] (PointLightList::value_type& a,
+                                PointLightList::value_type& b) {
+       return glm::distance(camera->pos, vec3(a.lock()->sphere.origin))
+            < glm::distance(camera->pos, vec3(b.lock()->sphere.origin));
+    });
 }
 
 
@@ -90,7 +100,7 @@ void Graph::update_settings() {
          world->skylight.texB->set_preset(sq::Texture2DArray::N_C());
 
     for (const auto& lptr : spotLightList) {
-        const wcoe::SpotLight& light = *lptr.second.lock();
+        const wcoe::SpotLight& light = *lptr.lock();
         if (light.DAT_shadow == true) {
             adjSize = light.DAT_texsize * INFO.shadMult;
             light.tex->resize(uvec2(adjSize, adjSize));
@@ -99,7 +109,7 @@ void Graph::update_settings() {
         }
     }
     for (const auto& lptr : pointLightList) {
-        const wcoe::PointLight& light = *lptr.second.lock();
+        const wcoe::PointLight& light = *lptr.lock();
         if (light.DAT_shadow == true) {
             adjSize = light.DAT_texsize * INFO.shadMult;
             light.tex->resize(adjSize);
@@ -109,7 +119,7 @@ void Graph::update_settings() {
     }
 
     for (const auto& rptr : reflectorList) {
-        const wcoe::Reflector& rflct = *rptr.second.lock();
+        const wcoe::Reflector& rflct = *rptr.lock();
         rflct.texDepth->resize(INFO.halfSize);
         rflct.texDiff->resize(INFO.halfSize);
         rflct.texSurf->resize(INFO.halfSize);
@@ -125,22 +135,17 @@ void Graph::update_from_world() {
     pointLightList.clear();
     reflectorList.clear();
     for (const auto& model : world->filtered<wcoe::ModelStatic>())
-        modelStaticList.emplace_back(MetaModelStatic(), model);
+        modelStaticList.emplace_back(model);
     for (const auto& model : world->filtered<wcoe::ModelSkelly>())
-        modelSkellyList.emplace_back(MetaModelSkelly(), model);
+        modelSkellyList.emplace_back(model);
     for (const auto& light : world->filtered<wcoe::SpotLight>())
-        spotLightList.emplace_back(MetaSpotLight(), light);
+        spotLightList.emplace_back(light);
     for (const auto& light : world->filtered<wcoe::PointLight>())
-        pointLightList.emplace_back(MetaPointLight(), light);
+        pointLightList.emplace_back(light);
     for (const auto& rflct : world->filtered<wcoe::Reflector>())
-        reflectorList.emplace_back(MetaReflector(), rflct);
+        reflectorList.emplace_back(rflct);
 
     update(); update_settings();
-}
-
-
-void Graph::update_render_metadata() {
-
 }
 
 
@@ -160,7 +165,7 @@ void Graph::render_models(bool _reflect) {
 
     pipeline->use_shader(*staticVS);
     for (const auto& mptr : modelStaticList) {
-        const wcoe::ModelStatic& model = *mptr.second.lock();
+        const wcoe::ModelStatic& model = *mptr.lock();
         if (model.DAT_render == false) continue;
         if (sq::bbox_in_frus(model.bbox, frustum)) continue;
         gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
@@ -175,7 +180,7 @@ void Graph::render_models(bool _reflect) {
 
     pipeline->use_shader(*skellyVS);
     for (const auto& mptr : modelSkellyList) {
-        const wcoe::ModelSkelly& model = *mptr.second.lock();
+        const wcoe::ModelSkelly& model = *mptr.lock();
         if (model.DAT_render == false) continue;
         if (sq::bbox_in_frus(model.bbox, frustum)) continue;
         gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
@@ -208,7 +213,7 @@ void Graph::render_rflcts(bool _reflect) {
     pipeline->use_shader(*staticVS);
 
     for (const auto& rptr : reflectorList) {
-        const wcoe::Reflector& rflct = *rptr.second.lock();
+        const wcoe::Reflector& rflct = *rptr.lock();
         if (sq::bbox_in_frus(rflct.bbox, frustum)) continue;
         gl::FrontFace(rflct.negScale ? gl::CW : gl::CCW);
         rflct.mesh->bind_vao();
@@ -260,7 +265,7 @@ void Graph::render_shadows_sky_A() {
 
         pipeline->use_shader(*VS.shad_static);
         for (const auto& rptr : reflectorList) {
-            const wcoe::Reflector& rflct = *rptr.second.lock();
+            const wcoe::Reflector& rflct = *rptr.lock();
             if (rflct.DAT_shadow == false) continue;
             gl::FrontFace(rflct.negScale ? gl::CW : gl::CCW);
             VS.shad_static->set_mat<mat4>("matrix", light.matArrA[csm] * rflct.matrix);
@@ -276,7 +281,7 @@ void Graph::render_shadows_sky_A() {
 
         pipeline->use_shader(*VS.shad_static);
         for (const auto& mptr : modelStaticList) {
-            const wcoe::ModelStatic& model = *mptr.second.lock();
+            const wcoe::ModelStatic& model = *mptr.lock();
             if (model.DAT_shadow == false) continue;
             gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
             VS.shad_static->set_mat<mat4>("matrix", light.matArrA[csm] * model.matrix);
@@ -292,7 +297,7 @@ void Graph::render_shadows_sky_A() {
 
         pipeline->use_shader(*VS.shad_skelly);
         for (const auto& mptr : modelSkellyList) {
-            const wcoe::ModelSkelly& model = *mptr.second.lock();
+            const wcoe::ModelSkelly& model = *mptr.lock();
             if (model.DAT_shadow == false) continue;
             gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
             VS.shad_skelly->set_mat<mat4>("matrix", light.matArrA[csm] * model.matrix);
@@ -328,7 +333,7 @@ void Graph::render_shadows_sky_B() {
 
         pipeline->use_shader(*VS.shad_static);
         for (const auto& rptr : reflectorList) {
-            const wcoe::Reflector& rflct = *rptr.second.lock();
+            const wcoe::Reflector& rflct = *rptr.lock();
             if (rflct.DAT_shadow == false) continue;
             gl::FrontFace(rflct.negScale ? gl::CW : gl::CCW);
             VS.shad_static->set_mat<mat4>("matrix", light.matArrB[csm] * rflct.matrix);
@@ -344,7 +349,7 @@ void Graph::render_shadows_sky_B() {
 
         pipeline->use_shader(*VS.shad_static);
         for (const auto& mptr : modelStaticList) {
-            const wcoe::ModelStatic& model = *mptr.second.lock();
+            const wcoe::ModelStatic& model = *mptr.lock();
             if (model.DAT_shadow == false) continue;
             gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
             VS.shad_static->set_mat<mat4>("matrix", light.matArrB[csm] * model.matrix);
@@ -360,7 +365,7 @@ void Graph::render_shadows_sky_B() {
 
         pipeline->use_shader(*VS.shad_skelly);
         for (const auto& mptr : modelSkellyList) {
-            const wcoe::ModelSkelly& model = *mptr.second.lock();
+            const wcoe::ModelSkelly& model = *mptr.lock();
             if (model.DAT_shadow == false) continue;
             gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
             VS.shad_skelly->set_mat<mat4>("matrix", light.matArrB[csm] * model.matrix);
@@ -385,41 +390,36 @@ void Graph::render_shadows_spot() {
     CULLFACE_BACK; DEPTHTEST_RW;
 
     for (const auto& lptr : spotLightList) {
-        const wcoe::SpotLight& light = *lptr.second.lock();
+        const wcoe::SpotLight& light = *lptr.lock();
         if (light.DAT_shadow == false) continue;
 
-        //if (sq::frus_in_frus(light.frus, camera->frus)) continue;
-//        if (!sq::frus_in_frus(light.frus, camera->frus)) goto dontcull;
-//        for (const auto& rptr : reflectorList) {
-//            const wcoe::Reflector& refl = *rptr.second.lock();
-//            if (sq::bbox_in_frus(refl.bbox, camera->frus)) continue;
-//            auto frus = sq::reflect_Frustum(camera->frus, refl.normal, refl.trans);
-//            if (!sq::frus_in_frus(light.frus, frus)) goto dontcull;
-//        } continue; dontcull:
+        if (!sq::frus_in_frus(light.frus, camera->frus)) goto dontcull;
+        for (const auto& rptr : reflectorList) {
+            const wcoe::Reflector& refl = *rptr.lock();
+            if (sq::bbox_in_frus(refl.bbox, camera->frus)) continue;
+            auto frus = sq::reflect_Frustum(camera->frus, refl.normal, refl.trans);
+            if (!sq::frus_in_frus(light.frus, frus)) goto dontcull;
+        } continue; dontcull:
 
         light.ubo->bind(1); light.tex->viewport();
+        pipeline->disable_stages(0, 0, 1);
         light.fbo->use(); CLEAR_DEPTH;
 
         pipeline->use_shader(*VS.shad_static);
         for (const auto& rptr : reflectorList) {
-            const wcoe::Reflector& rflct = *rptr.second.lock();
+            const wcoe::Reflector& rflct = *rptr.lock();
             if (rflct.DAT_shadow == false) continue;
             if (sq::bbox_in_frus(rflct.bbox, light.frus)) continue;
             gl::FrontFace(rflct.negScale ? gl::CW : gl::CCW);
             VS.shad_static->set_mat<mat4>("matrix", light.matrix * rflct.matrix);
             rflct.mesh->bind_vao();
-            for (uint i = 0u; i < rflct.mesh->mCount; i++) {
-                if (rflct.skin->mtrlVec[i].punch == true)
-                    pipeline->use_shader(*FS.shad_punch),
-                    rflct.skin->bind_textures(i, 1, 0, 0);
-                else pipeline->disable_stages(0, 0, 1);
+            for (uint i = 0u; i < rflct.mesh->mCount; i++)
                 rflct.mesh->draw_ibo(i);
-            }
         }
 
         pipeline->use_shader(*VS.shad_static);
         for (const auto& mptr : modelStaticList) {
-            const wcoe::ModelStatic& model = *mptr.second.lock();
+            const wcoe::ModelStatic& model = *mptr.lock();
             if (model.DAT_shadow == false) continue;
             if (sq::bbox_in_frus(model.bbox, light.frus)) continue;
             gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
@@ -436,7 +436,7 @@ void Graph::render_shadows_spot() {
 
         pipeline->use_shader(*VS.shad_skelly);
         for (const auto& mptr : modelSkellyList) {
-            const wcoe::ModelSkelly& model = *mptr.second.lock();
+            const wcoe::ModelSkelly& model = *mptr.lock();
             if (model.DAT_shadow == false) continue;
             if (sq::bbox_in_frus(model.bbox, light.frus)) continue;
             gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
@@ -461,44 +461,38 @@ void Graph::render_shadows_point() {
     CULLFACE_BACK; DEPTHTEST_RW;
 
     for (const auto& lptr : pointLightList) {
-        const wcoe::PointLight& light = *lptr.second.lock();
+        const wcoe::PointLight& light = *lptr.lock();
         if (light.DAT_shadow == false) continue;
-
-        if (sq::sphr_in_frus(light.sphere, camera->frus)) continue;
-//        if (!sq::sphr_in_frus(light.sphere, camera->frus)) goto dontcull;
-//        for (const auto& rptr : reflectorList) {
-//            const wcoe::Reflector& refl = *rptr.second.lock();
-//            if (sq::bbox_in_frus(refl.bbox, camera->frus)) continue;
-//            auto frus = sq::reflect_Frustum(camera->frus, refl.normal, refl.trans);
-//            if (!sq::sphr_in_frus(light.sphere, frus)) goto dontcull;
-//        } continue; dontcull:
 
         light.ubo->bind(1);
         light.tex->viewport();
         for (uint face = 0u; face < 6u; face++) {
-            if (sq::frus_in_frus(light.frusArr[face], camera->frus)) continue;
+            if (!sq::frus_in_frus(light.frusArr[face], camera->frus)) goto dontcull;
+            for (const auto& rptr : reflectorList) {
+                const wcoe::Reflector& rflct = *rptr.lock();
+                if (sq::bbox_in_frus(rflct.bbox, camera->frus)) continue;
+                auto frus = sq::reflect_Frustum(camera->frus, rflct.normal, rflct.trans);
+                if (!sq::frus_in_frus(light.frusArr[face], frus)) goto dontcull;
+            } continue; dontcull:
+
+            pipeline->disable_stages(0, 0, 1);
             light.fboArr[face]->use(); CLEAR_DEPTH;
 
             pipeline->use_shader(*VS.shad_static);
             for (const auto& rptr : reflectorList) {
-                const wcoe::Reflector& rflct = *rptr.second.lock();
+                const wcoe::Reflector& rflct = *rptr.lock();
                 if (rflct.DAT_shadow == false) continue;
                 if (sq::bbox_in_frus(rflct.bbox, light.frusArr[face])) continue;
                 gl::FrontFace(rflct.negScale ? gl::CW : gl::CCW);
                 VS.shad_static->set_mat<mat4>("matrix", light.matArr[face] * rflct.matrix);
                 rflct.mesh->bind_vao();
-                for (uint i = 0u; i < rflct.mesh->mCount; i++) {
-                    if (rflct.skin->mtrlVec[i].punch == true)
-                        pipeline->use_shader(*FS.shad_punch),
-                        rflct.skin->bind_textures(i, 1, 0, 0);
-                    else pipeline->disable_stages(0, 0, 1);
+                for (uint i = 0u; i < rflct.mesh->mCount; i++)
                     rflct.mesh->draw_ibo(i);
-                }
             }
 
             pipeline->use_shader(*VS.shad_static);
             for (const auto& mptr : modelStaticList) {
-                const wcoe::ModelStatic& model = *mptr.second.lock();
+                const wcoe::ModelStatic& model = *mptr.lock();
                 if (model.DAT_shadow == false) continue;
                 if (sq::bbox_in_frus(model.bbox, light.frusArr[face])) continue;
                 gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
@@ -515,7 +509,7 @@ void Graph::render_shadows_point() {
 
             pipeline->use_shader(*VS.shad_skelly);
             for (const auto& mptr : modelSkellyList) {
-                const wcoe::ModelSkelly& model = *mptr.second.lock();
+                const wcoe::ModelSkelly& model = *mptr.lock();
                 if (model.DAT_shadow == false) continue;
                 if (sq::bbox_in_frus(model.bbox, light.frusArr[face])) continue;
                 gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
@@ -546,6 +540,7 @@ void Graph::render_skybox(bool _reflect) {
     gl::StencilOp(gl::KEEP, gl::KEEP, gl::KEEP);
     pipeline->use_shader(*FS.shds_skybox);
     world->skybox.tex->bind(gl::TEXTURE5);
+    world->skybox.ubo->bind(1);
     sq::draw_screen_quad();
 }
 
@@ -589,7 +584,7 @@ void Graph::render_spotlights(bool _reflect) {
 
     pipeline->use_shader(*VS.gnrc_screen);
     for (const auto& lptr : spotLightList) {
-        const wcoe::SpotLight& light = *lptr.second.lock();
+        const wcoe::SpotLight& light = *lptr.lock();
         if (sq::frus_in_frus(light.frus, frustum)) continue;
 
         sq::Shader *stencilVS, *shadeFS;
@@ -625,7 +620,7 @@ void Graph::render_pointlights(bool _reflect) {
 
     pipeline->use_shader(*VS.gnrc_screen);
     for (const auto& lptr : pointLightList) {
-        const wcoe::PointLight& light = *lptr.second.lock();
+        const wcoe::PointLight& light = *lptr.lock();
         if (sq::sphr_in_frus(light.sphere, frustum)) continue;
 
         sq::Shader *stencilVS, *shadeFS;
@@ -658,7 +653,7 @@ void Graph::render_pointlights(bool _reflect) {
 
 void Graph::render_reflections() {
     for (const auto& rptr : reflectorList) {
-        const wcoe::Reflector& rflct = *rptr.second.lock();
+        const wcoe::Reflector& rflct = *rptr.lock();
         if (sq::bbox_in_frus(rflct.bbox, camera->frus)) continue;
 
         rflct.ubo->bind(2);

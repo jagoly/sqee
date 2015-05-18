@@ -7,7 +7,7 @@
 using namespace sq;
 
 SceneConsole::SceneConsole(Application& _app) : Scene(_app) {
-    app.cs->add(chai::var(this), "console");
+    app.cs->add_global(chai::var(this), "console");
 }
 
 void SceneConsole::update() {}

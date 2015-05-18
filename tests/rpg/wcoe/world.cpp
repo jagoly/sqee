@@ -15,10 +15,14 @@
 using namespace sqt::wcoe;
 
 SkyBox::SkyBox() {
+    ubo.reset(new sq::Uniformbuffer());
+    ubo->reserve("colour", 4);
+    ubo->create();
 }
 
-void SkyBox::set_colour(const vec3& _colour) {
-    colour = _colour;
+void SkyBox::set_colour(const vec4& _colour) {
+    colour = _colour; ubo->bind(1);
+    ubo->update("colour", &colour);
 }
 
 void SkyBox::set_texture(const string& _path) {
@@ -130,13 +134,14 @@ void SkyLight::tick() {
 void SkyLight::calc(double _accum) {}
 
 
-void World::add_cell(const string& _name, vec3 _position) {
+Cell* World::add_cell(const string& _name, vec3 _position) {
     Cell* ptr = new Cell(_name, _position, this);
     cellMap.emplace(_name, shared_ptr<Cell>(ptr));
+    return cellMap.at(_name).get();
 }
 
-Cell& World::get_cell(const string& _name) {
-    return *cellMap.at(_name);
+Cell* World::get_cell(const string& _name) {
+    return cellMap.at(_name).get();
 }
 
 void World::enable_cell(const string& _cell) {

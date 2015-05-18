@@ -48,8 +48,8 @@ void Cell::load_from_file(const string& _path) {
     }
 
     for (const auto& ss : specVec)
-        get_object(ss.first).load_from_spec(ss.second),
-        get_object(ss.first).update_from_data();
+        get_object(ss.first)->load_from_spec(ss.second),
+        get_object(ss.first)->update_from_data();
 }
 
 void Cell::tick() {

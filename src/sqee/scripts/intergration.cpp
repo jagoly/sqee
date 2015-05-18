@@ -77,10 +77,7 @@ void sq::cs_setup_application(chai::ChaiScript& _cs) {
     chai::ModulePtr m(new chai::Module());
 
     add_class<Application>(*m, "Application", {
-        }, {{fun(&Application::settings), "settings"},
-            {fun(&Application::set_size), "set_size"},
-            {fun(&Application::get_size), "get_size"},
-            {fun(&Application::quit), "quit"}});
+        }, {{fun(&Application::quit), "quit"}});
 
     _cs.add(m);
 }

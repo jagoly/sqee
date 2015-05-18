@@ -17,10 +17,10 @@ public:
     unique_ptr<sq::Uniformbuffer> ubo;
     const MainCamera* camera = nullptr;
 
-    vec3 colour = {1.f, 1.f, 1.f};
+    vec4 colour = {1.f, 1.f, 1.f, 1.f};
     sq::TextureCube* tex = nullptr;
 
-    void set_colour(const vec3& _colour);
+    void set_colour(const vec4& _colour);
     void set_texture(const string& _path);
 };
 
@@ -68,8 +68,8 @@ public:
 
 class World : NonCopyable {
 public:
-    void add_cell(const string& _name, vec3 _position);
-    Cell& get_cell(const string& _name);
+    Cell* add_cell(const string& _name, vec3 _position);
+    Cell* get_cell(const string& _name);
 
     void tick();
     void calc(double _accum);

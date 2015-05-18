@@ -4,10 +4,12 @@
 // define REFLECT
 
 #include "headers/blocks/camera"
+#include "headers/blocks/skybox"
 
 layout(location=0) in vec2 V_pos;
 
 layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
+layout(std140, binding=1) uniform SKYBOXBLOCK { SkyBoxBlock SB; };
 
 #ifdef REFLECT
 #include "headers/blocks/reflector"

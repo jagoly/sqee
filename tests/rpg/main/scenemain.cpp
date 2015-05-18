@@ -68,9 +68,9 @@ SceneMain::SceneMain(sq::Application& _app) : sq::Scene(_app) {
     graph->pipeline = pipeline.get();
     graph->settings = &app.settings;
 
-    app.cs->add(chai::var(camera), "camera");
-    app.cs->add(chai::var(world), "world");
-    app.cs->add(chai::var(graph), "graph");
+    app.cs->add_global(chai::var(camera), "camera");
+    app.cs->add_global(chai::var(world), "world");
+    app.cs->add_global(chai::var(graph), "graph");
 
     camera->pos = {0.f, -1.f, 3.f};
     camera->dir = {0.7, 0.2, -0.1};

@@ -18,9 +18,9 @@ public:
     void load_from_file(const string& _path);
 
     template<class T>
-    void add_object(const string& _name);
+    T* add_object(const string& _name);
     template<class T = Object>
-    T& get_object(const string& _name);
+    T* get_object(const string& _name);
 
     void tick();
     void calc(double _accum);
@@ -29,14 +29,15 @@ public:
 };
 
 template<class T>
-void Cell::add_object(const string& _name) {
+T* Cell::add_object(const string& _name) {
     Object* ptr = new T(_name, this);
     objectMap.emplace(_name, shared_ptr<Object>(ptr));
+    return static_cast<T*>(objectMap.at(_name).get());
 }
 
 template<class T>
-T& Cell::get_object(const string& _name) {
-    return static_cast<T&>(*objectMap.at(_name));
+T* Cell::get_object(const string& _name) {
+    return static_cast<T*>(objectMap.at(_name).get());
 }
 
 }}

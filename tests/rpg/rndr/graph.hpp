@@ -14,37 +14,17 @@ namespace wcoe { class World; class Cell;
 
 namespace rndr {
 
-struct MetaModelStatic;
-struct MetaModelSkelly;
-struct MetaSpotLight;
-struct MetaPointLight;
-struct MetaReflector;
-
-using ModelStaticList = std::list<pair<MetaModelStatic, weak_ptr<wcoe::ModelStatic>>>;
-using ModelSkellyList = std::list<pair<MetaModelSkelly, weak_ptr<wcoe::ModelSkelly>>>;
-using SpotLightList   = std::list<pair<MetaSpotLight,   weak_ptr<wcoe::SpotLight>>>;
-using PointLightList  = std::list<pair<MetaPointLight,  weak_ptr<wcoe::PointLight>>>;
-using ReflectorList   = std::list<pair<MetaReflector,   weak_ptr<wcoe::Reflector>>>;
-
-struct MetaModelStatic { bool cullCam; };
-struct MetaModelSkelly { bool cullCam; };
-struct MetaSpotLight   { bool cullCam; };
-struct MetaPointLight  { bool cullCam; };
-struct MetaReflector   { bool cullCam; };
-
-using ModelStaticList = std::list<pair<MetaModelStatic, weak_ptr<wcoe::ModelStatic>>>;
-using ModelSkellyList = std::list<pair<MetaModelSkelly, weak_ptr<wcoe::ModelSkelly>>>;
-using SpotLightList   = std::list<pair<MetaSpotLight,   weak_ptr<wcoe::SpotLight>>>;
-using PointLightList  = std::list<pair<MetaPointLight,  weak_ptr<wcoe::PointLight>>>;
-using ReflectorList   = std::list<pair<MetaReflector,   weak_ptr<wcoe::Reflector>>>;
+using ModelStaticList = std::list<weak_ptr<wcoe::ModelStatic>>;
+using ModelSkellyList = std::list<weak_ptr<wcoe::ModelSkelly>>;
+using SpotLightList   = std::list<weak_ptr<wcoe::SpotLight>>;
+using PointLightList  = std::list<weak_ptr<wcoe::PointLight>>;
+using ReflectorList   = std::list<weak_ptr<wcoe::Reflector>>;
 
 class Graph : NonCopyable {
 public:
     void update();
     void update_settings();
     void update_from_world();
-
-    void update_render_metadata();
 
     void render_shadows_sky_A();
     void render_shadows_sky_B();
@@ -59,12 +39,13 @@ public:
     void render_pointlights(bool _reflect);
     void render_reflections();
 
-    MainCamera* camera = nullptr; wcoe::World* world = nullptr;
-    std::list<pair<MetaModelStatic, weak_ptr<wcoe::ModelStatic>>> modelStaticList;
-    std::list<pair<MetaModelSkelly, weak_ptr<wcoe::ModelSkelly>>> modelSkellyList;
-    std::list<pair<MetaSpotLight, weak_ptr<wcoe::SpotLight>>> spotLightList;
-    std::list<pair<MetaPointLight, weak_ptr<wcoe::PointLight>>> pointLightList;
-    std::list<pair<MetaReflector, weak_ptr<wcoe::Reflector>>> reflectorList;
+    MainCamera* camera = nullptr;
+    wcoe::World* world = nullptr;
+    ModelStaticList modelStaticList;
+    ModelSkellyList modelSkellyList;
+    SpotLightList   spotLightList;
+    PointLightList  pointLightList;
+    ReflectorList   reflectorList;
 
     struct {
         sq::Shader* gnrc_screen = nullptr;

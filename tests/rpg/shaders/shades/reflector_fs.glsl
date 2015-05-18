@@ -18,9 +18,7 @@ out vec4 fragColour;
 
 
 void main() {
-    float reflFactor = texture(texSpec, texcrd).r;
-    fragColour = vec4(texture(texRefl, s_tcrd).rgb, clamp(1.f - dot(v_norm, v_from), 0, 1) * reflFactor * 0.5f);
+    float factor = texture(texSpec, texcrd).r * RB.factor;
+    fragColour = vec4(texture(texRefl, s_tcrd).rgb, clamp(1.f - dot(v_norm, v_from), 0, 1) * factor);
 //    fragColour = vec4(texture(texRefl, s_tcrd).rgb, 1.f);
-//    fragColour = vec4(s_tcrd.x, 0, s_tcrd.y, 1);
-//    fragColour = vec4(0.5f, 0.5f, 0.f, 0.5f);
 }
