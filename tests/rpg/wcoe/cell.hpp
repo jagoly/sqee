@@ -8,24 +8,23 @@ class World;
 
 class Cell : NonCopyable {
 public:
-    Cell(const string& _name, vec3 _position, const World* _world);
-    bool enabled = false;
+    Cell(const string& _name, World* _world);
+    void refresh(); void tick();
+    void calc(double _accum);
 
     const string name;
-    const vec3 position;
-    const World* const world;
+    World* const world;
 
-    void load_from_file(const string& _path);
+    bool DAT_enabled = false;
+    vec3 DAT_position = {0, 0, 0};
 
     template<class T>
     T* add_object(const string& _name);
     template<class T = Object>
     T* get_object(const string& _name);
 
-    void tick();
-    void calc(double _accum);
-
     unordered_map<string, shared_ptr<Object>> objectMap;
+    void load_from_file(const string& _path);
 };
 
 template<class T>

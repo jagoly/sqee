@@ -1,19 +1,20 @@
 #include "sqee/app/application.hpp"
-#include "sqee/events/basichandlers.hpp"
+#include "sqee/app/settings.hpp"
+#include "sqee/handlers/basics.hpp"
 
 using namespace sq;
 
 bool HandlerClose::handle(const sf::Event& _event) {
     if (_event.type == sf::Event::Closed) {
-        app.quit(0);
-        return true;
+        appBase->quit(0); return true;
     } return false;
 }
 
 
 bool HandlerResize::handle(const sf::Event& _event) {
     if (_event.type == sf::Event::Resized) {
-        app.resize_scenes({_event.size.width, _event.size.height});
-        return true;
+        settings->mod<int>("app_width", _event.size.width);
+        settings->mod<int>("app_height", _event.size.height);
+        settings->apply(); appBase->update(); return true;
     } return false;
 }

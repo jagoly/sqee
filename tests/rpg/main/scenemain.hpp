@@ -12,28 +12,28 @@ class MainCamera;
 
 class SceneMain : public sq::Scene {
 public:
-    SceneMain(sq::Application& _app);
+    SceneMain(sq::Application* _app);
 
     void update();
-    void resize(uvec2 _size);
     void render(float _ft);
+    void update_settings();
 
 private:
-    shared_ptr<MainCamera> camera;
-    shared_ptr<wcoe::World> world;
-    shared_ptr<rndr::Graph> graph;
+    unique_ptr<sq::Pipeline> pipeline;
+    unique_ptr<MainCamera> camera;
+    unique_ptr<wcoe::World> world;
+    unique_ptr<rndr::Graph> graph;
 
     sq::Direction moveDir;
     vec3 posCrnt, posNext;
     float rotX, rotZ;
-
-    unique_ptr<sq::Pipeline> pipeline;
 
     struct {
         unique_ptr<sq::Shader> gnrc_screen;
         unique_ptr<sq::Shader> modl_static;
         unique_ptr<sq::Shader> modl_skelly;
         unique_ptr<sq::Shader> modl_stencil;
+        unique_ptr<sq::Shader> modl_decal;
         unique_ptr<sq::Shader> modl_static_refl;
         unique_ptr<sq::Shader> modl_skelly_refl;
         unique_ptr<sq::Shader> modl_stencil_refl;
@@ -49,6 +49,7 @@ private:
         unique_ptr<sq::Shader> gnrc_passthru;
         unique_ptr<sq::Shader> gnrc_lumalpha;
         unique_ptr<sq::Shader> modl_write;
+        unique_ptr<sq::Shader> modl_decal;
         unique_ptr<sq::Shader> modl_write_refl;
         unique_ptr<sq::Shader> shds_skybox;
         unique_ptr<sq::Shader> shds_ambient;
@@ -119,7 +120,6 @@ private:
         vec2 qPixSize;
     } INFO;
 
-    void update_settings();
     void reload_shaders();
 };
 

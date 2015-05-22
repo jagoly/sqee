@@ -107,15 +107,9 @@ template<> struct Trait<glmtype> { \
 template void Shader::set_mat<glmtype>(const string& _name, const glmtype& _value, bool _transpose); \
 template void Shader::set_matptr<glmtype>(const string& _name, const GLfloat* _value, bool _transpose);
 
-UFORM_DEFINE(mat2,   gl::ProgramUniformMatrix2fv)
-UFORM_DEFINE(mat2x3, gl::ProgramUniformMatrix2x3fv)
-UFORM_DEFINE(mat2x4, gl::ProgramUniformMatrix2x4fv)
-UFORM_DEFINE(mat3,   gl::ProgramUniformMatrix3fv)
-UFORM_DEFINE(mat3x2, gl::ProgramUniformMatrix3x2fv)
-UFORM_DEFINE(mat3x4, gl::ProgramUniformMatrix3x4fv)
-UFORM_DEFINE(mat4,   gl::ProgramUniformMatrix4fv)
-UFORM_DEFINE(mat4x2, gl::ProgramUniformMatrix4x2fv)
-UFORM_DEFINE(mat4x3, gl::ProgramUniformMatrix4x3fv)
+UFORM_DEFINE(mat2, gl::ProgramUniformMatrix2fv)
+UFORM_DEFINE(mat3, gl::ProgramUniformMatrix3fv)
+UFORM_DEFINE(mat4, gl::ProgramUniformMatrix4fv)
 #undef UFORM_DEFINE
 
 

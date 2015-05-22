@@ -15,7 +15,7 @@ public:
         sq::Texture2D* diff = nullptr;
         sq::Texture2D* norm = nullptr;
         sq::Texture2D* spec = nullptr;
-        int glDNS = 0;
+        ivec3 glDNS;
     }; vector<Material> mtrlVec;
 
     void bind_textures(uint _mtrl);

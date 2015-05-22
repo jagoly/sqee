@@ -9,4 +9,6 @@ void draw_volume_cone();
 
 void draw_volume_sphere();
 
+void draw_volume_cube();
+
 }

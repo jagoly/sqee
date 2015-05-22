@@ -79,7 +79,7 @@ void Skin::create(const string& _path) {
                 mtrl.diff->set_preset(preset);
                 mtrl.diff->buffer_file(name);
                 mtrl.diff->gen_mipmap();
-            } mtrl.glDNS = mtrl.glDNS | 1;
+            } mtrl.glDNS.x = true;
         }
         if (!paths.norm.empty()) {
             const string name = "norm/" + paths.norm;
@@ -89,7 +89,7 @@ void Skin::create(const string& _path) {
                 mtrl.norm->set_preset(preset);
                 mtrl.norm->buffer_file(name);
                 mtrl.norm->gen_mipmap();
-            } mtrl.glDNS = mtrl.glDNS | 2;
+            } mtrl.glDNS.y = true;
         }
         if (!paths.spec.empty()) {
             const string name = "spec/" + paths.spec;
@@ -99,7 +99,7 @@ void Skin::create(const string& _path) {
                 mtrl.spec->set_preset(preset);
                 mtrl.spec->buffer_file(name);
                 mtrl.spec->gen_mipmap();
-            } mtrl.glDNS = mtrl.glDNS | 4;
+            } mtrl.glDNS.z = true;
         }
     }
 }

@@ -3,27 +3,23 @@
 
 #include <SFML/Window/Window.hpp>
 
-#include <sqee/app/settings.hpp>
-#include <sqee/gl/preprocessor.hpp>
-#include <sqee/sounds/soundmanager.hpp>
 #include <sqee/misc/indexedmap.hpp>
 #include <sqee/scripts/chaiscript.hpp>
-#include <sqee/events/handler.hpp>
+#include <sqee/handlers/handler.hpp>
 #include <sqee/scenes/scene.hpp>
 
 namespace sq {
 
 class Application : NonCopyable {
 public:
-    Application(bool _resizable, uvec2 _size);
+    Application(bool _resizable);
+    virtual ~Application();
 
     int run();
     void quit(int _code);
 
-    void resize_scenes(uvec2 _size);
-    void set_size(uvec2 _size);
+    void update();
     uvec2 get_size();
-
     vec2 mouse_relatify();
 
     void sweep_handler(const string& _id);
@@ -32,10 +28,14 @@ public:
     IndexedMap<string, unique_ptr<Scene>> sceneIM;
     IndexedMap<string, unique_ptr<Handler>> handlerIM;
 
-    SettingMap settings;
-    Preprocessor preproc;
-    SoundManager soundMan;
+    template <class T>
+    T* get_scene(const string& _key);
+    template<class T>
+    T* get_handler(const string& _key);
 
+    unique_ptr<SettingsMaps> settings;
+    unique_ptr<PreProcessor> preprocs;
+    unique_ptr<SoundManager> soundman;
     unique_ptr<chai::ChaiScript> cs;
 
 protected:
@@ -44,8 +44,16 @@ protected:
 
     unordered_set<string> handlerSweep;
     unordered_set<string> sceneSweep;
-
-    void update_settings();
 };
+
+template<class T>
+T* Application::get_scene(const string& _key) {
+    return static_cast<T*>(sceneIM.get(_key).get());
+}
+
+template<class T>
+T* Application::get_handler(const string& _key) {
+    return static_cast<T*>(handlerIM.get(_key).get());
+}
 
 }

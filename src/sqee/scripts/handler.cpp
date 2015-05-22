@@ -1,12 +1,13 @@
 #include "sqee/app/application.hpp"
+#include "sqee/app/settings.hpp"
 #include "sqee/scripts/scene.hpp"
 #include "sqee/scripts/handler.hpp"
 
 using namespace sq;
 
 bool HandlerConsole::handle(const sf::Event& _event) {
-    static SceneConsole& scene = *static_cast<SceneConsole*>(app.sceneIM.get("console").get());
     using sfkb = sf::Keyboard::Key; using Act = SceneConsole::Action;
+    auto& scene = *appBase->get_scene<SceneConsole>("console");
 
     if (_event.type == sf::Event::KeyPressed && _event.key.code == sfkb::Menu) {
         if (scene.active) deactivate(); else activate(); return true;
@@ -36,15 +37,13 @@ bool HandlerConsole::handle(const sf::Event& _event) {
 }
 
 void HandlerConsole::activate() {
-    static SceneConsole& scene = *static_cast<SceneConsole*>(app.sceneIM.get("console").get());
-    app.settings.mod<bool>("app_keyrepeat", true);
-    app.settings.apply();
-    scene.active = true;
+    appBase->get_scene<SceneConsole>("console")->active = true;
+    settings->mod<bool>("app_keyrepeat", true);
+    settings->apply(); appBase->update();
 }
 
 void HandlerConsole::deactivate() {
-    static SceneConsole& scene = *static_cast<SceneConsole*>(app.sceneIM.get("console").get());
-    app.settings.mod<bool>("app_keyrepeat", false);
-    app.settings.apply();
-    scene.active = false;
+    appBase->get_scene<SceneConsole>("console")->active = false;
+    settings->mod<bool>("app_keyrepeat", false);
+    settings->apply(); appBase->update();
 }

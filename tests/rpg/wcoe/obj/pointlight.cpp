@@ -13,7 +13,7 @@
 
 using namespace sqt::wcoe;
 
-PointLight::PointLight(const string& _name, const Cell* _cell)
+PointLight::PointLight(const string& _name, Cell* _cell)
     : Object(ObjType::PointLight, _name, _cell) {
     ubo.reset(new sq::Uniformbuffer());
     ubo->reserve("position", 4);
@@ -34,8 +34,8 @@ void PointLight::load_from_spec(const ObjSpec& _spec) {
     if (DAT_shadow) DAT_texsize = _spec.iMap.at("texsize")[0];
 }
 
-void PointLight::update_from_data() {
-    vec3 position = DAT_position + cell->position;
+void PointLight::refresh() {
+    vec3 position = DAT_position + cell->DAT_position;
 
     mat4 projMat = glm::perspective(glm::radians(90.f), 1.f, 0.2f, DAT_intensity);
     matArr[0] = projMat * glm::lookAt(position, position+sq::cubeNrms[0], sq::cubeTans[0]);
@@ -73,3 +73,7 @@ void PointLight::update_from_data() {
     ubo->update("matArr", matArr.data());
     ubo->update("modelMat", &modelMat);
 }
+
+void PointLight::tick() {}
+
+void PointLight::calc(double _accum) {}

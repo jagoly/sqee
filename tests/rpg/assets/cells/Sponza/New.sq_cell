@@ -6,6 +6,23 @@
 
 { objects
 
+object decal CurtainBlood
+f3 position 0.0 2.9 1.8
+f3 normal 0.0 -1.0 0.0
+f3 tangent 0.0 0.0 1.0
+f3 scale 2.0 2.0 0.4
+s1 diff blood
+s1 norm blood
+s1 spec blood
+flags
+
+object pointlight PointCentre
+f3 position 0.0 0.0 2.0
+f3 colour 1.0 1.0 1.0
+f1 intensity 4.0
+i1 texsize 64
+flags shadow specular
+
 object reflector FloorA
 s1 mesh Sponza/FloorA
 s1 skin Sponza/Floor

@@ -11,7 +11,7 @@
 
 using namespace sqt::wcoe;
 
-ModelStatic::ModelStatic(const string& _name, const Cell* _cell)
+ModelStatic::ModelStatic(const string& _name, Cell* _cell)
     : Object(ObjType::ModelStatic, _name, _cell) {}
 
 void ModelStatic::load_from_spec(const ObjSpec& _spec) {
@@ -27,7 +27,7 @@ void ModelStatic::load_from_spec(const ObjSpec& _spec) {
     if (_spec.fMap.count("sca")) DAT_sca = glm::make_vec3(_spec.fMap.at("sca").data());
 }
 
-void ModelStatic::update_from_data() {
+void ModelStatic::refresh() {
     if (!(mesh = sq::res::mesh().get(DAT_mPath)))
         mesh = sq::res::mesh().add(DAT_mPath),
         mesh->create(DAT_mPath);
@@ -36,7 +36,7 @@ void ModelStatic::update_from_data() {
         skin = sq::res::skin().add(DAT_sPath),
         skin->create(DAT_sPath);
 
-    matrix = glm::translate(mat4(), DAT_pos + cell->position);
+    matrix = glm::translate(mat4(), DAT_pos + cell->DAT_position);
     matrix = glm::rotate(matrix, glm::radians(DAT_rot.x), {1,0,0});
     matrix = glm::rotate(matrix, glm::radians(DAT_rot.y), {0,1,0});
     matrix = glm::rotate(matrix, glm::radians(DAT_rot.z), {0,0,1});
@@ -44,3 +44,7 @@ void ModelStatic::update_from_data() {
     negScale = glm::determinant(matrix) < 0.f;
     bbox = sq::make_BoundBox(matrix, mesh->origin, mesh->size, mesh->radius);
 }
+
+void ModelStatic::tick() {}
+
+void ModelStatic::calc(double _accum) {}

@@ -1,13 +1,8 @@
 #include <chaiscript/utility/utility.hpp>
 
-#include "sqee/app/application.hpp"
-#include "sqee/events/handler.hpp"
 #include "sqee/redist/gl_ext_3_3.hpp"
-#include "sqee/render/animation.hpp"
-#include "sqee/render/mesh.hpp"
-#include "sqee/render/skeleton.hpp"
-#include "sqee/render/skin.hpp"
-#include "sqee/scenes/scene.hpp"
+#include "sqee/app/application.hpp"
+#include "sqee/app/settings.hpp"
 #include "sqee/sounds/soundmanager.hpp"
 #include "sqee/scripts/scene.hpp"
 #include "sqee/scripts/intergration.hpp"
@@ -85,24 +80,24 @@ void sq::cs_setup_application(chai::ChaiScript& _cs) {
 void sq::cs_setup_settings(chai::ChaiScript& _cs) {
     chai::ModulePtr m(new chai::Module());
 
-    add_class<SettingMap>(*m, "SettingMap", {
-        }, {{fun(&SettingMap::add<int>), "addI"},
-            {fun(&SettingMap::mod<int>), "modI"},
-            {fun(&SettingMap::crnt<int>), "crntI"},
-            {fun(&SettingMap::next<int>), "nextI"},
-            {fun(&SettingMap::add<bool>), "addB"},
-            {fun(&SettingMap::mod<bool>), "modB"},
-            {fun(&SettingMap::crnt<bool>), "crntB"},
-            {fun(&SettingMap::next<bool>), "nextB"},
-            {fun(&SettingMap::add<float>), "addF"},
-            {fun(&SettingMap::mod<float>), "modF"},
-            {fun(&SettingMap::crnt<float>), "crntF"},
-            {fun(&SettingMap::next<float>), "nextF"},
-            {fun(&SettingMap::add<string>), "addS"},
-            {fun(&SettingMap::mod<string>), "modS"},
-            {fun(&SettingMap::crnt<string>), "crntS"},
-            {fun(&SettingMap::next<string>), "nextS"},
-            {fun(&SettingMap::apply), "apply"}});
+    add_class<SettingsMaps>(*m, "SettingsMaps", {
+        }, {{fun(&SettingsMaps::add<int>), "addI"},
+            {fun(&SettingsMaps::mod<int>), "modI"},
+            {fun(&SettingsMaps::crnt<int>), "crntI"},
+            {fun(&SettingsMaps::next<int>), "nextI"},
+            {fun(&SettingsMaps::add<bool>), "addB"},
+            {fun(&SettingsMaps::mod<bool>), "modB"},
+            {fun(&SettingsMaps::crnt<bool>), "crntB"},
+            {fun(&SettingsMaps::next<bool>), "nextB"},
+            {fun(&SettingsMaps::add<float>), "addF"},
+            {fun(&SettingsMaps::mod<float>), "modF"},
+            {fun(&SettingsMaps::crnt<float>), "crntF"},
+            {fun(&SettingsMaps::next<float>), "nextF"},
+            {fun(&SettingsMaps::add<string>), "addS"},
+            {fun(&SettingsMaps::mod<string>), "modS"},
+            {fun(&SettingsMaps::crnt<string>), "crntS"},
+            {fun(&SettingsMaps::next<string>), "nextS"},
+            {fun(&SettingsMaps::apply), "apply"}});
 
     _cs.add(m);
 }

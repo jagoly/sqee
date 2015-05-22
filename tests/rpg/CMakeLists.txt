@@ -15,8 +15,10 @@ set(SOURCES
     "wcoe/obj/modelskelly.hpp"  "wcoe/obj/modelskelly.cpp"
     "wcoe/obj/spotlight.hpp"    "wcoe/obj/spotlight.cpp"
     "wcoe/obj/pointlight.hpp"   "wcoe/obj/pointlight.cpp"
-    "wcoe/obj/liquid.hpp"       "wcoe/obj/liquid.cpp"
     "wcoe/obj/reflector.hpp"    "wcoe/obj/reflector.cpp"
+    "wcoe/obj/liquid.hpp"       "wcoe/obj/liquid.cpp"
+    "wcoe/obj/emitter.hpp"      "wcoe/obj/emitter.cpp"
+    "wcoe/obj/decal.hpp"        "wcoe/obj/decal.cpp"
 )
 
 add_executable(sqee_rpg ${SOURCES})

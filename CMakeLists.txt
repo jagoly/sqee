@@ -9,13 +9,15 @@ set(SQEE_WINOWS FALSE CACHE BOOLEAN "Build for Windows")
 set(SQEE_ANDROID FALSE CACHE BOOLEAN "Build for Android")
 # android not currently implemented
 
-set(CMAKE_CXX_FLAGS "-std=c++11 -O2 -Wall -Wextra -Wno-unused-parameter -Wno-missing-braces -Wno-comment -Wno-strict-aliasing")
+set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -Wextra -Wno-unused-parameter -Wno-comment")
 if(${SQEE_WINDOWS})
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mwindows -static-libstdc++ -static-libgcc")
 endif()
 
 if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSQEE_DEBUG")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSQEE_DEBUG -O1")
+else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
 endif()
 
 set(SRCDIR "${PROJECT_SOURCE_DIR}/src/sqee")
@@ -23,83 +25,48 @@ set(INCDIR "${PROJECT_SOURCE_DIR}/include/sqee")
 set(EMBDIR "${PROJECT_SOURCE_DIR}/embed")
 
 set(SOURCES
-# 3rd Party Headers
-    "${INCDIR}/redist/gl_ext_3_3.hpp"
-    "${INCDIR}/redist/jsoncpp.hpp"
-    "${INCDIR}/redist/lmccop.hpp"
-    "${INCDIR}/redist/stb_image.hpp"
-    "${INCDIR}/redist/tinyformat.hpp"
-
-# SQEE Headers
-    "${INCDIR}/forward.hpp"
-    "${INCDIR}/debug/glcallback.hpp"
-    "${INCDIR}/debug/misc.hpp"
-    "${INCDIR}/gl/misc.hpp"
-    "${INCDIR}/gl/framebuffers.hpp"
-    "${INCDIR}/gl/preprocessor.hpp"
-    "${INCDIR}/gl/shaders.hpp"
-    "${INCDIR}/gl/uniformbuffers.hpp"
-    "${INCDIR}/gl/textures.hpp"
-    "${INCDIR}/scripts/chaiscript.hpp"
-    "${INCDIR}/scripts/scene.hpp"
-    "${INCDIR}/scripts/handler.hpp"
-    "${INCDIR}/scripts/intergration.hpp"
-    "${INCDIR}/app/application.hpp"
-    "${INCDIR}/app/logging.hpp"
-    "${INCDIR}/app/settings.hpp"
-    "${INCDIR}/events/handler.hpp"
-    "${INCDIR}/events/basichandlers.hpp"
-    "${INCDIR}/text/font.hpp"
-    "${INCDIR}/text/text.hpp"
-    "${INCDIR}/maths/culling.hpp"
-    "${INCDIR}/maths/general.hpp"
-    "${INCDIR}/menus/basicmenu.hpp"
-    "${INCDIR}/render/cameras.hpp"
-    "${INCDIR}/render/mesh.hpp"
-    "${INCDIR}/render/skin.hpp"
-    "${INCDIR}/render/animation.hpp"
-    "${INCDIR}/render/skeleton.hpp"
-    "${INCDIR}/misc/resholder.hpp"
-    "${INCDIR}/misc/indexedmap.hpp"
-    "${INCDIR}/misc/files.hpp"
-    "${INCDIR}/scenes/scene.hpp"
-    "${INCDIR}/scenes/basicscenes.hpp"
-    "${INCDIR}/sounds/soundmanager.hpp"
-
 # 3rd Party Source
-    "${SRCDIR}/redist/gl_ext_3_3.cpp"
-    "${SRCDIR}/redist/jsoncpp.cpp"
-    "${SRCDIR}/redist/stb_image.cpp"
+    "${INCDIR}/redist/gl_ext_3_3.hpp" "${SRCDIR}/redist/gl_ext_3_3.cpp"
+    "${INCDIR}/redist/stb_image.hpp"  "${SRCDIR}/redist/stb_image.cpp"
+    "${INCDIR}/redist/jsoncpp.hpp"    "${SRCDIR}/redist/jsoncpp.cpp"
+    "${INCDIR}/redist/tinyformat.hpp"
+    "${INCDIR}/redist/lmccop.hpp"
 
 # SQEE Source
-    "${SRCDIR}/debug/misc.cpp"
-    "${SRCDIR}/gl/misc.cpp"
-    "${SRCDIR}/gl/framebuffers.cpp"
-    "${SRCDIR}/gl/preprocessor.cpp"
-    "${SRCDIR}/gl/shaders.cpp"
-    "${SRCDIR}/gl/uniformbuffers.cpp"
-    "${SRCDIR}/gl/textures.cpp"
-    "${SRCDIR}/scripts/chaiscript.cpp"
-    "${SRCDIR}/scripts/scene.cpp"
-    "${SRCDIR}/scripts/handler.cpp"
-    "${SRCDIR}/scripts/intergration.cpp"
-    "${SRCDIR}/app/application.cpp"
-    "${SRCDIR}/app/logging.cpp"
-    "${SRCDIR}/app/settings.cpp"
-    "${SRCDIR}/events/basichandlers.cpp"
-    "${SRCDIR}/text/font.cpp"
-    "${SRCDIR}/text/text.cpp"
-    "${SRCDIR}/maths/culling.cpp"
-    "${SRCDIR}/maths/general.cpp"
-    "${SRCDIR}/menus/basicmenu.cpp"
-    "${SRCDIR}/render/cameras.cpp"
-    "${SRCDIR}/render/mesh.cpp"
-    "${SRCDIR}/render/skin.cpp"
-    "${SRCDIR}/render/animation.cpp"
-    "${SRCDIR}/render/skeleton.cpp"
-    "${SRCDIR}/misc/files.cpp"
-    "${SRCDIR}/scenes/basicscenes.cpp"
-    "${SRCDIR}/sounds/soundmanager.cpp"
+    "${INCDIR}/forward.hpp"
+    "${INCDIR}/debug/glcallback.hpp"
+    "${INCDIR}/debug/misc.hpp"            "${SRCDIR}/debug/misc.cpp"
+    "${INCDIR}/gl/misc.hpp"               "${SRCDIR}/gl/misc.cpp"
+    "${INCDIR}/gl/framebuffers.hpp"       "${SRCDIR}/gl/framebuffers.cpp"
+    "${INCDIR}/gl/preprocessor.hpp"       "${SRCDIR}/gl/preprocessor.cpp"
+    "${INCDIR}/gl/shaders.hpp"            "${SRCDIR}/gl/shaders.cpp"
+    "${INCDIR}/gl/uniformbuffers.hpp"     "${SRCDIR}/gl/uniformbuffers.cpp"
+    "${INCDIR}/gl/textures.hpp"           "${SRCDIR}/gl/textures.cpp"
+    "${INCDIR}/scripts/chaiscript.hpp"    "${SRCDIR}/scripts/chaiscript.cpp"
+    "${INCDIR}/scripts/scene.hpp"         "${SRCDIR}/scripts/scene.cpp"
+    "${INCDIR}/scripts/handler.hpp"       "${SRCDIR}/scripts/handler.cpp"
+    "${INCDIR}/scripts/intergration.hpp"  "${SRCDIR}/scripts/intergration.cpp"
+    "${INCDIR}/app/application.hpp"       "${SRCDIR}/app/application.cpp"
+    "${INCDIR}/app/logging.hpp"           "${SRCDIR}/app/logging.cpp"
+    "${INCDIR}/app/settings.hpp"          "${SRCDIR}/app/settings.cpp"
+    "${INCDIR}/handlers/handler.hpp"      "${SRCDIR}/handlers/handler.cpp"
+    "${INCDIR}/handlers/basics.hpp"       "${SRCDIR}/handlers/basics.cpp"
+    "${INCDIR}/text/font.hpp"             "${SRCDIR}/text/font.cpp"
+    "${INCDIR}/text/text.hpp"             "${SRCDIR}/text/text.cpp"
+    "${INCDIR}/maths/culling.hpp"         "${SRCDIR}/maths/culling.cpp"
+    "${INCDIR}/maths/general.hpp"         "${SRCDIR}/maths/general.cpp"
+    "${INCDIR}/menus/basicmenu.hpp"       "${SRCDIR}/menus/basicmenu.cpp"
+    "${INCDIR}/render/cameras.hpp"        "${SRCDIR}/render/cameras.cpp"
+    "${INCDIR}/render/mesh.hpp"           "${SRCDIR}/render/mesh.cpp"
+    "${INCDIR}/render/skin.hpp"           "${SRCDIR}/render/skin.cpp"
+    "${INCDIR}/render/animation.hpp"      "${SRCDIR}/render/animation.cpp"
+    "${INCDIR}/render/skeleton.hpp"       "${SRCDIR}/render/skeleton.cpp"
+    "${INCDIR}/misc/resholder.hpp"
+    "${INCDIR}/misc/indexedmap.hpp"
+    "${INCDIR}/misc/files.hpp"            "${SRCDIR}/misc/files.cpp"
+    "${INCDIR}/scenes/scene.hpp"          "${SRCDIR}/scenes/scene.cpp"
+    "${INCDIR}/scenes/basics.hpp"         "${SRCDIR}/scenes/basics.cpp"
+    "${INCDIR}/sounds/soundmanager.hpp"   "${SRCDIR}/sounds/soundmanager.cpp"
 
 # Compiled-In Data
     "${SRCDIR}/data/textfont.c"

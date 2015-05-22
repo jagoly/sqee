@@ -10,82 +10,75 @@ namespace wcoe {
 
 class SkyBox : NonCopyable {
 public:
-    SkyBox(); void tick();
+    SkyBox(MainCamera* _camera);
+    void refresh(); void tick();
     void calc(double _accum);
-    bool enabled = false;
+
+    bool DAT_enabled = false;
+    vec4 DAT_colour = {1.f, 1.f, 1.f, 1.f};
+    string DAT_texPath;
 
     unique_ptr<sq::Uniformbuffer> ubo;
-    const MainCamera* camera = nullptr;
+    const MainCamera* const camera;
 
-    vec4 colour = {1.f, 1.f, 1.f, 1.f};
     sq::TextureCube* tex = nullptr;
-
-    void set_colour(const vec4& _colour);
-    void set_texture(const string& _path);
 };
 
 class Ambient : NonCopyable {
 public:
-    Ambient(); void tick();
+    Ambient(MainCamera* _camera);
+    void refresh(); void tick();
     void calc(double _accum);
-    bool enabled = false;
+
+    bool DAT_enabled = false;
+    vec3 DAT_colour = {0.5f, 0.5f, 0.5f};
 
     unique_ptr<sq::Uniformbuffer> ubo;
-    const MainCamera* camera = nullptr;
-
-    vec3 colour = {0.5f, 0.5f, 0.5f};
-
-    void set_colour(const vec3& _colour);
+    const MainCamera* const camera;
 };
 
 class SkyLight : NonCopyable {
 public:
-    SkyLight(); void tick();
+    SkyLight(MainCamera* _camera);
+    void refresh(); void tick();
     void calc(double _accum);
-    bool enabled = false;
+
+    bool DAT_enabled = false;
+    vec3 DAT_colour = {1.f, 1.f, 1.f};
+    vec3 DAT_normal = {0.f, 0.f, -1.f};
 
     unique_ptr<sq::Uniformbuffer> ubo;
     unique_ptr<sq::Texture2DArray> texA;
     unique_ptr<sq::Texture2DArray> texB;
     array<unique_ptr<sq::Framebuffer>, 4> fboArrA;
     array<unique_ptr<sq::Framebuffer>, 2> fboArrB;
-    const MainCamera* camera = nullptr;
+    const MainCamera* const camera;
 
-    vec3 colour = {1.f, 1.f, 1.f};
-    vec3 direction = {0.f, 0.f, -1.f};
-
-    void set_colour(const vec3& _colour);
-    void set_direction(const vec3& _direction);
-
-    array<mat4, 4> matArrA;
-    array<mat4, 2> matArrB;
-    array<float, 4> splitArrA;
-    array<float, 2> splitArrB;
-    array<sq::Frustum, 4> frusArrA;
-    array<sq::Sphere, 2> sphrArrB;
+    array<mat4, 4> matArrA; array<float, 4> splitArrA;
+    array<mat4, 2> matArrB; array<float, 2> splitArrB;
 };
 
 
 class World : NonCopyable {
 public:
-    Cell* add_cell(const string& _name, vec3 _position);
-    Cell* get_cell(const string& _name);
+    World(MainCamera* _camera, sq::SettingsMaps* _settings);
 
-    void tick();
+    void refresh(); void tick();
     void calc(double _accum);
 
-    void enable_cell(const string& _cell);
-    void disable_cell(const string& _cell);
-    forward_list<weak_ptr<Object>> objectList;
+    Cell* add_cell(const string& _name);
+    Cell* get_cell(const string& _name);
 
     template<class T>
     forward_list<weak_ptr<T>> filtered();
+    forward_list<weak_ptr<Object>> objectList;
+    void reload_list();
 
     SkyBox skybox; Ambient ambient; SkyLight skylight;
     unordered_map<string, shared_ptr<Cell>> cellMap;
 
-    MainCamera* camera = nullptr;
-    sq::SettingMap* settings = nullptr;
+    const MainCamera* const camera;
+    sq::SettingsMaps* const settings;
 };
 
 template<class T>

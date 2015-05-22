@@ -6,9 +6,10 @@ namespace sqt { namespace wcoe {
 
 class Reflector : public Object {
 public:
-    Reflector(const string& _name, const Cell* _cell);
+    Reflector(const string& _name, Cell* _cell);
     void load_from_spec(const ObjSpec& _spec);
-    void update_from_data();
+    void refresh(); void tick();
+    void calc(double _accum);
 
     vec3 DAT_pos = {0,0,0};
     vec3 DAT_rot = {0,0,0};

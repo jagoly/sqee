@@ -2,21 +2,29 @@
 #include "sqee/redist/gl_ext_3_3.hpp"
 #include "sqee/app/logging.hpp"
 #include "sqee/scripts/intergration.hpp"
+#include "sqee/app/settings.hpp"
+#include "sqee/gl/preprocessor.hpp"
+#include "sqee/sounds/soundmanager.hpp"
 #include "sqee/app/application.hpp"
 
 using namespace sq;
 
-Application::Application(bool _resizable, uvec2 _size) {
+Application::~Application() = default;
+
+Application::Application(bool _resizable) {
     sf::ContextSettings sfmlSettings;
-    sfmlSettings.depthBits = 24,
-    sfmlSettings.stencilBits = 8,
-    sfmlSettings.antialiasingLevel = 0,
-    sfmlSettings.majorVersion = 3,
-    sfmlSettings.minorVersion = 3;
+    sfmlSettings.depthBits = 24u,
+    sfmlSettings.stencilBits = 8u,
+    sfmlSettings.majorVersion = 3u,
+    sfmlSettings.minorVersion = 3u,
+    sfmlSettings.antialiasingLevel = 0u;
     sf::Uint32 winStyle = sf::Style::Close | sf::Style::Titlebar;
     if (_resizable) winStyle = winStyle | sf::Style::Resize;
+    window.create({480, 360}, "", winStyle, sfmlSettings);
 
-    window.create({_size.x, _size.y}, "", winStyle, sfmlSettings);
+    settings.reset(new SettingsMaps());
+    preprocs.reset(new PreProcessor());
+    soundman.reset(new SoundManager());
 
     gl::sys::LoadFunctions();
 
@@ -32,25 +40,26 @@ Application::Application(bool _resizable, uvec2 _size) {
     gl::DebugMessageCallback(debug_callback, nullptr);
     #endif
 
-    settings.add<bool>("app_vsync", false);
-    settings.add<bool>("app_keyrepeat", false);
-    settings.add<string>("app_title", "SQEE Application");
+    settings->add<bool>("app_vsync", false);
+    settings->add<bool>("app_keyrepeat", false);
+    settings->add<string>("app_windowtitle", "SQEE Application");
+    settings->add<int>("app_width", 800u);
+    settings->add<int>("app_height", 600u);
 
     cs.reset(make_ChaiScript());
     cs_setup_glm(*cs);
     cs_setup_application(*cs);
     cs_setup_settings(*cs);
     cs_setup_console(*cs);
+
+    cs->add_global(chai::var(this), "application");
+    cs->add_global(chai::var(settings.get()), "settings");
 }
 
 int Application::run() {
-    cs->add_global(chai::var(this), "application");
-    cs->add_global(chai::var(settings), "settings");
-
+    update();
     retCode = -1;
     sf::Clock clockFT;
-
-    set_size(get_size());
 
     while (retCode == -1) {
         for (auto& _id : sceneSweep)
@@ -61,14 +70,12 @@ int Application::run() {
             handlerIM.del(_id);
         handlerSweep.clear();
 
-        soundMan.clean();
+        soundman->clean();
 
         static sf::Event event;
         while (window.pollEvent(event))
             for (auto& handler : handlerIM)
                 if (handler->handle(event)) break;
-
-        update_settings();
 
         float ft = clockFT.restart().asSeconds();
 
@@ -95,17 +102,22 @@ void Application::quit(int _code) {
     retCode = _code;
 }
 
-void Application::resize_scenes(uvec2 _size) {
-    for (auto& scene : sceneIM) scene->resize(_size);
-}
+void Application::update() {
+    window.setTitle(settings->crnt<string>("app_windowtitle"));
+    window.setKeyRepeatEnabled(settings->crnt<bool>("app_keyrepeat"));
+    window.setVerticalSyncEnabled(settings->crnt<bool>("app_vsync"));
 
-void Application::set_size(uvec2 _size) {
-    window.setSize({_size.x, _size.y});
-    resize_scenes(_size);
+    if (window.getSize() != sf::Vector2u(get_size().x, get_size().y))
+        window.setSize({get_size().x, get_size().y});
+
+    for (auto& scene : sceneIM) scene->update_settings();
+    for (auto& handler : handlerIM) handler->update_settings();
 }
 
 uvec2 Application::get_size() {
-    return {window.getSize().x, window.getSize().y};
+    uint width = settings->crnt<int>("app_width");
+    uint height = settings->crnt<int>("app_height");
+    return uvec2(width, height);
 }
 
 vec2 Application::mouse_relatify() {
@@ -121,12 +133,4 @@ void Application::sweep_handler(const string& _id) {
 
 void Application::sweep_scene(const string& _id) {
     sceneSweep.emplace(_id);
-}
-
-void Application::update_settings() {
-    if (settings.check_update("Application")) {
-        window.setVerticalSyncEnabled(settings.crnt<bool>("app_vsync"));
-        window.setKeyRepeatEnabled(settings.crnt<bool>("app_keyrepeat"));
-        window.setTitle(settings.crnt<string>("app_title"));
-    }
 }

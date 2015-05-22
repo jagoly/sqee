@@ -6,35 +6,31 @@
 
 using namespace sq;
 
-SceneConsole::SceneConsole(Application& _app) : Scene(_app) {
-    app.cs->add_global(chai::var(this), "console");
+SceneConsole::SceneConsole(Application* _app) : Scene(_app) {
+    appBase->cs->add_global(chai::var(this), "console");
 }
-
-void SceneConsole::update() {}
 
 void SceneConsole::render(float _ft) {
-    if (active) {
-        string ppStr = input; size_t pos = 0;
+    if (active == true) {
+        string ppStr = input; size_t pos = 0u;
         while ((pos = ppStr.find("\n", pos)) != string::npos)
-            ppStr.replace(pos, 1, "\n--> "), pos += 4;
+            ppStr.replace(pos, 1u, "\n--> "), pos += 4u;
         string finalStr = ">>> " + ppStr;
         for (const auto& str : output) finalStr.append("\n"+str);
-        sq::draw_tiny_text(finalStr, 3.f, Alignment::TL, {8, 10}, app.get_size());
+        sq::draw_tiny_text(finalStr, 3.f, Alignment::TL, {8, 10}, appBase->get_size());
     }
 }
-void SceneConsole::resize(uvec2 _size) {}
-
 
 void SceneConsole::exec() {
-    try { app.cs->eval(input); }
+    try { appBase->cs->eval(input); }
     catch (chai::exception::eval_error &err) {
         output.emplace_front(err.what());
-    } input.clear(); curPos = 0;
+    } input.clear(); curPos = 0u;
 }
 
 void SceneConsole::handle_character(char _c) {
     if (std::isprint(_c)) // all printable chars
-        input.insert(curPos++, 1, _c);
+        input.insert(curPos++, 1u, _c);
 }
 
 void SceneConsole::handle_action(Action _action) {
@@ -45,7 +41,7 @@ void SceneConsole::handle_action(Action _action) {
         histInd = -1; exec();
     }
     else if (_action == Action::ShiftReturn) {
-        input.insert(curPos++, 1, '\n');
+        input.insert(curPos++, 1u, '\n');
     }
     else if (_action == Action::Up) {
         if (history.size()) {
@@ -62,7 +58,7 @@ void SceneConsole::handle_action(Action _action) {
         }
     }
     else if (_action == Action::Left) {
-        if (curPos > 0)
+        if (curPos > 0u)
             curPos--;
     }
     else if (_action == Action::Right) {
@@ -71,15 +67,15 @@ void SceneConsole::handle_action(Action _action) {
     }
 
     else if (_action == Action::Backspace) {
-        if (!input.empty() && curPos > 0)
-            input.erase(--curPos, 1);
+        if (!input.empty() && curPos > 0u)
+            input.erase(--curPos, 1u);
     }
     else if (_action == Action::Delete) {
         if (input.length() > curPos)
-            input.erase(curPos, 1);
+            input.erase(curPos, 1u);
     }
     else if (_action == Action::Home) {
-        curPos = 0;
+        curPos = 0u;
     }
     else if (_action == Action::End) {
         curPos = input.length();
@@ -88,6 +84,7 @@ void SceneConsole::handle_action(Action _action) {
 
 void SceneConsole::cs_print(const string& _value) {
     output.emplace_front(_value);
+    //std::cout << _value << std::endl;
 }
 
 void SceneConsole::cs_clear() {

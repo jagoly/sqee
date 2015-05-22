@@ -6,52 +6,61 @@
 namespace sqt {
 class MainCamera;
 namespace wcoe { class World; class Cell;
-                 class ModelStatic;
-                 class ModelSkelly;
-                 class SpotLight;
-                 class PointLight;
-                 class Reflector; }
+                 class ModelStatic; class ModelSkelly;
+                 class PointLight; class SpotLight;
+                 class Reflector; class Emitter;
+                 class Liquid; class Decal; }
 
 namespace rndr {
 
 using ModelStaticList = std::list<weak_ptr<wcoe::ModelStatic>>;
 using ModelSkellyList = std::list<weak_ptr<wcoe::ModelSkelly>>;
-using SpotLightList   = std::list<weak_ptr<wcoe::SpotLight>>;
 using PointLightList  = std::list<weak_ptr<wcoe::PointLight>>;
+using SpotLightList   = std::list<weak_ptr<wcoe::SpotLight>>;
 using ReflectorList   = std::list<weak_ptr<wcoe::Reflector>>;
+using EmitterList     = std::list<weak_ptr<wcoe::Emitter>>;
+using LiquidList      = std::list<weak_ptr<wcoe::Liquid>>;
+using DecalList       = std::list<weak_ptr<wcoe::Decal>>;
 
 class Graph : NonCopyable {
 public:
+    Graph(MainCamera* _camera, sq::SettingsMaps* _settings);
+
     void update();
+    void reload_lists();
     void update_settings();
-    void update_from_world();
 
     void render_shadows_sky_A();
     void render_shadows_sky_B();
     void render_shadows_spot();
     void render_shadows_point();
-    void render_models(bool _reflect);
-    void render_rflcts(bool _reflect);
+    void render_mstatics(bool _reflect);
+    void render_mskellys(bool _reflect);
+    void render_reflects(bool _reflect);
     void render_skybox(bool _reflect);
     void render_ambient(bool _reflect);
     void render_skylight(bool _reflect);
     void render_spotlights(bool _reflect);
     void render_pointlights(bool _reflect);
     void render_reflections();
+    void render_decals();
 
-    MainCamera* camera = nullptr;
     wcoe::World* world = nullptr;
     ModelStaticList modelStaticList;
     ModelSkellyList modelSkellyList;
-    SpotLightList   spotLightList;
     PointLightList  pointLightList;
+    SpotLightList   spotLightList;
     ReflectorList   reflectorList;
+    EmitterList     emitterList;
+    LiquidList      liquidList;
+    DecalList       decalList;
 
     struct {
         sq::Shader* gnrc_screen = nullptr;
         sq::Shader* modl_static = nullptr;
         sq::Shader* modl_skelly = nullptr;
         sq::Shader* modl_stencil = nullptr;
+        sq::Shader* modl_decal = nullptr;
         sq::Shader* modl_static_refl = nullptr;
         sq::Shader* modl_skelly_refl = nullptr;
         sq::Shader* modl_stencil_refl = nullptr;
@@ -67,6 +76,7 @@ public:
         sq::Shader* gnrc_lumalpha = nullptr;
         sq::Shader* gnrc_passthru = nullptr;
         sq::Shader* modl_write = nullptr;
+        sq::Shader* modl_decal = nullptr;
         sq::Shader* modl_write_refl = nullptr;
         sq::Shader* shad_punch = nullptr;
         sq::Shader* shds_skybox = nullptr;
@@ -116,10 +126,11 @@ public:
         vec2 qPixSize;
     } INFO;
 
-    sq::SettingMap* settings = nullptr;
+    const MainCamera* const camera;
+    sq::SettingsMaps* const settings;
     sq::Pipeline* pipeline = nullptr;
 
-private:
+//private:
     sq::Frustum reflFrus;
 };
 

@@ -6,9 +6,10 @@ namespace sqt { namespace wcoe {
 
 class ModelSkelly : public Object {
 public:
-    ModelSkelly(const string& _name, const Cell* _cell);
+    ModelSkelly(const string& _name, Cell* _cell);
     void load_from_spec(const ObjSpec& _spec);
-    void update_from_data();
+    void refresh(); void tick();
+    void calc(double _accum);
 
     vec3 DAT_pos = {0.f, 0.f, 0.f};
     vec3 DAT_rot = {0.f, 0.f, 0.f};

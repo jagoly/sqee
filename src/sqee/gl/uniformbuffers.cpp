@@ -37,6 +37,6 @@ void Uniformbuffer::update(uint _offs, uint _size, const void* _data) {
 }
 
 uint Uniformbuffer::get_size() {
-    if (ubo != 0) return crntSize;
-    return 0;
+    if (ubo == 0u) return 0u;
+    else return crntSize;
 }

@@ -18,7 +18,7 @@
 
 using namespace sqt::wcoe;
 
-Reflector::Reflector(const string& _name, const Cell* _cell)
+Reflector::Reflector(const string& _name, Cell* _cell)
     : Object(ObjType::Reflector, _name, _cell) {
     ubo.reset(new sq::Uniformbuffer());
     ubo->reserve("matrix", 16);
@@ -60,7 +60,7 @@ void Reflector::load_from_spec(const ObjSpec& _spec) {
     if (_spec.fMap.count("sca")) DAT_sca = glm::make_vec3(_spec.fMap.at("sca").data());
 }
 
-void Reflector::update_from_data() {
+void Reflector::refresh() {
     if (!(mesh = sq::res::mesh().get(DAT_mPath)))
         mesh = sq::res::mesh().add(DAT_mPath),
         mesh->create(DAT_mPath);
@@ -69,7 +69,7 @@ void Reflector::update_from_data() {
         skin = sq::res::skin().add(DAT_sPath),
         skin->create(DAT_sPath);
 
-    trans = DAT_pos + cell->position;
+    trans = DAT_pos + cell->DAT_position;
     matrix = glm::translate(mat4(), trans);
     matrix = glm::rotate(matrix, glm::radians(DAT_rot.x), {1,0,0});
     matrix = glm::rotate(matrix, glm::radians(DAT_rot.y), {0,1,0});
@@ -85,3 +85,7 @@ void Reflector::update_from_data() {
     ubo->update("trans", &trans);
     ubo->update("factor", &DAT_factor);
 }
+
+void Reflector::tick() {}
+
+void Reflector::calc(double _accum) {}

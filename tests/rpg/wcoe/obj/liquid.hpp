@@ -6,9 +6,10 @@ namespace sqt { namespace wcoe {
 
 class Liquid : public Object {
 public:
-    Liquid(const string& _name, const Cell* _cell);
+    Liquid(const string& _name, Cell* _cell);
     void load_from_spec(const ObjSpec& _spec);
-    void update_from_data();
+    void refresh(); void tick();
+    void calc(double _accum);
 };
 
 template<> struct ObjTraits<Liquid> {

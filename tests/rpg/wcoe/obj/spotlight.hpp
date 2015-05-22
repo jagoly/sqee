@@ -6,9 +6,10 @@ namespace sqt { namespace wcoe {
 
 class SpotLight : public Object {
 public:
-    SpotLight(const string& _name, const Cell* _cell);
+    SpotLight(const string& _name, Cell* _cell);
     void load_from_spec(const ObjSpec& _spec);
-    void update_from_data();
+    void refresh(); void tick();
+    void calc(double _accum);
 
     bool DAT_shadow = false;
     bool DAT_specular = false;

@@ -7,15 +7,13 @@ namespace sq {
 
 class SceneConsole : public Scene {
 public:
-    SceneConsole(Application& _app);
+    SceneConsole(Application* _app);
 
     enum class Action { Up, Down, Left, Right,
                         Backspace, Delete, Home, End,
                         Return, ShiftReturn };
 
-    void update();
     void render(float _ft);
-    void resize(uvec2 _size);
 
     void exec();
     void handle_character(char _char);
@@ -28,7 +26,7 @@ public:
     void cs_history();
 
 private:
-    uint curPos = 0;
+    uint curPos = 0u;
     vector<string> history;
     forward_list<string> output;
     string input;

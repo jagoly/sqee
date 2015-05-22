@@ -14,7 +14,7 @@ layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
 layout(std140, binding=2) uniform REFLECTORBLOCK { ReflectorBlock RB; };
 #endif
 
-uniform int diff_norm_spec;
+uniform ivec3 d_n_s;
 layout(binding=0) uniform sampler2D texDiff; // R/G/B/A
 #ifndef REFLECT
 layout(binding=1) uniform sampler2D texNorm; // X/Y/Z
@@ -30,25 +30,27 @@ layout(location=3) out vec3 fragSpec;
 
 
 void main() {
-    vec3 diff = vec3(1.f);
-    if (bool(diff_norm_spec & 1)) {
-        vec4 tda = texture(texDiff, texcrd);
-        if (tda.a < 0.5f) discard; // punch through
-        diff = tda.rgb;
-    } fragDiff = diff;
-
+    fragDiff = vec3(1.f, 1.f, 1.f);
     fragSurf = N * 0.5f + 0.5f;
+    #ifndef REFLECT
+    fragNorm = N * 0.5f + 0.5f;
+    fragSpec = vec3(0.f, 0.f, 0.f);
+    #endif
+
+    if (bool(d_n_s.x) == true) {
+        vec4 texel = texture(texDiff, texcrd);
+        if (texel.a < 0.5f) discard;
+        fragDiff = texel.rgb;
+    }
 
     #ifndef REFLECT
-    vec3 norm = N * 0.5f + 0.5f;
-    if (bool(diff_norm_spec & 2)) {
+    if (bool(d_n_s.y) == true) {
         vec3 t_norm = normalize(texture(texNorm, texcrd).rgb * 2.f - 1.f);
-        norm = (T * t_norm.x + B * t_norm.y + N * t_norm.z) * 0.5f + 0.5f;
-    } fragNorm = norm;
+        fragNorm = (T * t_norm.x + B * t_norm.y + N * t_norm.z) * 0.5f + 0.5f;
+    }
 
-    vec3 spec = vec3(0.f);
-    if (bool(diff_norm_spec & 4)) {
-        spec = texture(texSpec, texcrd).rgb;
-    } fragSpec = spec;
+    if (bool(d_n_s.z) == true) {
+        fragSpec = texture(texSpec, texcrd).rgb;
+    }
     #endif
 }

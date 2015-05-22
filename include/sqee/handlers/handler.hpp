@@ -1,18 +1,16 @@
 #pragma once
 #include <sqee/forward.hpp>
 
+#include <SFML/Window/Event.hpp>
+
 namespace sq {
 
-class Scene : NonCopyable {
+class Handler : NonCopyable {
 public:
-    virtual ~Scene() = default;
-    Scene(Application* _app);
+    virtual ~Handler() = default;
+    Handler(Application* _app);
 
-    double accum = 0.0;
-    uint tickRate = 24u;
-
-    virtual void update() {};
-    virtual void render(float _ft) {};
+    virtual bool handle(const sf::Event& _event) { return false; };
     virtual void update_settings() {};
 
 protected:

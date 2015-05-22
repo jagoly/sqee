@@ -7,6 +7,7 @@ namespace sqt {
 
 class ChaiApp : public sq::Application {
 public:
+
     ChaiApp();
 };
 

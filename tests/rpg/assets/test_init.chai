@@ -1,31 +1,53 @@
 def main() {
-    var cellSponza = world.add_cell("Sponza", vec3(0.0f, 0.0f, 0.0f));
+    var cellSponza = world.add_cell("Sponza");
+    cellSponza.position = vec3(0.0f, 0.0f, 0.0f);
     cellSponza.load_from_file("Sponza/New");
+    cellSponza.enabled = true;
+    cellSponza.refresh();
 
-    var modelPerson = cellSponza.add_ModelStatic("Person");
-    modelPerson.pos = vec3(-0.6f, -4.0f, 5.0f);
-    modelPerson.rot = vec3(0.0f, 0.0f, -20.0f);
-    modelPerson.shadow = true;
-    modelPerson.render = true;
-    modelPerson.mPath = "Characters/Don";
-    modelPerson.sPath = "Characters/Don";
-    modelPerson.refresh();
-    
-    world.enable_cell("Sponza");
-    graph.update_from_world();
-
-    world.skybox.set_colour(vec4(1.0f, 1.0f, 1.0f, 1.0f));
-    world.skybox.set_texture("cloudy");
     world.skybox.enabled = true;
+    world.skybox.colour = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    world.skybox.texture = "cloudy";
+    world.skybox.refresh();
 
-    world.ambient.set_colour(vec3(0.4f, 0.4f, 0.4f));
     world.ambient.enabled = true;
+    world.ambient.colour = vec3(0.4f, 0.4f, 0.4f);
+    world.ambient.refresh();
 
-    world.skylight.set_colour(vec3(0.9f, 0.9f, 0.9f));
-    world.skylight.set_direction(vec3(-0.36f, -0.46f, -0.81f));
     world.skylight.enabled = true;
+    world.skylight.colour = vec3(0.9f, 0.9f, 0.9f);
+    world.skylight.normal = vec3(-0.36f, -0.46f, -0.81f);
+    world.skylight.refresh();
+
+    world.reload_list();
+    graph.reload_lists();
 
     console.print("Welcome to SQEE!");
 }
 
+def add_dead_dude() {
+    var modelSqeen = world.get_cell("Sponza").add_ModelStatic("Sqeen");
+    modelSqeen.pos = vec3(-1.0f, 0.0f, 0.05f);
+    modelSqeen.rot = vec3(90.0f, 90.0f, 0.0f);
+    modelSqeen.mesh = "Characters/Don";
+    modelSqeen.skin = "Characters/Don";
+    modelSqeen.shadow = true;
+    modelSqeen.render = true;
+    modelSqeen.refresh();
+
+    var decalSplat = world.get_cell("Sponza").add_Decal("Splat");
+    decalSplat.position = vec3(0.0f, 0.0f, 0.3f);
+    decalSplat.normal = vec3(0.0f, 0.0f, -1.0f);
+    decalSplat.tangent = vec3(1.0f, 0.0f, 0.0f);
+    decalSplat.scale = vec3(2.0f, 2.0f, 0.7f);
+    decalSplat.diff = "blood";
+    decalSplat.norm = "blood";
+    decalSplat.spec = "blood";
+    decalSplat.refresh();
+
+    world.reload_list();
+    graph.reload_lists();
+}
+
 main();
+add_dead_dude();

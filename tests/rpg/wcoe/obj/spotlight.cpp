@@ -14,7 +14,7 @@
 
 using namespace sqt::wcoe;
 
-SpotLight::SpotLight(const string& _name, const Cell* _cell)
+SpotLight::SpotLight(const string& _name, Cell* _cell)
     : Object(ObjType::SpotLight, _name, _cell) {
     ubo.reset(new sq::Uniformbuffer());
     ubo->reserve("position", 3);
@@ -41,8 +41,8 @@ void SpotLight::load_from_spec(const ObjSpec& _spec) {
     if (DAT_shadow) DAT_texsize = _spec.iMap.at("texsize")[0];
 }
 
-void SpotLight::update_from_data() {
-    vec3 position = DAT_position + cell->position;
+void SpotLight::refresh() {
+    vec3 position = DAT_position + cell->DAT_position;
     float angle = glm::radians(DAT_angle);
 
     vec3 tangent = sq::make_tangent(DAT_direction);
@@ -71,3 +71,8 @@ void SpotLight::update_from_data() {
     ubo->update("matrix", &matrix);
     ubo->update("modelMat", &modelMat);
 }
+
+
+void SpotLight::tick() {}
+
+void SpotLight::calc(double _accum) {}

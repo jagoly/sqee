@@ -2,6 +2,7 @@
 
 #include <sqee/redist/gl_ext_3_3.hpp>
 #include <sqee/gl/shaders.hpp>
+#include <sqee/gl/preprocessor.hpp>
 #include <sqee/misc/files.hpp>
 #include <sqee/app/application.hpp>
 #include <sqee/render/mesh.hpp>
@@ -11,7 +12,7 @@
 
 using namespace sqt;
 
-SceneGame::SceneGame(sq::Application& _app) : sq::Scene(_app) {
+SceneGame::SceneGame(sq::Application* const _app) : sq::Scene(_app) {
     tickRate = 60;
 
     camera.pos = {0, 0, 0};
@@ -65,8 +66,8 @@ void SceneGame::render(float) {
         gl::Enable(gl::DEPTH_TEST);
         gl::ClearColor(0.3f, 0.3f, 0.5f, 1.f);
 
-        vert.load(app.preproc("vert1_vs"));
-        frag.load(app.preproc("frag1_fs"));
+        vert.load(preprocs->load("vert1_vs"));
+        frag.load(preprocs->load("frag1_fs"));
 
         vert.add_uniform("viewMat"); // mat4
         vert.add_uniform("projMat"); // mat4

@@ -19,9 +19,12 @@
 #include "../wcoe/world.hpp"
 #include "../wcoe/obj/modelstatic.hpp"
 #include "../wcoe/obj/modelskelly.hpp"
-#include "../wcoe/obj/spotlight.hpp"
 #include "../wcoe/obj/pointlight.hpp"
+#include "../wcoe/obj/spotlight.hpp"
 #include "../wcoe/obj/reflector.hpp"
+#include "../wcoe/obj/emitter.hpp"
+#include "../wcoe/obj/liquid.hpp"
+#include "../wcoe/obj/decal.hpp"
 #include "graph.hpp"
 
 using namespace sqt;
@@ -52,41 +55,89 @@ using namespace rndr;
 #define VIEWPORT_QTER gl::Viewport(0, 0, INFO.qterSize.x, INFO.qterSize.y)
 
 
+Graph::Graph(MainCamera* _camera, sq::SettingsMaps* _settings)
+    : camera(_camera), settings(_settings) {}
+
 void Graph::update() {
-    for (auto iter = modelStaticList.begin(); iter != modelStaticList.end(); iter++)
-        if (iter->expired()) modelStaticList.erase(iter--);
-    for (auto iter = modelSkellyList.begin(); iter != modelSkellyList.end(); iter++)
-        if (iter->expired()) modelSkellyList.erase(iter--);
-    for (auto iter = spotLightList.begin(); iter != spotLightList.end(); iter++)
-        if (iter->expired()) spotLightList.erase(iter--);
-    for (auto iter = pointLightList.begin(); iter != pointLightList.end(); iter++)
-        if (iter->expired()) pointLightList.erase(iter--);
-    for (auto iter = reflectorList.begin(); iter != reflectorList.end(); iter++)
-        if (iter->expired()) reflectorList.erase(iter--);
+    modelStaticList.remove_if(wptr_expired<wcoe::ModelStatic>);
+    modelSkellyList.remove_if(wptr_expired<wcoe::ModelSkelly>);
+    pointLightList.remove_if(wptr_expired<wcoe::PointLight>);
+    spotLightList.remove_if(wptr_expired<wcoe::SpotLight>);
+    reflectorList.remove_if(wptr_expired<wcoe::Reflector>);
+    emitterList.remove_if(wptr_expired<wcoe::Emitter>);
+    liquidList.remove_if(wptr_expired<wcoe::Liquid>);
+    decalList.remove_if(wptr_expired<wcoe::Decal>);
 
-    modelStaticList.sort([this] (ModelStaticList::value_type& a,
-                                 ModelStaticList::value_type& b) {
+    modelStaticList.sort([this] (ModelStaticList::value_type& a, ModelStaticList::value_type& b) {
        return glm::distance(camera->pos, vec3(a.lock()->bbox.sphere.origin))
             < glm::distance(camera->pos, vec3(b.lock()->bbox.sphere.origin));
     });
 
-    modelSkellyList.sort([this] (ModelSkellyList::value_type& a,
-                                 ModelSkellyList::value_type& b) {
+    modelSkellyList.sort([this] (ModelSkellyList::value_type& a, ModelSkellyList::value_type& b) {
        return glm::distance(camera->pos, vec3(a.lock()->bbox.sphere.origin))
             < glm::distance(camera->pos, vec3(b.lock()->bbox.sphere.origin));
     });
 
-    spotLightList.sort([this] (SpotLightList::value_type& a,
-                               SpotLightList::value_type& b) {
+    pointLightList.sort([this] (PointLightList::value_type& a, PointLightList::value_type& b) {
+       return glm::distance(camera->pos, vec3(a.lock()->sphere.origin))
+            < glm::distance(camera->pos, vec3(b.lock()->sphere.origin));
+    });
+
+    spotLightList.sort([this] (SpotLightList::value_type& a, SpotLightList::value_type& b) {
        return glm::distance(camera->pos, vec3(a.lock()->frus.sphere.origin))
             < glm::distance(camera->pos, vec3(b.lock()->frus.sphere.origin));
     });
 
-    pointLightList.sort([this] (PointLightList::value_type& a,
-                                PointLightList::value_type& b) {
+    reflectorList.sort([this] (ReflectorList::value_type& a, ReflectorList::value_type& b) {
+       return glm::distance(camera->pos, vec3(a.lock()->bbox.sphere.origin))
+            < glm::distance(camera->pos, vec3(b.lock()->bbox.sphere.origin));
+    });
+
+    emitterList.sort([this] (EmitterList::value_type& a, EmitterList::value_type& b) {
        return glm::distance(camera->pos, vec3(a.lock()->sphere.origin))
             < glm::distance(camera->pos, vec3(b.lock()->sphere.origin));
     });
+
+//    liquidList.sort([this] (LiquidList::value_type& a, LiquidList::value_type& b) {
+//       return glm::distance(camera->pos, vec3(a.lock()->bbox.sphere.origin))
+//            < glm::distance(camera->pos, vec3(b.lock()->bbox.sphere.origin));
+//    });
+
+    decalList.sort([this] (DecalList::value_type& a, DecalList::value_type& b) {
+       return glm::distance(camera->pos, vec3(a.lock()->bbox.sphere.origin))
+            < glm::distance(camera->pos, vec3(b.lock()->bbox.sphere.origin));
+    });
+}
+
+
+void Graph::reload_lists() {
+    modelStaticList.clear();
+    modelSkellyList.clear();
+    pointLightList.clear();
+    spotLightList.clear();
+    reflectorList.clear();
+    emitterList.clear();
+    liquidList.clear();
+    decalList.clear();
+
+    for (const auto& model : world->filtered<wcoe::ModelStatic>())
+        modelStaticList.emplace_back(model);
+    for (const auto& model : world->filtered<wcoe::ModelSkelly>())
+        modelSkellyList.emplace_back(model);
+    for (const auto& light : world->filtered<wcoe::PointLight>())
+        pointLightList.emplace_back(light);
+    for (const auto& light : world->filtered<wcoe::SpotLight>())
+        spotLightList.emplace_back(light);
+    for (const auto& rflct : world->filtered<wcoe::Reflector>())
+        reflectorList.emplace_back(rflct);
+    for (const auto& emitr : world->filtered<wcoe::Emitter>())
+        emitterList.emplace_back(emitr);
+    for (const auto& lquid : world->filtered<wcoe::Liquid>())
+        liquidList.emplace_back(lquid);
+    for (const auto& decal : world->filtered<wcoe::Decal>())
+        decalList.emplace_back(decal);
+
+    update_settings();
 }
 
 
@@ -128,28 +179,7 @@ void Graph::update_settings() {
 }
 
 
-void Graph::update_from_world() {
-    modelStaticList.clear();
-    modelSkellyList.clear();
-    spotLightList.clear();
-    pointLightList.clear();
-    reflectorList.clear();
-    for (const auto& model : world->filtered<wcoe::ModelStatic>())
-        modelStaticList.emplace_back(model);
-    for (const auto& model : world->filtered<wcoe::ModelSkelly>())
-        modelSkellyList.emplace_back(model);
-    for (const auto& light : world->filtered<wcoe::SpotLight>())
-        spotLightList.emplace_back(light);
-    for (const auto& light : world->filtered<wcoe::PointLight>())
-        pointLightList.emplace_back(light);
-    for (const auto& rflct : world->filtered<wcoe::Reflector>())
-        reflectorList.emplace_back(rflct);
-
-    update(); update_settings();
-}
-
-
-void Graph::render_models(bool _reflect) {
+void Graph::render_mstatics(bool _reflect) {
     STENCILTEST_ON; gl::StencilMask(0b1000);
     gl::StencilFunc(gl::EQUAL, 0b1100, 0b0100);
     gl::StencilOp(gl::KEEP, gl::KEEP, gl::REPLACE);
@@ -159,11 +189,10 @@ void Graph::render_models(bool _reflect) {
 
     const sq::Frustum& frustum = _reflect ? reflFrus : camera->frus;
     sq::Shader* staticVS = _reflect ? VS.modl_static_refl : VS.modl_static;
-    sq::Shader* skellyVS = _reflect ? VS.modl_skelly_refl : VS.modl_skelly;
     sq::Shader* writeFS = _reflect ? FS.modl_write_refl : FS.modl_write;
+    pipeline->use_shader(*staticVS);
     pipeline->use_shader(*writeFS);
 
-    pipeline->use_shader(*staticVS);
     for (const auto& mptr : modelStaticList) {
         const wcoe::ModelStatic& model = *mptr.lock();
         if (model.DAT_render == false) continue;
@@ -173,12 +202,28 @@ void Graph::render_models(bool _reflect) {
         staticVS->set_mat<mat3>("normMat", sq::make_normMat(camera->viewMat * model.matrix));
         model.mesh->bind_vao();
         for (uint i = 0u; i < model.mesh->mCount; i++)
-            writeFS->set_sca<int>("diff_norm_spec", model.skin->mtrlVec[i].glDNS),
+            writeFS->set_vec<ivec3>("d_n_s", model.skin->mtrlVec[i].glDNS),
             model.skin->bind_textures(i),
             model.mesh->draw_ibo(i);
-    }
+    } gl::FrontFace(gl::CCW);
+}
 
+
+
+void Graph::render_mskellys(bool _reflect) {
+    STENCILTEST_ON; gl::StencilMask(0b1000);
+    gl::StencilFunc(gl::EQUAL, 0b1100, 0b0100);
+    gl::StencilOp(gl::KEEP, gl::KEEP, gl::REPLACE);
+    if (_reflect) CLIP_ON, CULLFACE_FRONT;
+    else CLIP_OFF, CULLFACE_BACK;
+    BLEND_OFF; DEPTHTEST_RW;
+
+    const sq::Frustum& frustum = _reflect ? reflFrus : camera->frus;
+    sq::Shader* skellyVS = _reflect ? VS.modl_skelly_refl : VS.modl_skelly;
+    sq::Shader* writeFS = _reflect ? FS.modl_write_refl : FS.modl_write;
     pipeline->use_shader(*skellyVS);
+    pipeline->use_shader(*writeFS);
+
     for (const auto& mptr : modelSkellyList) {
         const wcoe::ModelSkelly& model = *mptr.lock();
         if (model.DAT_render == false) continue;
@@ -190,14 +235,14 @@ void Graph::render_models(bool _reflect) {
         skellyVS->set_vecptr<vec3>("skelOffs", (float*)model.skel->offsVec.data());
         model.mesh->bind_vao();
         for (uint i = 0u; i < model.mesh->mCount; i++)
-            writeFS->set_sca<int>("diff_norm_spec", model.skin->mtrlVec[i].glDNS),
+            writeFS->set_vec<ivec3>("d_n_s", model.skin->mtrlVec[i].glDNS),
             model.skin->bind_textures(i),
             model.mesh->draw_ibo(i);
     } gl::FrontFace(gl::CCW);
 }
 
 
-void Graph::render_rflcts(bool _reflect) {
+void Graph::render_reflects(bool _reflect) {
     STENCILTEST_ON; gl::StencilMask(0b1000);
     gl::StencilFunc(gl::EQUAL, 0b1100, 0b0100);
     gl::StencilOp(gl::KEEP, gl::KEEP, gl::REPLACE);
@@ -242,7 +287,7 @@ void Graph::render_rflcts(bool _reflect) {
         staticVS->set_mat<mat4>("modelMat", rflct.matrix);
         staticVS->set_mat<mat3>("normMat", sq::make_normMat(camera->viewMat * rflct.matrix));
         for (uint i = 0u; i < rflct.skin->mtrlVec.size(); i++)
-            writeFS->set_sca<int>("diff_norm_spec", rflct.skin->mtrlVec[i].glDNS),
+            writeFS->set_vec<ivec3>("d_n_s", rflct.skin->mtrlVec[i].glDNS),
             rflct.skin->bind_textures(i),
             rflct.mesh->draw_ibo(i);
     } gl::FrontFace(gl::CCW);
@@ -250,7 +295,7 @@ void Graph::render_rflcts(bool _reflect) {
 
 
 void Graph::render_shadows_sky_A() {
-    if (!world->skylight.enabled) return;
+    if (!world->skylight.DAT_enabled) return;
     const wcoe::SkyLight& light = world->skylight;
 
     CLIP_OFF; BLEND_OFF; STENCILTEST_OFF;
@@ -318,7 +363,7 @@ void Graph::render_shadows_sky_A() {
 
 
 void Graph::render_shadows_sky_B() {
-    if (!world->skylight.enabled) return;
+    if (!world->skylight.DAT_enabled) return;
     const wcoe::SkyLight& light = world->skylight;
 
     CLIP_OFF; BLEND_OFF; STENCILTEST_OFF;
@@ -531,7 +576,7 @@ void Graph::render_shadows_point() {
 
 
 void Graph::render_skybox(bool _reflect) {
-    if (!world->skybox.enabled) return;
+    if (!world->skybox.DAT_enabled) return;
 
     if (!_reflect) pipeline->use_shader(*VS.shds_skybox);
     else pipeline->use_shader(*VS.shds_skybox_refl);
@@ -546,7 +591,7 @@ void Graph::render_skybox(bool _reflect) {
 
 
 void Graph::render_ambient(bool _reflect) {
-    if (!world->ambient.enabled) return;
+    if (!world->ambient.DAT_enabled) return;
 
     if (!_reflect) pipeline->use_shader(*FS.shds_ambient);
     else pipeline->use_shader(*FS.shds_ambient_refl);
@@ -560,7 +605,7 @@ void Graph::render_ambient(bool _reflect) {
 
 
 void Graph::render_skylight(bool _reflect) {
-    if (!world->skylight.enabled) return;
+    if (!world->skylight.DAT_enabled) return;
 
     world->skylight.ubo->bind(1);
     pipeline->use_shader(*VS.gnrc_screen);
@@ -664,8 +709,9 @@ void Graph::render_reflections() {
         rflct.fboDefr->use(); VIEWPORT_HALF;
         CLEAR_COLOR_DEPTH;
 
-        render_models(true);
-        render_rflcts(true);
+        render_mstatics(true);
+        render_mskellys(true);
+        render_reflects(true);
 
         rflct.texDiff->bind(gl::TEXTURE0);
         rflct.texSurf->bind(gl::TEXTURE1);
@@ -691,5 +737,32 @@ void Graph::render_reflections() {
         for (uint i = 0u; i < rflct.mesh->mCount; i++)
             rflct.skin->bind_textures(i, 0, 0, 1),
             rflct.mesh->draw_ibo(i);
+    }
+}
+
+
+void Graph::render_decals() {
+    STENCILTEST_ON; gl::StencilMask(0b0000);
+    gl::StencilFunc(gl::EQUAL, 0b1100, 0b0100);
+    gl::StencilOp(gl::KEEP, gl::KEEP, gl::KEEP);
+    CLIP_OFF; CULLFACE_BACK; BLEND_OFF; DEPTHTEST_OFF;
+
+    TX.depth->bind(gl::TEXTURE3);
+    TX.diff->bind(gl::TEXTURE4);
+    TX.surf->bind(gl::TEXTURE5);
+    TX.norm->bind(gl::TEXTURE6);
+    TX.spec->bind(gl::TEXTURE7);
+
+    pipeline->use_shader(*VS.modl_decal);
+    pipeline->use_shader(*FS.modl_decal);
+
+    for (const auto& dptr : decalList) {
+        const wcoe::Decal& decal = *dptr.lock();
+        if (sq::bbox_in_frus(decal.bbox, camera->frus)) continue;
+
+        if (decal.texDiff) decal.texDiff->bind(gl::TEXTURE0);
+        if (decal.texNorm) decal.texNorm->bind(gl::TEXTURE1);
+        if (decal.texSpec) decal.texSpec->bind(gl::TEXTURE2);
+        decal.ubo->bind(1); sq::draw_volume_cube();
     }
 }

@@ -12,7 +12,7 @@
 
 using namespace sqt::wcoe;
 
-ModelSkelly::ModelSkelly(const string& _name, const Cell* _cell)
+ModelSkelly::ModelSkelly(const string& _name, Cell* _cell)
     : Object(ObjType::ModelSkelly, _name, _cell) {
     skel.reset(new sq::Skeleton());
 }
@@ -40,8 +40,8 @@ void ModelSkelly::load_from_spec(const ObjSpec& _spec) {
     if (_spec.fMap.count("sca")) DAT_sca = glm::make_vec3(_spec.fMap.at("sca").data());
 }
 
-void ModelSkelly::update_from_data() {
-    matrix = glm::translate(mat4(), DAT_pos + cell->position);
+void ModelSkelly::refresh() {
+    matrix = glm::translate(mat4(), DAT_pos + cell->DAT_position);
     matrix = glm::rotate(matrix, glm::radians(DAT_rot.x), {1,0,0});
     matrix = glm::rotate(matrix, glm::radians(DAT_rot.y), {0,1,0});
     matrix = glm::rotate(matrix, glm::radians(DAT_rot.z), {0,0,1});
@@ -49,3 +49,7 @@ void ModelSkelly::update_from_data() {
     negScale = glm::determinant(matrix) < 0.f;
     bbox = sq::make_BoundBox(matrix, mesh->origin, mesh->size, mesh->radius);
 }
+
+void ModelSkelly::tick() {}
+
+void ModelSkelly::calc(double _accum) {}
