@@ -7,7 +7,7 @@ using namespace sq;
 
 extern "C" const uchar data_TextFont[256*256];
 
-void sq::draw_tiny_text(const string& _text, float _scale, Alignment _align, vec2 _pos, uvec2 _viewport) {
+void sq::draw_tiny_text(const string& _text, float _sca, Alignment _align, fvec2 _pos, uvec2 _view) {
     static GLuint tex = 0u;
     static GLuint vbo = 0u;
     static GLuint vao = 0u;
@@ -72,12 +72,12 @@ void sq::draw_tiny_text(const string& _text, float _scale, Alignment _align, vec
         gl::EnableVertexAttribArray(0);
     }
 
-    vector<array<vec4, 6>> pcData;
-    float charX = 14.f*_scale / _viewport.x, charY = 16.f*_scale / _viewport.y;
+    vector<array<fvec4, 6>> pcData;
+    float charX = 14.f*_sca / _view.x, charY = 16.f*_sca / _view.y;
 
     if (_align == Alignment::BL) {
-        float textX = (_pos.x / _viewport.x) * 2.f - 1.f,
-              textY = (_pos.y / _viewport.y) * 2.f - 1.f;
+        float textX = (_pos.x / _view.x) * 2.f - 1.f,
+              textY = (_pos.y / _view.y) * 2.f - 1.f;
         float crntX = textX, crntY = textY;
         for (const char& c : _text) {
             if (c == ' ') crntX += charX * 0.6f;
@@ -87,12 +87,12 @@ void sq::draw_tiny_text(const string& _text, float _scale, Alignment _align, vec
                 const float col = (c % 16u) / 16.f;
                 const float offset = 1.f / 16.f;
 
-                vec4 BL(crntX,       crntY,       col,        row+offset);
-                vec4 BR(crntX+charX, crntY,       col+offset, row+offset);
-                vec4 TL(crntX,       crntY+charY, col,        row);
-                vec4 TR(crntX+charX, crntY+charY, col+offset, row);
+                fvec4 BL(crntX,       crntY,       col,        row+offset);
+                fvec4 BR(crntX+charX, crntY,       col+offset, row+offset);
+                fvec4 TL(crntX,       crntY+charY, col,        row);
+                fvec4 TR(crntX+charX, crntY+charY, col+offset, row);
 
-                pcData.emplace_back(); array<vec4, 6>& pc = pcData.back();
+                pcData.emplace_back(); array<fvec4, 6>& pc = pcData.back();
                 pc[0] = BL; pc[1] = TR; pc[2] = TL; pc[3] = TR; pc[4] = BL; pc[5] = BR;
                 crntX += charX*0.6f; if (crntX > 1.f-charX) crntX = textX, crntY += charY;
             }
@@ -100,8 +100,8 @@ void sq::draw_tiny_text(const string& _text, float _scale, Alignment _align, vec
     }
 
     if (_align == Alignment::TL) {
-        float textX = (_pos.x / _viewport.x) * 2.f - 1.f,
-              textY = (1.f - (_pos.y / _viewport.y)) * 2.f - 1.f - charY;
+        float textX = (_pos.x / _view.x) * 2.f - 1.f,
+              textY = (1.f - (_pos.y / _view.y)) * 2.f - 1.f - charY;
         float crntX = textX, crntY = textY;
         for (const char& c : _text) {
             if (c == ' ') crntX += charX * 0.6f;
@@ -111,12 +111,12 @@ void sq::draw_tiny_text(const string& _text, float _scale, Alignment _align, vec
                 const float col = (c % 16u) / 16.f;
                 const float offset = 1.f / 16.f;
 
-                vec4 BL(crntX,       crntY,       col,        row+offset);
-                vec4 BR(crntX+charX, crntY,       col+offset, row+offset);
-                vec4 TL(crntX,       crntY+charY, col,        row);
-                vec4 TR(crntX+charX, crntY+charY, col+offset, row);
+                fvec4 BL(crntX,       crntY,       col,        row+offset);
+                fvec4 BR(crntX+charX, crntY,       col+offset, row+offset);
+                fvec4 TL(crntX,       crntY+charY, col,        row);
+                fvec4 TR(crntX+charX, crntY+charY, col+offset, row);
 
-                pcData.emplace_back(); array<vec4, 6>& pc = pcData.back();
+                pcData.emplace_back(); array<fvec4, 6>& pc = pcData.back();
                 pc[0] = BL; pc[1] = TR; pc[2] = TL; pc[3] = TR; pc[4] = BL; pc[5] = BR;
                 crntX += charX*0.6f; if (crntX > 1.f-charX) crntX = textX, crntY -= charY;
             }

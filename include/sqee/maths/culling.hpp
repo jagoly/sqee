@@ -3,7 +3,7 @@
 
 namespace sq {
 
-Frustum make_Frustum(dmat4 _matrix, dvec3 _pos, dvec3 _dir, dvec2 _range);
+Frustum make_Frustum(dmat4 _matrix, dvec3 _pos, dvec3 _dir, double _rmin, double _rmax);
 BoundBox make_BoundBox(dmat4 _matrix, dvec3 _origin, dvec3 _size, double _radius);
 
 Frustum reflect_Frustum(const Frustum& _frus, dvec3 _normal, dvec3 _trans);

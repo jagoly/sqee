@@ -1,22 +1,26 @@
 def main() {
+    settings.modI("app_width", 1280); settings.modI("app_height", 720);
+    settings.modS("app_windowtitle", "SQEE RPG (test_init.chai)");
+    settings.apply(); application.update();
+
     var cellSponza = world.add_cell("Sponza");
-    cellSponza.position = vec3(0.0f, 0.0f, 0.0f);
+    cellSponza.position = vec3(0.0, 0.0, 0.0);
     cellSponza.load_from_file("Sponza/New");
     cellSponza.enabled = true;
     cellSponza.refresh();
 
     world.skybox.enabled = true;
-    world.skybox.colour = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    world.skybox.colour = vec4(1.0, 1.0, 1.0, 1.0);
     world.skybox.texture = "cloudy";
     world.skybox.refresh();
 
     world.ambient.enabled = true;
-    world.ambient.colour = vec3(0.4f, 0.4f, 0.4f);
+    world.ambient.colour = vec3(0.4, 0.4, 0.4);
     world.ambient.refresh();
 
     world.skylight.enabled = true;
-    world.skylight.colour = vec3(0.9f, 0.9f, 0.9f);
-    world.skylight.normal = vec3(-0.36f, -0.46f, -0.81f);
+    world.skylight.colour = vec3(0.9, 0.9, 0.9);
+    world.skylight.normal = vec3(-0.36, -0.46, -0.81);
     world.skylight.refresh();
 
     world.reload_list();
@@ -25,10 +29,11 @@ def main() {
     console.print("Welcome to SQEE!");
 }
 
-def add_dead_dude() {
+
+def add_some_shit() {
     var modelSqeen = world.get_cell("Sponza").add_ModelStatic("Sqeen");
-    modelSqeen.pos = vec3(-1.0f, 0.0f, 0.05f);
-    modelSqeen.rot = vec3(90.0f, 90.0f, 0.0f);
+    modelSqeen.position = vec3(-1.0, 0.0, 0.05);
+    modelSqeen.rotation = quat(0.5, 0.5, 0.5, 0.5);
     modelSqeen.mesh = "Characters/Don";
     modelSqeen.skin = "Characters/Don";
     modelSqeen.shadow = true;
@@ -36,18 +41,81 @@ def add_dead_dude() {
     modelSqeen.refresh();
 
     var decalSplat = world.get_cell("Sponza").add_Decal("Splat");
-    decalSplat.position = vec3(0.0f, 0.0f, 0.3f);
-    decalSplat.normal = vec3(0.0f, 0.0f, -1.0f);
-    decalSplat.tangent = vec3(1.0f, 0.0f, 0.0f);
-    decalSplat.scale = vec3(2.0f, 2.0f, 0.7f);
+    decalSplat.position = vec3(0.0, 0.0, 0.3);
+    decalSplat.rotation = quat(0.0, 0.707107, 0.707107, 0.0);
+    decalSplat.scale = vec3(2.0, 2.0, 0.7);
     decalSplat.diff = "blood";
     decalSplat.norm = "blood";
     decalSplat.spec = "blood";
     decalSplat.refresh();
 
+    var lightPoint = world.get_cell("Sponza").add_PointLight("PointCentre");
+    lightPoint.position = vec3(0.0, 0.0, 2.0);
+    lightPoint.intensity = 4.0f;
+    lightPoint.texsize = 128u;
+    lightPoint.shadow = true;
+    lightPoint.specular = true;
+    lightPoint.refresh();
+
+    var lightSpotN = world.get_cell("Sponza").add_SpotLight("SpotN");
+    lightSpotN.direction = vec3(0.0, -0.7, -0.3);
+    lightSpotN.position = vec3(0.0, 7.0, 3.3);
+    lightSpotN.intensity = 20.0f;
+    lightSpotN.softness = 0.3f;
+    lightSpotN.angle = 35.0f;
+    lightSpotN.texsize = 256u;
+    lightSpotN.shadow = true;
+    lightSpotN.specular = true;
+    lightSpotN.refresh();
+
+    var lightSpotS = world.get_cell("Sponza").add_SpotLight("SpotS");
+    lightSpotS.direction = vec3(0.0, 0.7, -0.3);
+    lightSpotS.position = vec3(0.0, -7.0, 3.3);
+    lightSpotS.intensity = 20.0f;
+    lightSpotS.softness = 0.3f;
+    lightSpotS.angle = 35.0f;
+    lightSpotS.texsize = 256u;
+    lightSpotS.shadow = true;
+    lightSpotS.specular = true;
+    lightSpotS.refresh();
+    
     world.reload_list();
     graph.reload_lists();
 }
 
+
+def animate_the_shit() {
+    var sqeen = world.get_cell("Sponza").get_ModelStatic("Sqeen");
+    sqeen.animRotation.values = [quat(0.707107, -0.707107, 0.0, 0.0)];
+    sqeen.animRotation.times = [48u];
+    sqeen.animRotation.start();
+
+    var splat = world.get_cell("Sponza").get_Decal("Splat");
+    splat.animAlpha.values = [-1.0f, 0.0f, 1.0f];
+    splat.animAlpha.times = [6u, 6u, 36u];
+    splat.animAlpha.start();
+
+    var point = world.get_cell("Sponza").get_PointLight("PointCentre");
+    point.animColour.values = [vec3(1,0,0) - point.colour, point.colour - vec3(1,0,0),
+                               vec3(0,1,0) - point.colour, point.colour - vec3(0,1,0),
+                               vec3(0,0,1) - point.colour, point.colour - vec3(0,0,1)];
+    point.animIntensity.values = [1.0f, -2.0f, 2.0f, -2.0f, 2.0f, -1.0f];
+    point.animColour.times = [6u, 10u, 6u, 10u, 6u, 10u];
+    point.animIntensity.times = [6u, 10u, 6u, 10u, 6u, 10u];
+    point.animColour.start(); point.animIntensity.start();
+
+    var spotN = world.get_cell("Sponza").get_SpotLight("SpotN");
+    spotN.animDirection.values = [vec3(2,-1,-1) - spotN.direction, spotN.direction - vec3(2,-1,-1),
+                                  vec3(-2,-1,-1) - spotN.direction, spotN.direction - vec3(-2,-1,-1)];
+    spotN.animDirection.times = [10u, 14u, 14u, 10u];
+    spotN.animDirection.start();
+
+    var spotS = world.get_cell("Sponza").get_SpotLight("SpotS");
+    spotS.animDirection.values = [vec3(-2,1,-1) - spotS.direction, spotS.direction - vec3(-2,1,-1),
+                                  vec3(2,1,-1) - spotS.direction, spotS.direction - vec3(2,1,-1)];
+    spotS.animDirection.times = [10u, 14u, 14u, 10u];
+    spotS.animDirection.start();
+}
+
+
 main();
-add_dead_dude();

@@ -47,7 +47,7 @@ Application::Application(bool _resizable) {
     settings->add<int>("app_height", 600u);
 
     cs.reset(make_ChaiScript());
-    cs_setup_glm(*cs);
+    cs_setup_maths(*cs);
     cs_setup_application(*cs);
     cs_setup_settings(*cs);
     cs_setup_console(*cs);
@@ -62,24 +62,30 @@ int Application::run() {
     sf::Clock clockFT;
 
     while (retCode == -1) {
-        for (auto& _id : sceneSweep)
-            sceneIM.del(_id);
-        sceneSweep.clear();
+        for (auto& key : sceneSweep) {
+            auto ptr = sceneMap.at(key);
+            auto func = [ptr](unique_ptr<Scene>& val) { return val.get() == ptr; };
+            auto iter = std::find_if(sceneDeq.begin(), sceneDeq.end(), func);
+            sceneDeq.erase(iter); sceneMap.erase(key);
+        } sceneSweep.clear();
 
-        for (auto& _id : handlerSweep)
-            handlerIM.del(_id);
-        handlerSweep.clear();
+        for (auto& key : handlerSweep) {
+            auto ptr = handlerMap.at(key);
+            auto func = [ptr](unique_ptr<Handler>& val) { return val.get() == ptr; };
+            auto iter = std::find_if(handlerDeq.begin(), handlerDeq.end(), func);
+            handlerDeq.erase(iter); handlerMap.erase(key);
+        } sceneSweep.clear();
 
         soundman->clean();
 
         static sf::Event event;
         while (window.pollEvent(event))
-            for (auto& handler : handlerIM)
+            for (auto& handler : handlerDeq)
                 if (handler->handle(event)) break;
 
         float ft = clockFT.restart().asSeconds();
 
-        for (auto& scene : sceneIM) {
+        for (auto& scene : sceneDeq) {
             scene->accum += ft;
             double dt = 1.0 / double(scene->tickRate);
             while (scene->accum >= dt) {
@@ -88,7 +94,7 @@ int Application::run() {
             }
         }
 
-        for (auto& scene : sceneIM) {
+        for (auto& scene : sceneDeq) {
             scene->render(ft);
         }
 
@@ -110,8 +116,8 @@ void Application::update() {
     if (window.getSize() != sf::Vector2u(get_size().x, get_size().y))
         window.setSize({get_size().x, get_size().y});
 
-    for (auto& scene : sceneIM) scene->update_settings();
-    for (auto& handler : handlerIM) handler->update_settings();
+    for (auto& scene : sceneDeq) scene->update_settings();
+    for (auto& handler : handlerDeq) handler->update_settings();
 }
 
 uvec2 Application::get_size() {
@@ -120,11 +126,11 @@ uvec2 Application::get_size() {
     return uvec2(width, height);
 }
 
-vec2 Application::mouse_relatify() {
+fvec2 Application::mouse_relatify() {
     sf::Vector2i winCentre(window.getSize() / 2u);
     sf::Vector2i mouseMove = winCentre - sf::Mouse::getPosition(window);
     sf::Mouse::setPosition(winCentre, window);
-    return glm::vec2(mouseMove.x, mouseMove.y);
+    return fvec2(mouseMove.x, mouseMove.y);
 }
 
 void Application::sweep_handler(const string& _id) {

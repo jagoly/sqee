@@ -37,7 +37,7 @@ float get_shadow_value(vec3 _wpos, vec3 _wsurf) {
     vec3 cubeNorm = _wpos + _wsurf*0.05f - LB.position;
     vec3 absVec = abs(cubeNorm); cubeNorm = normalize(cubeNorm);
     float localZComp = max(absVec.x, max(absVec.y, absVec.z));
-    const float n = 0.2f; float f = LB.intensity;
+    const float n = 0.1f; float f = LB.intensity;
     float normZComp = (f+n) / (f-n) - (2.f*f*n) / (f-n) / localZComp;
     float depth = normZComp * 0.5f + 0.5f;
     vec4 shadcrd = vec4(cubeNorm, depth);

@@ -25,16 +25,16 @@ public:
     void bind_vao();
     void draw_ibo(uint _mtrl);
 
-    vec3 origin, size;
+    fvec3 origin, size;
     float radius;
 
 private:
     void load_ascii(const string& _path);
     void load_binary(const string& _path);
-    void load_final(const vector<vec3>& points, const vector<vec3>& normals,
-                    const vector<vec3>& tangents, const vector<vec2>& texcrds,
-                    const vector<ivec4>& bonesA, const vector<ivec4>& bonesB,
-                    const vector<vec4>& weightsA, const vector<vec4>& weightsB,
+    void load_final(const vector<fvec3>& points,   const vector<fvec3>& normals,
+                    const vector<fvec3>& tangents, const vector<fvec2>& texcrds,
+                    const vector<ivec4>& bonesA,   const vector<ivec4>& bonesB,
+                    const vector<fvec4>& weightsA, const vector<fvec4>& weightsB,
                     const vector<vector<uvec3>>& faceVec);
 };
 

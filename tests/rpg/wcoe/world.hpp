@@ -15,7 +15,7 @@ public:
     void calc(double _accum);
 
     bool DAT_enabled = false;
-    vec4 DAT_colour = {1.f, 1.f, 1.f, 1.f};
+    fvec4 DAT_colour = {1.f, 1.f, 1.f, 1.f};
     string DAT_texPath;
 
     unique_ptr<sq::Uniformbuffer> ubo;
@@ -31,7 +31,7 @@ public:
     void calc(double _accum);
 
     bool DAT_enabled = false;
-    vec3 DAT_colour = {0.5f, 0.5f, 0.5f};
+    fvec3 DAT_colour = {0.5f, 0.5f, 0.5f};
 
     unique_ptr<sq::Uniformbuffer> ubo;
     const MainCamera* const camera;
@@ -44,8 +44,8 @@ public:
     void calc(double _accum);
 
     bool DAT_enabled = false;
-    vec3 DAT_colour = {1.f, 1.f, 1.f};
-    vec3 DAT_normal = {0.f, 0.f, -1.f};
+    fvec3 DAT_colour = {1.f, 1.f, 1.f};
+    fvec3 DAT_normal = {0.f, 0.f, -1.f};
 
     unique_ptr<sq::Uniformbuffer> ubo;
     unique_ptr<sq::Texture2DArray> texA;
@@ -54,8 +54,8 @@ public:
     array<unique_ptr<sq::Framebuffer>, 2> fboArrB;
     const MainCamera* const camera;
 
-    array<mat4, 4> matArrA; array<float, 4> splitArrA;
-    array<mat4, 2> matArrB; array<float, 2> splitArrB;
+    array<fmat4, 4> matArrA; array<float, 4> splitArrA;
+    array<fmat4, 2> matArrB; array<float, 2> splitArrB;
 };
 
 

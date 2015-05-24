@@ -17,7 +17,8 @@ SceneGame::SceneGame(sq::Application* const _app) : sq::Scene(_app) {
 
     camera.pos = {0, 0, 0};
     camera.dir = {0, 0, -1};
-    camera.range = {0.1f, 100.f};
+    camera.rmin = 0.1f;
+    camera.rmax = 100.f;
     camera.size = {4, 3};
     camera.fov = 1.f;
     camera.update();
@@ -76,8 +77,8 @@ void SceneGame::render(float) {
         pipe.use_shader(vert);
         pipe.use_shader(frag);
 
-        vert.set_mat<mat4>("viewMat", camera.viewMat);
-        vert.set_mat<mat4>("projMat", camera.projMat);
+        vert.set_mat<fmat4>("viewMat", camera.viewMat);
+        vert.set_mat<fmat4>("projMat", camera.projMat);
 
         mesh.create("Dice");
     }
@@ -85,7 +86,7 @@ void SceneGame::render(float) {
     gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 
     pipe.bind();
-    vert.set_vec<vec3>("translation", translation);
+    vert.set_vec<fvec3>("translation", translation);
 
     mesh.bind_vao();
     mesh.draw_ibo(0);

@@ -41,7 +41,7 @@ void ModelSkelly::load_from_spec(const ObjSpec& _spec) {
 }
 
 void ModelSkelly::refresh() {
-    matrix = glm::translate(mat4(), DAT_pos + cell->DAT_position);
+    matrix = glm::translate(fmat4(), DAT_pos + cell->DAT_position);
     matrix = glm::rotate(matrix, glm::radians(DAT_rot.x), {1,0,0});
     matrix = glm::rotate(matrix, glm::radians(DAT_rot.y), {0,1,0});
     matrix = glm::rotate(matrix, glm::radians(DAT_rot.z), {0,0,1});

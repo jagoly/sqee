@@ -89,9 +89,9 @@ template<> struct Trait<glmtype> { \
 template void Shader::set_vec<glmtype>(const string& _name, const glmtype& _value); \
 template void Shader::set_vecptr<glmtype>(const string& _name, const datatype* _value);
 
-UFORM_DEFINE(vec2,  GLfloat, gl::ProgramUniform2fv)
-UFORM_DEFINE(vec3,  GLfloat, gl::ProgramUniform3fv)
-UFORM_DEFINE(vec4,  GLfloat, gl::ProgramUniform4fv)
+UFORM_DEFINE(fvec2, GLfloat, gl::ProgramUniform2fv)
+UFORM_DEFINE(fvec3, GLfloat, gl::ProgramUniform3fv)
+UFORM_DEFINE(fvec4, GLfloat, gl::ProgramUniform4fv)
 UFORM_DEFINE(ivec2, GLint,   gl::ProgramUniform2iv)
 UFORM_DEFINE(ivec3, GLint,   gl::ProgramUniform3iv)
 UFORM_DEFINE(ivec4, GLint,   gl::ProgramUniform4iv)
@@ -107,9 +107,9 @@ template<> struct Trait<glmtype> { \
 template void Shader::set_mat<glmtype>(const string& _name, const glmtype& _value, bool _transpose); \
 template void Shader::set_matptr<glmtype>(const string& _name, const GLfloat* _value, bool _transpose);
 
-UFORM_DEFINE(mat2, gl::ProgramUniformMatrix2fv)
-UFORM_DEFINE(mat3, gl::ProgramUniformMatrix3fv)
-UFORM_DEFINE(mat4, gl::ProgramUniformMatrix4fv)
+UFORM_DEFINE(fmat2, gl::ProgramUniformMatrix2fv)
+UFORM_DEFINE(fmat3, gl::ProgramUniformMatrix3fv)
+UFORM_DEFINE(fmat4, gl::ProgramUniformMatrix4fv)
 #undef UFORM_DEFINE
 
 

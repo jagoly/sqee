@@ -17,7 +17,7 @@ public:
     void resize(uvec2 _size) {}
 
 private:
-    vec3 translation = {0.f, 0.f, -4.f};
+    fvec3 translation = {0.f, 0.f, -4.f};
 };
 
 class HandlerGame : public sq::Handler {

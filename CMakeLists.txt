@@ -9,7 +9,7 @@ set(SQEE_WINOWS FALSE CACHE BOOLEAN "Build for Windows")
 set(SQEE_ANDROID FALSE CACHE BOOLEAN "Build for Android")
 # android not currently implemented
 
-set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -Wextra -Wno-unused-parameter -Wno-comment")
+set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -Wextra -Wno-unused-parameter -Wno-comment -Wno-strict-aliasing")
 if(${SQEE_WINDOWS})
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mwindows -static-libstdc++ -static-libgcc")
 endif()
@@ -36,7 +36,7 @@ set(SOURCES
     "${INCDIR}/forward.hpp"
     "${INCDIR}/debug/glcallback.hpp"
     "${INCDIR}/debug/misc.hpp"            "${SRCDIR}/debug/misc.cpp"
-    "${INCDIR}/gl/misc.hpp"               "${SRCDIR}/gl/misc.cpp"
+    "${INCDIR}/gl/drawing.hpp"            "${SRCDIR}/gl/drawing.cpp"
     "${INCDIR}/gl/framebuffers.hpp"       "${SRCDIR}/gl/framebuffers.cpp"
     "${INCDIR}/gl/preprocessor.hpp"       "${SRCDIR}/gl/preprocessor.cpp"
     "${INCDIR}/gl/shaders.hpp"            "${SRCDIR}/gl/shaders.cpp"
@@ -62,7 +62,6 @@ set(SOURCES
     "${INCDIR}/render/animation.hpp"      "${SRCDIR}/render/animation.cpp"
     "${INCDIR}/render/skeleton.hpp"       "${SRCDIR}/render/skeleton.cpp"
     "${INCDIR}/misc/resholder.hpp"
-    "${INCDIR}/misc/indexedmap.hpp"
     "${INCDIR}/misc/files.hpp"            "${SRCDIR}/misc/files.cpp"
     "${INCDIR}/scenes/scene.hpp"          "${SRCDIR}/scenes/scene.cpp"
     "${INCDIR}/scenes/basics.hpp"         "${SRCDIR}/scenes/basics.cpp"

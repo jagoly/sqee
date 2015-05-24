@@ -3,7 +3,7 @@
 #include <sqee/redist/gl_ext_3_3.hpp>
 #include <sqee/app/settings.hpp>
 #include <sqee/app/logging.hpp>
-#include <sqee/gl/misc.hpp>
+#include <sqee/gl/drawing.hpp>
 #include <sqee/gl/framebuffers.hpp>
 #include <sqee/gl/shaders.hpp>
 #include <sqee/gl/textures.hpp>
@@ -69,33 +69,33 @@ void Graph::update() {
     decalList.remove_if(wptr_expired<wcoe::Decal>);
 
     modelStaticList.sort([this] (ModelStaticList::value_type& a, ModelStaticList::value_type& b) {
-       return glm::distance(camera->pos, vec3(a.lock()->bbox.sphere.origin))
-            < glm::distance(camera->pos, vec3(b.lock()->bbox.sphere.origin));
+       return glm::distance(camera->pos, fvec3(a.lock()->bbox.sphere.origin))
+            < glm::distance(camera->pos, fvec3(b.lock()->bbox.sphere.origin));
     });
 
     modelSkellyList.sort([this] (ModelSkellyList::value_type& a, ModelSkellyList::value_type& b) {
-       return glm::distance(camera->pos, vec3(a.lock()->bbox.sphere.origin))
-            < glm::distance(camera->pos, vec3(b.lock()->bbox.sphere.origin));
+       return glm::distance(camera->pos, fvec3(a.lock()->bbox.sphere.origin))
+            < glm::distance(camera->pos, fvec3(b.lock()->bbox.sphere.origin));
     });
 
     pointLightList.sort([this] (PointLightList::value_type& a, PointLightList::value_type& b) {
-       return glm::distance(camera->pos, vec3(a.lock()->sphere.origin))
-            < glm::distance(camera->pos, vec3(b.lock()->sphere.origin));
+       return glm::distance(camera->pos, fvec3(a.lock()->sphere.origin))
+            < glm::distance(camera->pos, fvec3(b.lock()->sphere.origin));
     });
 
     spotLightList.sort([this] (SpotLightList::value_type& a, SpotLightList::value_type& b) {
-       return glm::distance(camera->pos, vec3(a.lock()->frus.sphere.origin))
-            < glm::distance(camera->pos, vec3(b.lock()->frus.sphere.origin));
+       return glm::distance(camera->pos, fvec3(a.lock()->frus.sphere.origin))
+            < glm::distance(camera->pos, fvec3(b.lock()->frus.sphere.origin));
     });
 
     reflectorList.sort([this] (ReflectorList::value_type& a, ReflectorList::value_type& b) {
-       return glm::distance(camera->pos, vec3(a.lock()->bbox.sphere.origin))
-            < glm::distance(camera->pos, vec3(b.lock()->bbox.sphere.origin));
+       return glm::distance(camera->pos, fvec3(a.lock()->bbox.sphere.origin))
+            < glm::distance(camera->pos, fvec3(b.lock()->bbox.sphere.origin));
     });
 
     emitterList.sort([this] (EmitterList::value_type& a, EmitterList::value_type& b) {
-       return glm::distance(camera->pos, vec3(a.lock()->sphere.origin))
-            < glm::distance(camera->pos, vec3(b.lock()->sphere.origin));
+       return glm::distance(camera->pos, fvec3(a.lock()->sphere.origin))
+            < glm::distance(camera->pos, fvec3(b.lock()->sphere.origin));
     });
 
 //    liquidList.sort([this] (LiquidList::value_type& a, LiquidList::value_type& b) {
@@ -104,8 +104,8 @@ void Graph::update() {
 //    });
 
     decalList.sort([this] (DecalList::value_type& a, DecalList::value_type& b) {
-       return glm::distance(camera->pos, vec3(a.lock()->bbox.sphere.origin))
-            < glm::distance(camera->pos, vec3(b.lock()->bbox.sphere.origin));
+       return glm::distance(camera->pos, fvec3(a.lock()->bbox.sphere.origin))
+            < glm::distance(camera->pos, fvec3(b.lock()->bbox.sphere.origin));
     });
 }
 
@@ -152,8 +152,8 @@ void Graph::update_settings() {
 
     for (const auto& lptr : spotLightList) {
         const wcoe::SpotLight& light = *lptr.lock();
-        if (light.DAT_shadow == true) {
-            adjSize = light.DAT_texsize * INFO.shadMult;
+        if (light.PROP_shadow == true) {
+            adjSize = light.PROP_texsize * INFO.shadMult;
             light.tex->resize(uvec2(adjSize, adjSize));
             if (INFO.shadFltr) light.tex->set_preset(sq::Texture2D::L_C());
             else light.tex->set_preset(sq::Texture2D::N_C());
@@ -161,8 +161,8 @@ void Graph::update_settings() {
     }
     for (const auto& lptr : pointLightList) {
         const wcoe::PointLight& light = *lptr.lock();
-        if (light.DAT_shadow == true) {
-            adjSize = light.DAT_texsize * INFO.shadMult;
+        if (light.PROP_shadow == true) {
+            adjSize = light.PROP_texsize * INFO.shadMult;
             light.tex->resize(adjSize);
             if (INFO.shadFltr) light.tex->set_preset(sq::TextureCube::L_C());
             else light.tex->set_preset(sq::TextureCube::N_C());
@@ -195,11 +195,11 @@ void Graph::render_mstatics(bool _reflect) {
 
     for (const auto& mptr : modelStaticList) {
         const wcoe::ModelStatic& model = *mptr.lock();
-        if (model.DAT_render == false) continue;
+        if (model.PROP_render == false) continue;
         if (sq::bbox_in_frus(model.bbox, frustum)) continue;
         gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
-        staticVS->set_mat<mat4>("modelMat", model.matrix);
-        staticVS->set_mat<mat3>("normMat", sq::make_normMat(camera->viewMat * model.matrix));
+        staticVS->set_mat<fmat4>("modelMat", model.matrix);
+        staticVS->set_mat<fmat3>("normMat", sq::make_normMat(camera->viewMat * model.matrix));
         model.mesh->bind_vao();
         for (uint i = 0u; i < model.mesh->mCount; i++)
             writeFS->set_vec<ivec3>("d_n_s", model.skin->mtrlVec[i].glDNS),
@@ -229,10 +229,10 @@ void Graph::render_mskellys(bool _reflect) {
         if (model.DAT_render == false) continue;
         if (sq::bbox_in_frus(model.bbox, frustum)) continue;
         gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
-        skellyVS->set_mat<mat4>("modelMat", model.matrix);
-        skellyVS->set_mat<mat3>("normMat", sq::make_normMat(camera->viewMat * model.matrix));
-        skellyVS->set_vecptr<vec4>("skelQuat", (float*)model.skel->quatVec.data());
-        skellyVS->set_vecptr<vec3>("skelOffs", (float*)model.skel->offsVec.data());
+        skellyVS->set_mat<fmat4>("modelMat", model.matrix);
+        skellyVS->set_mat<fmat3>("normMat", sq::make_normMat(camera->viewMat * model.matrix));
+        skellyVS->set_vecptr<fvec4>("skelQuat", (float*)model.skel->quatVec.data());
+        skellyVS->set_vecptr<fvec3>("skelOffs", (float*)model.skel->offsVec.data());
         model.mesh->bind_vao();
         for (uint i = 0u; i < model.mesh->mCount; i++)
             writeFS->set_vec<ivec3>("d_n_s", model.skin->mtrlVec[i].glDNS),
@@ -284,8 +284,8 @@ void Graph::render_reflects(bool _reflect) {
             pipeline->use_shader(*staticVS);
         }
 
-        staticVS->set_mat<mat4>("modelMat", rflct.matrix);
-        staticVS->set_mat<mat3>("normMat", sq::make_normMat(camera->viewMat * rflct.matrix));
+        staticVS->set_mat<fmat4>("modelMat", rflct.matrix);
+        staticVS->set_mat<fmat3>("normMat", sq::make_normMat(camera->viewMat * rflct.matrix));
         for (uint i = 0u; i < rflct.skin->mtrlVec.size(); i++)
             writeFS->set_vec<ivec3>("d_n_s", rflct.skin->mtrlVec[i].glDNS),
             rflct.skin->bind_textures(i),
@@ -313,7 +313,7 @@ void Graph::render_shadows_sky_A() {
             const wcoe::Reflector& rflct = *rptr.lock();
             if (rflct.DAT_shadow == false) continue;
             gl::FrontFace(rflct.negScale ? gl::CW : gl::CCW);
-            VS.shad_static->set_mat<mat4>("matrix", light.matArrA[csm] * rflct.matrix);
+            VS.shad_static->set_mat<fmat4>("matrix", light.matArrA[csm] * rflct.matrix);
             rflct.mesh->bind_vao();
             for (uint i = 0u; i < rflct.mesh->mCount; i++) {
                 if (rflct.skin->mtrlVec[i].punch == true)
@@ -327,9 +327,9 @@ void Graph::render_shadows_sky_A() {
         pipeline->use_shader(*VS.shad_static);
         for (const auto& mptr : modelStaticList) {
             const wcoe::ModelStatic& model = *mptr.lock();
-            if (model.DAT_shadow == false) continue;
+            if (model.PROP_shadow == false) continue;
             gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
-            VS.shad_static->set_mat<mat4>("matrix", light.matArrA[csm] * model.matrix);
+            VS.shad_static->set_mat<fmat4>("matrix", light.matArrA[csm] * model.matrix);
             model.mesh->bind_vao();
             for (uint i = 0u; i < model.mesh->mCount; i++) {
                 if (model.skin->mtrlVec[i].punch == true)
@@ -345,9 +345,9 @@ void Graph::render_shadows_sky_A() {
             const wcoe::ModelSkelly& model = *mptr.lock();
             if (model.DAT_shadow == false) continue;
             gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
-            VS.shad_skelly->set_mat<mat4>("matrix", light.matArrA[csm] * model.matrix);
-            VS.shad_skelly->set_vecptr<vec4>("skelQuat", (float*)model.skel->quatVec.data());
-            VS.shad_skelly->set_vecptr<vec3>("skelOffs", (float*)model.skel->offsVec.data());
+            VS.shad_skelly->set_mat<fmat4>("matrix", light.matArrA[csm] * model.matrix);
+            VS.shad_skelly->set_vecptr<fvec4>("skelQuat", (float*)model.skel->quatVec.data());
+            VS.shad_skelly->set_vecptr<fvec3>("skelOffs", (float*)model.skel->offsVec.data());
             model.mesh->bind_vao();
             for (uint i = 0u; i < model.mesh->mCount; i++) {
                 if (model.skin->mtrlVec[i].punch == true)
@@ -381,7 +381,7 @@ void Graph::render_shadows_sky_B() {
             const wcoe::Reflector& rflct = *rptr.lock();
             if (rflct.DAT_shadow == false) continue;
             gl::FrontFace(rflct.negScale ? gl::CW : gl::CCW);
-            VS.shad_static->set_mat<mat4>("matrix", light.matArrB[csm] * rflct.matrix);
+            VS.shad_static->set_mat<fmat4>("matrix", light.matArrB[csm] * rflct.matrix);
             rflct.mesh->bind_vao();
             for (uint i = 0u; i < rflct.mesh->mCount; i++) {
                 if (rflct.skin->mtrlVec[i].punch == true)
@@ -395,9 +395,9 @@ void Graph::render_shadows_sky_B() {
         pipeline->use_shader(*VS.shad_static);
         for (const auto& mptr : modelStaticList) {
             const wcoe::ModelStatic& model = *mptr.lock();
-            if (model.DAT_shadow == false) continue;
+            if (model.PROP_shadow == false) continue;
             gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
-            VS.shad_static->set_mat<mat4>("matrix", light.matArrB[csm] * model.matrix);
+            VS.shad_static->set_mat<fmat4>("matrix", light.matArrB[csm] * model.matrix);
             model.mesh->bind_vao();
             for (uint i = 0u; i < model.mesh->mCount; i++) {
                 if (model.skin->mtrlVec[i].punch == true)
@@ -413,9 +413,9 @@ void Graph::render_shadows_sky_B() {
             const wcoe::ModelSkelly& model = *mptr.lock();
             if (model.DAT_shadow == false) continue;
             gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
-            VS.shad_skelly->set_mat<mat4>("matrix", light.matArrB[csm] * model.matrix);
-            VS.shad_skelly->set_vecptr<vec4>("skelQuat", (float*)model.skel->quatVec.data());
-            VS.shad_skelly->set_vecptr<vec3>("skelOffs", (float*)model.skel->offsVec.data());
+            VS.shad_skelly->set_mat<fmat4>("matrix", light.matArrB[csm] * model.matrix);
+            VS.shad_skelly->set_vecptr<fvec4>("skelQuat", (float*)model.skel->quatVec.data());
+            VS.shad_skelly->set_vecptr<fvec3>("skelOffs", (float*)model.skel->offsVec.data());
             model.mesh->bind_vao();
             for (uint i = 0u; i < model.mesh->mCount; i++) {
                 if (model.skin->mtrlVec[i].punch == true)
@@ -436,7 +436,7 @@ void Graph::render_shadows_spot() {
 
     for (const auto& lptr : spotLightList) {
         const wcoe::SpotLight& light = *lptr.lock();
-        if (light.DAT_shadow == false) continue;
+        if (light.PROP_shadow == false) continue;
 
         if (!sq::frus_in_frus(light.frus, camera->frus)) goto dontcull;
         for (const auto& rptr : reflectorList) {
@@ -456,7 +456,7 @@ void Graph::render_shadows_spot() {
             if (rflct.DAT_shadow == false) continue;
             if (sq::bbox_in_frus(rflct.bbox, light.frus)) continue;
             gl::FrontFace(rflct.negScale ? gl::CW : gl::CCW);
-            VS.shad_static->set_mat<mat4>("matrix", light.matrix * rflct.matrix);
+            VS.shad_static->set_mat<fmat4>("matrix", light.matrix * rflct.matrix);
             rflct.mesh->bind_vao();
             for (uint i = 0u; i < rflct.mesh->mCount; i++)
                 rflct.mesh->draw_ibo(i);
@@ -465,10 +465,10 @@ void Graph::render_shadows_spot() {
         pipeline->use_shader(*VS.shad_static);
         for (const auto& mptr : modelStaticList) {
             const wcoe::ModelStatic& model = *mptr.lock();
-            if (model.DAT_shadow == false) continue;
+            if (model.PROP_shadow == false) continue;
             if (sq::bbox_in_frus(model.bbox, light.frus)) continue;
             gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
-            VS.shad_static->set_mat<mat4>("matrix", light.matrix * model.matrix);
+            VS.shad_static->set_mat<fmat4>("matrix", light.matrix * model.matrix);
             model.mesh->bind_vao();
             for (uint i = 0u; i < model.mesh->mCount; i++) {
                 if (model.skin->mtrlVec[i].punch == true)
@@ -485,9 +485,9 @@ void Graph::render_shadows_spot() {
             if (model.DAT_shadow == false) continue;
             if (sq::bbox_in_frus(model.bbox, light.frus)) continue;
             gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
-            VS.shad_skelly->set_mat<mat4>("matrix", light.matrix * model.matrix);
-            VS.shad_skelly->set_vecptr<vec4>("skelQuat", (float*)model.skel->quatVec.data());
-            VS.shad_skelly->set_vecptr<vec3>("skelOffs", (float*)model.skel->offsVec.data());
+            VS.shad_skelly->set_mat<fmat4>("matrix", light.matrix * model.matrix);
+            VS.shad_skelly->set_vecptr<fvec4>("skelQuat", (float*)model.skel->quatVec.data());
+            VS.shad_skelly->set_vecptr<fvec3>("skelOffs", (float*)model.skel->offsVec.data());
             model.mesh->bind_vao();
             for (uint i = 0u; i < model.mesh->mCount; i++) {
                 if (model.skin->mtrlVec[i].punch == true)
@@ -507,7 +507,7 @@ void Graph::render_shadows_point() {
 
     for (const auto& lptr : pointLightList) {
         const wcoe::PointLight& light = *lptr.lock();
-        if (light.DAT_shadow == false) continue;
+        if (light.PROP_shadow == false) continue;
 
         light.ubo->bind(1);
         light.tex->viewport();
@@ -529,7 +529,7 @@ void Graph::render_shadows_point() {
                 if (rflct.DAT_shadow == false) continue;
                 if (sq::bbox_in_frus(rflct.bbox, light.frusArr[face])) continue;
                 gl::FrontFace(rflct.negScale ? gl::CW : gl::CCW);
-                VS.shad_static->set_mat<mat4>("matrix", light.matArr[face] * rflct.matrix);
+                VS.shad_static->set_mat<fmat4>("matrix", light.matArr[face] * rflct.matrix);
                 rflct.mesh->bind_vao();
                 for (uint i = 0u; i < rflct.mesh->mCount; i++)
                     rflct.mesh->draw_ibo(i);
@@ -538,10 +538,10 @@ void Graph::render_shadows_point() {
             pipeline->use_shader(*VS.shad_static);
             for (const auto& mptr : modelStaticList) {
                 const wcoe::ModelStatic& model = *mptr.lock();
-                if (model.DAT_shadow == false) continue;
+                if (model.PROP_shadow == false) continue;
                 if (sq::bbox_in_frus(model.bbox, light.frusArr[face])) continue;
                 gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
-                VS.shad_static->set_mat<mat4>("matrix", light.matArr[face] * model.matrix);
+                VS.shad_static->set_mat<fmat4>("matrix", light.matArr[face] * model.matrix);
                 model.mesh->bind_vao();
                 for (uint i = 0u; i < model.mesh->mCount; i++) {
                     if (model.skin->mtrlVec[i].punch == true)
@@ -558,9 +558,9 @@ void Graph::render_shadows_point() {
                 if (model.DAT_shadow == false) continue;
                 if (sq::bbox_in_frus(model.bbox, light.frusArr[face])) continue;
                 gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
-                VS.shad_skelly->set_mat<mat4>("matrix", light.matArr[face] * model.matrix);
-                VS.shad_skelly->set_vecptr<vec4>("skelQuat", (float*)model.skel->quatVec.data());
-                VS.shad_skelly->set_vecptr<vec3>("skelOffs", (float*)model.skel->offsVec.data());
+                VS.shad_skelly->set_mat<fmat4>("matrix", light.matArr[face] * model.matrix);
+                VS.shad_skelly->set_vecptr<fvec4>("skelQuat", (float*)model.skel->quatVec.data());
+                VS.shad_skelly->set_vecptr<fvec3>("skelOffs", (float*)model.skel->offsVec.data());
                 model.mesh->bind_vao();
                 for (uint i = 0u; i < model.mesh->mCount; i++) {
                     if (model.skin->mtrlVec[i].punch == true)
@@ -634,12 +634,12 @@ void Graph::render_spotlights(bool _reflect) {
 
         sq::Shader *stencilVS, *shadeFS;
         stencilVS = _reflect ? VS.modl_stencil_refl : VS.modl_stencil;
-        if (_reflect) shadeFS = light.DAT_shadow ? FS.shds_spot_shad_refl : FS.shds_spot_none_refl;
-        else if (!light.DAT_shadow && !light.DAT_specular) shadeFS = FS.shds_spot_none;
-        else if ( light.DAT_shadow && !light.DAT_specular) shadeFS = FS.shds_spot_shad;
-        else if (!light.DAT_shadow &&  light.DAT_specular) shadeFS = FS.shds_spot_spec;
-        else if ( light.DAT_shadow &&  light.DAT_specular) shadeFS = FS.shds_spot_both;
-        if (light.DAT_shadow) light.tex->bind(gl::TEXTURE5);
+        if (_reflect) shadeFS = light.PROP_shadow ? FS.shds_spot_shad_refl : FS.shds_spot_none_refl;
+        else if (!light.PROP_shadow && !light.PROP_specular) shadeFS = FS.shds_spot_none;
+        else if ( light.PROP_shadow && !light.PROP_specular) shadeFS = FS.shds_spot_shad;
+        else if (!light.PROP_shadow &&  light.PROP_specular) shadeFS = FS.shds_spot_spec;
+        else if ( light.PROP_shadow &&  light.PROP_specular) shadeFS = FS.shds_spot_both;
+        if (light.PROP_shadow) light.tex->bind(gl::TEXTURE5);
         light.ubo->bind(1);
 
         pipeline->use_shader(*stencilVS);
@@ -670,12 +670,12 @@ void Graph::render_pointlights(bool _reflect) {
 
         sq::Shader *stencilVS, *shadeFS;
         stencilVS = _reflect ? VS.modl_stencil_refl : VS.modl_stencil;
-        if (_reflect) shadeFS = light.DAT_shadow ? FS.shds_point_shad_refl : FS.shds_point_none_refl;
-        else if (!light.DAT_shadow && !light.DAT_specular) shadeFS = FS.shds_point_none;
-        else if ( light.DAT_shadow && !light.DAT_specular) shadeFS = FS.shds_point_shad;
-        else if (!light.DAT_shadow &&  light.DAT_specular) shadeFS = FS.shds_point_spec;
-        else if ( light.DAT_shadow &&  light.DAT_specular) shadeFS = FS.shds_point_both;
-        if (light.DAT_shadow) light.tex->bind(gl::TEXTURE5);
+        if (_reflect) shadeFS = light.PROP_shadow ? FS.shds_point_shad_refl : FS.shds_point_none_refl;
+        else if (!light.PROP_shadow && !light.PROP_specular) shadeFS = FS.shds_point_none;
+        else if ( light.PROP_shadow && !light.PROP_specular) shadeFS = FS.shds_point_shad;
+        else if (!light.PROP_shadow &&  light.PROP_specular) shadeFS = FS.shds_point_spec;
+        else if ( light.PROP_shadow &&  light.PROP_specular) shadeFS = FS.shds_point_both;
+        if (light.PROP_shadow) light.tex->bind(gl::TEXTURE5);
         light.ubo->bind(1);
 
         pipeline->use_shader(*stencilVS);
@@ -684,7 +684,7 @@ void Graph::render_pointlights(bool _reflect) {
         gl::StencilMask(0b0001); CLEAR_STENC;
         gl::StencilFunc(gl::EQUAL, 0b1100, 0b1100);
         gl::StencilOp(gl::KEEP, gl::INVERT, gl::KEEP);
-        DEPTHTEST_RO; sq::draw_volume_sphere();
+        DEPTHTEST_RO; sq::draw_volume_sphr();
         DEPTHTEST_OFF; gl::StencilMask(0);
 
         pipeline->use_shader(*VS.gnrc_screen);
@@ -745,7 +745,7 @@ void Graph::render_decals() {
     STENCILTEST_ON; gl::StencilMask(0b0000);
     gl::StencilFunc(gl::EQUAL, 0b1100, 0b0100);
     gl::StencilOp(gl::KEEP, gl::KEEP, gl::KEEP);
-    CLIP_OFF; CULLFACE_BACK; BLEND_OFF; DEPTHTEST_OFF;
+    CLIP_OFF; CULLFACE_FRONT; BLEND_OFF; DEPTHTEST_OFF;
 
     TX.depth->bind(gl::TEXTURE3);
     TX.diff->bind(gl::TEXTURE4);

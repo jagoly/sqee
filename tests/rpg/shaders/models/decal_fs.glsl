@@ -43,6 +43,7 @@ void main() {
     float factor = -dot(viewNorm, crntSurf * 2.f - 1.f);
     factor = min(factor, 0.25f) * 4.f;
     if (factor < 0.f) discard;
+    factor *= DB.alpha;
 
     if (bool(DB.d_n_s.x) == true) {
         vec4 texel = texture(texDiff, oPos.xy + 0.5f);
@@ -69,4 +70,6 @@ void main() {
         fragSpec = crntSpec * (1.f - texel.a * factor);
         fragSpec += texel.rgb * texel.a * factor;
     }
+
+//    fragDiff = vec3(1.f, 1.f, 0.f);
 }

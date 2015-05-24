@@ -11,9 +11,9 @@ public:
     void refresh(); void tick();
     void calc(double _accum);
 
-    vec3 DAT_pos = {0.f, 0.f, 0.f};
-    vec3 DAT_rot = {0.f, 0.f, 0.f};
-    vec3 DAT_sca = {1.f, 1.f, 1.f};
+    fvec3 DAT_pos = {0.f, 0.f, 0.f};
+    fvec3 DAT_rot = {0.f, 0.f, 0.f};
+    fvec3 DAT_sca = {1.f, 1.f, 1.f};
     bool DAT_shadow = false;
     bool DAT_render = false;
     bool DAT_reflect = false;
@@ -24,9 +24,9 @@ public:
     sq::Mesh* mesh = nullptr;
     sq::Skin* skin = nullptr;
     unique_ptr<sq::Skeleton> skel;
-    mat4 matrix;
-    bool negScale;
     sq::BoundBox bbox;
+    bool negScale;
+    fmat4 matrix;
 
 };
 

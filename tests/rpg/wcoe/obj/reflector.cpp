@@ -50,14 +50,22 @@ Reflector::Reflector(const string& _name, Cell* _cell)
 }
 
 void Reflector::load_from_spec(const ObjSpec& _spec) {
-    DAT_shadow = _spec.flags.count("shadow");
-    DAT_normal = glm::make_vec3(_spec.fMap.at("normal").data());
-    DAT_factor = _spec.fMap.at("factor")[0];
-    DAT_mPath = _spec.sMap.at("mesh")[0];
-    DAT_sPath = _spec.sMap.at("skin")[0];
-    if (_spec.fMap.count("pos")) DAT_pos = glm::make_vec3(_spec.fMap.at("pos").data());
-    if (_spec.fMap.count("rot")) DAT_rot = glm::make_vec3(_spec.fMap.at("rot").data());
-    if (_spec.fMap.count("sca")) DAT_sca = glm::make_vec3(_spec.fMap.at("sca").data());
+    SPEC_ASSERT_FLOAT("position", 3);
+    SPEC_ASSERT_FLOAT("rotation", 4);
+    SPEC_ASSERT_FLOAT("scale", 3);
+    SPEC_ASSERT_FLOAT("normal", 3);
+    SPEC_ASSERT_FLOAT("factor", 1);
+    SPEC_ASSERT_STRING("mesh", 1);
+    SPEC_ASSERT_STRING("skin", 1);
+
+    DAT_shadow   = SPEC_HAS_FLAG("shadow");
+    DAT_position = glm::make_vec3(_spec.fMap.at("position").data());
+    DAT_rotation = glm::make_quat(_spec.fMap.at("rotation").data());
+    DAT_scale    = glm::make_vec3(_spec.fMap.at("scale").data());
+    DAT_normal   = glm::make_vec3(_spec.fMap.at("normal").data());
+    DAT_factor   = _spec.fMap.at("factor")[0];
+    DAT_mPath    = _spec.sMap.at("mesh")[0];
+    DAT_sPath    = _spec.sMap.at("skin")[0];
 }
 
 void Reflector::refresh() {
@@ -69,15 +77,13 @@ void Reflector::refresh() {
         skin = sq::res::skin().add(DAT_sPath),
         skin->create(DAT_sPath);
 
-    trans = DAT_pos + cell->DAT_position;
-    matrix = glm::translate(mat4(), trans);
-    matrix = glm::rotate(matrix, glm::radians(DAT_rot.x), {1,0,0});
-    matrix = glm::rotate(matrix, glm::radians(DAT_rot.y), {0,1,0});
-    matrix = glm::rotate(matrix, glm::radians(DAT_rot.z), {0,0,1});
-    matrix = glm::scale(matrix, DAT_sca);
+    trans = DAT_position + cell->DAT_position;
+    matrix = glm::translate(fmat4(), trans);
+    matrix *= glm::mat4_cast(DAT_rotation);
+    matrix = glm::scale(matrix, DAT_scale);
     negScale = glm::determinant(matrix) < 0.f;
+    normal = glm::normalize(sq::make_normMat(matrix) * fvec3(0,0,1));
     bbox = sq::make_BoundBox(matrix, mesh->origin, mesh->size, mesh->radius);
-    normal = glm::normalize(sq::make_normMat(matrix) * vec3(0,0,1));
 
     ubo->bind(2);
     ubo->update("matrix", &matrix);

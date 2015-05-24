@@ -9,14 +9,14 @@
 namespace sqt {
 
 ChaiApp::ChaiApp() : sq::Application(true) {
-    handlerIM.append("close", new sq::HandlerClose(this));
-    handlerIM.append("resize", new sq::HandlerResize(this));
+    append_handler<sq::HandlerClose>("close");
+    append_handler<sq::HandlerResize>("resize");
 
-    sceneIM.append("game", new SceneGame(this));
-    handlerIM.append("game", new HandlerGame(this));
+    append_scene<SceneGame>("game");
+    append_handler<HandlerGame>("game");
 
-    sceneIM.append("console", new sq::SceneConsole(this));
-    handlerIM.prepend("console", new sq::HandlerConsole(this));
+    append_scene<sq::SceneConsole>("console");
+    prepend_handler<sq::HandlerConsole>("console");
 }
 
 }

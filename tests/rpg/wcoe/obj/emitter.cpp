@@ -45,8 +45,8 @@ void Emitter::load_from_spec(const ObjSpec& _spec) {
 }
 
 void Emitter::refresh() {
-    vec3 position = DAT_position + cell->DAT_position;
-    matrix = glm::translate(mat4(), position);
+    fvec3 position = DAT_position + cell->DAT_position;
+    matrix = glm::translate(fmat4(), position);
     sphere = {position, DAT_radius};
 
     ubo->bind(1);

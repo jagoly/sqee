@@ -11,7 +11,7 @@
 #include <sqee/app/logging.hpp>
 #include <sqee/gl/preprocessor.hpp>
 #include <sqee/gl/framebuffers.hpp>
-#include <sqee/gl/misc.hpp>
+#include <sqee/gl/drawing.hpp>
 #include <sqee/gl/shaders.hpp>
 #include <sqee/gl/textures.hpp>
 #include <sqee/gl/uniformbuffers.hpp>
@@ -66,7 +66,8 @@ SceneMain::SceneMain(sq::Application* const _app) : sq::Scene(_app) {
 
     camera->pos = {0.f, -1.f, 3.f};
     camera->dir = {0.7, 0.2, -0.1};
-    camera->range = {0.2f, 120.f};
+    camera->rmin = 0.2f;
+    camera->rmax = 120.f;
     camera->size = {16.f, 10.f};
     camera->fov = 1.f;
     camera->binding = 0u;
@@ -324,14 +325,14 @@ void SceneMain::update() {
     if (KB::isKeyPressed(KB::PageDown)) posNext.z -= 0.05f;
 
     if (KB::isKeyPressed(KB::Right) && !KB::isKeyPressed(KB::Left))
-        posNext += glm::rotateZ(vec3(0.08f, 0.f, 0.f), rotZ);
+        posNext += glm::rotateZ(fvec3(0.08f, 0.f, 0.f), rotZ);
     else if (KB::isKeyPressed(KB::Left) && !KB::isKeyPressed(KB::Right))
-        posNext += glm::rotateZ(vec3(-0.08f, 0.f, 0.f), rotZ);
+        posNext += glm::rotateZ(fvec3(-0.08f, 0.f, 0.f), rotZ);
 
     if (KB::isKeyPressed(KB::Up) && !KB::isKeyPressed(KB::Down))
-        posNext += glm::rotateZ(vec3(0.f, 0.08f, 0.f), rotZ);
+        posNext += glm::rotateZ(fvec3(0.f, 0.08f, 0.f), rotZ);
     else if (KB::isKeyPressed(KB::Down) && !KB::isKeyPressed(KB::Up))
-        posNext += glm::rotateZ(vec3(0.f, -0.08f, 0.f), rotZ);
+        posNext += glm::rotateZ(fvec3(0.f, -0.08f, 0.f), rotZ);
 
     world->tick();
     graph->update();
@@ -342,10 +343,10 @@ void SceneMain::render(float _ft) {
     camera->pos = glm::mix(posCrnt, posNext, accum / dt);
 
     if (settings->crnt<bool>("mouseFocus")) {
-        vec2 mMove = appBase->mouse_relatify();
+        fvec2 mMove = appBase->mouse_relatify();
         rotZ = rotZ + mMove.x/600.f;
         rotX = glm::clamp(rotX + mMove.y/900.f, -1.25f, 1.25f);
-        camera->dir = glm::rotateZ(glm::rotateX(vec3(0,1,0), rotX), rotZ);
+        camera->dir = glm::rotateZ(glm::rotateX(fvec3(0,1,0), rotX), rotZ);
     } camera->update();
 
     world->calc(accum);
@@ -373,9 +374,9 @@ void SceneMain::render(float _ft) {
 
     /// Render Models into G-Buffer
     graph->render_mstatics(false);
-    graph->render_mskellys(false);
     graph->render_reflects(false);
     graph->render_decals();
+    graph->render_mskellys(false);
 
 
     /// Set up Screen Space
@@ -475,9 +476,9 @@ void SceneMain::update_settings() {
     INFO.fullSize = appBase->get_size();
     INFO.halfSize = INFO.fullSize / 2u;
     INFO.qterSize = INFO.fullSize / 4u;
-    INFO.fPixSize = 1.f / vec2(INFO.fullSize);
-    INFO.hPixSize = 1.f / vec2(INFO.halfSize);
-    INFO.qPixSize = 1.f / vec2(INFO.qterSize);
+    INFO.fPixSize = 1.f / fvec2(INFO.fullSize);
+    INFO.hPixSize = 1.f / fvec2(INFO.halfSize);
+    INFO.qPixSize = 1.f / fvec2(INFO.qterSize);
 
     graph->INFO.fullSize = INFO.fullSize;
     graph->INFO.halfSize = INFO.halfSize;
@@ -498,7 +499,7 @@ void SceneMain::update_settings() {
     TX.bloomA->resize(INFO.qterSize);
     TX.bloomB->resize(INFO.qterSize);
 
-    camera->size = vec2(INFO.fullSize);
+    camera->size = fvec2(INFO.fullSize);
 
     INFO.ssaoEnable = bool(settings->crnt<int>("ssaoMode"));
     INFO.hdrbEnable = bool(settings->crnt<int>("hdrbMode"));
@@ -511,7 +512,7 @@ void SceneMain::update_settings() {
     graph->INFO.shadFltr = INFO.shadFltr;
     graph->INFO.shadMult = INFO.shadMult;
     graph->INFO.viewDist = INFO.viewDist;
-    camera->range.y = INFO.viewDist;
+    camera->rmax = INFO.viewDist;
 
     graph->update_settings();
     reload_shaders();

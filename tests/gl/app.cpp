@@ -7,11 +7,10 @@
 namespace sqt {
 
 GlApp::GlApp() : sq::Application(true) {
-    handlerIM.append("close", new sq::HandlerClose(this));
-    handlerIM.append("resize", new sq::HandlerResize(this));
-
-    sceneIM.append("game", new SceneGame(this));
-    handlerIM.append("game", new HandlerGame(this));
+    append_scene<SceneGame>("game");
+    append_handler<sq::HandlerClose>("close");
+    append_handler<sq::HandlerResize>("resize");
+    append_handler<HandlerGame>("game");
 }
 
 }

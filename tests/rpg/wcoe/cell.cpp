@@ -35,14 +35,14 @@ void Cell::load_from_file(const string& _path) {
 
         if (section == "objects") {
             if (key == "object") {
-                if      (line[1] == "modelstatic") add_object<ModelStatic>(line[2]);
-                else if (line[1] == "modelskelly") add_object<ModelSkelly>(line[2]);
-                else if (line[1] == "pointlight")  add_object<PointLight>(line[2]);
-                else if (line[1] == "spotlight")   add_object<SpotLight>(line[2]);
-                else if (line[1] == "reflector")   add_object<Reflector>(line[2]);
-                else if (line[1] == "emitter")     add_object<Emitter>(line[2]);
-                else if (line[1] == "liquid")      add_object<Liquid>(line[2]);
-                else if (line[1] == "decal")       add_object<Decal>(line[2]);
+                if      (line[1] == "modelstatic")     add_object<ModelStatic>(line[2]);
+                else if (line[1] == "modelskelly")     add_object<ModelSkelly>(line[2]);
+                else if (line[1] == "pointlight")      add_object<PointLight>(line[2]);
+                else if (line[1] == "spotlight")       add_object<SpotLight>(line[2]);
+                else if (line[1] == "reflector")       add_object<Reflector>(line[2]);
+                else if (line[1] == "emitter")         add_object<Emitter>(line[2]);
+                else if (line[1] == "liquid")          add_object<Liquid>(line[2]);
+                else if (line[1] == "decal")           add_object<Decal>(line[2]);
                 else throw; // invalid object type
                 specVec.emplace_back(line[2], ObjSpec());
             } else specVec.back().second.parse_line(line);

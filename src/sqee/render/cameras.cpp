@@ -9,9 +9,9 @@ using namespace sq;
 Camera::Camera() {}
 
 void Camera::update() {
-    viewMat = glm::lookAt(pos, pos+dir, {0,0,1});
-    projMat = glm::perspective(fov, size.x / size.y, range.x, range.y);
-    frus = make_Frustum(projMat*viewMat, pos, dir, range);
+    viewMat = glm::lookAt(pos, pos + dir, {0.f, 0.f, 1.f});
+    projMat = glm::perspective(fov, size.x / size.y, rmin, rmax);
+    frus = make_Frustum(projMat*viewMat, pos, dir, rmin, rmax);
 }
 
 
@@ -23,9 +23,9 @@ UboCamera::UboCamera(const vector<pair<string, uint>>& _extra) {
     ubo->reserve("invView", 16);
     ubo->reserve("trnView", 16);
     ubo->reserve("pos", 3);
-    ubo->reserve("near", 1);
+    ubo->reserve("rmin", 1);
     ubo->reserve("dir", 3);
-    ubo->reserve("far", 1);
+    ubo->reserve("rmax", 1);
     for (const auto& ext : _extra)
         ubo->reserve(ext.first, ext.second);
     ubo->create();
@@ -34,9 +34,9 @@ UboCamera::UboCamera(const vector<pair<string, uint>>& _extra) {
 void UboCamera::update() {
     Camera::update();
 
-    mat4 invProj = glm::inverse(projMat);
-    mat4 invView = glm::inverse(viewMat);
-    mat4 trnView = glm::transpose(viewMat);
+    fmat4 invProj = glm::inverse(projMat);
+    fmat4 invView = glm::inverse(viewMat);
+    fmat4 trnView = glm::transpose(viewMat);
 
     ubo->bind(binding);
     ubo->update("proj", &projMat);
@@ -45,7 +45,7 @@ void UboCamera::update() {
     ubo->update("invView", &invView);
     ubo->update("trnView", &trnView);
     ubo->update("pos", &pos);
-    ubo->update("near", &range.x);
+    ubo->update("rmin", &rmin);
     ubo->update("dir", &dir);
-    ubo->update("far", &range.y);
+    ubo->update("rmax", &rmax);
 }

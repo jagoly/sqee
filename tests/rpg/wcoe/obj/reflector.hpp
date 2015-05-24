@@ -11,14 +11,14 @@ public:
     void refresh(); void tick();
     void calc(double _accum);
 
-    vec3 DAT_pos = {0,0,0};
-    vec3 DAT_rot = {0,0,0};
-    vec3 DAT_sca = {1,1,1};
-    vec3 DAT_normal = {0,0,1};
-    float DAT_factor = 1.f;
-    bool DAT_shadow = false;
-    string DAT_mPath;
-    string DAT_sPath;
+    fvec3 DAT_position = {0.f, 0.f, 0.f};
+    fquat DAT_rotation = {1.f, 0.f, 0.f, 0.f};
+    fvec3 DAT_scale    = {1.f, 1.f, 1.f};
+    fvec3 DAT_normal   = {0.f, 0.f, 1.f};
+    float DAT_factor   = 1.f;
+    bool DAT_shadow    = false;
+    string DAT_mPath   = "";
+    string DAT_sPath   = "";
 
     unique_ptr<sq::Uniformbuffer> ubo;
     unique_ptr<sq::Texture2D> texDepth;
@@ -27,9 +27,8 @@ public:
     unique_ptr<sq::Texture2D> texHdr;
     unique_ptr<sq::Framebuffer> fboDefr;
     unique_ptr<sq::Framebuffer> fboHdr;
-    mat4 matrix;
-    vec3 normal;
-    vec3 trans;
+    fvec3 trans, normal;
+    fmat4 matrix;
 
     sq::Mesh* mesh = nullptr;
     sq::Skin* skin = nullptr;

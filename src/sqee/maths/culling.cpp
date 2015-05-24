@@ -14,7 +14,7 @@ inline dvec3 reflect(dvec3 _val, dvec3 _normal, dvec3 _trans) {
     return glm::reflect(_val - _trans, _normal) + _trans;
 }
 
-Frustum sq::make_Frustum(dmat4 _matrix, dvec3 _pos, dvec3 _dir, dvec2 _range) {
+Frustum sq::make_Frustum(dmat4 _matrix, dvec3 _pos, dvec3 _dir, double _rmin, double _rmax) {
     Frustum fr; dvec4 tmp4; dvec3 tmp3;
     dmat4 invMat = glm::inverse(_matrix);
     tmp4 = invMat * dvec4(-1, -1,  1, 1); fr.xy = dvec3(tmp4) / tmp4.w;
@@ -25,8 +25,8 @@ Frustum sq::make_Frustum(dmat4 _matrix, dvec3 _pos, dvec3 _dir, dvec2 _range) {
     tmp3 = norm_from_tri(fr.xy, fr.Xy, _pos); fr.pB = {tmp3, glm::dot(-tmp3, _pos)};
     tmp3 = norm_from_tri(fr.xY, fr.xy, _pos); fr.pL = {tmp3, glm::dot(-tmp3, _pos)};
     tmp3 = norm_from_tri(fr.Xy, fr.XY, _pos); fr.pR = {tmp3, glm::dot(-tmp3, _pos)};
-    fr.pN = {-_dir, glm::dot(_dir, _pos+_dir*_range.x)};
-    fr.sphere = {_pos, _range.y};
+    fr.pN = {-_dir, glm::dot(_dir, _pos + _dir * _rmin)};
+    fr.sphere = {_pos, _rmax};
     return fr;
 }
 

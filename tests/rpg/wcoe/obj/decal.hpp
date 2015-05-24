@@ -1,6 +1,7 @@
 #pragma once
 
 #include "object.hpp"
+#include "animation.hpp"
 
 namespace sqt { namespace wcoe {
 
@@ -11,20 +12,25 @@ public:
     void refresh(); void tick();
     void calc(double _accum);
 
-    vec3 DAT_position = {0, 0, 0};
-    vec3 DAT_normal = {0, 0, -1};
-    vec3 DAT_tangent = {0, 1, 0};
-    vec3 DAT_scale = {1, 1, 1};
+    fvec3  PROP_position = {0.f, 0.f, 0.f};
+    fquat  PROP_rotation = {1.f, 0.f, 0.f, 0.f};
+    fvec3  PROP_scale    = {1.f, 1.f, 1.f};
+    float  PROP_alpha    = 1.f;
+    string PROP_dPath    = "";
+    string PROP_nPath    = "";
+    string PROP_sPath    = "";
 
-    string DAT_dPath;
-    string DAT_nPath;
-    string DAT_sPath;
+    AnimatorFVec3 ANIM_position {&PROP_position};
+    AnimatorFQuat ANIM_rotation {&PROP_rotation};
+    AnimatorFVec3 ANIM_scale    {&PROP_scale};
+    AnimatorFloat ANIM_alpha    {&PROP_alpha};
+    void animate();
 
     unique_ptr<sq::Uniformbuffer> ubo;
     sq::Texture2D* texDiff = nullptr;
     sq::Texture2D* texNorm = nullptr;
     sq::Texture2D* texSpec = nullptr;
-    mat4 matrix, invMat;
+    fmat4 matrix, invMat;
     sq::BoundBox bbox;
 };
 

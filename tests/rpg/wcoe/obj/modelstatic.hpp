@@ -1,6 +1,7 @@
 #pragma once
 
 #include "object.hpp"
+#include "animation.hpp"
 
 namespace sqt { namespace wcoe {
 
@@ -11,21 +12,26 @@ public:
     void refresh(); void tick();
     void calc(double _accum);
 
-    vec3 DAT_pos = {0.f, 0.f, 0.f};
-    vec3 DAT_rot = {0.f, 0.f, 0.f};
-    vec3 DAT_sca = {1.f, 1.f, 1.f};
-    bool DAT_shadow = false;
-    bool DAT_render = false;
-    bool DAT_reflect = false;
-    bool DAT_refract = false;
-    string DAT_mPath;
-    string DAT_sPath;
+    fvec3  PROP_position = {0.f, 0.f, 0.f};
+    fquat  PROP_rotation = {1.f, 0.f, 0.f, 0.f};
+    fvec3  PROP_scale    = {1.f, 1.f, 1.f};
+    bool   PROP_reflect  = false;
+    bool   PROP_refract  = false;
+    bool   PROP_shadow   = false;
+    bool   PROP_render   = false;
+    string PROP_mPath    = "";
+    string PROP_sPath    = "";
+
+    AnimatorFVec3 ANIM_position {&PROP_position};
+    AnimatorFQuat ANIM_rotation {&PROP_rotation};
+    AnimatorFVec3 ANIM_scale    {&PROP_scale};
+    void animate();
 
     sq::Mesh* mesh = nullptr;
     sq::Skin* skin = nullptr;
-    mat4 matrix;
-    bool negScale;
     sq::BoundBox bbox;
+    bool negScale;
+    fmat4 matrix;
 };
 
 template<> struct ObjTraits<ModelStatic> {

@@ -16,7 +16,7 @@ public:
     World* const world;
 
     bool DAT_enabled = false;
-    vec3 DAT_position = {0, 0, 0};
+    fvec3 DAT_position = {0, 0, 0};
 
     template<class T>
     T* add_object(const string& _name);

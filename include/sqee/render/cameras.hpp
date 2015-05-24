@@ -9,13 +9,15 @@ class Camera : NonCopyable {
 public:
     Camera();
 
-    vec3 pos, dir;
-    vec2 range;
-    vec2 size;
+    fvec3 pos;
+    fvec3 dir;
+    float rmin;
+    float rmax;
+    fvec2 size;
     float fov;
 
-    mat4 projMat;
-    mat4 viewMat;
+    fmat4 projMat;
+    fmat4 viewMat;
     Frustum frus;
 
     virtual void update();

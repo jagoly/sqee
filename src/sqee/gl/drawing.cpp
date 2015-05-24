@@ -1,5 +1,5 @@
 #include "sqee/redist/gl_ext_3_3.hpp"
-#include "sqee/gl/misc.hpp"
+#include "sqee/gl/drawing.hpp"
 
 using namespace sq;
 
@@ -62,7 +62,7 @@ void sq::draw_volume_cone() {
 }
 
 
-void sq::draw_volume_sphere() {
+void sq::draw_volume_sphr() {
     static GLuint vao, ibo;
 
     static bool first = true;

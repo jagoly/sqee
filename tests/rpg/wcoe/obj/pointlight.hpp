@@ -1,6 +1,7 @@
 #pragma once
 
 #include "object.hpp"
+#include "animation.hpp"
 
 namespace sqt { namespace wcoe {
 
@@ -11,19 +12,25 @@ public:
     void refresh(); void tick();
     void calc(double _accum);
 
-    bool DAT_shadow = false;
-    bool DAT_specular = false;
-    vec3 DAT_position = {0, 0, 0};
-    vec3 DAT_colour = {1, 1, 1};
-    float DAT_intensity = 10.f;
-    uint DAT_texsize = 0u;
+    fvec3 PROP_position  = {0.f, 0.f, 0.f};
+    fvec3 PROP_colour    = {1.f, 1.f, 1.f};
+    float PROP_intensity = 10.f;
+    uint  PROP_texsize   = 0u;
+    bool  PROP_shadow    = false;
+    bool  PROP_specular  = false;
 
-    array<mat4, 6> matArr;
+    AnimatorFVec3 ANIM_position  {&PROP_position};
+    AnimatorFVec3 ANIM_colour    {&PROP_colour};
+    AnimatorFloat ANIM_intensity {&PROP_intensity};
+    void animate();
+
+    array<fmat4, 6> matArr;
     unique_ptr<sq::Uniformbuffer> ubo;
     unique_ptr<sq::TextureCube> tex;
     array<unique_ptr<sq::Framebuffer>, 6> fboArr;
-    sq::Sphere sphere; mat4 modelMat;
     array<sq::Frustum, 6> frusArr;
+    sq::Sphere sphere;
+    fmat4 modelMat;
 };
 
 template<> struct ObjTraits<PointLight> {

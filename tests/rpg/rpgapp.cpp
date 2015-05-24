@@ -22,13 +22,14 @@ RpgApp::RpgApp() : sq::Application(true) {
     sq::res::mesh_path() = "assets/meshes/";
     sq::res::skin_path() = "assets/skins/";
 
-    sceneIM.append("main", new SceneMain(this));
-    sceneIM.append("console", new sq::SceneConsole(this));
-    sceneIM.append("fps", new sq::SceneFPS(this));
-    handlerIM.append("close", new sq::HandlerClose(this));
-    handlerIM.append("resize", new sq::HandlerResize(this));
-    handlerIM.prepend("console", new sq::HandlerConsole(this));
-    handlerIM.append("main", new HandlerMain(this));
+    append_scene<SceneMain>("main");
+    append_scene<sq::SceneConsole>("console");
+    append_scene<sq::SceneFPS>("fps");
+
+    append_handler<sq::HandlerConsole>("console");
+    append_handler<sq::HandlerClose>("close");
+    append_handler<sq::HandlerResize>("resize");
+    append_handler<HandlerMain>("main");
 
     cs_setup_main(*cs);
     cs_setup_wcoe(*cs);

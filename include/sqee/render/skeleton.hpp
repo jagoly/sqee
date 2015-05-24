@@ -15,8 +15,8 @@ public:
     void stop_anim(uint _span);
     void pause_anim();
 
-    vector<vec4> quatVec;
-    vector<vec3> offsVec;
+    vector<fvec4> quatVec;
+    vector<fvec3> offsVec;
 
     void tick();
     void calc(double _accum);

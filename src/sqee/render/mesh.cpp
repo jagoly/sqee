@@ -47,14 +47,14 @@ void Mesh::draw_ibo(uint _mtrl) {
 void Mesh::load_ascii(const string& _path) {
     vector<vector<string>> fileVec(get_words_from_file(_path));
 
-    vector<vec3> points;
-    vector<vec3> normals;
-    vector<vec3> tangents;
-    vector<vec2> texcrds;
+    vector<fvec3> points;
+    vector<fvec3> normals;
+    vector<fvec3> tangents;
+    vector<fvec2> texcrds;
     vector<ivec4> bonesA;
     vector<ivec4> bonesB;
-    vector<vec4> weightsA;
-    vector<vec4> weightsB;
+    vector<fvec4> weightsA;
+    vector<fvec4> weightsB;
     vector<vector<uvec3>> faceVec;
 
     string section = "";
@@ -123,14 +123,14 @@ void Mesh::load_binary(const string& _path) {
     hasBW = bool(*ptr); ptr += 1;
     hasMT = bool(*ptr); ptr += 1;
 
-    vector<vec3> points;
-    vector<vec3> normals;
-    vector<vec3> tangents;
-    vector<vec2> texcrds;
+    vector<fvec3> points;
+    vector<fvec3> normals;
+    vector<fvec3> tangents;
+    vector<fvec2> texcrds;
     vector<ivec4> bonesA;
     vector<ivec4> bonesB;
-    vector<vec4> weightsA;
-    vector<vec4> weightsB;
+    vector<fvec4> weightsA;
+    vector<fvec4> weightsB;
     vector<vector<uvec3>> faceVec(mCount);
 
     float* fPtr = (float*)ptr;
@@ -161,10 +161,10 @@ void Mesh::load_binary(const string& _path) {
     load_final(points, normals, tangents, texcrds, bonesA, bonesB, weightsA, weightsB, faceVec);
 }
 
-void Mesh::load_final(const vector<vec3>& points, const vector<vec3>& normals,
-                      const vector<vec3>& tangents, const vector<vec2>& texcrds,
-                      const vector<ivec4>& bonesA, const vector<ivec4>& bonesB,
-                      const vector<vec4>& weightsA, const vector<vec4>& weightsB,
+void Mesh::load_final(const vector<fvec3>& points,   const vector<fvec3>& normals,
+                      const vector<fvec3>& tangents, const vector<fvec2>& texcrds,
+                      const vector<ivec4>& bonesA,   const vector<ivec4>& bonesB,
+                      const vector<fvec4>& weightsA, const vector<fvec4>& weightsB,
                       const vector<vector<uvec3>>& faceVec) {
     gl::GenVertexArrays(1, &vao);
     gl::BindVertexArray(vao);
@@ -175,7 +175,7 @@ void Mesh::load_final(const vector<vec3>& points, const vector<vec3>& normals,
     gl::VertexAttribPointer(0, 3, gl::FLOAT, false, 0, nullptr);
     gl::EnableVertexAttribArray(0);
 
-    if (hasNM) {
+    if (hasNM == true) {
         gl::GenBuffers(1, &vboN);
         gl::BindBuffer(gl::ARRAY_BUFFER, vboN);
         gl::BufferData(gl::ARRAY_BUFFER, vCount*3*4, normals.data(), gl::STATIC_DRAW);
@@ -189,7 +189,7 @@ void Mesh::load_final(const vector<vec3>& points, const vector<vec3>& normals,
         gl::EnableVertexAttribArray(2);
     }
 
-    if (hasUV) {
+    if (hasUV == true) {
         gl::GenBuffers(1, &vboTc);
         gl::BindBuffer(gl::ARRAY_BUFFER, vboTc);
         gl::BufferData(gl::ARRAY_BUFFER, vCount*2*4, texcrds.data(), gl::STATIC_DRAW);
@@ -197,7 +197,7 @@ void Mesh::load_final(const vector<vec3>& points, const vector<vec3>& normals,
         gl::EnableVertexAttribArray(3);
     }
 
-    if (hasBW) {
+    if (hasBW == true) {
         gl::GenBuffers(1, &vboBa);
         gl::BindBuffer(gl::ARRAY_BUFFER, vboBa);
         gl::BufferData(gl::ARRAY_BUFFER, vCount*4*4, bonesA.data(), gl::STATIC_DRAW);
@@ -223,7 +223,7 @@ void Mesh::load_final(const vector<vec3>& points, const vector<vec3>& normals,
         gl::EnableVertexAttribArray(7);
     }
 
-    for (uint i = 0; i < mCount; i++) {
+    for (uint i = 0u; i < mCount; i++) {
         iboVec.emplace_back(0, faceVec[i].size() * 3);
         auto& ibo = iboVec.back();
         gl::GenBuffers(1, &ibo.first);

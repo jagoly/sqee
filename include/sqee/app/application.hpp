@@ -1,9 +1,10 @@
 #pragma once
 #include <sqee/forward.hpp>
 
+#include <deque>
+
 #include <SFML/Window/Window.hpp>
 
-#include <sqee/misc/indexedmap.hpp>
 #include <sqee/scripts/chaiscript.hpp>
 #include <sqee/handlers/handler.hpp>
 #include <sqee/scenes/scene.hpp>
@@ -20,18 +21,24 @@ public:
 
     void update();
     uvec2 get_size();
-    vec2 mouse_relatify();
-
-    void sweep_handler(const string& _id);
-    void sweep_scene(const string& _id);
-
-    IndexedMap<string, unique_ptr<Scene>> sceneIM;
-    IndexedMap<string, unique_ptr<Handler>> handlerIM;
+    fvec2 mouse_relatify();
 
     template <class T>
+    T* append_scene(const string& _key);
+    template <class T>
+    T* prepend_scene(const string& _key);
+    template <class T>
     T* get_scene(const string& _key);
+
+    template <class T>
+    T* append_handler(const string& _key);
+    template <class T>
+    T* prepend_handler(const string& _key);
     template<class T>
     T* get_handler(const string& _key);
+
+    void sweep_scene(const string& _key);
+    void sweep_handler(const string& _key);
 
     unique_ptr<SettingsMaps> settings;
     unique_ptr<PreProcessor> preprocs;
@@ -39,21 +46,51 @@ public:
     unique_ptr<chai::ChaiScript> cs;
 
 protected:
-    sf::Window window;
-    int retCode;
+    sf::Window window; int retCode;
 
-    unordered_set<string> handlerSweep;
+    std::deque<unique_ptr<Scene>> sceneDeq;
+    unordered_map<string, Scene*> sceneMap;
+    std::deque<unique_ptr<Handler>> handlerDeq;
+    unordered_map<string, Handler*> handlerMap;
+
     unordered_set<string> sceneSweep;
+    unordered_set<string> handlerSweep;
 };
 
 template<class T>
+T* Application::append_scene(const string& _key) {
+    if (sceneMap.count(_key) != 0u)
+        throw string("Scene \""+_key+"\" already in map");
+    sceneDeq.emplace_back(new T(this));
+    sceneMap.emplace(_key, sceneDeq.back().get());
+    return static_cast<T*>(sceneDeq.back().get());
+}
+template<class T>
+T* Application::prepend_scene(const string& _key) {
+    sceneDeq.emplace_front(new T(this));
+    sceneMap.emplace(_key, sceneDeq.front().get());
+    return static_cast<T*>(sceneDeq.front().get());
+}
+template<class T>
 T* Application::get_scene(const string& _key) {
-    return static_cast<T*>(sceneIM.get(_key).get());
+    return static_cast<T*>(sceneMap.at(_key));
 }
 
 template<class T>
+T* Application::append_handler(const string& _key) {
+    handlerDeq.emplace_back(new T(this));
+    handlerMap.emplace(_key, handlerDeq.back().get());
+    return static_cast<T*>(handlerDeq.back().get());
+}
+template<class T>
+T* Application::prepend_handler(const string& _key) {
+    handlerDeq.emplace_front(new T(this));
+    handlerMap.emplace(_key, handlerDeq.front().get());
+    return static_cast<T*>(handlerDeq.front().get());
+}
+template<class T>
 T* Application::get_handler(const string& _key) {
-    return static_cast<T*>(handlerIM.get(_key).get());
+    return static_cast<T*>(handlerMap.at(_key));
 }
 
 }

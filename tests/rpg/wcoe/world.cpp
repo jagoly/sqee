@@ -102,32 +102,32 @@ void SkyLight::tick() {
 
     ubo->bind(1);
 
-    array<vec3, 4> centres;
+    array<fvec3, 4> centres;
     const float weight = 0.6f;
-    float prevSplit = camera->range.x;
+    float prevSplit = camera->rmin;
     for (int i = 0; i < 4; i++) {
         float f = float(i+1) / 4.f;
-        float splitUni = camera->range.x + (camera->range.y - camera->range.x) * f;
-        float splitLog = camera->range.x * glm::pow(camera->range.y / camera->range.x, f);
+        float splitUni = camera->rmin + (camera->rmax - camera->rmin) * f;
+        float splitLog = camera->rmin * glm::pow(camera->rmax / camera->rmin, f);
         float splitMix = glm::mix(splitUni, splitLog, weight);
         centres[i] = camera->pos + camera->dir * (prevSplit + splitMix) / 2.f;
         splitArrA[i] = splitMix; prevSplit = splitMix;
     } ubo->update("splitsA", splitArrA.data());
 
-    vec3 tangent = sq::make_tangent(DAT_normal);
+    fvec3 tangent = sq::make_tangent(DAT_normal);
     for (int i = 0; i < 4; i++) {
         const auto& centre = centres[i]; const auto& split = splitArrA[i];
-        mat4 viewMat = glm::lookAt(centre-DAT_normal, centre, tangent);
+        fmat4 viewMat = glm::lookAt(centre-DAT_normal, centre, tangent);
         viewMat[3][0] -= glm::mod(viewMat[3][0], split / 512.f);
         viewMat[3][1] -= glm::mod(viewMat[3][1], split / 512.f);
         viewMat[3][2] -= glm::mod(viewMat[3][2], split / 512.f);
-        mat4 projMat = glm::ortho(-split, split, -split, split, -split, split);
+        fmat4 projMat = glm::ortho(-split, split, -split, split, -split, split);
         matArrA[i] = projMat * viewMat;
     } ubo->update("matArrA", matArrA.data());
 
-    mat4 viewMat = glm::lookAt(camera->pos-DAT_normal, camera->pos, tangent);
-    mat4 viewMat0 = viewMat, viewMat1 = viewMat;
-    float f0 = camera->range.y*0.4f, f1 = camera->range.y;
+    fmat4 viewMat = glm::lookAt(camera->pos-DAT_normal, camera->pos, tangent);
+    fmat4 viewMat0 = viewMat, viewMat1 = viewMat;
+    float f0 = camera->rmax*0.4f, f1 = camera->rmax;
     viewMat0[3][0] -= glm::mod(viewMat0[3][0], f0 / 512.f);
     viewMat0[3][1] -= glm::mod(viewMat0[3][1], f0 / 512.f);
     viewMat0[3][2] -= glm::mod(viewMat0[3][2], f0 / 512.f);

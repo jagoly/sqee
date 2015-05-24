@@ -121,9 +121,9 @@ public:
         uvec2 fullSize;
         uvec2 halfSize;
         uvec2 qterSize;
-        vec2 fPixSize;
-        vec2 hPixSize;
-        vec2 qPixSize;
+        fvec2 fPixSize;
+        fvec2 hPixSize;
+        fvec2 qPixSize;
     } INFO;
 
     const MainCamera* const camera;

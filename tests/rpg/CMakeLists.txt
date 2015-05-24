@@ -11,13 +11,14 @@ set(SOURCES
     "wcoe/cell.hpp"             "wcoe/cell.cpp"
     "wcoe/world.hpp"            "wcoe/world.cpp"
     "wcoe/obj/object.hpp"       "wcoe/obj/object.cpp"
+    "wcoe/obj/animation.hpp"    "wcoe/obj/animation.cpp"
     "wcoe/obj/modelstatic.hpp"  "wcoe/obj/modelstatic.cpp"
     "wcoe/obj/modelskelly.hpp"  "wcoe/obj/modelskelly.cpp"
-    "wcoe/obj/spotlight.hpp"    "wcoe/obj/spotlight.cpp"
     "wcoe/obj/pointlight.hpp"   "wcoe/obj/pointlight.cpp"
+    "wcoe/obj/spotlight.hpp"    "wcoe/obj/spotlight.cpp"
     "wcoe/obj/reflector.hpp"    "wcoe/obj/reflector.cpp"
-    "wcoe/obj/liquid.hpp"       "wcoe/obj/liquid.cpp"
     "wcoe/obj/emitter.hpp"      "wcoe/obj/emitter.cpp"
+    "wcoe/obj/liquid.hpp"       "wcoe/obj/liquid.cpp"
     "wcoe/obj/decal.hpp"        "wcoe/obj/decal.cpp"
 )
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <deque>
 #include <string>
 #include <vector>
 #include <memory>
@@ -9,6 +10,7 @@
 #include <unordered_map>
 using std::pair;
 using std::array;
+using std::deque;
 using std::string;
 using std::vector;
 using std::weak_ptr;
@@ -26,12 +28,14 @@ using std::initializer_list;
 #include <glm/mat3x3.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/common.hpp>
-using glm::vec2; using glm::vec3; using glm::vec4;
-using glm::mat2; using glm::mat3; using glm::mat4;
+#include <glm/gtc/quaternion.hpp>
+using glm::fvec2; using glm::fvec3; using glm::fvec4;
 using glm::dvec2; using glm::dvec3; using glm::dvec4;
 using glm::ivec2; using glm::ivec3; using glm::ivec4;
 using glm::uvec2; using glm::uvec3; using glm::uvec4;
+using glm::fmat2; using glm::fmat3; using glm::fmat4;
 using glm::dmat2; using glm::dmat3; using glm::dmat4;
+using glm::fquat; using glm::dquat;
 
 typedef unsigned int    uint;
 typedef unsigned short  ushort;
