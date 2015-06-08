@@ -14,12 +14,10 @@ const array<fvec3, 6> cubeTans = {
     fvec3(0.f, -1.f, 0.f), fvec3(0.f, -1.f, 0.f)
 };
 
-dvec3 make_tangent(dvec3 _norm);
+fvec3 make_tangent(fvec3 _norm);
 
-dmat3 make_normMat(dmat4 _viewModelMat);
+fmat3 make_normMat(fmat4 _viewModelMat);
 
-dmat3 make_normMat(dmat4 _viewMat, dmat4 _modelMat);
-
-dvec3 norm_from_tri(dvec3 _t0, dvec3 _t1, dvec3 _t2);
+fvec3 norm_from_tri(fvec3 _t0, fvec3 _t1, fvec3 _t2);
 
 }

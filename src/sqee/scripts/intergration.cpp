@@ -18,9 +18,11 @@ using chai::Boxed_Value;
 using chai::boxed_cast;
 
 template<class T> const T add_tvec(const T& lhs, const T& rhs) { return lhs + rhs; }
-template<class T> const T subtract_tvec(const T& lhs, const T& rhs) { return lhs - rhs; }
-template<class T> const T multiply_tvec(const T& lhs, const T& rhs) { return lhs * rhs; }
-template<class T> const T divide_tvec(const T& lhs, const T& rhs) { return lhs / rhs; }
+template<class T> const T sub_tvec(const T& lhs, const T& rhs) { return lhs - rhs; }
+template<class T> const T mul_tvec(const T& lhs, const T& rhs) { return lhs * rhs; }
+template<class T> const T div_tvec(const T& lhs, const T& rhs) { return lhs / rhs; }
+template<class T> const T mul_tvec_val(const T& lhs, typename T::value_type rhs) { return lhs * rhs; }
+template<class T> const T div_tvec_val(const T& lhs, typename T::value_type rhs) { return lhs / rhs; }
 template<class T> vector<T>& assign_vector(vector<T>& lhs, const vector<T>& rhs) { return lhs = rhs; }
 template<class T> vector<T> convert_vector(const vector<Boxed_Value>& vec) { vector<T> ret;
     for (const auto& bv : vec) ret.emplace_back(boxed_cast<T>(bv)); return ret; }
@@ -86,6 +88,7 @@ void sq::cs_setup_maths(chai::ChaiScript& _cs) {
         {fun<fquat& (fquat::*)(const fquat&)>(&fquat::operator=), "="},
         {fun(&fquat::w), "w"}, {fun(&fquat::x), "x"}, {fun(&fquat::y), "y"}, {fun(&fquat::z), "z"}} );
 
+
     m->add(fun(&assign_vector<int>), "=");
     m->add(fun(&assign_vector<uint>), "=");
     m->add(fun(&assign_vector<float>), "=");
@@ -138,43 +141,33 @@ void sq::cs_setup_maths(chai::ChaiScript& _cs) {
     m->add(type_conversion<vector<Boxed_Value>, vector<ivec4>>(&convert_vector<ivec4>));
     m->add(type_conversion<vector<Boxed_Value>, vector<uvec4>>(&convert_vector<uvec4>));
     m->add(type_conversion<vector<Boxed_Value>, vector<fquat>>(&convert_vector<fquat>));
-    m->add(fun(&add_tvec<fvec2>), "+");
-    m->add(fun(&add_tvec<ivec2>), "+");
-    m->add(fun(&add_tvec<uvec2>), "+");
-    m->add(fun(&add_tvec<fvec3>), "+");
-    m->add(fun(&add_tvec<ivec3>), "+");
-    m->add(fun(&add_tvec<uvec3>), "+");
-    m->add(fun(&add_tvec<fvec4>), "+");
-    m->add(fun(&add_tvec<ivec4>), "+");
-    m->add(fun(&add_tvec<uvec4>), "+");
-    m->add(fun(&subtract_tvec<fvec2>), "-");
-    m->add(fun(&subtract_tvec<ivec2>), "-");
-    m->add(fun(&subtract_tvec<uvec2>), "-");
-    m->add(fun(&subtract_tvec<fvec3>), "-");
-    m->add(fun(&subtract_tvec<ivec3>), "-");
-    m->add(fun(&subtract_tvec<uvec3>), "-");
-    m->add(fun(&subtract_tvec<fvec4>), "-");
-    m->add(fun(&subtract_tvec<ivec4>), "-");
-    m->add(fun(&subtract_tvec<uvec4>), "-");
-    m->add(fun(&multiply_tvec<fvec2>), "*");
-    m->add(fun(&multiply_tvec<ivec2>), "*");
-    m->add(fun(&multiply_tvec<uvec2>), "*");
-    m->add(fun(&multiply_tvec<fvec3>), "*");
-    m->add(fun(&multiply_tvec<ivec3>), "*");
-    m->add(fun(&multiply_tvec<uvec3>), "*");
-    m->add(fun(&multiply_tvec<fvec4>), "*");
-    m->add(fun(&multiply_tvec<ivec4>), "*");
-    m->add(fun(&multiply_tvec<uvec4>), "*");
-    m->add(fun(&divide_tvec<fvec2>), "/");
-    m->add(fun(&divide_tvec<ivec2>), "/");
-    m->add(fun(&divide_tvec<uvec2>), "/");
-    m->add(fun(&divide_tvec<fvec3>), "/");
-    m->add(fun(&divide_tvec<ivec3>), "/");
-    m->add(fun(&divide_tvec<uvec3>), "/");
-    m->add(fun(&divide_tvec<fvec4>), "/");
-    m->add(fun(&divide_tvec<ivec4>), "/");
-    m->add(fun(&divide_tvec<uvec4>), "/");
-
+    m->add(fun(&mul_tvec_val<fvec2>), "*"); m->add(fun(&div_tvec_val<fvec2>), "/");
+    m->add(fun(&mul_tvec_val<ivec2>), "*"); m->add(fun(&div_tvec_val<ivec2>), "/");
+    m->add(fun(&mul_tvec_val<uvec2>), "*"); m->add(fun(&div_tvec_val<uvec2>), "/");
+    m->add(fun(&mul_tvec_val<fvec3>), "*"); m->add(fun(&div_tvec_val<fvec3>), "/");
+    m->add(fun(&mul_tvec_val<ivec3>), "*"); m->add(fun(&div_tvec_val<ivec3>), "/");
+    m->add(fun(&mul_tvec_val<uvec3>), "*"); m->add(fun(&div_tvec_val<uvec3>), "/");
+    m->add(fun(&mul_tvec_val<fvec4>), "*"); m->add(fun(&div_tvec_val<fvec4>), "/");
+    m->add(fun(&mul_tvec_val<ivec4>), "*"); m->add(fun(&div_tvec_val<ivec4>), "/");
+    m->add(fun(&mul_tvec_val<uvec4>), "*"); m->add(fun(&div_tvec_val<uvec4>), "/");
+    m->add(fun(&add_tvec<fvec2>), "+"); m->add(fun(&sub_tvec<fvec2>), "-");
+    m->add(fun(&add_tvec<ivec2>), "+"); m->add(fun(&sub_tvec<ivec2>), "-");
+    m->add(fun(&add_tvec<uvec2>), "+"); m->add(fun(&sub_tvec<uvec2>), "-");
+    m->add(fun(&add_tvec<fvec3>), "+"); m->add(fun(&sub_tvec<fvec3>), "-");
+    m->add(fun(&add_tvec<ivec3>), "+"); m->add(fun(&sub_tvec<ivec3>), "-");
+    m->add(fun(&add_tvec<uvec3>), "+"); m->add(fun(&sub_tvec<uvec3>), "-");
+    m->add(fun(&add_tvec<fvec4>), "+"); m->add(fun(&sub_tvec<fvec4>), "-");
+    m->add(fun(&add_tvec<ivec4>), "+"); m->add(fun(&sub_tvec<ivec4>), "-");
+    m->add(fun(&add_tvec<uvec4>), "+"); m->add(fun(&sub_tvec<uvec4>), "-");
+    m->add(fun(&mul_tvec<fvec2>), "*"); m->add(fun(&div_tvec<fvec2>), "/");
+    m->add(fun(&mul_tvec<ivec2>), "*"); m->add(fun(&div_tvec<ivec2>), "/");
+    m->add(fun(&mul_tvec<uvec2>), "*"); m->add(fun(&div_tvec<uvec2>), "/");
+    m->add(fun(&mul_tvec<fvec3>), "*"); m->add(fun(&div_tvec<fvec3>), "/");
+    m->add(fun(&mul_tvec<ivec3>), "*"); m->add(fun(&div_tvec<ivec3>), "/");
+    m->add(fun(&mul_tvec<uvec3>), "*"); m->add(fun(&div_tvec<uvec3>), "/");
+    m->add(fun(&mul_tvec<fvec4>), "*"); m->add(fun(&div_tvec<fvec4>), "/");
+    m->add(fun(&mul_tvec<ivec4>), "*"); m->add(fun(&div_tvec<ivec4>), "/");
+    m->add(fun(&mul_tvec<uvec4>), "*"); m->add(fun(&div_tvec<uvec4>), "/");
     m->add(fun(normalize_fvec3), "normalize");
     m->add(fun(normalize_fquat), "normalize");
 
@@ -212,7 +205,6 @@ void sq::cs_setup_settings(chai::ChaiScript& _cs) {
         {fun(&SettingsMaps::crnt<string>), "crntS"},
         {fun(&SettingsMaps::next<string>), "nextS"},
         {fun(&SettingsMaps::apply), "apply"} });
-
     _cs.add(m);
 }
 

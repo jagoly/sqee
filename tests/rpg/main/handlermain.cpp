@@ -7,6 +7,8 @@
 using namespace sqt;
 
 bool HandlerMain::handle(const sf::Event& _event) {
+    auto scene = appBase->get_scene<SceneMain>("main");
+
     if (_event.type == sf::Event::KeyPressed) {
         if (_event.key.code == sf::Keyboard::S) {
             int crnt = settings->crnt<int>("shadQlty");
@@ -59,9 +61,8 @@ bool HandlerMain::handle(const sf::Event& _event) {
 
     if (_event.type == sf::Event::MouseButtonPressed) {
         if (_event.mouseButton.button == sf::Mouse::Left) {
-            bool crnt = settings->crnt<bool>("mouseFocus");
-            settings->mod<bool>("mouseFocus", !crnt);
-            settings->apply(); appBase->update(); return true;
+            if (settings->crnt<bool>("console_active")) return false;
+            appBase->mouse_relatify(); scene->focused = true; return true;
         }
     }
     return false;

@@ -108,9 +108,9 @@ class ResHolder;
 enum class Direction { None, North, East, South, West };
 enum class Alignment { TL, TC, TR, CL, CC, CR, BL, BC, BR };
 enum class Grid4x4 { AA, AB, AC, AD, BA, BB, BC, BD, CA, CB, CC, CD, DA, DB, DC, DD };
-struct Plane { dvec3 normal; double offset; };
-struct Sphere { dvec3 origin; double radius; };
-struct Frustum { Sphere sphere; Plane pN, pT, pB, pL, pR; dvec3 xy, xY, Xy, XY; };
-struct BoundBox { Sphere sphere; dvec3 size, nX{1,0,0}, nY{0,1,0}, nZ{0,0,1}; };
+struct Plane { fvec3 normal; float offset; };
+struct Sphere { fvec3 origin; float radius; };
+struct Frustum { Sphere sphere; Plane pN, pT, pB, pL, pR; fvec3 xy, xY, Xy, XY; };
+struct BoundBox { Sphere sphere; fvec3 size, nX{1,0,0}, nY{0,1,0}, nZ{0,0,1}; };
 
 }

@@ -18,6 +18,7 @@ Application::Application(bool _resizable) {
     sfmlSettings.majorVersion = 3u,
     sfmlSettings.minorVersion = 3u,
     sfmlSettings.antialiasingLevel = 0u;
+    sfmlSettings.attributeFlags = sf::ContextSettings::Core;
     sf::Uint32 winStyle = sf::Style::Close | sf::Style::Titlebar;
     if (_resizable) winStyle = winStyle | sf::Style::Resize;
     window.create({480, 360}, "", winStyle, sfmlSettings);

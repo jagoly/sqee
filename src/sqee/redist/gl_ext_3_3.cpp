@@ -2,7 +2,7 @@
 #include <vector>
 #include <string.h>
 #include <stddef.h>
-#include "sqee/redist/gl_ext_3_3.hpp"
+#include <sqee/redist/gl_ext_3_3.hpp>
 
 #if defined(__APPLE__)
 #include <mach-o/dyld.h>
@@ -100,16 +100,68 @@ namespace gl
 {
 	namespace exts
 	{
+		LoadTest var_KHR_debug;
 		LoadTest var_ARB_separate_shader_objects;
 		LoadTest var_ARB_shading_language_420pack;
-		LoadTest var_ARB_copy_image;
-		LoadTest var_KHR_debug;
+		LoadTest var_ARB_texture_buffer_range;
 		LoadTest var_ARB_texture_storage;
+		LoadTest var_ARB_texture_view;
 		
 	} //namespace exts
 	
 	namespace _detail
 	{
+		typedef void (CODEGEN_FUNCPTR *PFNDEBUGMESSAGECALLBACK)(GLDEBUGPROC, const void *);
+		PFNDEBUGMESSAGECALLBACK DebugMessageCallback = 0;
+		typedef void (CODEGEN_FUNCPTR *PFNDEBUGMESSAGECONTROL)(GLenum, GLenum, GLenum, GLsizei, const GLuint *, GLboolean);
+		PFNDEBUGMESSAGECONTROL DebugMessageControl = 0;
+		typedef void (CODEGEN_FUNCPTR *PFNDEBUGMESSAGEINSERT)(GLenum, GLenum, GLuint, GLenum, GLsizei, const GLchar *);
+		PFNDEBUGMESSAGEINSERT DebugMessageInsert = 0;
+		typedef GLuint (CODEGEN_FUNCPTR *PFNGETDEBUGMESSAGELOG)(GLuint, GLsizei, GLenum *, GLenum *, GLuint *, GLenum *, GLsizei *, GLchar *);
+		PFNGETDEBUGMESSAGELOG GetDebugMessageLog = 0;
+		typedef void (CODEGEN_FUNCPTR *PFNGETOBJECTLABEL)(GLenum, GLuint, GLsizei, GLsizei *, GLchar *);
+		PFNGETOBJECTLABEL GetObjectLabel = 0;
+		typedef void (CODEGEN_FUNCPTR *PFNGETOBJECTPTRLABEL)(const void *, GLsizei, GLsizei *, GLchar *);
+		PFNGETOBJECTPTRLABEL GetObjectPtrLabel = 0;
+		typedef void (CODEGEN_FUNCPTR *PFNGETPOINTERV)(GLenum, GLvoid **);
+		PFNGETPOINTERV GetPointerv = 0;
+		typedef void (CODEGEN_FUNCPTR *PFNOBJECTLABEL)(GLenum, GLuint, GLsizei, const GLchar *);
+		PFNOBJECTLABEL ObjectLabel = 0;
+		typedef void (CODEGEN_FUNCPTR *PFNOBJECTPTRLABEL)(const void *, GLsizei, const GLchar *);
+		PFNOBJECTPTRLABEL ObjectPtrLabel = 0;
+		typedef void (CODEGEN_FUNCPTR *PFNPOPDEBUGGROUP)();
+		PFNPOPDEBUGGROUP PopDebugGroup = 0;
+		typedef void (CODEGEN_FUNCPTR *PFNPUSHDEBUGGROUP)(GLenum, GLuint, GLsizei, const GLchar *);
+		PFNPUSHDEBUGGROUP PushDebugGroup = 0;
+		
+		static int Load_KHR_debug()
+		{
+			int numFailed = 0;
+			DebugMessageCallback = reinterpret_cast<PFNDEBUGMESSAGECALLBACK>(IntGetProcAddress("glDebugMessageCallback"));
+			if(!DebugMessageCallback) ++numFailed;
+			DebugMessageControl = reinterpret_cast<PFNDEBUGMESSAGECONTROL>(IntGetProcAddress("glDebugMessageControl"));
+			if(!DebugMessageControl) ++numFailed;
+			DebugMessageInsert = reinterpret_cast<PFNDEBUGMESSAGEINSERT>(IntGetProcAddress("glDebugMessageInsert"));
+			if(!DebugMessageInsert) ++numFailed;
+			GetDebugMessageLog = reinterpret_cast<PFNGETDEBUGMESSAGELOG>(IntGetProcAddress("glGetDebugMessageLog"));
+			if(!GetDebugMessageLog) ++numFailed;
+			GetObjectLabel = reinterpret_cast<PFNGETOBJECTLABEL>(IntGetProcAddress("glGetObjectLabel"));
+			if(!GetObjectLabel) ++numFailed;
+			GetObjectPtrLabel = reinterpret_cast<PFNGETOBJECTPTRLABEL>(IntGetProcAddress("glGetObjectPtrLabel"));
+			if(!GetObjectPtrLabel) ++numFailed;
+			GetPointerv = reinterpret_cast<PFNGETPOINTERV>(IntGetProcAddress("glGetPointerv"));
+			if(!GetPointerv) ++numFailed;
+			ObjectLabel = reinterpret_cast<PFNOBJECTLABEL>(IntGetProcAddress("glObjectLabel"));
+			if(!ObjectLabel) ++numFailed;
+			ObjectPtrLabel = reinterpret_cast<PFNOBJECTPTRLABEL>(IntGetProcAddress("glObjectPtrLabel"));
+			if(!ObjectPtrLabel) ++numFailed;
+			PopDebugGroup = reinterpret_cast<PFNPOPDEBUGGROUP>(IntGetProcAddress("glPopDebugGroup"));
+			if(!PopDebugGroup) ++numFailed;
+			PushDebugGroup = reinterpret_cast<PFNPUSHDEBUGGROUP>(IntGetProcAddress("glPushDebugGroup"));
+			if(!PushDebugGroup) ++numFailed;
+			return numFailed;
+		}
+		
 		typedef void (CODEGEN_FUNCPTR *PFNACTIVESHADERPROGRAM)(GLuint, GLuint);
 		PFNACTIVESHADERPROGRAM ActiveShaderProgram = 0;
 		typedef void (CODEGEN_FUNCPTR *PFNBINDPROGRAMPIPELINE)(GLuint);
@@ -357,65 +409,14 @@ namespace gl
 			return numFailed;
 		}
 		
-		typedef void (CODEGEN_FUNCPTR *PFNCOPYIMAGESUBDATA)(GLuint, GLenum, GLint, GLint, GLint, GLint, GLuint, GLenum, GLint, GLint, GLint, GLint, GLsizei, GLsizei, GLsizei);
-		PFNCOPYIMAGESUBDATA CopyImageSubData = 0;
+		typedef void (CODEGEN_FUNCPTR *PFNTEXBUFFERRANGE)(GLenum, GLenum, GLuint, GLintptr, GLsizeiptr);
+		PFNTEXBUFFERRANGE TexBufferRange = 0;
 		
-		static int Load_ARB_copy_image()
+		static int Load_ARB_texture_buffer_range()
 		{
 			int numFailed = 0;
-			CopyImageSubData = reinterpret_cast<PFNCOPYIMAGESUBDATA>(IntGetProcAddress("glCopyImageSubData"));
-			if(!CopyImageSubData) ++numFailed;
-			return numFailed;
-		}
-		
-		typedef void (CODEGEN_FUNCPTR *PFNDEBUGMESSAGECALLBACK)(GLDEBUGPROC, const void *);
-		PFNDEBUGMESSAGECALLBACK DebugMessageCallback = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNDEBUGMESSAGECONTROL)(GLenum, GLenum, GLenum, GLsizei, const GLuint *, GLboolean);
-		PFNDEBUGMESSAGECONTROL DebugMessageControl = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNDEBUGMESSAGEINSERT)(GLenum, GLenum, GLuint, GLenum, GLsizei, const GLchar *);
-		PFNDEBUGMESSAGEINSERT DebugMessageInsert = 0;
-		typedef GLuint (CODEGEN_FUNCPTR *PFNGETDEBUGMESSAGELOG)(GLuint, GLsizei, GLenum *, GLenum *, GLuint *, GLenum *, GLsizei *, GLchar *);
-		PFNGETDEBUGMESSAGELOG GetDebugMessageLog = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNGETOBJECTLABEL)(GLenum, GLuint, GLsizei, GLsizei *, GLchar *);
-		PFNGETOBJECTLABEL GetObjectLabel = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNGETOBJECTPTRLABEL)(const void *, GLsizei, GLsizei *, GLchar *);
-		PFNGETOBJECTPTRLABEL GetObjectPtrLabel = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNGETPOINTERV)(GLenum, GLvoid **);
-		PFNGETPOINTERV GetPointerv = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNOBJECTLABEL)(GLenum, GLuint, GLsizei, const GLchar *);
-		PFNOBJECTLABEL ObjectLabel = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNOBJECTPTRLABEL)(const void *, GLsizei, const GLchar *);
-		PFNOBJECTPTRLABEL ObjectPtrLabel = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNPOPDEBUGGROUP)();
-		PFNPOPDEBUGGROUP PopDebugGroup = 0;
-		typedef void (CODEGEN_FUNCPTR *PFNPUSHDEBUGGROUP)(GLenum, GLuint, GLsizei, const GLchar *);
-		PFNPUSHDEBUGGROUP PushDebugGroup = 0;
-		
-		static int Load_KHR_debug()
-		{
-			int numFailed = 0;
-			DebugMessageCallback = reinterpret_cast<PFNDEBUGMESSAGECALLBACK>(IntGetProcAddress("glDebugMessageCallback"));
-			if(!DebugMessageCallback) ++numFailed;
-			DebugMessageControl = reinterpret_cast<PFNDEBUGMESSAGECONTROL>(IntGetProcAddress("glDebugMessageControl"));
-			if(!DebugMessageControl) ++numFailed;
-			DebugMessageInsert = reinterpret_cast<PFNDEBUGMESSAGEINSERT>(IntGetProcAddress("glDebugMessageInsert"));
-			if(!DebugMessageInsert) ++numFailed;
-			GetDebugMessageLog = reinterpret_cast<PFNGETDEBUGMESSAGELOG>(IntGetProcAddress("glGetDebugMessageLog"));
-			if(!GetDebugMessageLog) ++numFailed;
-			GetObjectLabel = reinterpret_cast<PFNGETOBJECTLABEL>(IntGetProcAddress("glGetObjectLabel"));
-			if(!GetObjectLabel) ++numFailed;
-			GetObjectPtrLabel = reinterpret_cast<PFNGETOBJECTPTRLABEL>(IntGetProcAddress("glGetObjectPtrLabel"));
-			if(!GetObjectPtrLabel) ++numFailed;
-			GetPointerv = reinterpret_cast<PFNGETPOINTERV>(IntGetProcAddress("glGetPointerv"));
-			if(!GetPointerv) ++numFailed;
-			ObjectLabel = reinterpret_cast<PFNOBJECTLABEL>(IntGetProcAddress("glObjectLabel"));
-			if(!ObjectLabel) ++numFailed;
-			ObjectPtrLabel = reinterpret_cast<PFNOBJECTPTRLABEL>(IntGetProcAddress("glObjectPtrLabel"));
-			if(!ObjectPtrLabel) ++numFailed;
-			PopDebugGroup = reinterpret_cast<PFNPOPDEBUGGROUP>(IntGetProcAddress("glPopDebugGroup"));
-			if(!PopDebugGroup) ++numFailed;
-			PushDebugGroup = reinterpret_cast<PFNPUSHDEBUGGROUP>(IntGetProcAddress("glPushDebugGroup"));
-			if(!PushDebugGroup) ++numFailed;
+			TexBufferRange = reinterpret_cast<PFNTEXBUFFERRANGE>(IntGetProcAddress("glTexBufferRange"));
+			if(!TexBufferRange) ++numFailed;
 			return numFailed;
 		}
 		
@@ -435,6 +436,17 @@ namespace gl
 			if(!TexStorage2D) ++numFailed;
 			TexStorage3D = reinterpret_cast<PFNTEXSTORAGE3D>(IntGetProcAddress("glTexStorage3D"));
 			if(!TexStorage3D) ++numFailed;
+			return numFailed;
+		}
+		
+		typedef void (CODEGEN_FUNCPTR *PFNTEXTUREVIEW)(GLuint, GLenum, GLuint, GLenum, GLuint, GLuint, GLuint, GLuint);
+		PFNTEXTUREVIEW TextureView = 0;
+		
+		static int Load_ARB_texture_view()
+		{
+			int numFailed = 0;
+			TextureView = reinterpret_cast<PFNTEXTUREVIEW>(IntGetProcAddress("glTextureView"));
+			if(!TextureView) ++numFailed;
 			return numFailed;
 		}
 		
@@ -1867,21 +1879,23 @@ namespace gl
 			
 			void InitializeMappingTable(std::vector<MapEntry> &table)
 			{
-				table.reserve(5);
+				table.reserve(6);
+				table.push_back(MapEntry("GL_KHR_debug", &exts::var_KHR_debug, _detail::Load_KHR_debug));
 				table.push_back(MapEntry("GL_ARB_separate_shader_objects", &exts::var_ARB_separate_shader_objects, _detail::Load_ARB_separate_shader_objects));
 				table.push_back(MapEntry("GL_ARB_shading_language_420pack", &exts::var_ARB_shading_language_420pack));
-				table.push_back(MapEntry("GL_ARB_copy_image", &exts::var_ARB_copy_image, _detail::Load_ARB_copy_image));
-				table.push_back(MapEntry("GL_KHR_debug", &exts::var_KHR_debug, _detail::Load_KHR_debug));
+				table.push_back(MapEntry("GL_ARB_texture_buffer_range", &exts::var_ARB_texture_buffer_range, _detail::Load_ARB_texture_buffer_range));
 				table.push_back(MapEntry("GL_ARB_texture_storage", &exts::var_ARB_texture_storage, _detail::Load_ARB_texture_storage));
+				table.push_back(MapEntry("GL_ARB_texture_view", &exts::var_ARB_texture_view, _detail::Load_ARB_texture_view));
 			}
 			
 			void ClearExtensionVars()
 			{
+				exts::var_KHR_debug = exts::LoadTest();
 				exts::var_ARB_separate_shader_objects = exts::LoadTest();
 				exts::var_ARB_shading_language_420pack = exts::LoadTest();
-				exts::var_ARB_copy_image = exts::LoadTest();
-				exts::var_KHR_debug = exts::LoadTest();
+				exts::var_ARB_texture_buffer_range = exts::LoadTest();
 				exts::var_ARB_texture_storage = exts::LoadTest();
+				exts::var_ARB_texture_view = exts::LoadTest();
 			}
 			
 			void LoadExtByName(std::vector<MapEntry> &table, const char *extensionName)

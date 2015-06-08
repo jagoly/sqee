@@ -21,9 +21,9 @@ SkyBox::SkyBox(MainCamera* _camera) : camera(_camera) {
 }
 
 void SkyBox::refresh() {
-    if (DAT_enabled == false) return;
+    if (PROP_enabled == false) return;
 
-    string texPath = "skybox/" + DAT_texPath;
+    string texPath = "skybox/" + PROP_texPath;
     if (!(tex = sq::res::texCube().get(texPath)))
         tex = sq::res::texCube().add(texPath),
         tex->create(gl::RGB, gl::RGB8, 3),
@@ -31,15 +31,15 @@ void SkyBox::refresh() {
         tex->buffer_full(texPath, 1024u);
 
     ubo->bind(1);
-    ubo->update("colour", &DAT_colour);
+    ubo->update("colour", &PROP_colour);
 }
 
 void SkyBox::tick() {
-    if (DAT_enabled == false) return;
+    if (PROP_enabled == false) return;
 }
 
 void SkyBox::calc(double _accum) {
-    if (DAT_enabled == false) return;
+    if (PROP_enabled == false) return;
 }
 
 
@@ -50,29 +50,34 @@ Ambient::Ambient(MainCamera* _camera) : camera(_camera) {
 }
 
 void Ambient::refresh() {
-    if (DAT_enabled == false) return;
-
-    ubo->bind(1);
-    ubo->update("colour", &DAT_colour);
+    if (PROP_enabled == false) return;
+    animate();
 }
 
 void Ambient::tick() {
-    if (DAT_enabled == false) return;
+    if (PROP_enabled == false) return; bool doFinish = false;
+    if (ANIM_colour.active()) if (ANIM_colour.tick()) doFinish = true;
+    if (doFinish == true) animate();
 }
 
 void Ambient::calc(double _accum) {
-    if (DAT_enabled == false) return;
+    if (PROP_enabled == false) return; bool doAnim = false;
+    if (ANIM_colour.active()) { ANIM_colour.calc(_accum); doAnim = true; }
+    if (doAnim == true) animate();
 }
 
+void Ambient::animate() {
+    ubo->bind(1);
+    ubo->update("colour", &PROP_colour);
+}
 
 SkyLight::SkyLight(MainCamera* _camera) : camera(_camera) {
     ubo.reset(new sq::Uniformbuffer());
+    ubo->reserve("direction", 4);
     ubo->reserve("colour", 4);
-    ubo->reserve("normal", 4);
-    ubo->reserve("splitsA", 4);
-    ubo->reserve("splitsB", 4);
     ubo->reserve("matArrA", 4*16);
     ubo->reserve("matArrB", 2*16);
+    ubo->reserve("splits", 4);
     ubo->create();
 
     texA.reset(new sq::Texture2DArray());
@@ -90,58 +95,74 @@ SkyLight::SkyLight(MainCamera* _camera) : camera(_camera) {
 }
 
 void SkyLight::refresh() {
-    if (DAT_enabled == false) return;
-
-    ubo->bind(1);
-    ubo->update("colour", &DAT_colour);
-    ubo->update("normal", &DAT_normal);
+    if (PROP_enabled == false) return;
+    animate();
 }
 
 void SkyLight::tick() {
-    if (DAT_enabled == false) return;
-
-    ubo->bind(1);
-
-    array<fvec3, 4> centres;
-    const float weight = 0.6f;
-    float prevSplit = camera->rmin;
-    for (int i = 0; i < 4; i++) {
-        float f = float(i+1) / 4.f;
-        float splitUni = camera->rmin + (camera->rmax - camera->rmin) * f;
-        float splitLog = camera->rmin * glm::pow(camera->rmax / camera->rmin, f);
-        float splitMix = glm::mix(splitUni, splitLog, weight);
-        centres[i] = camera->pos + camera->dir * (prevSplit + splitMix) / 2.f;
-        splitArrA[i] = splitMix; prevSplit = splitMix;
-    } ubo->update("splitsA", splitArrA.data());
-
-    fvec3 tangent = sq::make_tangent(DAT_normal);
-    for (int i = 0; i < 4; i++) {
-        const auto& centre = centres[i]; const auto& split = splitArrA[i];
-        fmat4 viewMat = glm::lookAt(centre-DAT_normal, centre, tangent);
-        viewMat[3][0] -= glm::mod(viewMat[3][0], split / 512.f);
-        viewMat[3][1] -= glm::mod(viewMat[3][1], split / 512.f);
-        viewMat[3][2] -= glm::mod(viewMat[3][2], split / 512.f);
-        fmat4 projMat = glm::ortho(-split, split, -split, split, -split, split);
-        matArrA[i] = projMat * viewMat;
-    } ubo->update("matArrA", matArrA.data());
-
-    fmat4 viewMat = glm::lookAt(camera->pos-DAT_normal, camera->pos, tangent);
-    fmat4 viewMat0 = viewMat, viewMat1 = viewMat;
-    float f0 = camera->rmax*0.4f, f1 = camera->rmax;
-    viewMat0[3][0] -= glm::mod(viewMat0[3][0], f0 / 512.f);
-    viewMat0[3][1] -= glm::mod(viewMat0[3][1], f0 / 512.f);
-    viewMat0[3][2] -= glm::mod(viewMat0[3][2], f0 / 512.f);
-    viewMat1[3][0] -= glm::mod(viewMat1[3][0], f1 / 512.f);
-    viewMat1[3][1] -= glm::mod(viewMat1[3][1], f1 / 512.f);
-    viewMat1[3][2] -= glm::mod(viewMat1[3][2], f1 / 512.f);
-    matArrB[0] = glm::ortho(-f0, f0, -f0, f0, -f0, f0) * viewMat0;
-    matArrB[1] = glm::ortho(-f1, f1, -f1, f1, -f1, f1) * viewMat1;
-    ubo->update("splitsB", splitArrB.data());
-    ubo->update("matArrB", matArrB.data());
+    if (PROP_enabled == false) return; bool doFinish = false;
+    if (ANIM_direction.active()) if (ANIM_direction.tick()) doFinish = true;
+    if (ANIM_colour.active())    if (ANIM_colour.tick())    doFinish = true;
+    if (doFinish == true) animate();
 }
 
 void SkyLight::calc(double _accum) {
-    if (DAT_enabled == false) return;
+    if (PROP_enabled == false) return; bool doAnim = false;
+    if (ANIM_direction.active()) { ANIM_direction.calc(_accum); doAnim = true; }
+    if (ANIM_colour.active())    { ANIM_colour.calc(_accum);    doAnim = true; }
+    if (doAnim == true) animate(); else ubo->bind(1);
+
+    fvec4& sp = splits; array<fvec3, 4> centres;
+    const float rmin = camera->rmin, rmax = camera->rmax;
+    const fvec3 tangent = sq::make_tangent(PROP_direction);
+    sp.x = glm::mix(rmin+(rmax-rmin)*0.25f, rmin*glm::pow(rmax/rmin, 0.25f), 0.6f);
+    sp.y = glm::mix(rmin+(rmax-rmin)*0.50f, rmin*glm::pow(rmax/rmin, 0.50f), 0.6f);
+    sp.z = glm::mix(rmin+(rmax-rmin)*0.75f, rmin*glm::pow(rmax/rmin, 0.75f), 0.6f);
+    centres[0] = camera->pos + camera->dir * (rmin + sp.x) / 2.f;
+    centres[1] = camera->pos + camera->dir * (sp.x + sp.y) / 2.f;
+    centres[2] = camera->pos + camera->dir * (sp.y + sp.z) / 2.f;
+    centres[3] = camera->pos + camera->dir * (sp.z + rmax) / 2.f;
+    fmat4 viewMatA0 = glm::lookAt(centres[0]-PROP_direction, centres[0], tangent);
+    fmat4 viewMatA1 = glm::lookAt(centres[1]-PROP_direction, centres[1], tangent);
+    fmat4 viewMatA2 = glm::lookAt(centres[2]-PROP_direction, centres[2], tangent);
+    fmat4 viewMatA3 = glm::lookAt(centres[3]-PROP_direction, centres[3], tangent);
+    viewMatA0[3][0] -= glm::mod(viewMatA0[3][0], sp.x / 512.f);
+    viewMatA0[3][1] -= glm::mod(viewMatA0[3][1], sp.x / 512.f);
+    viewMatA0[3][2] -= glm::mod(viewMatA0[3][2], sp.x / 512.f);
+    viewMatA1[3][0] -= glm::mod(viewMatA1[3][0], sp.y / 512.f);
+    viewMatA1[3][1] -= glm::mod(viewMatA1[3][1], sp.y / 512.f);
+    viewMatA1[3][2] -= glm::mod(viewMatA1[3][2], sp.y / 512.f);
+    viewMatA2[3][0] -= glm::mod(viewMatA2[3][0], sp.z / 512.f);
+    viewMatA2[3][1] -= glm::mod(viewMatA2[3][1], sp.z / 512.f);
+    viewMatA2[3][2] -= glm::mod(viewMatA2[3][2], sp.z / 512.f);
+    viewMatA3[3][0] -= glm::mod(viewMatA3[3][0], rmax / 512.f);
+    viewMatA3[3][1] -= glm::mod(viewMatA3[3][1], rmax / 512.f);
+    viewMatA3[3][2] -= glm::mod(viewMatA3[3][2], rmax / 512.f);
+    matArrA[0] = glm::ortho(-sp.x, sp.x, -sp.x, sp.x, -sp.x, sp.x) * viewMatA0;
+    matArrA[1] = glm::ortho(-sp.y, sp.y, -sp.y, sp.y, -sp.y, sp.y) * viewMatA1;
+    matArrA[2] = glm::ortho(-sp.z, sp.z, -sp.z, sp.z, -sp.z, sp.z) * viewMatA2;
+    matArrA[3] = glm::ortho(-rmax, rmax, -rmax, rmax, -rmax, rmax) * viewMatA3;
+
+    fmat4 viewMatB = glm::lookAt(camera->pos-PROP_direction, camera->pos, tangent);
+    sp.w = rmax * 0.4f; fmat4 viewMatB0 = viewMatB, viewMatB1 = viewMatB;
+    viewMatB0[3][0] -= glm::mod(viewMatB0[3][0], sp.w / 512.f);
+    viewMatB0[3][1] -= glm::mod(viewMatB0[3][1], sp.w / 512.f);
+    viewMatB0[3][2] -= glm::mod(viewMatB0[3][2], sp.w / 512.f);
+    viewMatB1[3][0] -= glm::mod(viewMatB1[3][0], rmax / 512.f);
+    viewMatB1[3][1] -= glm::mod(viewMatB1[3][1], rmax / 512.f);
+    viewMatB1[3][2] -= glm::mod(viewMatB1[3][2], rmax / 512.f);
+    matArrB[0] = glm::ortho(-sp.w, sp.w, -sp.w, sp.w, -sp.w, sp.w) * viewMatB0;
+    matArrB[1] = glm::ortho(-rmax, rmax, -rmax, rmax, -rmax, rmax) * viewMatB1;
+
+    ubo->update("matArrA", matArrA.data());
+    ubo->update("matArrB", matArrB.data());
+    ubo->update("splits", &splits);
+}
+
+void SkyLight::animate() {
+    ubo->bind(1);
+    ubo->update("direction", &PROP_direction);
+    ubo->update("colour", &PROP_colour);
 }
 
 

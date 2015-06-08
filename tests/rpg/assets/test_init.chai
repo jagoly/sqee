@@ -1,5 +1,6 @@
 def main() {
     settings.modI("app_width", 1280); settings.modI("app_height", 720);
+//    settings.modI("app_width", 960); settings.modI("app_height", 960);
     settings.modS("app_windowtitle", "SQEE RPG (test_init.chai)");
     settings.apply(); application.update();
 
@@ -19,8 +20,9 @@ def main() {
     world.ambient.refresh();
 
     world.skylight.enabled = true;
+    world.skylight.direction = vec3(-0.36, -0.46, -0.81);
+//    world.skylight.direction = vec3(0.0, 0.0, -1.0);
     world.skylight.colour = vec3(0.9, 0.9, 0.9);
-    world.skylight.normal = vec3(-0.36, -0.46, -0.81);
     world.skylight.refresh();
 
     world.reload_list();
@@ -44,6 +46,7 @@ def add_some_shit() {
     decalSplat.position = vec3(0.0, 0.0, 0.3);
     decalSplat.rotation = quat(0.0, 0.707107, 0.707107, 0.0);
     decalSplat.scale = vec3(2.0, 2.0, 0.7);
+    decalSplat.alpha = 1.0f;
     decalSplat.diff = "blood";
     decalSplat.norm = "blood";
     decalSplat.spec = "blood";
@@ -51,6 +54,7 @@ def add_some_shit() {
 
     var lightPoint = world.get_cell("Sponza").add_PointLight("PointCentre");
     lightPoint.position = vec3(0.0, 0.0, 2.0);
+    lightPoint.colour = vec3(1.0, 1.0, 1.0);
     lightPoint.intensity = 4.0f;
     lightPoint.texsize = 128u;
     lightPoint.shadow = true;
@@ -78,6 +82,53 @@ def add_some_shit() {
     lightSpotS.shadow = true;
     lightSpotS.specular = true;
     lightSpotS.refresh();
+
+    var lightPointNE = world.get_cell("Sponza").add_PointLight("PointNE");
+    lightPointNE.position = vec3(14.0, 5.0, 2.0);
+    lightPointNE.intensity = 7.0f;
+    lightPointNE.texsize = 128u;
+    lightPointNE.shadow = true;
+    lightPointNE.specular = true;
+    lightPointNE.refresh();
+
+    var lightPointSE = world.get_cell("Sponza").add_PointLight("PointSE");
+    lightPointSE.position = vec3(14.0, -5.0, 2.0);
+    lightPointSE.intensity = 7.0f;
+    lightPointSE.texsize = 128u;
+    lightPointSE.shadow = true;
+    lightPointSE.specular = true;
+    lightPointSE.refresh();
+
+    var lightPointSW = world.get_cell("Sponza").add_PointLight("PointSW");
+    lightPointSW.position = vec3(-14.0, -5.0, 2.0);
+    lightPointSW.intensity = 7.0f;
+    lightPointSW.texsize = 128u;
+    lightPointSW.shadow = true;
+    lightPointSW.specular = true;
+    lightPointSW.refresh();
+
+    var lightPointNW = world.get_cell("Sponza").add_PointLight("PointNW");
+    lightPointNW.position = vec3(-14.0, 5.0, 2.0);
+    lightPointNW.intensity = 7.0f;
+    lightPointNW.texsize = 128u;
+    lightPointNW.shadow = true;
+    lightPointNW.specular = true;
+    lightPointNW.refresh();
+
+    var emitterA = world.get_cell("Sponza").add_Emitter("EmitterA");
+    emitterA.position = vec3(+1.0, 0.0, 2.0);
+    emitterA.refresh();
+
+    var emitterB = world.get_cell("Sponza").add_Emitter("EmitterB");
+    emitterB.position = vec3(-1.0, 0.0, 2.0);
+    emitterB.refresh();
+
+    var emitterC = world.get_cell("Sponza").add_Emitter("EmitterC");
+    emitterC.position = vec3(0.0, 0.0, 1.0);
+    emitterC.refresh();
+
+    var emitterGun = world.get_cell("Sponza").add_Emitter("EmitterGun");
+    emitterGun.refresh();
     
     world.reload_list();
     graph.reload_lists();
@@ -115,7 +166,47 @@ def animate_the_shit() {
                                   vec3(2,1,-1) - spotS.direction, spotS.direction - vec3(2,1,-1)];
     spotS.animDirection.times = [10u, 14u, 14u, 10u];
     spotS.animDirection.start();
+
+    var pointNE = world.get_cell("Sponza").get_PointLight("PointNE");
+    var pointSE = world.get_cell("Sponza").get_PointLight("PointSE");
+    var pointSW = world.get_cell("Sponza").get_PointLight("PointSW");
+    var pointNW = world.get_cell("Sponza").get_PointLight("PointNW");
+    pointNE.animPosition.values = [vec3(0,-10,0), vec3(-28,0,0), vec3(0,10,0), vec3(28,0,0)];
+    pointSE.animPosition.values = [vec3(-28,0,0), vec3(0,10,0), vec3(28,0,0), vec3(0,-10,0)];
+    pointSW.animPosition.values = [vec3(0,10,0), vec3(28,0,0), vec3(0,-10,0), vec3(-28,0,0)];
+    pointNW.animPosition.values = [vec3(28,0,0), vec3(0,-10,0), vec3(-28,0,0), vec3(0,10,0)];
+    pointNE.animPosition.times = [8u*4, 16u*4, 8u*4, 16u*4]; pointNE.animPosition.start();
+    pointSE.animPosition.times = [16u*4, 8u*4, 16u*4, 8u*4]; pointSE.animPosition.start();
+    pointSW.animPosition.times = [8u*4, 16u*4, 8u*4, 16u*4]; pointSW.animPosition.start();
+    pointNW.animPosition.times = [16u*4, 8u*4, 16u*4, 8u*4]; pointNW.animPosition.start();
+}
+
+
+def puffA(_count) {
+    var emitterA = world.get_cell("Sponza").get_Emitter("EmitterA");
+    var emitterB = world.get_cell("Sponza").get_Emitter("EmitterB");
+    var emitterC = world.get_cell("Sponza").get_Emitter("EmitterC");
+    emitterA.emit_puff(_count, vec3(-1,0,2), vec3(0.8, 0.2, 0.2), 0.2, 0.3, 9.0, 12.0, 1000u, 1600u);
+    emitterB.emit_puff(_count, vec3(+1,0,2), vec3(0.2, 0.8, 0.2), 0.2, 0.3, 9.0, 12.0, 1000u, 1600u);
+    emitterC.emit_puff(_count, vec3( 0,0,3), vec3(0.2, 0.2, 0.8), 0.2, 0.3, 9.0, 12.0, 1000u, 1600u);
+}
+
+def puffB(_count) {
+    var emitterA = world.get_cell("Sponza").get_Emitter("EmitterA");
+    var emitterB = world.get_cell("Sponza").get_Emitter("EmitterB");
+    var emitterC = world.get_cell("Sponza").get_Emitter("EmitterC");
+    emitterA.emit_puff(_count, vec3(0,0,0), vec3(1.0, 1.0, 1.0), 0.3, 0.5, 1.0, 1.5, 30u, 60u);
+    emitterB.emit_puff(_count, vec3(0,0,0), vec3(1.0, 1.0, 1.0), 0.3, 0.5, 1.0, 1.5, 30u, 60u);
+    emitterC.emit_puff(_count, vec3(0,0,0), vec3(1.0, 1.0, 1.0), 0.3, 0.5, 1.0, 1.5, 30u, 60u);
+}
+
+def puffC(_count) {
+    var emitterGun = world.get_cell("Sponza").get_Emitter("EmitterGun");
+    var gunDir = vec3(camera.direction);
+    emitterGun.position = camera.position; emitterGun.refresh();
+    emitterGun.emit_puff(_count, gunDir*10.0f, vec3(1.0, 1.0, 0.0), 0.2, 0.2, 7.5, 10.0, 75u, 75u);
 }
 
 
 main();
+add_some_shit();

@@ -1,4 +1,5 @@
 #include "sqee/app/application.hpp"
+#include "sqee/app/settings.hpp"
 #include "sqee/app/logging.hpp"
 #include "sqee/scripts/chaiscript.hpp"
 #include "sqee/text/text.hpp"
@@ -8,6 +9,7 @@ using namespace sq;
 
 SceneConsole::SceneConsole(Application* _app) : Scene(_app) {
     appBase->cs->add_global(chai::var(this), "console");
+    settings->add<bool>("console_active", false);
 }
 
 void SceneConsole::render(float _ft) {
@@ -84,7 +86,6 @@ void SceneConsole::handle_action(Action _action) {
 
 void SceneConsole::cs_print(const string& _value) {
     output.emplace_front(_value);
-    //std::cout << _value << std::endl;
 }
 
 void SceneConsole::cs_clear() {

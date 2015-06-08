@@ -29,7 +29,7 @@
 #ifndef APIENTRY
 	#if defined(__MINGW32__)
 		#ifndef WIN32_LEAN_AND_MEAN
-            #define WIN32_LEAN_AND_MEAN
+			#define WIN32_LEAN_AND_MEAN 1
 		#endif
 		#ifndef NOMINMAX
 			#define NOMINMAX
@@ -37,7 +37,7 @@
 		#include <windows.h>
 	#elif (_MSC_VER >= 800) || defined(_STDCALL_SUPPORTED) || defined(__BORLANDC__)
 		#ifndef WIN32_LEAN_AND_MEAN
-            #define WIN32_LEAN_AND_MEAN
+			#define WIN32_LEAN_AND_MEAN 1
 		#endif
 		#ifndef NOMINMAX
 			#define NOMINMAX
@@ -174,25 +174,16 @@ namespace gl
 			int m_numMissing;
 		};
 		
+		extern LoadTest var_KHR_debug;
 		extern LoadTest var_ARB_separate_shader_objects;
 		extern LoadTest var_ARB_shading_language_420pack;
-		extern LoadTest var_ARB_copy_image;
-		extern LoadTest var_KHR_debug;
+		extern LoadTest var_ARB_texture_buffer_range;
 		extern LoadTest var_ARB_texture_storage;
+		extern LoadTest var_ARB_texture_view;
 		
 	} //namespace exts
 	enum
 	{
-		ACTIVE_PROGRAM                   = 0x8259,
-		ALL_SHADER_BITS                  = 0xFFFFFFFF,
-		FRAGMENT_SHADER_BIT              = 0x00000002,
-		GEOMETRY_SHADER_BIT              = 0x00000004,
-		PROGRAM_PIPELINE_BINDING         = 0x825A,
-		PROGRAM_SEPARABLE                = 0x8258,
-		TESS_CONTROL_SHADER_BIT          = 0x00000008,
-		TESS_EVALUATION_SHADER_BIT       = 0x00000010,
-		VERTEX_SHADER_BIT                = 0x00000001,
-		
 		BUFFER                           = 0x82E0,
 		CONTEXT_FLAG_DEBUG_BIT           = 0x00000002,
 		DEBUG_CALLBACK_FUNCTION          = 0x8244,
@@ -235,7 +226,27 @@ namespace gl
 		STACK_UNDERFLOW                  = 0x0504,
 		VERTEX_ARRAY                     = 0x8074,
 		
+		ACTIVE_PROGRAM                   = 0x8259,
+		ALL_SHADER_BITS                  = 0xFFFFFFFF,
+		FRAGMENT_SHADER_BIT              = 0x00000002,
+		GEOMETRY_SHADER_BIT              = 0x00000004,
+		PROGRAM_PIPELINE_BINDING         = 0x825A,
+		PROGRAM_SEPARABLE                = 0x8258,
+		TESS_CONTROL_SHADER_BIT          = 0x00000008,
+		TESS_EVALUATION_SHADER_BIT       = 0x00000010,
+		VERTEX_SHADER_BIT                = 0x00000001,
+		
+		TEXTURE_BUFFER_OFFSET            = 0x919D,
+		TEXTURE_BUFFER_OFFSET_ALIGNMENT  = 0x919F,
+		TEXTURE_BUFFER_SIZE              = 0x919E,
+		
 		TEXTURE_IMMUTABLE_FORMAT         = 0x912F,
+		
+		TEXTURE_IMMUTABLE_LEVELS         = 0x82DF,
+		TEXTURE_VIEW_MIN_LAYER           = 0x82DD,
+		TEXTURE_VIEW_MIN_LEVEL           = 0x82DB,
+		TEXTURE_VIEW_NUM_LAYERS          = 0x82DE,
+		TEXTURE_VIEW_NUM_LEVELS          = 0x82DC,
 		
 		ALPHA                            = 0x1906,
 		ALWAYS                           = 0x0207,
@@ -1052,6 +1063,18 @@ namespace gl
 	
 	namespace _detail
 	{
+		extern void (CODEGEN_FUNCPTR *DebugMessageCallback)(GLDEBUGPROC callback, const void * userParam);
+		extern void (CODEGEN_FUNCPTR *DebugMessageControl)(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint * ids, GLboolean enabled);
+		extern void (CODEGEN_FUNCPTR *DebugMessageInsert)(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar * buf);
+		extern GLuint (CODEGEN_FUNCPTR *GetDebugMessageLog)(GLuint count, GLsizei bufsize, GLenum * sources, GLenum * types, GLuint * ids, GLenum * severities, GLsizei * lengths, GLchar * messageLog);
+		extern void (CODEGEN_FUNCPTR *GetObjectLabel)(GLenum identifier, GLuint name, GLsizei bufSize, GLsizei * length, GLchar * label);
+		extern void (CODEGEN_FUNCPTR *GetObjectPtrLabel)(const void * ptr, GLsizei bufSize, GLsizei * length, GLchar * label);
+		extern void (CODEGEN_FUNCPTR *GetPointerv)(GLenum pname, GLvoid ** params);
+		extern void (CODEGEN_FUNCPTR *ObjectLabel)(GLenum identifier, GLuint name, GLsizei length, const GLchar * label);
+		extern void (CODEGEN_FUNCPTR *ObjectPtrLabel)(const void * ptr, GLsizei length, const GLchar * label);
+		extern void (CODEGEN_FUNCPTR *PopDebugGroup)();
+		extern void (CODEGEN_FUNCPTR *PushDebugGroup)(GLenum source, GLuint id, GLsizei length, const GLchar * message);
+		
 		extern void (CODEGEN_FUNCPTR *ActiveShaderProgram)(GLuint pipeline, GLuint program);
 		extern void (CODEGEN_FUNCPTR *BindProgramPipeline)(GLuint pipeline);
 		extern GLuint (CODEGEN_FUNCPTR *CreateShaderProgramv)(GLenum type, GLsizei count, const GLchar *const* strings);
@@ -1114,23 +1137,13 @@ namespace gl
 		extern void (CODEGEN_FUNCPTR *ValidateProgramPipeline)(GLuint pipeline);
 		
 		
-		extern void (CODEGEN_FUNCPTR *CopyImageSubData)(GLuint srcName, GLenum srcTarget, GLint srcLevel, GLint srcX, GLint srcY, GLint srcZ, GLuint dstName, GLenum dstTarget, GLint dstLevel, GLint dstX, GLint dstY, GLint dstZ, GLsizei srcWidth, GLsizei srcHeight, GLsizei srcDepth);
-		
-		extern void (CODEGEN_FUNCPTR *DebugMessageCallback)(GLDEBUGPROC callback, const void * userParam);
-		extern void (CODEGEN_FUNCPTR *DebugMessageControl)(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint * ids, GLboolean enabled);
-		extern void (CODEGEN_FUNCPTR *DebugMessageInsert)(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar * buf);
-		extern GLuint (CODEGEN_FUNCPTR *GetDebugMessageLog)(GLuint count, GLsizei bufsize, GLenum * sources, GLenum * types, GLuint * ids, GLenum * severities, GLsizei * lengths, GLchar * messageLog);
-		extern void (CODEGEN_FUNCPTR *GetObjectLabel)(GLenum identifier, GLuint name, GLsizei bufSize, GLsizei * length, GLchar * label);
-		extern void (CODEGEN_FUNCPTR *GetObjectPtrLabel)(const void * ptr, GLsizei bufSize, GLsizei * length, GLchar * label);
-		extern void (CODEGEN_FUNCPTR *GetPointerv)(GLenum pname, GLvoid ** params);
-		extern void (CODEGEN_FUNCPTR *ObjectLabel)(GLenum identifier, GLuint name, GLsizei length, const GLchar * label);
-		extern void (CODEGEN_FUNCPTR *ObjectPtrLabel)(const void * ptr, GLsizei length, const GLchar * label);
-		extern void (CODEGEN_FUNCPTR *PopDebugGroup)();
-		extern void (CODEGEN_FUNCPTR *PushDebugGroup)(GLenum source, GLuint id, GLsizei length, const GLchar * message);
+		extern void (CODEGEN_FUNCPTR *TexBufferRange)(GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size);
 		
 		extern void (CODEGEN_FUNCPTR *TexStorage1D)(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width);
 		extern void (CODEGEN_FUNCPTR *TexStorage2D)(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
 		extern void (CODEGEN_FUNCPTR *TexStorage3D)(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
+		
+		extern void (CODEGEN_FUNCPTR *TextureView)(GLuint texture, GLenum target, GLuint origtexture, GLenum internalformat, GLuint minlevel, GLuint numlevels, GLuint minlayer, GLuint numlayers);
 		
 		extern void (CODEGEN_FUNCPTR *BlendFunc)(GLenum sfactor, GLenum dfactor);
 		extern void (CODEGEN_FUNCPTR *Clear)(GLbitfield mask);
@@ -1490,6 +1503,18 @@ namespace gl
 		
 	} //namespace _detail
 	
+	inline void DebugMessageCallback(GLDEBUGPROC callback, const void * userParam){_detail::DebugMessageCallback(callback, userParam);}
+	inline void DebugMessageControl(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint * ids, GLboolean enabled){_detail::DebugMessageControl(source, type, severity, count, ids, enabled);}
+	inline void DebugMessageInsert(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar * buf){_detail::DebugMessageInsert(source, type, id, severity, length, buf);}
+	inline GLuint GetDebugMessageLog(GLuint count, GLsizei bufsize, GLenum * sources, GLenum * types, GLuint * ids, GLenum * severities, GLsizei * lengths, GLchar * messageLog){return _detail::GetDebugMessageLog(count, bufsize, sources, types, ids, severities, lengths, messageLog);}
+	inline void GetObjectLabel(GLenum identifier, GLuint name, GLsizei bufSize, GLsizei * length, GLchar * label){_detail::GetObjectLabel(identifier, name, bufSize, length, label);}
+	inline void GetObjectPtrLabel(const void * ptr, GLsizei bufSize, GLsizei * length, GLchar * label){_detail::GetObjectPtrLabel(ptr, bufSize, length, label);}
+	inline void GetPointerv(GLenum pname, GLvoid ** params){_detail::GetPointerv(pname, params);}
+	inline void ObjectLabel(GLenum identifier, GLuint name, GLsizei length, const GLchar * label){_detail::ObjectLabel(identifier, name, length, label);}
+	inline void ObjectPtrLabel(const void * ptr, GLsizei length, const GLchar * label){_detail::ObjectPtrLabel(ptr, length, label);}
+	inline void PopDebugGroup(){_detail::PopDebugGroup();}
+	inline void PushDebugGroup(GLenum source, GLuint id, GLsizei length, const GLchar * message){_detail::PushDebugGroup(source, id, length, message);}
+	
 	inline void ActiveShaderProgram(GLuint pipeline, GLuint program){_detail::ActiveShaderProgram(pipeline, program);}
 	inline void BindProgramPipeline(GLuint pipeline){_detail::BindProgramPipeline(pipeline);}
 	inline GLuint CreateShaderProgramv(GLenum type, GLsizei count, const GLchar *const* strings){return _detail::CreateShaderProgramv(type, count, strings);}
@@ -1552,23 +1577,13 @@ namespace gl
 	inline void ValidateProgramPipeline(GLuint pipeline){_detail::ValidateProgramPipeline(pipeline);}
 	
 	
-	inline void CopyImageSubData(GLuint srcName, GLenum srcTarget, GLint srcLevel, GLint srcX, GLint srcY, GLint srcZ, GLuint dstName, GLenum dstTarget, GLint dstLevel, GLint dstX, GLint dstY, GLint dstZ, GLsizei srcWidth, GLsizei srcHeight, GLsizei srcDepth){_detail::CopyImageSubData(srcName, srcTarget, srcLevel, srcX, srcY, srcZ, dstName, dstTarget, dstLevel, dstX, dstY, dstZ, srcWidth, srcHeight, srcDepth);}
-	
-	inline void DebugMessageCallback(GLDEBUGPROC callback, const void * userParam){_detail::DebugMessageCallback(callback, userParam);}
-	inline void DebugMessageControl(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint * ids, GLboolean enabled){_detail::DebugMessageControl(source, type, severity, count, ids, enabled);}
-	inline void DebugMessageInsert(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar * buf){_detail::DebugMessageInsert(source, type, id, severity, length, buf);}
-	inline GLuint GetDebugMessageLog(GLuint count, GLsizei bufsize, GLenum * sources, GLenum * types, GLuint * ids, GLenum * severities, GLsizei * lengths, GLchar * messageLog){return _detail::GetDebugMessageLog(count, bufsize, sources, types, ids, severities, lengths, messageLog);}
-	inline void GetObjectLabel(GLenum identifier, GLuint name, GLsizei bufSize, GLsizei * length, GLchar * label){_detail::GetObjectLabel(identifier, name, bufSize, length, label);}
-	inline void GetObjectPtrLabel(const void * ptr, GLsizei bufSize, GLsizei * length, GLchar * label){_detail::GetObjectPtrLabel(ptr, bufSize, length, label);}
-	inline void GetPointerv(GLenum pname, GLvoid ** params){_detail::GetPointerv(pname, params);}
-	inline void ObjectLabel(GLenum identifier, GLuint name, GLsizei length, const GLchar * label){_detail::ObjectLabel(identifier, name, length, label);}
-	inline void ObjectPtrLabel(const void * ptr, GLsizei length, const GLchar * label){_detail::ObjectPtrLabel(ptr, length, label);}
-	inline void PopDebugGroup(){_detail::PopDebugGroup();}
-	inline void PushDebugGroup(GLenum source, GLuint id, GLsizei length, const GLchar * message){_detail::PushDebugGroup(source, id, length, message);}
+	inline void TexBufferRange(GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size){_detail::TexBufferRange(target, internalformat, buffer, offset, size);}
 	
 	inline void TexStorage1D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width){_detail::TexStorage1D(target, levels, internalformat, width);}
 	inline void TexStorage2D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height){_detail::TexStorage2D(target, levels, internalformat, width, height);}
 	inline void TexStorage3D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth){_detail::TexStorage3D(target, levels, internalformat, width, height, depth);}
+	
+	inline void TextureView(GLuint texture, GLenum target, GLuint origtexture, GLenum internalformat, GLuint minlevel, GLuint numlevels, GLuint minlayer, GLuint numlayers){_detail::TextureView(texture, target, origtexture, internalformat, minlevel, numlevels, minlayer, numlayers);}
 	
 	inline void BlendFunc(GLenum sfactor, GLenum dfactor){_detail::BlendFunc(sfactor, dfactor);}
 	inline void Clear(GLbitfield mask){_detail::Clear(mask);}

@@ -28,7 +28,13 @@ using chai::user_type;
 void sqt::cs_setup_main(chai::ChaiScript& _cs) {
     chai::ModulePtr m(new chai::Module());
 
+    add_class<sq::Camera>(*m, "Camera", {}, {
+        {fun(&sq::Camera::pos), "position"},
+        {fun(&sq::Camera::dir), "direction"} });
+
     add_class<MainCamera>(*m, "MainCamera", {}, {});
+
+    m->add(base_class<sq::Camera, MainCamera>());
 
     _cs.add(m);
 }
@@ -38,20 +44,23 @@ void sqt::cs_setup_wcoe(chai::ChaiScript& _cs) {
     chai::ModulePtr m(new chai::Module());
 
     add_class<SkyBox>(*m, "SkyBox", {}, {
-        {fun(&SkyBox::DAT_enabled), "enabled"},
-        {fun(&SkyBox::DAT_colour), "colour"},
-        {fun(&SkyBox::DAT_texPath), "texture"},
+        {fun(&SkyBox::PROP_enabled), "enabled"},
+        {fun(&SkyBox::PROP_colour), "colour"},
+        {fun(&SkyBox::PROP_texPath), "texture"},
         {fun(&SkyBox::refresh), "refresh"} });
 
     add_class<Ambient>(*m, "Ambient", {}, {
-        {fun(&Ambient::DAT_enabled), "enabled"},
-        {fun(&Ambient::DAT_colour), "colour"},
+        {fun(&Ambient::PROP_enabled), "enabled"},
+        {fun(&Ambient::PROP_colour), "colour"},
+        {fun(&Ambient::ANIM_colour), "animColour"},
         {fun(&Ambient::refresh), "refresh"} });
 
     add_class<SkyLight>(*m, "SkyLight", {}, {
-        {fun(&SkyLight::DAT_enabled), "enabled"},
-        {fun(&SkyLight::DAT_colour), "colour"},
-        {fun(&SkyLight::DAT_normal), "normal"},
+        {fun(&SkyLight::PROP_enabled), "enabled"},
+        {fun(&SkyLight::PROP_direction), "direction"},
+        {fun(&SkyLight::PROP_colour), "colour"},
+        {fun(&SkyLight::ANIM_direction), "animDirection"},
+        {fun(&SkyLight::ANIM_colour), "animColour"},
         {fun(&SkyLight::refresh), "refresh"} });
 
     add_class<World>(*m, "World", {}, {
@@ -140,6 +149,23 @@ void sqt::cs_setup_wcoe(chai::ChaiScript& _cs) {
        {fun(&SpotLight::ANIM_softness),  "animSoftness"},
        {fun(&SpotLight::ANIM_angle),     "animAngle"} });
 
+    add_class<Reflector>(*m, "Reflector", {}, {
+       {fun(&Reflector::PROP_position), "position"},
+       {fun(&Reflector::PROP_rotation), "rotation"},
+       {fun(&Reflector::PROP_scale),    "scale"},
+       {fun(&Reflector::PROP_factor),   "factor"},
+       {fun(&Reflector::PROP_shadow),   "shadow"},
+       {fun(&Reflector::PROP_mPath),    "mesh"},
+       {fun(&Reflector::PROP_sPath),    "skin"},
+       {fun(&Reflector::ANIM_position), "animPosition"},
+       {fun(&Reflector::ANIM_rotation), "animRotation"},
+       {fun(&Reflector::ANIM_scale),    "animScale"},
+       {fun(&Reflector::ANIM_factor),   "animFactor"} });
+
+    add_class<Emitter>(*m, "Emitter", {}, {
+       {fun(&Emitter::PROP_position), "position"},
+       {fun(&Emitter::emit_puff), "emit_puff"} });
+
     add_class<Decal>(*m, "Decal", {}, {
        {fun(&Decal::PROP_position), "position"},
        {fun(&Decal::PROP_rotation), "rotation"},
@@ -178,6 +204,8 @@ void sqt::cs_setup_wcoe(chai::ChaiScript& _cs) {
     m->add(base_class<Object, ModelStatic>());
     m->add(base_class<Object, PointLight>());
     m->add(base_class<Object, SpotLight>());
+    m->add(base_class<Object, Reflector>());
+    m->add(base_class<Object, Emitter>());
     m->add(base_class<Object, Decal>());
 
     _cs.add(m);

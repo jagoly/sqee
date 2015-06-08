@@ -13,7 +13,9 @@
 #include <sqee/maths/culling.hpp>
 #include <sqee/maths/general.hpp>
 
+#include "../../main/camera.hpp"
 #include "../cell.hpp"
+#include "../world.hpp"
 #include "reflector.hpp"
 
 using namespace sqt::wcoe;
@@ -22,65 +24,69 @@ Reflector::Reflector(const string& _name, Cell* _cell)
     : Object(ObjType::Reflector, _name, _cell) {
     ubo.reset(new sq::Uniformbuffer());
     ubo->reserve("matrix", 16);
+    ubo->reserve("normMat", 16);
     ubo->reserve("normal", 4);
     ubo->reserve("trans", 3);
     ubo->reserve("factor", 1);
     ubo->create();
-
-    texDepth.reset(new sq::Texture2D());
-    texDiff.reset(new sq::Texture2D());
-    texSurf.reset(new sq::Texture2D());
-    texHdr.reset(new sq::Texture2D());
-    texDepth->create(gl::DEPTH_STENCIL, gl::DEPTH24_STENCIL8, 1);
-    texDiff->create(gl::RGB, gl::RGB8, 3);
-    texSurf->create(gl::RGB, gl::RGB8, 3);
-    texHdr->create(gl::RGB, gl::RGB16F, 3);
-    texDepth->set_preset(sq::Texture2D::L_C());
-    texDiff->set_preset(sq::Texture2D::L_C());
-    texSurf->set_preset(sq::Texture2D::L_C());
-    texHdr->set_preset(sq::Texture2D::L_C());
-
-    fboDefr.reset(new sq::Framebuffer());
-    fboHdr.reset(new sq::Framebuffer());
-    fboDefr->attach(gl::DEPTH_STENCIL_ATTACHMENT, *texDepth);
-    fboDefr->attach(gl::COLOR_ATTACHMENT0, *texDiff);
-    fboDefr->attach(gl::COLOR_ATTACHMENT1, *texSurf);
-    fboHdr->attach(gl::DEPTH_STENCIL_ATTACHMENT, *texDepth);
-    fboHdr->attach(gl::COLOR_ATTACHMENT0, *texHdr);
 }
 
 void Reflector::load_from_spec(const ObjSpec& _spec) {
     SPEC_ASSERT_FLOAT("position", 3);
     SPEC_ASSERT_FLOAT("rotation", 4);
     SPEC_ASSERT_FLOAT("scale", 3);
-    SPEC_ASSERT_FLOAT("normal", 3);
     SPEC_ASSERT_FLOAT("factor", 1);
     SPEC_ASSERT_STRING("mesh", 1);
     SPEC_ASSERT_STRING("skin", 1);
 
-    DAT_shadow   = SPEC_HAS_FLAG("shadow");
-    DAT_position = glm::make_vec3(_spec.fMap.at("position").data());
-    DAT_rotation = glm::make_quat(_spec.fMap.at("rotation").data());
-    DAT_scale    = glm::make_vec3(_spec.fMap.at("scale").data());
-    DAT_normal   = glm::make_vec3(_spec.fMap.at("normal").data());
-    DAT_factor   = _spec.fMap.at("factor")[0];
-    DAT_mPath    = _spec.sMap.at("mesh")[0];
-    DAT_sPath    = _spec.sMap.at("skin")[0];
+    PROP_shadow   = SPEC_HAS_FLAG("shadow");
+    PROP_position = glm::make_vec3(_spec.fMap.at("position").data());
+    PROP_rotation = glm::make_quat(_spec.fMap.at("rotation").data());
+    PROP_scale    = glm::make_vec3(_spec.fMap.at("scale").data());
+    PROP_factor   = _spec.fMap.at("factor")[0];
+    PROP_mPath    = _spec.sMap.at("mesh")[0];
+    PROP_sPath    = _spec.sMap.at("skin")[0];
 }
 
 void Reflector::refresh() {
-    if (!(mesh = sq::res::mesh().get(DAT_mPath)))
-        mesh = sq::res::mesh().add(DAT_mPath),
-        mesh->create(DAT_mPath);
+    if (!(mesh = sq::res::mesh().get(PROP_mPath)))
+        mesh = sq::res::mesh().add(PROP_mPath),
+        mesh->create(PROP_mPath);
 
-    if (!(skin = sq::res::skin().get(DAT_sPath)))
-        skin = sq::res::skin().add(DAT_sPath),
-        skin->create(DAT_sPath);
+    if (!(skin = sq::res::skin().get(PROP_sPath)))
+        skin = sq::res::skin().add(PROP_sPath),
+        skin->create(PROP_sPath);
 
-    trans = DAT_position + cell->DAT_position;
+    animate();
+}
+
+void Reflector::tick() {
+    bool doFinish = false;
+    if (ANIM_position.active()) if (ANIM_position.tick()) doFinish = true;
+    if (ANIM_rotation.active()) if (ANIM_rotation.tick()) doFinish = true;
+    if (ANIM_scale.active())    if (ANIM_scale.tick())    doFinish = true;
+    if (ANIM_factor.active())   if (ANIM_factor.tick())   doFinish = true;
+    if (doFinish == true) animate();
+}
+
+void Reflector::calc(double _accum) {
+    bool doAnim = false;
+    if (ANIM_position.active()) { ANIM_position.calc(_accum); doAnim = true; }
+    if (ANIM_rotation.active()) { ANIM_rotation.calc(_accum); doAnim = true; }
+    if (ANIM_scale.active())    { ANIM_scale.calc(_accum);    doAnim = true; }
+    if (ANIM_factor.active())   { ANIM_factor.calc(_accum);   doAnim = true; }
+    if (doAnim == true) animate(); else ubo->bind(2);
+
+    frus = sq::reflect_Frustum(cell->world->camera->frus, normal, trans);
+    fmat4 normMat(sq::make_normMat(cell->world->camera->viewMat * matrix));
+    ubo->update("normMat", &normMat);
+}
+
+void Reflector::animate() {
+    trans = PROP_position + cell->DAT_position;
     matrix = glm::translate(fmat4(), trans);
-    matrix *= glm::mat4_cast(DAT_rotation);
-    matrix = glm::scale(matrix, DAT_scale);
+    matrix *= glm::mat4_cast(PROP_rotation);
+    matrix = glm::scale(matrix, PROP_scale);
     negScale = glm::determinant(matrix) < 0.f;
     normal = glm::normalize(sq::make_normMat(matrix) * fvec3(0,0,1));
     bbox = sq::make_BoundBox(matrix, mesh->origin, mesh->size, mesh->radius);
@@ -89,9 +95,5 @@ void Reflector::refresh() {
     ubo->update("matrix", &matrix);
     ubo->update("normal", &normal);
     ubo->update("trans", &trans);
-    ubo->update("factor", &DAT_factor);
+    ubo->update("factor", &PROP_factor);
 }
-
-void Reflector::tick() {}
-
-void Reflector::calc(double _accum) {}

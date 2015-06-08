@@ -55,6 +55,7 @@ set(SOURCES
     "${INCDIR}/text/text.hpp"             "${SRCDIR}/text/text.cpp"
     "${INCDIR}/maths/culling.hpp"         "${SRCDIR}/maths/culling.cpp"
     "${INCDIR}/maths/general.hpp"         "${SRCDIR}/maths/general.cpp"
+    "${INCDIR}/maths/physics.hpp"         "${SRCDIR}/maths/physics.cpp"
     "${INCDIR}/menus/basicmenu.hpp"       "${SRCDIR}/menus/basicmenu.cpp"
     "${INCDIR}/render/cameras.hpp"        "${SRCDIR}/render/cameras.cpp"
     "${INCDIR}/render/mesh.hpp"           "${SRCDIR}/render/mesh.cpp"
@@ -111,12 +112,13 @@ endif()
 find_library(SFML_WINDOW_LIB sfml-window /)
 find_library(SFML_SYSTEM_LIB sfml-system /)
 find_library(SFML_AUDIO_LIB sfml-audio /)
+find_library(REACTPHYSICS3D_LIB reactphysics3d /)
 find_library(OPENGL_LIB NAMES GL opengl32 PATHS /)
 find_library(OPENAL_LIB NAMES openal openal32 PATHS /)
 
 target_link_libraries(sqee
     ${SFML_WINDOW_LIB} ${SFML_SYSTEM_LIB} ${SFML_AUDIO_LIB}
-    ${OPENGL_LIB} ${OPENAL_LIB}
+    ${REACTPHYSICS3D_LIB} ${OPENGL_LIB} ${OPENAL_LIB}
 )
 
 #add_subdirectory("tests/soko")

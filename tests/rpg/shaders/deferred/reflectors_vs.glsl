@@ -1,13 +1,11 @@
 #version 330
 #extension GL_ARB_shading_language_420pack : enable
 
-// define REFLECT
+layout(location=0) in vec3 V_pos;
+layout(location=3) in vec2 V_texcrd;
 
 #include "headers/blocks/camera"
 #include "headers/blocks/reflector"
-
-layout(location=0) in vec3 V_pos;
-layout(location=3) in vec2 V_texcrd;
 
 layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
 layout(std140, binding=2) uniform REFLECTORBLOCK { ReflectorBlock RB; };

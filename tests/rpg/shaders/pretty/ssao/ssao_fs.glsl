@@ -10,8 +10,8 @@ in vec2 texcrd;
 
 layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
 
-layout(binding=1) uniform sampler2D texSurf;
-layout(binding=4) uniform sampler2D texDepth;
+layout(binding=4) uniform sampler2D defrSurf;
+layout(binding=7) uniform sampler2D defrDepth;
 
 out float fragColour;
 
@@ -79,7 +79,7 @@ vec2(0.866025, -0.500000),
 #endif
 
 vec3 get_view_pos(in vec2 _tc) {
-    float dep = texture(texDepth, _tc).r * 2.f - 1.f;
+    float dep = texture(defrDepth, _tc).r * 2.f - 1.f;
     vec4 p_pos = vec4(_tc * 2.f - 1.f, dep, 1.f);
     vec4 v_pos = CB.invProj * p_pos;
     return v_pos.xyz / v_pos.w;
@@ -92,7 +92,7 @@ float rand(vec2 _crd){
 void main() {
     vec3 pos = get_view_pos(texcrd);
     vec2 fsvspz = filterSize * PIXSIZE / pos.z;
-    vec3 v_surf = normalize(texture(texSurf, texcrd).rgb * 2.f - 1.f);
+    vec3 v_surf = normalize(texture(defrSurf, texcrd).rgb * 2.f - 1.f);
 
     float angle = rand(texcrd);
     float s = sin(angle), c = cos(angle);

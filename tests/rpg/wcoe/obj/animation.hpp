@@ -29,9 +29,7 @@ public:
         nextVal = *property;
         timeLeft = 0u; running = true;
         valueQueue.clear(); timeQueue.clear();
-        for (const auto& value : values)
-            if (!Normalize) valueQueue.emplace_back(value);
-            else valueQueue.emplace_back(glm::normalize(value));
+        for (const auto& value : values) valueQueue.emplace_back(value);
         for (const auto& time : times) timeQueue.emplace_back(time);
     }
 

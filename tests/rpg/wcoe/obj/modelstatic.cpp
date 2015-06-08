@@ -4,18 +4,26 @@
 #include <sqee/app/logging.hpp>
 #include <glm/gtx/string_cast.hpp>
 
+#include <sqee/gl/uniformbuffers.hpp>
 #include <sqee/render/mesh.hpp>
 #include <sqee/render/skin.hpp>
 #include <sqee/maths/culling.hpp>
 #include <sqee/maths/general.hpp>
 
+#include "../../main/camera.hpp"
 #include "../cell.hpp"
+#include "../world.hpp"
 #include "modelstatic.hpp"
 
 using namespace sqt::wcoe;
 
 ModelStatic::ModelStatic(const string& _name, Cell* _cell)
-    : Object(ObjType::ModelStatic, _name, _cell) {}
+    : Object(ObjType::ModelStatic, _name, _cell) {
+    ubo.reset(new sq::Uniformbuffer());
+    ubo->reserve("matrix", 16);
+    ubo->reserve("normMat", 16);
+    ubo->create();
+}
 
 void ModelStatic::load_from_spec(const ObjSpec& _spec) {
     SPEC_ASSERT_FLOAT("position", 3);
@@ -60,12 +68,16 @@ void ModelStatic::calc(double _accum) {
     if (ANIM_position.active()) { ANIM_position.calc(_accum); doAnim = true; }
     if (ANIM_rotation.active()) { ANIM_rotation.calc(_accum); doAnim = true; }
     if (ANIM_scale.active())    { ANIM_scale.calc(_accum);    doAnim = true; }
-    if (doAnim == true) animate();
+    if (doAnim == true) animate(); else ubo->bind(1);
+
+    fmat4 normMat(sq::make_normMat(cell->world->camera->viewMat * matrix));
+    ubo->update("normMat", &normMat);
 }
 
 void ModelStatic::animate() {
     matrix = glm::translate(fmat4(), PROP_position + cell->DAT_position);
     matrix *= glm::mat4_cast(PROP_rotation); matrix = glm::scale(matrix, PROP_scale);
     bbox = sq::make_BoundBox(matrix, mesh->origin, mesh->size, mesh->radius);
+    ubo->bind(1); ubo->update("matrix", &matrix);
     negScale = glm::determinant(matrix) < 0.f;
 }

@@ -39,11 +39,13 @@ bool HandlerConsole::handle(const sf::Event& _event) {
 void HandlerConsole::activate() {
     appBase->get_scene<SceneConsole>("console")->active = true;
     settings->mod<bool>("app_keyrepeat", true);
+    settings->mod<bool>("console_active", true);
     settings->apply(); appBase->update();
 }
 
 void HandlerConsole::deactivate() {
     appBase->get_scene<SceneConsole>("console")->active = false;
     settings->mod<bool>("app_keyrepeat", false);
+    settings->mod<bool>("console_active", false);
     settings->apply(); appBase->update();
 }

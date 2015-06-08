@@ -1,6 +1,7 @@
 #pragma once
 
 #include "object.hpp"
+#include "animation.hpp"
 
 namespace sqt { namespace wcoe {
 
@@ -11,29 +12,28 @@ public:
     void refresh(); void tick();
     void calc(double _accum);
 
-    fvec3 DAT_position = {0.f, 0.f, 0.f};
-    fquat DAT_rotation = {1.f, 0.f, 0.f, 0.f};
-    fvec3 DAT_scale    = {1.f, 1.f, 1.f};
-    fvec3 DAT_normal   = {0.f, 0.f, 1.f};
-    float DAT_factor   = 1.f;
-    bool DAT_shadow    = false;
-    string DAT_mPath   = "";
-    string DAT_sPath   = "";
+    bool   PROP_shadow   = false;
+    fvec3  PROP_position = {0.f, 0.f, 0.f};
+    fquat  PROP_rotation = {1.f, 0.f, 0.f, 0.f};
+    fvec3  PROP_scale    = {1.f, 1.f, 1.f};
+    float  PROP_factor   = 1.f;
+    string PROP_mPath    = "";
+    string PROP_sPath    = "";
+
+    AnimatorFVec3 ANIM_position {&PROP_position};
+    AnimatorFQuat ANIM_rotation {&PROP_rotation};
+    AnimatorFVec3 ANIM_scale    {&PROP_scale};
+    AnimatorFloat ANIM_factor   {&PROP_factor};
+    void animate();
 
     unique_ptr<sq::Uniformbuffer> ubo;
-    unique_ptr<sq::Texture2D> texDepth;
-    unique_ptr<sq::Texture2D> texDiff;
-    unique_ptr<sq::Texture2D> texSurf;
-    unique_ptr<sq::Texture2D> texHdr;
-    unique_ptr<sq::Framebuffer> fboDefr;
-    unique_ptr<sq::Framebuffer> fboHdr;
-    fvec3 trans, normal;
-    fmat4 matrix;
-
     sq::Mesh* mesh = nullptr;
     sq::Skin* skin = nullptr;
-    bool negScale;
+    fvec3 trans, normal;
     sq::BoundBox bbox;
+    sq::Frustum frus;
+    bool negScale;
+    fmat4 matrix;
 };
 
 template<> struct ObjTraits<Reflector> {

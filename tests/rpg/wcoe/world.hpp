@@ -3,6 +3,7 @@
 
 #include "cell.hpp"
 #include "obj/object.hpp"
+#include "obj/animation.hpp"
 
 namespace sqt {
 class MainCamera;
@@ -14,14 +15,15 @@ public:
     void refresh(); void tick();
     void calc(double _accum);
 
-    bool DAT_enabled = false;
-    fvec4 DAT_colour = {1.f, 1.f, 1.f, 1.f};
-    string DAT_texPath;
+    bool   PROP_enabled = false;
+    fvec4  PROP_colour  = {1.f, 1.f, 1.f, 1.f};
+    string PROP_texPath = "";
 
-    unique_ptr<sq::Uniformbuffer> ubo;
-    const MainCamera* const camera;
+    // animators todo
 
     sq::TextureCube* tex = nullptr;
+    unique_ptr<sq::Uniformbuffer> ubo;
+    const MainCamera* const camera;
 };
 
 class Ambient : NonCopyable {
@@ -30,8 +32,11 @@ public:
     void refresh(); void tick();
     void calc(double _accum);
 
-    bool DAT_enabled = false;
-    fvec3 DAT_colour = {0.5f, 0.5f, 0.5f};
+    bool  PROP_enabled = false;
+    fvec3 PROP_colour  = {0.5f, 0.5f, 0.5f};
+
+    AnimatorFVec3 ANIM_colour {&PROP_colour};
+    void animate();
 
     unique_ptr<sq::Uniformbuffer> ubo;
     const MainCamera* const camera;
@@ -43,19 +48,23 @@ public:
     void refresh(); void tick();
     void calc(double _accum);
 
-    bool DAT_enabled = false;
-    fvec3 DAT_colour = {1.f, 1.f, 1.f};
-    fvec3 DAT_normal = {0.f, 0.f, -1.f};
+    bool  PROP_enabled   = false;
+    fvec3 PROP_direction = {0.f, 0.f, -1.f};
+    fvec3 PROP_colour    = {1.f, 1.f, 1.f};
 
+    AnimatorFNorm ANIM_direction {&PROP_direction};
+    AnimatorFVec3 ANIM_colour    {&PROP_colour};
+    void animate();
+
+    const MainCamera* const camera;
     unique_ptr<sq::Uniformbuffer> ubo;
     unique_ptr<sq::Texture2DArray> texA;
     unique_ptr<sq::Texture2DArray> texB;
     array<unique_ptr<sq::Framebuffer>, 4> fboArrA;
     array<unique_ptr<sq::Framebuffer>, 2> fboArrB;
-    const MainCamera* const camera;
-
-    array<fmat4, 4> matArrA; array<float, 4> splitArrA;
-    array<fmat4, 2> matArrB; array<float, 2> splitArrB;
+    array<fmat4, 4> matArrA;
+    array<fmat4, 2> matArrB;
+    fvec4 splits;
 };
 
 

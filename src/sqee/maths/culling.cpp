@@ -10,17 +10,17 @@
 
 using namespace sq;
 
-inline dvec3 reflect(dvec3 _val, dvec3 _normal, dvec3 _trans) {
+inline fvec3 reflect(fvec3 _val, fvec3 _normal, fvec3 _trans) {
     return glm::reflect(_val - _trans, _normal) + _trans;
 }
 
-Frustum sq::make_Frustum(dmat4 _matrix, dvec3 _pos, dvec3 _dir, double _rmin, double _rmax) {
-    Frustum fr; dvec4 tmp4; dvec3 tmp3;
-    dmat4 invMat = glm::inverse(_matrix);
-    tmp4 = invMat * dvec4(-1, -1,  1, 1); fr.xy = dvec3(tmp4) / tmp4.w;
-    tmp4 = invMat * dvec4(-1,  1,  1, 1); fr.xY = dvec3(tmp4) / tmp4.w;
-    tmp4 = invMat * dvec4( 1, -1,  1, 1); fr.Xy = dvec3(tmp4) / tmp4.w;
-    tmp4 = invMat * dvec4( 1,  1,  1, 1); fr.XY = dvec3(tmp4) / tmp4.w;
+Frustum sq::make_Frustum(fmat4 _matrix, fvec3 _pos, fvec3 _dir, float _rmin, float _rmax) {
+    Frustum fr; fvec4 tmp4; fvec3 tmp3;
+    fmat4 invMat = glm::inverse(_matrix);
+    tmp4 = invMat * fvec4(-1.f, -1.f, 1.f, 1.f); fr.xy = fvec3(tmp4) / tmp4.w;
+    tmp4 = invMat * fvec4(-1.f,  1.f, 1.f, 1.f); fr.xY = fvec3(tmp4) / tmp4.w;
+    tmp4 = invMat * fvec4( 1.f, -1.f, 1.f, 1.f); fr.Xy = fvec3(tmp4) / tmp4.w;
+    tmp4 = invMat * fvec4( 1.f,  1.f, 1.f, 1.f); fr.XY = fvec3(tmp4) / tmp4.w;
     tmp3 = norm_from_tri(fr.XY, fr.xY, _pos); fr.pT = {tmp3, glm::dot(-tmp3, _pos)};
     tmp3 = norm_from_tri(fr.xy, fr.Xy, _pos); fr.pB = {tmp3, glm::dot(-tmp3, _pos)};
     tmp3 = norm_from_tri(fr.xY, fr.xy, _pos); fr.pL = {tmp3, glm::dot(-tmp3, _pos)};
@@ -30,23 +30,23 @@ Frustum sq::make_Frustum(dmat4 _matrix, dvec3 _pos, dvec3 _dir, double _rmin, do
     return fr;
 }
 
-BoundBox sq::make_BoundBox(dmat4 _matrix, dvec3 _origin, dvec3 _size, double _radius) {
+BoundBox sq::make_BoundBox(fmat4 _matrix, fvec3 _origin, fvec3 _size, float _radius) {
     BoundBox bb;
-    double scaX = glm::length(_matrix[0]),
-           scaY = glm::length(_matrix[1]),
-           scaZ = glm::length(_matrix[2]);
-    dmat3 normMat = make_normMat(_matrix);
-    bb.sphere.origin = dvec3(_matrix * dvec4(_origin, 1.0));
+    float scaX = glm::length(_matrix[0]),
+          scaY = glm::length(_matrix[1]),
+          scaZ = glm::length(_matrix[2]);
+    fmat3 normMat = make_normMat(_matrix);
+    bb.sphere.origin = fvec3(_matrix * fvec4(_origin, 1.f));
     bb.sphere.radius = _radius * glm::max(scaX, glm::max(scaY, scaZ));
-    bb.size = _size * dvec3(scaX, scaY, scaZ);
-    bb.nX = glm::normalize(normMat * dvec3(1.0, 0.0, 0.0));
-    bb.nY = glm::normalize(normMat * dvec3(0.0, 1.0, 0.0));
-    bb.nZ = glm::normalize(normMat * dvec3(0.0, 0.0, 1.0));
+    bb.size = _size * fvec3(scaX, scaY, scaZ);
+    bb.nX = glm::normalize(normMat * fvec3(1.f, 0.f, 0.f));
+    bb.nY = glm::normalize(normMat * fvec3(0.f, 1.f, 0.f));
+    bb.nZ = glm::normalize(normMat * fvec3(0.f, 0.f, 1.f));
     return bb;
 }
 
-Frustum sq::reflect_Frustum(const Frustum& _frus, dvec3 _normal, dvec3 _trans) {
-    Frustum fr = _frus; dvec3 tmp;
+Frustum sq::reflect_Frustum(const Frustum& _frus, fvec3 _normal, fvec3 _trans) {
+    Frustum fr = _frus; fvec3 tmp;
     fr.pN = {-_normal, glm::dot(-_normal, _trans)};
     fr.sphere.origin = glm::reflect(_frus.sphere.origin - _trans, _normal) + _trans;
     tmp = glm::reflect(_frus.pT.normal, _normal); fr.pT = {tmp, glm::dot(-tmp, fr.sphere.origin)};
@@ -60,11 +60,11 @@ Frustum sq::reflect_Frustum(const Frustum& _frus, dvec3 _normal, dvec3 _trans) {
     return fr;
 }
 
-dvec3 sq::calc_frusCentre(const Frustum& _frus) {
-    dvec3 min(INFINITY, INFINITY, INFINITY), max(-INFINITY, -INFINITY, -INFINITY);
-    for (const dvec3& vec : {_frus.sphere.origin, _frus.xy, _frus.xY, _frus.Xy, _frus.XY})
+fvec3 sq::calc_frusCentre(const Frustum& _frus) {
+    fvec3 min(INFINITY, INFINITY, INFINITY), max(-INFINITY, -INFINITY, -INFINITY);
+    for (const fvec3& vec : {_frus.sphere.origin, _frus.xy, _frus.xY, _frus.Xy, _frus.XY})
         min = glm::min(min, vec), max = glm::max(max, vec);
-    return (min + max) / 2.0;
+    return (min + max) / 2.f;
 }
 
 bool sq::sphr_in_frus(const Sphere& _A, const Frustum& _B) {
@@ -87,8 +87,8 @@ bool sq::sphr_in_frus(const Sphere& _A, const Frustum& _B) {
 }
 
 bool sq::bbox_in_frus(const BoundBox& _A, const Frustum& _B) {
-    dvec3 oX = _A.size.x*_A.nX, oY = _A.size.y*_A.nY, oZ = _A.size.z*_A.nZ;
-    array<dvec3, 8> points {
+    fvec3 oX = _A.size.x*_A.nX, oY = _A.size.y*_A.nY, oZ = _A.size.z*_A.nZ;
+    array<fvec3, 8> points {
         _A.sphere.origin -oX -oY -oZ, _A.sphere.origin -oX -oY +oZ,
         _A.sphere.origin -oX +oY -oZ, _A.sphere.origin -oX +oY +oZ,
         _A.sphere.origin +oX -oY -oZ, _A.sphere.origin +oX -oY +oZ,
@@ -111,8 +111,8 @@ bool sq::bbox_in_frus(const BoundBox& _A, const Frustum& _B) {
     // BoundBox <> NearPlane
     bool less = false, more = false;
     for (const auto& point : points) {
-        double dist = glm::dot(point, _B.pN.normal) + _B.pN.offset;
-        if (dist >= 0.0) more=true; if (dist <= 0.0) less=true;
+        float dist = glm::dot(point, _B.pN.normal) + _B.pN.offset;
+        if (dist >= 0.f) more=true; if (dist <= 0.f) less=true;
     } if (more && !less) return true;
 
     // BoundBox <> Sphere
@@ -126,8 +126,8 @@ bool sq::bbox_in_frus(const BoundBox& _A, const Frustum& _B) {
     for (const auto& plane : planes) {
         bool less = false, more = false;
         for (const auto& point : points) {
-            double dist = glm::dot(point, plane.normal) + plane.offset;
-            if (dist >= 0.0) more=true; if (dist <= 0.0) less=true;
+            float dist = glm::dot(point, plane.normal) + plane.offset;
+            if (dist >= 0.f) more=true; if (dist <= 0.f) less=true;
         } if (more && !less) return true;
     }
 
@@ -142,7 +142,7 @@ bool sq::frus_in_frus(const Frustum& _A, const Frustum& _B) {
     bool hitA = false;
     for (const auto& point : points)
         if (glm::dot(point, _B.pN.normal) + _B.pN.offset
-            <= 0.0) { hitA = true; break; }
+            <= 0.f) { hitA = true; break; }
     if (hitA == false) return true;
 
     // Frustum <> Sphere
@@ -156,8 +156,8 @@ bool sq::frus_in_frus(const Frustum& _A, const Frustum& _B) {
     for (const auto& plane : planes) {
         bool less = false, more = false;
         for (const auto& point : points) {
-            double dist = glm::dot(point, plane.normal) + plane.offset;
-            if (dist >= 0.0) more=true; if (dist <= 0.0) less=true;
+            float dist = glm::dot(point, plane.normal) + plane.offset;
+            if (dist >= 0.f) more=true; if (dist <= 0.f) less=true;
         } if (more && !less) return true;
     }
 

@@ -15,11 +15,19 @@ s1 norm blood
 s1 spec blood
 flags
 
+object decal CurtainBlood2
+f3 position 5.0 2.9 1.8
+f4 rotation 0.5 -0.5 0.5 0.5
+f3 scale 2.0 2.0 0.4
+s1 diff blood
+s1 norm blood
+s1 spec blood
+flags
+
 object reflector FloorA
 f3 position 0.0 0.0 0.0
 f4 rotation 0.0 0.0 0.0 1.0
 f3 scale 1.0 1.0 1.0
-f3 normal 0.0 0.0 1.0
 f1 factor 0.25
 s1 mesh Sponza/FloorA
 s1 skin Sponza/Floor
@@ -29,39 +37,10 @@ object reflector FloorB
 f3 position 0.0 0.0 5.0
 f4 rotation 0.0 0.0 0.0 1.0
 f3 scale 1.0 1.0 1.0
-f3 normal 0.0 0.0 1.0
 f1 factor 0.25
 s1 mesh Sponza/FloorB
 s1 skin Sponza/Floor
 flags shadow
-
-object pointlight PointNE
-f3 position 14.0 5.0 2.0
-f3 colour 1.0 1.0 1.0
-f1 intensity 7.0
-i1 texsize 128
-flags shadow specular
-
-object pointlight PointSE
-f3 position -14.0 5.0 2.0
-f3 colour 1.0 1.0 1.0
-f1 intensity 7.0
-i1 texsize 128
-flags shadow specular
-
-object pointlight PointNW
-f3 position 14.0 -5.0 2.0
-f3 colour 1.0 1.0 1.0
-f1 intensity 7.0
-i1 texsize 128
-flags shadow specular
-
-object pointlight PointSW
-f3 position -14.0 -5.0 2.0
-f3 colour 1.0 1.0 1.0
-f1 intensity 7.0
-i1 texsize 128
-flags shadow specular
 
 object modelstatic ShadowBox
 f3 position 0.0 0.0 0.0

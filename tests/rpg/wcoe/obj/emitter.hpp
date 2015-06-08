@@ -11,38 +11,25 @@ public:
     void refresh(); void tick();
     void calc(double _accum);
 
-    fvec3 DAT_position = {0, 0, 0};
-    float DAT_radius = 1.f;
-
-    void emit_Sphere(uint _count, fvec4 _colour,
-                     float _lifeMin, float _lifeMax,
-                     float _lumaMin, float _lumaMax,
-                     float _scaleMin, float _scaleMax,
-                     float _radiusMin, float _radiusMax);
-
-    unique_ptr<sq::Uniformbuffer> ubo;
-    unique_ptr<sq::Texture2D> texDepth;
-    unique_ptr<sq::Texture2D> texDiff;
-    unique_ptr<sq::Texture2D> texNorm;
-    unique_ptr<sq::Texture2D> texHdr;
-    unique_ptr<sq::Framebuffer> fboDefr;
-    unique_ptr<sq::Framebuffer> fboHdr;
-    fmat4 matrix; sq::Sphere sphere;
+    fvec3 PROP_position = {0, 0, 0};
 
     struct Particle {
-        Particle(fvec3 _target, fvec3 _colour, float _life, float _scale);
-            //: target(_target), colour(_colour), life(_life), scale(_scale) {}
-        const fvec3 target, colour; const float life, scale;
-        float progress; fvec3 crntPos; float crntAlpha;
-    };
+        Particle(fvec3 _origin, fvec3 _target, fvec3 _colour, float _scale, uint _life);
+        const fvec3 origin, target, colour; const float scale; const uint life;
+        fvec4 crntA, crntB, nextA, nextB; uint progress;
+    }; struct PartData { float x, y, z, s, r, g, b, a; };
 
-    struct EmitSphere {
-        EmitSphere(uint _count, fvec4 _colour);
-            //: count(_count), colour(_colour) {}
-        const uint count; const fvec4 colour;
-        forward_list<Particle> particleList;
-        GLuint vboColS, vboPosA, vao;
-    };
+    forward_list<Particle> particleList;
+    forward_list<PartData> partDataList;
+
+    void emit_puff(uint _count,
+                   fvec3 _normal, fvec3 _colour,
+                   float _scaleMin, float _scaleMax,
+                   float _radiusMin, float _radiusMax,
+                   uint _lifeMin, uint _lifeMax);
+
+    unique_ptr<sq::Uniformbuffer> ubo;
+    fvec3 position;
 };
 
 template<> struct ObjTraits<Emitter> {

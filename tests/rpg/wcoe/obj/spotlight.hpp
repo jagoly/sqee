@@ -12,6 +12,8 @@ public:
     void refresh(); void tick();
     void calc(double _accum);
 
+    bool  PROP_shadow    = false;
+    bool  PROP_specular  = false;
     fvec3 PROP_direction = {0.f, 0.f, -1.f};
     fvec3 PROP_position  = {0.f, 0.f, 0.f};
     fvec3 PROP_colour    = {1.f, 1.f, 1.f};
@@ -19,8 +21,6 @@ public:
     float PROP_softness  = 0.f;
     float PROP_angle     = 45.f;
     uint  PROP_texsize   = 0u;
-    bool  PROP_shadow    = false;
-    bool  PROP_specular  = false;
 
     AnimatorFNorm ANIM_direction {&PROP_direction};
     AnimatorFVec3 ANIM_position  {&PROP_position};

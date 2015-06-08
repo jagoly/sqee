@@ -12,13 +12,13 @@ public:
     void refresh(); void tick();
     void calc(double _accum);
 
-    fvec3  PROP_position = {0.f, 0.f, 0.f};
-    fquat  PROP_rotation = {1.f, 0.f, 0.f, 0.f};
-    fvec3  PROP_scale    = {1.f, 1.f, 1.f};
     bool   PROP_reflect  = false;
     bool   PROP_refract  = false;
     bool   PROP_shadow   = false;
     bool   PROP_render   = false;
+    fvec3  PROP_position = {0.f, 0.f, 0.f};
+    fquat  PROP_rotation = {1.f, 0.f, 0.f, 0.f};
+    fvec3  PROP_scale    = {1.f, 1.f, 1.f};
     string PROP_mPath    = "";
     string PROP_sPath    = "";
 
@@ -27,6 +27,7 @@ public:
     AnimatorFVec3 ANIM_scale    {&PROP_scale};
     void animate();
 
+    unique_ptr<sq::Uniformbuffer> ubo;
     sq::Mesh* mesh = nullptr;
     sq::Skin* skin = nullptr;
     sq::BoundBox bbox;

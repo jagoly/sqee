@@ -6,7 +6,7 @@
 
 in vec2 texcrd;
 
-layout(binding=5) uniform sampler2D tex;
+layout(binding=8) uniform sampler2D tex;
 
 out float fragColour;
 

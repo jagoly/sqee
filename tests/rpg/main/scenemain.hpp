@@ -18,6 +18,8 @@ public:
     void render(float _ft);
     void update_settings();
 
+    bool focused = false;
+
 private:
     unique_ptr<sq::Pipeline> pipeline;
     unique_ptr<MainCamera> camera;
@@ -30,46 +32,57 @@ private:
 
     struct {
         unique_ptr<sq::Shader> gnrc_screen;
-        unique_ptr<sq::Shader> modl_static;
-        unique_ptr<sq::Shader> modl_skelly;
-        unique_ptr<sq::Shader> modl_stencil;
-        unique_ptr<sq::Shader> modl_decal;
-        unique_ptr<sq::Shader> modl_static_refl;
-        unique_ptr<sq::Shader> modl_skelly_refl;
-        unique_ptr<sq::Shader> modl_stencil_refl;
-        unique_ptr<sq::Shader> shds_skybox;
-        unique_ptr<sq::Shader> shds_skybox_refl;
+        unique_ptr<sq::Shader> gbuf_stencil_base;
+        unique_ptr<sq::Shader> gbuf_stencil_refl;
+        unique_ptr<sq::Shader> gbuf_statics_base;
+        unique_ptr<sq::Shader> gbuf_statics_refl;
+        unique_ptr<sq::Shader> gbuf_skellys_base;
+        unique_ptr<sq::Shader> gbuf_skellys_refl;
+        unique_ptr<sq::Shader> gbuf_decals_base;
+        unique_ptr<sq::Shader> gbuf_decals_refl;
         unique_ptr<sq::Shader> shad_static;
         unique_ptr<sq::Shader> shad_skelly;
-        unique_ptr<sq::Shader> shds_reflector;
+        unique_ptr<sq::Shader> defr_skybox_base;
+        unique_ptr<sq::Shader> defr_skybox_refl;
+        unique_ptr<sq::Shader> defr_reflectors;
+        unique_ptr<sq::Shader> part_vertex_soft;
+        unique_ptr<sq::Shader> part_geometry_soft;
     } VS;
 
     struct {
         unique_ptr<sq::Shader> gnrc_fillwith;
         unique_ptr<sq::Shader> gnrc_passthru;
         unique_ptr<sq::Shader> gnrc_lumalpha;
-        unique_ptr<sq::Shader> modl_write;
-        unique_ptr<sq::Shader> modl_decal;
-        unique_ptr<sq::Shader> modl_write_refl;
-        unique_ptr<sq::Shader> shds_skybox;
-        unique_ptr<sq::Shader> shds_ambient;
-        unique_ptr<sq::Shader> shds_skylight;
-        unique_ptr<sq::Shader> shds_spot_none;
-        unique_ptr<sq::Shader> shds_spot_shad;
-        unique_ptr<sq::Shader> shds_spot_spec;
-        unique_ptr<sq::Shader> shds_spot_both;
-        unique_ptr<sq::Shader> shds_point_none;
-        unique_ptr<sq::Shader> shds_point_shad;
-        unique_ptr<sq::Shader> shds_point_spec;
-        unique_ptr<sq::Shader> shds_point_both;
-        unique_ptr<sq::Shader> shds_ambient_refl;
-        unique_ptr<sq::Shader> shds_skylight_refl;
-        unique_ptr<sq::Shader> shds_spot_none_refl;
-        unique_ptr<sq::Shader> shds_spot_shad_refl;
-        unique_ptr<sq::Shader> shds_point_none_refl;
-        unique_ptr<sq::Shader> shds_point_shad_refl;
-        unique_ptr<sq::Shader> shds_reflector;
+        unique_ptr<sq::Shader> gbuf_models_base;
+        unique_ptr<sq::Shader> gbuf_models_refl;
+        unique_ptr<sq::Shader> gbuf_decals_base;
+        unique_ptr<sq::Shader> gbuf_decals_refl;
         unique_ptr<sq::Shader> shad_punch;
+        unique_ptr<sq::Shader> defr_skybox;
+        unique_ptr<sq::Shader> defr_ambient_base;
+        unique_ptr<sq::Shader> defr_ambient_refl;
+        unique_ptr<sq::Shader> defr_skylight_base;
+        unique_ptr<sq::Shader> defr_skylight_refl;
+        unique_ptr<sq::Shader> defr_spot_none_base;
+        unique_ptr<sq::Shader> defr_spot_none_refl;
+        unique_ptr<sq::Shader> defr_spot_shad_base;
+        unique_ptr<sq::Shader> defr_spot_shad_refl;
+        unique_ptr<sq::Shader> defr_spot_spec_base;
+        unique_ptr<sq::Shader> defr_spot_both_base;
+        unique_ptr<sq::Shader> defr_point_none_base;
+        unique_ptr<sq::Shader> defr_point_none_refl;
+        unique_ptr<sq::Shader> defr_point_shad_base;
+        unique_ptr<sq::Shader> defr_point_shad_refl;
+        unique_ptr<sq::Shader> defr_point_spec_base;
+        unique_ptr<sq::Shader> defr_point_both_base;
+        unique_ptr<sq::Shader> defr_reflectors;
+        unique_ptr<sq::Shader> part_ambient_soft;
+        unique_ptr<sq::Shader> part_skylight_soft;
+        unique_ptr<sq::Shader> part_spot_none_soft;
+        unique_ptr<sq::Shader> part_spot_shad_soft;
+        unique_ptr<sq::Shader> part_point_none_soft;
+        unique_ptr<sq::Shader> part_point_shad_soft;
+        unique_ptr<sq::Shader> part_writefinal_soft;
         unique_ptr<sq::Shader> prty_ssao_ssao;
         unique_ptr<sq::Shader> prty_ssao_blur;
         unique_ptr<sq::Shader> prty_hdr_highs;
@@ -81,27 +94,42 @@ private:
     } FS;
 
     struct {
-        unique_ptr<sq::Texture2D> depth;
-        unique_ptr<sq::Texture2D> diff;
-        unique_ptr<sq::Texture2D> surf;
-        unique_ptr<sq::Texture2D> norm;
-        unique_ptr<sq::Texture2D> spec;
-        unique_ptr<sq::Texture2D> hdr;
-        unique_ptr<sq::Texture2D> basic;
         unique_ptr<sq::Texture2D> ssaoA;
         unique_ptr<sq::Texture2D> ssaoB;
+        unique_ptr<sq::Texture2D> pshadA;
+        unique_ptr<sq::Texture2D> pshadB;
         unique_ptr<sq::Texture2D> bloomA;
         unique_ptr<sq::Texture2D> bloomB;
+        unique_ptr<sq::Texture2D> baseDiff;
+        unique_ptr<sq::Texture2D> baseSurf;
+        unique_ptr<sq::Texture2D> baseNorm;
+        unique_ptr<sq::Texture2D> baseSpec;
+        unique_ptr<sq::Texture2D> baseDpSt;
+        unique_ptr<sq::Texture2D> reflDiff;
+        unique_ptr<sq::Texture2D> reflSurf;
+        unique_ptr<sq::Texture2D> reflDpSt;
+        unique_ptr<sq::Texture2D> partMain;
+        unique_ptr<sq::Texture2D> partDpSt;
+        unique_ptr<sq::Texture2D> hdrBase;
+        unique_ptr<sq::Texture2D> hdrRefl;
+        unique_ptr<sq::Texture2D> hdrPart;
+        unique_ptr<sq::Texture2D> simple;
     } TX;
 
     struct {
-        unique_ptr<sq::Framebuffer> defr;
-        unique_ptr<sq::Framebuffer> hdr;
-        unique_ptr<sq::Framebuffer> basic;
         unique_ptr<sq::Framebuffer> ssaoA;
         unique_ptr<sq::Framebuffer> ssaoB;
+        unique_ptr<sq::Framebuffer> pshadA;
+        unique_ptr<sq::Framebuffer> pshadB;
         unique_ptr<sq::Framebuffer> bloomA;
         unique_ptr<sq::Framebuffer> bloomB;
+        unique_ptr<sq::Framebuffer> defrBase;
+        unique_ptr<sq::Framebuffer> defrRefl;
+        unique_ptr<sq::Framebuffer> defrPart;
+        unique_ptr<sq::Framebuffer> hdrBase;
+        unique_ptr<sq::Framebuffer> hdrRefl;
+        unique_ptr<sq::Framebuffer> hdrPart;
+        unique_ptr<sq::Framebuffer> simple;
     } FB;
 
     struct {

@@ -24,26 +24,37 @@ using DecalList       = std::list<weak_ptr<wcoe::Decal>>;
 
 class Graph : NonCopyable {
 public:
-    Graph(MainCamera* _camera, sq::SettingsMaps* _settings);
+    Graph(MainCamera* _camera, sq::SettingsMaps* _settings); // A
 
-    void update();
-    void reload_lists();
-    void update_settings();
+    void update();          // A
+    void reload_lists();    // A
+    void update_settings(); // A
 
-    void render_shadows_sky_A();
-    void render_shadows_sky_B();
-    void render_shadows_spot();
-    void render_shadows_point();
-    void render_mstatics(bool _reflect);
-    void render_mskellys(bool _reflect);
-    void render_reflects(bool _reflect);
-    void render_skybox(bool _reflect);
-    void render_ambient(bool _reflect);
-    void render_skylight(bool _reflect);
-    void render_spotlights(bool _reflect);
-    void render_pointlights(bool _reflect);
-    void render_reflections();
-    void render_decals();
+    void render_shadows_sky_A(); // B
+    void render_shadows_sky_B(); // B
+    void render_shadows_spot();  // B
+    void render_shadows_point(); // B
+    void render_mstatics_base(); // C
+    void render_mstatics_refl(); // C
+    void render_mskellys_base(); // C
+    void render_mskellys_refl(); // C
+    void render_reflects_base(); // C
+    void render_reflects_refl(); // C
+    void render_decals_base();   // C
+    void render_decals_refl();   // C
+
+    void render_skybox_base();      // D
+    void render_skybox_refl();      // D
+    void render_ambient_base();     // D
+    void render_ambient_refl();     // D
+    void render_skylight_base();    // D
+    void render_skylight_refl();    // D
+    void render_spotlights_base();  // D
+    void render_spotlights_refl();  // D
+    void render_pointlights_base(); // D
+    void render_pointlights_refl(); // D
+    void render_reflections();      // E
+    void render_particles();        // E
 
     wcoe::World* world = nullptr;
     ModelStaticList modelStaticList;
@@ -57,61 +68,96 @@ public:
 
     struct {
         sq::Shader* gnrc_screen = nullptr;
-        sq::Shader* modl_static = nullptr;
-        sq::Shader* modl_skelly = nullptr;
-        sq::Shader* modl_stencil = nullptr;
-        sq::Shader* modl_decal = nullptr;
-        sq::Shader* modl_static_refl = nullptr;
-        sq::Shader* modl_skelly_refl = nullptr;
-        sq::Shader* modl_stencil_refl = nullptr;
+        sq::Shader* gbuf_stencil_base = nullptr;
+        sq::Shader* gbuf_stencil_refl = nullptr;
+        sq::Shader* gbuf_statics_base = nullptr;
+        sq::Shader* gbuf_statics_refl = nullptr;
+        sq::Shader* gbuf_skellys_base = nullptr;
+        sq::Shader* gbuf_skellys_refl = nullptr;
+        sq::Shader* gbuf_decals_base = nullptr;
+        sq::Shader* gbuf_decals_refl = nullptr;
         sq::Shader* shad_static = nullptr;
         sq::Shader* shad_skelly = nullptr;
-        sq::Shader* shds_skybox = nullptr;
-        sq::Shader* shds_skybox_refl = nullptr;
-        sq::Shader* shds_reflector = nullptr;
+        sq::Shader* defr_skybox_base = nullptr;
+        sq::Shader* defr_skybox_refl = nullptr;
+        sq::Shader* defr_reflectors = nullptr;
+        sq::Shader* part_vertex_soft = nullptr;
+        sq::Shader* part_geometry_soft = nullptr;
     } VS;
 
     struct {
         sq::Shader* gnrc_fillwith = nullptr;
-        sq::Shader* gnrc_lumalpha = nullptr;
         sq::Shader* gnrc_passthru = nullptr;
-        sq::Shader* modl_write = nullptr;
-        sq::Shader* modl_decal = nullptr;
-        sq::Shader* modl_write_refl = nullptr;
+        sq::Shader* gnrc_lumalpha = nullptr;
+        sq::Shader* gbuf_models_base = nullptr;
+        sq::Shader* gbuf_models_refl = nullptr;
+        sq::Shader* gbuf_decals_base = nullptr;
+        sq::Shader* gbuf_decals_refl = nullptr;
         sq::Shader* shad_punch = nullptr;
-        sq::Shader* shds_skybox = nullptr;
-        sq::Shader* shds_ambient = nullptr;
-        sq::Shader* shds_skylight = nullptr;
-        sq::Shader* shds_spot_none = nullptr;
-        sq::Shader* shds_spot_shad = nullptr;
-        sq::Shader* shds_spot_spec = nullptr;
-        sq::Shader* shds_spot_both = nullptr;
-        sq::Shader* shds_point_none = nullptr;
-        sq::Shader* shds_point_shad = nullptr;
-        sq::Shader* shds_point_spec = nullptr;
-        sq::Shader* shds_point_both = nullptr;
-        sq::Shader* shds_skybox_refl = nullptr;
-        sq::Shader* shds_ambient_refl = nullptr;
-        sq::Shader* shds_skylight_refl = nullptr;
-        sq::Shader* shds_spot_none_refl = nullptr;
-        sq::Shader* shds_spot_shad_refl = nullptr;
-        sq::Shader* shds_point_none_refl = nullptr;
-        sq::Shader* shds_point_shad_refl = nullptr;
-        sq::Shader* shds_reflector = nullptr;
+        sq::Shader* defr_skybox = nullptr;
+        sq::Shader* defr_ambient_base = nullptr;
+        sq::Shader* defr_ambient_refl = nullptr;
+        sq::Shader* defr_skylight_base = nullptr;
+        sq::Shader* defr_skylight_refl = nullptr;
+        sq::Shader* defr_spot_none_base = nullptr;
+        sq::Shader* defr_spot_none_refl = nullptr;
+        sq::Shader* defr_spot_shad_base = nullptr;
+        sq::Shader* defr_spot_shad_refl = nullptr;
+        sq::Shader* defr_spot_spec_base = nullptr;
+        sq::Shader* defr_spot_both_base = nullptr;
+        sq::Shader* defr_point_none_base = nullptr;
+        sq::Shader* defr_point_none_refl = nullptr;
+        sq::Shader* defr_point_shad_base = nullptr;
+        sq::Shader* defr_point_shad_refl = nullptr;
+        sq::Shader* defr_point_spec_base = nullptr;
+        sq::Shader* defr_point_both_base = nullptr;
+        sq::Shader* defr_reflectors = nullptr;
+        sq::Shader* part_ambient_soft = nullptr;
+        sq::Shader* part_skylight_soft = nullptr;
+        sq::Shader* part_spot_none_soft = nullptr;
+        sq::Shader* part_spot_shad_soft = nullptr;
+        sq::Shader* part_point_none_soft = nullptr;
+        sq::Shader* part_point_shad_soft = nullptr;
+        sq::Shader* part_writefinal_soft = nullptr;
     } FS;
 
     struct {
-        sq::Texture2D* depth = nullptr;
-        sq::Texture2D* diff = nullptr;
-        sq::Texture2D* surf = nullptr;
-        sq::Texture2D* norm = nullptr;
-        sq::Texture2D* spec = nullptr;
-        sq::Texture2D* hdr = nullptr;
+        sq::Texture2D* ssaoA = nullptr;
+        sq::Texture2D* ssaoB = nullptr;
+        sq::Texture2D* pshadA = nullptr;
+        sq::Texture2D* pshadB = nullptr;
+        sq::Texture2D* bloomA = nullptr;
+        sq::Texture2D* bloomB = nullptr;
+        sq::Texture2D* baseDpSt = nullptr;
+        sq::Texture2D* baseDiff = nullptr;
+        sq::Texture2D* baseSurf = nullptr;
+        sq::Texture2D* baseNorm = nullptr;
+        sq::Texture2D* baseSpec = nullptr;
+        sq::Texture2D* reflDpSt = nullptr;
+        sq::Texture2D* reflDiff = nullptr;
+        sq::Texture2D* reflSurf = nullptr;
+        sq::Texture2D* partDpSt = nullptr;
+        sq::Texture2D* partMain = nullptr;
+        sq::Texture2D* hdrBase = nullptr;
+        sq::Texture2D* hdrRefl = nullptr;
+        sq::Texture2D* hdrPart = nullptr;
+        sq::Texture2D* simple = nullptr;
     } TX;
 
     struct {
-        sq::Framebuffer* defr = nullptr;
-        sq::Framebuffer* hdr = nullptr;
+        sq::Framebuffer* ssaoA = nullptr;
+        sq::Framebuffer* ssaoB = nullptr;
+        sq::Framebuffer* pshadA = nullptr;
+        sq::Framebuffer* pshadB = nullptr;
+        sq::Framebuffer* bloomA = nullptr;
+        sq::Framebuffer* bloomB = nullptr;
+        sq::Framebuffer* defrBase = nullptr;
+        sq::Framebuffer* defrRefl = nullptr;
+        sq::Framebuffer* defrPart = nullptr;
+        sq::Framebuffer* hdrBase = nullptr;
+        sq::Framebuffer* hdrPart = nullptr;
+        sq::Framebuffer* hdrRefl = nullptr;
+        sq::Framebuffer* simple = nullptr;
     } FB;
 
     struct {
@@ -130,8 +176,9 @@ public:
     sq::SettingsMaps* const settings;
     sq::Pipeline* pipeline = nullptr;
 
-//private:
-    sq::Frustum reflFrus;
+private:
+    const wcoe::Reflector* crntRflct = nullptr;
+    const wcoe::Emitter* crntEmitr = nullptr;
 };
 
 }}
