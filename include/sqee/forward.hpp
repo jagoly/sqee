@@ -84,7 +84,6 @@ class PreProcessor;
 class SoundManager;
 
 class Camera;
-class UboCamera;
 class Mesh;
 class Skin;
 class Animation;

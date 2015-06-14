@@ -1,6 +1,6 @@
-#include "sqee/app/application.hpp"
-#include "sqee/app/settings.hpp"
-#include "sqee/handlers/basics.hpp"
+#include <sqee/app/application.hpp>
+#include <sqee/app/settings.hpp>
+#include <sqee/handlers/basics.hpp>
 
 using namespace sq;
 

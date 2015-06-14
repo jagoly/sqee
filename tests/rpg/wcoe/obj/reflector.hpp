@@ -34,6 +34,7 @@ public:
     sq::Frustum frus;
     bool negScale;
     fmat4 matrix;
+    float offset;
 };
 
 template<> struct ObjTraits<Reflector> {

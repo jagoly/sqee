@@ -1,8 +1,8 @@
 #include <fstream>
 #include <sstream>
 
-#include "sqee/app/logging.hpp"
-#include "sqee/misc/files.hpp"
+#include <sqee/app/logging.hpp>
+#include <sqee/misc/files.hpp>
 
 using namespace sq;
 
@@ -48,7 +48,7 @@ string sq::get_string_from_file(const string& _path) {
     return sstr.str();
 }
 
-std::vector<char> sq::get_bytes_from_file(const string& _path) {
+vector<char> sq::get_bytes_from_file(const string& _path) {
     std::ifstream src(_path, std::ios::binary | std::ios::ate);
     if (!src.is_open()) {
         log_error("Couldn't open file %s", _path);

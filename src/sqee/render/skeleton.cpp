@@ -1,97 +1,98 @@
+#include <glm/mat3x4.hpp>
 #include <glm/gtc/quaternion.hpp>
 
-#include "sqee/render/skeleton.hpp"
+#include <sqee/render/skeleton.hpp>
+
+#include <iostream>
 
 using namespace sq;
 
-void Skeleton::use_restPose(Animation::Pose& _pose) {
-    restPose = &_pose;
-    quatVec = restPose->first;
-    offsVec = restPose->second;
+
+Bone::Bone(const Bone* _parent, fvec3 _head, fvec3 _tail, fquat _quat)
+    : parent(_parent), head(_head), tail(_tail), quat(_quat) {}
+
+BoneAnim::BoneAnim(const BoneAnim* _parent, const Bone* _bone)
+    : parent(_parent), bone(_bone) {}
+
+
+Skeleton::Skeleton(uint _tickRate) : tickRate(_tickRate) {}
+
+void Skeleton::revert_pose() {
+    state = State::Done;
+    calcPose = restPose;
+    boneMatVec.clear();
+    for (const auto& bone : calcPose)
+        boneMatVec.emplace_back(Animation::to_matrix(bone));
 }
 
-void Skeleton::use_timeline(Animation::Timeline& _timeline) {
-    timeline = &_timeline;
+void Skeleton::play_anim(uint _span, uint _spanEnd) {
+    state = State::Running;
+    spanEnd = _spanEnd;
+    span = _span;
+    index = 0u;
+    ticks = 0u;
+    looping = false;
+    poseCrnt = calcPose;
+    poseNext = timeline.front().first;
 }
 
-void Skeleton::play_anim(bool _loop, uint _spanA, uint _spanB) {
-    looping = _loop;
-    span = _spanA;
-    spanB = _spanB;
-    running = true;
-    index = -1;
-    ticks = 0;
-
-    transPose.first = quatVec;
-    transPose.second = offsVec;
-    poseCrnt = &transPose;
-    poseNext = &(*timeline)[0].first;
+void Skeleton::loop_anim(uint _span) {
+    state = State::Running;
+    span = _span;
+    index = 0u;
+    ticks = 0u;
+    looping = true;
+    poseCrnt = calcPose;
+    poseNext = timeline.front().first;
 }
 
 void Skeleton::stop_anim(uint _span) {
-    index = -2;
-    ticks = 0;
+    state = State::Ending;
     span = _span;
-
-    transPose.first = quatVec;
-    transPose.second = offsVec;
-    poseCrnt = &transPose;
+    index = 0u;
+    ticks = 0u;
+    looping = false;
+    poseCrnt = calcPose;
     poseNext = restPose;
 }
 
 void Skeleton::tick() {
-    if (!running) return;
-    ticks += 1;
+    if (state == State::Done || state == State::Paused) return;
+    ticks += 1u;
 
-    if (index == -1) { // starting
+    if (state == State::Running) {
         if (ticks == span) {
-            index = 1;
             poseCrnt = poseNext;
-            poseNext = &(*timeline)[index].first;
-            span = (*timeline)[index].second;
-            ticks = 0;
-        } return;
-    }
-
-    if (index == -2) { // stoping
-        if (ticks == span) {
-            quatVec = restPose->first;
-            offsVec = restPose->second;
-            running = false;
-        } return;
-    }
-
-    if (ticks == span) {
-        poseCrnt = poseNext;
-        ticks = 0;
-        index += 1;
-        if (uint(index) == timeline->size()) {
-            if (looping) index = 0;
-            else { stop_anim(spanB); return; }
+            ticks = 0u; index += 1;
+            if (index == timeline.size()) {
+                if (looping) index = 0u;
+                else stop_anim(spanEnd);
+            } else {
+                poseNext = timeline[index].first;
+                span = timeline[index].second;
+            }
         }
     }
 
-    if (running) {
-        poseNext = &(*timeline)[index].first;
-        span = (*timeline)[index].second;
+    if (state == State::Ending) {
+        if (ticks == span) {
+            state = State::Done;
+        } return;
     }
 }
 
 void Skeleton::calc(double _accum) {
-    if (!running) return;
+    if (state == State::Done || state == State::Paused) return;
+    calcPose.clear(); boneMatVec.clear();
 
-    const auto& q1 = poseCrnt->first;
-    const auto& q2 = poseNext->first;
-    const auto& o1 = poseCrnt->second;
-    const auto& o2 = poseNext->second;
-    quatVec.clear(); offsVec.clear();
-
-    float percent = (ticks + _accum*double(tickRate)) / double(span);
-    for (uint i = 0; i < restPose->first.size(); i++) {
-        glm::quat a(q1[i].x, q1[i].y, q1[i].z, q1[i].w);
-        glm::quat b(q2[i].x, q2[i].y, q2[i].z, q2[i].w);
-        glm::quat ab(glm::slerp(a, b, percent));
-        quatVec.emplace_back(ab.w, ab.x, ab.y, ab.z);
-        offsVec.emplace_back(glm::mix(o1[i], o2[i], percent));
+    float percent = (ticks + _accum*tickRate) / span;
+    for (uint i = 0; i < restPose.size(); i++) {
+        const Bone& boneA = poseCrnt[i];
+        const Bone& boneB = poseNext[i];
+        fquat quat = glm::slerp(boneA.quat, boneB.quat, percent);
+        fvec3 offs = glm::mix(boneA.offs, boneB.offs, percent);
+        Bone bone {quat, offs}; calcPose.emplace_back(bone);
+        glm::mat3x4 boneMat = Animation::to_matrix(bone);
+        boneMatVec.emplace_back(boneMat);
     }
 }

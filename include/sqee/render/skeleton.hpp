@@ -5,36 +5,50 @@
 
 namespace sq {
 
+struct Bone : NonCopyable {
+    Bone(const Bone* _parent, fvec3 _head, fvec3 _tail, fquat _quat);
+    const Bone* const parent; const fvec3 head, tail; const fquat quat;
+};
+
+struct BoneAnim : NonCopyable {
+    BoneAnim(const BoneAnim* _parent, const Bone* _bone);
+    const BoneAnim* const parent; const Bone* const bone;
+    fquat rotation, cacheRotation;
+    fvec3 offset, cacheOffset;
+};
+
 class Skeleton : NonCopyable {
 public:
-    uint tickRate = 60;
+    Skeleton(uint _tickRate);
+    const uint tickRate;
 
-    void use_restPose(Animation::Pose& _pose);
-    void use_timeline(Animation::Timeline& _timeline);
-    void play_anim(bool _looped, uint _spanA, uint _spanB);
+    vector<glm::mat3x4> boneMatVec;
+    using Keyframe = Animation::Keyframe;
+    using Timeline = Animation::Timeline;
+    using Bone = Animation::Bone;
+    using Pose = Animation::Pose;
+    Pose calcPose, restPose;
+    Timeline timeline;
+
+    enum class State { Running, Ending, Paused, Done };
+    State state = State::Done; bool looping = false;
+
+    void revert_pose();
+    void play_anim(uint _span, uint _spanEnd);
+    void loop_anim(uint _span);
     void stop_anim(uint _span);
+    void resume_anim();
     void pause_anim();
-
-    vector<fvec4> quatVec;
-    vector<fvec3> offsVec;
 
     void tick();
     void calc(double _accum);
 
 private:
-    Animation::Pose* restPose;
-    Animation::Timeline* timeline;
-    int index = 0;
-    uint ticks = 0;
-    bool looping = false;
-    bool running = false;
-
-    uint span = 0;
-    uint spanB = 0;
-
-    Animation::Pose* poseCrnt = nullptr;
-    Animation::Pose* poseNext = nullptr;
-    Animation::Pose transPose;
+    uint span = 0u;
+    uint index = 0u;
+    uint ticks = 0u;
+    uint spanEnd = 0u;
+    Pose poseCrnt, poseNext;
 };
 
 }

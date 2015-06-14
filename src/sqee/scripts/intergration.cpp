@@ -1,11 +1,12 @@
 ﻿#include <chaiscript/utility/utility.hpp>
 
-#include "sqee/redist/gl_ext_3_3.hpp"
-#include "sqee/redist/tinyformat.hpp"
-#include "sqee/app/application.hpp"
-#include "sqee/app/settings.hpp"
-#include "sqee/scripts/scene.hpp"
-#include "sqee/scripts/intergration.hpp"
+#include <sqee/redist/gl_ext_3_3.hpp>
+#include <sqee/redist/tinyformat.hpp>
+#include <sqee/app/application.hpp>
+#include <sqee/app/settings.hpp>
+#include <sqee/render/camera.hpp>
+#include <sqee/scripts/scene.hpp>
+#include <sqee/scripts/intergration.hpp>
 
 using namespace sq;
 
@@ -215,6 +216,16 @@ void sq::cs_setup_console(chai::ChaiScript& _cs) {
         {fun(&SceneConsole::cs_print), "print"},
         {fun(&SceneConsole::cs_clear), "clear"},
         {fun(&SceneConsole::cs_history), "history"} });
+
+    _cs.add(m);
+}
+
+void sq::cs_setup_render(chai::ChaiScript& _cs) {
+    chai::ModulePtr m(new chai::Module());
+
+    add_class<Camera>(*m, "Camera", {}, {
+        {fun(&Camera::pos), "position"},
+        {fun(&Camera::dir), "direction"} });
 
     _cs.add(m);
 }

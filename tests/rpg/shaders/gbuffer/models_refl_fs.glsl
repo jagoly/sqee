@@ -2,7 +2,7 @@
 #extension GL_ARB_shading_language_420pack : enable
 
 in vec2 texcrd;
-in vec3 N, T, B;
+in vec3 normal;
 
 #include "headers/blocks/camera"
 
@@ -17,7 +17,7 @@ layout(location=1) out vec3 fragSurf;
 
 void main() {
     fragDiff = vec3(1.f, 1.f, 1.f);
-    fragSurf = N * 0.5f + 0.5f;
+    fragSurf = normal * 0.5f + 0.5f;
 
     if (bool(d_n_s.x) == true) {
         vec4 texel = texture(texDiff, texcrd);

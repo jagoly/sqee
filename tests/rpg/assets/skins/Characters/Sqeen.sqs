@@ -7,13 +7,13 @@ mCount 3
 { materials
 material
 wrap clamp
-diff Characters/Don/Head
+diff Characters/Sqeen/Head
 
 material
 wrap clamp
-diff Characters/Don/Mid
+diff Characters/Sqeen/Torso
 
 material
 wrap clamp
-diff Characters/Don/Legs
+diff Characters/Sqeen/Legs
 }

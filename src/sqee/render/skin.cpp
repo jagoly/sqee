@@ -1,8 +1,8 @@
-#include "sqee/redist/gl_ext_3_3.hpp"
-#include "sqee/app/logging.hpp"
-#include "sqee/gl/textures.hpp"
-#include "sqee/misc/files.hpp"
-#include "sqee/render/skin.hpp"
+#include <sqee/redist/gl_ext_3_3.hpp>
+#include <sqee/app/logging.hpp>
+#include <sqee/gl/textures.hpp>
+#include <sqee/misc/files.hpp>
+#include <sqee/render/skin.hpp>
 
 using namespace sq;
 

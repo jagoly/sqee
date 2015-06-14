@@ -8,9 +8,11 @@ layout(location = 5) in ivec4 V_bonesEFGH;
 layout(location = 6) in vec4 V_weightsABCD;
 layout(location = 7) in vec4 V_weightsEFGH;
 
+#include "headers/blocks/mskelly"
+
+layout(std140, binding=1) uniform MSKELLYBLOCK { MSkellyBlock MB; };
+
 uniform mat4 matrix;
-uniform vec4 skelQuat[40];
-uniform vec3 skelOffs[40];
 
 out vec2 texcrd;
 
@@ -30,21 +32,13 @@ void main() {
         V_weightsEFGH.r, V_weightsEFGH.g, V_weightsEFGH.b, V_weightsEFGH.a
     };
 
-    vec3 a_pos = vec3(0.f);
-    for (int i = 0; i < 8; i++) {
-        int b = bones[i]; if (b < 0) break;
-        float w = skelQuat[b].r; float x = skelQuat[b].g; 
-        float y = skelQuat[b].b; float z = skelQuat[b].a;
-        mat4 bone = transpose(mat4(
-            1-2*y*y-2*z*z,  2*x*y-2*w*z,    2*x*z+2*w*y,    skelOffs[b].x,
-            2*x*y+2*w*z,    1-2*x*x-2*z*z,  2*y*z-2*w*x,    skelOffs[b].y,
-            2*x*z-2*w*y,    2*y*z+2*w*x,    1-2*x*x-2*y*y,  skelOffs[b].z,
-            0, 0, 0, 1
-        ));
+    vec3 a_pos  = vec3(0.f, 0.f, 0.f);
 
-        a_pos += vec3(bone * vec4(V_pos, 1.f)) * weights[i];
+    for (int i = 0; i < 8; i++) {
+        int b = bones[i]; if (b == -1) break;
+        a_pos  += vec4(V_pos, 1) * MB.bones[b] * weights[i];
     }
 
-    gl_Position = matrix * vec4(a_pos, 1.f);
     texcrd = V_texcrd;
+    gl_Position = matrix * vec4(a_pos, 1);
 }

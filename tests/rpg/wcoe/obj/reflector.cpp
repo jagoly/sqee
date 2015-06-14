@@ -8,12 +8,12 @@
 #include <sqee/gl/uniformbuffers.hpp>
 #include <sqee/gl/framebuffers.hpp>
 #include <sqee/gl/textures.hpp>
+#include <sqee/render/camera.hpp>
 #include <sqee/render/mesh.hpp>
 #include <sqee/render/skin.hpp>
 #include <sqee/maths/culling.hpp>
 #include <sqee/maths/general.hpp>
 
-#include "../../main/camera.hpp"
 #include "../cell.hpp"
 #include "../world.hpp"
 #include "reflector.hpp"
@@ -90,6 +90,7 @@ void Reflector::animate() {
     negScale = glm::determinant(matrix) < 0.f;
     normal = glm::normalize(sq::make_normMat(matrix) * fvec3(0,0,1));
     bbox = sq::make_BoundBox(matrix, mesh->origin, mesh->size, mesh->radius);
+    offset = glm::dot(-normal, trans);
 
     ubo->bind(2);
     ubo->update("matrix", &matrix);

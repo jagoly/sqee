@@ -1,9 +1,9 @@
-#include "sqee/app/application.hpp"
-#include "sqee/app/settings.hpp"
-#include "sqee/app/logging.hpp"
-#include "sqee/scripts/chaiscript.hpp"
-#include "sqee/text/text.hpp"
-#include "sqee/scripts/scene.hpp"
+#include <sqee/app/application.hpp>
+#include <sqee/app/settings.hpp>
+#include <sqee/app/logging.hpp>
+#include <sqee/scripts/chaiscript.hpp>
+#include <sqee/text/text.hpp>
+#include <sqee/scripts/scene.hpp>
 
 using namespace sq;
 

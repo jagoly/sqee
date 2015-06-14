@@ -59,7 +59,7 @@ vec2(-0.332520, -0.913590),
 vec2(0.984808, -0.173648),
 };
 #else
-const float distThres = 0.5f;
+const float distThres = 0.3f;
 const float filterSize = 60.f;
 const int diskSize = 12;
 const vec2 disk[12] = {

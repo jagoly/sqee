@@ -14,6 +14,6 @@ out gl_PerVertex {
 
 
 void main() {
-    gl_Position = matrix * vec4(V_pos, 1.f);
     texcrd = V_texcrd;
+    gl_Position = matrix * vec4(V_pos, 1.f);
 }

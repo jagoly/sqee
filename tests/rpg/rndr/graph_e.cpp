@@ -1,21 +1,20 @@
+#include <algorithm>
 #include <glm/matrix.hpp>
 
 #include <sqee/redist/gl_ext_3_3.hpp>
 #include <sqee/app/settings.hpp>
-#include <sqee/app/logging.hpp>
 #include <sqee/gl/drawing.hpp>
 #include <sqee/gl/framebuffers.hpp>
 #include <sqee/gl/shaders.hpp>
 #include <sqee/gl/textures.hpp>
 #include <sqee/gl/uniformbuffers.hpp>
-#include <sqee/render/cameras.hpp>
+#include <sqee/render/camera.hpp>
 #include <sqee/render/mesh.hpp>
 #include <sqee/render/skin.hpp>
 #include <sqee/render/skeleton.hpp>
 #include <sqee/maths/culling.hpp>
 #include <sqee/maths/general.hpp>
 
-#include "../main/camera.hpp"
 #include "../wcoe/world.hpp"
 #include "../wcoe/obj/modelstatic.hpp"
 #include "../wcoe/obj/modelskelly.hpp"
@@ -30,46 +29,19 @@
 using namespace sqt;
 using namespace rndr;
 
-#define CLIP_ON gl::Enable(gl::CLIP_DISTANCE0)
-#define CLIP_OFF gl::Disable(gl::CLIP_DISTANCE0)
-#define COLORMASK_ON gl::ColorMask(0, 0, 0, 0)
-#define COLORMASK_OFF gl::ColorMask(1, 1, 1, 1)
-#define BLEND_PREM gl::Enable(gl::BLEND), gl::BlendFunc(gl::ONE, gl::ONE_MINUS_SRC_ALPHA)
-#define BLEND_ALPHA gl::Enable(gl::BLEND), gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA)
-#define BLEND_ONEONE gl::Enable(gl::BLEND), gl::BlendFunc(gl::ONE, gl::ONE)
-#define BLEND_OFF gl::Disable(gl::BLEND)
-#define CULLFACE_BACK gl::Enable(gl::CULL_FACE), gl::CullFace(gl::BACK)
-#define CULLFACE_FRONT gl::Enable(gl::CULL_FACE), gl::CullFace(gl::FRONT)
-#define CULLFACE_OFF gl::Disable(gl::CULL_FACE)
-#define DEPTHTEST_RO gl::Enable(gl::DEPTH_TEST), gl::DepthMask(0)
-#define DEPTHTEST_RW gl::Enable(gl::DEPTH_TEST), gl::DepthMask(1)
-#define DEPTHTEST_OFF gl::Disable(gl::DEPTH_TEST)
-#define STENCILTEST_ON gl::Enable(gl::STENCIL_TEST)
-#define STENCILTEST_OFF gl::Disable(gl::STENCIL_TEST)
-#define CLEAR_COLOR gl::Clear(gl::COLOR_BUFFER_BIT)
-#define CLEAR_DEPTH gl::Clear(gl::DEPTH_BUFFER_BIT)
-#define CLEAR_STENC gl::Clear(gl::STENCIL_BUFFER_BIT)
-#define CLEAR_COLOR_DEPTH gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT)
-#define CLEAR_COLOR_STENC gl::Clear(gl::COLOR_BUFFER_BIT | gl::STENCIL_BUFFER_BIT)
-#define CLEAR_DEPTH_STENC gl::Clear(gl::DEPTH_BUFFER_BIT | gl::STENCIL_BUFFER_BIT)
-#define CLEAR_COLOR_DEPTH_STENC gl::Clear(gl::COLOR_BUFFER_BIT|gl::DEPTH_BUFFER_BIT|gl::STENCIL_BUFFER_BIT)
-#define VIEWPORT_FULL gl::Viewport(0, 0, INFO.fullSize.x, INFO.fullSize.y)
-#define VIEWPORT_HALF gl::Viewport(0, 0, INFO.halfSize.x, INFO.halfSize.y)
-#define VIEWPORT_QTER gl::Viewport(0, 0, INFO.qterSize.x, INFO.qterSize.y)
-
-
 void Graph::render_reflections() {
     for (const auto& rptr : reflectorList) {
         const wcoe::Reflector& rflct = *rptr.lock();
+        if (glm::dot(camera->pos, rflct.normal) + rflct.offset < 0.f) continue;
         if (sq::bbox_in_frus(rflct.bbox, camera->frus)) continue;
         crntRflct = &rflct; rflct.ubo->bind(2);
 
-        COLORMASK_ON; BLEND_OFF;
-        DEPTHTEST_RO; STENCILTEST_ON;
-        VIEWPORT_FULL; FB.defrBase->use();
-        gl::StencilMask(0b0010); CLEAR_STENC;
+        sq::DEPTH_ON(); sq::DEPTH_READ();
+        sq::COLORMASK_ON(); sq::BLEND_OFF();
+        sq::STENCIL_ON(); sq::STENCIL_REPLACE();
+        sq::VIEWPORT(INFO.fullSize); FB.defrBase->use();
+        gl::StencilMask(0b0010); sq::CLEAR_STENC();
         gl::StencilFunc(gl::EQUAL, 0b0011, 0b0001);
-        gl::StencilOp(gl::KEEP, gl::KEEP, gl::REPLACE);
         pipeline->use_shader(*VS.gbuf_stencil_base);
         VS.gbuf_stencil_base->set_mat<fmat4>("matrix", rflct.matrix);
         pipeline->disable_stages(0, 0, 1); rflct.mesh->bind_vao();
@@ -80,35 +52,36 @@ void Graph::render_reflections() {
         gl::BlitFramebuffer(0, 0, INFO.fullSize.x, INFO.fullSize.y,
                             0, 0, INFO.halfSize.x, INFO.halfSize.y,
                             gl::STENCIL_BUFFER_BIT, gl::NEAREST);
-        COLORMASK_OFF; DEPTHTEST_RW; FB.defrRefl->use();
-        VIEWPORT_HALF; gl::StencilMask(0b1100);
-        CLEAR_COLOR_DEPTH_STENC;
+        sq::COLORMASK_OFF(); sq::DEPTH_WRITE();
+        sq::VIEWPORT(INFO.halfSize); FB.defrRefl->use();
+        gl::StencilMask(0b1100); sq::CLEAR_COLOR_DEPTH_STENC();
 
         TX.reflDiff->bind(gl::TEXTURE3);
         TX.reflSurf->bind(gl::TEXTURE4);
         TX.reflDpSt->bind(gl::TEXTURE7);
 
+        sq::CLIP_ON();
         render_mstatics_refl();
         render_reflects_refl();
         render_decals_refl();
-        //render_mskellys_refl();
+        render_mskellys_refl();
+        sq::CLIP_OFF();
 
-        CLIP_OFF; CULLFACE_OFF; DEPTHTEST_OFF;
-        FB.hdrRefl->use(); CLEAR_COLOR;
+        sq::CULLFACE_OFF();
+        sq::DEPTH_OFF(); sq::STENCIL_ON();
+        FB.hdrRefl->use(); sq::CLEAR_COLOR();
 
-        STENCILTEST_ON;
-        BLEND_OFF; render_skybox_refl();
-        BLEND_OFF; render_ambient_refl();
-        BLEND_ONEONE; render_skylight_refl();
-        BLEND_ONEONE; render_spotlights_refl();
-        BLEND_ONEONE; render_pointlights_refl();
+        render_skybox_refl();
+        render_ambient_refl();
+        render_skylight_refl();
+        render_spotlights_refl();
+        render_pointlights_refl();
 
-        STENCILTEST_ON; BLEND_ALPHA; CULLFACE_BACK;
+        sq::BLEND_PREM(); sq::STENCIL_KEEP();
         gl::StencilFunc(gl::EQUAL, 0b0011, 0b0011);
-        gl::StencilOp(gl::KEEP, gl::KEEP, gl::KEEP);
         pipeline->use_shader(*VS.defr_reflectors);
         pipeline->use_shader(*FS.defr_reflectors);
-        FB.hdrBase->use(); VIEWPORT_FULL;
+        FB.hdrBase->use(); sq::VIEWPORT(INFO.fullSize);
         TX.hdrRefl->bind(gl::TEXTURE0);
         rflct.mesh->bind_vao();
         for (uint i = 0u; i < rflct.mesh->mCount; i++)
@@ -116,50 +89,6 @@ void Graph::render_reflections() {
             rflct.mesh->draw_ibo(i);
     }
 }
-
-
-//void Graph::render_particles() {
-//    gl::Enable(gl::PROGRAM_POINT_SIZE);
-//    gl::PointParameteri(gl::POINT_SPRITE_COORD_ORIGIN, gl::LOWER_LEFT);
-
-//    for (const auto& eptr : emitterList) {
-//        const wcoe::Emitter& emitr = *eptr.lock();
-//        if (emitr.particleNum == 0u) continue;
-//        crntEmitr = &emitr;
-
-//        BLEND_OFF; DEPTHTEST_RW; STENCILTEST_ON;
-//        FB.defrPart->use(); gl::StencilMask(0b1111);
-//        VIEWPORT_HALF; CLEAR_COLOR_DEPTH_STENC;
-//        TX.baseDpSt->bind(gl::TEXTURE8);
-//        gl::BindVertexArray(emitr.vao);
-
-//        CULLFACE_OFF; BLEND_PREM; DEPTHTEST_RW;
-//        pipeline->use_shader(*VS.gbuf_particles);
-//        pipeline->use_shader(*FS.gbuf_particles);
-//        gl::StencilFunc(gl::ALWAYS, 0b0001, 0b0001);
-//        gl::StencilOp(gl::KEEP, gl::KEEP, gl::REPLACE);
-//        gl::DrawArrays(gl::POINTS, 0, emitr.particleNum);
-
-//        DEPTHTEST_OFF;
-//        TX.partMain->bind(gl::TEXTURE0);
-//        TX.partDpSt->bind(gl::TEXTURE1);
-//        gl::StencilFunc(gl::EQUAL, 0b0001, 0b0001);
-//        gl::StencilOp(gl::KEEP, gl::KEEP, gl::KEEP);
-//        FB.hdrPart->use(); CLEAR_COLOR;
-//        BLEND_OFF; render_ambient_part();
-//        BLEND_ONEONE; render_skylight_part();
-
-//        TX.partMain->bind(gl::TEXTURE0);
-//        TX.hdrPart->bind(gl::TEXTURE1);
-
-//        BLEND_ALPHA; CULLFACE_OFF;
-//        DEPTHTEST_OFF; STENCILTEST_OFF;
-//        pipeline->use_shader(*VS.gnrc_screen);
-//        pipeline->use_shader(*FS.defr_particles);
-//        FB.hdrBase->use(); VIEWPORT_FULL;
-//        sq::draw_screen_quad();
-//    }
-//}
 
 
 void Graph::render_particles() {
@@ -229,14 +158,15 @@ void Graph::render_particles() {
 
     FB.hdrBase->bind(gl::READ_FRAMEBUFFER);
     FB.hdrPart->bind(gl::DRAW_FRAMEBUFFER);
-    DEPTHTEST_RW; STENCILTEST_ON; CLEAR_COLOR_DEPTH_STENC;
+    sq::DEPTH_ON(); sq::DEPTH_WRITE();
+    sq::STENCIL_OFF(); sq::CLEAR_COLOR_DEPTH();
     gl::BlitFramebuffer(0, 0, INFO.fullSize.x, INFO.fullSize.y,
                         0, 0, INFO.halfSize.x, INFO.halfSize.y,
                         gl::DEPTH_BUFFER_BIT, gl::NEAREST);
-    FB.hdrPart->use(); VIEWPORT_HALF;
+    FB.hdrPart->use(); sq::VIEWPORT(INFO.halfSize);
 
-    CLIP_OFF; CULLFACE_OFF;
-    DEPTHTEST_RO; STENCILTEST_OFF;
+    sq::CULLFACE_OFF();
+    sq::BLEND_ON(); sq::DEPTH_READ();
     pipeline->use_shader(*VS.part_vertex_soft);
     pipeline->use_shader(*VS.part_geometry_soft);
     gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ibo);
@@ -245,10 +175,11 @@ void Graph::render_particles() {
     for (const auto& vec : indVecList) {
         gl::BufferData(gl::ELEMENT_ARRAY_BUFFER, vec.size()*4, vec.data(), gl::STREAM_DRAW);
 
-        BLEND_PREM; world->ambient.ubo->bind(1);
+        sq::BLEND_PREM();
+        world->ambient.ubo->bind(1);
         pipeline->use_shader(*FS.part_ambient_soft);
         gl::DrawElements(gl::POINTS, vec.size(), gl::UNSIGNED_INT, 0);
-        BLEND_ONEONE;
+        sq::BLEND_ONEONE();
 
         pipeline->use_shader(*FS.part_skylight_soft);
         world->skylight.ubo->bind(1); world->skylight.texA->bind();
@@ -271,11 +202,11 @@ void Graph::render_particles() {
         }
     }
 
-    BLEND_PREM; DEPTHTEST_OFF;
+    sq::BLEND_PREM(); sq::DEPTH_OFF();
     pipeline->use_shader(*VS.gnrc_screen);
     pipeline->use_shader(*FS.part_writefinal_soft);
+    FB.hdrBase->use(); sq::VIEWPORT(INFO.fullSize);
     pipeline->disable_stages(0, 1, 0);
-    FB.hdrBase->use(); VIEWPORT_FULL;
     TX.hdrPart->bind(gl::TEXTURE0);
     sq::draw_screen_quad();
 }

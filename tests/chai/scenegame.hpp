@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sqee/render/cameras.hpp>
+#include <sqee/render/camera.hpp>
 #include <sqee/scenes/scene.hpp>
 #include <sqee/handlers/handler.hpp>
 
@@ -10,7 +10,7 @@ class SceneGame : public sq::Scene {
 public:
     SceneGame(sq::Application* const _app);
 
-    sq::Camera camera;
+    sq::Camera camera{0};
 
     void update();
     void render(float _ft);

@@ -12,7 +12,6 @@
 #include <sqee/maths/culling.hpp>
 #include <sqee/maths/general.hpp>
 
-#include "../../main/camera.hpp"
 #include "../cell.hpp"
 #include "../world.hpp"
 #include "emitter.hpp"

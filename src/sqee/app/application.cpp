@@ -1,11 +1,11 @@
-#include "sqee/debug/glcallback.hpp"
-#include "sqee/redist/gl_ext_3_3.hpp"
-#include "sqee/app/logging.hpp"
-#include "sqee/scripts/intergration.hpp"
-#include "sqee/app/settings.hpp"
-#include "sqee/gl/preprocessor.hpp"
-#include "sqee/sounds/soundmanager.hpp"
-#include "sqee/app/application.hpp"
+#include <sqee/debug/glcallback.hpp>
+#include <sqee/redist/gl_ext_3_3.hpp>
+#include <sqee/app/logging.hpp>
+#include <sqee/scripts/intergration.hpp>
+#include <sqee/app/settings.hpp>
+#include <sqee/gl/preprocessor.hpp>
+#include <sqee/sounds/soundmanager.hpp>
+#include <sqee/app/application.hpp>
 
 using namespace sq;
 
@@ -52,6 +52,7 @@ Application::Application(bool _resizable) {
     cs_setup_application(*cs);
     cs_setup_settings(*cs);
     cs_setup_console(*cs);
+    cs_setup_render(*cs);
 
     cs->add_global(chai::var(this), "application");
     cs->add_global(chai::var(settings.get()), "settings");

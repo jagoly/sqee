@@ -1,6 +1,6 @@
 #include <chaiscript/chaiscript_stdlib.hpp>
 
-#include "sqee/scripts/chaiscript.hpp"
+#include <sqee/scripts/chaiscript.hpp>
 
 using namespace sq;
 

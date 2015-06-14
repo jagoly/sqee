@@ -1,6 +1,6 @@
-#include "sqee/redist/gl_ext_3_3.hpp"
-#include "sqee/gl/textures.hpp"
-#include "sqee/gl/framebuffers.hpp"
+#include <sqee/redist/gl_ext_3_3.hpp>
+#include <sqee/gl/textures.hpp>
+#include <sqee/gl/framebuffers.hpp>
 
 using namespace sq;
 

@@ -1,5 +1,5 @@
-#include "sqee/app/application.hpp"
-#include "sqee/scenes/scene.hpp"
+#include <sqee/app/application.hpp>
+#include <sqee/scenes/scene.hpp>
 
 using namespace sq;
 

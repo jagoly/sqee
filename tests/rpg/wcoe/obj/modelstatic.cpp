@@ -1,16 +1,13 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <sqee/app/logging.hpp>
-#include <glm/gtx/string_cast.hpp>
-
 #include <sqee/gl/uniformbuffers.hpp>
+#include <sqee/render/camera.hpp>
 #include <sqee/render/mesh.hpp>
 #include <sqee/render/skin.hpp>
 #include <sqee/maths/culling.hpp>
 #include <sqee/maths/general.hpp>
 
-#include "../../main/camera.hpp"
 #include "../cell.hpp"
 #include "../world.hpp"
 #include "modelstatic.hpp"
@@ -32,8 +29,6 @@ void ModelStatic::load_from_spec(const ObjSpec& _spec) {
     SPEC_ASSERT_STRING("mesh", 1);
     SPEC_ASSERT_STRING("skin", 1);
 
-    PROP_reflect  = SPEC_HAS_FLAG("reflect");
-    PROP_refract  = SPEC_HAS_FLAG("refract");
     PROP_shadow   = SPEC_HAS_FLAG("shadow");
     PROP_render   = SPEC_HAS_FLAG("render");
     PROP_position = glm::make_vec3(_spec.fMap.at("position").data());

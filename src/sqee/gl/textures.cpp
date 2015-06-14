@@ -1,8 +1,8 @@
-#include "sqee/redist/gl_ext_3_3.hpp"
-#include "sqee/redist/stb_image.hpp"
-#include "sqee/app/logging.hpp"
-#include "sqee/misc/files.hpp"
-#include "sqee/gl/textures.hpp"
+#include <sqee/redist/gl_ext_3_3.hpp>
+#include <sqee/redist/stb_image.hpp>
+#include <sqee/app/logging.hpp>
+#include <sqee/misc/files.hpp>
+#include <sqee/gl/textures.hpp>
 
 using namespace sq;
 

@@ -1,6 +1,6 @@
-#include "sqee/app/application.hpp"
-#include "sqee/text/text.hpp"
-#include "sqee/scenes/basics.hpp"
+#include <sqee/app/application.hpp>
+#include <sqee/text/text.hpp>
+#include <sqee/scenes/basics.hpp>
 
 using namespace sq;
 

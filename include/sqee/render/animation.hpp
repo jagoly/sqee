@@ -9,15 +9,19 @@ class Animation : NonCopyable {
 public:
     void create(const string& _path);
 
-    uint bCount = 0;
-    uint pCount = 0;
-    uint tCount = 0;
+    uint bCount = 0u;
+    uint pCount = 0u;
+    uint tCount = 0u;
 
-    using Pose = pair<vector<fvec4>, vector<fvec3>>;
-    using Keyframe = pair<Pose&, uint>;
-    using Timeline = vector<Keyframe>;
+    struct Bone { fquat quat; fvec3 offs; };
+    using Pose = vector<Bone>;
     vector<Pose> poseVec;
+
+    using Keyframe = pair<Pose, uint>;
+    using Timeline = vector<Keyframe>;
     vector<Timeline> timelineVec;
+
+    static glm::mat3x4 to_matrix(Bone _bone);
 };
 
 namespace res {

@@ -15,45 +15,19 @@
 #include <sqee/gl/shaders.hpp>
 #include <sqee/gl/textures.hpp>
 #include <sqee/gl/uniformbuffers.hpp>
-#include <sqee/render/cameras.hpp>
+#include <sqee/render/camera.hpp>
 
 #include "../rndr/graph.hpp"
 #include "../wcoe/world.hpp"
 #include "../wcoe/cell.hpp"
-#include "camera.hpp"
 #include "scenemain.hpp"
 
 using namespace sqt;
 
-#define CLIP_ON gl::Enable(gl::CLIP_DISTANCE0)
-#define CLIP_OFF gl::Disable(gl::CLIP_DISTANCE0)
-#define BLEND_ALPHA gl::Enable(gl::BLEND), gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA)
-#define BLEND_ONEONE gl::Enable(gl::BLEND), gl::BlendFunc(gl::ONE, gl::ONE)
-#define BLEND_OFF gl::Disable(gl::BLEND)
-#define CULLFACE_BACK gl::Enable(gl::CULL_FACE), gl::CullFace(gl::BACK)
-#define CULLFACE_FRONT gl::Enable(gl::CULL_FACE), gl::CullFace(gl::FRONT)
-#define CULLFACE_OFF gl::Disable(gl::CULL_FACE)
-#define DEPTHTEST_RO gl::Enable(gl::DEPTH_TEST), gl::DepthMask(0)
-#define DEPTHTEST_RW gl::Enable(gl::DEPTH_TEST), gl::DepthMask(1)
-#define DEPTHTEST_OFF gl::Disable(gl::DEPTH_TEST)
-#define STENCILTEST_ON gl::Enable(gl::STENCIL_TEST)
-#define STENCILTEST_OFF gl::Disable(gl::STENCIL_TEST)
-#define CLEAR_COLOR gl::Clear(gl::COLOR_BUFFER_BIT)
-#define CLEAR_DEPTH gl::Clear(gl::DEPTH_BUFFER_BIT)
-#define CLEAR_STENC gl::Clear(gl::STENCIL_BUFFER_BIT)
-#define CLEAR_COLOR_DEPTH gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT)
-#define CLEAR_COLOR_STENC gl::Clear(gl::COLOR_BUFFER_BIT | gl::STENCIL_BUFFER_BIT)
-#define CLEAR_DEPTH_STENC gl::Clear(gl::DEPTH_BUFFER_BIT | gl::STENCIL_BUFFER_BIT)
-#define CLEAR_COLOR_DEPTH_STENC gl::Clear(gl::COLOR_BUFFER_BIT|gl::DEPTH_BUFFER_BIT|gl::STENCIL_BUFFER_BIT)
-#define VIEWPORT_FULL gl::Viewport(0, 0, INFO.fullSize.x, INFO.fullSize.y)
-#define VIEWPORT_HALF gl::Viewport(0, 0, INFO.halfSize.x, INFO.halfSize.y)
-#define VIEWPORT_QTER gl::Viewport(0, 0, INFO.qterSize.x, INFO.qterSize.y)
-
-
 SceneMain::SceneMain(sq::Application* const _app) : sq::Scene(_app) {
     tickRate = 24u;
 
-    camera.reset(new MainCamera());
+    camera.reset(new sq::Camera(0u));
     pipeline.reset(new sq::Pipeline());
     world.reset(new wcoe::World(camera.get(), settings));
     graph.reset(new rndr::Graph(camera.get(), settings));
@@ -70,7 +44,6 @@ SceneMain::SceneMain(sq::Application* const _app) : sq::Scene(_app) {
     camera->rmax = 120.f;
     camera->size = {16.f, 10.f};
     camera->fov = 1.f;
-    camera->binding = 0u;
     posNext = camera->pos;
     camera->update();
 
@@ -205,9 +178,8 @@ SceneMain::SceneMain(sq::Application* const _app) : sq::Scene(_app) {
     preprocs->import_header("headers/blocks/pointlight");
     preprocs->import_header("headers/blocks/reflector");
     preprocs->import_header("headers/blocks/mstatic");
+    preprocs->import_header("headers/blocks/mskelly");
     preprocs->import_header("headers/blocks/decal");
-    preprocs->import_header("headers/lights/skylight");
-    preprocs->import_header("headers/lights/pointlight");
     preprocs->import_header("headers/shadow/sample_sky");
     preprocs->import_header("headers/shadow/sample_spot");
     preprocs->import_header("headers/shadow/sample_point");
@@ -274,16 +246,10 @@ SceneMain::SceneMain(sq::Application* const _app) : sq::Scene(_app) {
     /// Add Uniforms to Shaders
     VS.gbuf_stencil_base->add_uniform("matrix"); // mat4
     VS.gbuf_stencil_refl->add_uniform("matrix"); // mat4
-//    VS.gbuf_skellys_base->add_uniform("skelQuat", 40); // vec4
-//    VS.gbuf_skellys_base->add_uniform("skelOffs", 40); // vec3
-//    VS.gbuf_skellys_refl->add_uniform("skelQuat", 40); // vec4
-//    VS.gbuf_skellys_refl->add_uniform("skelOffs", 40); // vec3
-    VS.shad_static->add_uniform("matrix"); // mat4
-    VS.shad_skelly->add_uniform("matrix"); // mat4
-//    VS.shad_skelly->add_uniform("skelQuat", 40); // vec4
-//    VS.shad_skelly->add_uniform("skelOffs", 40); // vec3
     FS.gbuf_models_base->add_uniform("d_n_s"); // ivec3
     FS.gbuf_models_refl->add_uniform("d_n_s"); // ivec3
+    VS.shad_static->add_uniform("matrix"); // mat4
+    VS.shad_skelly->add_uniform("matrix"); // mat4
 
     /// Load Shaders
     VS.gnrc_screen->load(preprocs->load("generic/screen_vs"));
@@ -460,6 +426,9 @@ void SceneMain::render(float _ft) {
 
 
     /// Light Shadows
+    sq::DEPTH_ON(); sq::DEPTH_WRITE();
+    sq::BLEND_OFF(); sq::STENCIL_OFF();
+    sq::CULLFACE_ON(); sq::CULLFACE_BACK();
     graph->render_shadows_sky_A();
     graph->render_shadows_sky_B();
     graph->render_shadows_spot();
@@ -467,11 +436,12 @@ void SceneMain::render(float _ft) {
 
 
     /// Clear G-Buffer
-    DEPTHTEST_RW; STENCILTEST_ON;
-    FB.defrBase->use(); VIEWPORT_FULL;
+    sq::DEPTH_ON(); sq::DEPTH_WRITE();
+    sq::STENCIL_ON(); FB.defrBase->use();
+    sq::VIEWPORT(INFO.fullSize);
     gl::StencilMask(0b1111);
     gl::ClearStencil(0b0001);
-    CLEAR_COLOR_DEPTH_STENC;
+    sq::CLEAR_COLOR_DEPTH_STENC();
     gl::ClearStencil(0b0000);
 
 
@@ -479,15 +449,16 @@ void SceneMain::render(float _ft) {
     graph->render_mstatics_base();
     graph->render_reflects_base();
     graph->render_decals_base();
-    //graph->render_mskellys_base();
+    graph->render_mskellys_base();
 
 
     /// Render SSAO Texture
     if (INFO.ssaoEnable == true) {
-        BLEND_OFF; CULLFACE_OFF; DEPTHTEST_OFF; STENCILTEST_OFF;
+        sq::DEPTH_OFF(); sq::STENCIL_OFF();
+        sq::BLEND_OFF(); sq::CULLFACE_OFF();
         pipeline->use_shader(*VS.gnrc_screen);
         pipeline->use_shader(*FS.prty_ssao_ssao);
-        FB.ssaoA->use(); VIEWPORT_HALF;
+        FB.ssaoA->use(); sq::VIEWPORT(INFO.halfSize);
         sq::draw_screen_quad(); TX.ssaoA->bind(gl::TEXTURE8);
         pipeline->use_shader(*FS.prty_ssao_blur);
         FB.ssaoB->use(); sq::draw_screen_quad(); TX.ssaoB->bind();
@@ -497,34 +468,36 @@ void SceneMain::render(float _ft) {
 
 
     /// Clear HDR Framebuffer
-    CLIP_OFF; CULLFACE_OFF; DEPTHTEST_OFF;
-    FB.hdrBase->use(); VIEWPORT_FULL; CLEAR_COLOR;
-    STENCILTEST_ON; gl::StencilMask(0b0000);
+    sq::VIEWPORT(INFO.fullSize);
+    FB.hdrBase->use(); sq::CLEAR_COLOR();
+    sq::DEPTH_OFF(); sq::STENCIL_ON();
+    sq::CULLFACE_OFF();
 
 
-    /// Render Lighting and Reflections
-    BLEND_OFF; graph->render_skybox_base();
-    BLEND_OFF; graph->render_ambient_base();
-    BLEND_ONEONE; graph->render_skylight_base();
-    BLEND_ONEONE; graph->render_spotlights_base();
-    BLEND_ONEONE; graph->render_pointlights_base();
+    /// Render Lights, Reflectors, Emitters
+    graph->render_skybox_base();
+    graph->render_ambient_base();
+    graph->render_skylight_base();
+    graph->render_spotlights_base();
+    graph->render_pointlights_base();
     graph->render_reflections();
     graph->render_particles();
 
 
     /// Write HDR Luma to Alpha
-    CLIP_OFF; BLEND_OFF; CULLFACE_OFF;
-    DEPTHTEST_OFF; STENCILTEST_OFF;
-    TX.hdrBase->bind(gl::TEXTURE0);
+    sq::DEPTH_OFF(); sq::STENCIL_OFF();
+    sq::BLEND_OFF(); sq::CULLFACE_OFF();
     pipeline->use_shader(*VS.gnrc_screen);
     pipeline->use_shader(*FS.gnrc_lumalpha);
-    FB.hdrBase->use(); VIEWPORT_FULL;
+    FB.hdrBase->use(); sq::VIEWPORT(INFO.fullSize);
+    TX.hdrBase->bind(gl::TEXTURE0);
     sq::draw_screen_quad();
 
 
     /// Bloom
     if (INFO.hdrbEnable == true) {
-        VIEWPORT_QTER; gl::ActiveTexture(gl::TEXTURE1);
+        sq::VIEWPORT(INFO.qterSize);
+        gl::ActiveTexture(gl::TEXTURE1);
         pipeline->use_shader(*FS.prty_hdr_highs); FB.bloomA->use();
         sq::draw_screen_quad(); TX.bloomA->bind();
         pipeline->use_shader(*FS.prty_hdr_blurh); FB.bloomB->use();
@@ -539,10 +512,10 @@ void SceneMain::render(float _ft) {
 
 
     /// HDR Tonemapping
-    TX.hdrBase->bind(gl::TEXTURE0);
     pipeline->use_shader(*VS.gnrc_screen);
     pipeline->use_shader(*FS.prty_hdr_tones);
-    FB.simple->use(); VIEWPORT_FULL;
+    FB.simple->use(); sq::VIEWPORT(INFO.fullSize);
+    TX.hdrBase->bind(gl::TEXTURE0);
     sq::draw_screen_quad();
 
 
@@ -560,7 +533,8 @@ void SceneMain::render(float _ft) {
     /// Vignetting Effect
     if (INFO.vgntEnable == true) {
         pipeline->use_shader(*FS.prty_vignette);
-        BLEND_ALPHA; sq::draw_screen_quad();
+        sq::BLEND_ON(); sq::BLEND_ALPHA();
+        sq::draw_screen_quad();
     }
 
     gl::BindProgramPipeline(0);

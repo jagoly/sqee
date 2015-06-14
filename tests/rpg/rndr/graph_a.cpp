@@ -2,20 +2,18 @@
 
 #include <sqee/redist/gl_ext_3_3.hpp>
 #include <sqee/app/settings.hpp>
-#include <sqee/app/logging.hpp>
 #include <sqee/gl/drawing.hpp>
 #include <sqee/gl/framebuffers.hpp>
 #include <sqee/gl/shaders.hpp>
 #include <sqee/gl/textures.hpp>
 #include <sqee/gl/uniformbuffers.hpp>
-#include <sqee/render/cameras.hpp>
+#include <sqee/render/camera.hpp>
 #include <sqee/render/mesh.hpp>
 #include <sqee/render/skin.hpp>
 #include <sqee/render/skeleton.hpp>
 #include <sqee/maths/culling.hpp>
 #include <sqee/maths/general.hpp>
 
-#include "../main/camera.hpp"
 #include "../wcoe/world.hpp"
 #include "../wcoe/obj/modelstatic.hpp"
 #include "../wcoe/obj/modelskelly.hpp"
@@ -30,32 +28,7 @@
 using namespace sqt;
 using namespace rndr;
 
-#define CLIP_ON gl::Enable(gl::CLIP_DISTANCE0)
-#define CLIP_OFF gl::Disable(gl::CLIP_DISTANCE0)
-#define BLEND_ALPHA gl::Enable(gl::BLEND), gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA)
-#define BLEND_ONEONE gl::Enable(gl::BLEND), gl::BlendFunc(gl::ONE, gl::ONE)
-#define BLEND_OFF gl::Disable(gl::BLEND)
-#define CULLFACE_BACK gl::Enable(gl::CULL_FACE), gl::CullFace(gl::BACK)
-#define CULLFACE_FRONT gl::Enable(gl::CULL_FACE), gl::CullFace(gl::FRONT)
-#define CULLFACE_OFF gl::Disable(gl::CULL_FACE)
-#define DEPTHTEST_RO gl::Enable(gl::DEPTH_TEST), gl::DepthMask(0)
-#define DEPTHTEST_RW gl::Enable(gl::DEPTH_TEST), gl::DepthMask(1)
-#define DEPTHTEST_OFF gl::Disable(gl::DEPTH_TEST)
-#define STENCILTEST_ON gl::Enable(gl::STENCIL_TEST)
-#define STENCILTEST_OFF gl::Disable(gl::STENCIL_TEST)
-#define CLEAR_COLOR gl::Clear(gl::COLOR_BUFFER_BIT)
-#define CLEAR_DEPTH gl::Clear(gl::DEPTH_BUFFER_BIT)
-#define CLEAR_STENC gl::Clear(gl::STENCIL_BUFFER_BIT)
-#define CLEAR_COLOR_DEPTH gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT)
-#define CLEAR_COLOR_STENC gl::Clear(gl::COLOR_BUFFER_BIT | gl::STENCIL_BUFFER_BIT)
-#define CLEAR_DEPTH_STENC gl::Clear(gl::DEPTH_BUFFER_BIT | gl::STENCIL_BUFFER_BIT)
-#define CLEAR_COLOR_DEPTH_STENC gl::Clear(gl::COLOR_BUFFER_BIT|gl::DEPTH_BUFFER_BIT|gl::STENCIL_BUFFER_BIT)
-#define VIEWPORT_FULL gl::Viewport(0, 0, INFO.fullSize.x, INFO.fullSize.y)
-#define VIEWPORT_HALF gl::Viewport(0, 0, INFO.halfSize.x, INFO.halfSize.y)
-#define VIEWPORT_QTER gl::Viewport(0, 0, INFO.qterSize.x, INFO.qterSize.y)
-
-
-Graph::Graph(MainCamera* _camera, sq::SettingsMaps* _settings)
+Graph::Graph(sq::Camera* _camera, sq::SettingsMaps* _settings)
     : camera(_camera), settings(_settings) {}
 
 void Graph::update() {

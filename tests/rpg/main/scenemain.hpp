@@ -8,8 +8,6 @@ namespace sqt {
 namespace wcoe { class World; }
 namespace rndr { class Graph; }
 
-class MainCamera;
-
 class SceneMain : public sq::Scene {
 public:
     SceneMain(sq::Application* _app);
@@ -22,7 +20,7 @@ public:
 
 private:
     unique_ptr<sq::Pipeline> pipeline;
-    unique_ptr<MainCamera> camera;
+    unique_ptr<sq::Camera> camera;
     unique_ptr<wcoe::World> world;
     unique_ptr<rndr::Graph> graph;
 

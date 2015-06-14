@@ -1,6 +1,6 @@
-#include "sqee/app/logging.hpp"
-#include "sqee/misc/files.hpp"
-#include "sqee/gl/preprocessor.hpp"
+#include <sqee/app/logging.hpp>
+#include <sqee/misc/files.hpp>
+#include <sqee/gl/preprocessor.hpp>
 
 using namespace sq;
 

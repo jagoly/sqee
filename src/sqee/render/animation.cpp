@@ -1,6 +1,9 @@
-#include "sqee/app/logging.hpp"
-#include "sqee/misc/files.hpp"
-#include "sqee/render/animation.hpp"
+#include <glm/mat3x4.hpp>
+#include <glm/matrix.hpp>
+
+#include <sqee/app/logging.hpp>
+#include <sqee/misc/files.hpp>
+#include <sqee/render/animation.hpp>
 
 using namespace sq;
 
@@ -32,8 +35,9 @@ void Animation::create(const string& _path) {
         if (section == "poses") {
             if (key == "pose") poseVec.emplace_back();
             else {
-                poseVec.back().first.emplace_back(stof(line[0]), stof(line[1]), stof(line[2]), stof(line[3]));
-                poseVec.back().second.emplace_back(stof(line[4]), stof(line[5]), stof(line[6]));
+                Bone bone { {stof(line[3]), stof(line[0]), stof(line[1]), stof(line[2])},
+                            {stof(line[4]), stof(line[5]), stof(line[6])} };
+                poseVec.back().emplace_back(bone);
             } continue;
         }
 
@@ -43,6 +47,15 @@ void Animation::create(const string& _path) {
             continue;
         }
     }
+}
+
+glm::mat3x4 Animation::to_matrix(Bone _bone) {
+    fmat3 m = glm::mat3_cast(_bone.quat);
+    return glm::mat3x4(
+        m[0].x, m[1].x, m[2].x, _bone.offs.x,
+        m[0].y, m[1].y, m[2].y, _bone.offs.y,
+        m[0].z, m[1].z, m[2].z, _bone.offs.z
+    );
 }
 
 

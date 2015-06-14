@@ -4,7 +4,7 @@
 #include <list>
 
 namespace sqt {
-class MainCamera;
+
 namespace wcoe { class World; class Cell;
                  class ModelStatic; class ModelSkelly;
                  class PointLight; class SpotLight;
@@ -24,7 +24,7 @@ using DecalList       = std::list<weak_ptr<wcoe::Decal>>;
 
 class Graph : NonCopyable {
 public:
-    Graph(MainCamera* _camera, sq::SettingsMaps* _settings); // A
+    Graph(sq::Camera* _camera, sq::SettingsMaps* _settings); // A
 
     void update();          // A
     void reload_lists();    // A
@@ -172,7 +172,7 @@ public:
         fvec2 qPixSize;
     } INFO;
 
-    const MainCamera* const camera;
+    const sq::Camera* const camera;
     sq::SettingsMaps* const settings;
     sq::Pipeline* pipeline = nullptr;
 

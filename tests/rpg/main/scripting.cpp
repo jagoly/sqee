@@ -1,6 +1,5 @@
 #include <chaiscript/utility/utility.hpp>
 
-#include "camera.hpp"
 #include "../rndr/graph.hpp"
 #include "../wcoe/world.hpp"
 #include "../wcoe/cell.hpp"
@@ -27,14 +26,6 @@ using chai::user_type;
 
 void sqt::cs_setup_main(chai::ChaiScript& _cs) {
     chai::ModulePtr m(new chai::Module());
-
-    add_class<sq::Camera>(*m, "Camera", {}, {
-        {fun(&sq::Camera::pos), "position"},
-        {fun(&sq::Camera::dir), "direction"} });
-
-    add_class<MainCamera>(*m, "MainCamera", {}, {});
-
-    m->add(base_class<sq::Camera, MainCamera>());
 
     _cs.add(m);
 }
@@ -77,27 +68,27 @@ void sqt::cs_setup_wcoe(chai::ChaiScript& _cs) {
        {fun(&AnimatorFloat::times), "times"},
        {fun(&AnimatorFloat::start), "start"} });
 
-    add_class<AnimatorFVec2>(*m, "AnimatorVec2", {}, {
+    add_class<AnimatorFVec2>(*m, "AnimatorFVec2", {}, {
        {fun(&AnimatorFVec2::values), "values"},
        {fun(&AnimatorFVec2::times), "times"},
        {fun(&AnimatorFVec2::start), "start"} });
 
-    add_class<AnimatorFVec3>(*m, "AnimatorVec3", {}, {
+    add_class<AnimatorFVec3>(*m, "AnimatorFVec3", {}, {
        {fun(&AnimatorFVec3::values), "values"},
        {fun(&AnimatorFVec3::times), "times"},
        {fun(&AnimatorFVec3::start), "start"} });
 
-    add_class<AnimatorFVec4>(*m, "AnimatorVec4", {}, {
+    add_class<AnimatorFVec4>(*m, "AnimatorFVec4", {}, {
        {fun(&AnimatorFVec4::values), "values"},
        {fun(&AnimatorFVec4::times), "times"},
        {fun(&AnimatorFVec4::start), "start"} });
 
-    add_class<AnimatorFNorm>(*m, "AnimatorNorm", {}, {
+    add_class<AnimatorFNorm>(*m, "AnimatorFNorm", {}, {
        {fun(&AnimatorFNorm::values), "values"},
        {fun(&AnimatorFNorm::times), "times"},
        {fun(&AnimatorFNorm::start), "start"} });
 
-    add_class<AnimatorFQuat>(*m, "AnimatorQuat", {}, {
+    add_class<AnimatorFQuat>(*m, "AnimatorFQuat", {}, {
        {fun(&AnimatorFQuat::values), "values"},
        {fun(&AnimatorFQuat::times), "times"},
        {fun(&AnimatorFQuat::start), "start"} });
@@ -111,15 +102,26 @@ void sqt::cs_setup_wcoe(chai::ChaiScript& _cs) {
        {fun(&ModelStatic::PROP_position), "position"},
        {fun(&ModelStatic::PROP_rotation), "rotation"},
        {fun(&ModelStatic::PROP_scale),    "scale"},
-       {fun(&ModelStatic::PROP_reflect),  "reflect"},
-       {fun(&ModelStatic::PROP_refract),  "refract"},
-       {fun(&ModelStatic::PROP_shadow),   "shadow"},
        {fun(&ModelStatic::PROP_render),   "render"},
+       {fun(&ModelStatic::PROP_shadow),   "shadow"},
        {fun(&ModelStatic::PROP_mPath),    "mesh"},
        {fun(&ModelStatic::PROP_sPath),    "skin"},
        {fun(&ModelStatic::ANIM_position), "animPosition"},
        {fun(&ModelStatic::ANIM_rotation), "animRotation"},
        {fun(&ModelStatic::ANIM_scale),    "animScale"} });
+
+    add_class<ModelSkelly>(*m, "ModelSkelly", {}, {
+       {fun(&ModelSkelly::PROP_position), "position"},
+       {fun(&ModelSkelly::PROP_rotation), "rotation"},
+       {fun(&ModelSkelly::PROP_scale),    "scale"},
+       {fun(&ModelSkelly::PROP_render),   "render"},
+       {fun(&ModelSkelly::PROP_shadow),   "shadow"},
+       {fun(&ModelSkelly::PROP_mPath),    "mesh"},
+       {fun(&ModelSkelly::PROP_sPath),    "skin"},
+       {fun(&ModelSkelly::debug_A), "dba"},
+       {fun(&ModelSkelly::debug_B), "dbb"},
+       {fun(&ModelSkelly::debug_C), "dbc"},
+       {fun(&ModelSkelly::debug_D), "dbd"} });
 
     add_class<PointLight>(*m, "PointLight", {}, {
        {fun(&PointLight::PROP_position),  "position"},
@@ -202,6 +204,7 @@ void sqt::cs_setup_wcoe(chai::ChaiScript& _cs) {
         {fun(&Cell::refresh), "refresh"} });
 
     m->add(base_class<Object, ModelStatic>());
+    m->add(base_class<Object, ModelSkelly>());
     m->add(base_class<Object, PointLight>());
     m->add(base_class<Object, SpotLight>());
     m->add(base_class<Object, Reflector>());

@@ -7,7 +7,8 @@ namespace sq {
 
 class Camera : NonCopyable {
 public:
-    Camera();
+    virtual ~Camera();
+    Camera(GLuint _bind);
 
     fvec3 pos;
     fvec3 dir;
@@ -20,17 +21,9 @@ public:
     fmat4 viewMat;
     Frustum frus;
 
-    virtual void update();
-};
-
-class UboCamera : public Camera {
-public:
-    UboCamera(const vector<pair<string, uint>>& _extra);
-
+    const GLuint binding;
     unique_ptr<Uniformbuffer> ubo;
-    GLuint binding = 0;
-
-    void update();
+    virtual void update();
 };
 
 }

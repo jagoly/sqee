@@ -14,9 +14,9 @@ public:
     bool hasUV = false;
     bool hasBW = false;
     bool hasMT = false;
-    uint vCount = 0;
-    uint fCount = 0;
-    uint mCount = 0;
+    uint vCount = 0u;
+    uint fCount = 0u;
+    uint mCount = 0u;
 
     GLuint vao;
     GLuint vboP, vboN, vboT, vboTc, vboBa, vboBb, vboWa, vboWb;

@@ -1,5 +1,5 @@
-#include "sqee/redist/gl_ext_3_3.hpp"
-#include "sqee/debug/misc.hpp"
+#include <sqee/redist/gl_ext_3_3.hpp>
+#include <sqee/debug/misc.hpp>
 
 #define DG4X4_TEMPLATE(type, TOP, BOTTOM, LEFT, RIGHT) \
 template<> void draw_grid4x4_quad<Grid4x4::type>() { \

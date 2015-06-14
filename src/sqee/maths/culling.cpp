@@ -1,12 +1,7 @@
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/rotate_normalized_axis.hpp>
-#include <glm/gtx/rotate_vector.hpp>
 
-#include <sqee/app/logging.hpp>
-#include <glm/gtx/string_cast.hpp>
-
-#include "sqee/maths/general.hpp"
-#include "sqee/maths/culling.hpp"
+#include <sqee/maths/general.hpp>
+#include <sqee/maths/culling.hpp>
 
 using namespace sq;
 

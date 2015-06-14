@@ -1,4 +1,4 @@
-#include "sqee/app/settings.hpp"
+#include <sqee/app/settings.hpp>
 
 using namespace sq;
 

@@ -1,5 +1,4 @@
-#include "sqee/redist/gl_ext_3_3.hpp"
-#include "sqee/gl/drawing.hpp"
+#include <sqee/gl/drawing.hpp>
 
 using namespace sq;
 

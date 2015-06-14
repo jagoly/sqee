@@ -6,15 +6,15 @@
 #include <sqee/gl/uniformbuffers.hpp>
 #include <sqee/gl/framebuffers.hpp>
 #include <sqee/gl/textures.hpp>
+#include <sqee/render/camera.hpp>
 #include <sqee/misc/files.hpp>
 #include <sqee/maths/general.hpp>
 
-#include "../main/camera.hpp"
 #include "world.hpp"
 
 using namespace sqt::wcoe;
 
-SkyBox::SkyBox(MainCamera* _camera) : camera(_camera) {
+SkyBox::SkyBox(sq::Camera* _camera) : camera(_camera) {
     ubo.reset(new sq::Uniformbuffer());
     ubo->reserve("colour", 4);
     ubo->create();
@@ -43,7 +43,7 @@ void SkyBox::calc(double _accum) {
 }
 
 
-Ambient::Ambient(MainCamera* _camera) : camera(_camera) {
+Ambient::Ambient(sq::Camera* _camera) : camera(_camera) {
     ubo.reset(new sq::Uniformbuffer());
     ubo->reserve("colour", 4);
     ubo->create();
@@ -71,7 +71,7 @@ void Ambient::animate() {
     ubo->update("colour", &PROP_colour);
 }
 
-SkyLight::SkyLight(MainCamera* _camera) : camera(_camera) {
+SkyLight::SkyLight(sq::Camera* _camera) : camera(_camera) {
     ubo.reset(new sq::Uniformbuffer());
     ubo->reserve("direction", 4);
     ubo->reserve("colour", 4);
@@ -166,7 +166,7 @@ void SkyLight::animate() {
 }
 
 
-World::World(MainCamera* _camera, sq::SettingsMaps* _settings)
+World::World(sq::Camera* _camera, sq::SettingsMaps* _settings)
     : skybox(_camera), ambient(_camera), skylight(_camera),
       camera(_camera), settings(_settings) {}
 

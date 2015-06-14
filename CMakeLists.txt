@@ -57,7 +57,7 @@ set(SOURCES
     "${INCDIR}/maths/general.hpp"         "${SRCDIR}/maths/general.cpp"
     "${INCDIR}/maths/physics.hpp"         "${SRCDIR}/maths/physics.cpp"
     "${INCDIR}/menus/basicmenu.hpp"       "${SRCDIR}/menus/basicmenu.cpp"
-    "${INCDIR}/render/cameras.hpp"        "${SRCDIR}/render/cameras.cpp"
+    "${INCDIR}/render/camera.hpp"         "${SRCDIR}/render/camera.cpp"
     "${INCDIR}/render/mesh.hpp"           "${SRCDIR}/render/mesh.cpp"
     "${INCDIR}/render/skin.hpp"           "${SRCDIR}/render/skin.cpp"
     "${INCDIR}/render/animation.hpp"      "${SRCDIR}/render/animation.cpp"

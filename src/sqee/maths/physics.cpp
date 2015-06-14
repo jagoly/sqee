@@ -1,3 +1,3 @@
-#include "sqee/maths/physics.hpp"
+#include <sqee/maths/physics.hpp>
 
 using namespace sq;

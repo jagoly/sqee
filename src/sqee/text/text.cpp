@@ -1,7 +1,5 @@
-#include "sqee/redist/gl_ext_3_3.hpp"
-#include "sqee/text/text.hpp"
-
-#include <iostream>
+#include <sqee/redist/gl_ext_3_3.hpp>
+#include <sqee/text/text.hpp>
 
 using namespace sq;
 

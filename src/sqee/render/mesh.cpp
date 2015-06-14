@@ -1,10 +1,10 @@
 #include <glm/geometric.hpp>
 
-#include "sqee/redist/gl_ext_3_3.hpp"
-#include "sqee/maths/general.hpp"
-#include "sqee/app/logging.hpp"
-#include "sqee/misc/files.hpp"
-#include "sqee/render/mesh.hpp"
+#include <sqee/redist/gl_ext_3_3.hpp>
+#include <sqee/maths/general.hpp>
+#include <sqee/app/logging.hpp>
+#include <sqee/misc/files.hpp>
+#include <sqee/render/mesh.hpp>
 
 using namespace sq;
 

@@ -5,13 +5,11 @@
 #include "obj/object.hpp"
 #include "obj/animation.hpp"
 
-namespace sqt {
-class MainCamera;
-namespace wcoe {
+namespace sqt { namespace wcoe {
 
 class SkyBox : NonCopyable {
 public:
-    SkyBox(MainCamera* _camera);
+    SkyBox(sq::Camera* _camera);
     void refresh(); void tick();
     void calc(double _accum);
 
@@ -21,14 +19,14 @@ public:
 
     // animators todo
 
-    sq::TextureCube* tex = nullptr;
+    const sq::Camera* const camera;
     unique_ptr<sq::Uniformbuffer> ubo;
-    const MainCamera* const camera;
+    sq::TextureCube* tex = nullptr;
 };
 
 class Ambient : NonCopyable {
 public:
-    Ambient(MainCamera* _camera);
+    Ambient(sq::Camera* _camera);
     void refresh(); void tick();
     void calc(double _accum);
 
@@ -38,13 +36,13 @@ public:
     AnimatorFVec3 ANIM_colour {&PROP_colour};
     void animate();
 
+    const sq::Camera* const camera;
     unique_ptr<sq::Uniformbuffer> ubo;
-    const MainCamera* const camera;
 };
 
 class SkyLight : NonCopyable {
 public:
-    SkyLight(MainCamera* _camera);
+    SkyLight(sq::Camera* _camera);
     void refresh(); void tick();
     void calc(double _accum);
 
@@ -56,7 +54,7 @@ public:
     AnimatorFVec3 ANIM_colour    {&PROP_colour};
     void animate();
 
-    const MainCamera* const camera;
+    const sq::Camera* const camera;
     unique_ptr<sq::Uniformbuffer> ubo;
     unique_ptr<sq::Texture2DArray> texA;
     unique_ptr<sq::Texture2DArray> texB;
@@ -70,7 +68,7 @@ public:
 
 class World : NonCopyable {
 public:
-    World(MainCamera* _camera, sq::SettingsMaps* _settings);
+    World(sq::Camera* _camera, sq::SettingsMaps* _settings);
 
     void refresh(); void tick();
     void calc(double _accum);
@@ -86,7 +84,7 @@ public:
     SkyBox skybox; Ambient ambient; SkyLight skylight;
     unordered_map<string, shared_ptr<Cell>> cellMap;
 
-    const MainCamera* const camera;
+    const sq::Camera* const camera;
     sq::SettingsMaps* const settings;
 };
 

@@ -33,17 +33,35 @@ def main() {
 
 
 def add_some_shit() {
-    var modelSqeen = world.get_cell("Sponza").add_ModelStatic("Sqeen");
-    modelSqeen.position = vec3(-1.0, 0.0, 0.05);
-    modelSqeen.rotation = quat(0.5, 0.5, 0.5, 0.5);
-    modelSqeen.mesh = "Characters/Don";
-    modelSqeen.skin = "Characters/Don";
-    modelSqeen.shadow = true;
-    modelSqeen.render = true;
-    modelSqeen.refresh();
+    var sqeenDead = world.get_cell("Sponza").add_ModelStatic("SqeenDead");
+    sqeenDead.position = vec3(-0.8, 0.0, 0.05);
+    sqeenDead.rotation = quat(0.5, 0.5, 0.5, 0.5);
+    sqeenDead.mesh = "Characters/Sqeen";
+    sqeenDead.skin = "Characters/Sqeen";
+    sqeenDead.shadow = true;
+    sqeenDead.render = true;
+    sqeenDead.refresh();
+
+    var sqeenLiveA = world.get_cell("Sponza").add_ModelSkelly("SqeenLiveA");
+    sqeenLiveA.position = vec3(1.5, 0.0, 0.0);
+    sqeenLiveA.rotation = quat(0.707107, 0.0, 0.0, 0.707107);
+    sqeenLiveA.mesh = "Characters/Sqeen";
+    sqeenLiveA.skin = "Characters/Sqeen";
+    sqeenLiveA.shadow = true;
+    sqeenLiveA.render = true;
+    sqeenLiveA.refresh();
+
+    var sqeenLiveB = world.get_cell("Sponza").add_ModelSkelly("SqeenLiveB");
+    sqeenLiveB.position = vec3(-1.5, 0.0, 0.0);
+    sqeenLiveB.rotation = quat(0.707107, 0.0, 0.0, -0.707107);
+    sqeenLiveB.mesh = "Characters/Sqeen";
+    sqeenLiveB.skin = "Characters/Sqeen";
+    sqeenLiveB.shadow = true;
+    sqeenLiveB.render = true;
+    sqeenLiveB.refresh();
 
     var decalSplat = world.get_cell("Sponza").add_Decal("Splat");
-    decalSplat.position = vec3(0.0, 0.0, 0.3);
+    decalSplat.position = vec3(0.2, 0.0, 0.3);
     decalSplat.rotation = quat(0.0, 0.707107, 0.707107, 0.0);
     decalSplat.scale = vec3(2.0, 2.0, 0.7);
     decalSplat.alpha = 1.0f;
@@ -210,3 +228,7 @@ def puffC(_count) {
 
 main();
 add_some_shit();
+
+
+var slA = world.get_cell("Sponza").get_ModelSkelly("SqeenLiveA");
+var slB = world.get_cell("Sponza").get_ModelSkelly("SqeenLiveB");
