@@ -1,5 +1,5 @@
 #include <sqee/redist/gl_ext_3_3.hpp>
-#include <sqee/handlers/basics.hpp>
+#include <sqee/handlers/Basics.hpp>
 
 #include "scenegame.hpp"
 #include "app.hpp"

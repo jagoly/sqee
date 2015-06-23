@@ -27,6 +27,8 @@ using std::initializer_list;
 #include <glm/mat2x2.hpp>
 #include <glm/mat3x3.hpp>
 #include <glm/mat4x4.hpp>
+#include <glm/mat3x4.hpp>
+#include <glm/mat4x3.hpp>
 #include <glm/common.hpp>
 #include <glm/gtc/quaternion.hpp>
 using glm::fvec2; using glm::fvec3; using glm::fvec4;
@@ -35,6 +37,8 @@ using glm::ivec2; using glm::ivec3; using glm::ivec4;
 using glm::uvec2; using glm::uvec3; using glm::uvec4;
 using glm::fmat2; using glm::fmat3; using glm::fmat4;
 using glm::dmat2; using glm::dmat3; using glm::dmat4;
+using glm::fmat3x4; using glm::fmat4x3;
+using glm::dmat3x4; using glm::dmat4x3;
 using glm::fquat; using glm::dquat;
 
 typedef unsigned int    uint;
@@ -83,23 +87,21 @@ class SettingsMaps;
 class PreProcessor;
 class SoundManager;
 
+class Armature;
+class ArmatureBone;
+class ArmatureTrnsfrm;
 class Camera;
 class Mesh;
 class Skin;
-class Animation;
-class Skeleton;
 
+class UniformBuffer;
+class FrameBuffer;
 class Texture2D;
-class Texture2DArray;
 class TextureCube;
-class Framebuffer;
+class TextureArray;
 class Preprocessor;
-class Shader;
 class Pipeline;
-class Uniformbuffer;
-
-template <class Tk, class Tv>
-class IndexedMap;
+class Shader;
 
 template <class T>
 class ResHolder;

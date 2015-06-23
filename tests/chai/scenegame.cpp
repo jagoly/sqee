@@ -1,12 +1,12 @@
 #include <glm/geometric.hpp>
 
 #include <sqee/redist/gl_ext_3_3.hpp>
-#include <sqee/gl/shaders.hpp>
-#include <sqee/gl/preprocessor.hpp>
-#include <sqee/misc/files.hpp>
-#include <sqee/app/application.hpp>
-#include <sqee/render/mesh.hpp>
-#include <sqee/text/text.hpp>
+#include <sqee/gl/Shaders.hpp>
+#include <sqee/gl/Preprocessor.hpp>
+#include <sqee/misc/Files.hpp>
+#include <sqee/app/Application.hpp>
+#include <sqee/render/Mesh.hpp>
+#include <sqee/text/Text.hpp>
 
 #include "scenegame.hpp"
 

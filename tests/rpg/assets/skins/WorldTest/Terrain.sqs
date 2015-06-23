@@ -1,9 +1,5 @@
 # SQEE Skin Format
 
-{ header
-mCount 5
-}
-
 { materials
 material
 wrap repeat

@@ -1,9 +1,5 @@
 # SQEE Skin Format
 
-{ header
-mCount 3
-}
-
 { materials
 material
 wrap clamp

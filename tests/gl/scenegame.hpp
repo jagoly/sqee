@@ -1,8 +1,8 @@
 #pragma once
 
-#include <sqee/render/camera.hpp>
-#include <sqee/scenes/scene.hpp>
-#include <sqee/handlers/handler.hpp>
+#include <sqee/render/Camera.hpp>
+#include <sqee/scenes/Scene.hpp>
+#include <sqee/handlers/Handler.hpp>
 
 namespace sqt {
 

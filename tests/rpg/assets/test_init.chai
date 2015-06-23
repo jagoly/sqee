@@ -33,29 +33,35 @@ def main() {
 
 
 def add_some_shit() {
-    var sqeenDead = world.get_cell("Sponza").add_ModelStatic("SqeenDead");
+    var sqeenDead = world.get_cell("Sponza").add_ModelSkelly("SqeenDead");
     sqeenDead.position = vec3(-0.8, 0.0, 0.05);
-    sqeenDead.rotation = quat(0.5, 0.5, 0.5, 0.5);
+    sqeenDead.rotation = quat(-0.5, 0.5, -0.5, 0.5);
+    sqeenDead.arma = "Characters/Sqeen";
     sqeenDead.mesh = "Characters/Sqeen";
     sqeenDead.skin = "Characters/Sqeen";
+    sqeenDead.pose = "Dead";
     sqeenDead.shadow = true;
     sqeenDead.render = true;
     sqeenDead.refresh();
 
     var sqeenLiveA = world.get_cell("Sponza").add_ModelSkelly("SqeenLiveA");
     sqeenLiveA.position = vec3(1.5, 0.0, 0.0);
-    sqeenLiveA.rotation = quat(0.707107, 0.0, 0.0, 0.707107);
+    sqeenLiveA.rotation = quat(0.707107, 0.0, 0.0, -0.707107);
+    sqeenLiveA.arma = "Characters/Sqeen";
     sqeenLiveA.mesh = "Characters/Sqeen";
     sqeenLiveA.skin = "Characters/Sqeen";
+    sqeenLiveA.pose = "Squatting";
     sqeenLiveA.shadow = true;
     sqeenLiveA.render = true;
     sqeenLiveA.refresh();
 
     var sqeenLiveB = world.get_cell("Sponza").add_ModelSkelly("SqeenLiveB");
     sqeenLiveB.position = vec3(-1.5, 0.0, 0.0);
-    sqeenLiveB.rotation = quat(0.707107, 0.0, 0.0, -0.707107);
+    sqeenLiveB.rotation = quat(0.707107, 0.0, 0.0, 0.707107);
+    sqeenLiveB.arma = "Characters/Sqeen";
     sqeenLiveB.mesh = "Characters/Sqeen";
     sqeenLiveB.skin = "Characters/Sqeen";
+    sqeenLiveB.pose = "Standing";
     sqeenLiveB.shadow = true;
     sqeenLiveB.render = true;
     sqeenLiveB.refresh();
@@ -223,6 +229,27 @@ def puffC(_count) {
     var gunDir = vec3(camera.direction);
     emitterGun.position = camera.position; emitterGun.refresh();
     emitterGun.emit_puff(_count, gunDir*10.0f, vec3(1.0, 1.0, 0.0), 0.2, 0.2, 7.5, 10.0, 75u, 75u);
+}
+
+
+def add_lotsa_dudes() {
+    for (var i = 0; i < 10; i += 1) {
+        var dude = world.get_cell("Sponza").add_ModelSkelly("Dude"+to_string(i));
+        dude.position = vec3(-5.0 + i, 1.0, 0.0);
+        dude.rotation = quat(0.707107, 0.0, 0.0, -0.707107);
+        dude.arma = "Characters/Sqeen";
+        dude.mesh = "Characters/Sqeen";
+        dude.skin = "Characters/Sqeen";
+        dude.pose = "Squatting";
+        dude.anim = "Squats";
+        dude.shadow = true;
+        dude.render = true;
+        dude.refresh();
+        dude.loop(4u);
+    }
+    
+    world.reload_list();
+    graph.reload_lists();
 }
 
 

@@ -2,7 +2,7 @@
 
 #include <sqee/redist/lmccop.hpp>
 
-#include "rpgapp.hpp"
+#include "RpgApp.hpp"
 
 enum Index { UNKNOWN, HELP };
 const op::Descriptor usage[] = {

@@ -59,8 +59,8 @@ vec2(-0.332520, -0.913590),
 vec2(0.984808, -0.173648),
 };
 #else
-const float distThres = 0.3f;
-const float filterSize = 60.f;
+const float distThres = 0.25f;
+const float filterSize = 50.f;
 const int diskSize = 12;
 const vec2 disk[12] = {
 vec2(0.000000, 0.083333),
@@ -94,7 +94,7 @@ void main() {
     vec2 fsvspz = filterSize * PIXSIZE / pos.z;
     vec3 v_surf = normalize(texture(defrSurf, texcrd).rgb * 2.f - 1.f);
 
-    float angle = rand(texcrd);
+    float angle = rand(texcrd - CB.dir.xy);
     float s = sin(angle), c = cos(angle);
 
     float ambiOcc = 0.f;

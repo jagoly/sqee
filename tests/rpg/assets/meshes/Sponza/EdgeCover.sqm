@@ -1,12 +1,13 @@
 # SQEE Mesh Format
 
 { header
-bounds 5.897987 1.684996 0.0 6.134603 5.897987 1.684996 0.088886
-vCount 94
-fCount 70
-mCount 1
-hasNM
-hasUV
+sphere 5.897987 1.684996 0.0 6.134603
+bbsize 5.897987 1.684996 0.088886
+vertCount 94
+faceCount 70
+mtrlCount 1
+hasNorm
+hasTcrd
 }
 
 { vertices
