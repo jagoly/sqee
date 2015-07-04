@@ -21,7 +21,7 @@ Application::Application(bool _resizable) {
     sfmlSettings.attributeFlags = sf::ContextSettings::Core;
     sf::Uint32 winStyle = sf::Style::Close | sf::Style::Titlebar;
     if (_resizable) winStyle = winStyle | sf::Style::Resize;
-    window.create({480, 360}, "", winStyle, sfmlSettings);
+    window.create({800, 600}, "", winStyle, sfmlSettings);
 
     settings.reset(new SettingsMaps());
     preprocs.reset(new PreProcessor());
@@ -41,9 +41,9 @@ Application::Application(bool _resizable) {
     gl::DebugMessageCallback(debug_callback, nullptr);
     #endif
 
-    settings->add<bool>("app_vsync", false);
-    settings->add<bool>("app_keyrepeat", false);
-    settings->add<string>("app_windowtitle", "SQEE Application");
+    settings->add<int>("framelimit", 0);
+    settings->add<bool>("keyrepeat", false);
+    settings->add<string>("app_title", "SQEE Application");
     settings->add<int>("app_width", 800u);
     settings->add<int>("app_height", 600u);
 
@@ -111,9 +111,11 @@ void Application::quit(int _code) {
 }
 
 void Application::update() {
-    window.setTitle(settings->crnt<string>("app_windowtitle"));
-    window.setKeyRepeatEnabled(settings->crnt<bool>("app_keyrepeat"));
-    window.setVerticalSyncEnabled(settings->crnt<bool>("app_vsync"));
+    int limitmode = settings->crnt<int>("framelimit");
+    window.setTitle(settings->crnt<string>("app_title"));
+    window.setKeyRepeatEnabled(settings->crnt<bool>("keyrepeat"));
+    window.setFramerateLimit(limitmode == 1 ? 75u : 0u);
+    window.setVerticalSyncEnabled(limitmode == 2);
 
     if (window.getSize() != sf::Vector2u(get_size().x, get_size().y))
         window.setSize({get_size().x, get_size().y});

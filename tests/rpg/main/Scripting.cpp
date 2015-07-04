@@ -3,6 +3,8 @@
 #include "../rndr/Graph.hpp"
 #include "../wcoe/World.hpp"
 #include "../wcoe/Cell.hpp"
+#include "../wcoe/obj/RigBodyBasic.hpp"
+#include "../wcoe/obj/RigBodyMulti.hpp"
 #include "../wcoe/obj/ModelStatic.hpp"
 #include "../wcoe/obj/ModelSkelly.hpp"
 #include "../wcoe/obj/PointLight.hpp"
@@ -98,14 +100,19 @@ void sqt::cs_setup_wcoe(chai::ChaiScript& _cs) {
        {fun(&Object::cell), "cell"},
        {fun(&Object::refresh), "refresh"} });
 
+    add_class<RigBodyBasic>(*m, "RigBodyBasic", {}, {
+       {fun(&RigBodyBasic::PROP_scale),           "scale"},
+       {fun(&RigBodyBasic::PROP_physPath),        "phys"},
+       {fun(&RigBodyBasic::FUNC_set_ModelStatic), "set_ModelStatic"} });
+
     add_class<ModelStatic>(*m, "ModelStatic", {}, {
        {fun(&ModelStatic::PROP_position), "position"},
        {fun(&ModelStatic::PROP_rotation), "rotation"},
        {fun(&ModelStatic::PROP_scale),    "scale"},
        {fun(&ModelStatic::PROP_render),   "render"},
        {fun(&ModelStatic::PROP_shadow),   "shadow"},
-       {fun(&ModelStatic::PROP_meshPath), "mesh"},
-       {fun(&ModelStatic::PROP_skinPath), "skin"},
+       {fun(&ModelStatic::PROP_mesh),     "mesh"},
+       {fun(&ModelStatic::PROP_skin),     "skin"},
        {fun(&ModelStatic::ANIM_position), "animPosition"},
        {fun(&ModelStatic::ANIM_rotation), "animRotation"},
        {fun(&ModelStatic::ANIM_scale),    "animScale"} });
@@ -116,11 +123,11 @@ void sqt::cs_setup_wcoe(chai::ChaiScript& _cs) {
        {fun(&ModelSkelly::PROP_scale),    "scale"},
        {fun(&ModelSkelly::PROP_render),   "render"},
        {fun(&ModelSkelly::PROP_shadow),   "shadow"},
-       {fun(&ModelSkelly::PROP_armaPath), "arma"},
-       {fun(&ModelSkelly::PROP_meshPath), "mesh"},
-       {fun(&ModelSkelly::PROP_skinPath), "skin"},
-       {fun(&ModelSkelly::PROP_poseName), "pose"},
-       {fun(&ModelSkelly::PROP_animName), "anim"},
+       {fun(&ModelSkelly::PROP_arma),     "arma"},
+       {fun(&ModelSkelly::PROP_mesh),     "mesh"},
+       {fun(&ModelSkelly::PROP_skin),     "skin"},
+       {fun(&ModelSkelly::PROP_pose),     "pose"},
+       {fun(&ModelSkelly::PROP_anim),     "anim"},
        {fun(&ModelSkelly::FUNC_stop),     "stop"},
        {fun(&ModelSkelly::FUNC_loop),     "loop"},
        {fun(&ModelSkelly::FUNC_play),     "play"},
@@ -162,8 +169,8 @@ void sqt::cs_setup_wcoe(chai::ChaiScript& _cs) {
        {fun(&Reflector::PROP_scale),    "scale"},
        {fun(&Reflector::PROP_factor),   "factor"},
        {fun(&Reflector::PROP_shadow),   "shadow"},
-       {fun(&Reflector::PROP_meshPath), "mesh"},
-       {fun(&Reflector::PROP_skinPath), "skin"},
+       {fun(&Reflector::PROP_mesh),     "mesh"},
+       {fun(&Reflector::PROP_skin),     "skin"},
        {fun(&Reflector::ANIM_position), "animPosition"},
        {fun(&Reflector::ANIM_rotation), "animRotation"},
        {fun(&Reflector::ANIM_scale),    "animScale"},
@@ -178,9 +185,9 @@ void sqt::cs_setup_wcoe(chai::ChaiScript& _cs) {
        {fun(&Decal::PROP_rotation), "rotation"},
        {fun(&Decal::PROP_scale),    "scale"},
        {fun(&Decal::PROP_alpha),    "alpha"},
-       {fun(&Decal::PROP_diffPath), "diff"},
-       {fun(&Decal::PROP_normPath), "norm"},
-       {fun(&Decal::PROP_specPath), "spec"},
+       {fun(&Decal::PROP_diff),     "diff"},
+       {fun(&Decal::PROP_norm),     "norm"},
+       {fun(&Decal::PROP_spec),     "spec"},
        {fun(&Decal::ANIM_position), "animPosition"},
        {fun(&Decal::ANIM_rotation), "animRotation"},
        {fun(&Decal::ANIM_scale),    "animScale"},
@@ -190,30 +197,37 @@ void sqt::cs_setup_wcoe(chai::ChaiScript& _cs) {
         {fun(&Cell::DAT_enabled), "enabled"},
         {fun(&Cell::DAT_position), "position"},
         {fun(&Cell::load_from_file), "load_from_file"},
-        {fun(&Cell::add_object<ModelStatic>), "add_ModelStatic"},
-        {fun(&Cell::get_object<ModelStatic>), "get_ModelStatic"},
-        {fun(&Cell::add_object<ModelSkelly>), "add_ModelSkelly"},
-        {fun(&Cell::get_object<ModelSkelly>), "get_ModelSkelly"},
-        {fun(&Cell::add_object<PointLight>),  "add_PointLight"},
-        {fun(&Cell::get_object<PointLight>),  "get_PointLight"},
-        {fun(&Cell::add_object<SpotLight>),   "add_SpotLight"},
-        {fun(&Cell::get_object<SpotLight>),   "get_SpotLight"},
-        {fun(&Cell::add_object<Reflector>),   "add_Reflector"},
-        {fun(&Cell::get_object<Reflector>),   "get_Reflector"},
-        {fun(&Cell::add_object<Emitter>),     "add_Emitter"},
-        {fun(&Cell::get_object<Emitter>),     "get_Emitter"},
-        {fun(&Cell::add_object<Liquid>),      "add_Liquid"},
-        {fun(&Cell::get_object<Liquid>),      "get_Liquid"},
-        {fun(&Cell::add_object<Decal>),       "add_Decal"},
-        {fun(&Cell::get_object<Decal>),       "get_Decal"},
+        {fun(&Cell::add_object<RigBodyBasic>), "add_RigBodyBasic"},
+        {fun(&Cell::get_object<RigBodyBasic>), "get_RigBodyBasic"},
+        {fun(&Cell::add_object<RigBodyMulti>), "add_RigBodyMulti"},
+        {fun(&Cell::get_object<RigBodyMulti>), "get_RigBodyMulti"},
+        {fun(&Cell::add_object<ModelStatic>),  "add_ModelStatic"},
+        {fun(&Cell::get_object<ModelStatic>),  "get_ModelStatic"},
+        {fun(&Cell::add_object<ModelSkelly>),  "add_ModelSkelly"},
+        {fun(&Cell::get_object<ModelSkelly>),  "get_ModelSkelly"},
+        {fun(&Cell::add_object<PointLight>),   "add_PointLight"},
+        {fun(&Cell::get_object<PointLight>),   "get_PointLight"},
+        {fun(&Cell::add_object<SpotLight>),    "add_SpotLight"},
+        {fun(&Cell::get_object<SpotLight>),    "get_SpotLight"},
+        {fun(&Cell::add_object<Reflector>),    "add_Reflector"},
+        {fun(&Cell::get_object<Reflector>),    "get_Reflector"},
+        {fun(&Cell::add_object<Emitter>),      "add_Emitter"},
+        {fun(&Cell::get_object<Emitter>),      "get_Emitter"},
+        {fun(&Cell::add_object<Liquid>),       "add_Liquid"},
+        {fun(&Cell::get_object<Liquid>),       "get_Liquid"},
+        {fun(&Cell::add_object<Decal>),        "add_Decal"},
+        {fun(&Cell::get_object<Decal>),        "get_Decal"},
         {fun(&Cell::refresh), "refresh"} });
 
+    m->add(base_class<Object, RigBodyBasic>());
+    m->add(base_class<Object, RigBodyMulti>());
     m->add(base_class<Object, ModelStatic>());
     m->add(base_class<Object, ModelSkelly>());
     m->add(base_class<Object, PointLight>());
     m->add(base_class<Object, SpotLight>());
     m->add(base_class<Object, Reflector>());
     m->add(base_class<Object, Emitter>());
+    m->add(base_class<Object, Liquid>());
     m->add(base_class<Object, Decal>());
 
     _cs.add(m);

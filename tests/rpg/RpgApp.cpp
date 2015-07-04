@@ -1,5 +1,6 @@
 #include <sqee/redist/gl_ext_3_3.hpp>
 #include <sqee/gl/Textures.hpp>
+#include <sqee/physics/PhysObject.hpp>
 #include <sqee/render/Armature.hpp>
 #include <sqee/render/Mesh.hpp>
 #include <sqee/render/Skin.hpp>
@@ -16,12 +17,6 @@
 namespace sqt {
 
 RpgApp::RpgApp() : sq::Application(true) {
-    sq::res::tex2D_path() = "assets/textures/";
-    sq::res::texCube_path() = "assets/textures/";
-    sq::res::mesh_path() = "assets/meshes/";
-    sq::res::skin_path() = "assets/skins/";
-    sq::res::arma_path() = "assets/armatures/";
-
     append_scene<SceneMain>("main");
     append_scene<sq::SceneConsole>("console");
     append_scene<sq::SceneFPS>("fps");
@@ -34,7 +29,10 @@ RpgApp::RpgApp() : sq::Application(true) {
     cs_setup_main(*cs);
     cs_setup_wcoe(*cs);
     cs_setup_rndr(*cs);
-    cs->eval_file("assets/test_init.chai");
+}
+
+void RpgApp::eval_test_init() {
+    cs->eval_file(sq::res::path() + "/test_init.chai");
 }
 
 }

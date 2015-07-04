@@ -1,9 +1,9 @@
 #include <list>
 #include <map>
 
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtx/string_cast.hpp>
+#include <glm/gtx/rotate_vector.hpp>
+#include <reactphysics3d/engine/DynamicsWorld.h>
 
 #include <sqee/redist/gl_ext_3_3.hpp>
 #include <sqee/app/Application.hpp>
@@ -446,10 +446,13 @@ void SceneMain::render(float _ft) {
 
 
     /// Render Models into G-Buffer
-    graph->render_mstatics_base();
-    graph->render_reflects_base();
+    graph->render_mstatics_base(true);
+    graph->render_mskellys_base(true);
+    graph->render_reflects_base(true);
     graph->render_decals_base();
-    graph->render_mskellys_base();
+    graph->render_mstatics_base(false);
+    graph->render_mskellys_base(false);
+    graph->render_reflects_base(false);
 
 
     /// Render SSAO Texture

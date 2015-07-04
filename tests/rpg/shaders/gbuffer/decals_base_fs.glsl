@@ -2,7 +2,7 @@
 #extension GL_ARB_shading_language_420pack : enable
 
 in noperspective vec2 s_tcrd;
-in vec3 viewNorm;
+in vec3 viewNorm, viewTan;
 
 #include "headers/blocks/camera"
 #include "headers/blocks/decal"
@@ -36,8 +36,9 @@ void main() {
     vec3 crntSurf = texture(defrSurf, s_tcrd).rgb; fragSurf = crntSurf;
     vec3 crntNorm = texture(defrNorm, s_tcrd).rgb; fragNorm = crntNorm;
     vec3 crntSpec = texture(defrSpec, s_tcrd).rgb; fragSpec = crntSpec;
+    vec3 surface = normalize(crntSurf * 2.f - 1.f);
 
-    float factor = -dot(viewNorm, crntSurf * 2.f - 1.f);
+    float factor = -dot(viewNorm, surface);
     factor = min(factor, 0.25f) * 4.f;
     if (factor < -0.01f) discard;
     factor *= DB.alpha;
@@ -49,14 +50,13 @@ void main() {
     }
 
     if (bool(DB.d_n_s.y) == true) {
-        vec3 normal = crntSurf * 2.f - 1.f;
-        vec3 tangent = normalize(cross(crntSurf, viewNorm));
-        vec3 binormal = normalize(-cross(normal, tangent));
-        vec3 N = normal, T = tangent, B = binormal;
+        vec3 tangent = normalize(cross(surface, viewTan));
+        vec3 binormal = normalize(-cross(surface, tangent));
+        vec3 T = tangent, B = binormal, N = surface;
 
         vec4 texel = texture(texNorm, oPos.xy + 0.5f);
-        texel.rgb = texel.rgb * 2.f - 1.f;
-        texel.rgb = (T * texel.x + B * texel.y + N * texel.z);
+        texel.rgb = normalize(texel.rgb * 2.f - 1.f);
+        texel.rgb = T * texel.x + B * texel.y + N * texel.z;
         fragNorm = (crntNorm * 2.f - 1.f) * (1.f - texel.a * factor);
         fragNorm += texel.rgb * texel.a * factor;
         fragNorm = normalize(fragNorm) * 0.5f + 0.5f;

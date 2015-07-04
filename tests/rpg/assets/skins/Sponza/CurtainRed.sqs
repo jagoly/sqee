@@ -3,10 +3,10 @@
 { materials
 material
 wrap repeat
-diff Sponza/curtain_red
+diff Sponza/CurtainRed
 
 material
 wrap repeat
-diff Sponza/flagpole
-spec Sponza/flagpole
+diff Sponza/FlagPole
+spec Sponza/FlagPole
 }

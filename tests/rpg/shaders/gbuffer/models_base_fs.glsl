@@ -33,7 +33,8 @@ void main() {
 
     if (bool(d_n_s.y) == true) {
         vec3 t_norm = normalize(texture(texNorm, texcrd).rgb * 2.f - 1.f);
-        fragNorm = (T * t_norm.x + B * t_norm.y + N * t_norm.z) * 0.5f + 0.5f;
+        fragNorm = T * t_norm.x + B * t_norm.y + N * t_norm.z;
+        fragNorm = normalize(fragNorm) * 0.5f + 0.5f;
     }
 
     if (bool(d_n_s.z) == true) {

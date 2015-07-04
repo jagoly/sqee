@@ -42,7 +42,6 @@ private:
 
 namespace res {
 ResHolder<Mesh>& mesh();
-string& mesh_path();
 }
 
 }

@@ -27,6 +27,8 @@ inline uvec4 svtouv4(const vector<string>& _vec, uint _pos) {
     return ivec4(stou(_vec[_pos+0]), stou(_vec[_pos+1]), stou(_vec[_pos+2]), stou(_vec[_pos+3])); }
 inline fquat svtofqt(const vector<string>& _vec, uint _pos) {
     return fquat(stof(_vec[_pos+0]), stof(_vec[_pos+1]), stof(_vec[_pos+2]), stof(_vec[_pos+3])); }
+inline fquat svtofeu(const vector<string>& _vec, uint _pos) {
+    return fquat(glm::radians(fvec3(stof(_vec[_pos+0]), stof(_vec[_pos+1]), stof(_vec[_pos+2])))); }
 
 namespace sq {
 

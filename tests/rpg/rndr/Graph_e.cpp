@@ -60,10 +60,13 @@ void Graph::render_reflections() {
         TX.reflDpSt->bind(gl::TEXTURE7);
 
         sq::CLIP_ON();
-        render_mstatics_refl();
-        render_reflects_refl();
+        render_mstatics_refl(true);
+        render_mskellys_refl(true);
+        render_reflects_refl(true);
         render_decals_refl();
-        render_mskellys_refl();
+        render_mstatics_refl(false);
+        render_mskellys_refl(false);
+        render_reflects_refl(false);
         sq::CLIP_OFF();
 
         sq::CULLFACE_OFF();

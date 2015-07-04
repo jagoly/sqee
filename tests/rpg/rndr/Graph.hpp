@@ -34,12 +34,12 @@ public:
     void render_shadows_sky_B(); // B
     void render_shadows_spot();  // B
     void render_shadows_point(); // B
-    void render_mstatics_base(); // C
-    void render_mstatics_refl(); // C
-    void render_mskellys_base(); // C
-    void render_mskellys_refl(); // C
-    void render_reflects_base(); // C
-    void render_reflects_refl(); // C
+    void render_mstatics_base(bool _decals); // C
+    void render_mstatics_refl(bool _decals); // C
+    void render_mskellys_base(bool _decals); // C
+    void render_mskellys_refl(bool _decals); // C
+    void render_reflects_base(bool _decals); // C
+    void render_reflects_refl(bool _decals); // C
     void render_decals_base();   // C
     void render_decals_refl();   // C
 

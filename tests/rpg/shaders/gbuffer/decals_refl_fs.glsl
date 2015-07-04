@@ -31,7 +31,7 @@ void main() {
     vec3 crntDiff = texture(defrDiff, s_tcrd).rgb;
     vec3 crntSurf = texture(defrSurf, s_tcrd).rgb;
 
-    float factor = -dot(viewNorm, crntSurf * 2.f - 1.f);
+    float factor = -dot(viewNorm, crntSurf);
     factor = min(factor, 0.25f) * 4.f;
     if (factor < -0.01f) discard;
     factor *= DB.alpha;

@@ -3,6 +3,6 @@
 { materials
 material
 wrap repeat
-diff Sponza/fabric_green
-spec Sponza/fabric
+diff Sponza/FabricGreen
+spec Sponza/Fabric
 }

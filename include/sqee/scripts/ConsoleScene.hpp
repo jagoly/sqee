@@ -13,6 +13,7 @@ public:
                         Backspace, Delete, Home, End,
                         Return, ShiftReturn };
 
+    void update();
     void render(float _ft);
 
     void exec();
@@ -20,15 +21,15 @@ public:
     void handle_action(Action _action);
     bool active = false;
 
-    // Script Functions
     void cs_print(const string& _value);
-    void cs_clear();
-    void cs_history();
+    void cs_history(); void cs_clear();
 
 private:
     uint curPos = 0u;
     vector<string> history;
     forward_list<string> output;
+    bool tickSwitch = false;
+    bool tickDelay = false;
     string input;
 };
 

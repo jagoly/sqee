@@ -10,6 +10,9 @@ public:
     void load_from_spec(const ObjSpec& _spec);
     void refresh(); void tick();
     void calc(double _accum);
+
+    // ANIMS
+    void animate();
 };
 
 template<> struct ObjTraits<Liquid> {

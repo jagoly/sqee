@@ -1,5 +1,4 @@
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 #include <sqee/redist/gl_ext_3_3.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
@@ -27,30 +26,33 @@ Reflector::Reflector(const string& _name, Cell* _cell)
 }
 
 void Reflector::load_from_spec(const ObjSpec& _spec) {
-    SPEC_ASSERT_FLOAT("position", 3);
-    SPEC_ASSERT_FLOAT("rotation", 4);
-    SPEC_ASSERT_FLOAT("scale", 3);
-    SPEC_ASSERT_FLOAT("factor", 1);
-    SPEC_ASSERT_STRING("mesh", 1);
-    SPEC_ASSERT_STRING("skin", 1);
+   #ifdef SQEE_DEBUG
+    assert_fvec3(_spec, name, "position");
+    assert_fquat(_spec, name, "rotation");
+    assert_fvec3(_spec, name, "scale");
+    assert_float(_spec, name, "factor");
+    assert_string(_spec, name, "mesh");
+    assert_string(_spec, name, "skin");
+   #endif
 
-    PROP_shadow   = SPEC_HAS_FLAG("shadow");
-    PROP_position = glm::make_vec3(_spec.fMap.at("position").data());
-    PROP_rotation = glm::make_quat(_spec.fMap.at("rotation").data());
-    PROP_scale    = glm::make_vec3(_spec.fMap.at("scale").data());
-    PROP_factor   = _spec.fMap.at("factor")[0];
-    PROP_meshPath = _spec.sMap.at("mesh")[0];
-    PROP_skinPath = _spec.sMap.at("skin")[0];
+    PROP_shadow   = _spec.flagSet.count("shadow");
+    PROP_decals   = _spec.flagSet.count("decals");
+    PROP_position = _spec.fvec3Map.at("position");
+    PROP_rotation = _spec.fquatMap.at("rotation");
+    PROP_scale    = _spec.fvec3Map.at("scale");
+    PROP_factor   = _spec.floatMap.at("factor");
+    PROP_mesh     = _spec.stringMap.at("mesh");
+    PROP_skin     = _spec.stringMap.at("skin");
 }
 
 void Reflector::refresh() {
-    if ((mesh = sq::res::mesh().get(PROP_meshPath)) == nullptr)
-        mesh = sq::res::mesh().add(PROP_meshPath),
-        mesh->create(PROP_meshPath);
+    if ((mesh = sq::res::mesh().get(PROP_mesh)) == nullptr)
+        mesh = sq::res::mesh().add(PROP_mesh),
+        mesh->create(PROP_mesh);
 
-    if ((skin = sq::res::skin().get(PROP_skinPath)) == nullptr)
-        skin = sq::res::skin().add(PROP_skinPath),
-        skin->create(PROP_skinPath);
+    if ((skin = sq::res::skin().get(PROP_skin)) == nullptr)
+        skin = sq::res::skin().add(PROP_skin),
+        skin->create(PROP_skin);
 
     animate();
 }

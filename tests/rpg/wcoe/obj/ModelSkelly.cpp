@@ -1,5 +1,4 @@
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 #include <sqee/gl/UniformBuffer.hpp>
 #include <sqee/render/Armature.hpp>
@@ -26,43 +25,52 @@ ModelSkelly::ModelSkelly(const string& _name, Cell* _cell)
 
 
 void ModelSkelly::load_from_spec(const ObjSpec& _spec) {
-    SPEC_ASSERT_FLOAT("position", 3);
-    SPEC_ASSERT_FLOAT("rotation", 4);
-    SPEC_ASSERT_FLOAT("scale", 3);
-    SPEC_ASSERT_STRING("arma", 1);
-    SPEC_ASSERT_STRING("mesh", 1);
-    SPEC_ASSERT_STRING("skin", 1);
+   #ifdef SQEE_DEBUG
+    assert_fvec3(_spec, name, "position");
+    assert_fquat(_spec, name, "rotation");
+    assert_fvec3(_spec, name, "scale");
+    assert_string(_spec, name, "arma");
+    assert_string(_spec, name, "mesh");
+    assert_string(_spec, name, "skin");
+    assert_string(_spec, name, "pose");
+    assert_string(_spec, name, "anim");
+   #endif
 
-    PROP_shadow   = SPEC_HAS_FLAG("shadow");
-    PROP_render   = SPEC_HAS_FLAG("render");
-    PROP_position = glm::make_vec3(_spec.fMap.at("position").data());
-    PROP_rotation = glm::make_quat(_spec.fMap.at("rotation").data());
-    PROP_scale    = glm::make_vec3(_spec.fMap.at("scale").data());
-    PROP_armaPath = _spec.sMap.at("arma")[0];
-    PROP_meshPath = _spec.sMap.at("mesh")[0];
-    PROP_skinPath = _spec.sMap.at("skin")[0];
-    SPEC_IF_STRING("pose") PROP_poseName = _spec.sMap.at("pose")[0];
-    SPEC_IF_STRING("anim") PROP_animName = _spec.sMap.at("pose")[0];
+    PROP_shadow   = _spec.flagSet.count("shadow");
+    PROP_render   = _spec.flagSet.count("render");
+    PROP_decals   = _spec.flagSet.count("decals");
+    PROP_position = _spec.fvec3Map.at("position");
+    PROP_rotation = _spec.fquatMap.at("rotation");
+    PROP_scale    = _spec.fvec3Map.at("scale");
+    PROP_arma     = _spec.stringMap.at("arma");
+    PROP_mesh     = _spec.stringMap.at("mesh");
+    PROP_skin     = _spec.stringMap.at("skin");
+    PROP_pose     = _spec.stringMap.at("pose");
+    PROP_anim     = _spec.stringMap.at("anim");
 }
 
 
 void ModelSkelly::refresh() {
-    if ((arma = sq::res::arma().get(PROP_armaPath)) == nullptr)
-        arma = sq::res::arma().add(PROP_armaPath),
-        arma->create(PROP_armaPath);
+    if ((arma = sq::res::arma().get(PROP_arma)) == nullptr)
+        arma = sq::res::arma().add(PROP_arma),
+        arma->create(PROP_arma);
 
-    if ((mesh = sq::res::mesh().get(PROP_meshPath)) == nullptr)
-        mesh = sq::res::mesh().add(PROP_meshPath),
-        mesh->create(PROP_meshPath);
+    if ((mesh = sq::res::mesh().get(PROP_mesh)) == nullptr)
+        mesh = sq::res::mesh().add(PROP_mesh),
+        mesh->create(PROP_mesh);
 
-    if ((skin = sq::res::skin().get(PROP_skinPath)) == nullptr)
-        skin = sq::res::skin().add(PROP_skinPath),
-        skin->create(PROP_skinPath);
+    if ((skin = sq::res::skin().get(PROP_skin)) == nullptr)
+        skin = sq::res::skin().add(PROP_skin),
+        skin->create(PROP_skin);
 
-    if (PROP_poseName.empty() == false) {
-        poseCalc = arma->poseMap.at(PROP_poseName);
+    if (PROP_pose.empty() == false) {
+        poseCalc = arma->poseMap.at(PROP_pose);
         auto uboData = sq::Armature::make_UboData(poseCalc);
         ubo->bind(1); ubo->update("bones", uboData.data());
+    }
+
+    if (PROP_anim.empty() == false) {
+        anim = arma->animMap.at(PROP_anim);
     }
 
     animate();
@@ -97,7 +105,7 @@ void ModelSkelly::tick() {
     if (state == State::Ending) {
         if (ticks == span) {
             state = State::Done;
-            poseCalc = arma->poseMap.at(PROP_poseName);
+            poseCalc = arma->poseMap.at(PROP_pose);
             auto uboData = sq::Armature::make_UboData(poseCalc);
             ubo->bind(1); ubo->update("bones", uboData.data());
         } return;
@@ -133,20 +141,20 @@ void ModelSkelly::animate() {
 void ModelSkelly::FUNC_stop(uint _time) {
     if (_time == 0u) {
         state = State::Done;
-        poseCalc = arma->poseMap.at(PROP_poseName);
+        poseCalc = arma->poseMap.at(PROP_pose);
         auto uboData = sq::Armature::make_UboData(poseCalc);
         ubo->bind(1); ubo->update("bones", uboData.data());
     } else {
         state = State::Ending; span = _time;
         looping = false; index = 0u; ticks = 0u;
-        poseNext = arma->poseMap.at(PROP_poseName);
+        poseNext = arma->poseMap.at(PROP_pose);
         poseCrnt = poseCalc;
     }
 }
 
 
 void ModelSkelly::FUNC_loop(uint _time) {
-    anim = arma->animMap.at(PROP_animName);
+    anim = arma->animMap.at(PROP_anim);
     looping = true; ticks = 0u;
     state = State::Running;
 
@@ -164,7 +172,7 @@ void ModelSkelly::FUNC_loop(uint _time) {
 
 
 void ModelSkelly::FUNC_play(uint _timeA, uint _timeB) {
-    anim = arma->animMap.at(PROP_animName);
+    anim = arma->animMap.at(PROP_anim);
     looping = false; ticks = 0u;
     state = State::Running;
     spanEnd = _timeB;

@@ -1,6 +1,8 @@
 #pragma once
 #include <sqee/forward.hpp>
 
+#include <sqee/physics/RP3D.hpp>
+
 #include "Cell.hpp"
 #include "obj/Object.hpp"
 #include "obj/Animation.hpp"
@@ -69,9 +71,9 @@ public:
 class World : NonCopyable {
 public:
     World(sq::Camera* _camera, sq::SettingsMaps* _settings);
-
     void refresh(); void tick();
     void calc(double _accum);
+    ~World();
 
     Cell* add_cell(const string& _name);
     Cell* get_cell(const string& _name);
@@ -86,6 +88,8 @@ public:
 
     const sq::Camera* const camera;
     sq::SettingsMaps* const settings;
+
+    unique_ptr<rp3d::DynamicsWorld> physWorld;
 };
 
 template<class T>

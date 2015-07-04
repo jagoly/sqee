@@ -53,8 +53,10 @@ bool HandlerMain::handle(const sf::Event& _event) {
             settings->apply(); appBase->update(); return true;
         }
         if (_event.key.code == sf::Keyboard::V) {
-            bool crnt = settings->crnt<bool>("app_vsync");
-            settings->mod<bool>("app_vsync", !crnt);
+            int crnt = settings->crnt<int>("framelimit");
+            if      (crnt == 0) settings->mod<int>("framelimit", 1);
+            else if (crnt == 1) settings->mod<int>("framelimit", 2);
+            else if (crnt == 2) settings->mod<int>("framelimit", 0);
             settings->apply(); appBase->update(); return true;
         }
     }

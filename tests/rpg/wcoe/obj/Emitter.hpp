@@ -13,6 +13,9 @@ public:
 
     fvec3 PROP_position = {0, 0, 0};
 
+    // ANIMS
+    void animate();
+
     struct Particle {
         Particle(fvec3 _origin, fvec3 _target, fvec3 _colour, float _scale, uint _life);
         const fvec3 origin, target, colour; const float scale; const uint life;

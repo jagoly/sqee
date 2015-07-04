@@ -3,6 +3,6 @@
 { materials
 material
 wrap repeat
-diff Sponza/flagpole
-spec Sponza/flagpole
+diff Sponza/FlagPole
+spec Sponza/FlagPole
 }

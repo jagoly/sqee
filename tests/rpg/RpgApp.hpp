@@ -8,6 +8,8 @@ namespace sqt {
 class RpgApp : public sq::Application {
 public:
     RpgApp();
+
+    void eval_test_init();
 };
 
 }

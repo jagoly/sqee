@@ -16,9 +16,9 @@ public:
     fquat  PROP_rotation = {1.f, 0.f, 0.f, 0.f};
     fvec3  PROP_scale    = {1.f, 1.f, 1.f};
     float  PROP_alpha    = 1.f;
-    string PROP_diffPath = "";
-    string PROP_normPath = "";
-    string PROP_specPath = "";
+    string PROP_diff     = "";
+    string PROP_norm     = "";
+    string PROP_spec     = "";
 
     AnimatorFVec3 ANIM_position {&PROP_position};
     AnimatorFQuat ANIM_rotation {&PROP_rotation};

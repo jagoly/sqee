@@ -1,0 +1,8 @@
+# SQEE Skin Format
+
+{ materials
+material
+wrap clamp
+diff Test/Dice
+spec FFFFFF
+}

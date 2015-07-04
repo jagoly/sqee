@@ -6,7 +6,7 @@
 using namespace sq;
 
 void Mesh::create(const string& _path) {
-    string path = res::mesh_path() + _path + ".sqm";
+    string path = res::path() + "meshes/" + _path + ".sqm";
     if (get_file_first_byte(path) == '#') load_ascii(path);
     else load_binary(path);
 }
@@ -227,8 +227,4 @@ void Mesh::load_final(const vector<fvec3>& points,   const vector<fvec3>& normal
 ResHolder<Mesh>& sq::res::mesh() {
     static ResHolder<Mesh> holder;
     return holder;
-}
-string& sq::res::mesh_path() {
-    static string path;
-    return path;
 }

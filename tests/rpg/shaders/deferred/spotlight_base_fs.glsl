@@ -33,9 +33,9 @@ float get_shadow_value(vec3 _wpos, vec3 _wsurf) {
     vec3 shadcrd = sc.xyz / sc.w * 0.5f + 0.5f;
     float bias = get_bias(_wsurf, normalize(normPos - LB.position));
     if (SHADFLTR < 2) return sample_shadow(shadcrd, bias, texShad);
-    else if (SHADQLTY == 0) return sample_shadow_x4(shadcrd, bias, 1.f / 512.f, texShad);
-    else if (SHADQLTY == 1) return sample_shadow_x8(shadcrd, bias, 1.f / 512.f, texShad);
-    else if (SHADQLTY == 2) return sample_shadow_x16(shadcrd, bias, 1.f / 512.f, texShad);
+    else if (SHADQLTY == 0) return sample_shadow_x4(shadcrd, bias, 1.f / 256.f, texShad);
+    else if (SHADQLTY == 1) return sample_shadow_x8(shadcrd, bias, 1.f / 256.f, texShad);
+    else if (SHADQLTY == 2) return sample_shadow_x16(shadcrd, bias, 1.f / 256.f, texShad);
 }
 #endif
 

@@ -13,6 +13,8 @@ set(SOURCES
     "wcoe/World.hpp"            "wcoe/World.cpp"
     "wcoe/obj/Object.hpp"       "wcoe/obj/Object.cpp"
     "wcoe/obj/Animation.hpp"    "wcoe/obj/Animation.cpp"
+    "wcoe/obj/RigBodyBasic.hpp" "wcoe/obj/RigBodyBasic.cpp"
+    "wcoe/obj/RigBodyMulti.hpp" "wcoe/obj/RigBodyMulti.cpp"
     "wcoe/obj/ModelStatic.hpp"  "wcoe/obj/ModelStatic.cpp"
     "wcoe/obj/ModelSkelly.hpp"  "wcoe/obj/ModelSkelly.cpp"
     "wcoe/obj/PointLight.hpp"   "wcoe/obj/PointLight.cpp"

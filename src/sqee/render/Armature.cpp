@@ -5,7 +5,7 @@
 using namespace sq;
 
 void Armature::create(const string& _path) {
-    string path = res::arma_path() + _path + ".sqa";
+    string path = res::path() + "armatures/" + _path + ".sqa";
     vector<vector<string>> fileVec(get_words_from_file(path));
 
     struct BoneSpec {
@@ -38,14 +38,14 @@ void Armature::create(const string& _path) {
          boneVector.emplace_back(spec.name, spec.parentIndex, spec.head, spec.tail, spec.quat);
     }
 
-    for (const string& libName : get_files_from_dir(res::arma_path() + _path + ".lib")) {
+    for (const string& libName : get_files_from_dir(res::path() + "armatures/" + _path + ".lib")) {
         load_library(_path + ".lib/" + libName.substr(0u, libName.size() - 8u));
     }
 }
 
 
 void Armature::load_library(const string& _path) {
-    string path = res::arma_path() + _path + ".sqa_lib";
+    string path = res::path() + "armatures/" + _path + ".sqa_lib";
     vector<vector<string>> fileVec(get_words_from_file(path));
 
     Pose* pose = nullptr; Anim* anim = nullptr;
@@ -133,8 +133,4 @@ Armature::Pose Armature::mix_Poses(const Pose& _a, const Pose& _b, float _factor
 ResHolder<Armature>& sq::res::arma() {
     static ResHolder<Armature> holder;
     return holder;
-}
-string& sq::res::arma_path() {
-    static string path;
-    return path;
 }

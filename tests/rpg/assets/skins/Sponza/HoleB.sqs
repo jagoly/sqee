@@ -3,12 +3,12 @@
 { materials
 material
 wrap repeat
-diff Sponza/arch
-norm Sponza/arch
-spec Sponza/arch
+diff Sponza/Arch
+norm Sponza/Arch
+spec Sponza/Arch
 
 material
 wrap repeat
-diff Sponza/ceiling
-spec Sponza/ceiling
+diff Sponza/Ceiling
+spec Sponza/Ceiling
 }

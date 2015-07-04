@@ -10,22 +10,37 @@ using namespace sq;
 SceneConsole::SceneConsole(Application* _app) : Scene(_app) {
     appBase->cs->add_global(chai::var(this), "console");
     settings->add<bool>("console_active", false);
+    tickRate = 2u;
+}
+
+void SceneConsole::update() {
+    if (active == false) return;
+
+    if (tickDelay == false)
+        tickSwitch = !tickSwitch;
+    else tickDelay = false;
 }
 
 void SceneConsole::render(float _ft) {
-    if (active == true) {
-        string ppStr = input; size_t pos = 0u;
-        while ((pos = ppStr.find("\n", pos)) != string::npos)
-            ppStr.replace(pos, 1u, "\n--> "), pos += 4u;
-        string finalStr = ">>> " + ppStr;
-        for (const auto& str : output) finalStr.append("\n"+str);
-        sq::draw_tiny_text(finalStr, 3.f, Alignment::TL, {8, 10}, appBase->get_size());
-    }
+    if (active == false) return;
+
+    static const TextBasic tb = {
+        TextBasic::Flow::Positive, TextBasic::Flow::Negative,
+        TextBasic::Align::Negative, TextBasic::Align::Positive,
+        fvec3(1.f, 1.f, 1.f), fvec2(24.f, 30.f), true
+    };
+
+    string outStr = input; size_t pos = 0u; outStr.insert(0, ">>> ");
+    outStr.insert(outStr.begin()+curPos+4, tickSwitch ? char(5) : ' ');
+    while ((pos = outStr.find("\n", pos)) != string::npos)
+        outStr.replace(pos, 1u, "\n--> "), pos += 4u;
+    for (const auto& str : output) outStr.append('\n' + str);
+    sq::render_text_basic(outStr, tb, 1.f, appBase->get_size());
 }
 
 void SceneConsole::exec() {
     try { appBase->cs->eval(input); }
-    catch (chai::exception::eval_error &err) {
+    catch (chai::exception::eval_error& err) {
         output.emplace_front(err.what());
     } input.clear(); curPos = 0u;
 }
@@ -33,6 +48,9 @@ void SceneConsole::exec() {
 void SceneConsole::handle_character(char _c) {
     if (std::isprint(_c)) // all printable chars
         input.insert(curPos++, 1u, _c);
+
+    tickSwitch = true;
+    tickDelay = true;
 }
 
 void SceneConsole::handle_action(Action _action) {
@@ -82,17 +100,20 @@ void SceneConsole::handle_action(Action _action) {
     else if (_action == Action::End) {
         curPos = input.length();
     }
+
+    tickSwitch = true;
+    tickDelay = true;
 }
 
 void SceneConsole::cs_print(const string& _value) {
     output.emplace_front(_value);
 }
 
-void SceneConsole::cs_clear() {
-    output.clear();
-}
-
 void SceneConsole::cs_history() {
     for (const auto& cmd : history)
         output.emplace_front("> "+cmd);
+}
+
+void SceneConsole::cs_clear() {
+    output.clear();
 }

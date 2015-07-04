@@ -1,0 +1,16 @@
+# SQEE Rigid Body Format
+
+{ header
+type DYNAMIC
+lineardamp 0.3
+angulardamp 0.9
+bounciness 0.7
+friction 0.5
+}
+
+{ shapes
+shape Sphere
+radius 0.5
+offset 0.0 0.0 0.5
+mass 2.0
+}

@@ -1,0 +1,13 @@
+# SQEE Skin Format
+
+{ materials
+material
+wrap repeat
+diff Sponza/Chain
+norm Sponza/Chain
+extra punch
+
+material
+wrap repeat
+diff Sponza/VaseHanging
+}

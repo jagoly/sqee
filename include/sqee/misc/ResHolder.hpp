@@ -34,4 +34,8 @@ protected:
     unordered_map<string, unique_ptr<T>> theMap;
 };
 
+namespace res {
+string& path();
+}
+
 }

@@ -26,63 +26,54 @@ set(EMBDIR "${PROJECT_SOURCE_DIR}/embed")
 
 set(SOURCES
 # 3rd Party Source
-    "${INCDIR}/redist/gl_ext_3_3.hpp" "${SRCDIR}/redist/gl_ext_3_3.cpp"
-    "${INCDIR}/redist/stb_image.hpp"  "${SRCDIR}/redist/stb_image.cpp"
-    "${INCDIR}/redist/jsoncpp.hpp"    "${SRCDIR}/redist/jsoncpp.cpp"
-    "${INCDIR}/redist/tinyformat.hpp"
     "${INCDIR}/redist/lmccop.hpp"
+    "${INCDIR}/redist/tinyformat.hpp"
+    "${INCDIR}/redist/gl_ext_3_3.hpp"       "${SRCDIR}/redist/gl_ext_3_3.cpp"
+    "${INCDIR}/redist/stb_image.hpp"        "${SRCDIR}/redist/stb_image.cpp"
+    "${INCDIR}/redist/jsoncpp.hpp"          "${SRCDIR}/redist/jsoncpp.cpp"
 
 # SQEE Source
     "${INCDIR}/forward.hpp"
     "${INCDIR}/debug/Callbacks.hpp"
-    "${INCDIR}/debug/Misc.hpp"             "${SRCDIR}/debug/Misc.cpp"
-    "${INCDIR}/gl/Drawing.hpp"             "${SRCDIR}/gl/Drawing.cpp"
-    "${INCDIR}/gl/FrameBuffer.hpp"         "${SRCDIR}/gl/FrameBuffer.cpp"
-    "${INCDIR}/gl/Preprocessor.hpp"        "${SRCDIR}/gl/Preprocessor.cpp"
-    "${INCDIR}/gl/Shaders.hpp"             "${SRCDIR}/gl/Shaders.cpp"
-    "${INCDIR}/gl/UniformBuffer.hpp"       "${SRCDIR}/gl/UniformBuffer.cpp"
-    "${INCDIR}/gl/Textures.hpp"            "${SRCDIR}/gl/Textures.cpp"
-    "${INCDIR}/scripts/ChaiScript.hpp"     "${SRCDIR}/scripts/ChaiScript.cpp"
-    "${INCDIR}/scripts/ConsoleScene.hpp"   "${SRCDIR}/scripts/ConsoleScene.cpp"
-    "${INCDIR}/scripts/ConsoleHandler.hpp" "${SRCDIR}/scripts/ConsoleHandler.cpp"
-    "${INCDIR}/scripts/Intergration.hpp"   "${SRCDIR}/scripts/Intergration.cpp"
-    "${INCDIR}/app/Application.hpp"        "${SRCDIR}/app/Application.cpp"
-    "${INCDIR}/app/Logging.hpp"            "${SRCDIR}/app/Logging.cpp"
-    "${INCDIR}/app/SettingsMap.hpp"        "${SRCDIR}/app/SettingsMap.cpp"
-    "${INCDIR}/handlers/Handler.hpp"       "${SRCDIR}/handlers/Handler.cpp"
-    "${INCDIR}/handlers/Basics.hpp"        "${SRCDIR}/handlers/Basics.cpp"
-    "${INCDIR}/text/Font.hpp"              "${SRCDIR}/text/Font.cpp"
-    "${INCDIR}/text/Text.hpp"              "${SRCDIR}/text/Text.cpp"
-    "${INCDIR}/maths/Culling.hpp"          "${SRCDIR}/maths/Culling.cpp"
-    "${INCDIR}/maths/General.hpp"          "${SRCDIR}/maths/General.cpp"
-    "${INCDIR}/maths/Physics.hpp"          "${SRCDIR}/maths/Physics.cpp"
-    "${INCDIR}/menus/BasicMenu.hpp"        "${SRCDIR}/menus/BasicMenu.cpp"
-    "${INCDIR}/render/Camera.hpp"          "${SRCDIR}/render/Camera.cpp"
-    "${INCDIR}/render/Armature.hpp"        "${SRCDIR}/render/Armature.cpp"
-    "${INCDIR}/render/Mesh.hpp"            "${SRCDIR}/render/Mesh.cpp"
-    "${INCDIR}/render/Skin.hpp"            "${SRCDIR}/render/Skin.cpp"
-    "${INCDIR}/misc/ResHolder.hpp"
-    "${INCDIR}/misc/Files.hpp"             "${SRCDIR}/misc/Files.cpp"
-    "${INCDIR}/scenes/Scene.hpp"           "${SRCDIR}/scenes/Scene.cpp"
-    "${INCDIR}/scenes/Basics.hpp"          "${SRCDIR}/scenes/Basics.cpp"
-    "${INCDIR}/sounds/SoundManager.hpp"    "${SRCDIR}/sounds/SoundManager.cpp"
+    "${INCDIR}/debug/Misc.hpp"              "${SRCDIR}/debug/Misc.cpp"
+    "${INCDIR}/gl/Drawing.hpp"              "${SRCDIR}/gl/Drawing.cpp"
+    "${INCDIR}/gl/FrameBuffer.hpp"          "${SRCDIR}/gl/FrameBuffer.cpp"
+    "${INCDIR}/gl/Preprocessor.hpp"         "${SRCDIR}/gl/Preprocessor.cpp"
+    "${INCDIR}/gl/Shaders.hpp"              "${SRCDIR}/gl/Shaders.cpp"
+    "${INCDIR}/gl/UniformBuffer.hpp"        "${SRCDIR}/gl/UniformBuffer.cpp"
+    "${INCDIR}/gl/Textures.hpp"             "${SRCDIR}/gl/Textures.cpp"
+    "${INCDIR}/scripts/ChaiScript.hpp"      "${SRCDIR}/scripts/ChaiScript.cpp"
+    "${INCDIR}/scripts/ConsoleScene.hpp"    "${SRCDIR}/scripts/ConsoleScene.cpp"
+    "${INCDIR}/scripts/ConsoleHandler.hpp"  "${SRCDIR}/scripts/ConsoleHandler.cpp"
+    "${INCDIR}/scripts/Intergration.hpp"    "${SRCDIR}/scripts/Intergration.cpp"
+    "${INCDIR}/app/Application.hpp"         "${SRCDIR}/app/Application.cpp"
+    "${INCDIR}/app/Logging.hpp"             "${SRCDIR}/app/Logging.cpp"
+    "${INCDIR}/app/SettingsMap.hpp"         "${SRCDIR}/app/SettingsMap.cpp"
+    "${INCDIR}/handlers/Handler.hpp"        "${SRCDIR}/handlers/Handler.cpp"
+    "${INCDIR}/handlers/Basics.hpp"         "${SRCDIR}/handlers/Basics.cpp"
+    "${INCDIR}/text/Font.hpp"               "${SRCDIR}/text/Font.cpp"
+    "${INCDIR}/text/Text.hpp"               "${SRCDIR}/text/Text.cpp"
+    "${INCDIR}/maths/Culling.hpp"           "${SRCDIR}/maths/Culling.cpp"
+    "${INCDIR}/maths/General.hpp"           "${SRCDIR}/maths/General.cpp"
+    "${INCDIR}/maths/Physics.hpp"           "${SRCDIR}/maths/Physics.cpp"
+    "${INCDIR}/menus/BasicMenu.hpp"         "${SRCDIR}/menus/BasicMenu.cpp"
+    "${INCDIR}/render/Armature.hpp"         "${SRCDIR}/render/Armature.cpp"
+    "${INCDIR}/render/Camera.hpp"           "${SRCDIR}/render/Camera.cpp"
+    "${INCDIR}/render/Mesh.hpp"             "${SRCDIR}/render/Mesh.cpp"
+    "${INCDIR}/render/Skin.hpp"             "${SRCDIR}/render/Skin.cpp"
+    "${INCDIR}/physics/RP3D.hpp"            "${SRCDIR}/physics/RP3D.cpp"
+    "${INCDIR}/physics/PhysObject.hpp"      "${SRCDIR}/physics/PhysObject.cpp"
+    "${INCDIR}/misc/ResHolder.hpp"          "${SRCDIR}/misc/ResHolder.cpp"
+    "${INCDIR}/misc/Files.hpp"              "${SRCDIR}/misc/Files.cpp"
+    "${INCDIR}/scenes/Scene.hpp"            "${SRCDIR}/scenes/Scene.cpp"
+    "${INCDIR}/scenes/Basics.hpp"           "${SRCDIR}/scenes/Basics.cpp"
+    "${INCDIR}/sounds/SoundManager.hpp"     "${SRCDIR}/sounds/SoundManager.cpp"
 
 # Compiled-In Data
-    "${SRCDIR}/data/textfont.c"
-    "${SRCDIR}/data/volumes.c"
+    "${SRCDIR}/data/TextFont.c"
+    "${SRCDIR}/data/TextGlow.c"
+    "${SRCDIR}/data/Volumes.c"
 )
-
-make_directory(${CMAKE_CURRENT_BINARY_DIR}/work)
-macro (addbin input varname)
-    string(REGEX MATCH "([^/]+)$" filename ${EMBDIR}/${input})
-    string(REGEX REPLACE "\\.| " "_" filename ${filename})
-    file(READ ${EMBDIR}/${input} filedata HEX)
-    string(REGEX REPLACE "([0-9a-f][0-9a-f])" "0x\\1," filedata ${filedata})
-    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/work/${filename}.c"
-               "const unsigned char ${varname}[] = {${filedata}};")
-    list(APPEND EMBEDSOURCES "${CMAKE_CURRENT_BINARY_DIR}/work/${filename}.c")
-    message(STATUS "Added binary file \"${input}\"")
-endmacro ()
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build")
@@ -122,6 +113,4 @@ target_link_libraries(sqee
 
 #add_subdirectory("tests/soko")
 #add_subdirectory("tests/fb")
-add_subdirectory("tests/gl")
-add_subdirectory("tests/chai")
 add_subdirectory("tests/rpg")

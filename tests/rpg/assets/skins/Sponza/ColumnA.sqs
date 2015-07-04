@@ -3,7 +3,7 @@
 { materials
 material
 wrap repeat
-diff Sponza/column_a
-norm Sponza/column_a
-spec Sponza/column_a
+diff Sponza/ColumnA
+norm Sponza/ColumnA
+spec Sponza/ColumnA
 }

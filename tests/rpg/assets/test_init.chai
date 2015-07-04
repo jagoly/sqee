@@ -1,28 +1,28 @@
 def main() {
     settings.modI("app_width", 1280); settings.modI("app_height", 720);
 //    settings.modI("app_width", 960); settings.modI("app_height", 960);
-    settings.modS("app_windowtitle", "SQEE RPG (test_init.chai)");
+    settings.modS("app_title", "SQEE RPG (test_init.chai)");
     settings.apply(); application.update();
 
     var cellSponza = world.add_cell("Sponza");
-    cellSponza.position = vec3(0.0, 0.0, 0.0);
-    cellSponza.load_from_file("Sponza/New");
+    cellSponza.position = fvec3(0.0, 0.0, 0.0);
+    cellSponza.load_from_file("Sponza/Main");
     cellSponza.enabled = true;
     cellSponza.refresh();
 
     world.skybox.enabled = true;
-    world.skybox.colour = vec4(1.0, 1.0, 1.0, 1.0);
-    world.skybox.texture = "cloudy";
+    world.skybox.colour = fvec4(1.0, 1.0, 1.0, 1.0);
+    world.skybox.texture = "Cloudy";
     world.skybox.refresh();
 
     world.ambient.enabled = true;
-    world.ambient.colour = vec3(0.4, 0.4, 0.4);
+    world.ambient.colour = fvec3(0.4, 0.4, 0.4);
     world.ambient.refresh();
 
     world.skylight.enabled = true;
-    world.skylight.direction = vec3(-0.36, -0.46, -0.81);
+    world.skylight.direction = fvec3(-0.36, -0.46, -0.81);
 //    world.skylight.direction = vec3(0.0, 0.0, -1.0);
-    world.skylight.colour = vec3(0.9, 0.9, 0.9);
+    world.skylight.colour = fvec3(0.9, 0.9, 0.9);
     world.skylight.refresh();
 
     world.reload_list();
@@ -33,9 +33,15 @@ def main() {
 
 
 def add_some_shit() {
-    var sqeenDead = world.get_cell("Sponza").add_ModelSkelly("SqeenDead");
-    sqeenDead.position = vec3(-0.8, 0.0, 0.05);
-    sqeenDead.rotation = quat(-0.5, 0.5, -0.5, 0.5);
+    var cell = world.get_cell("Sponza");
+
+    var boxPhys = cell.add_RigBodyBasic("BoxPhys");
+    boxPhys.phys = "Sponza/BigBox";
+    boxPhys.refresh();
+
+    var sqeenDead = cell.add_ModelSkelly("SqeenDead");
+    sqeenDead.position = fvec3(-0.8, 0.0, 0.05);
+    sqeenDead.rotation = fquat(-0.5, 0.5, -0.5, 0.5);
     sqeenDead.arma = "Characters/Sqeen";
     sqeenDead.mesh = "Characters/Sqeen";
     sqeenDead.skin = "Characters/Sqeen";
@@ -44,9 +50,9 @@ def add_some_shit() {
     sqeenDead.render = true;
     sqeenDead.refresh();
 
-    var sqeenLiveA = world.get_cell("Sponza").add_ModelSkelly("SqeenLiveA");
-    sqeenLiveA.position = vec3(1.5, 0.0, 0.0);
-    sqeenLiveA.rotation = quat(0.707107, 0.0, 0.0, -0.707107);
+    var sqeenLiveA = cell.add_ModelSkelly("SqeenLiveA");
+    sqeenLiveA.position = fvec3(1.5, 0.0, 0.0);
+    sqeenLiveA.rotation = fquat(0.707107, 0.0, 0.0, -0.707107);
     sqeenLiveA.arma = "Characters/Sqeen";
     sqeenLiveA.mesh = "Characters/Sqeen";
     sqeenLiveA.skin = "Characters/Sqeen";
@@ -55,9 +61,9 @@ def add_some_shit() {
     sqeenLiveA.render = true;
     sqeenLiveA.refresh();
 
-    var sqeenLiveB = world.get_cell("Sponza").add_ModelSkelly("SqeenLiveB");
-    sqeenLiveB.position = vec3(-1.5, 0.0, 0.0);
-    sqeenLiveB.rotation = quat(0.707107, 0.0, 0.0, 0.707107);
+    var sqeenLiveB = cell.add_ModelSkelly("SqeenLiveB");
+    sqeenLiveB.position = fvec3(-1.5, 0.0, 0.0);
+    sqeenLiveB.rotation = fquat(0.707107, 0.0, 0.0, 0.707107);
     sqeenLiveB.arma = "Characters/Sqeen";
     sqeenLiveB.mesh = "Characters/Sqeen";
     sqeenLiveB.skin = "Characters/Sqeen";
@@ -66,28 +72,28 @@ def add_some_shit() {
     sqeenLiveB.render = true;
     sqeenLiveB.refresh();
 
-    var decalSplat = world.get_cell("Sponza").add_Decal("Splat");
-    decalSplat.position = vec3(0.2, 0.0, 0.3);
-    decalSplat.rotation = quat(0.0, 0.707107, 0.707107, 0.0);
-    decalSplat.scale = vec3(2.0, 2.0, 0.7);
+    var decalSplat = cell.add_Decal("Splat");
+    decalSplat.position = fvec3(0.2, 0.0, 0.3);
+    decalSplat.rotation = fquat(0.0, 0.707107, 0.707107, 0.0);
+    decalSplat.scale = fvec3(2.0, 2.0, 0.7);
     decalSplat.alpha = 1.0f;
-    decalSplat.diff = "blood";
-    decalSplat.norm = "blood";
-    decalSplat.spec = "blood";
+    decalSplat.diff = "Blood";
+    decalSplat.norm = "Blood";
+    decalSplat.spec = "Blood";
     decalSplat.refresh();
 
-    var lightPoint = world.get_cell("Sponza").add_PointLight("PointCentre");
-    lightPoint.position = vec3(0.0, 0.0, 2.0);
-    lightPoint.colour = vec3(1.0, 1.0, 1.0);
+    var lightPoint = cell.add_PointLight("PointCentre");
+    lightPoint.position = fvec3(0.0, 0.0, 2.0);
+    lightPoint.colour = fvec3(1.0, 1.0, 1.0);
     lightPoint.intensity = 4.0f;
     lightPoint.texsize = 128u;
     lightPoint.shadow = true;
     lightPoint.specular = true;
     lightPoint.refresh();
 
-    var lightSpotN = world.get_cell("Sponza").add_SpotLight("SpotN");
-    lightSpotN.direction = vec3(0.0, -0.7, -0.3);
-    lightSpotN.position = vec3(0.0, 7.0, 3.3);
+    var lightSpotN = cell.add_SpotLight("SpotN");
+    lightSpotN.direction = fvec3(0.0, -0.7, -0.3);
+    lightSpotN.position = fvec3(0.0, 7.0, 3.3);
     lightSpotN.intensity = 20.0f;
     lightSpotN.softness = 0.3f;
     lightSpotN.angle = 35.0f;
@@ -96,9 +102,9 @@ def add_some_shit() {
     lightSpotN.specular = true;
     lightSpotN.refresh();
 
-    var lightSpotS = world.get_cell("Sponza").add_SpotLight("SpotS");
-    lightSpotS.direction = vec3(0.0, 0.7, -0.3);
-    lightSpotS.position = vec3(0.0, -7.0, 3.3);
+    var lightSpotS = cell.add_SpotLight("SpotS");
+    lightSpotS.direction = fvec3(0.0, 0.7, -0.3);
+    lightSpotS.position = fvec3(0.0, -7.0, 3.3);
     lightSpotS.intensity = 20.0f;
     lightSpotS.softness = 0.3f;
     lightSpotS.angle = 35.0f;
@@ -107,51 +113,51 @@ def add_some_shit() {
     lightSpotS.specular = true;
     lightSpotS.refresh();
 
-    var lightPointNE = world.get_cell("Sponza").add_PointLight("PointNE");
-    lightPointNE.position = vec3(14.0, 5.0, 2.0);
+    var lightPointNE = cell.add_PointLight("PointNE");
+    lightPointNE.position = fvec3(14.0, 5.0, 2.0);
     lightPointNE.intensity = 7.0f;
     lightPointNE.texsize = 128u;
     lightPointNE.shadow = true;
     lightPointNE.specular = true;
     lightPointNE.refresh();
 
-    var lightPointSE = world.get_cell("Sponza").add_PointLight("PointSE");
-    lightPointSE.position = vec3(14.0, -5.0, 2.0);
+    var lightPointSE = cell.add_PointLight("PointSE");
+    lightPointSE.position = fvec3(14.0, -5.0, 2.0);
     lightPointSE.intensity = 7.0f;
     lightPointSE.texsize = 128u;
     lightPointSE.shadow = true;
     lightPointSE.specular = true;
     lightPointSE.refresh();
 
-    var lightPointSW = world.get_cell("Sponza").add_PointLight("PointSW");
-    lightPointSW.position = vec3(-14.0, -5.0, 2.0);
+    var lightPointSW = cell.add_PointLight("PointSW");
+    lightPointSW.position = fvec3(-14.0, -5.0, 2.0);
     lightPointSW.intensity = 7.0f;
     lightPointSW.texsize = 128u;
     lightPointSW.shadow = true;
     lightPointSW.specular = true;
     lightPointSW.refresh();
 
-    var lightPointNW = world.get_cell("Sponza").add_PointLight("PointNW");
-    lightPointNW.position = vec3(-14.0, 5.0, 2.0);
+    var lightPointNW = cell.add_PointLight("PointNW");
+    lightPointNW.position = fvec3(-14.0, 5.0, 2.0);
     lightPointNW.intensity = 7.0f;
     lightPointNW.texsize = 128u;
     lightPointNW.shadow = true;
     lightPointNW.specular = true;
     lightPointNW.refresh();
 
-    var emitterA = world.get_cell("Sponza").add_Emitter("EmitterA");
-    emitterA.position = vec3(+1.0, 0.0, 2.0);
+    var emitterA = cell.add_Emitter("EmitterA");
+    emitterA.position = fvec3(+1.0, 0.0, 2.0);
     emitterA.refresh();
 
-    var emitterB = world.get_cell("Sponza").add_Emitter("EmitterB");
-    emitterB.position = vec3(-1.0, 0.0, 2.0);
+    var emitterB = cell.add_Emitter("EmitterB");
+    emitterB.position = fvec3(-1.0, 0.0, 2.0);
     emitterB.refresh();
 
-    var emitterC = world.get_cell("Sponza").add_Emitter("EmitterC");
-    emitterC.position = vec3(0.0, 0.0, 1.0);
+    var emitterC = cell.add_Emitter("EmitterC");
+    emitterC.position = fvec3(0.0, 0.0, 1.0);
     emitterC.refresh();
 
-    var emitterGun = world.get_cell("Sponza").add_Emitter("EmitterGun");
+    var emitterGun = cell.add_Emitter("EmitterGun");
     emitterGun.refresh();
     
     world.reload_list();
@@ -160,45 +166,42 @@ def add_some_shit() {
 
 
 def animate_the_shit() {
-    var sqeen = world.get_cell("Sponza").get_ModelStatic("Sqeen");
-    sqeen.animRotation.values = [quat(0.707107, -0.707107, 0.0, 0.0)];
-    sqeen.animRotation.times = [48u];
-    sqeen.animRotation.start();
+    var cell = world.get_cell("Sponza");
 
-    var splat = world.get_cell("Sponza").get_Decal("Splat");
+    var splat = cell.get_Decal("Splat");
     splat.animAlpha.values = [-1.0f, 0.0f, 1.0f];
     splat.animAlpha.times = [6u, 6u, 36u];
     splat.animAlpha.start();
 
-    var point = world.get_cell("Sponza").get_PointLight("PointCentre");
-    point.animColour.values = [vec3(1,0,0) - point.colour, point.colour - vec3(1,0,0),
-                               vec3(0,1,0) - point.colour, point.colour - vec3(0,1,0),
-                               vec3(0,0,1) - point.colour, point.colour - vec3(0,0,1)];
+    var point = cell.get_PointLight("PointCentre");
+    point.animColour.values = [fvec3(1,0,0) - point.colour, point.colour - fvec3(1,0,0),
+                               fvec3(0,1,0) - point.colour, point.colour - fvec3(0,1,0),
+                               fvec3(0,0,1) - point.colour, point.colour - fvec3(0,0,1)];
     point.animIntensity.values = [1.0f, -2.0f, 2.0f, -2.0f, 2.0f, -1.0f];
     point.animColour.times = [6u, 10u, 6u, 10u, 6u, 10u];
     point.animIntensity.times = [6u, 10u, 6u, 10u, 6u, 10u];
     point.animColour.start(); point.animIntensity.start();
 
-    var spotN = world.get_cell("Sponza").get_SpotLight("SpotN");
-    spotN.animDirection.values = [vec3(2,-1,-1) - spotN.direction, spotN.direction - vec3(2,-1,-1),
-                                  vec3(-2,-1,-1) - spotN.direction, spotN.direction - vec3(-2,-1,-1)];
+    var spotN = cell.get_SpotLight("SpotN");
+    spotN.animDirection.values = [fvec3(2,-1,-1) - spotN.direction, spotN.direction - fvec3(2,-1,-1),
+                                  fvec3(-2,-1,-1) - spotN.direction, spotN.direction - fvec3(-2,-1,-1)];
     spotN.animDirection.times = [10u, 14u, 14u, 10u];
     spotN.animDirection.start();
 
-    var spotS = world.get_cell("Sponza").get_SpotLight("SpotS");
-    spotS.animDirection.values = [vec3(-2,1,-1) - spotS.direction, spotS.direction - vec3(-2,1,-1),
-                                  vec3(2,1,-1) - spotS.direction, spotS.direction - vec3(2,1,-1)];
+    var spotS = cell.get_SpotLight("SpotS");
+    spotS.animDirection.values = [fvec3(-2,1,-1) - spotS.direction, spotS.direction - fvec3(-2,1,-1),
+                                  fvec3(2,1,-1) - spotS.direction, spotS.direction - fvec3(2,1,-1)];
     spotS.animDirection.times = [10u, 14u, 14u, 10u];
     spotS.animDirection.start();
 
-    var pointNE = world.get_cell("Sponza").get_PointLight("PointNE");
-    var pointSE = world.get_cell("Sponza").get_PointLight("PointSE");
-    var pointSW = world.get_cell("Sponza").get_PointLight("PointSW");
-    var pointNW = world.get_cell("Sponza").get_PointLight("PointNW");
-    pointNE.animPosition.values = [vec3(0,-10,0), vec3(-28,0,0), vec3(0,10,0), vec3(28,0,0)];
-    pointSE.animPosition.values = [vec3(-28,0,0), vec3(0,10,0), vec3(28,0,0), vec3(0,-10,0)];
-    pointSW.animPosition.values = [vec3(0,10,0), vec3(28,0,0), vec3(0,-10,0), vec3(-28,0,0)];
-    pointNW.animPosition.values = [vec3(28,0,0), vec3(0,-10,0), vec3(-28,0,0), vec3(0,10,0)];
+    var pointNE = cell.get_PointLight("PointNE");
+    var pointSE = cell.get_PointLight("PointSE");
+    var pointSW = cell.get_PointLight("PointSW");
+    var pointNW = cell.get_PointLight("PointNW");
+    pointNE.animPosition.values = [fvec3(0,-10,0), fvec3(-28,0,0), fvec3(0,10,0), fvec3(28,0,0)];
+    pointSE.animPosition.values = [fvec3(-28,0,0), fvec3(0,10,0), fvec3(28,0,0), fvec3(0,-10,0)];
+    pointSW.animPosition.values = [fvec3(0,10,0), fvec3(28,0,0), fvec3(0,-10,0), fvec3(-28,0,0)];
+    pointNW.animPosition.values = [fvec3(28,0,0), fvec3(0,-10,0), fvec3(-28,0,0), fvec3(0,10,0)];
     pointNE.animPosition.times = [8u*4, 16u*4, 8u*4, 16u*4]; pointNE.animPosition.start();
     pointSE.animPosition.times = [16u*4, 8u*4, 16u*4, 8u*4]; pointSE.animPosition.start();
     pointSW.animPosition.times = [8u*4, 16u*4, 8u*4, 16u*4]; pointSW.animPosition.start();
@@ -207,36 +210,39 @@ def animate_the_shit() {
 
 
 def puffA(_count) {
-    var emitterA = world.get_cell("Sponza").get_Emitter("EmitterA");
-    var emitterB = world.get_cell("Sponza").get_Emitter("EmitterB");
-    var emitterC = world.get_cell("Sponza").get_Emitter("EmitterC");
-    emitterA.emit_puff(_count, vec3(-1,0,2), vec3(0.8, 0.2, 0.2), 0.2, 0.3, 9.0, 12.0, 1000u, 1600u);
-    emitterB.emit_puff(_count, vec3(+1,0,2), vec3(0.2, 0.8, 0.2), 0.2, 0.3, 9.0, 12.0, 1000u, 1600u);
-    emitterC.emit_puff(_count, vec3( 0,0,3), vec3(0.2, 0.2, 0.8), 0.2, 0.3, 9.0, 12.0, 1000u, 1600u);
+    var cell = world.get_cell("Sponza");
+    var emitterA = cell.get_Emitter("EmitterA");
+    var emitterB = cell.get_Emitter("EmitterB");
+    var emitterC = cell.get_Emitter("EmitterC");
+    emitterA.emit_puff(_count, fvec3(-1,0,2), vec3(0.8, 0.2, 0.2), 0.2, 0.3, 9.0, 12.0, 1000u, 1600u);
+    emitterB.emit_puff(_count, fvec3(+1,0,2), vec3(0.2, 0.8, 0.2), 0.2, 0.3, 9.0, 12.0, 1000u, 1600u);
+    emitterC.emit_puff(_count, fvec3( 0,0,3), vec3(0.2, 0.2, 0.8), 0.2, 0.3, 9.0, 12.0, 1000u, 1600u);
 }
 
 def puffB(_count) {
-    var emitterA = world.get_cell("Sponza").get_Emitter("EmitterA");
-    var emitterB = world.get_cell("Sponza").get_Emitter("EmitterB");
-    var emitterC = world.get_cell("Sponza").get_Emitter("EmitterC");
-    emitterA.emit_puff(_count, vec3(0,0,0), vec3(1.0, 1.0, 1.0), 0.3, 0.5, 1.0, 1.5, 30u, 60u);
-    emitterB.emit_puff(_count, vec3(0,0,0), vec3(1.0, 1.0, 1.0), 0.3, 0.5, 1.0, 1.5, 30u, 60u);
-    emitterC.emit_puff(_count, vec3(0,0,0), vec3(1.0, 1.0, 1.0), 0.3, 0.5, 1.0, 1.5, 30u, 60u);
+    var cell = world.get_cell("Sponza");
+    var emitterA = cell.get_Emitter("EmitterA");
+    var emitterB = cell.get_Emitter("EmitterB");
+    var emitterC = cell.get_Emitter("EmitterC");
+    emitterA.emit_puff(_count, fvec3(0,0,0), vec3(1.0, 1.0, 1.0), 0.3, 0.5, 1.0, 1.5, 30u, 60u);
+    emitterB.emit_puff(_count, fvec3(0,0,0), vec3(1.0, 1.0, 1.0), 0.3, 0.5, 1.0, 1.5, 30u, 60u);
+    emitterC.emit_puff(_count, fvec3(0,0,0), vec3(1.0, 1.0, 1.0), 0.3, 0.5, 1.0, 1.5, 30u, 60u);
 }
 
 def puffC(_count) {
-    var emitterGun = world.get_cell("Sponza").get_Emitter("EmitterGun");
-    var gunDir = vec3(camera.direction);
+    var cell = world.get_cell("Sponza");
+    var emitterGun = cell.get_Emitter("EmitterGun");
+    var gunDir = fvec3(camera.direction);
     emitterGun.position = camera.position; emitterGun.refresh();
-    emitterGun.emit_puff(_count, gunDir*10.0f, vec3(1.0, 1.0, 0.0), 0.2, 0.2, 7.5, 10.0, 75u, 75u);
+    emitterGun.emit_puff(_count, gunDir*10.0f, fvec3(1.0, 1.0, 0.0), 0.2, 0.2, 7.5, 10.0, 75u, 75u);
 }
 
 
 def add_lotsa_dudes() {
     for (var i = 0; i < 10; i += 1) {
         var dude = world.get_cell("Sponza").add_ModelSkelly("Dude"+to_string(i));
-        dude.position = vec3(-5.0 + i, 1.0, 0.0);
-        dude.rotation = quat(0.707107, 0.0, 0.0, -0.707107);
+        dude.position = fvec3(-5.0 + i, 1.0, 0.0);
+        dude.rotation = fquat(0.707107, 0.0, 0.0, -0.707107);
         dude.arma = "Characters/Sqeen";
         dude.mesh = "Characters/Sqeen";
         dude.skin = "Characters/Sqeen";
@@ -253,8 +259,56 @@ def add_lotsa_dudes() {
 }
 
 
+def add_some_dice() {
+    for (var i = 0; i < 111; i += 1) {
+        var dice = world.get_cell("Sponza").add_ModelStatic("Dice"+to_string(i));
+        dice.position = fvec3(3.0, 0.0, float(i)*0.4 + 1.0);
+        dice.scale = fvec3(0.3, 0.3, 0.3);
+        dice.mesh = "Test/Dice";
+        dice.skin = "Test/Dice";
+        dice.shadow = true;
+        dice.render = true;
+        dice.refresh();
+
+        var phys = world.get_cell("Sponza").add_RigBodyBasic("DiceP"+to_string(i));
+        phys.scale = fvec3(0.3, 0.3, 0.3);
+        phys.phys = "Test/Dice";
+        phys.set_ModelStatic(dice);
+        phys.refresh();
+    }
+
+    world.reload_list();
+    graph.reload_lists();
+}
+
+
+def add_some_balls() {
+    for (var i = 0; i < 111; i += 1) {
+        var ball = world.get_cell("Sponza").add_ModelStatic("Ball"+to_string(i));
+        ball.position = fvec3(-3.0, 0.0, float(i)*0.4 + 1.0);
+        ball.scale = fvec3(0.3, 0.3, 0.3);
+        ball.mesh = "Test/Ball";
+        ball.skin = "Test/Ball";
+        ball.shadow = true;
+        ball.render = true;
+        ball.refresh();
+
+        var phys = world.get_cell("Sponza").add_RigBodyBasic("BallP"+to_string(i));
+        phys.scale = fvec3(0.3, 0.3, 0.3);
+        phys.phys = "Test/Ball";
+        phys.set_ModelStatic(ball);
+        phys.refresh();
+    }
+
+    world.reload_list();
+    graph.reload_lists();
+}
+
+
 main();
 add_some_shit();
+add_some_dice();
+add_some_balls();
 
 
 var slA = world.get_cell("Sponza").get_ModelSkelly("SqeenLiveA");

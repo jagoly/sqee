@@ -14,14 +14,15 @@ public:
 
     bool   PROP_render   = false;
     bool   PROP_shadow   = false;
+    bool   PROP_decals   = false;
     fvec3  PROP_position = {0.f, 0.f, 0.f};
     fquat  PROP_rotation = {1.f, 0.f, 0.f, 0.f};
     fvec3  PROP_scale    = {1.f, 1.f, 1.f};
-    string PROP_armaPath = "";
-    string PROP_meshPath = "";
-    string PROP_skinPath = "";
-    string PROP_poseName = "";
-    string PROP_animName = "";
+    string PROP_arma     = "";
+    string PROP_mesh     = "";
+    string PROP_skin     = "";
+    string PROP_pose     = "";
+    string PROP_anim     = "";
 
     AnimatorFVec3 ANIM_position {&PROP_position};
     AnimatorFQuat ANIM_rotation {&PROP_rotation};

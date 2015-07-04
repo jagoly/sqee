@@ -90,6 +90,7 @@ class SoundManager;
 class Armature;
 class ArmatureBone;
 class ArmatureTrnsfrm;
+class PhysObject;
 class Camera;
 class Mesh;
 class Skin;

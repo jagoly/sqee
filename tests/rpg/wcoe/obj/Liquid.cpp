@@ -1,5 +1,3 @@
-#include <glm/gtc/type_ptr.hpp>
-
 #include "Liquid.hpp"
 
 using namespace sqt::wcoe;
@@ -14,3 +12,5 @@ void Liquid::refresh() {}
 void Liquid::tick() {}
 
 void Liquid::calc(double _accum) {}
+
+void Liquid::animate() {}

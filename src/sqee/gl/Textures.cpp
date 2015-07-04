@@ -59,7 +59,7 @@ void Texture2D::buffer_memory(const void* _data) {
 }
 
 void Texture2D::buffer_file(const string& _path) {
-    string path = res::tex2D_path() + _path;
+    string path = res::path() + "textures/" + _path;
     if (check_file_exists(path+".png")) path += ".png";
     else if (check_file_exists(path+".jpg")) path += ".jpg";
 
@@ -195,7 +195,7 @@ void TextureCube::buffer_memory(const void* _data, uint _face) {
 }
 
 void TextureCube::buffer_file(const string& _path, uint _face) {
-    string path = res::tex2D_path() + _path;
+    string path = res::path() + "textures/" + _path;
     if (check_file_exists(path+".png")) path += ".png";
     else if (check_file_exists(path+".jpg")) path += ".jpg";
 
@@ -221,7 +221,7 @@ void TextureCube::buffer_file(const string& _path, uint _face) {
 }
 
 void TextureCube::buffer_full(const string& _path, uint _size) {
-    string path = res::texCube_path() + _path;
+    string path = res::path() + "textures/" + _path;
     if (check_file_exists(path+".png")) path += ".png";
     else if (check_file_exists(path+".jpg")) path += ".jpg";
 
@@ -297,7 +297,7 @@ void TextureArray::buffer_memory(const void* _data, uint _z) {
 }
 
 void TextureArray::buffer_file(const string& _path, uint _z) {
-    string path = res::tex2D_path() + _path;
+    string path = res::path() + "textures/" + _path;
     if (check_file_exists(path+".png")) path += ".png";
     else if (check_file_exists(path+".jpg")) path += ".jpg";
 
@@ -350,16 +350,8 @@ ResHolder<Texture2D>& sq::res::tex2D() {
     static ResHolder<Texture2D> holder;
     return holder;
 }
-string& sq::res::tex2D_path() {
-    static string path;
-    return path;
-}
 
 ResHolder<TextureCube>& sq::res::texCube() {
     static ResHolder<TextureCube> holder;
     return holder;
-}
-string& sq::res::texCube_path() {
-    static string path;
-    return path;
 }

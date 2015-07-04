@@ -1,6 +1,9 @@
 #include <sqee/redist/gl_ext_3_3.hpp>
+#include <sqee/misc/ResHolder.hpp>
 #include <sqee/misc/Files.hpp>
 
+#include "obj/RigBodyBasic.hpp"
+#include "obj/RigBodyMulti.hpp"
 #include "obj/ModelStatic.hpp"
 #include "obj/ModelSkelly.hpp"
 #include "obj/PointLight.hpp"
@@ -13,10 +16,12 @@
 
 using namespace sqt::wcoe;
 
-Cell::Cell(const string& _name, World* _world) : name(_name), world(_world) {}
+Cell::Cell(const string& _name, World* _world)
+    : name(_name), world(_world) {}
 
 void Cell::load_from_file(const string& _path) {
-    vector<vector<string>> fileVec(sq::get_words_from_file("assets/cells/" + _path + ".sq_cell"));
+    string path = sq::res::path() + "cells/" + _path + ".sq_cell";
+    vector<vector<string>> fileVec(sq::get_words_from_file(path));
     vector<pair<string, ObjSpec>> specVec;
 
     string section = "";
@@ -29,14 +34,16 @@ void Cell::load_from_file(const string& _path) {
 
         else if (section == "objects") {
             if (key == "object") {
-                if      (line[1] == "modelstatic")     add_object<ModelStatic>(line[2]);
-                else if (line[1] == "modelskelly")     add_object<ModelSkelly>(line[2]);
-                else if (line[1] == "pointlight")      add_object<PointLight>(line[2]);
-                else if (line[1] == "spotlight")       add_object<SpotLight>(line[2]);
-                else if (line[1] == "reflector")       add_object<Reflector>(line[2]);
-                else if (line[1] == "emitter")         add_object<Emitter>(line[2]);
-                else if (line[1] == "liquid")          add_object<Liquid>(line[2]);
-                else if (line[1] == "decal")           add_object<Decal>(line[2]);
+                if      (line[1] == "rigbodybasic")  add_object<RigBodyBasic>(line[2]);
+                else if (line[1] == "rigbodymulti")  add_object<RigBodyMulti>(line[2]);
+                else if (line[1] == "modelstatic")   add_object<ModelStatic>(line[2]);
+                else if (line[1] == "modelskelly")   add_object<ModelSkelly>(line[2]);
+                else if (line[1] == "pointlight")    add_object<PointLight>(line[2]);
+                else if (line[1] == "spotlight")     add_object<SpotLight>(line[2]);
+                else if (line[1] == "reflector")     add_object<Reflector>(line[2]);
+                else if (line[1] == "emitter")       add_object<Emitter>(line[2]);
+                else if (line[1] == "liquid")        add_object<Liquid>(line[2]);
+                else if (line[1] == "decal")         add_object<Decal>(line[2]);
                 else throw; // invalid object type
                 specVec.emplace_back(line[2], ObjSpec());
             } else specVec.back().second.parse_line(line);

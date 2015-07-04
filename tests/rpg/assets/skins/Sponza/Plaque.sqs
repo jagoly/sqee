@@ -3,6 +3,6 @@
 { materials
 material
 wrap repeat
-diff Sponza/plaque
-norm Sponza/plaque
+diff Sponza/Plaque
+norm Sponza/Plaque
 }

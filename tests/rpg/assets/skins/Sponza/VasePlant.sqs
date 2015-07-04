@@ -1,0 +1,15 @@
+# SQEE Skin Format
+
+{ materials
+material
+wrap repeat
+diff Sponza/VasePlant
+spec Sponza/VasePlant
+extra punch
+
+material
+wrap repeat
+diff Sponza/VaseRound
+norm Sponza/VaseRound
+spec Sponza/VaseRound
+}

@@ -6,7 +6,7 @@
 using namespace sq;
 
 void Skin::create(const string& _path) {
-    string path = res::skin_path() + _path + ".sqs";
+    string path = res::path() + "skins/" + _path + ".sqs";
     vector<vector<string>> fileVec(get_words_from_file(path));
 
     struct MtrlSpec {
@@ -104,8 +104,4 @@ void Skin::bind_textures(uint _mtrl, bool _diff, bool _norm, bool _spec) {
 ResHolder<Skin>& sq::res::skin() {
     static ResHolder<Skin> holder;
     return holder;
-}
-string& sq::res::skin_path() {
-    static string path;
-    return path;
 }

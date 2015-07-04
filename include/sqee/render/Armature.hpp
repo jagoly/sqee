@@ -36,7 +36,6 @@ public:
 
 namespace res {
 ResHolder<Armature>& arma();
-string& arma_path();
 }
 
 }

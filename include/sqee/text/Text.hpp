@@ -3,6 +3,13 @@
 
 namespace sq {
 
-void draw_tiny_text(const string& _text, float _sca, Alignment _align, fvec2 _pos, uvec2 _view);
+struct TextBasic {
+    enum class Flow { Negative, Positive };
+    enum class Align { Negative, Centre, Positive };
+    Flow hFlow, vFlow; Align hAlign, vAlign;
+    fvec3 colour; fvec2 scale; bool shadow;
+};
+
+void render_text_basic(const string& _text, const TextBasic& _tb, float _alpha, uvec2 _view);
 
 }

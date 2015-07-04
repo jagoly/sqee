@@ -1,5 +1,4 @@
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 #include <sqee/redist/gl_ext_3_3.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
@@ -24,21 +23,24 @@ Decal::Decal(const string& _name, Cell* _cell)
 }
 
 void Decal::load_from_spec(const ObjSpec& _spec) {
-    SPEC_ASSERT_FLOAT("position", 3);
-    SPEC_ASSERT_FLOAT("rotation", 4);
-    SPEC_ASSERT_FLOAT("scale", 3);
+   #ifdef SQEE_DEBUG
+    assert_fvec3(_spec, name, "position");
+    assert_fquat(_spec, name, "rotation");
+    assert_fvec3(_spec, name, "scale");
+   #endif
 
-    PROP_position = glm::make_vec3(_spec.fMap.at("position").data());
-    PROP_rotation = glm::make_quat(_spec.fMap.at("rotation").data());
-    PROP_scale    = glm::make_vec3(_spec.fMap.at("scale").data());
-    SPEC_IF_STRING("diff") PROP_diffPath = _spec.sMap.at("diff")[0];
-    SPEC_IF_STRING("norm") PROP_normPath = _spec.sMap.at("norm")[0];
-    SPEC_IF_STRING("spec") PROP_specPath = _spec.sMap.at("spec")[0];
+    PROP_position = _spec.fvec3Map.at("position");
+    PROP_rotation = _spec.fquatMap.at("rotation");
+    PROP_scale    = _spec.fvec3Map.at("scale");
+
+    if (_spec.stringMap.count("diff")) PROP_diff = _spec.stringMap.at("diff");
+    if (_spec.stringMap.count("norm")) PROP_norm = _spec.stringMap.at("norm");
+    if (_spec.stringMap.count("spec")) PROP_spec = _spec.stringMap.at("spec");
 }
 
 void Decal::refresh() {
-    if (PROP_diffPath.empty() == false) {
-        const string name = "decals/" + PROP_diffPath + "_d";
+    if (PROP_diff.empty() == false) {
+        const string name = "decals/" + PROP_diff + "_d";
         if ((texDiff = sq::res::tex2D().get(name)) == nullptr) {
             texDiff = sq::res::tex2D().add(name);
             texDiff->create(gl::RGBA, gl::RGBA8, 4);
@@ -48,8 +50,8 @@ void Decal::refresh() {
         }
     } else texDiff = nullptr;
 
-    if (PROP_normPath.empty() == false) {
-        const string name = "decals/" + PROP_normPath + "_n";
+    if (PROP_norm.empty() == false) {
+        const string name = "decals/" + PROP_norm + "_n";
         if ((texNorm = sq::res::tex2D().get(name)) == nullptr) {
             texNorm = sq::res::tex2D().add(name);
             texNorm->create(gl::RGBA, gl::RGBA8, 4);
@@ -59,8 +61,8 @@ void Decal::refresh() {
         }
     } else texNorm = nullptr;
 
-    if (PROP_specPath.empty() == false) {
-        const string name = "decals/" + PROP_specPath + "_s";
+    if (PROP_spec.empty() == false) {
+        const string name = "decals/" + PROP_spec + "_s";
         if ((texSpec = sq::res::tex2D().get(name)) == nullptr) {
             texSpec = sq::res::tex2D().add(name);
             texSpec->create(gl::RGBA, gl::RGBA8, 4);

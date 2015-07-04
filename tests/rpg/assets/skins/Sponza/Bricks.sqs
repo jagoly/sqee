@@ -3,7 +3,7 @@
 { materials
 material
 wrap repeat
-norm Sponza/bricks
-diff Sponza/bricks
-spec Sponza/bricks
+norm Sponza/Bricks
+diff Sponza/Bricks
+spec Sponza/Bricks
 }

@@ -23,7 +23,6 @@ public:
 
 namespace res {
 ResHolder<Skin>& skin();
-string& skin_path();
 }
 
 }

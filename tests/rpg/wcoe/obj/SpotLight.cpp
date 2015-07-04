@@ -1,5 +1,4 @@
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 #include <sqee/redist/gl_ext_3_3.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
@@ -29,22 +28,25 @@ SpotLight::SpotLight(const string& _name, Cell* _cell)
 }
 
 void SpotLight::load_from_spec(const ObjSpec& _spec) {
-    SPEC_ASSERT_FLOAT("direction", 3);
-    SPEC_ASSERT_FLOAT("position", 3);
-    SPEC_ASSERT_FLOAT("colour", 3);
-    SPEC_ASSERT_FLOAT("intensity", 1);
-    SPEC_ASSERT_FLOAT("softness", 1);
-    SPEC_ASSERT_FLOAT("angle", 1);
+   #ifdef SQEE_DEBUG
+    assert_fvec3(_spec, name, "direction");
+    assert_fvec3(_spec, name, "position");
+    assert_fvec3(_spec, name, "colour");
+    assert_float(_spec, name, "intensity");
+    assert_float(_spec, name, "softness");
+    assert_float(_spec, name, "angle");
+    assert_uint(_spec, name, "texsize");
+   #endif
 
-    PROP_shadow    = SPEC_HAS_FLAG("shadow");
-    PROP_specular  = SPEC_HAS_FLAG("specular");
-    PROP_direction = glm::make_vec3(_spec.fMap.at("direction").data());
-    PROP_position  = glm::make_vec3(_spec.fMap.at("position").data());
-    PROP_colour    = glm::make_vec3(_spec.fMap.at("colour").data());
-    PROP_intensity = _spec.fMap.at("intensity")[0];
-    PROP_softness  = _spec.fMap.at("softness")[0];
-    PROP_angle     = _spec.fMap.at("angle")[0];
-    if (PROP_shadow) PROP_texsize = _spec.iMap.at("texsize")[0];
+    PROP_shadow    = _spec.flagSet.count("shadow");
+    PROP_specular  = _spec.flagSet.count("specular");
+    PROP_direction = _spec.fvec3Map.at("direction");
+    PROP_position  = _spec.fvec3Map.at("position");
+    PROP_colour    = _spec.fvec3Map.at("colour");
+    PROP_intensity = _spec.floatMap.at("intensity");
+    PROP_softness  = _spec.floatMap.at("softness");
+    PROP_angle     = _spec.floatMap.at("angle");
+    PROP_texsize   = _spec.uintMap.at("texsize");
 }
 
 void SpotLight::refresh() {

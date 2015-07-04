@@ -3,6 +3,6 @@
 { materials
 material
 wrap repeat
-diff Sponza/ceiling
-spec Sponza/ceiling
+diff Sponza/Ceiling
+spec Sponza/Ceiling
 }

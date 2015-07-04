@@ -82,10 +82,7 @@ public:
 
 namespace res {
 ResHolder<Texture2D>& tex2D();
-string& tex2D_path();
-
 ResHolder<TextureCube>& texCube();
-string& texCube_path();
 }
 
 }

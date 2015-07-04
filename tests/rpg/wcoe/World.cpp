@@ -1,5 +1,7 @@
 #include <glm/common.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <reactphysics3d/engine/DynamicsWorld.h>
+#include <reactphysics3d/collision/shapes/BoxShape.h>
 
 #include <sqee/redist/gl_ext_3_3.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
@@ -8,6 +10,8 @@
 #include <sqee/render/Camera.hpp>
 #include <sqee/maths/General.hpp>
 #include <sqee/misc/Files.hpp>
+
+#include <iostream>
 
 #include "World.hpp"
 
@@ -167,7 +171,15 @@ void SkyLight::animate() {
 
 World::World(sq::Camera* _camera, sq::SettingsMaps* _settings)
     : skybox(_camera), ambient(_camera), skylight(_camera),
-      camera(_camera), settings(_settings) {}
+      camera(_camera), settings(_settings) {
+    physWorld.reset(new rp3d::DynamicsWorld({0.f, 0.f, -1.f}));
+    physWorld->setNbIterationsVelocitySolver(18u);
+    physWorld->setNbIterationsPositionSolver(10u);
+}
+
+
+World::~World() {}
+
 
 Cell* World::add_cell(const string& _name) {
     Cell* ptr = new Cell(_name, this);
@@ -198,6 +210,8 @@ void World::refresh() {
 }
 
 void World::tick() {
+    physWorld->update(1.f / 24.f);
+
     skybox.tick();
     ambient.tick();
     skylight.tick();

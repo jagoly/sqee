@@ -1,7 +1,6 @@
 #include <random>
 
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 #include <sqee/redist/gl_ext_3_3.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
@@ -24,7 +23,11 @@ Emitter::Emitter(const string& _name, Cell* _cell)
 }
 
 void Emitter::load_from_spec(const ObjSpec& _spec) {
-    PROP_position = glm::make_vec3(_spec.fMap.at("position").data());
+   #ifdef SQEE_DEBUG
+    assert_fvec3(_spec, name, "position");
+   #endif
+
+    PROP_position = _spec.fvec3Map.at("position");
 }
 
 
@@ -91,3 +94,6 @@ void Emitter::calc(double _accum) {
         partDataList.emplace_front(pd);
     }
 }
+
+
+void Emitter::animate() {}
