@@ -37,18 +37,18 @@ set(SOURCES
     "${INCDIR}/debug/Callbacks.hpp"
     "${INCDIR}/debug/Misc.hpp"              "${SRCDIR}/debug/Misc.cpp"
     "${INCDIR}/gl/Drawing.hpp"              "${SRCDIR}/gl/Drawing.cpp"
-    "${INCDIR}/gl/FrameBuffer.hpp"          "${SRCDIR}/gl/FrameBuffer.cpp"
-    "${INCDIR}/gl/Preprocessor.hpp"         "${SRCDIR}/gl/Preprocessor.cpp"
     "${INCDIR}/gl/Shaders.hpp"              "${SRCDIR}/gl/Shaders.cpp"
-    "${INCDIR}/gl/UniformBuffer.hpp"        "${SRCDIR}/gl/UniformBuffer.cpp"
     "${INCDIR}/gl/Textures.hpp"             "${SRCDIR}/gl/Textures.cpp"
+    "${INCDIR}/gl/FrameBuffer.hpp"          "${SRCDIR}/gl/FrameBuffer.cpp"
+    "${INCDIR}/gl/UniformBuffer.hpp"        "${SRCDIR}/gl/UniformBuffer.cpp"
     "${INCDIR}/scripts/ChaiScript.hpp"      "${SRCDIR}/scripts/ChaiScript.cpp"
     "${INCDIR}/scripts/ConsoleScene.hpp"    "${SRCDIR}/scripts/ConsoleScene.cpp"
     "${INCDIR}/scripts/ConsoleHandler.hpp"  "${SRCDIR}/scripts/ConsoleHandler.cpp"
     "${INCDIR}/scripts/Intergration.hpp"    "${SRCDIR}/scripts/Intergration.cpp"
-    "${INCDIR}/app/Application.hpp"         "${SRCDIR}/app/Application.cpp"
     "${INCDIR}/app/Logging.hpp"             "${SRCDIR}/app/Logging.cpp"
-    "${INCDIR}/app/SettingsMap.hpp"         "${SRCDIR}/app/SettingsMap.cpp"
+    "${INCDIR}/app/Application.hpp"         "${SRCDIR}/app/Application.cpp"
+    "${INCDIR}/app/SettingsMaps.hpp"        "${SRCDIR}/app/SettingsMaps.cpp"
+    "${INCDIR}/app/PreProcessor.hpp"        "${SRCDIR}/app/PreProcessor.cpp"
     "${INCDIR}/handlers/Handler.hpp"        "${SRCDIR}/handlers/Handler.cpp"
     "${INCDIR}/handlers/Basics.hpp"         "${SRCDIR}/handlers/Basics.cpp"
     "${INCDIR}/text/Font.hpp"               "${SRCDIR}/text/Font.cpp"
@@ -70,6 +70,7 @@ set(SOURCES
     "${INCDIR}/sounds/SoundManager.hpp"     "${SRCDIR}/sounds/SoundManager.cpp"
 
 # Compiled-In Data
+    "${SRCDIR}/data/GLSLHeaders.c"
     "${SRCDIR}/data/TextFont.c"
     "${SRCDIR}/data/TextGlow.c"
     "${SRCDIR}/data/Volumes.c"
@@ -111,6 +112,5 @@ target_link_libraries(sqee
     ${REACTPHYSICS3D_LIB} ${OPENGL_LIB} ${OPENAL_LIB}
 )
 
-#add_subdirectory("tests/soko")
-#add_subdirectory("tests/fb")
+add_subdirectory("tests/soko")
 add_subdirectory("tests/rpg")

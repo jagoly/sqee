@@ -1,12 +1,12 @@
 #version 330
 #extension GL_ARB_shading_language_420pack : enable
 
-#include "headers/blocks/camera"
-
 // define HIGH
 // define PIXSIZE vec2
 
 in vec2 texcrd;
+
+#include "builtin/blocks/camera"
 
 layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
 
@@ -86,7 +86,7 @@ vec3 get_view_pos(in vec2 _tc) {
 }
 
 float rand(vec2 _crd){
-    return fract(sin(dot(_crd, vec2(12.9898f,78.233f))) * 43758.5453f);
+    return fract(sin(dot(_crd, vec2(12.9898f, 78.233f))) * 43758.5453f);
 }
 
 void main() {

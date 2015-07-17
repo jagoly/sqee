@@ -3,7 +3,7 @@
 #include <sqee/redist/gl_ext_3_3.hpp>
 #include <sqee/redist/tinyformat.hpp>
 #include <sqee/app/Application.hpp>
-#include <sqee/app/SettingsMap.hpp>
+#include <sqee/app/SettingsMaps.hpp>
 #include <sqee/render/Camera.hpp>
 #include <sqee/scripts/ConsoleScene.hpp>
 #include <sqee/scripts/Intergration.hpp>
@@ -213,10 +213,10 @@ void sq::cs_setup_settings(chai::ChaiScript& _cs) {
 void sq::cs_setup_console(chai::ChaiScript& _cs) {
     chai::ModulePtr m(new chai::Module());
 
-    add_class<SceneConsole>(*m, "Console", {}, {
-        {fun(&SceneConsole::cs_print), "print"},
-        {fun(&SceneConsole::cs_clear), "clear"},
-        {fun(&SceneConsole::cs_history), "history"} });
+    add_class<ConsoleScene>(*m, "Console", {}, {
+        {fun(&ConsoleScene::cs_print), "print"},
+        {fun(&ConsoleScene::cs_clear), "clear"},
+        {fun(&ConsoleScene::cs_history), "history"} });
 
     _cs.add(m);
 }

@@ -3,10 +3,10 @@
 
 layout(location = 0) in vec3 V_pos;
 layout(location = 3) in vec2 V_texcrd;
-layout(location = 4) in ivec4 V_bonesABCD;
-layout(location = 5) in ivec4 V_bonesEFGH;
-layout(location = 6) in vec4 V_weightsABCD;
-layout(location = 7) in vec4 V_weightsEFGH;
+layout(location = 5) in ivec4 V_bonesABCD;
+layout(location = 6) in ivec4 V_bonesEFGH;
+layout(location = 7) in vec4 V_weightsABCD;
+layout(location = 8) in vec4 V_weightsEFGH;
 
 #include "headers/blocks/mskelly"
 

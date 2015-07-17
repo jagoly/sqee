@@ -8,7 +8,7 @@
 
 in vec2 texcrd;
 
-#include "headers/blocks/camera"
+#include "builtin/blocks/camera"
 #include "headers/blocks/spotlight"
 
 layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
@@ -24,7 +24,7 @@ out vec3 fragColour;
 
 
 #ifdef SHADOW
-#include "headers/uniform_disks"
+#include "builtin/uniform_disks"
 #include "headers/shadow/sample_spot"
 layout(binding=8) uniform sampler2DShadow texShad;
 float get_shadow_value(vec3 _wpos, vec3 _wsurf) {

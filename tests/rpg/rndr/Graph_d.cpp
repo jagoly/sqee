@@ -1,7 +1,6 @@
 #include <glm/matrix.hpp>
 
 #include <sqee/redist/gl_ext_3_3.hpp>
-#include <sqee/app/SettingsMap.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
 #include <sqee/gl/FrameBuffer.hpp>
 #include <sqee/gl/Textures.hpp>

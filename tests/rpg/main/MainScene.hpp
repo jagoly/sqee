@@ -8,9 +8,9 @@ namespace sqt {
 namespace wcoe { class World; }
 namespace rndr { class Graph; }
 
-class SceneMain : public sq::Scene {
+class MainScene : public sq::Scene {
 public:
-    SceneMain(sq::Application* _app);
+    MainScene(sq::Application* _app);
 
     void update();
     void render(float _ft);
@@ -131,13 +131,13 @@ private:
     } FB;
 
     struct {
+        float viewDist;
         bool ssaoEnable;
         bool hdrbEnable;
         bool fxaaEnable;
         bool vgntEnable;
-        bool shadFltr;
         uint shadMult;
-        float viewDist;
+        bool shadFltr;
         uvec2 fullSize;
         uvec2 halfSize;
         uvec2 qterSize;

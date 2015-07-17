@@ -1,13 +1,13 @@
 #include <sqee/app/Application.hpp>
-#include <sqee/app/SettingsMap.hpp>
+#include <sqee/app/SettingsMaps.hpp>
 
 #include "MainScene.hpp"
 #include "MainHandler.hpp"
 
 using namespace sqt;
 
-bool HandlerMain::handle(const sf::Event& _event) {
-    auto scene = appBase->get_scene<SceneMain>("main");
+bool MainHandler::handle(const sf::Event& _event) {
+    auto scene = appBase->get_scene<MainScene>("main");
 
     if (_event.type == sf::Event::KeyPressed) {
         if (_event.key.code == sf::Keyboard::S) {

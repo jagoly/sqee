@@ -5,7 +5,7 @@
 
 in vec2 texcrd;
 
-#include "headers/blocks/camera"
+#include "builtin/blocks/camera"
 #include "headers/blocks/ambient"
 
 layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };

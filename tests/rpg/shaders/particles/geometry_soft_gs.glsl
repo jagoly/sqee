@@ -5,7 +5,7 @@ layout(points) in;
 in float[1] V_scale, V_alpha;
 in vec3[1] V_pos, V_col;
 
-#include "headers/blocks/camera"
+#include "builtin/blocks/camera"
 
 layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
 

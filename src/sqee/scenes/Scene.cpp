@@ -3,7 +3,7 @@
 
 using namespace sq;
 
-Scene::Scene(Application* const _app)
+Scene::Scene(Application* _app)
     : settings(_app->settings.get()),
       preprocs(_app->preprocs.get()),
       soundman(_app->soundman.get()),

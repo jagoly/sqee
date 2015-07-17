@@ -5,6 +5,14 @@
 
 using namespace sq;
 
+Skin::~Skin() {
+    // empty
+}
+
+Skin::Skin(const string& _path) {
+    create(_path);
+}
+
 void Skin::create(const string& _path) {
     string path = res::path() + "skins/" + _path + ".sqs";
     vector<vector<string>> fileVec(get_words_from_file(path));
@@ -86,14 +94,14 @@ void Skin::create(const string& _path) {
     }
 }
 
-void Skin::bind_textures(uint _mtrl) {
+void Skin::bind_textures(uint _mtrl) const {
     const Material& mtrl = mtrlVec[_mtrl];
     if (mtrl.diff != nullptr) mtrl.diff->bind(gl::TEXTURE0);
     if (mtrl.norm != nullptr) mtrl.norm->bind(gl::TEXTURE1);
     if (mtrl.spec != nullptr) mtrl.spec->bind(gl::TEXTURE2);
 }
 
-void Skin::bind_textures(uint _mtrl, bool _diff, bool _norm, bool _spec) {
+void Skin::bind_textures(uint _mtrl, bool _diff, bool _norm, bool _spec) const {
     const Material& mtrl = mtrlVec[_mtrl];
     if (_diff) mtrl.diff->bind(gl::TEXTURE0);
     if (_norm) mtrl.norm->bind(gl::TEXTURE1);

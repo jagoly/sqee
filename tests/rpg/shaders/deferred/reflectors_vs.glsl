@@ -4,7 +4,7 @@
 layout(location=0) in vec3 V_pos;
 layout(location=3) in vec2 V_texcrd;
 
-#include "headers/blocks/camera"
+#include "builtin/blocks/camera"
 #include "headers/blocks/reflector"
 
 layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };

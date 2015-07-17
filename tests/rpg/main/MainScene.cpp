@@ -1,20 +1,17 @@
-#include <list>
-#include <map>
-
 #include <glm/gtx/string_cast.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 #include <reactphysics3d/engine/DynamicsWorld.h>
 
 #include <sqee/redist/gl_ext_3_3.hpp>
-#include <sqee/app/Application.hpp>
-#include <sqee/app/SettingsMap.hpp>
 #include <sqee/app/Logging.hpp>
-#include <sqee/gl/Preprocessor.hpp>
-#include <sqee/gl/FrameBuffer.hpp>
-#include <sqee/gl/Drawing.hpp>
-#include <sqee/gl/Shaders.hpp>
-#include <sqee/gl/Textures.hpp>
+#include <sqee/app/Application.hpp>
+#include <sqee/app/SettingsMaps.hpp>
+#include <sqee/app/PreProcessor.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
+#include <sqee/gl/FrameBuffer.hpp>
+#include <sqee/gl/Textures.hpp>
+#include <sqee/gl/Shaders.hpp>
+#include <sqee/gl/Drawing.hpp>
 #include <sqee/render/Camera.hpp>
 
 #include "../rndr/Graph.hpp"
@@ -24,7 +21,7 @@
 
 using namespace sqt;
 
-SceneMain::SceneMain(sq::Application* const _app) : sq::Scene(_app) {
+MainScene::MainScene(sq::Application* _app) : sq::Scene(_app) {
     tickRate = 24u;
 
     camera.reset(new sq::Camera(0u));
@@ -40,7 +37,7 @@ SceneMain::SceneMain(sq::Application* const _app) : sq::Scene(_app) {
 
     camera->pos = {-4.f, -1.f, 3.f};
     camera->dir = {0.7, 0.2, -0.1};
-    camera->rmin = 0.2f;
+    camera->rmin = 0.1f;
     camera->rmax = 120.f;
     camera->size = {16.f, 10.f};
     camera->fov = 1.f;
@@ -169,8 +166,6 @@ SceneMain::SceneMain(sq::Application* const _app) : sq::Scene(_app) {
     FB.simple->attach(gl::COLOR_ATTACHMENT0, *TX.simple);
 
     /// Import GLSL Headers
-    preprocs->import_header("headers/uniform_disks");
-    preprocs->import_header("headers/blocks/camera");
     preprocs->import_header("headers/blocks/skybox");
     preprocs->import_header("headers/blocks/ambient");
     preprocs->import_header("headers/blocks/skylight");
@@ -377,7 +372,7 @@ SceneMain::SceneMain(sq::Application* const _app) : sq::Scene(_app) {
 
 
 
-void SceneMain::update() {
+void MainScene::update() {
     using KB = sf::Keyboard;
     posCrnt = posNext;
 
@@ -400,7 +395,7 @@ void SceneMain::update() {
     graph->update();
 }
 
-void SceneMain::render(float _ft) {
+void MainScene::render(float _ft) {
     if (settings->crnt<bool>("console_active")) focused = false;
 
     camera->pos = glm::mix(posCrnt, posNext, accum * 24.f);
@@ -542,19 +537,10 @@ void SceneMain::render(float _ft) {
 
     gl::BindProgramPipeline(0);
     gl::BindVertexArray(0);
-
-//    static rp3d::DynamicsWorld* rpWorld;
-//    static bool first = true;
-//    if (first) { first = false;
-//        rp3d::Vector3 gravity = {0.0, -5.0, 0.0};
-//        double timeStep = 1.0 / 24.0;
-//        rpWorld = new rp3d::DynamicsWorld(gravity, timeStep);
-//        rpWorld->start();
-//    } rpWorld->update();
 }
 
 
-void SceneMain::update_settings() {
+void MainScene::update_settings() {
     INFO.fullSize = appBase->get_size();
     INFO.halfSize = INFO.fullSize / 2u;
     INFO.qterSize = INFO.fullSize / 4u;
@@ -592,17 +578,17 @@ void SceneMain::update_settings() {
 
     camera->size = fvec2(INFO.fullSize);
 
+    INFO.viewDist = float(settings->crnt<float>("viewDist"));
     INFO.ssaoEnable = bool(settings->crnt<int>("ssaoMode"));
     INFO.hdrbEnable = bool(settings->crnt<int>("hdrbMode"));
     INFO.fxaaEnable = bool(settings->crnt<int>("fxaaMode"));
     INFO.vgntEnable = bool(settings->crnt<int>("vignMode"));
-    INFO.shadFltr = bool(settings->crnt<int>("shadFltr"));
     INFO.shadMult = uint(glm::pow(2, settings->crnt<int>("shadQlty")));
-    INFO.viewDist = float(settings->crnt<float>("viewDist"));
+    INFO.shadFltr = bool(settings->crnt<int>("shadFltr"));
 
-    graph->INFO.shadFltr = INFO.shadFltr;
-    graph->INFO.shadMult = INFO.shadMult;
     graph->INFO.viewDist = INFO.viewDist;
+    graph->INFO.shadMult = INFO.shadMult;
+    graph->INFO.shadFltr = INFO.shadFltr;
     camera->rmax = INFO.viewDist;
 
     graph->update_settings();
@@ -610,7 +596,7 @@ void SceneMain::update_settings() {
 }
 
 
-void SceneMain::reload_shaders() {
+void MainScene::reload_shaders() {
     int shadFltr = settings->crnt<int>("shadFltr");
     int shadQlty = settings->crnt<int>("shadQlty");
     int ssaoMode = settings->crnt<int>("ssaoMode");

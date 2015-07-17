@@ -4,7 +4,7 @@
 in vec2 texcrd;
 in vec3 normal;
 
-#include "headers/blocks/camera"
+#include "builtin/blocks/camera"
 
 layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
 

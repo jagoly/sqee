@@ -5,14 +5,14 @@
 
 namespace sq {
 
-class HandlerClose : public Handler {
+class BasicCloseHandler : public Handler {
 public:
     using Handler::Handler;
     bool handle(const sf::Event& _event);
 };
 
 
-class HandlerResize : public Handler {
+class BasicResizeHandler : public Handler {
 public:
     using Handler::Handler;
     bool handle(const sf::Event& _event);

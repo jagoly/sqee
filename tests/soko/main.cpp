@@ -1,10 +1,6 @@
-#include "app.hpp"
+#include "SokoApp.hpp"
 
-int main()
-{
-    sqt::TestApp app;
-
-    app.run();
-
-    return 0;
+int main() {
+    sqt::SokoApp app;
+    return app.run();
 }

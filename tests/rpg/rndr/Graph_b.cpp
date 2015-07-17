@@ -1,7 +1,6 @@
 #include <glm/matrix.hpp>
 
 #include <sqee/redist/gl_ext_3_3.hpp>
-#include <sqee/app/SettingsMap.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
 #include <sqee/gl/FrameBuffer.hpp>
 #include <sqee/gl/Textures.hpp>
@@ -43,6 +42,7 @@ void Graph::render_shadows_sky_A() {
         for (const auto& rptr : reflectorList) {
             const wcoe::Reflector& rflct = *rptr.lock();
             if (rflct.PROP_shadow == false) continue;
+            if (sq::bbox_in_orth(rflct.bbox, light.orthArrA[csm])) continue;
             VS.shad_static->set_mat<fmat4>("matrix", light.matArrA[csm] * rflct.matrix);
             sq::FRONTFACE(rflct.negScale); rflct.mesh->bind_vao();
             for (uint i = 0u; i < rflct.mesh->mtrlCount; i++) {
@@ -58,7 +58,7 @@ void Graph::render_shadows_sky_A() {
         for (const auto& mptr : modelStaticList) {
             const wcoe::ModelStatic& model = *mptr.lock();
             if (model.PROP_shadow == false) continue;
-            gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
+            if (sq::bbox_in_orth(model.bbox, light.orthArrA[csm])) continue;
             VS.shad_static->set_mat<fmat4>("matrix", light.matArrA[csm] * model.matrix);
             sq::FRONTFACE(model.negScale); model.mesh->bind_vao();
             for (uint i = 0u; i < model.mesh->mtrlCount; i++) {
@@ -74,7 +74,7 @@ void Graph::render_shadows_sky_A() {
         for (const auto& mptr : modelSkellyList) {
             const wcoe::ModelSkelly& model = *mptr.lock();
             if (model.PROP_shadow == false) continue;
-            gl::FrontFace(model.negScale ? gl::CW : gl::CCW);
+            if (sq::sphr_in_orth(model.sphere, light.orthArrA[csm])) continue;
             VS.shad_skelly->set_mat<fmat4>("matrix", light.matArrA[csm] * model.matrix);
             sq::FRONTFACE(model.negScale); model.ubo->bind(1); model.mesh->bind_vao();
             for (uint i = 0u; i < model.mesh->mtrlCount; i++) {
@@ -106,6 +106,7 @@ void Graph::render_shadows_sky_B() {
         for (const auto& rptr : reflectorList) {
             const wcoe::Reflector& rflct = *rptr.lock();
             if (rflct.PROP_shadow == false) continue;
+            if (sq::bbox_in_orth(rflct.bbox, light.orthArrB[csm])) continue;
             VS.shad_static->set_mat<fmat4>("matrix", light.matArrB[csm] * rflct.matrix);
             sq::FRONTFACE(rflct.negScale); rflct.mesh->bind_vao();
             for (uint i = 0u; i < rflct.mesh->mtrlCount; i++) {
@@ -121,6 +122,7 @@ void Graph::render_shadows_sky_B() {
         for (const auto& mptr : modelStaticList) {
             const wcoe::ModelStatic& model = *mptr.lock();
             if (model.PROP_shadow == false) continue;
+            if (sq::bbox_in_orth(model.bbox, light.orthArrB[csm])) continue;
             VS.shad_static->set_mat<fmat4>("matrix", light.matArrB[csm] * model.matrix);
             sq::FRONTFACE(model.negScale); model.mesh->bind_vao();
             for (uint i = 0u; i < model.mesh->mtrlCount; i++) {
@@ -136,6 +138,7 @@ void Graph::render_shadows_sky_B() {
         for (const auto& mptr : modelSkellyList) {
             const wcoe::ModelSkelly& model = *mptr.lock();
             if (model.PROP_shadow == false) continue;
+            if (sq::sphr_in_orth(model.sphere, light.orthArrB[csm])) continue;
             VS.shad_skelly->set_mat<fmat4>("matrix", light.matArrB[csm] * model.matrix);
             sq::FRONTFACE(model.negScale); model.ubo->bind(1); model.mesh->bind_vao();
             for (uint i = 0u; i < model.mesh->mtrlCount; i++) {

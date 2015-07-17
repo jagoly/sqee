@@ -5,13 +5,13 @@
 
 namespace sq {
 
-class HandlerConsole : public Handler {
+class ConsoleHandler : public Handler {
 public:
     using Handler::Handler;
     bool handle(const sf::Event& _event);
 
-    virtual void activate();
-    virtual void deactivate();
+    void activate();
+    void deactivate();
 };
 
 }

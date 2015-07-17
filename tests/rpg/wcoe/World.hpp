@@ -62,6 +62,8 @@ public:
     unique_ptr<sq::TextureArray> texB;
     array<unique_ptr<sq::FrameBuffer>, 4> fboArrA;
     array<unique_ptr<sq::FrameBuffer>, 2> fboArrB;
+    array<sq::OrthoFrus, 4> orthArrA;
+    array<sq::OrthoFrus, 2> orthArrB;
     array<fmat4, 4> matArrA;
     array<fmat4, 2> matArrB;
     fvec4 splits;

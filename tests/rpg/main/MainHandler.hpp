@@ -5,7 +5,7 @@
 
 namespace sqt {
 
-class HandlerMain : public sq::Handler {
+class MainHandler: public sq::Handler {
 public:
     using sq::Handler::Handler;
     bool handle(const sf::Event& event);

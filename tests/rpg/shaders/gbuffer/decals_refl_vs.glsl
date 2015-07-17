@@ -3,7 +3,7 @@
 
 layout(location=0) in vec3 V_pos;
 
-#include "headers/blocks/camera"
+#include "builtin/blocks/camera"
 #include "headers/blocks/decal"
 #include "headers/blocks/reflector"
 

@@ -7,6 +7,8 @@ namespace sq {
 
 class Skin : NonCopyable {
 public:
+    Skin() = default; ~Skin();
+    Skin(const string& _path);
     void create(const string& _path);
 
     struct Material {
@@ -17,8 +19,8 @@ public:
         ivec3 glDNS;
     }; vector<Material> mtrlVec;
 
-    void bind_textures(uint _mtrl);
-    void bind_textures(uint _mtrl, bool _diff, bool _norm, bool _spec);
+    void bind_textures(uint _mtrl) const;
+    void bind_textures(uint _mtrl, bool _diff, bool _norm, bool _spec) const;
 };
 
 namespace res {

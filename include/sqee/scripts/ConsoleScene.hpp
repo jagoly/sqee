@@ -5,9 +5,9 @@
 
 namespace sq {
 
-class SceneConsole : public Scene {
+class ConsoleScene : public Scene {
 public:
-    SceneConsole(Application* _app);
+    ConsoleScene(Application* _app);
 
     enum class Action { Up, Down, Left, Right,
                         Backspace, Delete, Home, End,

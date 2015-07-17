@@ -1,9 +1,9 @@
 #include <sqee/redist/gl_ext_3_3.hpp>
 #include <sqee/debug/Callbacks.hpp>
-#include <sqee/gl/Preprocessor.hpp>
-#include <sqee/app/Application.hpp>
-#include <sqee/app/SettingsMap.hpp>
 #include <sqee/app/Logging.hpp>
+#include <sqee/app/Application.hpp>
+#include <sqee/app/SettingsMaps.hpp>
+#include <sqee/app/PreProcessor.hpp>
 #include <sqee/sounds/SoundManager.hpp>
 #include <sqee/scripts/Intergration.hpp>
 
@@ -11,23 +11,17 @@ using namespace sq;
 
 Application::~Application() = default;
 
-Application::Application(bool _resizable) {
-    sf::ContextSettings sfmlSettings;
-    sfmlSettings.depthBits = 24u,
-    sfmlSettings.stencilBits = 8u,
-    sfmlSettings.majorVersion = 3u,
-    sfmlSettings.minorVersion = 3u,
-    sfmlSettings.antialiasingLevel = 0u;
-    sfmlSettings.attributeFlags = sf::ContextSettings::Core;
-    sf::Uint32 winStyle = sf::Style::Close | sf::Style::Titlebar;
-    if (_resizable) winStyle = winStyle | sf::Style::Resize;
-    window.create({800, 600}, "", winStyle, sfmlSettings);
-
-    settings.reset(new SettingsMaps());
-    preprocs.reset(new PreProcessor());
-    soundman.reset(new SoundManager());
-
+Application::Application() {
+    context.depthBits = 24u,
+    context.stencilBits = 8u,
+    context.majorVersion = 3u,
+    context.minorVersion = 3u,
+    context.antialiasingLevel = 0u;
+    context.attributeFlags = sf::ContextSettings::Core;
     gl::sys::LoadFunctions();
+
+    sf::Uint32 wStyle = sf::Style::Titlebar | sf::Style::Close | sf::Style::Resize;
+    window.create({800u, 600u}, "", wStyle, context);
 
     #ifdef SQEE_DEBUG
     const GLubyte* renderer = gl::GetString(gl::RENDERER);
@@ -41,11 +35,20 @@ Application::Application(bool _resizable) {
     gl::DebugMessageCallback(debug_callback, nullptr);
     #endif
 
+    settings.reset(new SettingsMaps());
+    preprocs.reset(new PreProcessor());
+    soundman.reset(new SoundManager());
+
     settings->add<int>("framelimit", 0);
     settings->add<bool>("keyrepeat", false);
-    settings->add<string>("app_title", "SQEE Application");
-    settings->add<int>("app_width", 800u);
-    settings->add<int>("app_height", 600u);
+    settings->add<bool>("resizable", false);
+    settings->add<bool>("fullscreen", false);
+    settings->add<bool>("hidecursor", false);
+    settings->add<int>("winwidth", 800u);
+    settings->add<int>("winheight", 600u);
+    settings->add<int>("fullwidth", 800u);
+    settings->add<int>("fullheight", 600u);
+    settings->add<string>("apptitle", "SQEE Application");
 
     cs.reset(make_ChaiScript());
     cs_setup_maths(*cs);
@@ -56,10 +59,11 @@ Application::Application(bool _resizable) {
 
     cs->add_global(chai::var(this), "application");
     cs->add_global(chai::var(settings.get()), "settings");
+
+    update();
 }
 
 int Application::run() {
-    update();
     retCode = -1;
     sf::Clock clockFT;
 
@@ -111,11 +115,31 @@ void Application::quit(int _code) {
 }
 
 void Application::update() {
-    int limitmode = settings->crnt<int>("framelimit");
-    window.setTitle(settings->crnt<string>("app_title"));
-    window.setKeyRepeatEnabled(settings->crnt<bool>("keyrepeat"));
-    window.setFramerateLimit(limitmode == 1 ? 75u : 0u);
-    window.setVerticalSyncEnabled(limitmode == 2);
+    int framelimit = settings->crnt<int>("framelimit");
+    bool keyrepeat = settings->crnt<bool>("keyrepeat");
+    bool resizable = settings->crnt<bool>("resizable");
+    bool fullscreen = settings->crnt<bool>("fullscreen");
+    bool hidecursor = settings->crnt<bool>("hidecursor");
+    uint winwidth = settings->crnt<int>("winwidth");
+    uint winheight = settings->crnt<int>("winheight");
+    uint fullwidth = settings->crnt<int>("fullwidth");
+    uint fullheight = settings->crnt<int>("fullheight");
+    string apptitle = settings->crnt<string>("apptitle");
+
+//    if (fullscreen == true) {
+//        sf::Uint32 wStyle = sf::Style::Fullscreen;
+//        window.create(){fullwidth, fullheight}, apptitle, wStyle, context);
+//    } else {
+//        sf::Uint32 wStyle = resizable ? sf::Style::Resize : sf::Style::Titlebar;
+//        window.create({winwidth, winheight}, apptitle, wStyle, context);
+//    }
+
+    window.setTitle(apptitle);
+
+    window.setVerticalSyncEnabled(framelimit == 2);
+    window.setFramerateLimit(framelimit == 1 ? 75u : 0u);
+    window.setMouseCursorVisible(!hidecursor);
+    window.setKeyRepeatEnabled(keyrepeat);
 
     if (window.getSize() != sf::Vector2u(get_size().x, get_size().y))
         window.setSize({get_size().x, get_size().y});
@@ -125,8 +149,8 @@ void Application::update() {
 }
 
 uvec2 Application::get_size() {
-    uint width = settings->crnt<int>("app_width");
-    uint height = settings->crnt<int>("app_height");
+    uint width = settings->crnt<int>("winwidth");
+    uint height = settings->crnt<int>("winheight");
     return uvec2(width, height);
 }
 

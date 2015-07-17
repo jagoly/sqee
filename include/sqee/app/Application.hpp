@@ -13,7 +13,7 @@ namespace sq {
 
 class Application : NonCopyable {
 public:
-    Application(bool _resizable);
+    Application();
     virtual ~Application();
 
     int run();
@@ -46,7 +46,9 @@ public:
     unique_ptr<chai::ChaiScript> cs;
 
 protected:
-    sf::Window window; int retCode;
+    sf::ContextSettings context;
+    sf::Window window;
+    int retCode;
 
     std::deque<unique_ptr<Scene>> sceneDeq;
     unordered_map<string, Scene*> sceneMap;

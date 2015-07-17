@@ -10,7 +10,7 @@ in vec3 w_pos, v_pos;
 in vec3 colour;
 in vec2 ptcrd;
 
-#include "headers/blocks/camera"
+#include "builtin/blocks/camera"
 #include "headers/blocks/spotlight"
 
 layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
@@ -19,7 +19,7 @@ layout(std140, binding=1) uniform SPOTLIGHTBLOCK { SpotLightBlock LB; };
 layout(location=0) out vec3 fragColour;
 
 
-#include "headers/uniform_disks"
+#include "builtin/uniform_disks"
 #include "headers/shadow/sample_spot"
 layout(binding=8) uniform sampler2DShadow texShad;
 float get_shadow_value(vec3 _wpos) {

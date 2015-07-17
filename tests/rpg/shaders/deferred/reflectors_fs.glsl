@@ -5,7 +5,7 @@ in vec2 texcrd;
 in vec3 v_norm, v_from;
 in noperspective vec2 s_tcrd;
 
-#include "headers/blocks/camera"
+#include "builtin/blocks/camera"
 #include "headers/blocks/reflector"
 
 layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };

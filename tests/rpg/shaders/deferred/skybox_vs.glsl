@@ -5,7 +5,7 @@
 
 layout(location=0) in vec2 V_pos;
 
-#include "headers/blocks/camera"
+#include "builtin/blocks/camera"
 #include "headers/blocks/skybox"
 
 layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };

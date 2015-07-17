@@ -3,7 +3,7 @@
 
 using namespace sq;
 
-Handler::Handler(Application* const _app)
+Handler::Handler(Application* _app)
     : settings(_app->settings.get()),
       preprocs(_app->preprocs.get()),
       soundman(_app->soundman.get()),

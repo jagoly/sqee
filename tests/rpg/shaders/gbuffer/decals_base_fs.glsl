@@ -4,7 +4,7 @@
 in noperspective vec2 s_tcrd;
 in vec3 viewNorm, viewTan;
 
-#include "headers/blocks/camera"
+#include "builtin/blocks/camera"
 #include "headers/blocks/decal"
 
 layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <map>
+#include <list>
 #include <array>
 #include <deque>
 #include <string>
@@ -8,6 +10,8 @@
 #include <forward_list>
 #include <unordered_set>
 #include <unordered_map>
+using std::map;
+using std::list;
 using std::pair;
 using std::array;
 using std::deque;
@@ -114,5 +118,6 @@ struct Plane { fvec3 normal; float offset; };
 struct Sphere { fvec3 origin; float radius; };
 struct Frustum { Sphere sphere; Plane pN, pT, pB, pL, pR; fvec3 xy, xY, Xy, XY; };
 struct BoundBox { Sphere sphere; fvec3 size, nX{1,0,0}, nY{0,1,0}, nZ{0,0,1}; };
+struct OrthoFrus { Plane pT, pB, pL, pR; };
 
 }

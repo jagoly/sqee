@@ -1,6 +1,7 @@
 #include <algorithm>
 
 #include <sqee/redist/gl_ext_3_3.hpp>
+#include <sqee/gl/Drawing.hpp>
 #include <sqee/text/Text.hpp>
 
 using namespace sq;
@@ -133,11 +134,12 @@ void sq::render_text_basic(const string& _text, const TextBasic& _tb, float _alp
         } crntY += offsY;
     }
 
-    gl::ActiveTexture(gl::TEXTURE0);
     gl::BindVertexArray(vao); gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
     gl::BufferData(gl::ARRAY_BUFFER, ptcVec.size()*120, ptcVec.data(), gl::DYNAMIC_DRAW);
     gl::Enable(gl::BLEND); gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+    gl::Disable(gl::CULL_FACE); gl::ActiveTexture(gl::TEXTURE0);
     gl::UseProgram(prog); gl::Uniform1f(0, _alpha);
+    DEPTH_OFF(); STENCIL_OFF(); CULLFACE_OFF();
 
     if (_tb.shadow == true) {
         fvec3 colour(glm::dot(fvec3(0.3f, 0.5f, 0.2f), _tb.colour) < 0.5f);

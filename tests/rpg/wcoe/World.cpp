@@ -8,6 +8,7 @@
 #include <sqee/gl/FrameBuffer.hpp>
 #include <sqee/gl/Textures.hpp>
 #include <sqee/render/Camera.hpp>
+#include <sqee/maths/Culling.hpp>
 #include <sqee/maths/General.hpp>
 #include <sqee/misc/Files.hpp>
 
@@ -156,6 +157,13 @@ void SkyLight::calc(double _accum) {
     viewMatB1[3][2] -= glm::mod(viewMatB1[3][2], rmax / 512.f);
     matArrB[0] = glm::ortho(-sp.w, sp.w, -sp.w, sp.w, -sp.w, sp.w) * viewMatB0;
     matArrB[1] = glm::ortho(-rmax, rmax, -rmax, rmax, -rmax, rmax) * viewMatB1;
+
+    orthArrA[0] = sq::make_OrthoFrus(matArrA[0], centres[0]);
+    orthArrA[1] = sq::make_OrthoFrus(matArrA[1], centres[1]);
+    orthArrA[2] = sq::make_OrthoFrus(matArrA[2], centres[2]);
+    orthArrA[3] = sq::make_OrthoFrus(matArrA[3], centres[3]);
+    orthArrB[0] = sq::make_OrthoFrus(matArrB[0], camera->pos);
+    orthArrB[1] = sq::make_OrthoFrus(matArrB[1], camera->pos);
 
     ubo->update("matArrA", matArrA.data());
     ubo->update("matArrB", matArrB.data());

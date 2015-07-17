@@ -50,6 +50,20 @@ BoundBox sq::make_BoundBox(fmat4 _matrix, fvec3 _origin, float _radius, fvec3 _s
     return bb;
 }
 
+OrthoFrus sq::make_OrthoFrus(fmat4 _matrix, fvec3 _centre) {
+    OrthoFrus ot; fvec4 tmp4;
+    fmat4 invMat = glm::inverse(_matrix);
+    fvec3 nX = glm::normalize(fmat3(invMat) * fvec3(1.f, 0.f, 0.f));
+    fvec3 nY = glm::normalize(fmat3(invMat) * fvec3(0.f, 1.f, 0.f));
+    tmp4 = invMat * fvec4( 1.f,  0.f,  0.f, 1.f); fvec3 pXP = fvec3(tmp4) / tmp4.w;
+    tmp4 = invMat * fvec4(-1.f,  0.f,  0.f, 1.f); fvec3 pXN = fvec3(tmp4) / tmp4.w;
+    tmp4 = invMat * fvec4( 0.f,  1.f,  0.f, 1.f); fvec3 pYP = fvec3(tmp4) / tmp4.w;
+    tmp4 = invMat * fvec4( 1.f, -1.f,  0.f, 1.f); fvec3 pYN = fvec3(tmp4) / tmp4.w;
+    ot.pT = {nY, glm::dot(-nY, pYP)}; ot.pB = {-nY, glm::dot(nY, pYN)};
+    ot.pR = {nX, glm::dot(-nX, pXP)}; ot.pL = {-nX, glm::dot(nX, pXN)};
+    return ot;
+}
+
 Frustum sq::reflect_Frustum(const Frustum& _frus, fvec3 _normal, fvec3 _trans) {
     Frustum fr = _frus; fvec3 tmp;
     fr.pN = {-_normal, glm::dot(-_normal, _trans)};
@@ -158,6 +172,43 @@ bool sq::frus_in_frus(const Frustum& _A, const Frustum& _B) {
     if (hitB == false) return true;
 
     // Frustum <> Frustum
+    for (const auto& plane : planes) {
+        bool less = false, more = false;
+        for (const auto& point : points) {
+            float dist = glm::dot(point, plane.normal) + plane.offset;
+            if (dist >= 0.f) more=true; if (dist <= 0.f) less=true;
+        } if (more && !less) return true;
+    }
+
+    return false;
+}
+
+bool sq::sphr_in_orth(const Sphere& _A, const OrthoFrus& _B) {
+    const auto& planes = {_B.pT, _B.pB, _B.pL, _B.pR};
+
+    // Sphere <> OrthoFrus
+    for (const auto& plane : planes)
+        if (glm::dot(_A.origin, plane.normal) + plane.offset
+            >= _A.radius) return true;
+
+    return false;
+}
+
+bool sq::bbox_in_orth(const BoundBox& _A, const OrthoFrus& _B) {
+    fvec3 oX = _A.size.x*_A.nX, oY = _A.size.y*_A.nY, oZ = _A.size.z*_A.nZ;
+    array<fvec3, 8> points {
+        _A.sphere.origin -oX -oY -oZ, _A.sphere.origin -oX -oY +oZ,
+        _A.sphere.origin -oX +oY -oZ, _A.sphere.origin -oX +oY +oZ,
+        _A.sphere.origin +oX -oY -oZ, _A.sphere.origin +oX -oY +oZ,
+        _A.sphere.origin +oX +oY -oZ, _A.sphere.origin +oX +oY +oZ
+    }; const auto& planes = {_B.pT, _B.pB, _B.pL, _B.pR};
+
+    // Sphere <> OrthoFrus
+    for (const auto& plane : planes)
+        if (glm::dot(_A.sphere.origin, plane.normal) + plane.offset
+            >= _A.sphere.radius) return true;
+
+    // BoundBox <> OrthoFrus
     for (const auto& plane : planes) {
         bool less = false, more = false;
         for (const auto& point : points) {

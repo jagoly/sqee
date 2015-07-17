@@ -3,10 +3,10 @@
 
 layout(location=0) in vec3 V_pos;
 layout(location=1) in vec3 V_norm;
-layout(location=2) in vec3 V_tan;
+layout(location=2) in vec4 V_tan;
 layout(location=3) in vec2 V_texcrd;
 
-#include "headers/blocks/camera"
+#include "builtin/blocks/camera"
 #include "headers/blocks/mstatic"
 
 layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
@@ -23,7 +23,7 @@ out gl_PerVertex {
 void main() {
     texcrd = V_texcrd;
     N = normalize(mat3(MB.normMat) * V_norm);
-    T = normalize(mat3(MB.normMat) * V_tan);
-    B = normalize(mat3(MB.normMat) * -cross(V_norm, V_tan));
-    gl_Position = CB.proj * CB.view * MB.matrix * vec4(V_pos, 1);
+    T = normalize(mat3(MB.normMat) * -V_tan.xyz);
+    B = normalize(mat3(MB.normMat) * -cross(V_norm, V_tan.xyz) * V_tan.w);
+    gl_Position = CB.proj * CB.view * MB.matrix * vec4(V_pos, 1.f);
 }

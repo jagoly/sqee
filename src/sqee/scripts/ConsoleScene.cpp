@@ -1,19 +1,20 @@
-#include <sqee/app/Application.hpp>
-#include <sqee/app/SettingsMap.hpp>
 #include <sqee/app/Logging.hpp>
+#include <sqee/app/Application.hpp>
+#include <sqee/app/SettingsMaps.hpp>
 #include <sqee/scripts/ChaiScript.hpp>
-#include <sqee/text/Text.hpp>
 #include <sqee/scripts/ConsoleScene.hpp>
+#include <sqee/gl/Drawing.hpp>
+#include <sqee/text/Text.hpp>
 
 using namespace sq;
 
-SceneConsole::SceneConsole(Application* _app) : Scene(_app) {
+ConsoleScene::ConsoleScene(Application* _app) : Scene(_app) {
     appBase->cs->add_global(chai::var(this), "console");
     settings->add<bool>("console_active", false);
     tickRate = 2u;
 }
 
-void SceneConsole::update() {
+void ConsoleScene::update() {
     if (active == false) return;
 
     if (tickDelay == false)
@@ -21,7 +22,7 @@ void SceneConsole::update() {
     else tickDelay = false;
 }
 
-void SceneConsole::render(float _ft) {
+void ConsoleScene::render(float _ft) {
     if (active == false) return;
 
     static const TextBasic tb = {
@@ -30,6 +31,7 @@ void SceneConsole::render(float _ft) {
         fvec3(1.f, 1.f, 1.f), fvec2(24.f, 30.f), true
     };
 
+    sq::VIEWPORT(appBase->get_size());
     string outStr = input; size_t pos = 0u; outStr.insert(0, ">>> ");
     outStr.insert(outStr.begin()+curPos+4, tickSwitch ? char(5) : ' ');
     while ((pos = outStr.find("\n", pos)) != string::npos)
@@ -38,14 +40,14 @@ void SceneConsole::render(float _ft) {
     sq::render_text_basic(outStr, tb, 1.f, appBase->get_size());
 }
 
-void SceneConsole::exec() {
+void ConsoleScene::exec() {
     try { appBase->cs->eval(input); }
     catch (chai::exception::eval_error& err) {
         output.emplace_front(err.what());
     } input.clear(); curPos = 0u;
 }
 
-void SceneConsole::handle_character(char _c) {
+void ConsoleScene::handle_character(char _c) {
     if (std::isprint(_c)) // all printable chars
         input.insert(curPos++, 1u, _c);
 
@@ -53,7 +55,7 @@ void SceneConsole::handle_character(char _c) {
     tickDelay = true;
 }
 
-void SceneConsole::handle_action(Action _action) {
+void ConsoleScene::handle_action(Action _action) {
     static int histInd = -1;
     if (_action == Action::Return) {
         if ((!history.size() || history.back() != input) && input != "")
@@ -105,15 +107,15 @@ void SceneConsole::handle_action(Action _action) {
     tickDelay = true;
 }
 
-void SceneConsole::cs_print(const string& _value) {
+void ConsoleScene::cs_print(const string& _value) {
     output.emplace_front(_value);
 }
 
-void SceneConsole::cs_history() {
+void ConsoleScene::cs_history() {
     for (const auto& cmd : history)
         output.emplace_front("> "+cmd);
 }
 
-void SceneConsole::cs_clear() {
+void ConsoleScene::cs_clear() {
     output.clear();
 }
