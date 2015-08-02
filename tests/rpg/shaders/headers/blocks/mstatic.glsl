@@ -1,4 +1,4 @@
-// GLSL Header File
+// GLSL Uniform Block
 
 struct MStaticBlock {
     mat4 matrix;  // 16

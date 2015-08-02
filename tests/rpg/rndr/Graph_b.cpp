@@ -32,7 +32,7 @@ void Graph::render_shadows_sky_A() {
 
     sq::DCLAMP_ON();
     light.ubo->bind(1);
-    light.texA->viewport();
+    sq::VIEWPORT(light.texA->size);
 
     for (uint csm = 0u; csm < 4u; csm++) {
         light.fboArrA[csm]->use();
@@ -96,7 +96,7 @@ void Graph::render_shadows_sky_B() {
 
     sq::DCLAMP_ON();
     light.ubo->bind(1);
-    light.texB->viewport();
+    sq::VIEWPORT(light.texB->size);
 
     for (uint csm = 0u; csm < 2u; csm++) {
         light.fboArrB[csm]->use();
@@ -168,7 +168,8 @@ void Graph::render_shadows_spot() {
             if (!sq::frus_in_frus(light.frus, frus)) goto dontcull;
         } continue; dontcull:
 
-        light.ubo->bind(1); light.tex->viewport();
+        light.ubo->bind(1);
+        sq::VIEWPORT(light.tex->size);
         light.fbo->use(); sq::CLEAR_DEPTH();
         pipeline->disable_stages(0, 0, 1);
 
@@ -224,7 +225,7 @@ void Graph::render_shadows_point() {
         if (light.PROP_shadow == false) continue;
 
         light.ubo->bind(1);
-        light.tex->viewport();
+        sq::VIEWPORT(light.tex->size);
         for (uint face = 0u; face < 6u; face++) {
             if (!sq::frus_in_frus(light.frusArr[face], camera->frus)) goto dontcull;
             for (const auto& rptr : reflectorList) {

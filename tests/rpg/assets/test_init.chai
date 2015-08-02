@@ -20,22 +20,33 @@ def main() {
     cellSponza.refresh();
 
     world.skybox.enabled = true;
-    world.skybox.colour = fvec4(1.0, 1.0, 1.0, 1.0);
-    world.skybox.texture = "Cloudy";
+//    world.skybox.saturation = 1.75;
+//    world.skybox.brightness = -0.2;
+//    world.skybox.contrast = 0.5f;
+    world.skybox.saturation = 1.0;
+    world.skybox.brightness = 0.0;
+    world.skybox.contrast = 1.0;
+    world.skybox.alpha = 1.0;
+    world.skybox.texture = "Miramar";
     world.skybox.refresh();
 
     world.ambient.enabled = true;
     world.ambient.colour = fvec3(0.4, 0.4, 0.4);
+//    world.ambient.colour = fvec3(0.4, 0.35, 0.35);
+//    world.ambient.colour = fvec3(0.3, 0.3, 0.33);
     world.ambient.refresh();
 
     world.skylight.enabled = true;
-    world.skylight.direction = fvec3(-0.36, -0.46, -0.81);
 //    world.skylight.direction = vec3(0.0, 0.0, -1.0);
+    world.skylight.direction = fvec3(-0.355, -0.465, -0.815);
+//    world.skylight.colour = fvec3(0.35, 0.35, 0.38);
     world.skylight.colour = fvec3(0.9, 0.9, 0.9);
     world.skylight.refresh();
 
     world.reload_list();
     graph.reload_lists();
+
+    camera.position = fvec3(0.0, 0.0, 20.0);
 
     console.print("Welcome to SQEE!");
 }

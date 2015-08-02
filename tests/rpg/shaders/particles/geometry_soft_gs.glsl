@@ -1,11 +1,10 @@
-#version 330
-#extension GL_ARB_shading_language_420pack : enable
+// GLSL Geometry Shader
 
 layout(points) in;
 in float[1] V_scale, V_alpha;
 in vec3[1] V_pos, V_col;
 
-#include "builtin/blocks/camera"
+#include builtin/blocks/camera
 
 layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
 
@@ -27,9 +26,6 @@ void issue(vec3 _offs, vec2 _ptcrd) {
 
 void main() {
     scale = V_scale[0]; alpha = V_alpha[0]; colour = V_col[0];
-//    vec3 dirToCam = mat3(CB.view) * normalize(CB.pos-V_pos[0]);
-//    vec3 camX = normalize(cross(dirToCam, vec3(0.f, 1.f, 0.f)));
-//    vec3 camY = normalize(cross(dirToCam, vec3(1.f, 0.f, 0.f)));
     vec3 camX = vec3(1,0,0); vec3 camY = vec3(0,1,0);
     issue(-camX -camY, vec2(-1.f, -1.f));
     issue(-camX +camY, vec2(-1.f, +1.f));

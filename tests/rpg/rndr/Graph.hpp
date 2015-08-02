@@ -138,6 +138,8 @@ public:
         sq::Texture2D* reflSurf = nullptr;
         sq::Texture2D* partDpSt = nullptr;
         sq::Texture2D* partMain = nullptr;
+        sq::Texture2D* depHalf = nullptr;
+        sq::Texture2D* depQter = nullptr;
         sq::Texture2D* hdrBase = nullptr;
         sq::Texture2D* hdrRefl = nullptr;
         sq::Texture2D* hdrPart = nullptr;

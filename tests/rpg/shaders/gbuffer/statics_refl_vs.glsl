@@ -1,13 +1,12 @@
-#version 330
-#extension GL_ARB_shading_language_420pack : enable
+// GLSL Vertex Shader
 
 layout(location=0) in vec3 V_pos;
 layout(location=1) in vec3 V_norm;
 layout(location=3) in vec2 V_texcrd;
 
-#include "builtin/blocks/camera"
-#include "headers/blocks/mstatic"
-#include "headers/blocks/reflector"
+#include builtin/blocks/camera
+#include headers/blocks/mstatic
+#include headers/blocks/reflector
 
 layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
 layout(std140, binding=1) uniform MSTATICBLOCK { MStaticBlock MB; };

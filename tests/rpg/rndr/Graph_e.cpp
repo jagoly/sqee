@@ -148,7 +148,7 @@ void Graph::render_particles() {
         metaVec.emplace_back(pm);
     } if (!metaVec.size()) return;
 
-    std::list<vector<uint>> indVecList(1);
+    list<vector<uint>> indVecList(1);
     for (const auto pm : metaVec) {
         for (uint ind : indVecList.back()) {
             const auto cmp = metaVec[ind];

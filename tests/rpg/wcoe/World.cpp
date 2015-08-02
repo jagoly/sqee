@@ -1,7 +1,7 @@
 #include <glm/common.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <reactphysics3d/engine/DynamicsWorld.h>
-#include <reactphysics3d/collision/shapes/BoxShape.h>
+#include <rp3d/collision/shapes/BoxShape.hpp>
+#include <rp3d/engine/DynamicsWorld.hpp>
 
 #include <sqee/redist/gl_ext_3_3.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
@@ -12,40 +12,57 @@
 #include <sqee/maths/General.hpp>
 #include <sqee/misc/Files.hpp>
 
-#include <iostream>
-
 #include "World.hpp"
 
 using namespace sqt::wcoe;
 
 SkyBox::SkyBox(sq::Camera* _camera) : camera(_camera) {
     ubo.reset(new sq::UniformBuffer());
-    ubo->reserve("colour", 4);
+    ubo->reserve("saturation", 1);
+    ubo->reserve("brightness", 1);
+    ubo->reserve("contrast", 1);
+    ubo->reserve("alpha", 1);
     ubo->create();
 }
 
 void SkyBox::refresh() {
     if (PROP_enabled == false) return;
 
-    string texPath = "skybox/" + PROP_texPath;
+    string texPath = "skybox/" + PROP_texture;
     if (!(tex = sq::res::texCube().get(texPath)))
         tex = sq::res::texCube().add(texPath),
         tex->create(gl::RGB, gl::RGB8, 3),
         tex->set_preset(sq::TextureCube::L_C()),
         tex->buffer_full(texPath, 1024u);
 
-    ubo->bind(1);
-    ubo->update("colour", &PROP_colour);
+    animate();
 }
 
 void SkyBox::tick() {
-    if (PROP_enabled == false) return;
+    if (PROP_enabled == false) return; bool doFinish = false;
+    if (ANIM_saturation.active()) if (ANIM_saturation.tick()) doFinish = true;
+    if (ANIM_brightness.active()) if (ANIM_brightness.tick()) doFinish = true;
+    if (ANIM_contrast.active())   if (ANIM_contrast.tick())   doFinish = true;
+    if (ANIM_alpha.active())      if (ANIM_alpha.tick())      doFinish = true;
+    if (doFinish == true) animate();
 }
 
 void SkyBox::calc(double _accum) {
-    if (PROP_enabled == false) return;
+    if (PROP_enabled == false) return; bool doAnim = false;
+    if (ANIM_saturation.active()) { ANIM_saturation.calc(_accum); doAnim = true; }
+    if (ANIM_brightness.active()) { ANIM_brightness.calc(_accum); doAnim = true; }
+    if (ANIM_contrast.active())   { ANIM_contrast.calc(_accum);   doAnim = true; }
+    if (ANIM_alpha.active())      { ANIM_alpha.calc(_accum);      doAnim = true; }
+    if (doAnim == true) animate();
 }
 
+void SkyBox::animate() {
+    ubo->bind(1);
+    ubo->update("saturation", &PROP_saturation);
+    ubo->update("brightness", &PROP_brightness);
+    ubo->update("contrast", &PROP_contrast);
+    ubo->update("alpha", &PROP_alpha);
+}
 
 Ambient::Ambient(sq::Camera* _camera) : camera(_camera) {
     ubo.reset(new sq::UniformBuffer());
@@ -78,7 +95,8 @@ void Ambient::animate() {
 SkyLight::SkyLight(sq::Camera* _camera) : camera(_camera) {
     ubo.reset(new sq::UniformBuffer());
     ubo->reserve("direction", 4);
-    ubo->reserve("colour", 4);
+    ubo->reserve("colour", 3);
+    ubo->reserve("density", 1);
     ubo->reserve("matArrA", 4*16);
     ubo->reserve("matArrB", 2*16);
     ubo->reserve("splits", 4);
@@ -107,6 +125,7 @@ void SkyLight::tick() {
     if (PROP_enabled == false) return; bool doFinish = false;
     if (ANIM_direction.active()) if (ANIM_direction.tick()) doFinish = true;
     if (ANIM_colour.active())    if (ANIM_colour.tick())    doFinish = true;
+    if (ANIM_density.active())   if (ANIM_density.tick())   doFinish = true;
     if (doFinish == true) animate();
 }
 
@@ -114,6 +133,7 @@ void SkyLight::calc(double _accum) {
     if (PROP_enabled == false) return; bool doAnim = false;
     if (ANIM_direction.active()) { ANIM_direction.calc(_accum); doAnim = true; }
     if (ANIM_colour.active())    { ANIM_colour.calc(_accum);    doAnim = true; }
+    if (ANIM_density.active())   { ANIM_density.calc(_accum);   doAnim = true; }
     if (doAnim == true) animate(); else ubo->bind(1);
 
     fvec4& sp = splits; array<fvec3, 4> centres;
@@ -174,6 +194,7 @@ void SkyLight::animate() {
     ubo->bind(1);
     ubo->update("direction", &PROP_direction);
     ubo->update("colour", &PROP_colour);
+    ubo->update("density", &PROP_density);
 }
 
 

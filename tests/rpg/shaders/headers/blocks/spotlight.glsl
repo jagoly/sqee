@@ -1,4 +1,4 @@
-// GLSL Header File
+// GLSL Uniform Block
 
 struct SpotLightBlock {
     vec3 direction;  // 3

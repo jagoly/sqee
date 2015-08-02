@@ -1,5 +1,4 @@
-#version 330
-#extension GL_ARB_shading_language_420pack : enable
+// GLSL Fragment Shader
 
 // define HDRB
 
@@ -23,10 +22,13 @@ vec3 tone_map(vec3 _tx) {
 void main() {
     vec4 texel = texture(texMain, texcrd);
     vec3 value = tone_map(texel.rgb) / tone_map(vec3(1.f / sqrt(texel.a)));
+    value = texel.rgb;
 
     #ifdef HDRB
     value += texture(texBloom, texcrd).rgb;
     #endif
+
+    value = tone_map(value) / tone_map(vec3(1.f / sqrt(texel.a)));
 
     fragColour = vec4(value, texel.a);
 }

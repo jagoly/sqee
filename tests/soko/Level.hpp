@@ -1,6 +1,8 @@
 #pragma once
 #include <sqee/forward.hpp>
 
+#include <glm/gtx/hash.hpp>
+
 namespace sqt {
 
 struct Ball {

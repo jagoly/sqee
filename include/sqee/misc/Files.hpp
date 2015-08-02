@@ -1,8 +1,6 @@
 #pragma once
 #include <sqee/forward.hpp>
 
-#include <sqee/redist/jsoncpp.hpp>
-
 inline uint stou(const string& _str, size_t* _idx = 0, int _base = 10) {
     return (uint)std::stoul(_str, _idx, _base);
 } using std::stoi; using std::stof;
@@ -32,18 +30,25 @@ inline fquat svtofeu(const vector<string>& _vec, uint _pos) {
 
 namespace sq {
 
+/// Check if a file exists
 bool check_file_exists(const string& _path);
 
+/// Get the first byte of a file
 char get_file_first_byte(const string& _path);
 
-Json::Value get_json_from_file(const string& _path);
-
+/// Load a file into a simple string
 string get_string_from_file(const string& _path);
 
+/// Load a file into a vector of bytes
 vector<char> get_bytes_from_file(const string& _path);
 
-vector<vector<string>> get_words_from_file(const string& _path);
+/// Tokenise a string into a vector of strings
+vector<string> tokenise_string(const string& _str, char _dlm);
 
+/// Tokenise a file and remove empty lines
+vector<vector<string>> tokenise_file(const string& _path);
+
+/// Get a list of files in a directory
 vector<string> get_files_from_dir(const string& _path);
 
 }

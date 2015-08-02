@@ -28,7 +28,6 @@ SpotLight::SpotLight(const string& _name, Cell* _cell)
 }
 
 void SpotLight::load_from_spec(const ObjSpec& _spec) {
-   #ifdef SQEE_DEBUG
     assert_fvec3(_spec, name, "direction");
     assert_fvec3(_spec, name, "position");
     assert_fvec3(_spec, name, "colour");
@@ -36,7 +35,6 @@ void SpotLight::load_from_spec(const ObjSpec& _spec) {
     assert_float(_spec, name, "softness");
     assert_float(_spec, name, "angle");
     assert_uint(_spec, name, "texsize");
-   #endif
 
     PROP_shadow    = _spec.flagSet.count("shadow");
     PROP_specular  = _spec.flagSet.count("specular");

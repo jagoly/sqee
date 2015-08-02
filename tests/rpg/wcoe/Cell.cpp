@@ -21,7 +21,7 @@ Cell::Cell(const string& _name, World* _world)
 
 void Cell::load_from_file(const string& _path) {
     string path = sq::res::path() + "cells/" + _path + ".sq_cell";
-    vector<vector<string>> fileVec(sq::get_words_from_file(path));
+    vector<vector<string>> fileVec = sq::tokenise_file(path);
     vector<pair<string, ObjSpec>> specVec;
 
     string section = "";

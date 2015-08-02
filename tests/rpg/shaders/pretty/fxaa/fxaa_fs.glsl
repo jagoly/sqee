@@ -1,6 +1,4 @@
-#version 330
-#extension GL_ARB_gpu_shader5 : enable
-#extension GL_ARB_shading_language_420pack : enable
+// GLSL Fragment Shader
 
 // define HIGH
 // define PIXSIZE vec2

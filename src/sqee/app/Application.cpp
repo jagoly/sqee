@@ -1,5 +1,5 @@
 #include <sqee/redist/gl_ext_3_3.hpp>
-#include <sqee/debug/Callbacks.hpp>
+#include <sqee/debug/OpenGL.hpp>
 #include <sqee/app/Logging.hpp>
 #include <sqee/app/Application.hpp>
 #include <sqee/app/SettingsMaps.hpp>
@@ -26,8 +26,8 @@ Application::Application() {
     #ifdef SQEE_DEBUG
     const GLubyte* renderer = gl::GetString(gl::RENDERER);
     const GLubyte* version = gl::GetString(gl::VERSION);
-    log_info("Renderer %s", (char*)renderer);
-    log_info("Version %s", (char*)version);
+    log_info("Renderer: %s", (char*)renderer);
+    log_info("Version: %s", (char*)version);
     gl::Enable(gl::DEBUG_OUTPUT);
     gl::Enable(gl::DEBUG_OUTPUT_SYNCHRONOUS);
     gl::DebugMessageControl(gl::DEBUG_SOURCE_API, gl::DEBUG_TYPE_OTHER,

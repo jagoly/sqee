@@ -30,12 +30,12 @@ void Graph::render_skybox_base() {
     if (!world->skybox.PROP_enabled) return;
     pipeline->use_shader(*VS.defr_skybox_base);
     pipeline->use_shader(*FS.defr_skybox);
-    world->skybox.tex->bind(gl::TEXTURE5);
+    world->skybox.tex->bind(gl::TEXTURE0);
     world->skybox.ubo->bind(1);
 
-    sq::BLEND_OFF();
+    sq::BLEND_OFF(); sq::STENCIL_KEEP();
     gl::StencilFunc(gl::EQUAL, 0b0001, 0b0101);
-    sq::STENCIL_KEEP(); sq::draw_screen_quad();
+    sq::draw_screen_quad();
 }
 
 
@@ -43,12 +43,12 @@ void Graph::render_skybox_refl() {
     if (!world->skybox.PROP_enabled) return;
     pipeline->use_shader(*VS.defr_skybox_refl);
     pipeline->use_shader(*FS.defr_skybox);
-    world->skybox.tex->bind(gl::TEXTURE5);
+    world->skybox.tex->bind(gl::TEXTURE0);
     world->skybox.ubo->bind(1);
 
-    sq::BLEND_OFF();
+    sq::BLEND_OFF(); sq::STENCIL_KEEP();
     gl::StencilFunc(gl::EQUAL, 0b0011, 0b0111);
-    sq::STENCIL_KEEP(); sq::draw_screen_quad();
+    sq::draw_screen_quad();
 }
 
 
@@ -56,11 +56,13 @@ void Graph::render_ambient_base() {
     if (!world->ambient.PROP_enabled) return;
     pipeline->use_shader(*VS.gnrc_screen);
     pipeline->use_shader(*FS.defr_ambient_base);
+    TX.ssaoB->bind(gl::TEXTURE0);
+    TX.depHalf->bind(gl::TEXTURE1);
     world->ambient.ubo->bind(1);
 
-    sq::BLEND_OFF();
+    sq::BLEND_OFF(); sq::STENCIL_KEEP();
     gl::StencilFunc(gl::EQUAL, 0b0101, 0b0101);
-    sq::STENCIL_KEEP(); sq::draw_screen_quad();
+    sq::draw_screen_quad();
 }
 
 
@@ -70,9 +72,9 @@ void Graph::render_ambient_refl() {
     pipeline->use_shader(*FS.defr_ambient_refl);
     world->ambient.ubo->bind(1);
 
-    sq::BLEND_OFF();
+    sq::BLEND_OFF(); sq::STENCIL_KEEP();
     gl::StencilFunc(gl::EQUAL, 0b0111, 0b0111);
-    sq::STENCIL_KEEP(); sq::draw_screen_quad();
+    sq::draw_screen_quad();
 }
 
 

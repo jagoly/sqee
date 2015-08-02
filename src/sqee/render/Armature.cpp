@@ -6,7 +6,7 @@ using namespace sq;
 
 void Armature::create(const string& _path) {
     string path = res::path() + "armatures/" + _path + ".sqa";
-    vector<vector<string>> fileVec(get_words_from_file(path));
+    vector<vector<string>> fileVec = tokenise_file(path);
 
     struct BoneSpec {
         string name; int parentIndex;
@@ -46,7 +46,7 @@ void Armature::create(const string& _path) {
 
 void Armature::load_library(const string& _path) {
     string path = res::path() + "armatures/" + _path + ".sqa_lib";
-    vector<vector<string>> fileVec(get_words_from_file(path));
+    vector<vector<string>> fileVec = tokenise_file(path);
 
     Pose* pose = nullptr; Anim* anim = nullptr;
     vector<ArmatureBone>::const_iterator bIter;

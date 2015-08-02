@@ -1,5 +1,4 @@
-#version 330
-#extension GL_ARB_shading_language_420pack : enable
+// GLSL Fragment Shader
 
 // define SHADQLTY int
 // define SHADFLTR int
@@ -9,8 +8,8 @@ in vec3 w_pos, v_pos;
 in vec3 colour;
 in vec2 ptcrd;
 
-#include "builtin/blocks/camera"
-#include "headers/blocks/skylight"
+#include builtin/blocks/camera
+#include headers/blocks/skylight
 
 layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
 layout(std140, binding=1) uniform SKYLIGHTBLOCK { SkyLightBlock LB; };
@@ -18,8 +17,7 @@ layout(std140, binding=1) uniform SKYLIGHTBLOCK { SkyLightBlock LB; };
 layout(location=0) out vec3 fragColour;
 
 
-#include "builtin/uniform_disks"
-#include "headers/shadow/sample_sky"
+#include headers/shadow/sample_sky
 layout(binding=8) uniform sampler2DArrayShadow texShad;
 float get_shadow_value(vec3 _lightDir, vec3 _vpos, vec3 _wpos) {
     int index = 0;
@@ -35,7 +33,6 @@ float get_shadow_value(vec3 _lightDir, vec3 _vpos, vec3 _wpos) {
         if (filterNum == 2) return sample_shadow_x12(shadcrd, index, 0.f, radius, texShad);
     }
 }
-
 
 void main() {
     float dist = length(ptcrd); if (dist > 1.f) discard;

@@ -1,5 +1,4 @@
-#version 330
-#extension GL_ARB_shading_language_420pack : enable
+// GLSL Vertex Shader
 
 layout(location = 0) in vec3 V_pos;
 layout(location = 3) in vec2 V_texcrd;
@@ -8,7 +7,7 @@ layout(location = 6) in ivec4 V_bonesEFGH;
 layout(location = 7) in vec4 V_weightsABCD;
 layout(location = 8) in vec4 V_weightsEFGH;
 
-#include "headers/blocks/mskelly"
+#include headers/blocks/mskelly
 
 layout(std140, binding=1) uniform MSKELLYBLOCK { MSkellyBlock MB; };
 

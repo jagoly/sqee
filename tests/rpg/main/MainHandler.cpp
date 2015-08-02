@@ -38,6 +38,13 @@ bool MainHandler::handle(const sf::Event& _event) {
             else if (crnt == 2) settings->mod<int>("hdrbMode", 0);
             settings->apply(); appBase->update(); return true;
         }
+        if (_event.key.code == sf::Keyboard::L) {
+            int crnt = settings->crnt<int>("shftMode");
+            if      (crnt == 0) settings->mod<int>("shftMode", 1);
+            else if (crnt == 1) settings->mod<int>("shftMode", 2);
+            else if (crnt == 2) settings->mod<int>("shftMode", 0);
+            settings->apply(); appBase->update(); return true;
+        }
         if (_event.key.code == sf::Keyboard::A) {
             int crnt = settings->crnt<int>("fxaaMode");
             if      (crnt == 0) settings->mod<int>("fxaaMode", 1);

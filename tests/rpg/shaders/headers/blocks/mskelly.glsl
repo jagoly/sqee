@@ -1,4 +1,4 @@
-// GLSL Header File
+// GLSL Uniform Block
 
 struct MSkellyBlock {
     mat4 matrix;      // 16

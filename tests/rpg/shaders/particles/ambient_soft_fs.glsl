@@ -1,13 +1,12 @@
-#version 330
-#extension GL_ARB_shading_language_420pack : enable
+// GLSL Fragment Shader
 
 in float scale, alpha;
 in vec3 w_pos, v_pos;
 in vec3 colour;
 in vec2 ptcrd;
 
-#include "builtin/blocks/camera"
-#include "headers/blocks/ambient"
+#include builtin/blocks/camera
+#include headers/blocks/ambient
 
 layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
 layout(std140, binding=1) uniform AMBIENTBLOCK { AmbientBlock LB; };

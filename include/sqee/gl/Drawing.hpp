@@ -5,6 +5,8 @@
 
 namespace sq {
 
+void draw_nothing();
+
 void draw_screen_quad();
 
 void draw_volume_cone();
@@ -136,12 +138,24 @@ inline void CLEAR_COLOR_DEPTH_STENC() {
     gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT | gl::STENCIL_BUFFER_BIT);
 }
 
+inline void VIEWPORT(uint _size) {
+    gl::Viewport(0, 0, _size, _size);
+}
+
 inline void VIEWPORT(uvec2 _size) {
+    gl::Viewport(0, 0, _size.x, _size.y);
+}
+
+inline void VIEWPORT(uvec3 _size) {
     gl::Viewport(0, 0, _size.x, _size.y);
 }
 
 inline void FRONTFACE(bool _front) {
     gl::FrontFace(_front ? gl::CW : gl::CCW);
+}
+
+inline void BLIT_FRAMEBUFFER(uvec2 _sizeIn, uvec2 _sizeOut, GLenum _mask, GLenum _filter) {
+    gl::BlitFramebuffer(0, 0, _sizeIn.x, _sizeIn.y, 0, 0, _sizeOut.x, _sizeOut.y, _mask, _filter);
 }
 
 }

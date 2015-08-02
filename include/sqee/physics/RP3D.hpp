@@ -2,14 +2,12 @@
 #include <sqee/forward.hpp>
 
 #include <glm/gtc/type_ptr.hpp>
-#include <reactphysics3d/mathematics/Vector2.h>
-#include <reactphysics3d/mathematics/Vector3.h>
-#include <reactphysics3d/mathematics/Matrix2x2.h>
-#include <reactphysics3d/mathematics/Matrix3x3.h>
-#include <reactphysics3d/mathematics/Transform.h>
-#include <reactphysics3d/mathematics/Quaternion.h>
-
-namespace rp3d = reactphysics3d;
+#include <rp3d/mathematics/Vector2.hpp>
+#include <rp3d/mathematics/Vector3.hpp>
+#include <rp3d/mathematics/Matrix2x2.hpp>
+#include <rp3d/mathematics/Matrix3x3.hpp>
+#include <rp3d/mathematics/Transform.hpp>
+#include <rp3d/mathematics/Quaternion.hpp>
 
 namespace reactphysics3d {
 class DynamicsWorld;

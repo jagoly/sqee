@@ -1,10 +1,9 @@
-#version 330
-#extension GL_ARB_shading_language_420pack : enable
+// GLSL Vertex Shader
 
 layout(location=0) in vec3 V_pos;
 
-#include "builtin/blocks/camera"
-#include "headers/blocks/decal"
+#include builtin/blocks/camera
+#include headers/blocks/decal
 
 layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
 layout(std140, binding=1) uniform DECALBLOCK { DecalBlock DB; };

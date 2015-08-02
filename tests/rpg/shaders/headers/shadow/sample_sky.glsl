@@ -1,6 +1,7 @@
 // GLSL Header File
 
-// require "float rand2(vec2)" "vec2 disk6[6]" "vec2 disk12[12]" "vec2 disk24[24]"
+#include builtin/funcs/random
+#include builtin/disks/uniform
 
 float get_bias(vec3 _normal, vec3 _lightDir) {
     float lightDot = dot(_normal, -_lightDir);

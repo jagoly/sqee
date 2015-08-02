@@ -5,7 +5,7 @@ using namespace sq;
 
 void PhysObject::create(const string& _path) {
     string path = res::path() + "physobjs/" + _path + ".sqp";
-    vector<vector<string>> fileVec(get_words_from_file(path));
+    vector<vector<string>> fileVec = tokenise_file(path);
 
     string section = "";
     for (auto& line : fileVec) {

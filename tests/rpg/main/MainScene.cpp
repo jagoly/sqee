@@ -1,6 +1,6 @@
 #include <glm/gtx/string_cast.hpp>
 #include <glm/gtx/rotate_vector.hpp>
-#include <reactphysics3d/engine/DynamicsWorld.h>
+#include <rp3d/engine/DynamicsWorld.hpp>
 
 #include <sqee/redist/gl_ext_3_3.hpp>
 #include <sqee/app/Logging.hpp>
@@ -38,7 +38,7 @@ MainScene::MainScene(sq::Application* _app) : sq::Scene(_app) {
     camera->pos = {-4.f, -1.f, 3.f};
     camera->dir = {0.7, 0.2, -0.1};
     camera->rmin = 0.1f;
-    camera->rmax = 120.f;
+    camera->rmax = 40.f;
     camera->size = {16.f, 10.f};
     camera->fov = 1.f;
     posNext = camera->pos;
@@ -54,6 +54,7 @@ MainScene::MainScene(sq::Application* _app) : sq::Scene(_app) {
     settings->add<int>("shadQlty", 2); // 0=1024, 1=2048, 2=4096
     settings->add<int>("shadFltr", 2); // 0=Off, 1=Minimal, 2=Full
     settings->add<int>("ssaoMode", 2); // 0=Off, 1=Low, 2=High
+    settings->add<int>("shftMode", 2); // 0=Off, 1=Low, 2=High
     settings->add<int>("hdrbMode", 2); // 0=Off, 1=Low, 2=High
     settings->add<int>("fxaaMode", 2); // 0=Off, 1=Low, 2=High
     settings->add<int>("vignMode", 2); // 0=Off, 1=Low, 2=High
@@ -66,6 +67,7 @@ MainScene::MainScene(sq::Application* _app) : sq::Scene(_app) {
     TX.pshadB.reset(new sq::Texture2D());
     TX.bloomA.reset(new sq::Texture2D());
     TX.bloomB.reset(new sq::Texture2D());
+    TX.shafts.reset(new sq::Texture2D());
     TX.baseDiff.reset(new sq::Texture2D());
     TX.baseSurf.reset(new sq::Texture2D());
     TX.baseNorm.reset(new sq::Texture2D());
@@ -76,6 +78,8 @@ MainScene::MainScene(sq::Application* _app) : sq::Scene(_app) {
     TX.reflDpSt.reset(new sq::Texture2D());
     TX.partMain.reset(new sq::Texture2D());
     TX.partDpSt.reset(new sq::Texture2D());
+    TX.depHalf.reset(new sq::Texture2D());
+    TX.depQter.reset(new sq::Texture2D());
     TX.hdrBase.reset(new sq::Texture2D());
     TX.hdrRefl.reset(new sq::Texture2D());
     TX.hdrPart.reset(new sq::Texture2D());
@@ -88,6 +92,7 @@ MainScene::MainScene(sq::Application* _app) : sq::Scene(_app) {
     TX.pshadB->create(gl::RED, gl::R8, 1);
     TX.bloomA->create(gl::RGB, gl::RGB8, 3);
     TX.bloomB->create(gl::RGB, gl::RGB8, 3);
+    TX.shafts->create(gl::RED, gl::R16F, 1);
     TX.baseDiff->create(gl::RGB, gl::RGB8, 3);
     TX.baseSurf->create(gl::RGB, gl::RGB12, 3);
     TX.baseNorm->create(gl::RGB, gl::RGB12, 3);
@@ -98,6 +103,8 @@ MainScene::MainScene(sq::Application* _app) : sq::Scene(_app) {
     TX.reflDpSt->create(gl::DEPTH_STENCIL, gl::DEPTH24_STENCIL8, 1);
     TX.partMain->create(gl::RGBA, gl::RGBA16F, 4);
     TX.partDpSt->create(gl::DEPTH_STENCIL, gl::DEPTH24_STENCIL8, 1);
+    TX.depHalf->create(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT24, 1);
+    TX.depQter->create(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT24, 1);
     TX.hdrBase->create(gl::RGBA, gl::RGBA16F, 4);
     TX.hdrRefl->create(gl::RGB, gl::RGB16F, 3);
     TX.hdrPart->create(gl::RGBA, gl::RGBA16F, 4);
@@ -110,6 +117,7 @@ MainScene::MainScene(sq::Application* _app) : sq::Scene(_app) {
     TX.pshadB->set_preset(sq::Texture2D::L_C());
     TX.bloomA->set_preset(sq::Texture2D::L_C());
     TX.bloomB->set_preset(sq::Texture2D::L_C());
+    TX.shafts->set_preset(sq::Texture2D::L_C());
     TX.baseDiff->set_preset(sq::Texture2D::L_C());
     TX.baseSurf->set_preset(sq::Texture2D::L_C());
     TX.baseNorm->set_preset(sq::Texture2D::L_C());
@@ -120,6 +128,8 @@ MainScene::MainScene(sq::Application* _app) : sq::Scene(_app) {
     TX.reflDpSt->set_preset(sq::Texture2D::L_C());
     TX.partMain->set_preset(sq::Texture2D::L_C());
     TX.partDpSt->set_preset(sq::Texture2D::L_C());
+    TX.depHalf->set_preset(sq::Texture2D::N_C());
+    TX.depQter->set_preset(sq::Texture2D::N_C());
     TX.hdrBase->set_preset(sq::Texture2D::L_C());
     TX.hdrRefl->set_preset(sq::Texture2D::L_C());
     TX.hdrPart->set_preset(sq::Texture2D::L_C());
@@ -132,9 +142,12 @@ MainScene::MainScene(sq::Application* _app) : sq::Scene(_app) {
     FB.pshadB.reset(new sq::FrameBuffer());
     FB.bloomA.reset(new sq::FrameBuffer());
     FB.bloomB.reset(new sq::FrameBuffer());
+    FB.shafts.reset(new sq::FrameBuffer());
     FB.defrBase.reset(new sq::FrameBuffer());
     FB.defrRefl.reset(new sq::FrameBuffer());
     FB.defrPart.reset(new sq::FrameBuffer());
+    FB.depHalf.reset(new sq::FrameBuffer());
+    FB.depQter.reset(new sq::FrameBuffer());
     FB.hdrBase.reset(new sq::FrameBuffer());
     FB.hdrRefl.reset(new sq::FrameBuffer());
     FB.hdrPart.reset(new sq::FrameBuffer());
@@ -147,6 +160,7 @@ MainScene::MainScene(sq::Application* _app) : sq::Scene(_app) {
     FB.pshadB->attach(gl::COLOR_ATTACHMENT0, *TX.pshadB);
     FB.bloomA->attach(gl::COLOR_ATTACHMENT0, *TX.bloomA);
     FB.bloomB->attach(gl::COLOR_ATTACHMENT0, *TX.bloomB);
+    FB.shafts->attach(gl::COLOR_ATTACHMENT0, *TX.shafts);
     FB.defrBase->attach(gl::COLOR_ATTACHMENT0, *TX.baseDiff);
     FB.defrBase->attach(gl::COLOR_ATTACHMENT1, *TX.baseSurf);
     FB.defrBase->attach(gl::COLOR_ATTACHMENT2, *TX.baseNorm);
@@ -157,6 +171,8 @@ MainScene::MainScene(sq::Application* _app) : sq::Scene(_app) {
     FB.defrRefl->attach(gl::DEPTH_STENCIL_ATTACHMENT, *TX.reflDpSt);
     FB.defrPart->attach(gl::COLOR_ATTACHMENT0, *TX.partMain);
     FB.defrPart->attach(gl::DEPTH_STENCIL_ATTACHMENT, *TX.partDpSt);
+    FB.depHalf->attach(gl::DEPTH_ATTACHMENT, *TX.depHalf);
+    FB.depQter->attach(gl::DEPTH_ATTACHMENT, *TX.depQter);
     FB.hdrBase->attach(gl::COLOR_ATTACHMENT0, *TX.hdrBase);
     FB.hdrBase->attach(gl::DEPTH_STENCIL_ATTACHMENT, *TX.baseDpSt);
     FB.hdrRefl->attach(gl::COLOR_ATTACHMENT0, *TX.hdrRefl);
@@ -196,6 +212,7 @@ MainScene::MainScene(sq::Application* _app) : sq::Scene(_app) {
     VS.defr_reflectors.reset(new sq::Shader(gl::VERTEX_SHADER));
     VS.part_vertex_soft.reset(new sq::Shader(gl::VERTEX_SHADER));
     VS.part_geometry_soft.reset(new sq::Shader(gl::GEOMETRY_SHADER));
+    VS.prty_shafts_shafts.reset(new sq::Shader(gl::VERTEX_SHADER));
     FS.gnrc_fillwith.reset(new sq::Shader(gl::FRAGMENT_SHADER));
     FS.gnrc_passthru.reset(new sq::Shader(gl::FRAGMENT_SHADER));
     FS.gnrc_lumalpha.reset(new sq::Shader(gl::FRAGMENT_SHADER));
@@ -229,6 +246,8 @@ MainScene::MainScene(sq::Application* _app) : sq::Scene(_app) {
     FS.part_point_none_soft.reset(new sq::Shader(gl::FRAGMENT_SHADER));
     FS.part_point_shad_soft.reset(new sq::Shader(gl::FRAGMENT_SHADER));
     FS.part_writefinal_soft.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.prty_shafts_shafts.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.prty_shafts_write.reset(new sq::Shader(gl::FRAGMENT_SHADER));
     FS.prty_ssao_ssao.reset(new sq::Shader(gl::FRAGMENT_SHADER));
     FS.prty_ssao_blur.reset(new sq::Shader(gl::FRAGMENT_SHADER));
     FS.prty_hdr_highs.reset(new sq::Shader(gl::FRAGMENT_SHADER));
@@ -263,6 +282,7 @@ MainScene::MainScene(sq::Application* _app) : sq::Scene(_app) {
     VS.defr_reflectors->load(preprocs->load("deferred/reflectors_vs"));
     VS.part_vertex_soft->load(preprocs->load("particles/vertex_soft_vs"));
     VS.part_geometry_soft->load(preprocs->load("particles/geometry_soft_gs"));
+    VS.prty_shafts_shafts->load(preprocs->load("pretty/shafts/shafts_vs"));
     FS.gnrc_fillwith->load(preprocs->load("generic/fillwith_fs"));
     FS.gnrc_lumalpha->load(preprocs->load("generic/lumalpha_fs"));
     FS.gnrc_passthru->load(preprocs->load("generic/passthru_fs"));
@@ -276,6 +296,7 @@ MainScene::MainScene(sq::Application* _app) : sq::Scene(_app) {
     FS.defr_reflectors->load(preprocs->load("deferred/reflectors_fs"));
     FS.part_ambient_soft->load(preprocs->load("particles/ambient_soft_fs"));
     FS.part_writefinal_soft->load(preprocs->load("particles/writefinal_soft_fs"));
+    FS.prty_shafts_write->load(preprocs->load("pretty/shafts/write_fs"));
     FS.prty_hdr_highs->load(preprocs->load("pretty/hdr/highs_fs"));
     FS.prty_vignette->load(preprocs->load("pretty/vignette/vignette_fs"));
 
@@ -349,6 +370,8 @@ MainScene::MainScene(sq::Application* _app) : sq::Scene(_app) {
     graph->TX.reflDpSt = TX.reflDpSt.get();
     graph->TX.partMain = TX.partMain.get();
     graph->TX.partDpSt = TX.partDpSt.get();
+    graph->TX.depHalf = TX.depHalf.get();
+    graph->TX.depQter = TX.depQter.get();
     graph->TX.hdrBase = TX.hdrBase.get();
     graph->TX.hdrRefl = TX.hdrRefl.get();
     graph->TX.hdrPart = TX.hdrPart.get();
@@ -450,14 +473,22 @@ void MainScene::render(float _ft) {
     graph->render_reflects_base(false);
 
 
+    /// Render Downscaled Depth Buffers
+    FB.defrBase->bind(gl::READ_FRAMEBUFFER); FB.depHalf->bind(gl::DRAW_FRAMEBUFFER);
+    sq::BLIT_FRAMEBUFFER(INFO.fullSize, INFO.halfSize, gl::DEPTH_BUFFER_BIT, gl::NEAREST);
+    FB.defrBase->bind(gl::READ_FRAMEBUFFER); FB.depQter->bind(gl::DRAW_FRAMEBUFFER);
+    sq::BLIT_FRAMEBUFFER(INFO.fullSize, INFO.qterSize, gl::DEPTH_BUFFER_BIT, gl::NEAREST);
+
+
     /// Render SSAO Texture
     if (INFO.ssaoEnable == true) {
+        TX.depHalf->bind(gl::TEXTURE0);
         sq::DEPTH_OFF(); sq::STENCIL_OFF();
         sq::BLEND_OFF(); sq::CULLFACE_OFF();
         pipeline->use_shader(*VS.gnrc_screen);
         pipeline->use_shader(*FS.prty_ssao_ssao);
         FB.ssaoA->use(); sq::VIEWPORT(INFO.halfSize);
-        sq::draw_screen_quad(); TX.ssaoA->bind(gl::TEXTURE8);
+        sq::draw_screen_quad(); TX.ssaoA->bind(gl::TEXTURE0);
         pipeline->use_shader(*FS.prty_ssao_blur);
         FB.ssaoB->use(); sq::draw_screen_quad(); TX.ssaoB->bind();
         FB.ssaoA->use(); sq::draw_screen_quad(); TX.ssaoA->bind();
@@ -482,6 +513,31 @@ void MainScene::render(float _ft) {
     graph->render_particles();
 
 
+    /// Render Light Shafts Texture
+    if (INFO.shftEnable == true) {
+        world->skylight.ubo->bind(1u);
+        sq::DEPTH_OFF(); sq::BLEND_OFF();
+        sq::STENCIL_OFF();
+
+        sq::VIEWPORT(INFO.qterSize);
+        FB.shafts->use(); sq::CLEAR_COLOR();
+        pipeline->use_shader(*VS.prty_shafts_shafts);
+        pipeline->use_shader(*FS.prty_shafts_shafts);
+        world->skylight.texA->bind(gl::TEXTURE0);
+        TX.depQter->bind(gl::TEXTURE1);
+        sq::draw_screen_quad();
+
+        FB.hdrBase->use();
+        sq::VIEWPORT(INFO.fullSize);
+        TX.shafts->bind(gl::TEXTURE0);
+        TX.baseDpSt->bind(gl::TEXTURE2);
+        sq::BLEND_ON(); sq::BLEND_ONEONE();
+        pipeline->use_shader(*VS.gnrc_screen);
+        pipeline->use_shader(*FS.prty_shafts_write);
+        sq::draw_screen_quad();
+    }
+
+
     /// Write HDR Luma to Alpha
     sq::DEPTH_OFF(); sq::STENCIL_OFF();
     sq::BLEND_OFF(); sq::CULLFACE_OFF();
@@ -492,7 +548,7 @@ void MainScene::render(float _ft) {
     sq::draw_screen_quad();
 
 
-    /// Bloom
+    /// Render Bloom Texture
     if (INFO.hdrbEnable == true) {
         sq::VIEWPORT(INFO.qterSize);
         gl::ActiveTexture(gl::TEXTURE1);
@@ -510,6 +566,7 @@ void MainScene::render(float _ft) {
 
 
     /// HDR Tonemapping
+    sq::STENCIL_OFF();
     pipeline->use_shader(*VS.gnrc_screen);
     pipeline->use_shader(*FS.prty_hdr_tones);
     FB.simple->use(); sq::VIEWPORT(INFO.fullSize);
@@ -561,6 +618,7 @@ void MainScene::update_settings() {
     TX.pshadB->resize(INFO.halfSize);
     TX.bloomA->resize(INFO.qterSize);
     TX.bloomB->resize(INFO.qterSize);
+    TX.shafts->resize(INFO.qterSize);
     TX.baseDiff->resize(INFO.fullSize);
     TX.baseSurf->resize(INFO.fullSize);
     TX.baseNorm->resize(INFO.fullSize);
@@ -571,6 +629,8 @@ void MainScene::update_settings() {
     TX.reflDpSt->resize(INFO.halfSize);
     TX.partMain->resize(INFO.halfSize);
     TX.partDpSt->resize(INFO.halfSize);
+    TX.depHalf->resize(INFO.halfSize);
+    TX.depQter->resize(INFO.qterSize);
     TX.hdrBase->resize(INFO.fullSize);
     TX.hdrRefl->resize(INFO.halfSize);
     TX.hdrPart->resize(INFO.halfSize);
@@ -580,6 +640,7 @@ void MainScene::update_settings() {
 
     INFO.viewDist = float(settings->crnt<float>("viewDist"));
     INFO.ssaoEnable = bool(settings->crnt<int>("ssaoMode"));
+    INFO.shftEnable = bool(settings->crnt<int>("shftMode"));
     INFO.hdrbEnable = bool(settings->crnt<int>("hdrbMode"));
     INFO.fxaaEnable = bool(settings->crnt<int>("fxaaMode"));
     INFO.vgntEnable = bool(settings->crnt<int>("vignMode"));
@@ -601,6 +662,7 @@ void MainScene::reload_shaders() {
     int shadQlty = settings->crnt<int>("shadQlty");
     int ssaoMode = settings->crnt<int>("ssaoMode");
     int hdrbMode = settings->crnt<int>("hdrbMode");
+    int shftMode = settings->crnt<int>("shftMode");
     int fxaaMode = settings->crnt<int>("fxaaMode");
 
     /// Lighting
@@ -638,14 +700,20 @@ void MainScene::reload_shaders() {
     if (ssaoMode == 2) FS.prty_ssao_ssao->load(preprocs->load("pretty/ssao/ssao_fs", defines+"\n#define HIGH")),
                        FS.prty_ssao_blur->load(preprocs->load("pretty/ssao/blur_fs", defines+"\n#define HIGH"));
 
-    /// HDR
+    /// Shafts
+    if (shftMode == 1) FS.prty_shafts_shafts->load(preprocs->load("pretty/shafts/shafts_fs"));
+    if (shftMode == 2) FS.prty_shafts_shafts->load(preprocs->load("pretty/shafts/shafts_fs", "#define HIGH"));
+
+    /// Bloom
     defines = "#define PIXSIZE " + glm::to_string(INFO.qPixSize);
-    if (hdrbMode == 0) FS.prty_hdr_tones->load(preprocs->load("pretty/hdr/tones_fs"));
-    else FS.prty_hdr_tones->load(preprocs->load("pretty/hdr/tones_fs", "#define HDRB"));
     if (hdrbMode == 1) FS.prty_hdr_blurh->load(preprocs->load("pretty/hdr/blurh_fs", defines)),
                        FS.prty_hdr_blurv->load(preprocs->load("pretty/hdr/blurv_fs", defines));
     if (hdrbMode == 2) FS.prty_hdr_blurh->load(preprocs->load("pretty/hdr/blurh_fs", defines+"\n#define HIGH")),
                        FS.prty_hdr_blurv->load(preprocs->load("pretty/hdr/blurv_fs", defines+"\n#define HIGH"));
+
+    /// HDR
+    if (hdrbMode == 0) FS.prty_hdr_tones->load(preprocs->load("pretty/hdr/tones_fs"));
+    else FS.prty_hdr_tones->load(preprocs->load("pretty/hdr/tones_fs", "#define HDRB"));
 
     /// FXAA
     defines = "#define PIXSIZE " + glm::to_string(INFO.fPixSize);

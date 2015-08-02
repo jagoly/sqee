@@ -1,17 +1,16 @@
-#version 330
-#extension GL_ARB_shading_language_420pack : enable
+// GLSL Fragment Shader
 
 // define HIGH
 // define PIXSIZE vec2
 
 in vec2 texcrd;
 
-#include "builtin/blocks/camera"
+#include builtin/blocks/camera
 
 layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
 
+layout(binding=0) uniform sampler2D texDepHalf;
 layout(binding=4) uniform sampler2D defrSurf;
-layout(binding=7) uniform sampler2D defrDepth;
 
 out float fragColour;
 
@@ -59,27 +58,33 @@ vec2(-0.332520, -0.913590),
 vec2(0.984808, -0.173648),
 };
 #else
-const float distThres = 0.3f;
-const float filterSize = 40.f;
-const int diskSize = 12;
-const vec2 disk[12] = {
-vec2(0.000000, 0.083333),
-vec2(-0.144338, -0.083333),
-vec2(0.216506, -0.125000),
-vec2(0.000000, 0.333333),
-vec2(-0.360844, -0.208333),
-vec2(0.433013, -0.250000),
-vec2(0.000000, 0.583333),
-vec2(-0.577350, -0.333333),
-vec2(0.649519, -0.375000),
-vec2(0.000000, 0.833333),
-vec2(-0.793857, -0.458333),
-vec2(0.866025, -0.500000),
+const float distThres = 0.4f;
+const float filterSize = 60.f;
+const int diskSize = 18;
+const vec2 disk[18] = {
+vec2(0.000000, 0.055556),
+vec2(-0.071421, -0.085116),
+vec2(0.164135, 0.028941),
+vec2(-0.192450, 0.111111),
+vec2(0.095006, -0.261026),
+vec2(0.114007, 0.313231),
+vec2(-0.336788, -0.194444),
+vec2(0.437692, -0.077177),
+vec2(-0.321394, 0.383022),
+vec2(-0.000000, -0.555556),
+vec2(0.392815, 0.468138),
+vec2(-0.656539, -0.115765),
+vec2(0.625463, -0.361111),
+vec2(-0.266016, 0.730872),
+vec2(-0.285017, -0.783077),
+vec2(0.769800, 0.444444),
+vec2(-0.930096, 0.164001),
+vec2(0.642788, -0.766044),
 };
 #endif
 
 vec3 get_view_pos(in vec2 _tc) {
-    float dep = texture(defrDepth, _tc).r * 2.f - 1.f;
+    float dep = texture(texDepHalf, _tc).r * 2.f - 1.f;
     vec4 p_pos = vec4(_tc * 2.f - 1.f, dep, 1.f);
     vec4 v_pos = CB.invProj * p_pos;
     return v_pos.xyz / v_pos.w;

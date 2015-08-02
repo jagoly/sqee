@@ -1,4 +1,4 @@
-// GLSL Header File
+// GLSL Uniform Block
 
 struct AmbientBlock {
     vec3 colour; // 4

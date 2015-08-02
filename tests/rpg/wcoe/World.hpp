@@ -15,11 +15,18 @@ public:
     void refresh(); void tick();
     void calc(double _accum);
 
-    bool   PROP_enabled = false;
-    fvec4  PROP_colour  = {1.f, 1.f, 1.f, 1.f};
-    string PROP_texPath = "";
+    bool   PROP_enabled    = false;
+    float  PROP_saturation = 1.f;
+    float  PROP_brightness = 0.f;
+    float  PROP_contrast   = 1.f;
+    float  PROP_alpha      = 1.f;
+    string PROP_texture    = "";
 
-    // animators todo
+    AnimatorFloat ANIM_saturation {&PROP_saturation};
+    AnimatorFloat ANIM_brightness {&PROP_brightness};
+    AnimatorFloat ANIM_contrast   {&PROP_contrast};
+    AnimatorFloat ANIM_alpha      {&PROP_alpha};
+    void animate();
 
     const sq::Camera* const camera;
     unique_ptr<sq::UniformBuffer> ubo;
@@ -51,9 +58,11 @@ public:
     bool  PROP_enabled   = false;
     fvec3 PROP_direction = {0.f, 0.f, -1.f};
     fvec3 PROP_colour    = {1.f, 1.f, 1.f};
+    float PROP_density   = 0.25f;
 
     AnimatorFNorm ANIM_direction {&PROP_direction};
     AnimatorFVec3 ANIM_colour    {&PROP_colour};
+    AnimatorFloat ANIM_density   {&PROP_density};
     void animate();
 
     const sq::Camera* const camera;

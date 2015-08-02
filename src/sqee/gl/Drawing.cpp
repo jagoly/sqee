@@ -13,6 +13,19 @@ const float ScreenQuadVerts[6*2] {
      1.f,  1.f,   -1.f,  1.f,   -1.f, -1.f,
 };
 
+
+void sq::draw_nothing() {
+    static GLuint vao;
+    static bool first = true;
+    if (first) { first = false;
+        gl::GenVertexArrays(1, &vao);
+    }
+
+    gl::BindVertexArray(vao);
+    gl::DrawArrays(gl::POINTS, 0, 1);
+}
+
+
 void sq::draw_screen_quad() {
     static GLuint vao;
 

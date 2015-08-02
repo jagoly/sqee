@@ -1,7 +1,7 @@
-#include <reactphysics3d/body/RigidBody.h>
-#include <reactphysics3d/engine/DynamicsWorld.h>
-#include <reactphysics3d/collision/shapes/BoxShape.h>
-#include <reactphysics3d/collision/shapes/SphereShape.h>
+#include <rp3d/body/RigidBody.hpp>
+#include <rp3d/engine/DynamicsWorld.hpp>
+#include <rp3d/collision/shapes/BoxShape.hpp>
+#include <rp3d/collision/shapes/SphereShape.hpp>
 
 #include <sqee/physics/PhysObject.hpp>
 #include <sqee/maths/General.hpp>

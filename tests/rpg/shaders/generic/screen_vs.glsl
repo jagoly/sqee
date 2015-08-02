@@ -1,5 +1,4 @@
-#version 330
-#extension GL_ARB_shading_language_420pack : enable
+// GLSL Vertex Shader
 
 layout(location=0) in vec2 V_pos;
 

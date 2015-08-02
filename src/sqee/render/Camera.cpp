@@ -19,6 +19,7 @@ Camera::Camera(GLuint _bind) : binding(_bind) {
     ubo->reserve("rmin", 1);
     ubo->reserve("dir", 3);
     ubo->reserve("rmax", 1);
+    ubo->reserve("fov", 1);
     ubo->create();
 }
 
@@ -31,6 +32,8 @@ void Camera::update() {
     fmat4 invView = glm::inverse(viewMat);
     fmat4 trnView = glm::transpose(viewMat);
 
+    float aspect = size.x / size.y;
+
     ubo->bind(binding);
     ubo->update("proj", &projMat);
     ubo->update("view", &viewMat);
@@ -41,4 +44,5 @@ void Camera::update() {
     ubo->update("rmin", &rmin);
     ubo->update("dir", &dir);
     ubo->update("rmax", &rmax);
+    ubo->update("fov", &aspect);
 }

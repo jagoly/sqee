@@ -23,11 +23,9 @@ Decal::Decal(const string& _name, Cell* _cell)
 }
 
 void Decal::load_from_spec(const ObjSpec& _spec) {
-   #ifdef SQEE_DEBUG
     assert_fvec3(_spec, name, "position");
     assert_fquat(_spec, name, "rotation");
     assert_fvec3(_spec, name, "scale");
-   #endif
 
     PROP_position = _spec.fvec3Map.at("position");
     PROP_rotation = _spec.fquatMap.at("rotation");

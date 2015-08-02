@@ -18,15 +18,23 @@ Shader::~Shader() {
     gl::DeleteProgram(prog);
 }
 
-void Shader::load(const string& _shaderStr) {
-    gl::DeleteProgram(prog);
-    const char* src = _shaderStr.c_str();
-    prog = gl::CreateShaderProgramv(stage, 1, &src);
-    int length = 0; char log[2048];
-    gl::GetProgramInfoLog(prog, 2048, &length, log);
-    if (length > 0) log_error("Failed to compile shader\n%s", log);
-    for (auto& uform : uniforms)
-        uform.second.ref = gl::GetUniformLocation(prog, uform.first.c_str());
+void Shader::load(const string& _source) {
+    const char* src = _source.c_str();
+    gl::DeleteProgram(prog); prog = gl::CreateShaderProgramv(stage, 1, &src);
+    int length = 0; char log[2048]; gl::GetProgramInfoLog(prog, 2048, &length, log);
+    if (length > 0) { string logStr(log); logStr.erase(logStr.rfind('\n'));
+        log_error("Failed to compile shader from string\n%s", logStr); }
+    for (auto& uf : uniforms) uf.second.ref = gl::GetUniformLocation(prog, uf.first.c_str());
+}
+
+void Shader::load(const pair<string, string>& _srcPath) {
+    if (_srcPath.first.empty()) return;
+    const char* src = _srcPath.first.c_str();
+    gl::DeleteProgram(prog); prog = gl::CreateShaderProgramv(stage, 1, &src);
+    int length = 0; char log[2048]; gl::GetProgramInfoLog(prog, 2048, &length, log);
+    if (length > 0) { string logStr(log); logStr.erase(logStr.rfind('\n'));
+        log_error("Failed to compile shader from %s\n%s", _srcPath.second, logStr); }
+    for (auto& uf : uniforms) uf.second.ref = gl::GetUniformLocation(prog, uf.first.c_str());
 }
 
 void Shader::add_uniform(const string& _name, uint _cnt) {

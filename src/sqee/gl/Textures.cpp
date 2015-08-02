@@ -77,9 +77,7 @@ void Texture2D::buffer_file(const string& _path) {
         }
     }
 
-   #ifdef SQEE_DEBUG
     if (!data) log_error("Failed to load texture from %s", path);
-   #endif
 
     buffer_memory(data);
     free(data);
@@ -88,10 +86,6 @@ void Texture2D::buffer_file(const string& _path) {
 void Texture2D::gen_mipmap() {
     gl::BindTexture(target, tex);
     gl::GenerateMipmap(target);
-}
-
-void Texture2D::viewport() {
-    gl::Viewport(0, 0, size.x, size.y);
 }
 
 const Texture::Preset& Texture2D::N_C() {
@@ -201,8 +195,10 @@ void TextureCube::buffer_file(const string& _path, uint _face) {
 
     int w, h;
     uchar* data = stbi_load(path.c_str(), &w, &h, nullptr, channels);
+    size = w;
     uchar* top; uchar* btm; uchar temp;
     int wBytes = w * channels; int halfH = h / 2;
+
     for (int y = 0; y < halfH; y++) {
         top = data + y * wBytes;
         btm = data + (h - y - 1) * wBytes;
@@ -212,48 +208,19 @@ void TextureCube::buffer_file(const string& _path, uint _face) {
         }
     }
 
-    #ifdef SQEE_DEBUG
     if (!data) log_error("Failed to load texture from %s", path);
-    #endif
 
     buffer_memory(data, _face);
     free(data);
 }
 
 void TextureCube::buffer_full(const string& _path, uint _size) {
-    string path = res::path() + "textures/" + _path;
-    if (check_file_exists(path+".png")) path += ".png";
-    else if (check_file_exists(path+".jpg")) path += ".jpg";
-
-    int w, h;
-    uchar* data = stbi_load(path.c_str(), &w, &h, nullptr, channels);
-    uchar* top; uchar* btm; uchar temp;
-    int wBytes = w * channels; int halfH = h / 2;
-    for (int y = 0; y < halfH; y++) {
-        top = data + y * wBytes;
-        btm = data + (h - y - 1) * wBytes;
-        for (int x = 0; x < wBytes; x++) {
-            temp = *top; *top = *btm; *btm = temp;
-            top++; btm++;
-        }
-    }
-
-    #ifdef SQEE_DEBUG
-    if (!data) log_error("Failed to load texture from %s", path);
-    #endif
-
-    resize(_size);
-    buffer_memory(data + 5*size*size*channels, 0);
-    buffer_memory(data + 4*size*size*channels, 1);
-    buffer_memory(data + 3*size*size*channels, 2);
-    buffer_memory(data + 2*size*size*channels, 3);
-    buffer_memory(data + 1*size*size*channels, 4);
-    buffer_memory(data + 0*size*size*channels, 5);
-    free(data);
-}
-
-void TextureCube::viewport() {
-    gl::Viewport(0, 0, size, size);
+    buffer_file(_path+"/x+", 0);
+    buffer_file(_path+"/x-", 1);
+    buffer_file(_path+"/y+", 2);
+    buffer_file(_path+"/y-", 3);
+    buffer_file(_path+"/z+", 4);
+    buffer_file(_path+"/z-", 5);
 }
 
 const Texture::Preset& TextureCube::N_C() {
@@ -314,16 +281,10 @@ void TextureArray::buffer_file(const string& _path, uint _z) {
         }
     }
 
-    #ifdef SQEE_DEBUG
     if (!data) log_error("Failed to load texture from %s", path);
-    #endif
 
     buffer_memory(data, _z);
     free(data);
-}
-
-void TextureArray::viewport() {
-    gl::Viewport(0, 0, size.x, size.y);
 }
 
 const Texture::Preset& TextureArray::N_C() {

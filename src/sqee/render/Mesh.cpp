@@ -35,7 +35,7 @@ void Mesh::draw_ibo(uint _mtrl) const {
 }
 
 void Mesh::load_ascii(const string& _path) {
-    vector<vector<string>> fileVec(get_words_from_file(_path));
+    vector<vector<string>> fileVec = tokenise_file(_path);
 
     VertData vData;
     FaceData fData;

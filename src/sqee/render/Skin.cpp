@@ -15,7 +15,7 @@ Skin::Skin(const string& _path) {
 
 void Skin::create(const string& _path) {
     string path = res::path() + "skins/" + _path + ".sqs";
-    vector<vector<string>> fileVec(get_words_from_file(path));
+    vector<vector<string>> fileVec = tokenise_file(path);
 
     struct MtrlSpec {
         int wrapMode = -1;

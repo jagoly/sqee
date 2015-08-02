@@ -25,7 +25,6 @@ ModelSkelly::ModelSkelly(const string& _name, Cell* _cell)
 
 
 void ModelSkelly::load_from_spec(const ObjSpec& _spec) {
-   #ifdef SQEE_DEBUG
     assert_fvec3(_spec, name, "position");
     assert_fquat(_spec, name, "rotation");
     assert_fvec3(_spec, name, "scale");
@@ -34,7 +33,6 @@ void ModelSkelly::load_from_spec(const ObjSpec& _spec) {
     assert_string(_spec, name, "skin");
     assert_string(_spec, name, "pose");
     assert_string(_spec, name, "anim");
-   #endif
 
     PROP_shadow   = _spec.flagSet.count("shadow");
     PROP_render   = _spec.flagSet.count("render");

@@ -9,7 +9,8 @@ public:
     Shader(GLenum _stage);
     ~Shader();
 
-    void load(const string& _shaderStr);
+    void load(const string& _source);
+    void load(const pair<string, string>& _srcPath);
     void add_uniform(const string& _name, uint _cnt = 1u);
 
     template <class T>
@@ -36,6 +37,7 @@ private:
         Uniform(uint _cnt) : cnt(_cnt) {}
         const uint cnt; GLint ref;
     };
+
     unordered_map<string, Uniform> uniforms;
 };
 

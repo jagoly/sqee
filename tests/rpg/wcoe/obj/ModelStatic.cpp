@@ -22,13 +22,11 @@ ModelStatic::ModelStatic(const string& _name, Cell* _cell)
 }
 
 void ModelStatic::load_from_spec(const ObjSpec& _spec) {
-   #ifdef SQEE_DEBUG
     assert_fvec3  (_spec, name, "position");
     assert_fquat  (_spec, name, "rotation");
     assert_fvec3  (_spec, name, "scale");
     assert_string (_spec, name, "mesh");
     assert_string (_spec, name, "skin");
-   #endif
 
     PROP_shadow   = _spec.flagSet.count("shadow");
     PROP_render   = _spec.flagSet.count("render");

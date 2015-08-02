@@ -1,4 +1,4 @@
-// GLSL Header File
+// GLSL Uniform Block
 
 struct DecalBlock {
     mat4 matrix; // 16

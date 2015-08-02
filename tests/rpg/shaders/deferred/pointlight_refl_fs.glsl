@@ -1,5 +1,4 @@
-#version 330
-#extension GL_ARB_shading_language_420pack : enable
+// GLSL Fragment Shader
 
 // define SHADOW
 // define SHADQLTY int
@@ -7,9 +6,9 @@
 
 in vec2 texcrd;
 
-#include "builtin/blocks/camera"
-#include "headers/blocks/pointlight"
-#include "headers/blocks/reflector"
+#include builtin/blocks/camera
+#include headers/blocks/pointlight
+#include headers/blocks/reflector
 
 layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
 layout(std140, binding=1) uniform POINTLIGHTBLOCK { PointLightBlock LB; };
@@ -23,8 +22,7 @@ out vec3 fragColour;
 
 
 #ifdef SHADOW
-#include "builtin/uniform_disks"
-#include "headers/shadow/sample_point"
+#include headers/shadow/sample_point
 layout(binding=8) uniform samplerCubeShadow texShad;
 float get_shadow_value(vec3 _wpos, vec3 _wsurf) {
     vec3 cubeNorm = _wpos + _wsurf*0.05f - LB.position;

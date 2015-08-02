@@ -1,18 +1,17 @@
-#version 330
-#extension GL_ARB_shading_language_420pack : enable
+// GLSL Vertex Shader
 
 // define REFLECT
 
 layout(location=0) in vec2 V_pos;
 
-#include "builtin/blocks/camera"
-#include "headers/blocks/skybox"
+#include builtin/blocks/camera
+#include headers/blocks/skybox
 
 layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
 layout(std140, binding=1) uniform SKYBOXBLOCK { SkyBoxBlock SB; };
 
 #ifdef REFLECT
-#include "headers/blocks/reflector"
+#include headers/blocks/reflector
 layout(std140, binding=2) uniform REFLECTORBLOCK { ReflectorBlock RB; };
 #endif
 

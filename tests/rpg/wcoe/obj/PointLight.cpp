@@ -25,12 +25,10 @@ PointLight::PointLight(const string& _name, Cell* _cell)
 }
 
 void PointLight::load_from_spec(const ObjSpec& _spec) {
-   #ifdef SQEE_DEBUG
     assert_fvec3(_spec, name, "position");
     assert_fvec3(_spec, name, "colour");
     assert_float(_spec, name, "intensity");
     assert_uint(_spec, name, "texsize");
-   #endif
 
     PROP_shadow    = _spec.flagSet.count("shadow");
     PROP_specular  = _spec.flagSet.count("specular");
@@ -75,18 +73,18 @@ void PointLight::calc(double _accum) {
 void PointLight::animate() {
     fvec3 position = PROP_position + cell->DAT_position;
     fmat4 projMat = glm::perspective(glm::radians(90.f), 1.f, 0.1f, PROP_intensity);
-    matArr[0] = projMat * glm::lookAt(position, position+sq::cubeNrms[0], sq::cubeTans[0]);
-    matArr[1] = projMat * glm::lookAt(position, position+sq::cubeNrms[1], sq::cubeTans[1]);
-    matArr[2] = projMat * glm::lookAt(position, position+sq::cubeNrms[2], sq::cubeTans[2]);
-    matArr[3] = projMat * glm::lookAt(position, position+sq::cubeNrms[3], sq::cubeTans[3]);
-    matArr[4] = projMat * glm::lookAt(position, position+sq::cubeNrms[4], sq::cubeTans[4]);
-    matArr[5] = projMat * glm::lookAt(position, position+sq::cubeNrms[5], sq::cubeTans[5]);
-    frusArr[0] = sq::make_Frustum(matArr[0], position, sq::cubeNrms[0], 0.1, PROP_intensity);
-    frusArr[1] = sq::make_Frustum(matArr[1], position, sq::cubeNrms[1], 0.1, PROP_intensity);
-    frusArr[2] = sq::make_Frustum(matArr[2], position, sq::cubeNrms[2], 0.1, PROP_intensity);
-    frusArr[3] = sq::make_Frustum(matArr[3], position, sq::cubeNrms[3], 0.1, PROP_intensity);
-    frusArr[4] = sq::make_Frustum(matArr[4], position, sq::cubeNrms[4], 0.1, PROP_intensity);
-    frusArr[5] = sq::make_Frustum(matArr[5], position, sq::cubeNrms[5], 0.1, PROP_intensity);
+    matArr[0] = projMat * glm::lookAt(position, position+fvec3(+1.f, 0.f, 0.f), fvec3(0.f, -1.f, 0.f));
+    matArr[1] = projMat * glm::lookAt(position, position+fvec3(-1.f, 0.f, 0.f), fvec3(0.f, -1.f, 0.f));
+    matArr[2] = projMat * glm::lookAt(position, position+fvec3(0.f, +1.f, 0.f), fvec3(0.f, 0.f, +1.f));
+    matArr[3] = projMat * glm::lookAt(position, position+fvec3(0.f, -1.f, 0.f), fvec3(0.f, 0.f, -1.f));
+    matArr[4] = projMat * glm::lookAt(position, position+fvec3(0.f, 0.f, +1.f), fvec3(0.f, -1.f, 0.f));
+    matArr[5] = projMat * glm::lookAt(position, position+fvec3(0.f, 0.f, -1.f), fvec3(0.f, -1.f, 0.f));
+    frusArr[0] = sq::make_Frustum(matArr[0], position, fvec3(+1.f, 0.f, 0.f), 0.1f, PROP_intensity);
+    frusArr[1] = sq::make_Frustum(matArr[1], position, fvec3(-1.f, 0.f, 0.f), 0.1f, PROP_intensity);
+    frusArr[2] = sq::make_Frustum(matArr[2], position, fvec3(0.f, +1.f, 0.f), 0.1f, PROP_intensity);
+    frusArr[3] = sq::make_Frustum(matArr[3], position, fvec3(0.f, -1.f, 0.f), 0.1f, PROP_intensity);
+    frusArr[4] = sq::make_Frustum(matArr[4], position, fvec3(0.f, 0.f, +1.f), 0.1f, PROP_intensity);
+    frusArr[5] = sq::make_Frustum(matArr[5], position, fvec3(0.f, 0.f, -1.f), 0.1f, PROP_intensity);
     modelMat = glm::scale(glm::translate(fmat4(), position), fvec3(PROP_intensity*2.f));
     sphere.origin = position; sphere.radius = PROP_intensity;
 

@@ -1,4 +1,4 @@
-// GLSL Header File
+// GLSL Uniform Block
 
 struct PointLightBlock {
     vec3 position;   // 4

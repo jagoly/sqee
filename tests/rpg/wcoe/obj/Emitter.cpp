@@ -23,9 +23,7 @@ Emitter::Emitter(const string& _name, Cell* _cell)
 }
 
 void Emitter::load_from_spec(const ObjSpec& _spec) {
-   #ifdef SQEE_DEBUG
     assert_fvec3(_spec, name, "position");
-   #endif
 
     PROP_position = _spec.fvec3Map.at("position");
 }
@@ -51,7 +49,7 @@ void Emitter::emit_puff(uint _count,
 
     for (uint i = 0u; i < _count; i++) {
         float z = distZO(gen) * 2.f - 1.f;
-        float azimuth = distZO(gen) * 2.f * M_PI;
+        float azimuth = distZO(gen) * 2.f * 3.1415927f;
         float x = glm::cos(azimuth) * glm::sqrt(1.f-z*z);
         float y = glm::sin(azimuth) * glm::sqrt(1.f-z*z);
         fvec3 normal = glm::normalize(fvec3(x, y, z) + _normal);

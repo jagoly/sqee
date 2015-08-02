@@ -111,13 +111,16 @@ class Shader;
 template <class T>
 class ResHolder;
 
-enum class Direction { None, North, East, South, West };
-enum class Alignment { TL, TC, TR, CL, CC, CR, BL, BC, BR };
-enum class Grid4x4 { AA, AB, AC, AD, BA, BB, BC, BD, CA, CB, CC, CD, DA, DB, DC, DD };
 struct Plane { fvec3 normal; float offset; };
 struct Sphere { fvec3 origin; float radius; };
 struct Frustum { Sphere sphere; Plane pN, pT, pB, pL, pR; fvec3 xy, xY, Xy, XY; };
 struct BoundBox { Sphere sphere; fvec3 size, nX{1,0,0}, nY{0,1,0}, nZ{0,0,1}; };
 struct OrthoFrus { Plane pT, pB, pL, pR; };
+
+#ifdef SQEE_DEBUG
+#define SQDEBUG(code) code
+#else
+#define SQDEBUG(code)
+#endif
 
 }

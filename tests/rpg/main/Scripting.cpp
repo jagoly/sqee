@@ -38,8 +38,15 @@ void sqt::cs_setup_wcoe(chai::ChaiScript& _cs) {
 
     add_class<SkyBox>(*m, "SkyBox", {}, {
         {fun(&SkyBox::PROP_enabled), "enabled"},
-        {fun(&SkyBox::PROP_colour), "colour"},
-        {fun(&SkyBox::PROP_texPath), "texture"},
+        {fun(&SkyBox::PROP_saturation), "saturation"},
+        {fun(&SkyBox::PROP_brightness), "brightness"},
+        {fun(&SkyBox::PROP_contrast), "contrast"},
+        {fun(&SkyBox::PROP_alpha), "alpha"},
+        {fun(&SkyBox::PROP_texture), "texture"},
+        {fun(&SkyBox::ANIM_saturation), "animSaturation"},
+        {fun(&SkyBox::ANIM_brightness), "animBrightness"},
+        {fun(&SkyBox::ANIM_contrast), "animContrast"},
+        {fun(&SkyBox::ANIM_alpha), "animAlpha"},
         {fun(&SkyBox::refresh), "refresh"} });
 
     add_class<Ambient>(*m, "Ambient", {}, {
@@ -52,8 +59,10 @@ void sqt::cs_setup_wcoe(chai::ChaiScript& _cs) {
         {fun(&SkyLight::PROP_enabled), "enabled"},
         {fun(&SkyLight::PROP_direction), "direction"},
         {fun(&SkyLight::PROP_colour), "colour"},
+        {fun(&SkyLight::PROP_density), "density"},
         {fun(&SkyLight::ANIM_direction), "animDirection"},
         {fun(&SkyLight::ANIM_colour), "animColour"},
+        {fun(&SkyLight::ANIM_density), "animDensity"},
         {fun(&SkyLight::refresh), "refresh"} });
 
     add_class<World>(*m, "World", {}, {

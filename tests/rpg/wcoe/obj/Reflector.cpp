@@ -26,14 +26,12 @@ Reflector::Reflector(const string& _name, Cell* _cell)
 }
 
 void Reflector::load_from_spec(const ObjSpec& _spec) {
-   #ifdef SQEE_DEBUG
     assert_fvec3(_spec, name, "position");
     assert_fquat(_spec, name, "rotation");
     assert_fvec3(_spec, name, "scale");
     assert_float(_spec, name, "factor");
     assert_string(_spec, name, "mesh");
     assert_string(_spec, name, "skin");
-   #endif
 
     PROP_shadow   = _spec.flagSet.count("shadow");
     PROP_decals   = _spec.flagSet.count("decals");

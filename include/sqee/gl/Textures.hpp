@@ -32,7 +32,6 @@ public:
     void buffer_memory(const void* _data);
     void buffer_file(const string& _filePath);
     void gen_mipmap();
-    void viewport();
     uvec2 size;
 
     static const Preset& N_C();
@@ -54,8 +53,7 @@ public:
     void buffer_memory(const void* _data, uint _face);
     void buffer_file(const string& _filePath, uint _face);
     void buffer_full(const string& _filePath, uint _size);
-    void viewport();
-    uint size;
+    uint size = 0u;
 
     static const Preset& N_C();
     static const Preset& L_C();
@@ -68,7 +66,6 @@ public:
     void resize(uvec3 _size);
     void buffer_memory(const void* _data, uint _z);
     void buffer_file(const string& _filePath, uint _z);
-    void viewport();
     uvec3 size;
 
     static const Preset& N_C();

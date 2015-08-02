@@ -1,5 +1,4 @@
-#version 330
-#extension GL_ARB_shading_language_420pack : enable
+// GLSL Fragment Shader
 
 // define SHADOW
 // define SHADQLTY int
@@ -10,8 +9,8 @@ in vec3 w_pos, v_pos;
 in vec3 colour;
 in vec2 ptcrd;
 
-#include "builtin/blocks/camera"
-#include "headers/blocks/spotlight"
+#include builtin/blocks/camera
+#include headers/blocks/spotlight
 
 layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
 layout(std140, binding=1) uniform SPOTLIGHTBLOCK { SpotLightBlock LB; };
@@ -19,8 +18,7 @@ layout(std140, binding=1) uniform SPOTLIGHTBLOCK { SpotLightBlock LB; };
 layout(location=0) out vec3 fragColour;
 
 
-#include "builtin/uniform_disks"
-#include "headers/shadow/sample_spot"
+#include headers/shadow/sample_spot
 layout(binding=8) uniform sampler2DShadow texShad;
 float get_shadow_value(vec3 _wpos) {
     vec4 sc = LB.matrix * vec4(_wpos, 1.f);

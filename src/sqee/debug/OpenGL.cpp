@@ -1,14 +1,11 @@
-#pragma once
-#include <sqee/forward.hpp>
-
-#include <iostream>
-
 #include <sqee/redist/gl_ext_3_3.hpp>
+#include <sqee/debug/OpenGL.hpp>
+#include <sqee/app/Logging.hpp>
 
-namespace sq {
+using namespace sq;
 
-void APIENTRY debug_callback(GLenum _source, GLenum _type, GLuint _id, GLenum _severity,
-                             GLsizei /*_length*/, const GLchar* _message, const void* /*_param*/) {
+void sq::debug_callback(GLenum _source, GLenum _type, GLuint _id, GLenum _severity,
+                        GLsizei _length, const GLchar* _message, const void* _param) {
     string source;
     if (_source == gl::DEBUG_SOURCE_API)
         source = "API";
@@ -53,19 +50,15 @@ void APIENTRY debug_callback(GLenum _source, GLenum _type, GLuint _id, GLenum _s
     if (_severity == gl::DEBUG_SEVERITY_NOTIFICATION)
         severity = "NOTIFICATION";
 
-    std::cout << "\nSource: " << source
-              << " | Severity: " << severity
-              << " | Type: " << type
-              << " | ID: " << _id
-              << "\nMessage: " << _message
-              << std::endl;
+    tfm::format(std::cout, "%s OpenGL: Source %s | Severity %s | Type %s | ID %s\n%s",
+                get_time_str(), source, severity, type, _id, _message);
+    std::cout << std::endl;
 
     return;
 }
 
-void debug_message(const string& _message) {
+
+void sq::debug_message(const string& _message) {
     gl::DebugMessageInsert(gl::DEBUG_SOURCE_APPLICATION, gl::DEBUG_TYPE_MARKER, 0,
                            gl::DEBUG_SEVERITY_NOTIFICATION, _message.size(), _message.c_str());
-}
-
 }

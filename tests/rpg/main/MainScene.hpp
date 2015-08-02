@@ -24,7 +24,6 @@ private:
     unique_ptr<wcoe::World> world;
     unique_ptr<rndr::Graph> graph;
 
-    sq::Direction moveDir;
     fvec3 posCrnt, posNext;
     float rotX, rotZ;
 
@@ -45,6 +44,7 @@ private:
         unique_ptr<sq::Shader> defr_reflectors;
         unique_ptr<sq::Shader> part_vertex_soft;
         unique_ptr<sq::Shader> part_geometry_soft;
+        unique_ptr<sq::Shader> prty_shafts_shafts;
     } VS;
 
     struct {
@@ -81,6 +81,8 @@ private:
         unique_ptr<sq::Shader> part_point_none_soft;
         unique_ptr<sq::Shader> part_point_shad_soft;
         unique_ptr<sq::Shader> part_writefinal_soft;
+        unique_ptr<sq::Shader> prty_shafts_shafts;
+        unique_ptr<sq::Shader> prty_shafts_write;
         unique_ptr<sq::Shader> prty_ssao_ssao;
         unique_ptr<sq::Shader> prty_ssao_blur;
         unique_ptr<sq::Shader> prty_hdr_highs;
@@ -98,6 +100,7 @@ private:
         unique_ptr<sq::Texture2D> pshadB;
         unique_ptr<sq::Texture2D> bloomA;
         unique_ptr<sq::Texture2D> bloomB;
+        unique_ptr<sq::Texture2D> shafts;
         unique_ptr<sq::Texture2D> baseDiff;
         unique_ptr<sq::Texture2D> baseSurf;
         unique_ptr<sq::Texture2D> baseNorm;
@@ -108,6 +111,8 @@ private:
         unique_ptr<sq::Texture2D> reflDpSt;
         unique_ptr<sq::Texture2D> partMain;
         unique_ptr<sq::Texture2D> partDpSt;
+        unique_ptr<sq::Texture2D> depHalf;
+        unique_ptr<sq::Texture2D> depQter;
         unique_ptr<sq::Texture2D> hdrBase;
         unique_ptr<sq::Texture2D> hdrRefl;
         unique_ptr<sq::Texture2D> hdrPart;
@@ -121,9 +126,12 @@ private:
         unique_ptr<sq::FrameBuffer> pshadB;
         unique_ptr<sq::FrameBuffer> bloomA;
         unique_ptr<sq::FrameBuffer> bloomB;
+        unique_ptr<sq::FrameBuffer> shafts;
         unique_ptr<sq::FrameBuffer> defrBase;
         unique_ptr<sq::FrameBuffer> defrRefl;
         unique_ptr<sq::FrameBuffer> defrPart;
+        unique_ptr<sq::FrameBuffer> depHalf;
+        unique_ptr<sq::FrameBuffer> depQter;
         unique_ptr<sq::FrameBuffer> hdrBase;
         unique_ptr<sq::FrameBuffer> hdrRefl;
         unique_ptr<sq::FrameBuffer> hdrPart;
@@ -134,6 +142,7 @@ private:
         float viewDist;
         bool ssaoEnable;
         bool hdrbEnable;
+        bool shftEnable;
         bool fxaaEnable;
         bool vgntEnable;
         uint shadMult;

@@ -4,45 +4,69 @@
 
 using namespace sq;
 
+extern "C" const char data_funcs_random[];
+extern "C" const char data_funcs_colours[];
+extern "C" const char data_disks_uniform[];
 extern "C" const char data_blocks_camera[];
-extern "C" const char data_uniform_disks[];
+
+const string shader_prelude =
+"#version 330 core\n"
+"#extension GL_ARB_shading_language_420pack : require\n"
+"#extension GL_ARB_gpu_shader5 : require\n"
+"#line 0\n";
 
 PreProcessor::PreProcessor() {
+    headerMap.emplace("builtin/funcs/random", data_funcs_random);
+    headerMap.emplace("builtin/funcs/colours", data_funcs_colours);
+    headerMap.emplace("builtin/disks/uniform", data_disks_uniform);
     headerMap.emplace("builtin/blocks/camera", data_blocks_camera);
-    headerMap.emplace("builtin/uniform_disks", data_uniform_disks);
 }
 
 void PreProcessor::import_header(const string& _path) {
-   #ifdef SQEE_DEBUG
-    log_info("Importing shader from %s", _path);
-   #endif
     headerMap.emplace(_path, get_string_from_file("shaders/"+_path+".glsl"));
 }
 
-string PreProcessor::load(const string& _path, const string& _extra) {
-   #ifdef SQEE_DEBUG
-    log_info("Preprocessing shader from %s", _path);
-   #endif
+pair<string, string> PreProcessor::load(const string& _path, const string& _extra) {
+    string path = "shaders/" + _path + ".glsl";
+    string fileStr = get_string_from_file(path);
+    vector<string> lineVec = tokenise_string(fileStr, '\n');
+    list<string> lines(lineVec.begin(), lineVec.end());
+    string retStr = shader_prelude + _extra;
 
-    string retStr = get_string_from_file("shaders/"+_path+".glsl");
+    uint lineNum = 1u; uint tokenNum = 0u;
+    for (auto it = lines.begin(); it != lines.end(); ++it) {
+        vector<string> tokens = tokenise_string(*it, ' ');
+        if (tokens.empty() == false) {
+            if (tokens[0] == "#version") {
+                log_error("Failed to process shader from %s\nline %d: "
+                          "#version is added automatically", path, lineNum);
+                return pair<string, string>("", path); }
+            if (tokens[0] == "#extension") {
+                log_error("Failed to process shader from %s\nline %d: "
+                          "#extensions are added automatically", path, lineNum);
+                return pair<string, string>("", path); }
+            if (tokens[0] == "#include") {
+                if (tokens.size() != 2u) {
+                    log_error("Failed to process shader from %s\nline %d: "
+                              "#include does not support spaces", path, lineNum);
+                    return pair<string, string>("", path); }
+                if (headerMap.count(tokens[1]) == 0u) {
+                    log_error("Failed to process shader from %s\nline %d: "
+                              "\"%s\" has not been imported", path, lineNum, tokens[1]);
+                    return pair<string, string>("", path); }
+                const string& header = headerMap.at(tokens[1]);
+                vector<string> hTokens = tokenise_string(header, '\n');
+                hTokens.emplace_back(tfm::format("#line %d", lineNum));
+                list<string>::iterator itB = it; std::advance(it, 1);
+                lines.insert(it, hTokens.begin(), hTokens.end());
+                it = lines.erase(std::prev(itB));
+                tokenNum += hTokens.size();
+            } else retStr += *it + '\n';
+        } else retStr += '\n';
 
-    auto lineStart = retStr.find("#version");
-    lineStart = retStr.find('\n', lineStart) + 1;
-
-    retStr.insert(lineStart, _extra+'\n');
-    lineStart += _extra.size() + 1;
-
-    while (true) {
-        lineStart = retStr.find("#include");
-        if (lineStart == string::npos) break;
-
-        auto q1 = retStr.find('\"', lineStart) + 1;
-        auto q2 = retStr.find('\"', q1) - q1;
-        string incName = retStr.substr(q1, q2);
-
-        retStr.erase(lineStart, q1 - lineStart + q2 + 1);
-        retStr.insert(lineStart, headerMap.at(incName));
+        if (tokenNum == 0u) lineNum += 1u;
+        else tokenNum -= 1u;
     }
 
-    return retStr;
+    return pair<string, string>(retStr, path);
 }
