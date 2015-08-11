@@ -1,9 +1,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <sqee/redist/gl_ext_3_3.hpp>
+#include <sqee/redist/gl_ext_4_1.hpp>
 #include <sqee/app/Logging.hpp>
 #include <sqee/app/Application.hpp>
-#include <sqee/app/SettingsMaps.hpp>
+#include <sqee/app/Settings.hpp>
 #include <sqee/app/PreProcessor.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
 #include <sqee/gl/Textures.hpp>

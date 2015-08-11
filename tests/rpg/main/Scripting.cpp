@@ -1,18 +1,19 @@
 #include <chaiscript/utility/utility.hpp>
 
-#include "../rndr/Graph.hpp"
-#include "../wcoe/World.hpp"
 #include "../wcoe/Cell.hpp"
-#include "../wcoe/obj/RigBodyBasic.hpp"
-#include "../wcoe/obj/RigBodyMulti.hpp"
-#include "../wcoe/obj/ModelStatic.hpp"
-#include "../wcoe/obj/ModelSkelly.hpp"
-#include "../wcoe/obj/PointLight.hpp"
-#include "../wcoe/obj/SpotLight.hpp"
-#include "../wcoe/obj/Reflector.hpp"
-#include "../wcoe/obj/Emitter.hpp"
-#include "../wcoe/obj/Liquid.hpp"
-#include "../wcoe/obj/Decal.hpp"
+#include "../wcoe/World.hpp"
+#include "../wcoe/objects/MetaObject.hpp"
+#include "../wcoe/objects/RigBodyBasic.hpp"
+#include "../wcoe/objects/RigBodyMulti.hpp"
+#include "../wcoe/objects/ModelStatic.hpp"
+#include "../wcoe/objects/ModelSkelly.hpp"
+#include "../wcoe/objects/PointLight.hpp"
+#include "../wcoe/objects/SpotLight.hpp"
+#include "../wcoe/objects/Reflector.hpp"
+#include "../wcoe/objects/Emitter.hpp"
+#include "../wcoe/objects/Liquid.hpp"
+#include "../wcoe/objects/Decal.hpp"
+#include "../rndr/Graph.hpp"
 #include "Scripting.hpp"
 
 using namespace sqt;
@@ -37,77 +38,80 @@ void sqt::cs_setup_wcoe(chai::ChaiScript& _cs) {
     chai::ModulePtr m(new chai::Module());
 
     add_class<SkyBox>(*m, "SkyBox", {}, {
-        {fun(&SkyBox::PROP_enabled), "enabled"},
+        {fun(&SkyBox::PROP_enabled),    "enabled"},
         {fun(&SkyBox::PROP_saturation), "saturation"},
         {fun(&SkyBox::PROP_brightness), "brightness"},
-        {fun(&SkyBox::PROP_contrast), "contrast"},
-        {fun(&SkyBox::PROP_alpha), "alpha"},
-        {fun(&SkyBox::PROP_texture), "texture"},
+        {fun(&SkyBox::PROP_contrast),   "contrast"},
+        {fun(&SkyBox::PROP_alpha),      "alpha"},
+        {fun(&SkyBox::PROP_texture),    "texture"},
         {fun(&SkyBox::ANIM_saturation), "animSaturation"},
         {fun(&SkyBox::ANIM_brightness), "animBrightness"},
-        {fun(&SkyBox::ANIM_contrast), "animContrast"},
-        {fun(&SkyBox::ANIM_alpha), "animAlpha"},
-        {fun(&SkyBox::refresh), "refresh"} });
+        {fun(&SkyBox::ANIM_contrast),   "animContrast"},
+        {fun(&SkyBox::ANIM_alpha),      "animAlpha"},
+        {fun(&SkyBox::refresh),         "refresh"} });
 
     add_class<Ambient>(*m, "Ambient", {}, {
         {fun(&Ambient::PROP_enabled), "enabled"},
-        {fun(&Ambient::PROP_colour), "colour"},
-        {fun(&Ambient::ANIM_colour), "animColour"},
-        {fun(&Ambient::refresh), "refresh"} });
+        {fun(&Ambient::PROP_colour),  "colour"},
+        {fun(&Ambient::ANIM_colour),  "animColour"},
+        {fun(&Ambient::refresh),      "refresh"} });
 
     add_class<SkyLight>(*m, "SkyLight", {}, {
-        {fun(&SkyLight::PROP_enabled), "enabled"},
+        {fun(&SkyLight::PROP_enabled),   "enabled"},
         {fun(&SkyLight::PROP_direction), "direction"},
-        {fun(&SkyLight::PROP_colour), "colour"},
-        {fun(&SkyLight::PROP_density), "density"},
+        {fun(&SkyLight::PROP_colour),    "colour"},
+        {fun(&SkyLight::PROP_density),   "density"},
         {fun(&SkyLight::ANIM_direction), "animDirection"},
-        {fun(&SkyLight::ANIM_colour), "animColour"},
-        {fun(&SkyLight::ANIM_density), "animDensity"},
-        {fun(&SkyLight::refresh), "refresh"} });
+        {fun(&SkyLight::ANIM_colour),    "animColour"},
+        {fun(&SkyLight::ANIM_density),   "animDensity"},
+        {fun(&SkyLight::refresh),        "refresh"} });
 
     add_class<World>(*m, "World", {}, {
-        {fun(&World::skybox), "skybox"},
-        {fun(&World::ambient), "ambient"},
-        {fun(&World::skylight), "skylight"},
-        {fun(&World::add_cell), "add_cell"},
-        {fun(&World::get_cell), "get_cell"},
+        {fun(&World::skybox),      "skybox"},
+        {fun(&World::ambient),     "ambient"},
+        {fun(&World::skylight),    "skylight"},
+        {fun(&World::add_cell),    "add_cell"},
+        {fun(&World::get_cell),    "get_cell"},
         {fun(&World::reload_list), "reload_list"},
-        {fun(&World::refresh), "refresh"} });
+        {fun(&World::invalidate),  "invalidate"},
+        {fun(&World::refresh),     "refresh"} });
 
     add_class<AnimatorFloat>(*m, "AnimatorFloat", {}, {
        {fun(&AnimatorFloat::values), "values"},
-       {fun(&AnimatorFloat::times), "times"},
-       {fun(&AnimatorFloat::start), "start"} });
+       {fun(&AnimatorFloat::times),  "times"},
+       {fun(&AnimatorFloat::start),  "start"} });
 
     add_class<AnimatorFVec2>(*m, "AnimatorFVec2", {}, {
        {fun(&AnimatorFVec2::values), "values"},
-       {fun(&AnimatorFVec2::times), "times"},
-       {fun(&AnimatorFVec2::start), "start"} });
+       {fun(&AnimatorFVec2::times),  "times"},
+       {fun(&AnimatorFVec2::start),  "start"} });
 
     add_class<AnimatorFVec3>(*m, "AnimatorFVec3", {}, {
        {fun(&AnimatorFVec3::values), "values"},
-       {fun(&AnimatorFVec3::times), "times"},
-       {fun(&AnimatorFVec3::start), "start"} });
+       {fun(&AnimatorFVec3::times),  "times"},
+       {fun(&AnimatorFVec3::start),  "start"} });
 
     add_class<AnimatorFVec4>(*m, "AnimatorFVec4", {}, {
        {fun(&AnimatorFVec4::values), "values"},
-       {fun(&AnimatorFVec4::times), "times"},
-       {fun(&AnimatorFVec4::start), "start"} });
+       {fun(&AnimatorFVec4::times),  "times"},
+       {fun(&AnimatorFVec4::start),  "start"} });
 
     add_class<AnimatorFNorm>(*m, "AnimatorFNorm", {}, {
        {fun(&AnimatorFNorm::values), "values"},
-       {fun(&AnimatorFNorm::times), "times"},
-       {fun(&AnimatorFNorm::start), "start"} });
+       {fun(&AnimatorFNorm::times),  "times"},
+       {fun(&AnimatorFNorm::start),  "start"} });
 
     add_class<AnimatorFQuat>(*m, "AnimatorFQuat", {}, {
        {fun(&AnimatorFQuat::values), "values"},
-       {fun(&AnimatorFQuat::times), "times"},
-       {fun(&AnimatorFQuat::start), "start"} });
+       {fun(&AnimatorFQuat::times),  "times"},
+       {fun(&AnimatorFQuat::start),  "start"} });
 
     add_class<Object>(*m, "Object", {}, {
-       {fun(&Object::name), "name"},
-       {fun(&Object::cell), "cell"},
-       {fun(&Object::refresh), "refresh"} });
+       {fun(&Object::name),       "name"},
+       {fun(&Object::cell),       "cell"},
+       {fun(&Object::extra),      "extra"},
+       {fun(&Object::refresh),    "refresh"},
+       {fun(&Object::invalidate), "invalidate"} });
 
     add_class<RigBodyBasic>(*m, "RigBodyBasic", {}, {
        {fun(&RigBodyBasic::PROP_scale),           "scale"},
@@ -202,10 +206,15 @@ void sqt::cs_setup_wcoe(chai::ChaiScript& _cs) {
        {fun(&Decal::ANIM_scale),    "animScale"},
        {fun(&Decal::ANIM_alpha),    "animAlpha"} });
 
+    add_class<MetaObject>(*m, "MetaObject", {}, {
+        });
+
     add_class<Cell>(*m, "Cell", {}, {
         {fun(&Cell::DAT_enabled), "enabled"},
         {fun(&Cell::DAT_position), "position"},
         {fun(&Cell::load_from_file), "load_from_file"},
+        {fun(&Cell::add_object<MetaObject>),   "add_MetaObject"},
+        {fun(&Cell::get_object<MetaObject>),   "get_MetaObject"},
         {fun(&Cell::add_object<RigBodyBasic>), "add_RigBodyBasic"},
         {fun(&Cell::get_object<RigBodyBasic>), "get_RigBodyBasic"},
         {fun(&Cell::add_object<RigBodyMulti>), "add_RigBodyMulti"},
@@ -226,8 +235,10 @@ void sqt::cs_setup_wcoe(chai::ChaiScript& _cs) {
         {fun(&Cell::get_object<Liquid>),       "get_Liquid"},
         {fun(&Cell::add_object<Decal>),        "add_Decal"},
         {fun(&Cell::get_object<Decal>),        "get_Decal"},
+        {fun(&Cell::invalidate), "invalidate"},
         {fun(&Cell::refresh), "refresh"} });
 
+    m->add(base_class<Object, MetaObject>());
     m->add(base_class<Object, RigBodyBasic>());
     m->add(base_class<Object, RigBodyMulti>());
     m->add(base_class<Object, ModelStatic>());

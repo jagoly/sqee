@@ -16,8 +16,8 @@ out float fragColour;
 
 
 #ifdef HIGH
-const float distThres = 0.7f;
-const float filterSize = 140.f;
+const float distThres = 1.5f;
+const float filterSize = 300.f;
 const int diskSize = 36;
 const vec2 disk[36] = {
 vec2(0.000000, 0.027778),
@@ -58,8 +58,8 @@ vec2(-0.332520, -0.913590),
 vec2(0.984808, -0.173648),
 };
 #else
-const float distThres = 0.4f;
-const float filterSize = 60.f;
+const float distThres = 0.5f;
+const float filterSize = 100.f;
 const int diskSize = 18;
 const vec2 disk[18] = {
 vec2(0.000000, 0.055556),
@@ -95,8 +95,10 @@ float rand(vec2 _crd){
 }
 
 void main() {
+    const float scale = 16.f / 9.f / (PIXSIZE.y / PIXSIZE.x) / PIXSIZE.y / 720.f;
+
     vec3 pos = get_view_pos(texcrd);
-    vec2 fsvspz = filterSize * PIXSIZE / pos.z;
+    vec2 fsvspz = scale * filterSize * PIXSIZE / pos.z;
     vec3 v_surf = normalize(texture(defrSurf, texcrd).rgb * 2.f - 1.f);
 
     float angle = rand(texcrd - CB.dir.xy);
@@ -115,5 +117,5 @@ void main() {
         ambiOcc += a * b;
     }
 
-    fragColour = 1.f - ambiOcc / float(diskSize);
+    fragColour = 1.f - ambiOcc / float(diskSize) * 0.8f;
 }

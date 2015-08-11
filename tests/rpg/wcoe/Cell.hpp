@@ -11,6 +11,7 @@ public:
     Cell(const string& _name, World* _world);
     void refresh(); void tick();
     void calc(double _accum);
+    void invalidate();
 
     const string name;
     World* const world;

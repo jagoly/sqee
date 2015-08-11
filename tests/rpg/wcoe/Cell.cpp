@@ -1,17 +1,18 @@
-#include <sqee/redist/gl_ext_3_3.hpp>
+#include <sqee/redist/gl_ext_4_1.hpp>
 #include <sqee/misc/ResHolder.hpp>
 #include <sqee/misc/Files.hpp>
 
-#include "obj/RigBodyBasic.hpp"
-#include "obj/RigBodyMulti.hpp"
-#include "obj/ModelStatic.hpp"
-#include "obj/ModelSkelly.hpp"
-#include "obj/PointLight.hpp"
-#include "obj/SpotLight.hpp"
-#include "obj/Reflector.hpp"
-#include "obj/Emitter.hpp"
-#include "obj/Liquid.hpp"
-#include "obj/Decal.hpp"
+#include "objects/MetaObject.hpp"
+#include "objects/RigBodyBasic.hpp"
+#include "objects/RigBodyMulti.hpp"
+#include "objects/ModelStatic.hpp"
+#include "objects/ModelSkelly.hpp"
+#include "objects/PointLight.hpp"
+#include "objects/SpotLight.hpp"
+#include "objects/Reflector.hpp"
+#include "objects/Emitter.hpp"
+#include "objects/Liquid.hpp"
+#include "objects/Decal.hpp"
 #include "Cell.hpp"
 
 using namespace sqt::wcoe;
@@ -34,7 +35,8 @@ void Cell::load_from_file(const string& _path) {
 
         else if (section == "objects") {
             if (key == "object") {
-                if      (line[1] == "rigbodybasic")  add_object<RigBodyBasic>(line[2]);
+                if      (line[1] == "metaobject")    add_object<MetaObject>(line[2]);
+                else if (line[1] == "rigbodybasic")  add_object<RigBodyBasic>(line[2]);
                 else if (line[1] == "rigbodymulti")  add_object<RigBodyMulti>(line[2]);
                 else if (line[1] == "modelstatic")   add_object<ModelStatic>(line[2]);
                 else if (line[1] == "modelskelly")   add_object<ModelSkelly>(line[2]);
@@ -65,4 +67,8 @@ void Cell::tick() {
 
 void Cell::calc(double _accum) {
     for (auto& so : objectMap) so.second->calc(_accum);
+}
+
+void Cell::invalidate() {
+    for (auto& so : objectMap) so.second->invalidate();
 }

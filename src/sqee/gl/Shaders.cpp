@@ -1,6 +1,6 @@
 #include <glm/gtc/type_ptr.hpp>
 
-#include <sqee/redist/gl_ext_3_3.hpp>
+#include <sqee/redist/gl_ext_4_1.hpp>
 #include <sqee/app/Logging.hpp>
 #include <sqee/gl/Shaders.hpp>
 

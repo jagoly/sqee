@@ -60,8 +60,9 @@ set(EMBDIR "${PROJECT_SOURCE_DIR}/embed")
 set(SOURCES
 # 3rd Party Source
     "${INCDIR}/redist/lmccop.hpp"
+    "${INCDIR}/redist/nanoflann.hpp"
     "${INCDIR}/redist/tinyformat.hpp"
-    "${INCDIR}/redist/gl_ext_3_3.hpp"       "${SRCDIR}/redist/gl_ext_3_3.cpp"
+    "${INCDIR}/redist/gl_ext_4_1.hpp"       "${SRCDIR}/redist/gl_ext_4_1.cpp"
     "${INCDIR}/redist/stb_image.hpp"        "${SRCDIR}/redist/stb_image.cpp"
 
 # SQEE Source
@@ -78,8 +79,8 @@ set(SOURCES
     "${INCDIR}/scripts/ConsoleHandler.hpp"  "${SRCDIR}/scripts/ConsoleHandler.cpp"
     "${INCDIR}/scripts/Intergration.hpp"    "${SRCDIR}/scripts/Intergration.cpp"
     "${INCDIR}/app/Logging.hpp"             "${SRCDIR}/app/Logging.cpp"
+    "${INCDIR}/app/Settings.hpp"            "${SRCDIR}/app/Settings.cpp"
     "${INCDIR}/app/Application.hpp"         "${SRCDIR}/app/Application.cpp"
-    "${INCDIR}/app/SettingsMaps.hpp"        "${SRCDIR}/app/SettingsMaps.cpp"
     "${INCDIR}/app/PreProcessor.hpp"        "${SRCDIR}/app/PreProcessor.cpp"
     "${INCDIR}/handlers/Handler.hpp"        "${SRCDIR}/handlers/Handler.cpp"
     "${INCDIR}/handlers/Basics.hpp"         "${SRCDIR}/handlers/Basics.cpp"

@@ -22,8 +22,8 @@ const float NUM_SAMPLES = 250.f;
 const float MIN_STEP = 0.025f;
 const float MAX_STEP = 0.25f;
 #else
-const float NUM_SAMPLES = 140.f;
-const float MIN_STEP = 0.044f;
+const float NUM_SAMPLES = 150.f;
+const float MIN_STEP = 0.04f;
 const float MAX_STEP = 0.4f;
 #endif
 
@@ -67,11 +67,11 @@ void main() {
 
     for (float dist = depDist; dist > stepSize; dist -= stepSize) {
         vec3 sampPos = CB.pos + dist * wRay;
-        float shadow = get_shadow_value(dist, sampPos) * 0.25f;
-        float value = shadow * stepSize * (1.f - exp(-dist) * 0.25f * LB.density);
-        lit += value * LB.density; if (lit > LB.density) break;
+        float shadow = get_shadow_value(dist, sampPos) * 0.33f;
+        float value = shadow * stepSize * (1.f - exp(-dist) * 0.33f * LB.density);
+        lit += (1.005f - sqrt(lit)) * value * LB.density;
+        if (lit > LB.density) break;
     }
 
-    lit = min(lit, LB.density);
-    fragColour = lit * get_fade_value();
+    fragColour = min(lit, LB.density);
 }

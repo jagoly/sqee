@@ -1,8 +1,8 @@
-#include <sqee/redist/gl_ext_3_3.hpp>
+#include <sqee/redist/gl_ext_4_1.hpp>
 #include <sqee/debug/OpenGL.hpp>
 #include <sqee/app/Logging.hpp>
 #include <sqee/app/Application.hpp>
-#include <sqee/app/SettingsMaps.hpp>
+#include <sqee/app/Settings.hpp>
 #include <sqee/app/PreProcessor.hpp>
 #include <sqee/sounds/SoundManager.hpp>
 #include <sqee/scripts/Intergration.hpp>
@@ -14,8 +14,8 @@ Application::~Application() = default;
 Application::Application() {
     context.depthBits = 24u,
     context.stencilBits = 8u,
-    context.majorVersion = 3u,
-    context.minorVersion = 3u,
+    context.majorVersion = 4u,
+    context.minorVersion = 1u,
     context.antialiasingLevel = 0u;
     context.attributeFlags = sf::ContextSettings::Core;
     gl::sys::LoadFunctions();
@@ -35,7 +35,7 @@ Application::Application() {
     gl::DebugMessageCallback(debug_callback, nullptr);
     #endif
 
-    settings.reset(new SettingsMaps());
+    settings.reset(new Settings());
     preprocs.reset(new PreProcessor());
     soundman.reset(new SoundManager());
 
@@ -51,7 +51,9 @@ Application::Application() {
     settings->add<string>("apptitle", "SQEE Application");
 
     cs.reset(make_ChaiScript());
+
     cs_setup_maths(*cs);
+    cs_setup_stdtypes(*cs);
     cs_setup_application(*cs);
     cs_setup_settings(*cs);
     cs_setup_console(*cs);
@@ -84,7 +86,7 @@ int Application::run() {
 
         soundman->clean();
 
-        static sf::Event event;
+        sf::Event event;
         while (window.pollEvent(event))
             for (auto& handler : handlerDeq)
                 if (handler->handle(event)) break;
@@ -115,16 +117,16 @@ void Application::quit(int _code) {
 }
 
 void Application::update() {
-    int framelimit = settings->crnt<int>("framelimit");
-    bool keyrepeat = settings->crnt<bool>("keyrepeat");
-    bool resizable = settings->crnt<bool>("resizable");
-    bool fullscreen = settings->crnt<bool>("fullscreen");
-    bool hidecursor = settings->crnt<bool>("hidecursor");
-    uint winwidth = settings->crnt<int>("winwidth");
-    uint winheight = settings->crnt<int>("winheight");
-    uint fullwidth = settings->crnt<int>("fullwidth");
-    uint fullheight = settings->crnt<int>("fullheight");
-    string apptitle = settings->crnt<string>("apptitle");
+    int framelimit = settings->get<int>("framelimit");
+    bool keyrepeat = settings->get<bool>("keyrepeat");
+    bool resizable = settings->get<bool>("resizable");
+    bool fullscreen = settings->get<bool>("fullscreen");
+    bool hidecursor = settings->get<bool>("hidecursor");
+    uint winwidth = settings->get<int>("winwidth");
+    uint winheight = settings->get<int>("winheight");
+    uint fullwidth = settings->get<int>("fullwidth");
+    uint fullheight = settings->get<int>("fullheight");
+    string apptitle = settings->get<string>("apptitle");
 
 //    if (fullscreen == true) {
 //        sf::Uint32 wStyle = sf::Style::Fullscreen;
@@ -149,8 +151,8 @@ void Application::update() {
 }
 
 uvec2 Application::get_size() {
-    uint width = settings->crnt<int>("winwidth");
-    uint height = settings->crnt<int>("winheight");
+    uint width = settings->get<int>("winwidth");
+    uint height = settings->get<int>("winheight");
     return uvec2(width, height);
 }
 

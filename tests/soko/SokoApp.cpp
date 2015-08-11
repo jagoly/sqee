@@ -2,7 +2,7 @@
 #include <sqee/handlers/Basics.hpp>
 #include <sqee/scripts/ConsoleScene.hpp>
 #include <sqee/scripts/ConsoleHandler.hpp>
-#include <sqee/app/SettingsMaps.hpp>
+#include <sqee/app/Settings.hpp>
 
 #include "Game.hpp"
 #include "Title.hpp"

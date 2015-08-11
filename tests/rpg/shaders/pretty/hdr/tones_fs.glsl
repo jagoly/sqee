@@ -1,12 +1,12 @@
 // GLSL Fragment Shader
 
-// define HDRB
+// define BLOOM
 
 in vec2 texcrd;
 
 layout(binding=0) uniform sampler2D texMain;
 
-#ifdef HDRB
+#ifdef BLOOM
 layout(binding=1) uniform sampler2D texBloom;
 #endif
 
@@ -24,7 +24,7 @@ void main() {
     vec3 value = tone_map(texel.rgb) / tone_map(vec3(1.f / sqrt(texel.a)));
     value = texel.rgb;
 
-    #ifdef HDRB
+    #ifdef BLOOM
     value += texture(texBloom, texcrd).rgb;
     #endif
 

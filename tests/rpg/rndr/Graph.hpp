@@ -22,39 +22,64 @@ using EmitterList     = std::list<weak_ptr<wcoe::Emitter>>;
 using LiquidList      = std::list<weak_ptr<wcoe::Liquid>>;
 using DecalList       = std::list<weak_ptr<wcoe::Decal>>;
 
+class IrrVolume : NonCopyable {
+public:
+
+};
+
+class IrrVolTree : NonCopyable {
+public:
+    IrrVolTree();
+    array<array<IrrVolume, 16>, 9> tree;
+
+    unique_ptr<sq::TextureCubeArray> texDiff;
+    unique_ptr<sq::TextureCubeArray> texSurf;
+    unique_ptr<sq::TextureCubeArray> texDepth;
+    unique_ptr<sq::TextureCubeArray> texHdr;
+    unique_ptr<sq::TextureCubeArray> texFinal;
+};
+
 class Graph : NonCopyable {
 public:
-    Graph(sq::Camera* _camera, sq::SettingsMaps* _settings); // A
+    Graph(sq::Camera* _camera, sq::Settings* _settings);
 
-    void update();          // A
-    void reload_lists();    // A
-    void update_settings(); // A
+    // A //////
+    void update();
+    void reload_lists();
+    void update_settings();
+    void refresh_IrrVolTree();
 
-    void render_shadows_sky_A(); // B
-    void render_shadows_sky_B(); // B
-    void render_shadows_spot();  // B
-    void render_shadows_point(); // B
-    void render_mstatics_base(bool _decals); // C
-    void render_mstatics_refl(bool _decals); // C
-    void render_mskellys_base(bool _decals); // C
-    void render_mskellys_refl(bool _decals); // C
-    void render_reflects_base(bool _decals); // C
-    void render_reflects_refl(bool _decals); // C
-    void render_decals_base();   // C
-    void render_decals_refl();   // C
+    // B //////
+    void render_shadows_sky_main();
+    void render_shadows_sky_box();
+    void render_shadows_spot();
+    void render_shadows_point();
 
-    void render_skybox_base();      // D
-    void render_skybox_refl();      // D
-    void render_ambient_base();     // D
-    void render_ambient_refl();     // D
-    void render_skylight_base();    // D
-    void render_skylight_refl();    // D
-    void render_spotlights_base();  // D
-    void render_spotlights_refl();  // D
-    void render_pointlights_base(); // D
-    void render_pointlights_refl(); // D
-    void render_reflections();      // E
-    void render_particles();        // E
+    // C //////
+    void render_mstatics_base(bool _decals);
+    void render_mstatics_refl(bool _decals);
+    void render_mskellys_base(bool _decals);
+    void render_mskellys_refl(bool _decals);
+    void render_reflects_base(bool _decals);
+    void render_reflects_refl(bool _decals);
+    void render_decals_base();
+    void render_decals_refl();
+
+    // D //////
+    void render_skybox_base();
+    void render_skybox_refl();
+    void render_ambient_base();
+    void render_ambient_refl();
+    void render_skylight_base();
+    void render_skylight_refl();
+    void render_spotlights_base();
+    void render_spotlights_refl();
+    void render_pointlights_base();
+    void render_pointlights_refl();
+
+    // E //////
+    void render_reflections();
+    void render_particles();
 
     wcoe::World* world = nullptr;
     ModelStaticList modelStaticList;
@@ -68,82 +93,81 @@ public:
 
     struct {
         sq::Shader* gnrc_screen = nullptr;
-        sq::Shader* gbuf_stencil_base = nullptr;
-        sq::Shader* gbuf_stencil_refl = nullptr;
-        sq::Shader* gbuf_statics_base = nullptr;
-        sq::Shader* gbuf_statics_refl = nullptr;
-        sq::Shader* gbuf_skellys_base = nullptr;
-        sq::Shader* gbuf_skellys_refl = nullptr;
-        sq::Shader* gbuf_decals_base = nullptr;
-        sq::Shader* gbuf_decals_refl = nullptr;
+        sq::Shader* gbuf_base_stencil = nullptr;
+        sq::Shader* gbuf_base_static = nullptr;
+        sq::Shader* gbuf_base_skelly = nullptr;
+        sq::Shader* gbuf_base_decal = nullptr;
+        sq::Shader* gbuf_refl_stencil = nullptr;
+        sq::Shader* gbuf_refl_static = nullptr;
+        sq::Shader* gbuf_refl_skelly = nullptr;
+        sq::Shader* gbuf_refl_decal = nullptr;
         sq::Shader* shad_static = nullptr;
         sq::Shader* shad_skelly = nullptr;
-        sq::Shader* defr_skybox_base = nullptr;
-        sq::Shader* defr_skybox_refl = nullptr;
-        sq::Shader* defr_reflectors = nullptr;
-        sq::Shader* part_vertex_soft = nullptr;
-        sq::Shader* part_geometry_soft = nullptr;
+        sq::Shader* defr_reflector = nullptr;
+        sq::Shader* defr_base_skybox = nullptr;
+        sq::Shader* defr_refl_skybox = nullptr;
+        sq::Shader* part_soft_vertex = nullptr;
+        sq::Shader* part_soft_geometry = nullptr;
     } VS;
 
     struct {
-        sq::Shader* gnrc_fillwith = nullptr;
         sq::Shader* gnrc_passthru = nullptr;
         sq::Shader* gnrc_lumalpha = nullptr;
-        sq::Shader* gbuf_models_base = nullptr;
-        sq::Shader* gbuf_models_refl = nullptr;
-        sq::Shader* gbuf_decals_base = nullptr;
-        sq::Shader* gbuf_decals_refl = nullptr;
+        sq::Shader* gbuf_base_model = nullptr;
+        sq::Shader* gbuf_base_decal = nullptr;
+        sq::Shader* gbuf_refl_model = nullptr;
+        sq::Shader* gbuf_refl_decal = nullptr;
         sq::Shader* shad_punch = nullptr;
         sq::Shader* defr_skybox = nullptr;
-        sq::Shader* defr_ambient_base = nullptr;
-        sq::Shader* defr_ambient_refl = nullptr;
-        sq::Shader* defr_skylight_base = nullptr;
-        sq::Shader* defr_skylight_refl = nullptr;
-        sq::Shader* defr_spot_none_base = nullptr;
-        sq::Shader* defr_spot_none_refl = nullptr;
-        sq::Shader* defr_spot_shad_base = nullptr;
-        sq::Shader* defr_spot_shad_refl = nullptr;
-        sq::Shader* defr_spot_spec_base = nullptr;
-        sq::Shader* defr_spot_both_base = nullptr;
-        sq::Shader* defr_point_none_base = nullptr;
-        sq::Shader* defr_point_none_refl = nullptr;
-        sq::Shader* defr_point_shad_base = nullptr;
-        sq::Shader* defr_point_shad_refl = nullptr;
-        sq::Shader* defr_point_spec_base = nullptr;
-        sq::Shader* defr_point_both_base = nullptr;
-        sq::Shader* defr_reflectors = nullptr;
-        sq::Shader* part_ambient_soft = nullptr;
-        sq::Shader* part_skylight_soft = nullptr;
-        sq::Shader* part_spot_none_soft = nullptr;
-        sq::Shader* part_spot_shad_soft = nullptr;
-        sq::Shader* part_point_none_soft = nullptr;
-        sq::Shader* part_point_shad_soft = nullptr;
-        sq::Shader* part_writefinal_soft = nullptr;
+        sq::Shader* defr_reflector = nullptr;
+        sq::Shader* defr_base_ambient = nullptr;
+        sq::Shader* defr_base_skylight = nullptr;
+        sq::Shader* defr_base_spot_none = nullptr;
+        sq::Shader* defr_base_spot_shad = nullptr;
+        sq::Shader* defr_base_spot_spec = nullptr;
+        sq::Shader* defr_base_spot_both = nullptr;
+        sq::Shader* defr_base_point_none = nullptr;
+        sq::Shader* defr_base_point_shad = nullptr;
+        sq::Shader* defr_base_point_spec = nullptr;
+        sq::Shader* defr_base_point_both = nullptr;
+        sq::Shader* defr_refl_ambient = nullptr;
+        sq::Shader* defr_refl_skylight = nullptr;
+        sq::Shader* defr_refl_spot_none = nullptr;
+        sq::Shader* defr_refl_spot_shad = nullptr;
+        sq::Shader* defr_refl_point_none = nullptr;
+        sq::Shader* defr_refl_point_shad = nullptr;
+        sq::Shader* part_soft_ambient = nullptr;
+        sq::Shader* part_soft_skylight = nullptr;
+        sq::Shader* part_soft_spot_none = nullptr;
+        sq::Shader* part_soft_spot_shad = nullptr;
+        sq::Shader* part_soft_point_none = nullptr;
+        sq::Shader* part_soft_point_shad = nullptr;
+        sq::Shader* part_soft_write = nullptr;
     } FS;
 
     struct {
-        sq::Texture2D* ssaoA = nullptr;
-        sq::Texture2D* ssaoB = nullptr;
-        sq::Texture2D* pshadA = nullptr;
-        sq::Texture2D* pshadB = nullptr;
-        sq::Texture2D* bloomA = nullptr;
-        sq::Texture2D* bloomB = nullptr;
-        sq::Texture2D* baseDpSt = nullptr;
-        sq::Texture2D* baseDiff = nullptr;
-        sq::Texture2D* baseSurf = nullptr;
-        sq::Texture2D* baseNorm = nullptr;
-        sq::Texture2D* baseSpec = nullptr;
-        sq::Texture2D* reflDpSt = nullptr;
-        sq::Texture2D* reflDiff = nullptr;
-        sq::Texture2D* reflSurf = nullptr;
-        sq::Texture2D* partDpSt = nullptr;
-        sq::Texture2D* partMain = nullptr;
-        sq::Texture2D* depHalf = nullptr;
-        sq::Texture2D* depQter = nullptr;
-        sq::Texture2D* hdrBase = nullptr;
-        sq::Texture2D* hdrRefl = nullptr;
-        sq::Texture2D* hdrPart = nullptr;
-        sq::Texture2D* simple = nullptr;
+        sq::TextureMut2D* ssaoA = nullptr;
+        sq::TextureMut2D* ssaoB = nullptr;
+        sq::TextureMut2D* pshadA = nullptr;
+        sq::TextureMut2D* pshadB = nullptr;
+        sq::TextureMut2D* bloomA = nullptr;
+        sq::TextureMut2D* bloomB = nullptr;
+        sq::TextureMut2D* baseDpSt = nullptr;
+        sq::TextureMut2D* baseDiff = nullptr;
+        sq::TextureMut2D* baseSurf = nullptr;
+        sq::TextureMut2D* baseNorm = nullptr;
+        sq::TextureMut2D* baseSpec = nullptr;
+        sq::TextureMut2D* reflDpSt = nullptr;
+        sq::TextureMut2D* reflDiff = nullptr;
+        sq::TextureMut2D* reflSurf = nullptr;
+        sq::TextureMut2D* partDpSt = nullptr;
+        sq::TextureMut2D* partMain = nullptr;
+        sq::TextureMut2D* depHalf = nullptr;
+        sq::TextureMut2D* depQter = nullptr;
+        sq::TextureMut2D* hdrBase = nullptr;
+        sq::TextureMut2D* hdrRefl = nullptr;
+        sq::TextureMut2D* hdrPart = nullptr;
+        sq::TextureMut2D* simple = nullptr;
     } TX;
 
     struct {
@@ -163,9 +187,9 @@ public:
     } FB;
 
     struct {
-        int shadMult;
-        bool shadFltr;
-        float viewDist;
+        float viewdist;
+        bool shadlarge;
+        bool shadfilter;
         uvec2 fullSize;
         uvec2 halfSize;
         uvec2 qterSize;
@@ -175,12 +199,16 @@ public:
     } INFO;
 
     const sq::Camera* const camera;
-    sq::SettingsMaps* const settings;
+    sq::Settings* const settings;
     sq::Pipeline* pipeline = nullptr;
+
+    IrrVolTree irrVolTree;
 
 private:
     const wcoe::Reflector* crntRflct = nullptr;
     const wcoe::Emitter* crntEmitr = nullptr;
+
+    GLuint partVAO = 0u, partVBO = 0u, partIBO = 0u;
 };
 
 }}

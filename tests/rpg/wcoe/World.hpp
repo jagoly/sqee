@@ -4,8 +4,8 @@
 #include <sqee/physics/RP3D.hpp>
 
 #include "Cell.hpp"
-#include "obj/Object.hpp"
-#include "obj/Animation.hpp"
+#include "Object.hpp"
+#include "Animation.hpp"
 
 namespace sqt { namespace wcoe {
 
@@ -51,7 +51,7 @@ public:
 
 class SkyLight : NonCopyable {
 public:
-    SkyLight(sq::Camera* _camera);
+    SkyLight(sq::Camera* _camera, sq::Settings* _settings);
     void refresh(); void tick();
     void calc(double _accum);
 
@@ -66,9 +66,10 @@ public:
     void animate();
 
     const sq::Camera* const camera;
+    const sq::Settings* const settings;
     unique_ptr<sq::UniformBuffer> ubo;
-    unique_ptr<sq::TextureArray> texA;
-    unique_ptr<sq::TextureArray> texB;
+    unique_ptr<sq::TextureMut2DArray> texDepthA;
+    unique_ptr<sq::TextureMut2DArray> texDepthB;
     array<unique_ptr<sq::FrameBuffer>, 4> fboArrA;
     array<unique_ptr<sq::FrameBuffer>, 2> fboArrB;
     array<sq::OrthoFrus, 4> orthArrA;
@@ -81,9 +82,10 @@ public:
 
 class World : NonCopyable {
 public:
-    World(sq::Camera* _camera, sq::SettingsMaps* _settings);
+    World(sq::Camera* _camera, sq::Settings* _settings);
     void refresh(); void tick();
     void calc(double _accum);
+    void invalidate();
     ~World();
 
     Cell* add_cell(const string& _name);
@@ -98,9 +100,10 @@ public:
     unordered_map<string, shared_ptr<Cell>> cellMap;
 
     const sq::Camera* const camera;
-    sq::SettingsMaps* const settings;
+    const sq::Settings* const settings;
 
     unique_ptr<rp3d::DynamicsWorld> physWorld;
+
 };
 
 template<class T>

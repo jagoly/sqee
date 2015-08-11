@@ -30,6 +30,7 @@ private:
     forward_list<string> output;
     bool tickSwitch = false;
     bool tickDelay = false;
+    int histInd = -1;
     string input;
 };
 

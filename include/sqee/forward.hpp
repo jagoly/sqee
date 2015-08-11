@@ -87,7 +87,7 @@ namespace sq {
 class Scene;
 class Handler;
 class Application;
-class SettingsMaps;
+class Settings;
 class PreProcessor;
 class SoundManager;
 
@@ -102,8 +102,13 @@ class Skin;
 class UniformBuffer;
 class FrameBuffer;
 class Texture2D;
+class TextureMut2D;
 class TextureCube;
-class TextureArray;
+class TextureMutCube;
+class Texture2DArray;
+class TextureMut2DArray;
+class TextureCubeArray;
+class TextureMutCubeArray;
 class Preprocessor;
 class Pipeline;
 class Shader;

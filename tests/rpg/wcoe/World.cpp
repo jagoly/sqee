@@ -3,7 +3,8 @@
 #include <rp3d/collision/shapes/BoxShape.hpp>
 #include <rp3d/engine/DynamicsWorld.hpp>
 
-#include <sqee/redist/gl_ext_3_3.hpp>
+#include <sqee/redist/gl_ext_4_1.hpp>
+#include <sqee/app/Settings.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
 #include <sqee/gl/FrameBuffer.hpp>
 #include <sqee/gl/Textures.hpp>
@@ -31,9 +32,10 @@ void SkyBox::refresh() {
     string texPath = "skybox/" + PROP_texture;
     if (!(tex = sq::res::texCube().get(texPath)))
         tex = sq::res::texCube().add(texPath),
-        tex->create(gl::RGB, gl::RGB8, 3),
-        tex->set_preset(sq::TextureCube::L_C()),
-        tex->buffer_full(texPath, 1024u);
+        tex->create(gl::RGB, gl::RGB8, 3u, false),
+        tex->set_preset(sq::Texture::LinearClamp()),
+        tex->allocate_storage(1024u),
+        tex->buffer_full(texPath);
 
     animate();
 }
@@ -92,7 +94,8 @@ void Ambient::animate() {
     ubo->update("colour", &PROP_colour);
 }
 
-SkyLight::SkyLight(sq::Camera* _camera) : camera(_camera) {
+SkyLight::SkyLight(sq::Camera* _camera, sq::Settings* _settings)
+    : camera(_camera), settings(_settings) {
     ubo.reset(new sq::UniformBuffer());
     ubo->reserve("direction", 4);
     ubo->reserve("colour", 3);
@@ -102,21 +105,34 @@ SkyLight::SkyLight(sq::Camera* _camera) : camera(_camera) {
     ubo->reserve("splits", 4);
     ubo->create();
 
-    texA.reset(new sq::TextureArray());
-    texB.reset(new sq::TextureArray());
-    texA->create(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT16, 1);
-    texB->create(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT16, 1);
-    texA->set_param(gl::TEXTURE_COMPARE_MODE, gl::COMPARE_REF_TO_TEXTURE);
-    texB->set_param(gl::TEXTURE_COMPARE_MODE, gl::COMPARE_REF_TO_TEXTURE);
-    fboArrA[0].reset(new sq::FrameBuffer()); fboArrA[0]->attach(gl::DEPTH_ATTACHMENT, *texA, 0);
-    fboArrA[1].reset(new sq::FrameBuffer()); fboArrA[1]->attach(gl::DEPTH_ATTACHMENT, *texA, 1);
-    fboArrA[2].reset(new sq::FrameBuffer()); fboArrA[2]->attach(gl::DEPTH_ATTACHMENT, *texA, 2);
-    fboArrA[3].reset(new sq::FrameBuffer()); fboArrA[3]->attach(gl::DEPTH_ATTACHMENT, *texA, 3);
-    fboArrB[0].reset(new sq::FrameBuffer()); fboArrB[0]->attach(gl::DEPTH_ATTACHMENT, *texB, 0);
-    fboArrB[1].reset(new sq::FrameBuffer()); fboArrB[1]->attach(gl::DEPTH_ATTACHMENT, *texB, 1);
+    texDepthA.reset(new sq::TextureMut2DArray());
+    texDepthB.reset(new sq::TextureMut2DArray());
+    texDepthA->create(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT16, 1u);
+    texDepthB->create(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT16, 1u);
+    texDepthA->set_preset(sq::Texture::ShadowMap());
+    texDepthB->set_preset(sq::Texture::ShadowMap());
+
+    fboArrA[0].reset(new sq::FrameBuffer());
+    fboArrA[1].reset(new sq::FrameBuffer());
+    fboArrA[2].reset(new sq::FrameBuffer());
+    fboArrA[3].reset(new sq::FrameBuffer());
+    fboArrB[0].reset(new sq::FrameBuffer());
+    fboArrB[1].reset(new sq::FrameBuffer());
+    fboArrA[0]->attach(gl::DEPTH_ATTACHMENT, *texDepthA, 0u);
+    fboArrA[1]->attach(gl::DEPTH_ATTACHMENT, *texDepthA, 1u);
+    fboArrA[2]->attach(gl::DEPTH_ATTACHMENT, *texDepthA, 2u);
+    fboArrA[3]->attach(gl::DEPTH_ATTACHMENT, *texDepthA, 3u);
+    fboArrB[0]->attach(gl::DEPTH_ATTACHMENT, *texDepthB, 0u);
+    fboArrB[1]->attach(gl::DEPTH_ATTACHMENT, *texDepthB, 1u);
 }
 
 void SkyLight::refresh() {
+    if (settings->check<bool>("rpg_shadlarge")) {
+        uint adjSize = 1024u * (1u + settings->get<bool>("rpg_shadlarge"));
+        texDepthA->resize(uvec3(adjSize, adjSize, 4u));
+        texDepthB->resize(uvec3(adjSize, adjSize, 2u));
+    }
+
     if (PROP_enabled == false) return;
     animate();
 }
@@ -198,8 +214,8 @@ void SkyLight::animate() {
 }
 
 
-World::World(sq::Camera* _camera, sq::SettingsMaps* _settings)
-    : skybox(_camera), ambient(_camera), skylight(_camera),
+World::World(sq::Camera* _camera, sq::Settings* _settings)
+    : skybox(_camera), ambient(_camera), skylight(_camera, _settings),
       camera(_camera), settings(_settings) {
     physWorld.reset(new rp3d::DynamicsWorld({0.f, 0.f, -1.f}));
     physWorld->setNbIterationsVelocitySolver(18u);
@@ -256,4 +272,10 @@ void World::calc(double _accum) {
     for (auto& sc : cellMap)
         if (sc.second->DAT_enabled)
             sc.second->calc(_accum);
+}
+
+void World::invalidate() {
+    for (auto& sc : cellMap)
+        if (sc.second->DAT_enabled)
+            sc.second->invalidate();
 }

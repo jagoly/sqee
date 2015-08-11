@@ -1,7 +1,7 @@
 #pragma once
 #include <sqee/forward.hpp>
 
-#include <sqee/redist/gl_ext_3_3.hpp>
+#include <sqee/redist/gl_ext_4_1.hpp>
 
 namespace sq {
 

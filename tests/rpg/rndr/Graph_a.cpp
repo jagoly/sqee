@@ -1,7 +1,7 @@
 #include <glm/matrix.hpp>
 
-#include <sqee/redist/gl_ext_3_3.hpp>
-#include <sqee/app/SettingsMaps.hpp>
+#include <sqee/redist/gl_ext_4_1.hpp>
+#include <sqee/app/Settings.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
 #include <sqee/gl/FrameBuffer.hpp>
 #include <sqee/gl/Textures.hpp>
@@ -15,20 +15,62 @@
 #include <sqee/maths/General.hpp>
 
 #include "../wcoe/World.hpp"
-#include "../wcoe/obj/ModelStatic.hpp"
-#include "../wcoe/obj/ModelSkelly.hpp"
-#include "../wcoe/obj/PointLight.hpp"
-#include "../wcoe/obj/SpotLight.hpp"
-#include "../wcoe/obj/Reflector.hpp"
-#include "../wcoe/obj/Emitter.hpp"
-#include "../wcoe/obj/Liquid.hpp"
-#include "../wcoe/obj/Decal.hpp"
+#include "../wcoe/objects/ModelStatic.hpp"
+#include "../wcoe/objects/ModelSkelly.hpp"
+#include "../wcoe/objects/PointLight.hpp"
+#include "../wcoe/objects/SpotLight.hpp"
+#include "../wcoe/objects/Reflector.hpp"
+#include "../wcoe/objects/Emitter.hpp"
+#include "../wcoe/objects/Liquid.hpp"
+#include "../wcoe/objects/Decal.hpp"
 #include "Graph.hpp"
 
 using namespace sqt::rndr;
 
-Graph::Graph(sq::Camera* _camera, sq::SettingsMaps* _settings)
-    : camera(_camera), settings(_settings) {}
+IrrVolTree::IrrVolTree() {
+    texDiff.reset(new sq::TextureCubeArray());
+    texSurf.reset(new sq::TextureCubeArray());
+    texDepth.reset(new sq::TextureCubeArray());
+    texHdr.reset(new sq::TextureCubeArray());
+    texFinal.reset(new sq::TextureCubeArray());
+
+    texDiff->create(gl::RGB, gl::RGB8, 3, false);
+    texSurf->create(gl::RGB, gl::RGB8, 3, false);
+    texDepth->create(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT16, 1, false);
+    texHdr->create(gl::RGB, gl::R11F_G11F_B10F, 3, false);
+    texFinal->create(gl::RGB, gl::RGB8, 3, false);
+
+    texDiff->set_preset(sq::Texture::LinearClamp());
+    texSurf->set_preset(sq::Texture::LinearClamp());
+    texDepth->set_preset(sq::Texture::LinearClamp());
+    texHdr->set_preset(sq::Texture::LinearClamp());
+    texFinal->set_preset(sq::Texture::LinearClamp());
+
+    texDiff->allocate_storage(uvec2(32u, 16u*9u));
+    texSurf->allocate_storage(uvec2(32u, 16u*9u));
+    texDepth->allocate_storage(uvec2(32u, 16u*9u));
+    texFinal->allocate_storage(uvec2(32u, 16u*9u));
+}
+
+void Graph::refresh_IrrVolTree() {
+}
+
+//////////////////////////
+
+Graph::Graph(sq::Camera* _camera, sq::Settings* _settings)
+    : camera(_camera), settings(_settings) {
+
+    // Particles /////
+    gl::GenVertexArrays(1, &partVAO);
+    gl::GenBuffers(1, &partVBO);
+    gl::GenBuffers(1, &partIBO);
+
+    gl::BindVertexArray(partVAO);
+    gl::BindBuffer(gl::ARRAY_BUFFER, partVBO);
+    gl::VertexAttribPointer(0, 4, gl::FLOAT, false, 32, (void*)(0));
+    gl::VertexAttribPointer(1, 4, gl::FLOAT, false, 32, (void*)(16));
+    gl::EnableVertexAttribArray(0); gl::EnableVertexAttribArray(1);
+}
 
 void Graph::update() {
     modelStaticList.remove_if(wptr_expired<wcoe::ModelStatic>);
@@ -114,30 +156,4 @@ void Graph::reload_lists() {
 
 
 void Graph::update_settings() {
-    uint adjSize = 1024u * INFO.shadMult;
-    world->skylight.texA->resize(uvec3(adjSize, adjSize, 4u));
-    world->skylight.texB->resize(uvec3(adjSize, adjSize, 2u));
-    if (INFO.shadFltr) world->skylight.texA->set_preset(sq::TextureArray::L_C()),
-                       world->skylight.texB->set_preset(sq::TextureArray::L_C());
-    else world->skylight.texA->set_preset(sq::TextureArray::N_C()),
-         world->skylight.texB->set_preset(sq::TextureArray::N_C());
-
-    for (const auto& lptr : spotLightList) {
-        const wcoe::SpotLight& light = *lptr.lock();
-        if (light.PROP_shadow == true) {
-            adjSize = light.PROP_texsize * INFO.shadMult;
-            light.tex->resize(uvec2(adjSize, adjSize));
-            if (INFO.shadFltr) light.tex->set_preset(sq::Texture2D::L_C());
-            else light.tex->set_preset(sq::Texture2D::N_C());
-        }
-    }
-    for (const auto& lptr : pointLightList) {
-        const wcoe::PointLight& light = *lptr.lock();
-        if (light.PROP_shadow == true) {
-            adjSize = light.PROP_texsize * INFO.shadMult;
-            light.tex->resize(adjSize);
-            if (INFO.shadFltr) light.tex->set_preset(sq::TextureCube::L_C());
-            else light.tex->set_preset(sq::TextureCube::N_C());
-        }
-    }
 }

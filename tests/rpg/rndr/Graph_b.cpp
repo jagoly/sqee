@@ -1,6 +1,6 @@
 #include <glm/matrix.hpp>
 
-#include <sqee/redist/gl_ext_3_3.hpp>
+#include <sqee/redist/gl_ext_4_1.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
 #include <sqee/gl/FrameBuffer.hpp>
 #include <sqee/gl/Textures.hpp>
@@ -14,25 +14,24 @@
 #include <sqee/maths/General.hpp>
 
 #include "../wcoe/World.hpp"
-#include "../wcoe/obj/ModelStatic.hpp"
-#include "../wcoe/obj/ModelSkelly.hpp"
-#include "../wcoe/obj/PointLight.hpp"
-#include "../wcoe/obj/SpotLight.hpp"
-#include "../wcoe/obj/Reflector.hpp"
-#include "../wcoe/obj/Emitter.hpp"
-#include "../wcoe/obj/Liquid.hpp"
-#include "../wcoe/obj/Decal.hpp"
+#include "../wcoe/objects/ModelStatic.hpp"
+#include "../wcoe/objects/ModelSkelly.hpp"
+#include "../wcoe/objects/PointLight.hpp"
+#include "../wcoe/objects/SpotLight.hpp"
+#include "../wcoe/objects/Reflector.hpp"
+#include "../wcoe/objects/Emitter.hpp"
+#include "../wcoe/objects/Liquid.hpp"
+#include "../wcoe/objects/Decal.hpp"
 #include "Graph.hpp"
 
 using namespace sqt::rndr;
 
-void Graph::render_shadows_sky_A() {
+void Graph::render_shadows_sky_main() {
     if (!world->skylight.PROP_enabled) return;
     const wcoe::SkyLight& light = world->skylight;
 
-    sq::DCLAMP_ON();
-    light.ubo->bind(1);
-    sq::VIEWPORT(light.texA->size);
+    sq::DCLAMP_ON(); light.ubo->bind(1);
+    sq::VIEWPORT(light.texDepthA->get_size());
 
     for (uint csm = 0u; csm < 4u; csm++) {
         light.fboArrA[csm]->use();
@@ -90,13 +89,12 @@ void Graph::render_shadows_sky_A() {
 }
 
 
-void Graph::render_shadows_sky_B() {
+void Graph::render_shadows_sky_box() {
     if (!world->skylight.PROP_enabled) return;
     const wcoe::SkyLight& light = world->skylight;
 
-    sq::DCLAMP_ON();
-    light.ubo->bind(1);
-    sq::VIEWPORT(light.texB->size);
+    sq::DCLAMP_ON(); light.ubo->bind(1);
+    sq::VIEWPORT(light.texDepthB->get_size());
 
     for (uint csm = 0u; csm < 2u; csm++) {
         light.fboArrB[csm]->use();
@@ -169,7 +167,7 @@ void Graph::render_shadows_spot() {
         } continue; dontcull:
 
         light.ubo->bind(1);
-        sq::VIEWPORT(light.tex->size);
+        sq::VIEWPORT(light.tex->get_size());
         light.fbo->use(); sq::CLEAR_DEPTH();
         pipeline->disable_stages(0, 0, 1);
 
@@ -225,7 +223,7 @@ void Graph::render_shadows_point() {
         if (light.PROP_shadow == false) continue;
 
         light.ubo->bind(1);
-        sq::VIEWPORT(light.tex->size);
+        sq::VIEWPORT(light.tex->get_size());
         for (uint face = 0u; face < 6u; face++) {
             if (!sq::frus_in_frus(light.frusArr[face], camera->frus)) goto dontcull;
             for (const auto& rptr : reflectorList) {

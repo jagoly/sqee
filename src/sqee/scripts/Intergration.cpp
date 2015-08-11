@@ -1,9 +1,9 @@
 ﻿#include <chaiscript/utility/utility.hpp>
 
-#include <sqee/redist/gl_ext_3_3.hpp>
+#include <sqee/redist/gl_ext_4_1.hpp>
 #include <sqee/redist/tinyformat.hpp>
 #include <sqee/app/Application.hpp>
-#include <sqee/app/SettingsMaps.hpp>
+#include <sqee/app/Settings.hpp>
 #include <sqee/render/Camera.hpp>
 #include <sqee/scripts/ConsoleScene.hpp>
 #include <sqee/scripts/Intergration.hpp>
@@ -176,6 +176,12 @@ void sq::cs_setup_maths(chai::ChaiScript& _cs) {
     _cs.add(m);
 }
 
+void sq::cs_setup_stdtypes(chai::ChaiScript& _cs) {
+    chai::ModulePtr m(new chai::Module());
+
+    _cs.add(m);
+}
+
 void sq::cs_setup_application(chai::ChaiScript& _cs) {
     chai::ModulePtr m(new chai::Module());
 
@@ -189,24 +195,24 @@ void sq::cs_setup_application(chai::ChaiScript& _cs) {
 void sq::cs_setup_settings(chai::ChaiScript& _cs) {
     chai::ModulePtr m(new chai::Module());
 
-    add_class<SettingsMaps>(*m, "SettingsMaps", {}, {
-        {fun(&SettingsMaps::add<int>), "addI"},
-        {fun(&SettingsMaps::mod<int>), "modI"},
-        {fun(&SettingsMaps::crnt<int>), "crntI"},
-        {fun(&SettingsMaps::next<int>), "nextI"},
-        {fun(&SettingsMaps::add<bool>), "addB"},
-        {fun(&SettingsMaps::mod<bool>), "modB"},
-        {fun(&SettingsMaps::crnt<bool>), "crntB"},
-        {fun(&SettingsMaps::next<bool>), "nextB"},
-        {fun(&SettingsMaps::add<float>), "addF"},
-        {fun(&SettingsMaps::mod<float>), "modF"},
-        {fun(&SettingsMaps::crnt<float>), "crntF"},
-        {fun(&SettingsMaps::next<float>), "nextF"},
-        {fun(&SettingsMaps::add<string>), "addS"},
-        {fun(&SettingsMaps::mod<string>), "modS"},
-        {fun(&SettingsMaps::crnt<string>), "crntS"},
-        {fun(&SettingsMaps::next<string>), "nextS"},
-        {fun(&SettingsMaps::apply), "apply"} });
+    add_class<Settings>(*m, "Settings", {}, {
+        {fun(&Settings::add<int>), "addI"},
+        {fun(&Settings::add<bool>), "addB"},
+        {fun(&Settings::add<float>), "addF"},
+        {fun(&Settings::add<string>), "addS"},
+        {fun(&Settings::mod<int>), "modI"},
+        {fun(&Settings::mod<bool>), "modB"},
+        {fun(&Settings::mod<float>), "modF"},
+        {fun(&Settings::mod<string>), "modS"},
+        {fun(&Settings::get<int>), "getI"},
+        {fun(&Settings::get<bool>), "getB"},
+        {fun(&Settings::get<float>), "getF"},
+        {fun(&Settings::get<string>), "getS"},
+        {fun(&Settings::check<int>), "checkI"},
+        {fun(&Settings::check<bool>), "checkB"},
+        {fun(&Settings::check<float>), "checkF"},
+        {fun(&Settings::check<string>), "checkS"},
+        {fun(&Settings::clear_changed), "clear_changed"} });
     _cs.add(m);
 }
 

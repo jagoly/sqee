@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <glm/matrix.hpp>
 
-#include <sqee/redist/gl_ext_3_3.hpp>
+#include <sqee/redist/gl_ext_4_1.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
 #include <sqee/gl/FrameBuffer.hpp>
 #include <sqee/gl/Textures.hpp>
@@ -15,14 +15,14 @@
 #include <sqee/maths/General.hpp>
 
 #include "../wcoe/World.hpp"
-#include "../wcoe/obj/ModelStatic.hpp"
-#include "../wcoe/obj/ModelSkelly.hpp"
-#include "../wcoe/obj/PointLight.hpp"
-#include "../wcoe/obj/SpotLight.hpp"
-#include "../wcoe/obj/Reflector.hpp"
-#include "../wcoe/obj/Emitter.hpp"
-#include "../wcoe/obj/Liquid.hpp"
-#include "../wcoe/obj/Decal.hpp"
+#include "../wcoe/objects/ModelStatic.hpp"
+#include "../wcoe/objects/ModelSkelly.hpp"
+#include "../wcoe/objects/PointLight.hpp"
+#include "../wcoe/objects/SpotLight.hpp"
+#include "../wcoe/objects/Reflector.hpp"
+#include "../wcoe/objects/Emitter.hpp"
+#include "../wcoe/objects/Liquid.hpp"
+#include "../wcoe/objects/Decal.hpp"
 #include "Graph.hpp"
 
 using namespace sqt::rndr;
@@ -40,8 +40,8 @@ void Graph::render_reflections() {
         sq::VIEWPORT(INFO.fullSize); FB.defrBase->use();
         gl::StencilMask(0b0010); sq::CLEAR_STENC();
         gl::StencilFunc(gl::EQUAL, 0b0011, 0b0001);
-        pipeline->use_shader(*VS.gbuf_stencil_base);
-        VS.gbuf_stencil_base->set_mat<fmat4>("matrix", rflct.matrix);
+        pipeline->use_shader(*VS.gbuf_base_stencil);
+        VS.gbuf_base_stencil->set_mat<fmat4>("matrix", rflct.matrix);
         pipeline->disable_stages(0, 0, 1); rflct.mesh->bind_vao();
         for (uint i = 0u; i < rflct.mesh->mtrlCount; i++) rflct.mesh->draw_ibo(i);
 
@@ -80,8 +80,8 @@ void Graph::render_reflections() {
 
         sq::BLEND_PREM(); sq::STENCIL_KEEP();
         gl::StencilFunc(gl::EQUAL, 0b0011, 0b0011);
-        pipeline->use_shader(*VS.defr_reflectors);
-        pipeline->use_shader(*FS.defr_reflectors);
+        pipeline->use_shader(*VS.defr_reflector);
+        pipeline->use_shader(*FS.defr_reflector);
         FB.hdrBase->use(); sq::VIEWPORT(INFO.fullSize);
         TX.hdrRefl->bind(gl::TEXTURE0);
         rflct.mesh->bind_vao();
@@ -94,22 +94,6 @@ void Graph::render_reflections() {
 
 void Graph::render_particles() {
     using PartData = wcoe::Emitter::PartData;
-
-    static GLuint vao = 0u;
-    static GLuint vbo = 0u;
-    static GLuint ibo = 0u;
-    static bool first = true;
-    if (first) { first = false;
-        gl::GenVertexArrays(1, &vao);
-        gl::GenBuffers(1, &vbo);
-        gl::GenBuffers(1, &ibo);
-
-        gl::BindVertexArray(vao);
-        gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
-        gl::VertexAttribPointer(0, 4, gl::FLOAT, false, 32, (void*)(0));
-        gl::VertexAttribPointer(1, 4, gl::FLOAT, false, 32, (void*)(16));
-        gl::EnableVertexAttribArray(0); gl::EnableVertexAttribArray(1);
-    }
 
     vector<PartData> partDataVec;
     for (const auto& eptr : emitterList) {
@@ -126,8 +110,8 @@ void Graph::render_particles() {
         return glm::distance(camera->pos, fvec3(a.x,a.y,a.z))
              > glm::distance(camera->pos, fvec3(b.x,b.y,b.z)); });
 
-    gl::BindVertexArray(vao);
-    gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
+    gl::BindVertexArray(partVAO);
+    gl::BindBuffer(gl::ARRAY_BUFFER, partVBO);
     gl::BufferData(gl::ARRAY_BUFFER, 32*partDataVec.size(),
                    partDataVec.data(), gl::STATIC_DRAW);
 
@@ -168,9 +152,9 @@ void Graph::render_particles() {
 
     sq::CULLFACE_OFF();
     sq::BLEND_ON(); sq::DEPTH_READ();
-    pipeline->use_shader(*VS.part_vertex_soft);
-    pipeline->use_shader(*VS.part_geometry_soft);
-    gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ibo);
+    pipeline->use_shader(*VS.part_soft_vertex);
+    pipeline->use_shader(*VS.part_soft_geometry);
+    gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, partIBO);
     gl::ActiveTexture(gl::TEXTURE8);
 
     for (const auto& vec : indVecList) {
@@ -178,34 +162,34 @@ void Graph::render_particles() {
 
         sq::BLEND_PREM();
         world->ambient.ubo->bind(1);
-        pipeline->use_shader(*FS.part_ambient_soft);
+        pipeline->use_shader(*FS.part_soft_ambient);
         gl::DrawElements(gl::POINTS, vec.size(), gl::UNSIGNED_INT, 0);
         sq::BLEND_ONEONE();
 
-        pipeline->use_shader(*FS.part_skylight_soft);
-        world->skylight.ubo->bind(1); world->skylight.texA->bind();
+        pipeline->use_shader(*FS.part_soft_skylight);
+        world->skylight.ubo->bind(1); world->skylight.texDepthA->bind();
         gl::DrawElements(gl::POINTS, vec.size(), gl::UNSIGNED_INT, 0);
 
         for (const auto& lptr : spotLightList) {
             const wcoe::SpotLight& light = *lptr.lock();
             if (sq::frus_in_frus(light.frus, camera->frus)) continue; light.ubo->bind(1);
-            if (light.PROP_shadow == false) pipeline->use_shader(*FS.part_spot_none_soft);
-            else pipeline->use_shader(*FS.part_spot_shad_soft), light.tex->bind();
+            if (light.PROP_shadow == false) pipeline->use_shader(*FS.part_soft_spot_none);
+            else pipeline->use_shader(*FS.part_soft_spot_shad), light.tex->bind();
             gl::DrawElements(gl::POINTS, vec.size(), gl::UNSIGNED_INT, 0);
         }
 
         for (const auto& lptr : pointLightList) {
             const wcoe::PointLight& light = *lptr.lock();
             if (sq::sphr_in_frus(light.sphere, camera->frus)) continue; light.ubo->bind(1);
-            if (light.PROP_shadow == false) pipeline->use_shader(*FS.part_point_none_soft);
-            else pipeline->use_shader(*FS.part_point_shad_soft), light.tex->bind();
+            if (light.PROP_shadow == false) pipeline->use_shader(*FS.part_soft_point_none);
+            else pipeline->use_shader(*FS.part_soft_point_shad), light.tex->bind();
             gl::DrawElements(gl::POINTS, vec.size(), gl::UNSIGNED_INT, 0);
         }
     }
 
     sq::BLEND_PREM(); sq::DEPTH_OFF();
     pipeline->use_shader(*VS.gnrc_screen);
-    pipeline->use_shader(*FS.part_writefinal_soft);
+    pipeline->use_shader(*FS.part_soft_write);
     FB.hdrBase->use(); sq::VIEWPORT(INFO.fullSize);
     pipeline->disable_stages(0, 1, 0);
     TX.hdrPart->bind(gl::TEXTURE0);

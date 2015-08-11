@@ -1,6 +1,6 @@
 #include <sqee/app/Logging.hpp>
 #include <sqee/app/Application.hpp>
-#include <sqee/app/SettingsMaps.hpp>
+#include <sqee/app/Settings.hpp>
 #include <sqee/scripts/ChaiScript.hpp>
 #include <sqee/scripts/ConsoleScene.hpp>
 #include <sqee/gl/Drawing.hpp>
@@ -25,7 +25,7 @@ void ConsoleScene::update() {
 void ConsoleScene::render(float _ft) {
     if (active == false) return;
 
-    static const TextBasic tb = {
+    const TextBasic tb = {
         TextBasic::Flow::Positive, TextBasic::Flow::Negative,
         TextBasic::Align::Negative, TextBasic::Align::Positive,
         fvec3(1.f, 1.f, 1.f), fvec2(24.f, 30.f), true
@@ -56,7 +56,6 @@ void ConsoleScene::handle_character(char _c) {
 }
 
 void ConsoleScene::handle_action(Action _action) {
-    static int histInd = -1;
     if (_action == Action::Return) {
         if ((!history.size() || history.back() != input) && input != "")
             history.emplace_back(input);

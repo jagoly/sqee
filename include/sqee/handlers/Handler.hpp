@@ -14,7 +14,7 @@ public:
     virtual void update_settings() {};
 
 protected:
-    SettingsMaps* const settings;
+    Settings* const settings;
     PreProcessor* const preprocs;
     SoundManager* const soundman;
     Application* const appBase;

@@ -10,9 +10,8 @@ extern "C" const char data_disks_uniform[];
 extern "C" const char data_blocks_camera[];
 
 const string shader_prelude =
-"#version 330 core\n"
+"#version 410 core\n"
 "#extension GL_ARB_shading_language_420pack : require\n"
-"#extension GL_ARB_gpu_shader5 : require\n"
 "#line 0\n";
 
 PreProcessor::PreProcessor() {

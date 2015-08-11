@@ -1,5 +1,5 @@
 #include <sqee/app/Application.hpp>
-#include <sqee/app/SettingsMaps.hpp>
+#include <sqee/app/Settings.hpp>
 #include <sqee/scripts/ConsoleScene.hpp>
 #include <sqee/scripts/ConsoleHandler.hpp>
 
@@ -40,12 +40,12 @@ void ConsoleHandler::activate() {
     appBase->get_scene<ConsoleScene>("console")->active = true;
     settings->mod<bool>("console_active", true);
     settings->mod<bool>("keyrepeat", true);
-    settings->apply(); appBase->update();
+    appBase->update();
 }
 
 void ConsoleHandler::deactivate() {
     appBase->get_scene<ConsoleScene>("console")->active = false;
     settings->mod<bool>("console_active", false);
     settings->mod<bool>("keyrepeat", false);
-    settings->apply(); appBase->update();
+    appBase->update();
 }

@@ -1,6 +1,6 @@
 #include <sqee/app/Logging.hpp>
 #include <sqee/app/Application.hpp>
-#include <sqee/app/SettingsMaps.hpp>
+#include <sqee/app/Settings.hpp>
 
 #include "Paused.hpp"
 

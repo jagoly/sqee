@@ -2,10 +2,9 @@
 #include <glm/gtx/rotate_vector.hpp>
 #include <rp3d/engine/DynamicsWorld.hpp>
 
-#include <sqee/redist/gl_ext_3_3.hpp>
-#include <sqee/app/Logging.hpp>
+#include <sqee/redist/gl_ext_4_1.hpp>
 #include <sqee/app/Application.hpp>
-#include <sqee/app/SettingsMaps.hpp>
+#include <sqee/app/Settings.hpp>
 #include <sqee/app/PreProcessor.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
 #include <sqee/gl/FrameBuffer.hpp>
@@ -44,96 +43,94 @@ MainScene::MainScene(sq::Application* _app) : sq::Scene(_app) {
     posNext = camera->pos;
     camera->update();
 
-//    world->add_cell("GLOBAL", {0,0,0})->DAT_enabled = true;
-
-    /// Player Model
-
 
     /// Add Settings
-    settings->add<float>("viewDist", 120.f);
-    settings->add<int>("shadQlty", 2); // 0=1024, 1=2048, 2=4096
-    settings->add<int>("shadFltr", 2); // 0=Off, 1=Minimal, 2=Full
-    settings->add<int>("ssaoMode", 2); // 0=Off, 1=Low, 2=High
-    settings->add<int>("shftMode", 2); // 0=Off, 1=Low, 2=High
-    settings->add<int>("hdrbMode", 2); // 0=Off, 1=Low, 2=High
-    settings->add<int>("fxaaMode", 2); // 0=Off, 1=Low, 2=High
-    settings->add<int>("vignMode", 2); // 0=Off, 1=Low, 2=High
+    settings->add<float>("rpg_viewdist", 120.f);
+    settings->add<bool>("rpg_shadfilter", true);
+    settings->add<bool>("rpg_shadlarge", true);
+    settings->add<bool>("rpg_vignette", true);
+    settings->add<bool>("rpg_bloom", true);
+    settings->add<int>("rpg_shafts", 2);
+    settings->add<int>("rpg_ssao", 2);
+    settings->add<int>("rpg_fxaa", 2);
 
 
     /// Create Textures
-    TX.ssaoA.reset(new sq::Texture2D());
-    TX.ssaoB.reset(new sq::Texture2D());
-    TX.pshadA.reset(new sq::Texture2D());
-    TX.pshadB.reset(new sq::Texture2D());
-    TX.bloomA.reset(new sq::Texture2D());
-    TX.bloomB.reset(new sq::Texture2D());
-    TX.shafts.reset(new sq::Texture2D());
-    TX.baseDiff.reset(new sq::Texture2D());
-    TX.baseSurf.reset(new sq::Texture2D());
-    TX.baseNorm.reset(new sq::Texture2D());
-    TX.baseSpec.reset(new sq::Texture2D());
-    TX.baseDpSt.reset(new sq::Texture2D());
-    TX.reflDiff.reset(new sq::Texture2D());
-    TX.reflSurf.reset(new sq::Texture2D());
-    TX.reflDpSt.reset(new sq::Texture2D());
-    TX.partMain.reset(new sq::Texture2D());
-    TX.partDpSt.reset(new sq::Texture2D());
-    TX.depHalf.reset(new sq::Texture2D());
-    TX.depQter.reset(new sq::Texture2D());
-    TX.hdrBase.reset(new sq::Texture2D());
-    TX.hdrRefl.reset(new sq::Texture2D());
-    TX.hdrPart.reset(new sq::Texture2D());
-    TX.simple.reset(new sq::Texture2D());
+    TX.ssaoA.reset(new sq::TextureMut2D());
+    TX.ssaoB.reset(new sq::TextureMut2D());
+    TX.pshadA.reset(new sq::TextureMut2D());
+    TX.pshadB.reset(new sq::TextureMut2D());
+    TX.bloomA.reset(new sq::TextureMut2D());
+    TX.bloomB.reset(new sq::TextureMut2D());
+    TX.shafts.reset(new sq::TextureMut2D());
+    TX.backDep.reset(new sq::TextureMut2D());
+    TX.baseDiff.reset(new sq::TextureMut2D());
+    TX.baseSurf.reset(new sq::TextureMut2D());
+    TX.baseNorm.reset(new sq::TextureMut2D());
+    TX.baseSpec.reset(new sq::TextureMut2D());
+    TX.baseDpSt.reset(new sq::TextureMut2D());
+    TX.reflDiff.reset(new sq::TextureMut2D());
+    TX.reflSurf.reset(new sq::TextureMut2D());
+    TX.reflDpSt.reset(new sq::TextureMut2D());
+    TX.partMain.reset(new sq::TextureMut2D());
+    TX.partDpSt.reset(new sq::TextureMut2D());
+    TX.depHalf.reset(new sq::TextureMut2D());
+    TX.depQter.reset(new sq::TextureMut2D());
+    TX.hdrBase.reset(new sq::TextureMut2D());
+    TX.hdrRefl.reset(new sq::TextureMut2D());
+    TX.hdrPart.reset(new sq::TextureMut2D());
+    TX.simple.reset(new sq::TextureMut2D());
 
     /// Setup Textures
-    TX.ssaoA->create(gl::RED, gl::R8, 1);
-    TX.ssaoB->create(gl::RED, gl::R8, 1);
-    TX.pshadA->create(gl::RED, gl::R8, 1);
-    TX.pshadB->create(gl::RED, gl::R8, 1);
-    TX.bloomA->create(gl::RGB, gl::RGB8, 3);
-    TX.bloomB->create(gl::RGB, gl::RGB8, 3);
-    TX.shafts->create(gl::RED, gl::R16F, 1);
-    TX.baseDiff->create(gl::RGB, gl::RGB8, 3);
-    TX.baseSurf->create(gl::RGB, gl::RGB12, 3);
-    TX.baseNorm->create(gl::RGB, gl::RGB12, 3);
-    TX.baseSpec->create(gl::RGB, gl::RGB8, 3);
-    TX.baseDpSt->create(gl::DEPTH_STENCIL, gl::DEPTH24_STENCIL8, 1);
-    TX.reflDiff->create(gl::RGB, gl::RGB8, 3);
-    TX.reflSurf->create(gl::RGB, gl::RGB8, 3);
-    TX.reflDpSt->create(gl::DEPTH_STENCIL, gl::DEPTH24_STENCIL8, 1);
-    TX.partMain->create(gl::RGBA, gl::RGBA16F, 4);
-    TX.partDpSt->create(gl::DEPTH_STENCIL, gl::DEPTH24_STENCIL8, 1);
-    TX.depHalf->create(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT24, 1);
-    TX.depQter->create(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT24, 1);
-    TX.hdrBase->create(gl::RGBA, gl::RGBA16F, 4);
-    TX.hdrRefl->create(gl::RGB, gl::RGB16F, 3);
-    TX.hdrPart->create(gl::RGBA, gl::RGBA16F, 4);
-    TX.simple->create(gl::RGBA, gl::RGBA8, 4);
+    TX.ssaoA->create(gl::RED, gl::R8, 1u);
+    TX.ssaoB->create(gl::RED, gl::R8, 1u);
+    TX.pshadA->create(gl::RED, gl::R8, 1u);
+    TX.pshadB->create(gl::RED, gl::R8, 1u);
+    TX.bloomA->create(gl::RGB, gl::RGB8, 3u);
+    TX.bloomB->create(gl::RGB, gl::RGB8, 3u);
+    TX.shafts->create(gl::RED, gl::R16F, 1u);
+    TX.backDep->create(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT24, 1u);
+    TX.baseDiff->create(gl::RGB, gl::RGB8, 3u);
+    TX.baseSurf->create(gl::RGB, gl::RGB10, 3u);
+    TX.baseNorm->create(gl::RGB, gl::RGB10, 3u);
+    TX.baseSpec->create(gl::RGB, gl::RGB8, 3u);
+    TX.baseDpSt->create(gl::DEPTH_STENCIL, gl::DEPTH24_STENCIL8, 1u);
+    TX.reflDiff->create(gl::RGB, gl::RGB8, 3u);
+    TX.reflSurf->create(gl::RGB, gl::RGB8, 3u);
+    TX.reflDpSt->create(gl::DEPTH_STENCIL, gl::DEPTH24_STENCIL8, 1u);
+    TX.partMain->create(gl::RGBA, gl::RGBA16F, 4u);
+    TX.partDpSt->create(gl::DEPTH_STENCIL, gl::DEPTH24_STENCIL8, 1u);
+    TX.depHalf->create(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT24, 1u);
+    TX.depQter->create(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT24, 1u);
+    TX.hdrBase->create(gl::RGBA, gl::RGBA16F, 4u);
+    TX.hdrRefl->create(gl::RGB, gl::RGB16F, 3u);
+    TX.hdrPart->create(gl::RGBA, gl::RGBA16F, 4u);
+    TX.simple->create(gl::RGBA, gl::RGBA8, 4u);
 
     /// Set Texture Presets
-    TX.ssaoA->set_preset(sq::Texture2D::L_C());
-    TX.ssaoB->set_preset(sq::Texture2D::L_C());
-    TX.pshadA->set_preset(sq::Texture2D::L_C());
-    TX.pshadB->set_preset(sq::Texture2D::L_C());
-    TX.bloomA->set_preset(sq::Texture2D::L_C());
-    TX.bloomB->set_preset(sq::Texture2D::L_C());
-    TX.shafts->set_preset(sq::Texture2D::L_C());
-    TX.baseDiff->set_preset(sq::Texture2D::L_C());
-    TX.baseSurf->set_preset(sq::Texture2D::L_C());
-    TX.baseNorm->set_preset(sq::Texture2D::L_C());
-    TX.baseSpec->set_preset(sq::Texture2D::L_C());
-    TX.baseDpSt->set_preset(sq::Texture2D::L_C());
-    TX.reflDiff->set_preset(sq::Texture2D::L_C());
-    TX.reflSurf->set_preset(sq::Texture2D::L_C());
-    TX.reflDpSt->set_preset(sq::Texture2D::L_C());
-    TX.partMain->set_preset(sq::Texture2D::L_C());
-    TX.partDpSt->set_preset(sq::Texture2D::L_C());
-    TX.depHalf->set_preset(sq::Texture2D::N_C());
-    TX.depQter->set_preset(sq::Texture2D::N_C());
-    TX.hdrBase->set_preset(sq::Texture2D::L_C());
-    TX.hdrRefl->set_preset(sq::Texture2D::L_C());
-    TX.hdrPart->set_preset(sq::Texture2D::L_C());
-    TX.simple->set_preset(sq::Texture2D::L_C());
+    TX.ssaoA->set_preset(sq::Texture::LinearClamp());
+    TX.ssaoB->set_preset(sq::Texture::LinearClamp());
+    TX.pshadA->set_preset(sq::Texture::LinearClamp());
+    TX.pshadB->set_preset(sq::Texture::LinearClamp());
+    TX.bloomA->set_preset(sq::Texture::LinearClamp());
+    TX.bloomB->set_preset(sq::Texture::LinearClamp());
+    TX.shafts->set_preset(sq::Texture::LinearClamp());
+    TX.baseDiff->set_preset(sq::Texture::LinearClamp());
+    TX.baseSurf->set_preset(sq::Texture::LinearClamp());
+    TX.baseNorm->set_preset(sq::Texture::LinearClamp());
+    TX.baseSpec->set_preset(sq::Texture::LinearClamp());
+    TX.baseDpSt->set_preset(sq::Texture::LinearClamp());
+    TX.reflDiff->set_preset(sq::Texture::LinearClamp());
+    TX.reflSurf->set_preset(sq::Texture::LinearClamp());
+    TX.reflDpSt->set_preset(sq::Texture::LinearClamp());
+    TX.partMain->set_preset(sq::Texture::LinearClamp());
+    TX.partDpSt->set_preset(sq::Texture::LinearClamp());
+    TX.depHalf->set_preset(sq::Texture::LinearClamp());
+    TX.depQter->set_preset(sq::Texture::LinearClamp());
+    TX.hdrBase->set_preset(sq::Texture::LinearClamp());
+    TX.hdrRefl->set_preset(sq::Texture::LinearClamp());
+    TX.hdrPart->set_preset(sq::Texture::LinearClamp());
+    TX.simple->set_preset(sq::Texture::LinearClamp());
 
     /// Create Framebuffers
     FB.ssaoA.reset(new sq::FrameBuffer());
@@ -195,57 +192,58 @@ MainScene::MainScene(sq::Application* _app) : sq::Scene(_app) {
     preprocs->import_header("headers/shadow/sample_spot");
     preprocs->import_header("headers/shadow/sample_point");
 
-    /// Create Shaders
+    /// Create Vertex Shaders
     VS.gnrc_screen.reset(new sq::Shader(gl::VERTEX_SHADER));
-    VS.gbuf_stencil_base.reset(new sq::Shader(gl::VERTEX_SHADER));
-    VS.gbuf_stencil_refl.reset(new sq::Shader(gl::VERTEX_SHADER));
-    VS.gbuf_statics_base.reset(new sq::Shader(gl::VERTEX_SHADER));
-    VS.gbuf_statics_refl.reset(new sq::Shader(gl::VERTEX_SHADER));
-    VS.gbuf_skellys_base.reset(new sq::Shader(gl::VERTEX_SHADER));
-    VS.gbuf_skellys_refl.reset(new sq::Shader(gl::VERTEX_SHADER));
-    VS.gbuf_decals_base.reset(new sq::Shader(gl::VERTEX_SHADER));
-    VS.gbuf_decals_refl.reset(new sq::Shader(gl::VERTEX_SHADER));
+    VS.gbuf_base_stencil.reset(new sq::Shader(gl::VERTEX_SHADER));
+    VS.gbuf_base_static.reset(new sq::Shader(gl::VERTEX_SHADER));
+    VS.gbuf_base_skelly.reset(new sq::Shader(gl::VERTEX_SHADER));
+    VS.gbuf_base_decal.reset(new sq::Shader(gl::VERTEX_SHADER));
+    VS.gbuf_refl_stencil.reset(new sq::Shader(gl::VERTEX_SHADER));
+    VS.gbuf_refl_static.reset(new sq::Shader(gl::VERTEX_SHADER));
+    VS.gbuf_refl_skelly.reset(new sq::Shader(gl::VERTEX_SHADER));
+    VS.gbuf_refl_decal.reset(new sq::Shader(gl::VERTEX_SHADER));
     VS.shad_static.reset(new sq::Shader(gl::VERTEX_SHADER));
     VS.shad_skelly.reset(new sq::Shader(gl::VERTEX_SHADER));
-    VS.defr_skybox_base.reset(new sq::Shader(gl::VERTEX_SHADER));
-    VS.defr_skybox_refl.reset(new sq::Shader(gl::VERTEX_SHADER));
-    VS.defr_reflectors.reset(new sq::Shader(gl::VERTEX_SHADER));
-    VS.part_vertex_soft.reset(new sq::Shader(gl::VERTEX_SHADER));
-    VS.part_geometry_soft.reset(new sq::Shader(gl::GEOMETRY_SHADER));
+    VS.defr_reflector.reset(new sq::Shader(gl::VERTEX_SHADER));
+    VS.defr_base_skybox.reset(new sq::Shader(gl::VERTEX_SHADER));
+    VS.defr_refl_skybox.reset(new sq::Shader(gl::VERTEX_SHADER));
+    VS.part_soft_vertex.reset(new sq::Shader(gl::VERTEX_SHADER));
+    VS.part_soft_geometry.reset(new sq::Shader(gl::GEOMETRY_SHADER));
     VS.prty_shafts_shafts.reset(new sq::Shader(gl::VERTEX_SHADER));
-    FS.gnrc_fillwith.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+
+    /// Create Fragment Shaders
     FS.gnrc_passthru.reset(new sq::Shader(gl::FRAGMENT_SHADER));
     FS.gnrc_lumalpha.reset(new sq::Shader(gl::FRAGMENT_SHADER));
-    FS.gbuf_models_base.reset(new sq::Shader(gl::FRAGMENT_SHADER));
-    FS.gbuf_models_refl.reset(new sq::Shader(gl::FRAGMENT_SHADER));
-    FS.gbuf_decals_base.reset(new sq::Shader(gl::FRAGMENT_SHADER));
-    FS.gbuf_decals_refl.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.gbuf_base_model.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.gbuf_base_decal.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.gbuf_refl_model.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.gbuf_refl_decal.reset(new sq::Shader(gl::FRAGMENT_SHADER));
     FS.shad_punch.reset(new sq::Shader(gl::FRAGMENT_SHADER));
     FS.defr_skybox.reset(new sq::Shader(gl::FRAGMENT_SHADER));
-    FS.defr_ambient_base.reset(new sq::Shader(gl::FRAGMENT_SHADER));
-    FS.defr_ambient_refl.reset(new sq::Shader(gl::FRAGMENT_SHADER));
-    FS.defr_skylight_base.reset(new sq::Shader(gl::FRAGMENT_SHADER));
-    FS.defr_skylight_refl.reset(new sq::Shader(gl::FRAGMENT_SHADER));
-    FS.defr_spot_none_base.reset(new sq::Shader(gl::FRAGMENT_SHADER));
-    FS.defr_spot_none_refl.reset(new sq::Shader(gl::FRAGMENT_SHADER));
-    FS.defr_spot_shad_base.reset(new sq::Shader(gl::FRAGMENT_SHADER));
-    FS.defr_spot_shad_refl.reset(new sq::Shader(gl::FRAGMENT_SHADER));
-    FS.defr_spot_spec_base.reset(new sq::Shader(gl::FRAGMENT_SHADER));
-    FS.defr_spot_both_base.reset(new sq::Shader(gl::FRAGMENT_SHADER));
-    FS.defr_point_none_base.reset(new sq::Shader(gl::FRAGMENT_SHADER));
-    FS.defr_point_none_refl.reset(new sq::Shader(gl::FRAGMENT_SHADER));
-    FS.defr_point_shad_base.reset(new sq::Shader(gl::FRAGMENT_SHADER));
-    FS.defr_point_shad_refl.reset(new sq::Shader(gl::FRAGMENT_SHADER));
-    FS.defr_point_spec_base.reset(new sq::Shader(gl::FRAGMENT_SHADER));
-    FS.defr_point_both_base.reset(new sq::Shader(gl::FRAGMENT_SHADER));
-    FS.defr_reflectors.reset(new sq::Shader(gl::FRAGMENT_SHADER));
-    FS.part_ambient_soft.reset(new sq::Shader(gl::FRAGMENT_SHADER));
-    FS.part_skylight_soft.reset(new sq::Shader(gl::FRAGMENT_SHADER));
-    FS.part_spot_none_soft.reset(new sq::Shader(gl::FRAGMENT_SHADER));
-    FS.part_spot_shad_soft.reset(new sq::Shader(gl::FRAGMENT_SHADER));
-    FS.part_point_none_soft.reset(new sq::Shader(gl::FRAGMENT_SHADER));
-    FS.part_point_shad_soft.reset(new sq::Shader(gl::FRAGMENT_SHADER));
-    FS.part_writefinal_soft.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.defr_reflector.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.defr_base_ambient.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.defr_base_skylight.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.defr_base_spot_none.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.defr_base_spot_shad.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.defr_base_spot_spec.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.defr_base_spot_both.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.defr_base_point_none.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.defr_base_point_shad.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.defr_base_point_spec.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.defr_base_point_both.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.defr_refl_ambient.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.defr_refl_skylight.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.defr_refl_spot_none.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.defr_refl_spot_shad.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.defr_refl_point_none.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.defr_refl_point_shad.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.part_soft_ambient.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.part_soft_skylight.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.part_soft_spot_none.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.part_soft_spot_shad.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.part_soft_point_none.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.part_soft_point_shad.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    FS.part_soft_write.reset(new sq::Shader(gl::FRAGMENT_SHADER));
     FS.prty_shafts_shafts.reset(new sq::Shader(gl::FRAGMENT_SHADER));
     FS.prty_shafts_write.reset(new sq::Shader(gl::FRAGMENT_SHADER));
     FS.prty_ssao_ssao.reset(new sq::Shader(gl::FRAGMENT_SHADER));
@@ -258,100 +256,98 @@ MainScene::MainScene(sq::Application* _app) : sq::Scene(_app) {
     FS.prty_vignette.reset(new sq::Shader(gl::FRAGMENT_SHADER));
 
     /// Add Uniforms to Shaders
-    VS.gbuf_stencil_base->add_uniform("matrix"); // mat4
-    VS.gbuf_stencil_refl->add_uniform("matrix"); // mat4
-    FS.gbuf_models_base->add_uniform("d_n_s"); // ivec3
-    FS.gbuf_models_refl->add_uniform("d_n_s"); // ivec3
+    VS.gbuf_base_stencil->add_uniform("matrix"); // mat4
+    FS.gbuf_base_model->add_uniform("d_n_s"); // ivec3
+    VS.gbuf_refl_stencil->add_uniform("matrix"); // mat4
+    FS.gbuf_refl_model->add_uniform("d_n_s"); // ivec3
     VS.shad_static->add_uniform("matrix"); // mat4
     VS.shad_skelly->add_uniform("matrix"); // mat4
 
     /// Load Shaders
     VS.gnrc_screen->load(preprocs->load("generic/screen_vs"));
-    VS.gbuf_stencil_base->load(preprocs->load("gbuffer/stencil_base_vs"));
-    VS.gbuf_stencil_refl->load(preprocs->load("gbuffer/stencil_refl_vs"));
-    VS.gbuf_statics_base->load(preprocs->load("gbuffer/statics_base_vs"));
-    VS.gbuf_statics_refl->load(preprocs->load("gbuffer/statics_refl_vs"));
-    VS.gbuf_skellys_base->load(preprocs->load("gbuffer/skellys_base_vs"));
-    VS.gbuf_skellys_refl->load(preprocs->load("gbuffer/skellys_refl_vs"));
-    VS.gbuf_decals_base->load(preprocs->load("gbuffer/decals_base_vs"));
-    VS.gbuf_decals_refl->load(preprocs->load("gbuffer/decals_refl_vs"));
+    VS.gbuf_base_stencil->load(preprocs->load("gbuffer/base/stencil_vs"));
+    VS.gbuf_base_static->load(preprocs->load("gbuffer/base/static_vs"));
+    VS.gbuf_base_skelly->load(preprocs->load("gbuffer/base/skelly_vs"));
+    VS.gbuf_base_decal->load(preprocs->load("gbuffer/base/decal_vs"));
+    VS.gbuf_refl_stencil->load(preprocs->load("gbuffer/refl/stencil_vs"));
+    VS.gbuf_refl_static->load(preprocs->load("gbuffer/refl/static_vs"));
+    VS.gbuf_refl_skelly->load(preprocs->load("gbuffer/refl/skelly_vs"));
+    VS.gbuf_refl_decal->load(preprocs->load("gbuffer/refl/decal_vs"));
     VS.shad_static->load(preprocs->load("shadows/static_vs"));
     VS.shad_skelly->load(preprocs->load("shadows/skelly_vs"));
-    VS.defr_skybox_base->load(preprocs->load("deferred/skybox_vs"));
-    VS.defr_skybox_refl->load(preprocs->load("deferred/skybox_vs", "#define REFLECT"));
-    VS.defr_reflectors->load(preprocs->load("deferred/reflectors_vs"));
-    VS.part_vertex_soft->load(preprocs->load("particles/vertex_soft_vs"));
-    VS.part_geometry_soft->load(preprocs->load("particles/geometry_soft_gs"));
+    VS.defr_reflector->load(preprocs->load("deferred/reflector_vs"));
+    VS.defr_base_skybox->load(preprocs->load("deferred/base/skybox_vs"));
+    VS.defr_refl_skybox->load(preprocs->load("deferred/refl/skybox_vs"));
+    VS.part_soft_vertex->load(preprocs->load("particles/soft/vertex_vs"));
+    VS.part_soft_geometry->load(preprocs->load("particles/soft/geometry_gs"));
     VS.prty_shafts_shafts->load(preprocs->load("pretty/shafts/shafts_vs"));
-    FS.gnrc_fillwith->load(preprocs->load("generic/fillwith_fs"));
     FS.gnrc_lumalpha->load(preprocs->load("generic/lumalpha_fs"));
     FS.gnrc_passthru->load(preprocs->load("generic/passthru_fs"));
-    FS.gbuf_models_base->load(preprocs->load("gbuffer/models_base_fs"));
-    FS.gbuf_models_refl->load(preprocs->load("gbuffer/models_refl_fs"));
-    FS.gbuf_decals_base->load(preprocs->load("gbuffer/decals_base_fs"));
-    FS.gbuf_decals_refl->load(preprocs->load("gbuffer/decals_refl_fs"));
+    FS.gbuf_base_model->load(preprocs->load("gbuffer/base/model_fs"));
+    FS.gbuf_base_decal->load(preprocs->load("gbuffer/base/decal_fs"));
+    FS.gbuf_refl_model->load(preprocs->load("gbuffer/refl/model_fs"));
+    FS.gbuf_refl_decal->load(preprocs->load("gbuffer/refl/decal_fs"));
     FS.shad_punch->load(preprocs->load("shadows/punch_fs"));
     FS.defr_skybox->load(preprocs->load("deferred/skybox_fs"));
-    FS.defr_ambient_refl->load(preprocs->load("deferred/ambient_refl_fs"));
-    FS.defr_reflectors->load(preprocs->load("deferred/reflectors_fs"));
-    FS.part_ambient_soft->load(preprocs->load("particles/ambient_soft_fs"));
-    FS.part_writefinal_soft->load(preprocs->load("particles/writefinal_soft_fs"));
+    FS.defr_reflector->load(preprocs->load("deferred/reflector_fs"));
+    FS.defr_refl_ambient->load(preprocs->load("deferred/refl/ambient_fs"));
+    FS.part_soft_ambient->load(preprocs->load("particles/soft/ambient_fs"));
+    FS.part_soft_write->load(preprocs->load("particles/soft/write_fs"));
     FS.prty_shafts_write->load(preprocs->load("pretty/shafts/write_fs"));
     FS.prty_hdr_highs->load(preprocs->load("pretty/hdr/highs_fs"));
-    FS.prty_vignette->load(preprocs->load("pretty/vignette/vignette_fs"));
+    FS.prty_vignette->load(preprocs->load("pretty/vignette_fs"));
 
     /// Set Graph Vertex Shaders
     graph->VS.gnrc_screen = VS.gnrc_screen.get();
-    graph->VS.gbuf_stencil_base = VS.gbuf_stencil_base.get();
-    graph->VS.gbuf_stencil_refl = VS.gbuf_stencil_refl.get();
-    graph->VS.gbuf_statics_base = VS.gbuf_statics_base.get();
-    graph->VS.gbuf_statics_refl = VS.gbuf_statics_refl.get();
-    graph->VS.gbuf_skellys_base = VS.gbuf_skellys_base.get();
-    graph->VS.gbuf_skellys_refl = VS.gbuf_skellys_refl.get();
-    graph->VS.gbuf_decals_base = VS.gbuf_decals_base.get();
-    graph->VS.gbuf_decals_refl = VS.gbuf_decals_refl.get();
+    graph->VS.gbuf_base_stencil = VS.gbuf_base_stencil.get();
+    graph->VS.gbuf_refl_stencil = VS.gbuf_refl_stencil.get();
+    graph->VS.gbuf_base_static = VS.gbuf_base_static.get();
+    graph->VS.gbuf_refl_static = VS.gbuf_refl_static.get();
+    graph->VS.gbuf_base_skelly = VS.gbuf_base_skelly.get();
+    graph->VS.gbuf_refl_skelly = VS.gbuf_refl_skelly.get();
+    graph->VS.gbuf_base_decal = VS.gbuf_base_decal.get();
+    graph->VS.gbuf_refl_decal = VS.gbuf_refl_decal.get();
     graph->VS.shad_static = VS.shad_static.get();
     graph->VS.shad_skelly = VS.shad_skelly.get();
-    graph->VS.defr_skybox_base = VS.defr_skybox_base.get();
-    graph->VS.defr_skybox_refl = VS.defr_skybox_refl.get();
-    graph->VS.defr_reflectors = VS.defr_reflectors.get();
-    graph->VS.part_vertex_soft = VS.part_vertex_soft.get();
-    graph->VS.part_geometry_soft = VS.part_geometry_soft.get();
+    graph->VS.defr_reflector = VS.defr_reflector.get();
+    graph->VS.defr_base_skybox = VS.defr_base_skybox.get();
+    graph->VS.defr_refl_skybox = VS.defr_refl_skybox.get();
+    graph->VS.part_soft_vertex = VS.part_soft_vertex.get();
+    graph->VS.part_soft_geometry = VS.part_soft_geometry.get();
 
     /// Set Graph Fragment Shaders
-    graph->FS.gnrc_fillwith = FS.gnrc_fillwith.get();
     graph->FS.gnrc_lumalpha = FS.gnrc_lumalpha.get();
     graph->FS.gnrc_passthru = FS.gnrc_passthru.get();
-    graph->FS.gbuf_models_base = FS.gbuf_models_base.get();
-    graph->FS.gbuf_models_refl = FS.gbuf_models_refl.get();
-    graph->FS.gbuf_decals_base = FS.gbuf_decals_base.get();
-    graph->FS.gbuf_decals_refl = FS.gbuf_decals_refl.get();
+    graph->FS.gbuf_base_model = FS.gbuf_base_model.get();
+    graph->FS.gbuf_base_decal = FS.gbuf_base_decal.get();
+    graph->FS.gbuf_refl_model = FS.gbuf_refl_model.get();
+    graph->FS.gbuf_refl_decal = FS.gbuf_refl_decal.get();
     graph->FS.shad_punch = FS.shad_punch.get();
     graph->FS.defr_skybox = FS.defr_skybox.get();
-    graph->FS.defr_ambient_base = FS.defr_ambient_base.get();
-    graph->FS.defr_ambient_refl = FS.defr_ambient_refl.get();
-    graph->FS.defr_skylight_base = FS.defr_skylight_base.get();
-    graph->FS.defr_skylight_refl = FS.defr_skylight_refl.get();
-    graph->FS.defr_spot_none_base = FS.defr_spot_none_base.get();
-    graph->FS.defr_spot_none_refl = FS.defr_spot_none_refl.get();
-    graph->FS.defr_spot_shad_base = FS.defr_spot_shad_base.get();
-    graph->FS.defr_spot_shad_refl = FS.defr_spot_shad_refl.get();
-    graph->FS.defr_spot_spec_base = FS.defr_spot_spec_base.get();
-    graph->FS.defr_spot_both_base = FS.defr_spot_both_base.get();
-    graph->FS.defr_point_none_base = FS.defr_point_none_base.get();
-    graph->FS.defr_point_none_refl = FS.defr_point_none_refl.get();
-    graph->FS.defr_point_shad_base = FS.defr_point_shad_base.get();
-    graph->FS.defr_point_shad_refl = FS.defr_point_shad_refl.get();
-    graph->FS.defr_point_spec_base = FS.defr_point_spec_base.get();
-    graph->FS.defr_point_both_base = FS.defr_point_both_base.get();
-    graph->FS.defr_reflectors = FS.defr_reflectors.get();
-    graph->FS.part_ambient_soft = FS.part_ambient_soft.get();
-    graph->FS.part_skylight_soft = FS.part_skylight_soft.get();
-    graph->FS.part_spot_none_soft = FS.part_spot_none_soft.get();
-    graph->FS.part_spot_shad_soft = FS.part_spot_shad_soft.get();
-    graph->FS.part_point_none_soft = FS.part_point_none_soft.get();
-    graph->FS.part_point_shad_soft = FS.part_point_shad_soft.get();
-    graph->FS.part_writefinal_soft = FS.part_writefinal_soft.get();
+    graph->FS.defr_base_ambient = FS.defr_base_ambient.get();
+    graph->FS.defr_base_skylight = FS.defr_base_skylight.get();
+    graph->FS.defr_base_spot_none = FS.defr_base_spot_none.get();
+    graph->FS.defr_base_spot_shad = FS.defr_base_spot_shad.get();
+    graph->FS.defr_base_spot_spec = FS.defr_base_spot_spec.get();
+    graph->FS.defr_base_spot_both = FS.defr_base_spot_both.get();
+    graph->FS.defr_base_point_none = FS.defr_base_point_none.get();
+    graph->FS.defr_base_point_shad = FS.defr_base_point_shad.get();
+    graph->FS.defr_base_point_spec = FS.defr_base_point_spec.get();
+    graph->FS.defr_base_point_both = FS.defr_base_point_both.get();
+    graph->FS.defr_refl_ambient = FS.defr_refl_ambient.get();
+    graph->FS.defr_refl_skylight = FS.defr_refl_skylight.get();
+    graph->FS.defr_refl_spot_none = FS.defr_refl_spot_none.get();
+    graph->FS.defr_refl_spot_shad = FS.defr_refl_spot_shad.get();
+    graph->FS.defr_refl_point_none = FS.defr_refl_point_none.get();
+    graph->FS.defr_refl_point_shad = FS.defr_refl_point_shad.get();
+    graph->FS.defr_reflector = FS.defr_reflector.get();
+    graph->FS.part_soft_ambient = FS.part_soft_ambient.get();
+    graph->FS.part_soft_skylight = FS.part_soft_skylight.get();
+    graph->FS.part_soft_spot_none = FS.part_soft_spot_none.get();
+    graph->FS.part_soft_spot_shad = FS.part_soft_spot_shad.get();
+    graph->FS.part_soft_point_none = FS.part_soft_point_none.get();
+    graph->FS.part_soft_point_shad = FS.part_soft_point_shad.get();
+    graph->FS.part_soft_write = FS.part_soft_write.get();
 
     /// Set Graph Textures
     graph->TX.ssaoA = TX.ssaoA.get();
@@ -419,7 +415,7 @@ void MainScene::update() {
 }
 
 void MainScene::render(float _ft) {
-    if (settings->crnt<bool>("console_active")) focused = false;
+    if (settings->get<bool>("console_active")) focused = false;
 
     camera->pos = glm::mix(posCrnt, posNext, accum * 24.f);
     if (focused == true) {
@@ -444,11 +440,12 @@ void MainScene::render(float _ft) {
 
 
     /// Light Shadows
+    gl::UseProgram(0u);
     sq::DEPTH_ON(); sq::DEPTH_WRITE();
     sq::BLEND_OFF(); sq::STENCIL_OFF();
     sq::CULLFACE_ON(); sq::CULLFACE_BACK();
-    graph->render_shadows_sky_A();
-    graph->render_shadows_sky_B();
+    graph->render_shadows_sky_main();
+    graph->render_shadows_sky_box();
     graph->render_shadows_spot();
     graph->render_shadows_point();
 
@@ -481,7 +478,7 @@ void MainScene::render(float _ft) {
 
 
     /// Render SSAO Texture
-    if (INFO.ssaoEnable == true) {
+    if (INFO.ssao != 0) {
         TX.depHalf->bind(gl::TEXTURE0);
         sq::DEPTH_OFF(); sq::STENCIL_OFF();
         sq::BLEND_OFF(); sq::CULLFACE_OFF();
@@ -503,18 +500,17 @@ void MainScene::render(float _ft) {
     sq::CULLFACE_OFF();
 
 
-    /// Render Lights, Reflectors, Emitters
+    /// Render Lights and Reflections
     graph->render_skybox_base();
     graph->render_ambient_base();
     graph->render_skylight_base();
     graph->render_spotlights_base();
     graph->render_pointlights_base();
     graph->render_reflections();
-    graph->render_particles();
 
 
     /// Render Light Shafts Texture
-    if (INFO.shftEnable == true) {
+    if (INFO.shafts != 0) {
         world->skylight.ubo->bind(1u);
         sq::DEPTH_OFF(); sq::BLEND_OFF();
         sq::STENCIL_OFF();
@@ -523,7 +519,7 @@ void MainScene::render(float _ft) {
         FB.shafts->use(); sq::CLEAR_COLOR();
         pipeline->use_shader(*VS.prty_shafts_shafts);
         pipeline->use_shader(*FS.prty_shafts_shafts);
-        world->skylight.texA->bind(gl::TEXTURE0);
+        world->skylight.texDepthA->bind(gl::TEXTURE0);
         TX.depQter->bind(gl::TEXTURE1);
         sq::draw_screen_quad();
 
@@ -538,6 +534,10 @@ void MainScene::render(float _ft) {
     }
 
 
+    /// Render Particles
+    graph->render_particles();
+
+
     /// Write HDR Luma to Alpha
     sq::DEPTH_OFF(); sq::STENCIL_OFF();
     sq::BLEND_OFF(); sq::CULLFACE_OFF();
@@ -549,7 +549,7 @@ void MainScene::render(float _ft) {
 
 
     /// Render Bloom Texture
-    if (INFO.hdrbEnable == true) {
+    if (INFO.bloom == true) {
         sq::VIEWPORT(INFO.qterSize);
         gl::ActiveTexture(gl::TEXTURE1);
         pipeline->use_shader(*FS.prty_hdr_highs); FB.bloomA->use();
@@ -576,7 +576,7 @@ void MainScene::render(float _ft) {
 
     /// Antialiasing and Write to Screen
     TX.simple->bind(gl::TEXTURE0);
-    if (INFO.fxaaEnable == true) {
+    if (INFO.fxaa != 0) {
         pipeline->use_shader(*FS.gnrc_lumalpha);
         sq::draw_screen_quad();
         pipeline->use_shader(*FS.prty_fxaa_fxaa);
@@ -584,9 +584,8 @@ void MainScene::render(float _ft) {
     gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
     sq::draw_screen_quad();
 
-
     /// Vignetting Effect
-    if (INFO.vgntEnable == true) {
+    if (INFO.vignette == true) {
         pipeline->use_shader(*FS.prty_vignette);
         sq::BLEND_ON(); sq::BLEND_ALPHA();
         sq::draw_screen_quad();
@@ -638,85 +637,78 @@ void MainScene::update_settings() {
 
     camera->size = fvec2(INFO.fullSize);
 
-    INFO.viewDist = float(settings->crnt<float>("viewDist"));
-    INFO.ssaoEnable = bool(settings->crnt<int>("ssaoMode"));
-    INFO.shftEnable = bool(settings->crnt<int>("shftMode"));
-    INFO.hdrbEnable = bool(settings->crnt<int>("hdrbMode"));
-    INFO.fxaaEnable = bool(settings->crnt<int>("fxaaMode"));
-    INFO.vgntEnable = bool(settings->crnt<int>("vignMode"));
-    INFO.shadMult = uint(glm::pow(2, settings->crnt<int>("shadQlty")));
-    INFO.shadFltr = bool(settings->crnt<int>("shadFltr"));
+    INFO.viewdist   = settings->get<float>("rpg_viewdist");
+    INFO.shadfilter = settings->get<bool>("rpg_shadfilter");
+    INFO.shadlarge  = settings->get<bool>("rpg_shadlarge");
+    INFO.vignette   = settings->get<bool>("rpg_vignette");
+    INFO.bloom      = settings->get<bool>("rpg_bloom");
+    INFO.shafts     = settings->get<int>("rpg_shafts");
+    INFO.fxaa       = settings->get<int>("rpg_fxaa");
+    INFO.ssao       = settings->get<int>("rpg_ssao");
 
-    graph->INFO.viewDist = INFO.viewDist;
-    graph->INFO.shadMult = INFO.shadMult;
-    graph->INFO.shadFltr = INFO.shadFltr;
-    camera->rmax = INFO.viewDist;
+    graph->INFO.viewdist = INFO.viewdist;
+    graph->INFO.shadlarge = INFO.shadlarge;
+    graph->INFO.shadfilter = INFO.shadfilter;
+    camera->rmax = INFO.viewdist;
 
+    world->invalidate();
+    world->refresh();
     graph->update_settings();
     reload_shaders();
 }
 
 
 void MainScene::reload_shaders() {
-    int shadFltr = settings->crnt<int>("shadFltr");
-    int shadQlty = settings->crnt<int>("shadQlty");
-    int ssaoMode = settings->crnt<int>("ssaoMode");
-    int hdrbMode = settings->crnt<int>("hdrbMode");
-    int shftMode = settings->crnt<int>("shftMode");
-    int fxaaMode = settings->crnt<int>("fxaaMode");
-
     /// Lighting
-    string defines = "#define SHADFLTR " + std::to_string(shadFltr) + "\n"
-                   + "#define SHADQLTY " + std::to_string(shadQlty);
+    string defines;
+    if (INFO.shadfilter) defines += "\n#define FILTER";
+    if (INFO.shadlarge)  defines += "\n#define LARGE";
     string definesShad = defines + "\n#define SHADOW";
     string definesSpec = defines + "\n#define SPECULAR";
     string definesBoth = defines + "\n#define SHADOW\n#define SPECULAR";
-    FS.defr_skylight_base->load(preprocs->load("deferred/skylight_base_fs", defines));
-    FS.defr_skylight_refl->load(preprocs->load("deferred/skylight_refl_fs", defines));
-    FS.defr_spot_none_base->load(preprocs->load("deferred/spotlight_base_fs", defines));
-    FS.defr_spot_none_refl->load(preprocs->load("deferred/spotlight_refl_fs", defines));
-    FS.defr_spot_shad_base->load(preprocs->load("deferred/spotlight_base_fs", definesShad));
-    FS.defr_spot_shad_refl->load(preprocs->load("deferred/spotlight_refl_fs", definesShad));
-    FS.defr_spot_spec_base->load(preprocs->load("deferred/spotlight_base_fs", definesSpec));
-    FS.defr_spot_both_base->load(preprocs->load("deferred/spotlight_base_fs", definesBoth));
-    FS.defr_point_none_base->load(preprocs->load("deferred/pointlight_base_fs", defines));
-    FS.defr_point_none_refl->load(preprocs->load("deferred/pointlight_refl_fs", defines));
-    FS.defr_point_shad_base->load(preprocs->load("deferred/pointlight_base_fs", definesShad));
-    FS.defr_point_shad_refl->load(preprocs->load("deferred/pointlight_refl_fs", definesShad));
-    FS.defr_point_spec_base->load(preprocs->load("deferred/pointlight_base_fs", definesSpec));
-    FS.defr_point_both_base->load(preprocs->load("deferred/pointlight_base_fs", definesBoth));
-    FS.part_skylight_soft->load(preprocs->load("particles/skylight_soft_fs", defines));
-    FS.part_spot_none_soft->load(preprocs->load("particles/spotlight_soft_fs", defines));
-    FS.part_spot_shad_soft->load(preprocs->load("particles/spotlight_soft_fs", definesShad));
-    FS.part_point_none_soft->load(preprocs->load("particles/pointlight_soft_fs", defines));
-    FS.part_point_shad_soft->load(preprocs->load("particles/pointlight_soft_fs", definesShad));
+    FS.defr_base_skylight->load(preprocs->load("deferred/base/skylight_fs", defines));
+    FS.defr_base_spot_none->load(preprocs->load("deferred/base/spotlight_fs", defines));
+    FS.defr_base_spot_shad->load(preprocs->load("deferred/base/spotlight_fs", definesShad));
+    FS.defr_base_spot_spec->load(preprocs->load("deferred/base/spotlight_fs", definesSpec));
+    FS.defr_base_spot_both->load(preprocs->load("deferred/base/spotlight_fs", definesBoth));
+    FS.defr_base_point_none->load(preprocs->load("deferred/base/pointlight_fs", defines));
+    FS.defr_base_point_shad->load(preprocs->load("deferred/base/pointlight_fs", definesShad));
+    FS.defr_base_point_spec->load(preprocs->load("deferred/base/pointlight_fs", definesSpec));
+    FS.defr_base_point_both->load(preprocs->load("deferred/base/pointlight_fs", definesBoth));
+    FS.defr_refl_skylight->load(preprocs->load("deferred/refl/skylight_fs", defines));
+    FS.defr_refl_spot_none->load(preprocs->load("deferred/refl/spotlight_fs", defines));
+    FS.defr_refl_spot_shad->load(preprocs->load("deferred/refl/spotlight_fs", definesShad));
+    FS.defr_refl_point_none->load(preprocs->load("deferred/refl/pointlight_fs", defines));
+    FS.defr_refl_point_shad->load(preprocs->load("deferred/refl/pointlight_fs", definesShad));
+    FS.part_soft_skylight->load(preprocs->load("particles/soft/skylight_fs", defines));
+    FS.part_soft_spot_none->load(preprocs->load("particles/soft/spotlight_fs", defines));
+    FS.part_soft_spot_shad->load(preprocs->load("particles/soft/spotlight_fs", definesShad));
+    FS.part_soft_point_none->load(preprocs->load("particles/soft/pointlight_fs", defines));
+    FS.part_soft_point_shad->load(preprocs->load("particles/soft/pointlight_fs", definesShad));
 
     /// SSAO
     defines = "#define PIXSIZE " + glm::to_string(INFO.hPixSize);
-    if (ssaoMode == 0) FS.defr_ambient_base->load(preprocs->load("deferred/ambient_base_fs"));
-    else FS.defr_ambient_base->load(preprocs->load("deferred/ambient_base_fs", "#define SSAO"));
-    if (ssaoMode == 1) FS.prty_ssao_ssao->load(preprocs->load("pretty/ssao/ssao_fs", defines)),
-                       FS.prty_ssao_blur->load(preprocs->load("pretty/ssao/blur_fs", defines));
-    if (ssaoMode == 2) FS.prty_ssao_ssao->load(preprocs->load("pretty/ssao/ssao_fs", defines+"\n#define HIGH")),
-                       FS.prty_ssao_blur->load(preprocs->load("pretty/ssao/blur_fs", defines+"\n#define HIGH"));
+    if (INFO.ssao==2) defines += "\n#define HIGH";
+    if (INFO.ssao==0) FS.defr_base_ambient->load(preprocs->load("deferred/base/ambient_fs"));
+    else FS.defr_base_ambient->load(preprocs->load("deferred/base/ambient_fs", "#define SSAO")),
+         FS.prty_ssao_ssao->load(preprocs->load("pretty/ssao/ssao_fs", defines)),
+         FS.prty_ssao_blur->load(preprocs->load("pretty/ssao/blur_fs", defines));
 
     /// Shafts
-    if (shftMode == 1) FS.prty_shafts_shafts->load(preprocs->load("pretty/shafts/shafts_fs"));
-    if (shftMode == 2) FS.prty_shafts_shafts->load(preprocs->load("pretty/shafts/shafts_fs", "#define HIGH"));
+    if (INFO.shafts==1) FS.prty_shafts_shafts->load(preprocs->load("pretty/shafts/shafts_fs"));
+    if (INFO.shafts==2) FS.prty_shafts_shafts->load(preprocs->load("pretty/shafts/shafts_fs", "#define HIGH"));
 
     /// Bloom
     defines = "#define PIXSIZE " + glm::to_string(INFO.qPixSize);
-    if (hdrbMode == 1) FS.prty_hdr_blurh->load(preprocs->load("pretty/hdr/blurh_fs", defines)),
-                       FS.prty_hdr_blurv->load(preprocs->load("pretty/hdr/blurv_fs", defines));
-    if (hdrbMode == 2) FS.prty_hdr_blurh->load(preprocs->load("pretty/hdr/blurh_fs", defines+"\n#define HIGH")),
-                       FS.prty_hdr_blurv->load(preprocs->load("pretty/hdr/blurv_fs", defines+"\n#define HIGH"));
+    if (INFO.bloom==true) FS.prty_hdr_blurh->load(preprocs->load("pretty/hdr/blurh_fs", defines)),
+                          FS.prty_hdr_blurv->load(preprocs->load("pretty/hdr/blurv_fs", defines));
 
     /// HDR
-    if (hdrbMode == 0) FS.prty_hdr_tones->load(preprocs->load("pretty/hdr/tones_fs"));
-    else FS.prty_hdr_tones->load(preprocs->load("pretty/hdr/tones_fs", "#define HDRB"));
+    if (INFO.bloom==false) FS.prty_hdr_tones->load(preprocs->load("pretty/hdr/tones_fs"));
+    else FS.prty_hdr_tones->load(preprocs->load("pretty/hdr/tones_fs", "#define BLOOM"));
 
     /// FXAA
     defines = "#define PIXSIZE " + glm::to_string(INFO.fPixSize);
-    if (fxaaMode == 1) FS.prty_fxaa_fxaa->load(preprocs->load("pretty/fxaa/fxaa_fs", defines));
-    if (fxaaMode == 2) FS.prty_fxaa_fxaa->load(preprocs->load("pretty/fxaa/fxaa_fs", defines+"\n#define HIGH"));
+    if (INFO.fxaa==1) FS.prty_fxaa_fxaa->load(preprocs->load("pretty/fxaa/fxaa_fs", defines));
+    if (INFO.fxaa==2) FS.prty_fxaa_fxaa->load(preprocs->load("pretty/fxaa/fxaa_fs", defines+"\n#define HIGH"));
 }

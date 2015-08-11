@@ -1,4 +1,4 @@
-#include <sqee/redist/gl_ext_3_3.hpp>
+#include <sqee/redist/gl_ext_4_1.hpp>
 #include <sqee/gl/Textures.hpp>
 #include <sqee/render/Skin.hpp>
 #include <sqee/misc/Files.hpp>
@@ -57,38 +57,35 @@ void Skin::create(const string& _path) {
         mtrlVec.back().punch = spec.extraSet.count("punch");
 
         Texture::Preset preset;
-        if      (spec.wrapMode == 0) preset = Texture2D::M_C();
-        else if (spec.wrapMode == 1) preset = Texture2D::M_R();
-        else if (spec.wrapMode == 2) preset = Texture2D::M_M();
+        if      (spec.wrapMode == 0) preset = Texture::MipmapClamp();
+        else if (spec.wrapMode == 1) preset = Texture::MipmapRepeat();
+        else if (spec.wrapMode == 2) preset = Texture::MipmapMirror();
 
         if (spec.diff.empty() == false) {
             const string name = "diff/" + spec.diff;
             if ((mtrlVec.back().diff = res::tex2D().get(name)) == nullptr) {
                 mtrlVec.back().diff = res::tex2D().add(name);
-                mtrlVec.back().diff->create(gl::RGBA, gl::RGBA8, 4);
+                mtrlVec.back().diff->create(gl::RGBA, gl::RGBA8, 4u, true);
                 mtrlVec.back().diff->set_preset(preset);
-                mtrlVec.back().diff->buffer_file(name);
-                mtrlVec.back().diff->gen_mipmap();
+                mtrlVec.back().diff->buffer_auto(name);
             } mtrlVec.back().glDNS.x = true;
         }
         if (spec.norm.empty() == false) {
             const string name = "norm/" + spec.norm;
             if ((mtrlVec.back().norm = res::tex2D().get(name)) == nullptr) {
                 mtrlVec.back().norm = res::tex2D().add(name);
-                mtrlVec.back().norm->create(gl::RGB, gl::RGB8, 3);
+                mtrlVec.back().norm->create(gl::RGB, gl::RGB8, 3u, true);
                 mtrlVec.back().norm->set_preset(preset);
-                mtrlVec.back().norm->buffer_file(name);
-                mtrlVec.back().norm->gen_mipmap();
+                mtrlVec.back().norm->buffer_auto(name);
             } mtrlVec.back().glDNS.y = true;
         }
         if (spec.spec.empty() == false) {
             const string name = "spec/" + spec.spec;
             if ((mtrlVec.back().spec = res::tex2D().get(name)) == nullptr) {
                 mtrlVec.back().spec = res::tex2D().add(name);
-                mtrlVec.back().spec->create(gl::RGB, gl::RGB8, 3);
+                mtrlVec.back().spec->create(gl::RGB, gl::RGB8, 3u, true);
                 mtrlVec.back().spec->set_preset(preset);
-                mtrlVec.back().spec->buffer_file(name);
-                mtrlVec.back().spec->gen_mipmap();
+                mtrlVec.back().spec->buffer_auto(name);
             } mtrlVec.back().glDNS.z = true;
         }
     }

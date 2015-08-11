@@ -1,8 +1,6 @@
 #pragma once
 #include <sqee/forward.hpp>
 
-#include <deque>
-
 #include <SFML/Window/Window.hpp>
 
 #include <sqee/scripts/ChaiScript.hpp>
@@ -40,7 +38,7 @@ public:
     void sweep_scene(const string& _key);
     void sweep_handler(const string& _key);
 
-    unique_ptr<SettingsMaps> settings;
+    unique_ptr<Settings> settings;
     unique_ptr<PreProcessor> preprocs;
     unique_ptr<SoundManager> soundman;
     unique_ptr<chai::ChaiScript> cs;
@@ -50,9 +48,9 @@ protected:
     sf::Window window;
     int retCode;
 
-    std::deque<unique_ptr<Scene>> sceneDeq;
+    deque<unique_ptr<Scene>> sceneDeq;
+    deque<unique_ptr<Handler>> handlerDeq;
     unordered_map<string, Scene*> sceneMap;
-    std::deque<unique_ptr<Handler>> handlerDeq;
     unordered_map<string, Handler*> handlerMap;
 
     unordered_set<string> sceneSweep;

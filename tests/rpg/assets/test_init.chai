@@ -10,7 +10,6 @@ def main() {
 //    settings.modI("fxaaMode", 0);
 //    settings.modI("vignMode", 0);
 
-    settings.apply(); 
     application.update();
 
     var cellSponza = world.add_cell("Sponza");
@@ -109,7 +108,7 @@ def add_some_shit() {
     lightPoint.texsize = 128u;
     lightPoint.shadow = true;
     lightPoint.specular = true;
-    lightPoint.refresh();
+//    lightPoint.refresh();
 
     var lightSpotN = cell.add_SpotLight("SpotN");
     lightSpotN.direction = fvec3(0.0, -0.7, -0.3);
@@ -334,6 +333,14 @@ add_some_shit();
 //add_some_balls();
 //add_lotsa_dudes();
 
+def sd(_val) {
+    world.skylight.density = _val;
+    world.skylight.refresh();
+}
+
 
 var slA = world.get_cell("Sponza").get_ModelSkelly("SqeenLiveA");
 var slB = world.get_cell("Sponza").get_ModelSkelly("SqeenLiveB");
+
+var cell = world.get_cell("Sponza");
+var meta = cell.add_MetaObject("meta");

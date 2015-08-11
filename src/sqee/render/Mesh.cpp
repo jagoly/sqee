@@ -1,7 +1,7 @@
 #include <cstring>
 #include <iostream>
 
-#include <sqee/redist/gl_ext_3_3.hpp>
+#include <sqee/redist/gl_ext_4_1.hpp>
 #include <sqee/maths/General.hpp>
 #include <sqee/render/Mesh.hpp>
 #include <sqee/misc/Files.hpp>
