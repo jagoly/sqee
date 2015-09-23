@@ -15,12 +15,13 @@ public:
     bool   PROP_render   = false;
     bool   PROP_shadow   = false;
     bool   PROP_decals   = false;
+    bool   PROP_probes   = false;
     fvec3  PROP_position = {0.f, 0.f, 0.f};
     fquat  PROP_rotation = {1.f, 0.f, 0.f, 0.f};
     fvec3  PROP_scale    = {1.f, 1.f, 1.f};
-    string PROP_arma     = "";
     string PROP_mesh     = "";
     string PROP_skin     = "";
+    string PROP_arma     = "";
     string PROP_pose     = "";
     string PROP_anim     = "";
 
@@ -44,8 +45,8 @@ public:
 private:
     uint index = 0u, ticks = 0u;
     uint span = 0u, spanEnd = 0u;
-    vector<pair<vector<sq::ArmatureTrnsfrm>&, uint>> anim;
-    vector<sq::ArmatureTrnsfrm> poseCalc, poseCrnt, poseNext;
+    vector<pair<vector<sq::ArmaTransform>&, uint>> anim;
+    vector<sq::ArmaTransform> poseCalc, poseCrnt, poseNext;
     enum class State { Running, Ending, Paused, Done };
     State state = State::Done; bool looping = false;
 };

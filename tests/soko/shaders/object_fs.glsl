@@ -1,12 +1,11 @@
-#version 330
-#extension GL_ARB_shading_language_420pack : enable
+// GLSL Fragment Shader
 
 in vec3 v_pos;
 in vec3 v_norm;
 in vec3 colour;
 
-#include "builtin/blocks/camera"
-#include "uniform_block"
+#include builtin/blocks/camera
+#include uniform_block
 
 layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
 layout(std140, binding=1) uniform UNIFORMBLOCK { UniformBlock UB; };

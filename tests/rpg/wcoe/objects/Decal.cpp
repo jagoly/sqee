@@ -1,6 +1,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <sqee/redist/gl_ext_4_1.hpp>
+#include <sqee/redist/gl_ext_4_2.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
 #include <sqee/gl/Textures.hpp>
 #include <sqee/maths/Culling.hpp>
@@ -23,17 +23,13 @@ Decal::Decal(const string& _name, Cell* _cell)
 }
 
 void Decal::load_from_spec(const ObjSpec& _spec) {
-    assert_fvec3(_spec, name, "position");
-    assert_fquat(_spec, name, "rotation");
-    assert_fvec3(_spec, name, "scale");
-
-    PROP_position = _spec.fvec3Map.at("position");
-    PROP_rotation = _spec.fquatMap.at("rotation");
-    PROP_scale    = _spec.fvec3Map.at("scale");
-
-    if (_spec.stringMap.count("diff")) PROP_diff = _spec.stringMap.at("diff");
-    if (_spec.stringMap.count("norm")) PROP_norm = _spec.stringMap.at("norm");
-    if (_spec.stringMap.count("spec")) PROP_spec = _spec.stringMap.at("spec");
+    _spec.set_if("position", PROP_position);
+    _spec.set_if("rotation", PROP_rotation);
+    _spec.set_if("scale", PROP_scale);
+    _spec.set_if("alpha", PROP_alpha);
+    _spec.set_if("diff", PROP_diff);
+    _spec.set_if("norm", PROP_norm);
+    _spec.set_if("spec", PROP_spec);
 }
 
 void Decal::refresh() {

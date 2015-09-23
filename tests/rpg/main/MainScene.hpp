@@ -13,10 +13,8 @@ public:
     MainScene(sq::Application* _app);
 
     void update();
-    void render(float _ft);
-    void update_settings();
-
-    bool focused = false;
+    void render();
+    void refresh();
 
 private:
     unique_ptr<sq::Pipeline> pipeline;
@@ -25,27 +23,33 @@ private:
     unique_ptr<rndr::Graph> graph;
 
     fvec3 posCrnt, posNext;
-    float rotX, rotZ;
+    float rotX =0, rotZ =0;
 
     struct {
         unique_ptr<sq::Shader> gnrc_screen;
         unique_ptr<sq::Shader> gbuf_base_stencil;
-        unique_ptr<sq::Shader> gbuf_base_static;
+        unique_ptr<sq::Shader> gbuf_base_simple;
         unique_ptr<sq::Shader> gbuf_base_skelly;
         unique_ptr<sq::Shader> gbuf_base_decal;
         unique_ptr<sq::Shader> gbuf_refl_stencil;
-        unique_ptr<sq::Shader> gbuf_refl_static;
+        unique_ptr<sq::Shader> gbuf_refl_simple;
         unique_ptr<sq::Shader> gbuf_refl_skelly;
         unique_ptr<sq::Shader> gbuf_refl_decal;
-        unique_ptr<sq::Shader> shad_static;
+        unique_ptr<sq::Shader> shad_simple;
         unique_ptr<sq::Shader> shad_skelly;
+        unique_ptr<sq::Shader> irrd_gbuf_simple;
+        unique_ptr<sq::Shader> irrd_defr_skybox;
         unique_ptr<sq::Shader> defr_reflector;
         unique_ptr<sq::Shader> defr_base_skybox;
         unique_ptr<sq::Shader> defr_refl_skybox;
         unique_ptr<sq::Shader> part_soft_vertex;
-        unique_ptr<sq::Shader> part_soft_geometry;
         unique_ptr<sq::Shader> prty_shafts_shafts;
+        unique_ptr<sq::Shader> dbug_envsphere;
     } VS;
+
+    struct {
+        unique_ptr<sq::Shader> part_soft_geometry;
+    } GS;
 
     struct {
         unique_ptr<sq::Shader> gnrc_passthru;
@@ -55,6 +59,13 @@ private:
         unique_ptr<sq::Shader> gbuf_refl_model;
         unique_ptr<sq::Shader> gbuf_refl_decal;
         unique_ptr<sq::Shader> shad_punch;
+        unique_ptr<sq::Shader> irrd_gbuf_model;
+        unique_ptr<sq::Shader> irrd_defr_skybox;
+        unique_ptr<sq::Shader> irrd_defr_skylight;
+        unique_ptr<sq::Shader> irrd_defr_spotlight;
+        unique_ptr<sq::Shader> irrd_defr_pointlight;
+        unique_ptr<sq::Shader> irrd_harmonics_shm;
+        unique_ptr<sq::Shader> irrd_harmonics_sdv;
         unique_ptr<sq::Shader> defr_skybox;
         unique_ptr<sq::Shader> defr_reflector;
         unique_ptr<sq::Shader> defr_base_ambient;
@@ -90,6 +101,8 @@ private:
         unique_ptr<sq::Shader> prty_hdr_tones;
         unique_ptr<sq::Shader> prty_fxaa_fxaa;
         unique_ptr<sq::Shader> prty_vignette;
+        unique_ptr<sq::Shader> dbug_envsphere_shm;
+        unique_ptr<sq::Shader> dbug_envsphere_sdv;
     } FS;
 
     struct {
@@ -145,6 +158,7 @@ private:
         bool shadlarge;
         bool vignette;
         bool bloom;
+        bool irrd;
         int shafts;
         int ssao;
         int fxaa;
@@ -154,6 +168,7 @@ private:
         fvec2 fPixSize;
         fvec2 hPixSize;
         fvec2 qPixSize;
+        float aspect;
     } INFO;
 
     void reload_shaders();

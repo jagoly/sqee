@@ -1,6 +1,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <sqee/redist/gl_ext_4_1.hpp>
+#include <sqee/redist/gl_ext_4_2.hpp>
 #include <sqee/app/Settings.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
 #include <sqee/gl/FrameBuffer.hpp>
@@ -26,17 +26,13 @@ PointLight::PointLight(const string& _name, Cell* _cell)
 }
 
 void PointLight::load_from_spec(const ObjSpec& _spec) {
-    assert_fvec3(_spec, name, "position");
-    assert_fvec3(_spec, name, "colour");
-    assert_float(_spec, name, "intensity");
-    assert_uint(_spec, name, "texsize");
-
-    PROP_shadow    = _spec.flagSet.count("shadow");
-    PROP_specular  = _spec.flagSet.count("specular");
-    PROP_position  = _spec.fvec3Map.at("position");
-    PROP_colour    = _spec.fvec3Map.at("colour");
-    PROP_intensity = _spec.floatMap.at("intensity");
-    PROP_texsize   = _spec.uintMap.at("texsize");
+    _spec.set_if("shadow", PROP_shadow);
+    _spec.set_if("specular", PROP_specular);
+    _spec.set_if("probes", PROP_probes);
+    _spec.set_if("position", PROP_position);
+    _spec.set_if("colour", PROP_colour);
+    _spec.set_if("intensity", PROP_intensity);
+    _spec.set_if("texsize", PROP_texsize);
 }
 
 void PointLight::refresh() {
@@ -44,7 +40,7 @@ void PointLight::refresh() {
         if (PROP_shadow == true) {
             tex.reset(new sq::TextureMutCube());
             tex->create(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT16, 1u);
-            bool shadlarge = settings->get<bool>("rpg_shadlarge");
+            bool shadlarge = settings.get<bool>("rpg_shadlarge");
             tex->resize(PROP_texsize * (1u + shadlarge));
             tex->set_preset(sq::Texture::ShadowMap());
             for (uint i = 0u; i < 6u; ++i)
@@ -55,8 +51,8 @@ void PointLight::refresh() {
         invalid = false;
     }
 
-    if (PROP_shadow && settings->check<bool>("rpg_shadlarge")) {
-        bool shadlarge = settings->get<bool>("rpg_shadlarge");
+    if (PROP_shadow && settings.check<bool>("rpg_shadlarge")) {
+        bool shadlarge = settings.get<bool>("rpg_shadlarge");
         tex->resize(PROP_texsize * (1u + shadlarge));
     }
 

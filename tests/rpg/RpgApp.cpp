@@ -1,8 +1,5 @@
-#include <sqee/scenes/Basics.hpp>
-#include <sqee/handlers/Basics.hpp>
-#include <sqee/scripts/ConsoleScene.hpp>
-#include <sqee/scripts/ConsoleHandler.hpp>
 #include <sqee/misc/ResHolder.hpp>
+#include <sqee/debug/Logging.hpp>
 
 #include "main/MainScene.hpp"
 #include "main/MainHandler.hpp"
@@ -13,12 +10,6 @@ using namespace sqt;
 
 RpgApp::RpgApp() {
     append_scene<MainScene>("main");
-    append_scene<sq::ConsoleScene>("console");
-    append_scene<sq::BasicFPSScene>("fps");
-
-    append_handler<sq::ConsoleHandler>("console");
-    append_handler<sq::BasicCloseHandler>("close");
-    append_handler<sq::BasicResizeHandler>("resize");
     append_handler<MainHandler>("main");
 
     cs_setup_main(*cs);
@@ -27,5 +18,9 @@ RpgApp::RpgApp() {
 }
 
 void RpgApp::eval_test_init() {
-    cs->eval_file(sq::res::path() + "/test_init.chai");
+    try { cs->eval_file(sq::res::path() + "test_init.chai"); }
+    catch (chai::exception::eval_error& err) {
+        sq::log_error(err.pretty_print());
+        quit(1);
+    }
 }

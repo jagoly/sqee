@@ -3,6 +3,7 @@
 
 namespace sq {
 
+/// A simple SQEE Camera class
 class Camera : NonCopyable {
 public:
     virtual ~Camera();

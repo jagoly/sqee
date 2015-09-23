@@ -1,4 +1,6 @@
-#include <sqee/app/Logging.hpp>
+#include <SFML/Window/Event.hpp>
+
+#include <sqee/debug/Logging.hpp>
 #include <sqee/app/Application.hpp>
 #include <sqee/app/Settings.hpp>
 
@@ -16,16 +18,16 @@ void PausedScene::update() {
 }
 
 
-void PausedScene::render(float _ft) {
+void PausedScene::render() {
 
 }
 
 
-void PausedScene::update_settings() {
+void PausedScene::refresh() {
 
 }
 
 
-bool PausedHandler::handle(const sf::Event& _event) {
+bool PausedHandler::handle(sf::Event _event) {
     return false;
 }

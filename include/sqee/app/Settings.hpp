@@ -3,23 +3,24 @@
 
 namespace sq {
 
-class Settings {
+/// The SQEE Settings manager
+class Settings final : NonCopyable {
 public:
     template <class T> void add(const string& _key, const T& _val);
     template <class T> void mod(const string& _key, const T& _val);
-    template <class T> T get(const string& _key) const;
     template <class T> bool check(const string& _key) const;
+    template <class T> T get(const string& _key) const;
     void clear_changed();
 
-protected:
-    unordered_map<string, int> intMap;
-    unordered_map<string, bool> boolMap;
-    unordered_map<string, float> floatMap;
-    unordered_map<string, string> stringMap;
-    unordered_set<string> intChanges;
-    unordered_set<string> boolChanges;
-    unordered_set<string> floatChanges;
-    unordered_set<string> stringChanges;
+private:
+    std::unordered_map<string, int> intMap;
+    std::unordered_map<string, bool> boolMap;
+    std::unordered_map<string, float> floatMap;
+    std::unordered_map<string, string> stringMap;
+    std::unordered_set<string> intChanges;
+    std::unordered_set<string> boolChanges;
+    std::unordered_set<string> floatChanges;
+    std::unordered_set<string> stringChanges;
 };
 
 }

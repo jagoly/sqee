@@ -1,7 +1,7 @@
 // GLSL Fragment Shader
 
+// define ASPECT float
 // define HIGH
-// define PIXSIZE vec2
 
 in vec2 texcrd;
 
@@ -16,8 +16,8 @@ out float fragColour;
 
 
 #ifdef HIGH
-const float distThres = 1.5f;
-const float filterSize = 300.f;
+const float distThres = 1.0f;
+const float filterSize = 0.4f;
 const int diskSize = 36;
 const vec2 disk[36] = {
 vec2(0.000000, 0.027778),
@@ -59,7 +59,7 @@ vec2(0.984808, -0.173648),
 };
 #else
 const float distThres = 0.5f;
-const float filterSize = 100.f;
+const float filterSize = 0.15f;
 const int diskSize = 18;
 const vec2 disk[18] = {
 vec2(0.000000, 0.055556),
@@ -95,10 +95,8 @@ float rand(vec2 _crd){
 }
 
 void main() {
-    const float scale = 16.f / 9.f / (PIXSIZE.y / PIXSIZE.x) / PIXSIZE.y / 720.f;
-
     vec3 pos = get_view_pos(texcrd);
-    vec2 fsvspz = scale * filterSize * PIXSIZE / pos.z;
+    vec2 fsvspz = filterSize * vec2(1.f / ASPECT, 1.f) / pos.z;
     vec3 v_surf = normalize(texture(defrSurf, texcrd).rgb * 2.f - 1.f);
 
     float angle = rand(texcrd - CB.dir.xy);

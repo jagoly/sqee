@@ -3,23 +3,21 @@
 
 namespace sq {
 
+/// The basic SQEE Scene class
 class Scene : NonCopyable {
 public:
     virtual ~Scene() = default;
     Scene(Application* _app);
 
+    virtual void update() = 0;
+    virtual void render() = 0;
+    virtual void refresh() {}
+
     double accum = 0.0;
     uint tickRate = 24u;
 
-    virtual void update() {};
-    virtual void render(float _ft) {};
-    virtual void update_settings() {};
-
 protected:
-    Settings* const settings;
-    PreProcessor* const preprocs;
-    SoundManager* const soundman;
-    Application* const appBase;
+    Application* const app;
 };
 
 }

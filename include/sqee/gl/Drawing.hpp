@@ -1,22 +1,27 @@
 #pragma once
 #include <sqee/forward.hpp>
 
-#include <sqee/redist/gl_ext_4_1.hpp>
+#include <sqee/redist/gl_ext_4_2.hpp>
 
 namespace sq {
 
+/// Draw a point with no attributes
 void draw_nothing();
 
+/// Draw a quad to the screen
 void draw_screen_quad();
 
+/// Draw a cone volume
 void draw_volume_cone();
 
+/// Draw a sphere volume
 void draw_volume_sphr();
 
+/// Draw a cube volume
 void draw_volume_cube();
 
 
-/////////////////////////////
+// Simple OpenGL function wrappers /////
 
 inline void CLIP_ON() {
     gl::Enable(gl::CLIP_DISTANCE0);

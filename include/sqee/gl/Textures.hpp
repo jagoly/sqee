@@ -8,6 +8,7 @@ namespace sq {
 /// Abstract base class for OpenGL texture objects
 class Texture : NonCopyable {
 public:
+    Texture();
     virtual ~Texture();
 
     /// A group of parameters and values to set at once
@@ -46,13 +47,12 @@ public:
     static Preset ShadowMap();
 
 protected:
-    void create_base();
-
     GLenum target;
     GLenum format;
     GLenum iFormat;
     GLenum dataType;
     uint channels;
+    bool mipmaps;
     uvec3 size;
 };
 
@@ -74,9 +74,6 @@ public:
 
     /// Allocate immutable storage for the texture
     void allocate_storage(uvec2 _size);
-
-protected:
-    bool mipmaps;
 };
 
 
@@ -111,9 +108,6 @@ public:
 
     /// Allocate immutable storage for the texture
     void allocate_storage(uint _size);
-
-protected:
-    bool mipmaps;
 };
 
 
@@ -145,9 +139,6 @@ public:
 
     /// Allocate immutable storage for the texture
     void allocate_storage(uvec3 _size);
-
-protected:
-    bool mipmaps;
 };
 
 
@@ -182,9 +173,6 @@ public:
 
     /// Allocate immutable storage for the texture
     void allocate_storage(uvec2 _size);
-
-protected:
-    bool mipmaps;
 };
 
 
@@ -199,6 +187,20 @@ public:
 
     /// Resize the texture and allocate mutable storage
     void resize(uvec2 _size);
+};
+
+
+/// A class for immutable GL_TEXTURE_3D textures
+class TextureVolume : public Texture {
+public:
+    /// Set various options and (re)create the OpenGL texture object
+    void create(GLenum _format, GLenum _iFormat, uint _channels);
+
+    /// Transfer some memory into the texture
+    void buffer_memory(const void* _data);
+
+    /// Allocate immutable storage for the texture
+    void allocate_storage(uvec3 _size);
 };
 
 

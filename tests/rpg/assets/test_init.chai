@@ -1,16 +1,16 @@
 def main() {
-    settings.modI("winwidth", 1280); settings.modI("winheight", 720);
-    settings.modI("fullwidth", 1920); settings.modI("fullheight", 1200);
-    settings.modS("apptitle", "SQEE RPG (test_init.chai)");
+    app.settings.modI("app_width", 960); 
+    app.settings.modI("app_height", 540);
+    app.settings.modS("app_title", "SQEE RPG (test_init.chai)");
 
-//    settings.modI("shadQlty", 0);
-//    settings.modI("shadFltr", 0);
-//    settings.modI("ssaoMode", 0);
-//    settings.modI("hdrbMode", 0);
-//    settings.modI("fxaaMode", 0);
-//    settings.modI("vignMode", 0);
+//    app.settings.modI("shadQlty", 0);
+//    app.settings.modI("shadFltr", 0);
+//    app.settings.modI("ssaoMode", 0);
+//    app.settings.modI("hdrbMode", 0);
+//    app.settings.modI("fxaaMode", 0);
+//    app.settings.modI("vignMode", 0);
 
-    application.update();
+    app.refresh();
 
     var cellSponza = world.add_cell("Sponza");
     cellSponza.position = fvec3(0.0, 0.0, 0.0);
@@ -45,9 +45,7 @@ def main() {
     world.reload_list();
     graph.reload_lists();
 
-    camera.position = fvec3(0.0, 0.0, 20.0);
-
-    console.print("Welcome to SQEE!");
+    app.console.print("Welcome to SQEE!");
 }
 
 
@@ -55,7 +53,7 @@ def add_some_shit() {
     var cell = world.get_cell("Sponza");
 
     var boxPhys = cell.add_RigBodyBasic("BoxPhys");
-    boxPhys.phys = "Sponza/BigBox";
+    boxPhys.physobj = "Sponza/BigBox";
     boxPhys.refresh();
 
     var sqeenDead = cell.add_ModelSkelly("SqeenDead");
@@ -108,7 +106,7 @@ def add_some_shit() {
     lightPoint.texsize = 128u;
     lightPoint.shadow = true;
     lightPoint.specular = true;
-//    lightPoint.refresh();
+    lightPoint.refresh();
 
     var lightSpotN = cell.add_SpotLight("SpotN");
     lightSpotN.direction = fvec3(0.0, -0.7, -0.3);
@@ -181,6 +179,8 @@ def add_some_shit() {
     
     world.reload_list();
     graph.reload_lists();
+
+//    graph.refresh_irrd();
 }
 
 
@@ -336,6 +336,13 @@ add_some_shit();
 def sd(_val) {
     world.skylight.density = _val;
     world.skylight.refresh();
+}
+
+
+def rdrskyl(_x, _y, _z) {
+    world.skylight.direction = fvec3(_x, _y, _z);
+    world.skylight.refresh();
+    graph.refresh_irrd();
 }
 
 

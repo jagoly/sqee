@@ -5,6 +5,7 @@
 
 namespace sq {
 
+/// The SQEE Mesh class
 class Mesh : NonCopyable {
 public:
     Mesh() = default; ~Mesh();
@@ -31,7 +32,7 @@ public:
     void bind_vao() const;
     void draw_ibo(uint _mtrl) const;
 
-private:
+protected:
     struct VertData {
         vector<fvec3> points;
         vector<fvec3> normals;

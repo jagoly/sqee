@@ -53,21 +53,21 @@ else()
 endif()
 
 
-set(SRCDIR "${PROJECT_SOURCE_DIR}/src/sqee")
+set(SRCDIR "${PROJECT_SOURCE_DIR}/source/sqee")
 set(INCDIR "${PROJECT_SOURCE_DIR}/include/sqee")
-set(EMBDIR "${PROJECT_SOURCE_DIR}/embed")
 
 set(SOURCES
 # 3rd Party Source
     "${INCDIR}/redist/lmccop.hpp"
     "${INCDIR}/redist/nanoflann.hpp"
     "${INCDIR}/redist/tinyformat.hpp"
-    "${INCDIR}/redist/gl_ext_4_1.hpp"       "${SRCDIR}/redist/gl_ext_4_1.cpp"
+    "${INCDIR}/redist/gl_ext_4_2.hpp"       "${SRCDIR}/redist/gl_ext_4_2.cpp"
     "${INCDIR}/redist/stb_image.hpp"        "${SRCDIR}/redist/stb_image.cpp"
 
 # SQEE Source
     "${INCDIR}/forward.hpp"
     "${INCDIR}/debug/Misc.hpp"              "${SRCDIR}/debug/Misc.cpp"
+    "${INCDIR}/debug/Logging.hpp"           "${SRCDIR}/debug/Logging.cpp"
     "${INCDIR}/debug/OpenGL.hpp"            "${SRCDIR}/debug/OpenGL.cpp"
     "${INCDIR}/gl/Drawing.hpp"              "${SRCDIR}/gl/Drawing.cpp"
     "${INCDIR}/gl/Shaders.hpp"              "${SRCDIR}/gl/Shaders.cpp"
@@ -75,13 +75,12 @@ set(SOURCES
     "${INCDIR}/gl/FrameBuffer.hpp"          "${SRCDIR}/gl/FrameBuffer.cpp"
     "${INCDIR}/gl/UniformBuffer.hpp"        "${SRCDIR}/gl/UniformBuffer.cpp"
     "${INCDIR}/scripts/ChaiScript.hpp"      "${SRCDIR}/scripts/ChaiScript.cpp"
-    "${INCDIR}/scripts/ConsoleScene.hpp"    "${SRCDIR}/scripts/ConsoleScene.cpp"
-    "${INCDIR}/scripts/ConsoleHandler.hpp"  "${SRCDIR}/scripts/ConsoleHandler.cpp"
     "${INCDIR}/scripts/Intergration.hpp"    "${SRCDIR}/scripts/Intergration.cpp"
-    "${INCDIR}/app/Logging.hpp"             "${SRCDIR}/app/Logging.cpp"
     "${INCDIR}/app/Settings.hpp"            "${SRCDIR}/app/Settings.cpp"
     "${INCDIR}/app/Application.hpp"         "${SRCDIR}/app/Application.cpp"
     "${INCDIR}/app/PreProcessor.hpp"        "${SRCDIR}/app/PreProcessor.cpp"
+    "${INCDIR}/app/DebugOverlay.hpp"        "${SRCDIR}/app/DebugOverlay.cpp"
+    "${INCDIR}/app/ChaiConsole.hpp"         "${SRCDIR}/app/ChaiConsole.cpp"
     "${INCDIR}/handlers/Handler.hpp"        "${SRCDIR}/handlers/Handler.cpp"
     "${INCDIR}/handlers/Basics.hpp"         "${SRCDIR}/handlers/Basics.cpp"
     "${INCDIR}/text/Font.hpp"               "${SRCDIR}/text/Font.cpp"
@@ -96,6 +95,7 @@ set(SOURCES
     "${INCDIR}/render/Skin.hpp"             "${SRCDIR}/render/Skin.cpp"
     "${INCDIR}/physics/RP3D.hpp"            "${SRCDIR}/physics/RP3D.cpp"
     "${INCDIR}/physics/PhysObject.hpp"      "${SRCDIR}/physics/PhysObject.cpp"
+    "${INCDIR}/misc/OrderedMap.hpp"         "${SRCDIR}/misc/OrderedMap.cpp"
     "${INCDIR}/misc/ResHolder.hpp"          "${SRCDIR}/misc/ResHolder.cpp"
     "${INCDIR}/misc/Files.hpp"              "${SRCDIR}/misc/Files.cpp"
     "${INCDIR}/scenes/Scene.hpp"            "${SRCDIR}/scenes/Scene.cpp"
@@ -103,7 +103,7 @@ set(SOURCES
     "${INCDIR}/sounds/SoundManager.hpp"     "${SRCDIR}/sounds/SoundManager.cpp"
 
 # Compiled-In Data
-    "${SRCDIR}/data/GLSLHeaders.c"
+    "${SRCDIR}/data/GLSLHeaders.cpp"
     "${SRCDIR}/data/TextFont.c"
     "${SRCDIR}/data/TextGlow.c"
     "${SRCDIR}/data/Volumes.c"
@@ -119,9 +119,9 @@ endif()
 
 
 if(SQEE_STATIC_LIB)
-    add_library(sqee STATIC ${SOURCES} ${EMBEDSOURCES})
+    add_library(sqee STATIC ${SOURCES})
 else()
-    add_library(sqee SHARED ${SOURCES} ${EMBEDSOURCES})
+    add_library(sqee SHARED ${SOURCES})
 endif()
 
 

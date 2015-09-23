@@ -16,7 +16,7 @@ set(SOURCES
     "wcoe/objects/MetaObject.hpp"   "wcoe/objects/MetaObject.cpp"
     "wcoe/objects/RigBodyBasic.hpp" "wcoe/objects/RigBodyBasic.cpp"
     "wcoe/objects/RigBodyMulti.hpp" "wcoe/objects/RigBodyMulti.cpp"
-    "wcoe/objects/ModelStatic.hpp"  "wcoe/objects/ModelStatic.cpp"
+    "wcoe/objects/ModelSimple.hpp"  "wcoe/objects/ModelSimple.cpp"
     "wcoe/objects/ModelSkelly.hpp"  "wcoe/objects/ModelSkelly.cpp"
     "wcoe/objects/PointLight.hpp"   "wcoe/objects/PointLight.cpp"
     "wcoe/objects/SpotLight.hpp"    "wcoe/objects/SpotLight.cpp"

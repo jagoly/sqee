@@ -45,8 +45,8 @@ vector<char> get_bytes_from_file(const string& _path);
 /// Tokenise a string into a vector of strings
 vector<string> tokenise_string(const string& _str, char _dlm);
 
-/// Tokenise a file and remove empty lines
-vector<vector<string>> tokenise_file(const string& _path);
+/// Tokenise a file and remove empty lines, also get line numbers
+vector<pair<vector<string>, uint>> tokenise_file(const string& _path);
 
 /// Get a list of files in a directory
 vector<string> get_files_from_dir(const string& _path);

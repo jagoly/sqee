@@ -24,7 +24,7 @@ void main() {
     float value = 0.f;
 
     vec4 txSmall = textureGather(texDepQter, texcrd);
-    float txLarge = linearise(texture(defrDepth, texcrd));
+    float txLarge = linearise(texture(defrDepth, texcrd).r);
     float distA = distance(txLarge, linearise(txSmall.r));
     float distB = distance(txLarge, linearise(txSmall.g));
     float distC = distance(txLarge, linearise(txSmall.b));
@@ -37,7 +37,7 @@ void main() {
         if (distB < minDiff) { minDiff = distB; value = texel.g; }
         if (distC < minDiff) { minDiff = distC; value = texel.b; }
         if (distD < minDiff) { minDiff = distD; value = texel.a; }
-    } else value = texture(texShafts, texcrd);
+    } else value = texture(texShafts, texcrd).r;
 
     float luma = dot(vec3(0.22f, 0.69f, 0.09f), LB.colour);
     fragColour = LB.colour / luma * value;

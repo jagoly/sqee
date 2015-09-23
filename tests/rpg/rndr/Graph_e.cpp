@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <glm/matrix.hpp>
 
-#include <sqee/redist/gl_ext_4_1.hpp>
+#include <sqee/redist/gl_ext_4_2.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
 #include <sqee/gl/FrameBuffer.hpp>
 #include <sqee/gl/Textures.hpp>
@@ -15,7 +15,7 @@
 #include <sqee/maths/General.hpp>
 
 #include "../wcoe/World.hpp"
-#include "../wcoe/objects/ModelStatic.hpp"
+#include "../wcoe/objects/ModelSimple.hpp"
 #include "../wcoe/objects/ModelSkelly.hpp"
 #include "../wcoe/objects/PointLight.hpp"
 #include "../wcoe/objects/SpotLight.hpp"
@@ -59,11 +59,11 @@ void Graph::render_reflections() {
         TX.reflDpSt->bind(gl::TEXTURE7);
 
         sq::CLIP_ON();
-        render_mstatics_refl(true);
+        render_msimples_refl(true);
         render_mskellys_refl(true);
         render_reflects_refl(true);
         render_decals_refl();
-        render_mstatics_refl(false);
+        render_msimples_refl(false);
         render_mskellys_refl(false);
         render_reflects_refl(false);
         sq::CLIP_OFF();
@@ -153,7 +153,7 @@ void Graph::render_particles() {
     sq::CULLFACE_OFF();
     sq::BLEND_ON(); sq::DEPTH_READ();
     pipeline->use_shader(*VS.part_soft_vertex);
-    pipeline->use_shader(*VS.part_soft_geometry);
+    pipeline->use_shader(*GS.part_soft_geometry);
     gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, partIBO);
     gl::ActiveTexture(gl::TEXTURE8);
 

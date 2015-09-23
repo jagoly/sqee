@@ -6,48 +6,53 @@
 namespace sqt {
 
 namespace wcoe { class World; class Cell;
-                 class ModelStatic; class ModelSkelly;
+                 class ModelSimple; class ModelSkelly;
                  class PointLight; class SpotLight;
                  class Reflector; class Emitter;
                  class Liquid; class Decal; }
 
 namespace rndr {
 
-using ModelStaticList = std::list<weak_ptr<wcoe::ModelStatic>>;
-using ModelSkellyList = std::list<weak_ptr<wcoe::ModelSkelly>>;
-using PointLightList  = std::list<weak_ptr<wcoe::PointLight>>;
-using SpotLightList   = std::list<weak_ptr<wcoe::SpotLight>>;
-using ReflectorList   = std::list<weak_ptr<wcoe::Reflector>>;
-using EmitterList     = std::list<weak_ptr<wcoe::Emitter>>;
-using LiquidList      = std::list<weak_ptr<wcoe::Liquid>>;
-using DecalList       = std::list<weak_ptr<wcoe::Decal>>;
+using ModelSimpleList = list<weak_ptr<wcoe::ModelSimple>>;
+using ModelSkellyList = list<weak_ptr<wcoe::ModelSkelly>>;
+using PointLightList  = list<weak_ptr<wcoe::PointLight>>;
+using SpotLightList   = list<weak_ptr<wcoe::SpotLight>>;
+using ReflectorList   = list<weak_ptr<wcoe::Reflector>>;
+using EmitterList     = list<weak_ptr<wcoe::Emitter>>;
+using LiquidList      = list<weak_ptr<wcoe::Liquid>>;
+using DecalList       = list<weak_ptr<wcoe::Decal>>;
 
 class IrrVolume : NonCopyable {
 public:
+    IrrVolume();
 
-};
+    struct Probe {
+        fvec3 position;
+        array<fmat4, 6> matArr;
+        unique_ptr<sq::UniformBuffer> ubo;
+    };
 
-class IrrVolTree : NonCopyable {
-public:
-    IrrVolTree();
-    array<array<IrrVolume, 16>, 9> tree;
+    //array<Probe, 15*9*10> tree;
+    array<Probe, 7*3*3> tree;
 
-    unique_ptr<sq::TextureCubeArray> texDiff;
-    unique_ptr<sq::TextureCubeArray> texSurf;
-    unique_ptr<sq::TextureCubeArray> texDepth;
-    unique_ptr<sq::TextureCubeArray> texHdr;
-    unique_ptr<sq::TextureCubeArray> texFinal;
+    unique_ptr<sq::Texture2DArray> texDiff;
+    unique_ptr<sq::Texture2DArray> texSurf;
+    unique_ptr<sq::Texture2DArray> texDpSt;
+    unique_ptr<sq::Texture2DArray> texHdr;
+    unique_ptr<sq::Texture2D> texEnvSHM;
+    unique_ptr<sq::Texture2D> texEnvSDV;
 };
 
 class Graph : NonCopyable {
 public:
-    Graph(sq::Camera* _camera, sq::Settings* _settings);
+    Graph(const sq::Settings& _settings, sq::Camera* _camera);
 
     // A //////
     void update();
     void reload_lists();
     void update_settings();
     void refresh_IrrVolTree();
+    void render_envspheres();
 
     // B //////
     void render_shadows_sky_main();
@@ -56,8 +61,8 @@ public:
     void render_shadows_point();
 
     // C //////
-    void render_mstatics_base(bool _decals);
-    void render_mstatics_refl(bool _decals);
+    void render_msimples_base(bool _decals);
+    void render_msimples_refl(bool _decals);
     void render_mskellys_base(bool _decals);
     void render_mskellys_refl(bool _decals);
     void render_reflects_base(bool _decals);
@@ -82,7 +87,7 @@ public:
     void render_particles();
 
     wcoe::World* world = nullptr;
-    ModelStaticList modelStaticList;
+    ModelSimpleList modelSimpleList;
     ModelSkellyList modelSkellyList;
     PointLightList  pointLightList;
     SpotLightList   spotLightList;
@@ -94,21 +99,27 @@ public:
     struct {
         sq::Shader* gnrc_screen = nullptr;
         sq::Shader* gbuf_base_stencil = nullptr;
-        sq::Shader* gbuf_base_static = nullptr;
+        sq::Shader* gbuf_base_simple = nullptr;
         sq::Shader* gbuf_base_skelly = nullptr;
         sq::Shader* gbuf_base_decal = nullptr;
         sq::Shader* gbuf_refl_stencil = nullptr;
-        sq::Shader* gbuf_refl_static = nullptr;
+        sq::Shader* gbuf_refl_simple = nullptr;
         sq::Shader* gbuf_refl_skelly = nullptr;
         sq::Shader* gbuf_refl_decal = nullptr;
-        sq::Shader* shad_static = nullptr;
+        sq::Shader* shad_simple = nullptr;
         sq::Shader* shad_skelly = nullptr;
+        sq::Shader* irrd_gbuf_simple = nullptr;
+        sq::Shader* irrd_defr_skybox = nullptr;
         sq::Shader* defr_reflector = nullptr;
         sq::Shader* defr_base_skybox = nullptr;
         sq::Shader* defr_refl_skybox = nullptr;
         sq::Shader* part_soft_vertex = nullptr;
-        sq::Shader* part_soft_geometry = nullptr;
+        sq::Shader* dbug_envsphere = nullptr;
     } VS;
+
+    struct {
+        sq::Shader* part_soft_geometry = nullptr;
+    } GS;
 
     struct {
         sq::Shader* gnrc_passthru = nullptr;
@@ -118,6 +129,13 @@ public:
         sq::Shader* gbuf_refl_model = nullptr;
         sq::Shader* gbuf_refl_decal = nullptr;
         sq::Shader* shad_punch = nullptr;
+        sq::Shader* irrd_gbuf_model = nullptr;
+        sq::Shader* irrd_defr_skybox = nullptr;
+        sq::Shader* irrd_defr_skylight = nullptr;
+        sq::Shader* irrd_defr_spotlight = nullptr;
+        sq::Shader* irrd_defr_pointlight = nullptr;
+        sq::Shader* irrd_harmonics_shm = nullptr;
+        sq::Shader* irrd_harmonics_sdv = nullptr;
         sq::Shader* defr_skybox = nullptr;
         sq::Shader* defr_reflector = nullptr;
         sq::Shader* defr_base_ambient = nullptr;
@@ -143,6 +161,8 @@ public:
         sq::Shader* part_soft_point_none = nullptr;
         sq::Shader* part_soft_point_shad = nullptr;
         sq::Shader* part_soft_write = nullptr;
+        sq::Shader* dbug_envsphere_shm = nullptr;
+        sq::Shader* dbug_envsphere_sdv = nullptr;
     } FS;
 
     struct {
@@ -190,6 +210,7 @@ public:
         float viewdist;
         bool shadlarge;
         bool shadfilter;
+        bool irrd;
         uvec2 fullSize;
         uvec2 halfSize;
         uvec2 qterSize;
@@ -198,11 +219,11 @@ public:
         fvec2 qPixSize;
     } INFO;
 
+    const sq::Settings& settings;
     const sq::Camera* const camera;
-    sq::Settings* const settings;
     sq::Pipeline* pipeline = nullptr;
 
-    IrrVolTree irrVolTree;
+    IrrVolume irrVolume;
 
 private:
     const wcoe::Reflector* crntRflct = nullptr;

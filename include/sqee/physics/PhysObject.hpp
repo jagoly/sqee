@@ -6,6 +6,7 @@
 
 namespace sq {
 
+/// Spec class to define a ReactPhysics3D entity
 class PhysObject : NonCopyable {
 public:
     void create(const string& _path);

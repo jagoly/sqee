@@ -5,7 +5,7 @@
 #include "../wcoe/objects/MetaObject.hpp"
 #include "../wcoe/objects/RigBodyBasic.hpp"
 #include "../wcoe/objects/RigBodyMulti.hpp"
-#include "../wcoe/objects/ModelStatic.hpp"
+#include "../wcoe/objects/ModelSimple.hpp"
 #include "../wcoe/objects/ModelSkelly.hpp"
 #include "../wcoe/objects/PointLight.hpp"
 #include "../wcoe/objects/SpotLight.hpp"
@@ -115,20 +115,20 @@ void sqt::cs_setup_wcoe(chai::ChaiScript& _cs) {
 
     add_class<RigBodyBasic>(*m, "RigBodyBasic", {}, {
        {fun(&RigBodyBasic::PROP_scale),           "scale"},
-       {fun(&RigBodyBasic::PROP_physPath),        "phys"},
-       {fun(&RigBodyBasic::FUNC_set_ModelStatic), "set_ModelStatic"} });
+       {fun(&RigBodyBasic::PROP_physobj),         "physobj"},
+       {fun(&RigBodyBasic::FUNC_set_ModelSimple), "set_ModelSimple"} });
 
-    add_class<ModelStatic>(*m, "ModelStatic", {}, {
-       {fun(&ModelStatic::PROP_position), "position"},
-       {fun(&ModelStatic::PROP_rotation), "rotation"},
-       {fun(&ModelStatic::PROP_scale),    "scale"},
-       {fun(&ModelStatic::PROP_render),   "render"},
-       {fun(&ModelStatic::PROP_shadow),   "shadow"},
-       {fun(&ModelStatic::PROP_mesh),     "mesh"},
-       {fun(&ModelStatic::PROP_skin),     "skin"},
-       {fun(&ModelStatic::ANIM_position), "animPosition"},
-       {fun(&ModelStatic::ANIM_rotation), "animRotation"},
-       {fun(&ModelStatic::ANIM_scale),    "animScale"} });
+    add_class<ModelSimple>(*m, "ModelSimple", {}, {
+       {fun(&ModelSimple::PROP_position), "position"},
+       {fun(&ModelSimple::PROP_rotation), "rotation"},
+       {fun(&ModelSimple::PROP_scale),    "scale"},
+       {fun(&ModelSimple::PROP_render),   "render"},
+       {fun(&ModelSimple::PROP_shadow),   "shadow"},
+       {fun(&ModelSimple::PROP_mesh),     "mesh"},
+       {fun(&ModelSimple::PROP_skin),     "skin"},
+       {fun(&ModelSimple::ANIM_position), "animPosition"},
+       {fun(&ModelSimple::ANIM_rotation), "animRotation"},
+       {fun(&ModelSimple::ANIM_scale),    "animScale"} });
 
     add_class<ModelSkelly>(*m, "ModelSkelly", {}, {
        {fun(&ModelSkelly::PROP_position), "position"},
@@ -219,8 +219,8 @@ void sqt::cs_setup_wcoe(chai::ChaiScript& _cs) {
         {fun(&Cell::get_object<RigBodyBasic>), "get_RigBodyBasic"},
         {fun(&Cell::add_object<RigBodyMulti>), "add_RigBodyMulti"},
         {fun(&Cell::get_object<RigBodyMulti>), "get_RigBodyMulti"},
-        {fun(&Cell::add_object<ModelStatic>),  "add_ModelStatic"},
-        {fun(&Cell::get_object<ModelStatic>),  "get_ModelStatic"},
+        {fun(&Cell::add_object<ModelSimple>),  "add_ModelSimple"},
+        {fun(&Cell::get_object<ModelSimple>),  "get_ModelSimple"},
         {fun(&Cell::add_object<ModelSkelly>),  "add_ModelSkelly"},
         {fun(&Cell::get_object<ModelSkelly>),  "get_ModelSkelly"},
         {fun(&Cell::add_object<PointLight>),   "add_PointLight"},
@@ -241,7 +241,7 @@ void sqt::cs_setup_wcoe(chai::ChaiScript& _cs) {
     m->add(base_class<Object, MetaObject>());
     m->add(base_class<Object, RigBodyBasic>());
     m->add(base_class<Object, RigBodyMulti>());
-    m->add(base_class<Object, ModelStatic>());
+    m->add(base_class<Object, ModelSimple>());
     m->add(base_class<Object, ModelSkelly>());
     m->add(base_class<Object, PointLight>());
     m->add(base_class<Object, SpotLight>());
@@ -258,7 +258,8 @@ void sqt::cs_setup_rndr(chai::ChaiScript& _cs) {
     chai::ModulePtr m(new chai::Module());
 
     add_class<Graph>(*m, "Graph", {}, {
-        {fun(&Graph::reload_lists), "reload_lists"} });
+        {fun(&Graph::reload_lists), "reload_lists"},
+        {fun(&Graph::refresh_IrrVolTree), "refresh_irrd"} });
 
     _cs.add(m);
 }

@@ -3,13 +3,12 @@
 
 namespace sq {
 
-struct TextBasic {
-    enum class Flow { Negative, Positive };
-    enum class Align { Negative, Centre, Positive };
-    Flow hFlow, vFlow; Align hAlign, vAlign;
-    fvec3 colour; fvec2 scale; bool shadow;
-};
+enum class TextBasicFlow { Negative, Positive };
+enum class TextBasicAlign { Negative, Centre, Positive };
 
-void render_text_basic(const string& _text, const TextBasic& _tb, float _alpha, uvec2 _view);
+void render_text_basic(const string& _text, uvec2 _view,
+                       TextBasicFlow _hFlow, TextBasicFlow _vFlow,
+                       TextBasicAlign _hAlign, TextBasicAlign _vAlign,
+                       fvec2 _scale, fvec3 _colour, float _alpha, bool _shadow);
 
 }

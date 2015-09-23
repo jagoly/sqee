@@ -8,7 +8,7 @@ namespace sqt {
 class MainHandler: public sq::Handler {
 public:
     using sq::Handler::Handler;
-    bool handle(const sf::Event& event);
+    bool handle(sf::Event event);
 };
 
 }

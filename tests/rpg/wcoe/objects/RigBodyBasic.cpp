@@ -8,7 +8,7 @@
 
 #include "../Cell.hpp"
 #include "../World.hpp"
-#include "ModelStatic.hpp"
+#include "ModelSimple.hpp"
 #include "RigBodyBasic.hpp"
 
 using namespace sqt::wcoe;
@@ -17,22 +17,20 @@ RigBodyBasic::RigBodyBasic(const string& _name, Cell* _cell)
     : Object(ObjType::RigBodyBasic, _name, _cell) {}
 
 void RigBodyBasic::load_from_spec(const ObjSpec& _spec) {
-    assert_string(_spec, name, "phys");
-
-    PROP_physPath = _spec.stringMap.at("phys");
+    _spec.set_if("physobj", PROP_physobj);
 }
 
 void RigBodyBasic::refresh() {
     if (invalid == true) {
-        if ((phys = sq::res::phys().get(PROP_physPath)) == nullptr)
-            phys = sq::res::phys().add(PROP_physPath),
-            phys->create(PROP_physPath);
+        if ((physobj = sq::res::phys().get(PROP_physobj)) == nullptr)
+            physobj = sq::res::phys().add(PROP_physobj),
+            physobj->create(PROP_physobj);
 
         if (rigBody != nullptr) cell->world->physWorld->destroyRigidBody(rigBody);
 
         if (objectPtr != nullptr) {
-            if (objectPtr->type == ObjType::ModelStatic) {
-                auto& castObj = static_cast<ModelStatic&>(*objectPtr);
+            if (objectPtr->type == ObjType::ModelSimple) {
+                auto& castObj = static_cast<ModelSimple&>(*objectPtr);
                 positionPtr = &castObj.PROP_position;
                 rotationPtr = &castObj.PROP_rotation;
             }
@@ -42,15 +40,15 @@ void RigBodyBasic::refresh() {
                 sq::rp3d_cast(*positionPtr), sq::rp3d_cast(*rotationPtr)));
         } else rigBody = cell->world->physWorld->createRigidBody(rp3d::Transform());
 
-        if (phys->bodyType == sq::PhysObject::BodyType::STATIC)
+        if (physobj->bodyType == sq::PhysObject::BodyType::STATIC)
             rigBody->setType(rp3d::BodyType::STATIC);
 
-        if (phys->lineardamp != 0.f) rigBody->setLinearDamping(phys->lineardamp);
-        if (phys->angulardamp != 0.f) rigBody->setAngularDamping(phys->angulardamp);
-        if (phys->bounciness != 0.5f) rigBody->getMaterial().setBounciness(phys->bounciness);
-        if (phys->friction != 0.3f) rigBody->getMaterial().setFrictionCoefficient(phys->friction);
+        rigBody->setLinearDamping(physobj->lineardamp);
+        rigBody->setAngularDamping(physobj->angulardamp);
+        rigBody->getMaterial().setBounciness(physobj->bounciness);
+        rigBody->getMaterial().setFrictionCoefficient(physobj->friction);
 
-        for (unique_ptr<sq::PhysObject::Shape>& shape : phys->shapeVec) {
+        for (unique_ptr<sq::PhysObject::Shape>& shape : physobj->shapeVec) {
             if (shape->type == sq::PhysObject::ShapeType::BOX) {
                 auto& bs = static_cast<sq::PhysObject::BoxShape&>(*shape.get());
                 rigBody->addCollisionShape(rp3d::BoxShape(sq::rp3d_cast(bs.halfsize * PROP_scale)),
@@ -98,6 +96,6 @@ void RigBodyBasic::animate() {
 }
 
 
-void RigBodyBasic::FUNC_set_ModelStatic(ModelStatic* _object) {
+void RigBodyBasic::FUNC_set_ModelSimple(ModelSimple* _object) {
     objectPtr = _object;
 }

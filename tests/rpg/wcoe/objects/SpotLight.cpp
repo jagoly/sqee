@@ -1,6 +1,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <sqee/redist/gl_ext_4_1.hpp>
+#include <sqee/redist/gl_ext_4_2.hpp>
 #include <sqee/app/Settings.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
 #include <sqee/gl/FrameBuffer.hpp>
@@ -29,23 +29,16 @@ SpotLight::SpotLight(const string& _name, Cell* _cell)
 }
 
 void SpotLight::load_from_spec(const ObjSpec& _spec) {
-    assert_fvec3(_spec, name, "direction");
-    assert_fvec3(_spec, name, "position");
-    assert_fvec3(_spec, name, "colour");
-    assert_float(_spec, name, "intensity");
-    assert_float(_spec, name, "softness");
-    assert_float(_spec, name, "angle");
-    assert_uint(_spec, name, "texsize");
-
-    PROP_shadow    = _spec.flagSet.count("shadow");
-    PROP_specular  = _spec.flagSet.count("specular");
-    PROP_direction = _spec.fvec3Map.at("direction");
-    PROP_position  = _spec.fvec3Map.at("position");
-    PROP_colour    = _spec.fvec3Map.at("colour");
-    PROP_intensity = _spec.floatMap.at("intensity");
-    PROP_softness  = _spec.floatMap.at("softness");
-    PROP_angle     = _spec.floatMap.at("angle");
-    PROP_texsize   = _spec.uintMap.at("texsize");
+    _spec.set_if("shadow", PROP_shadow);
+    _spec.set_if("specular", PROP_specular);
+    _spec.set_if("probes", PROP_probes);
+    _spec.set_if("direction", PROP_direction);
+    _spec.set_if("position", PROP_position);
+    _spec.set_if("colour", PROP_colour);
+    _spec.set_if("intensity", PROP_intensity);
+    _spec.set_if("softness", PROP_softness);
+    _spec.set_if("angle", PROP_angle);
+    _spec.set_if("texsize", PROP_texsize);
 }
 
 void SpotLight::refresh() {
@@ -53,7 +46,7 @@ void SpotLight::refresh() {
         if (PROP_shadow == true) {
             tex.reset(new sq::TextureMut2D());
             tex->create(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT16, 1u);
-            bool shadlarge = settings->get<bool>("rpg_shadlarge");
+            bool shadlarge = settings.get<bool>("rpg_shadlarge");
             tex->resize(uvec2(PROP_texsize * (1u + shadlarge)));
             tex->set_preset(sq::Texture::ShadowMap());
             fbo.reset(new sq::FrameBuffer());
@@ -63,8 +56,8 @@ void SpotLight::refresh() {
         invalid = false;
     }
 
-    if (PROP_shadow && settings->check<bool>("rpg_shadlarge")) {
-        bool shadlarge = settings->get<bool>("rpg_shadlarge");
+    if (PROP_shadow && settings.check<bool>("rpg_shadlarge")) {
+        bool shadlarge = settings.get<bool>("rpg_shadlarge");
         tex->resize(uvec2(PROP_texsize * (1u + shadlarge)));
     }
 

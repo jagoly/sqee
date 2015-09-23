@@ -5,6 +5,7 @@
 
 namespace sq {
 
+/// The SQEE Skin class
 class Skin : NonCopyable {
 public:
     Skin() = default; ~Skin();

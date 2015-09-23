@@ -1,6 +1,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <sqee/redist/gl_ext_4_1.hpp>
+#include <sqee/redist/gl_ext_4_2.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
 #include <sqee/render/Camera.hpp>
 #include <sqee/render/Mesh.hpp>
@@ -26,21 +26,15 @@ Reflector::Reflector(const string& _name, Cell* _cell)
 }
 
 void Reflector::load_from_spec(const ObjSpec& _spec) {
-    assert_fvec3(_spec, name, "position");
-    assert_fquat(_spec, name, "rotation");
-    assert_fvec3(_spec, name, "scale");
-    assert_float(_spec, name, "factor");
-    assert_string(_spec, name, "mesh");
-    assert_string(_spec, name, "skin");
-
-    PROP_shadow   = _spec.flagSet.count("shadow");
-    PROP_decals   = _spec.flagSet.count("decals");
-    PROP_position = _spec.fvec3Map.at("position");
-    PROP_rotation = _spec.fquatMap.at("rotation");
-    PROP_scale    = _spec.fvec3Map.at("scale");
-    PROP_factor   = _spec.floatMap.at("factor");
-    PROP_mesh     = _spec.stringMap.at("mesh");
-    PROP_skin     = _spec.stringMap.at("skin");
+    _spec.set_if("shadow", PROP_shadow);
+    _spec.set_if("decals", PROP_decals);
+    _spec.set_if("probes", PROP_probes);
+    _spec.set_if("position", PROP_position);
+    _spec.set_if("rotation", PROP_rotation);
+    _spec.set_if("scale", PROP_scale);
+    _spec.set_if("factor", PROP_factor);
+    _spec.set_if("mesh", PROP_mesh);
+    _spec.set_if("skin", PROP_skin);
 }
 
 void Reflector::refresh() {

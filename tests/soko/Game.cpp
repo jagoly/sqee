@@ -1,7 +1,8 @@
 #include <glm/gtc/matrix_transform.hpp>
+#include <SFML/Window/Event.hpp>
 
-#include <sqee/redist/gl_ext_4_1.hpp>
-#include <sqee/app/Logging.hpp>
+#include <sqee/redist/gl_ext_4_2.hpp>
+#include <sqee/debug/Logging.hpp>
 #include <sqee/app/Application.hpp>
 #include <sqee/app/Settings.hpp>
 #include <sqee/app/PreProcessor.hpp>
@@ -46,7 +47,7 @@ GameScene::GameScene(sq::Application* _app) : sq::Scene(_app) {
     ubo->update("aColour", &aColour);
 
     pipeline.reset(new sq::Pipeline());
-    preprocs->import_header("uniform_block");
+    app->preprocs.import_header("uniform_block");
 
     /// Create Shaders
     VERT.object.reset(new sq::Shader(gl::VERTEX_SHADER));
@@ -57,8 +58,8 @@ GameScene::GameScene(sq::Application* _app) : sq::Scene(_app) {
     VERT.object->add_uniform("normMat");  // mat4
 
     /// Load Shaders
-    VERT.object->load(preprocs->load("object_vs"));
-    FRAG.object->load(preprocs->load("object_fs"));
+    VERT.object->load(app->preprocs.load("object_vs"));
+    FRAG.object->load(app->preprocs.load("object_fs"));
 
     /// Create and Load Meshes
     MESH.Ball = sq::res::mesh().add("Ball", "Ball");
@@ -185,8 +186,8 @@ void GameScene::update() {
 }
 
 
-void GameScene::render(float _ft) {
-    sq::VIEWPORT(appBase->get_size());
+void GameScene::render() {
+    sq::VIEWPORT(app->get_size());
     gl::ClearColor(0.15f, 0.1f, 0.2f, 0.f);
     sq::CULLFACE_ON(); sq::DEPTH_ON();
     sq::CLEAR_COLOR_DEPTH_STENC();
@@ -268,13 +269,13 @@ void GameScene::render(float _ft) {
 }
 
 
-void GameScene::update_settings() {
-    camera->size = appBase->get_size();
+void GameScene::refresh() {
+    camera->size = app->get_size();
 }
 
 
-bool GameHandler::handle(const sf::Event& _event) {
-    GameScene* scene = appBase->get_scene<GameScene>("game");
+bool GameHandler::handle(sf::Event _event) {
+    GameScene& scene = app->get_scene<GameScene>("game");
 
     return false;
 }

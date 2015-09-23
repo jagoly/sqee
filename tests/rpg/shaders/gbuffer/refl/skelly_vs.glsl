@@ -17,7 +17,7 @@ layout(std140, binding=1) uniform MSKELLYBLOCK { MSkellyBlock MB; };
 layout(std140, binding=2) uniform REFLECTORBLOCK { ReflectorBlock RB; };
 
 out vec2 texcrd;
-out vec3 normal;
+out vec3 surface;
 
 out gl_PerVertex {
     vec4 gl_Position;
@@ -47,7 +47,7 @@ void main() {
     }
 
     texcrd = V_texcrd;
-    normal = normalize(mat3(MB.normMat) * a_norm);
+    surface = mat3(MB.normMat) * normalize(a_norm);
     vec3 w_pos = vec3(MB.matrix * vec4(a_pos, 1.f)) - RB.trans;
     gl_Position = CB.proj * CB.view * vec4(reflect(w_pos, RB.normal) + RB.trans, 1.f);
     gl_ClipDistance[0] = dot(w_pos, RB.normal);

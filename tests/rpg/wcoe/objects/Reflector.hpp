@@ -14,6 +14,7 @@ public:
 
     bool   PROP_shadow   = false;
     bool   PROP_decals   = false;
+    bool   PROP_probes   = false;
     fvec3  PROP_position = {0.f, 0.f, 0.f};
     fquat  PROP_rotation = {1.f, 0.f, 0.f, 0.f};
     fvec3  PROP_scale    = {1.f, 1.f, 1.f};

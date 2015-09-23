@@ -3,7 +3,7 @@
 #include <rp3d/collision/shapes/BoxShape.hpp>
 #include <rp3d/engine/DynamicsWorld.hpp>
 
-#include <sqee/redist/gl_ext_4_1.hpp>
+#include <sqee/redist/gl_ext_4_2.hpp>
 #include <sqee/app/Settings.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
 #include <sqee/gl/FrameBuffer.hpp>
@@ -94,8 +94,8 @@ void Ambient::animate() {
     ubo->update("colour", &PROP_colour);
 }
 
-SkyLight::SkyLight(sq::Camera* _camera, sq::Settings* _settings)
-    : camera(_camera), settings(_settings) {
+SkyLight::SkyLight(const sq::Settings& _settings, sq::Camera* _camera)
+    : settings(_settings), camera(_camera) {
     ubo.reset(new sq::UniformBuffer());
     ubo->reserve("direction", 4);
     ubo->reserve("colour", 3);
@@ -127,8 +127,8 @@ SkyLight::SkyLight(sq::Camera* _camera, sq::Settings* _settings)
 }
 
 void SkyLight::refresh() {
-    if (settings->check<bool>("rpg_shadlarge")) {
-        uint adjSize = 1024u * (1u + settings->get<bool>("rpg_shadlarge"));
+    if (settings.check<bool>("rpg_shadlarge")) {
+        uint adjSize = 1024u * (1u + settings.get<bool>("rpg_shadlarge"));
         texDepthA->resize(uvec3(adjSize, adjSize, 4u));
         texDepthB->resize(uvec3(adjSize, adjSize, 2u));
     }
@@ -214,9 +214,9 @@ void SkyLight::animate() {
 }
 
 
-World::World(sq::Camera* _camera, sq::Settings* _settings)
-    : skybox(_camera), ambient(_camera), skylight(_camera, _settings),
-      camera(_camera), settings(_settings) {
+World::World(const sq::Settings& _settings, sq::Camera* _camera)
+    : skybox(_camera), ambient(_camera), skylight(_settings, _camera),
+      settings(_settings), camera(_camera) {
     physWorld.reset(new rp3d::DynamicsWorld({0.f, 0.f, -1.f}));
     physWorld->setNbIterationsVelocitySolver(18u);
     physWorld->setNbIterationsPositionSolver(10u);

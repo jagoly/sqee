@@ -51,7 +51,7 @@ public:
 
 class SkyLight : NonCopyable {
 public:
-    SkyLight(sq::Camera* _camera, sq::Settings* _settings);
+    SkyLight(const sq::Settings& _settings, sq::Camera* _camera);
     void refresh(); void tick();
     void calc(double _accum);
 
@@ -65,8 +65,8 @@ public:
     AnimatorFloat ANIM_density   {&PROP_density};
     void animate();
 
+    const sq::Settings& settings;
     const sq::Camera* const camera;
-    const sq::Settings* const settings;
     unique_ptr<sq::UniformBuffer> ubo;
     unique_ptr<sq::TextureMut2DArray> texDepthA;
     unique_ptr<sq::TextureMut2DArray> texDepthB;
@@ -82,7 +82,7 @@ public:
 
 class World : NonCopyable {
 public:
-    World(sq::Camera* _camera, sq::Settings* _settings);
+    World(const sq::Settings& _settings, sq::Camera* _camera);
     void refresh(); void tick();
     void calc(double _accum);
     void invalidate();
@@ -99,8 +99,8 @@ public:
     SkyBox skybox; Ambient ambient; SkyLight skylight;
     unordered_map<string, shared_ptr<Cell>> cellMap;
 
+    const sq::Settings& settings;
     const sq::Camera* const camera;
-    const sq::Settings* const settings;
 
     unique_ptr<rp3d::DynamicsWorld> physWorld;
 

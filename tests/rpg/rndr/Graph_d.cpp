@@ -1,6 +1,6 @@
 #include <glm/matrix.hpp>
 
-#include <sqee/redist/gl_ext_4_1.hpp>
+#include <sqee/redist/gl_ext_4_2.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
 #include <sqee/gl/FrameBuffer.hpp>
 #include <sqee/gl/Textures.hpp>
@@ -14,7 +14,7 @@
 #include <sqee/maths/General.hpp>
 
 #include "../wcoe/World.hpp"
-#include "../wcoe/objects/ModelStatic.hpp"
+#include "../wcoe/objects/ModelSimple.hpp"
 #include "../wcoe/objects/ModelSkelly.hpp"
 #include "../wcoe/objects/PointLight.hpp"
 #include "../wcoe/objects/SpotLight.hpp"
@@ -59,6 +59,8 @@ void Graph::render_ambient_base() {
     TX.ssaoB->bind(gl::TEXTURE0);
     TX.depHalf->bind(gl::TEXTURE1);
     world->ambient.ubo->bind(1);
+
+    irrVolume.texEnvSDV->bind(gl::TEXTURE8);
 
     sq::BLEND_OFF(); sq::STENCIL_KEEP();
     gl::StencilFunc(gl::EQUAL, 0b0101, 0b0101);

@@ -1,96 +1,98 @@
 #pragma once
 #include <sqee/forward.hpp>
 
-#include <SFML/Window/Window.hpp>
+#include <sqee/app/Settings.hpp>
+#include <sqee/app/ChaiConsole.hpp>
+#include <sqee/app/DebugOverlay.hpp>
+#include <sqee/app/PreProcessor.hpp>
+#include <sqee/misc/OrderedMap.hpp>
 
-#include <sqee/scripts/ChaiScript.hpp>
-#include <sqee/handlers/Handler.hpp>
-#include <sqee/scenes/Scene.hpp>
+namespace sf { class Window; class ContextSettings; class Event; }
+namespace chaiscript { class ChaiScript; }
+namespace chai = chaiscript;
 
 namespace sq {
 
+/// The basic SQEE Application class
 class Application : NonCopyable {
 public:
     Application();
     virtual ~Application();
 
-    int run();
-    void quit(int _code);
+    virtual int run();
+    virtual void quit(int _code);
+    virtual void refresh();
 
-    void update();
-    uvec2 get_size();
-    fvec2 mouse_relatify();
-
-    template <class T>
-    T* append_scene(const string& _key);
-    template <class T>
-    T* prepend_scene(const string& _key);
-    template <class T>
-    T* get_scene(const string& _key);
+    fvec2 mouse_centre();
+    uvec2 get_size() const;
 
     template <class T>
-    T* append_handler(const string& _key);
+    T& append_scene(const string& _key);
     template <class T>
-    T* prepend_handler(const string& _key);
+    T& prepend_scene(const string& _key);
+    template <class T>
+    T& get_scene(const string& _key);
+
+    template <class T>
+    T& append_handler(const string& _key);
+    template <class T>
+    T& prepend_handler(const string& _key);
     template<class T>
-    T* get_handler(const string& _key);
+    T& get_handler(const string& _key);
 
     void sweep_scene(const string& _key);
     void sweep_handler(const string& _key);
 
-    unique_ptr<Settings> settings;
-    unique_ptr<PreProcessor> preprocs;
-    unique_ptr<SoundManager> soundman;
     unique_ptr<chai::ChaiScript> cs;
 
-protected:
-    sf::ContextSettings context;
-    sf::Window window;
-    int retCode;
+    Settings settings;
+    PreProcessor preprocs;
+    DebugOverlay overlay;
+    ChaiConsole console;
 
-    deque<unique_ptr<Scene>> sceneDeq;
-    deque<unique_ptr<Handler>> handlerDeq;
-    unordered_map<string, Scene*> sceneMap;
-    unordered_map<string, Handler*> handlerMap;
+protected:
+    unique_ptr<sf::ContextSettings> context;
+    unique_ptr<sf::Window> window;
+    int retCode = -1;
+
+    OrderedMap<string, unique_ptr<Scene>> sceneMap;
+    OrderedMap<string, unique_ptr<Handler>> handlerMap;
 
     unordered_set<string> sceneSweep;
     unordered_set<string> handlerSweep;
+
+    virtual bool handle_default(sf::Event _event);
 };
 
+
 template<class T>
-T* Application::append_scene(const string& _key) {
-    if (sceneMap.count(_key) != 0u)
-        throw string("Scene \""+_key+"\" already in map");
-    sceneDeq.emplace_back(new T(this));
-    sceneMap.emplace(_key, sceneDeq.back().get());
-    return static_cast<T*>(sceneDeq.back().get());
+T& Application::append_scene(const string& _key) {
+    sceneMap.append(_key, new T(this));
+    return static_cast<T&>(*sceneMap.back());
 }
 template<class T>
-T* Application::prepend_scene(const string& _key) {
-    sceneDeq.emplace_front(new T(this));
-    sceneMap.emplace(_key, sceneDeq.front().get());
-    return static_cast<T*>(sceneDeq.front().get());
+T& Application::prepend_scene(const string& _key) {
+    sceneMap.prepend(_key, new T(this));
+    return static_cast<T&>(*sceneMap.front());
 }
 template<class T>
-T* Application::get_scene(const string& _key) {
-    return static_cast<T*>(sceneMap.at(_key));
+T& Application::get_scene(const string& _key) {
+    return static_cast<T&>(*sceneMap.get(_key));
 }
 
 template<class T>
-T* Application::append_handler(const string& _key) {
-    handlerDeq.emplace_back(new T(this));
-    handlerMap.emplace(_key, handlerDeq.back().get());
-    return static_cast<T*>(handlerDeq.back().get());
+T& Application::append_handler(const string& _key) {
+    handlerMap.append(_key, new T(this));
+    return static_cast<T&>(*handlerMap.back());
 }
 template<class T>
-T* Application::prepend_handler(const string& _key) {
-    handlerDeq.emplace_front(new T(this));
-    handlerMap.emplace(_key, handlerDeq.front().get());
-    return static_cast<T*>(handlerDeq.front().get());
+T& Application::prepend_handler(const string& _key) {
+    handlerMap.prepend(_key, new T(this));
+    return static_cast<T&>(*handlerMap.front());
 }
 template<class T>
-T* Application::get_handler(const string& _key) {
-    return static_cast<T*>(handlerMap.at(_key));
+T& Application::get_handler(const string& _key) {
+    return static_cast<T&>(*handlerMap.get(_key));
 }
 
 }

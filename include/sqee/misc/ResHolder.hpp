@@ -1,10 +1,15 @@
 #pragma once
 #include <sqee/forward.hpp>
 
+#include <unordered_map>
+
+using std::unordered_map;
+
 namespace sq {
 
+/// Generic class for managing resources
 template <class T>
-class ResHolder {
+class ResHolder final {
 public:
     using iterator = typename unordered_map<string, T>::iterator;
     iterator begin() { return theMap.begin(); }
@@ -22,20 +27,20 @@ public:
         else return nullptr;
     }
 
-    bool has(const string& _key) {
+    bool has(const string& _key) const {
         return theMap.count(_key);
     }
 
-    void del(const string& _key) {
+    void del(const std::string& _key) {
         theMap.erase(_key);
     }
 
 protected:
-    unordered_map<string, unique_ptr<T>> theMap;
+    std::unordered_map<std::string, std::unique_ptr<T>> theMap;
 };
 
 namespace res {
-string& path();
+std::string& path();
 }
 
 }

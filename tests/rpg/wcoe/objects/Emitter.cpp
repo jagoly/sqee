@@ -2,7 +2,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <sqee/redist/gl_ext_4_1.hpp>
+#include <sqee/redist/gl_ext_4_2.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
 #include <sqee/gl/FrameBuffer.hpp>
 #include <sqee/gl/Textures.hpp>
@@ -23,9 +23,7 @@ Emitter::Emitter(const string& _name, Cell* _cell)
 }
 
 void Emitter::load_from_spec(const ObjSpec& _spec) {
-    assert_fvec3(_spec, name, "position");
-
-    PROP_position = _spec.fvec3Map.at("position");
+    _spec.set_if("position", PROP_position);
 }
 
 

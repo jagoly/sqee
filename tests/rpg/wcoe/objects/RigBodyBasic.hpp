@@ -7,7 +7,7 @@
 
 namespace sqt { namespace wcoe {
 
-class ModelStatic;
+class ModelSimple;
 class PointLight;
 class SpotLight;
 class Emitter;
@@ -20,13 +20,13 @@ public:
     void calc(double _accum);
 
     fvec3  PROP_scale    = {1.f, 1.f, 1.f};
-    string PROP_physPath = "";
+    string PROP_physobj  = "";
 
-    void FUNC_set_ModelStatic(ModelStatic* _object);
+    void FUNC_set_ModelSimple(ModelSimple* _object);
 
     void animate();
 
-    sq::PhysObject* phys = nullptr;
+    sq::PhysObject* physobj = nullptr;
     rp3d::RigidBody* rigBody = nullptr;
 
 private:

@@ -11,15 +11,15 @@ public:
     PausedScene(sq::Application* _app);
 
     void update();
-    void render(float _ft);
-    void update_settings();
+    void render();
+    void refresh();
 };
 
 
 class PausedHandler: public sq::Handler {
 public:
     using sq::Handler::Handler;
-    bool handle(const sf::Event& event);
+    bool handle(sf::Event event);
 };
 
 }

@@ -13,8 +13,8 @@ public:
     GameScene(sq::Application* _app);
 
     void update();
-    void render(float _ft);
-    void update_settings();
+    void render();
+    void refresh();
 
 private:
     unique_ptr<sq::Pipeline> pipeline;
@@ -56,7 +56,7 @@ private:
 class GameHandler: public sq::Handler {
 public:
     using sq::Handler::Handler;
-    bool handle(const sf::Event& event);
+    bool handle(sf::Event event);
 };
 
 }

@@ -1,4 +1,6 @@
-#include <sqee/app/Logging.hpp>
+#include <SFML/Window/Event.hpp>
+
+#include <sqee/debug/Logging.hpp>
 #include <sqee/app/Application.hpp>
 #include <sqee/app/Settings.hpp>
 
@@ -16,16 +18,16 @@ void TitleScene::update() {
 }
 
 
-void TitleScene::render(float _ft) {
+void TitleScene::render() {
 
 }
 
 
-void TitleScene::update_settings() {
+void TitleScene::refresh() {
 
 }
 
 
-bool TitleHandler::handle(const sf::Event& _event) {
+bool TitleHandler::handle(sf::Event _event) {
     return false;
 }

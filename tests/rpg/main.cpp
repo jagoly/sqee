@@ -1,4 +1,5 @@
 #include <vector>
+#include <iostream>
 
 #include <sqee/redist/lmccop.hpp>
 #include <sqee/misc/ResHolder.hpp>

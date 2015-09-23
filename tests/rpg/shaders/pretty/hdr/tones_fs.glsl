@@ -22,7 +22,7 @@ vec3 tone_map(vec3 _tx) {
 void main() {
     vec4 texel = texture(texMain, texcrd);
     vec3 value = tone_map(texel.rgb) / tone_map(vec3(1.f / sqrt(texel.a)));
-    value = texel.rgb;
+//    value = texel.rgb;
 
     #ifdef BLOOM
     value += texture(texBloom, texcrd).rgb;

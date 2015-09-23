@@ -1,6 +1,6 @@
 #include <glm/matrix.hpp>
 
-#include <sqee/redist/gl_ext_4_1.hpp>
+#include <sqee/redist/gl_ext_4_2.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
 #include <sqee/gl/FrameBuffer.hpp>
 #include <sqee/gl/Textures.hpp>
@@ -14,7 +14,7 @@
 #include <sqee/maths/General.hpp>
 
 #include "../wcoe/World.hpp"
-#include "../wcoe/objects/ModelStatic.hpp"
+#include "../wcoe/objects/ModelSimple.hpp"
 #include "../wcoe/objects/ModelSkelly.hpp"
 #include "../wcoe/objects/PointLight.hpp"
 #include "../wcoe/objects/SpotLight.hpp"
@@ -26,17 +26,17 @@
 
 using namespace sqt::rndr;
 
-void Graph::render_mstatics_base(bool _decals) {
+void Graph::render_msimples_base(bool _decals) {
     gl::StencilMask(0b0100);
     sq::DEPTH_ON(); sq::DEPTH_WRITE();
     sq::CULLFACE_ON(); sq::CULLFACE_BACK();
     sq::STENCIL_ON(); sq::STENCIL_REPLACE();
     gl::StencilFunc(gl::EQUAL, 0b0101, 0b0001);
-    pipeline->use_shader(*VS.gbuf_base_static);
+    pipeline->use_shader(*VS.gbuf_base_simple);
     pipeline->use_shader(*FS.gbuf_base_model);
 
-    for (const auto& mptr : modelStaticList) {
-        const wcoe::ModelStatic& model = *mptr.lock();
+    for (const auto& mptr : modelSimpleList) {
+        const wcoe::ModelSimple& model = *mptr.lock();
         if (model.PROP_render == false) continue;
         if (model.PROP_decals != _decals) continue;
         if (sq::bbox_in_frus(model.bbox, camera->frus)) continue;
@@ -48,17 +48,17 @@ void Graph::render_mstatics_base(bool _decals) {
 }
 
 
-void Graph::render_mstatics_refl(bool _decals) {
+void Graph::render_msimples_refl(bool _decals) {
     gl::StencilMask(0b0100);
     sq::DEPTH_ON(); sq::DEPTH_WRITE();
     sq::CULLFACE_ON(); sq::CULLFACE_FRONT();
     sq::STENCIL_ON(); sq::STENCIL_REPLACE();
     gl::StencilFunc(gl::EQUAL, 0b0111, 0b0011);
-    pipeline->use_shader(*VS.gbuf_refl_static);
+    pipeline->use_shader(*VS.gbuf_refl_simple);
     pipeline->use_shader(*FS.gbuf_refl_model);
 
-    for (const auto& mptr : modelStaticList) {
-        const wcoe::ModelStatic& model = *mptr.lock();
+    for (const auto& mptr : modelSimpleList) {
+        const wcoe::ModelSimple& model = *mptr.lock();
         if (model.PROP_render == false) continue;
         if (model.PROP_decals != _decals) continue;
         if (sq::bbox_in_frus(model.bbox, crntRflct->frus)) continue;
@@ -120,7 +120,7 @@ void Graph::render_reflects_base(bool _decals) {
     sq::CULLFACE_ON(); sq::CULLFACE_BACK();
     sq::STENCIL_ON(); sq::STENCIL_REPLACE();
     gl::StencilFunc(gl::EQUAL, 0b0101, 0b0001);
-    pipeline->use_shader(*VS.gbuf_base_static);
+    pipeline->use_shader(*VS.gbuf_base_simple);
     pipeline->use_shader(*FS.gbuf_base_model);
 
     for (const auto& rptr : reflectorList) {
@@ -141,7 +141,7 @@ void Graph::render_reflects_refl(bool _decals) {
     sq::CULLFACE_ON(); sq::CULLFACE_FRONT();
     sq::STENCIL_ON(); sq::STENCIL_REPLACE();
     gl::StencilFunc(gl::EQUAL, 0b0111, 0b0011);
-    pipeline->use_shader(*VS.gbuf_refl_static);
+    pipeline->use_shader(*VS.gbuf_refl_simple);
     pipeline->use_shader(*FS.gbuf_refl_model);
 
     for (const auto& rptr : reflectorList) {
