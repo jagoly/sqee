@@ -35,41 +35,34 @@ LoadedImage load_image(const string _path, uint _channels) {
 
 // sq::Texture /////
 
-Texture::Texture() {
-    gl::GenTextures(1, &tex);
-}
-
 Texture::~Texture() {
     gl::DeleteTextures(1, &tex);
 }
 
-void Texture::set_param(GLenum _name, GLenum _value) {
-    gl::BindTexture(target, tex);
-    gl::TexParameteri(target, _name, _value);
+void Texture::set_param(GLenum _name, GLenum _value) const {
+    gl::TextureParameteri(target, _name, _value);
 }
 
-void Texture::set_preset(Preset _preset) {
-    gl::BindTexture(target, tex);
-    for (const auto& val : _preset)
-        gl::TexParameteri(target, val.first, val.second);
+void Texture::set_preset(Preset _preset) const {
+    for (const pair<GLenum, GLenum>& val : _preset)
+        gl::TextureParameteri(tex, val.first, val.second);
 }
 
-void Texture::generate_mipmaps() {
-    gl::BindTexture(target, tex);
-    gl::GenerateMipmap(target);
+void Texture::generate_mipmaps() const {
+    gl::GenerateTextureMipmap(tex);
 }
 
-void Texture::bind(GLenum _slot) {
+void Texture::bind(GLenum _slot) const {
     gl::ActiveTexture(_slot);
     gl::BindTexture(target, tex);
 }
 
-void Texture::bind() {
+void Texture::bind() const {
     gl::BindTexture(target, tex);
 }
 
-uvec3 Texture::get_size() {
-    return size;
+uvec3 Texture::get_size() const {
+    return tex ? size : uvec3(0u);
 }
 
 
@@ -78,12 +71,11 @@ uvec3 Texture::get_size() {
 void Texture2D::create(GLenum _format, GLenum _iFormat, uint _channels, bool _mipmaps) {
     format = _format; iFormat = _iFormat; channels = _channels; mipmaps = _mipmaps;
     dataType = format == gl::DEPTH_STENCIL ? gl::UNSIGNED_INT_24_8 : gl::UNSIGNED_BYTE;
-    target = gl::TEXTURE_2D;
+    target = gl::TEXTURE_2D; gl::CreateTextures(target, 1, &tex);
 }
 
 void Texture2D::buffer_memory(const void* _data) {
-    gl::BindTexture(target, tex);
-    gl::TexSubImage2D(target, 0, 0, 0, size.x, size.y, format, dataType, _data);
+    gl::TextureSubImage2D(tex, 0, 0, 0, size.x, size.y, format, dataType, _data);
 }
 
 void Texture2D::buffer_file(const string& _path) {
@@ -108,9 +100,9 @@ void Texture2D::buffer_auto(const string& _path) {
 }
 
 void Texture2D::allocate_storage(uvec2 _size) {
-    gl::BindTexture(target, tex); size = uvec3(_size.x, _size.y, 0u);
-    uint maxLevel = mipmaps ? std::floor(std::log2(std::max(size.x, size.y))) + 1u : 1u;
-    gl::TexStorage2D(target, maxLevel, iFormat, size.x, size.y);
+    size = uvec3(_size.x, _size.y, 0u);
+    int maxLevel = mipmaps ? std::floor(std::log2(std::max(size.x, size.y))) + 1 : 1;
+    gl::TextureStorage2D(tex, maxLevel, iFormat, size.x, size.y);
 }
 
 
@@ -119,16 +111,15 @@ void Texture2D::allocate_storage(uvec2 _size) {
 void TextureMut2D::create(GLenum _format, GLenum _iFormat, uint _channels) {
     format = _format; iFormat = _iFormat; channels = _channels;
     dataType = format == gl::DEPTH_STENCIL ? gl::UNSIGNED_INT_24_8 : gl::UNSIGNED_BYTE;
-    target = gl::TEXTURE_2D;
+    target = gl::TEXTURE_2D; gl::CreateTextures(target, 1, &tex);
 }
 
 void TextureMut2D::buffer_memory(const void* _data) {
-    gl::BindTexture(target, tex);
-    gl::TexSubImage2D(target, 0, 0, 0, size.x, size.y, format, dataType, _data);
+    gl::TextureSubImage2D(tex, 0, 0, 0, size.x, size.y, format, dataType, _data);
 }
 
 void TextureMut2D::resize(uvec2 _size) {
-    gl::BindTexture(target, tex); size = uvec3(_size.x, _size.y, 0u);
+    gl::BindTexture(target, tex); size = uvec3(_size.x, _size.y, 0);
     gl::TexImage2D(target, 0, iFormat, size.x, size.y, 0, format, dataType, nullptr);
 }
 
@@ -138,14 +129,11 @@ void TextureMut2D::resize(uvec2 _size) {
 void TextureCube::create(GLenum _format, GLenum _iFormat, uint _channels, bool _mipmaps) {
     format = _format; iFormat = _iFormat; channels = _channels; mipmaps = _mipmaps;
     dataType = format == gl::DEPTH_STENCIL ? gl::UNSIGNED_INT_24_8 : gl::UNSIGNED_BYTE;
-    target = gl::TEXTURE_CUBE_MAP;
+    target = gl::TEXTURE_CUBE_MAP; gl::CreateTextures(target, 1, &tex);
 }
 
 void TextureCube::buffer_memory(const void* _data, uint _face) {
-    gl::BindTexture(target, tex);
-    uint faceYZ[6] = {0u, 1u, 2u, 3u, 4u, 5u};
-    uint face = gl::TEXTURE_CUBE_MAP_POSITIVE_X + faceYZ[_face];
-    gl::TexSubImage2D(face, 0, 0, 0, size.x, size.x, format, dataType, _data);
+    gl::TextureSubImage3D(tex, 0, 0, 0, _face, size.x, size.y, 1, format, dataType, _data);
 }
 
 void TextureCube::buffer_file(const string& _path, uint _face) {
@@ -168,9 +156,9 @@ void TextureCube::buffer_full(const string& _path) {
 }
 
 void TextureCube::allocate_storage(uint _size) {
-    gl::BindTexture(target, tex); size = uvec3(_size, _size, 0u);
-    uint maxLevel = mipmaps ? std::floor(std::log2(size.x)) + 1u : 1u;
-    gl::TexStorage2D(target, maxLevel, iFormat, size.x, size.x);
+    size = uvec3(_size, _size, 0u);
+    int maxLevel = mipmaps ? std::floor(std::log2(size.x)) + 1 : 1;
+    gl::TextureStorage2D(tex, maxLevel, iFormat, size.x, size.x);
 }
 
 
@@ -179,14 +167,11 @@ void TextureCube::allocate_storage(uint _size) {
 void TextureMutCube::create(GLenum _format, GLenum _iFormat, uint _channels) {
     format = _format; iFormat = _iFormat; channels = _channels;
     dataType = format == gl::DEPTH_STENCIL ? gl::UNSIGNED_INT_24_8 : gl::UNSIGNED_BYTE;
-    target = gl::TEXTURE_CUBE_MAP;
+    target = gl::TEXTURE_CUBE_MAP; gl::CreateTextures(target, 1, &tex);
 }
 
 void TextureMutCube::buffer_memory(const void* _data, uint _face) {
-    gl::BindTexture(target, tex);
-    uint faceYZ[6] = {0u, 1u, 2u, 3u, 4u, 5u};
-    uint face = gl::TEXTURE_CUBE_MAP_POSITIVE_X + faceYZ[_face];
-    gl::TexSubImage2D(face, 0, 0, 0, size.x, size.x, format, dataType, _data);
+    gl::TextureSubImage3D(tex, 0, 0, 0, _face, size.x, size.y, 1, format, dataType, _data);
 }
 
 void TextureMutCube::resize(uint _size) {
@@ -205,12 +190,11 @@ void TextureMutCube::resize(uint _size) {
 void Texture2DArray::create(GLenum _format, GLenum _iFormat, uint _channels, bool _mipmaps) {
     format = _format; iFormat = _iFormat; channels = _channels; mipmaps = _mipmaps;
     dataType = format == gl::DEPTH_STENCIL ? gl::UNSIGNED_INT_24_8 : gl::UNSIGNED_BYTE;
-    target = gl::TEXTURE_2D_ARRAY;
+    target = gl::TEXTURE_2D_ARRAY; gl::CreateTextures(target, 1, &tex);
 }
 
 void Texture2DArray::buffer_memory(const void* _data, uint _index) {
-    gl::BindTexture(target, tex);
-    gl::TexSubImage3D(target, 0, 0, 0, _index, size.x, size.y, 1, format, dataType, _data);
+    gl::TextureSubImage3D(tex, 0, 0, 0, _index, size.x, size.y, 1, format, dataType, _data);
 }
 
 void Texture2DArray::buffer_file(const string& _path, uint _index) {
@@ -224,9 +208,9 @@ void Texture2DArray::buffer_file(const string& _path, uint _index) {
 }
 
 void Texture2DArray::allocate_storage(uvec3 _size) {
-    gl::BindTexture(target, tex); size = uvec3(_size.x, _size.y, _size.z);
-    uint maxLevel = mipmaps ? std::floor(std::log2(std::max(size.x, size.y))) + 1u : 1u;
-    gl::TexStorage3D(target, maxLevel, iFormat, size.x, size.y, size.z);
+    size = uvec3(_size.x, _size.y, _size.z);
+    int maxLevel = mipmaps ? std::floor(std::log2(std::max(size.x, size.y))) + 1 : 1;
+    gl::TextureStorage3D(tex, maxLevel, iFormat, size.x, size.y, size.z);
 }
 
 
@@ -235,12 +219,11 @@ void Texture2DArray::allocate_storage(uvec3 _size) {
 void TextureMut2DArray::create(GLenum _format, GLenum _iFormat, uint _channels) {
     format = _format; iFormat = _iFormat; channels = _channels;
     dataType = format == gl::DEPTH_STENCIL ? gl::UNSIGNED_INT_24_8 : gl::UNSIGNED_BYTE;
-    target = gl::TEXTURE_2D_ARRAY;
+    target = gl::TEXTURE_2D_ARRAY; gl::CreateTextures(target, 1, &tex);
 }
 
 void TextureMut2DArray::buffer_memory(const void* _data, uint _index) {
-    gl::BindTexture(target, tex);
-    gl::TexSubImage3D(target, 0, 0, 0, _index, size.x, size.y, 1, format, dataType, _data);
+    gl::TextureSubImage3D(tex, 0, 0, 0, _index, size.x, size.y, 1, format, dataType, _data);
 }
 
 void TextureMut2DArray::resize(uvec3 _size) {
@@ -254,13 +237,11 @@ void TextureMut2DArray::resize(uvec3 _size) {
 void TextureCubeArray::create(GLenum _format, GLenum _iFormat, uint _channels, bool _mipmaps) {
     format = _format; iFormat = _iFormat; channels = _channels; mipmaps = _mipmaps;
     dataType = format == gl::DEPTH_STENCIL ? gl::UNSIGNED_INT_24_8 : gl::UNSIGNED_BYTE;
-    target = gl::TEXTURE_CUBE_MAP_ARRAY;
+    target = gl::TEXTURE_CUBE_MAP_ARRAY; gl::CreateTextures(target, 1, &tex);
 }
 
 void TextureCubeArray::buffer_memory(const void* _data, uint _face, uint _index) {
-    uint faceYZ[6] = {0u, 1u, 2u, 3u, 4u, 5u};
-    gl::BindTexture(target, tex); int index = _index * 6 + faceYZ[_face];
-    gl::TexSubImage3D(target, 0, 0, 0, index, size.x, size.y, 1, format, dataType, _data);
+    gl::TextureSubImage3D(tex, 0, 0, 0, _index*6+_face, size.x, size.y, 1, format, dataType, _data);
 }
 
 void TextureCubeArray::buffer_file(const string& _path, uint _face, uint _index) {
@@ -283,9 +264,9 @@ void TextureCubeArray::buffer_full(const string& _path, uint _index) {
 }
 
 void TextureCubeArray::allocate_storage(uvec2 _size) {
-    gl::BindTexture(target, tex); size = uvec3(_size.x, _size.x, _size.y);
-    uint maxLevel = mipmaps ? std::floor(std::log2(size.x)) + 1u : 1u;
-    gl::TexStorage3D(target, maxLevel, iFormat, size.x, size.y, size.z * 6);
+    size = uvec3(_size.x, _size.x, _size.y);
+    int maxLevel = mipmaps ? std::floor(std::log2(size.x)) + 1 : 1;
+    gl::TextureStorage3D(tex, maxLevel, iFormat, size.x, size.y, size.z*6);
 }
 
 
@@ -294,18 +275,16 @@ void TextureCubeArray::allocate_storage(uvec2 _size) {
 void TextureMutCubeArray::create(GLenum _format, GLenum _iFormat, uint _channels) {
     format = _format; iFormat = _iFormat; channels = _channels;
     dataType = format == gl::DEPTH_STENCIL ? gl::UNSIGNED_INT_24_8 : gl::UNSIGNED_BYTE;
-    target = gl::TEXTURE_CUBE_MAP_ARRAY;
+    target = gl::TEXTURE_CUBE_MAP_ARRAY; gl::CreateTextures(target, 1, &tex);
 }
 
 void TextureMutCubeArray::buffer_memory(const void* _data, uint _face, uint _index) {
-    uint faceYZ[6] = {0u, 1u, 4u, 5u, 2u, 3u};
-    gl::BindTexture(target, tex); int index = _index * 6 + faceYZ[_face];
-    gl::TexSubImage3D(target, 0, 0, 0, index, size.x, size.y, 1, format, dataType, _data);
+    gl::TextureSubImage3D(tex, 0, 0, 0, _index*6+_face, size.x, size.y, 1, format, dataType, _data);
 }
 
 void TextureMutCubeArray::resize(uvec2 _size) {
     gl::BindTexture(target, tex); size = uvec3(_size.x, _size.x, _size.y);
-    gl::TexImage3D(target, 0, iFormat, size.x, size.x, size.z * 6, 0, format, dataType, nullptr);
+    gl::TexImage3D(target, 0, iFormat, size.x, size.x, size.z*6, 0, format, dataType, nullptr);
 }
 
 
@@ -314,21 +293,22 @@ void TextureMutCubeArray::resize(uvec2 _size) {
 void TextureVolume::create(GLenum _format, GLenum _iFormat, uint _channels) {
     format = _format; iFormat = _iFormat; channels = _channels;
     dataType = gl::UNSIGNED_BYTE; target = gl::TEXTURE_3D;
+    gl::CreateTextures(target, 1, &tex);
 }
 
 void TextureVolume::buffer_memory(const void* _data) {
-    gl::BindTexture(target, tex);
-    struct MD { float x, y, z, index; };
-    for (uint i = 0u; i < 12u*5u*5u; ++i) {
-        std::cout << i << " " << ((MD*)_data)[i].z << std::endl;
-    }
-    gl::TexSubImage3D(target, 0, 0, 0, 0, size.x, size.y, size.z, format, gl::FLOAT, _data);
-    //gl::TexImage3D(target, 0u, iFormat, size.x, size.y, size.z, 0, format, gl::FLOAT, _data);
+//    gl::BindTexture(target, tex);
+//    struct MD { float x, y, z, index; };
+//    for (uint i = 0u; i < 12u*5u*5u; ++i) {
+//        std::cout << i << " " << ((MD*)_data)[i].z << std::endl;
+//    }
+//    gl::TexSubImage3D(target, 0, 0, 0, 0, size.x, size.y, size.z, format, gl::FLOAT, _data);
+//    //gl::TexImage3D(target, 0u, iFormat, size.x, size.y, size.z, 0, format, gl::FLOAT, _data);
 }
 
 void TextureVolume::allocate_storage(uvec3 _size) {
-    gl::BindTexture(target, tex); size = _size;
-    gl::TexStorage3D(target, 1u, iFormat, size.x, size.y, size.z);
+    size = uvec3(_size.x, _size.y, _size.z);
+    gl::TextureStorage3D(tex, 1, iFormat, size.x, size.y, size.z);
 }
 
 

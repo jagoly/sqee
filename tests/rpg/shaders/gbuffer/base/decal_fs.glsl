@@ -31,10 +31,10 @@ void main() {
     vec3 oPos = vec3(DB.invMat * vec4(wPos, 1.f));
     if (abs(oPos.x) > 0.5f || abs(oPos.y) > 0.5f || abs(oPos.z) > 0.5f) discard;
 
-    vec3 crntDiff = texture(defrDiff, s_tcrd).rgb; fragDiff = crntDiff;
-    vec3 crntSurf = texture(defrSurf, s_tcrd).rgb; fragSurf = crntSurf;
-    vec3 crntNorm = texture(defrNorm, s_tcrd).rgb; fragNorm = crntNorm;
-    vec3 crntSpec = texture(defrSpec, s_tcrd).rgb; fragSpec = crntSpec;
+    vec3 crntDiff = fragDiff = texture(defrDiff, s_tcrd).rgb;
+    vec3 crntSurf = fragSurf = texture(defrSurf, s_tcrd).rgb;
+    vec3 crntNorm = fragNorm = texture(defrNorm, s_tcrd).rgb;
+    vec3 crntSpec = fragSpec = texture(defrSpec, s_tcrd).rgb;
     vec3 surface = normalize(crntSurf * 2.f - 1.f);
 
     float factor = -dot(viewNorm, surface);

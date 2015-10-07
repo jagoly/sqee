@@ -8,7 +8,7 @@ namespace sq {
 /// The SQEE Skin class
 class Skin : NonCopyable {
 public:
-    Skin() = default; ~Skin();
+    Skin() = default;
     Skin(const string& _path);
     void create(const string& _path);
 
@@ -17,8 +17,10 @@ public:
         sq::Texture2D* diff = nullptr;
         sq::Texture2D* norm = nullptr;
         sq::Texture2D* spec = nullptr;
-        ivec3 glDNS;
+        ivec3 glDNS = {0, 0, 0};
     }; vector<Material> mtrlVec;
+
+    bool hasPunchThrough = false;
 
     void bind_textures(uint _mtrl) const;
     void bind_textures(uint _mtrl, bool _diff, bool _norm, bool _spec) const;

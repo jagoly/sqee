@@ -34,8 +34,4 @@ public:
     sq::BoundBox bbox;
 };
 
-template<> struct ObjTraits<Decal> {
-    static constexpr ObjType type() { return ObjType::Decal; }
-};
-
 }}

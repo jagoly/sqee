@@ -1,5 +1,6 @@
 #pragma once
 #include <sqee/forward.hpp>
+#include <unordered_map>
 
 namespace sq {
 
@@ -9,10 +10,11 @@ public:
     PreProcessor();
 
     void import_header(const string& _path);
-    pair<string, string> load(const string& _path, const string& _extra = "") const;
+    void load(Shader& _shader, const string& _path, const string& _extra = "") const;
+    void operator()(Shader& _shader, const string& _path, const string& _extra = "") const;
 
 private:
-    unordered_map<string, string> headerMap;
+    std::unordered_map<string, vector<string>> headerMap;
 };
 
 }

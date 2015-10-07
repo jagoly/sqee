@@ -1,30 +1,22 @@
 #pragma once
 
-#include <list>
 #include <array>
-#include <deque>
 #include <vector>
 #include <string>
 #include <memory>
-#include <forward_list>
-#include <unordered_map>
-#include <unordered_set>
-#include <functional>
+#include <utility>
+#include <stdexcept>
 
 using std::pair;
-using std::list;
 using std::array;
-using std::deque;
 using std::vector;
 using std::string;
 using std::weak_ptr;
 using std::shared_ptr;
 using std::unique_ptr;
-using std::forward_list;
-using std::unordered_map;
-using std::unordered_set;
+using std::out_of_range;
 using std::runtime_error;
-using std::function;
+using std::initializer_list;
 
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
@@ -34,6 +26,7 @@ using std::function;
 #include <glm/mat4x4.hpp>
 #include <glm/mat3x4.hpp>
 #include <glm/mat4x3.hpp>
+#include <glm/common.hpp>
 #include <glm/gtc/quaternion.hpp>
 
 using glm::ivec2; using glm::ivec3; using glm::ivec4;
@@ -45,9 +38,6 @@ using glm::dmat2; using glm::dmat3; using glm::dmat4;
 using glm::fmat3x4; using glm::fmat4x3;
 using glm::dmat3x4; using glm::dmat4x3;
 using glm::fquat; using glm::dquat;
-
-#include <algorithm>
-#include <glm/common.hpp>
 
 typedef unsigned int    uint;
 typedef unsigned short  ushort;
@@ -106,10 +96,13 @@ class Camera;
 class Mesh;
 class Skin;
 
-class FrameBuffer;
-class UniformBuffer;
-class Pipeline;
 class Shader;
+class Pipeline;
+class FrameBuffer;
+class VertexArray;
+class FixedBuffer;
+class DynamicBuffer;
+class UniformBuffer;
 
 class Texture2D;
 class TextureMut2D;
@@ -131,6 +124,8 @@ struct OrthoFrus { Plane pT, pB, pL, pR; };
 
 #ifdef SQEE_DEBUG
 #define SQDEBUG(code) code
+#define SQASSERT(code) assert(code)
 #else
 #define SQDEBUG(code)
+#define SQASSERT(code)
 #endif

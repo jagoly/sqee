@@ -6,15 +6,15 @@
 namespace sq {
 
 /// The SQEE Mesh class
-class Mesh : NonCopyable {
+class Mesh final : NonCopyable {
 public:
     Mesh() = default; ~Mesh();
     Mesh(const string& _path);
     void create(const string& _path);
 
-    fvec3 origin;
-    float radius;
-    fvec3 bbsize;
+    float radius = 0.f;
+    fvec3 bbsize = fvec3(0.f);
+    fvec3 origin = fvec3(0.f);
     bool hasBBox = false;
     bool hasNorm = false;
     bool hasTang = false;
@@ -26,29 +26,26 @@ public:
     uint faceCount = 0u;
     uint mtrlCount = 0u;
 
-    GLuint vao, vbo;
-    vector<pair<GLuint, uint>> iboVec;
-
     void bind_vao() const;
-    void draw_ibo(uint _mtrl) const;
+    void draw_complete() const;
+    void draw_material(uint _mtrl) const;
 
-protected:
-    struct VertData {
-        vector<fvec3> points;
-        vector<fvec3> normals;
-        vector<fvec4> tangents;
-        vector<fvec2> texcrds;
-        vector<fvec3> colours;
-        vector<ivec4> bonesA;
-        vector<ivec4> bonesB;
-        vector<fvec4> weightsA;
-        vector<fvec4> weightsB;
-    };
-
-    using FaceData = vector<vector<uvec3>>;
+private:
+    unique_ptr<FixedBuffer> vertBuf;
+    unique_ptr<FixedBuffer> elemBuf;
+    unique_ptr<VertexArray> vertArr;
+    vector<pair<size_t, uint>> mtrlVec;
+    uint elementTotal = 0u;
 
     void load_ascii(const string& _path);
     void load_binary(const string& _path);
+
+    struct VertData { vector<fvec2> texcrds;
+        vector<fvec3> points, normals, colours;
+        vector<fvec4> tangents, weightsA, weightsB;
+        vector<ivec4> bonesA, bonesB; };
+    using FaceData = vector<vector<uvec3>>;
+
     void load_final(const VertData& _v, const FaceData& _f);
 };
 

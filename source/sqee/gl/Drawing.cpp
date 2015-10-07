@@ -8,17 +8,15 @@ extern "C" const float data_SphereVertices[42*3];
 extern "C" const uchar data_SphereIndices[80*3];
 extern "C" const float data_CubeVertices[8*3];
 extern "C" const uchar data_CubeIndices[12*3];
-const float ScreenQuadVerts[6*2] {
-    -1.f, -1.f,    1.f, -1.f,    1.f,  1.f,
-     1.f,  1.f,   -1.f,  1.f,   -1.f, -1.f,
-};
+
 
 
 void sq::draw_nothing() {
     static GLuint vao;
+
     static bool first = true;
     if (first) { first = false;
-        gl::GenVertexArrays(1, &vao);
+        gl::CreateVertexArrays(1, &vao);
     }
 
     gl::BindVertexArray(vao);
@@ -31,19 +29,11 @@ void sq::draw_screen_quad() {
 
     static bool first = true;
     if (first) { first = false;
-        GLuint vbo; gl::GenBuffers(1, &vbo);
-        gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
-        gl::BufferData(gl::ARRAY_BUFFER, sizeof(float[6*2]),
-                       ScreenQuadVerts, gl::STATIC_DRAW);
-
-        gl::GenVertexArrays(1, &vao);
-        gl::BindVertexArray(vao);
-        gl::EnableVertexAttribArray(0);
-        gl::VertexAttribPointer(0, 2, gl::FLOAT, false, 0, nullptr);
+        gl::CreateVertexArrays(1, &vao);
     }
 
     gl::BindVertexArray(vao);
-    gl::DrawArrays(gl::TRIANGLES, 0, 6);
+    gl::DrawArrays(gl::TRIANGLE_STRIP, 0, 4);
 }
 
 

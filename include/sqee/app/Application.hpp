@@ -1,5 +1,6 @@
 #pragma once
 #include <sqee/forward.hpp>
+#include <unordered_set>
 
 #include <sqee/app/Settings.hpp>
 #include <sqee/app/ChaiConsole.hpp>
@@ -58,8 +59,8 @@ protected:
     OrderedMap<string, unique_ptr<Scene>> sceneMap;
     OrderedMap<string, unique_ptr<Handler>> handlerMap;
 
-    unordered_set<string> sceneSweep;
-    unordered_set<string> handlerSweep;
+    std::unordered_set<string> sceneSweep;
+    std::unordered_set<string> handlerSweep;
 
     virtual bool handle_default(sf::Event _event);
 };

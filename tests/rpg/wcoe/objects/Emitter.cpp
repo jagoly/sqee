@@ -2,7 +2,6 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <sqee/redist/gl_ext_4_2.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
 #include <sqee/gl/FrameBuffer.hpp>
 #include <sqee/gl/Textures.hpp>
@@ -15,11 +14,10 @@
 
 using namespace sqt::wcoe;
 
-Emitter::Emitter(const string& _name, Cell* _cell)
-    : Object(ObjType::Emitter, _name, _cell) {
+Emitter::Emitter(const string& _name, Cell* _cell) : Object(_name, _cell) {
     ubo.reset(new sq::UniformBuffer());
     ubo->reserve("matrix", 16);
-    ubo->create();
+    ubo->allocate_storage();
 }
 
 void Emitter::load_from_spec(const ObjSpec& _spec) {
@@ -64,10 +62,8 @@ void Emitter::emit_puff(uint _count,
 
 
 void Emitter::refresh() {
-    if (invalid == true) {
+    if (check_invalid() == true) {
         position = PROP_position + cell->DAT_position;
-
-        invalid = false;
     }
 
     animate();

@@ -1,9 +1,6 @@
 #pragma once
 #include <sqee/forward.hpp>
-
 #include <unordered_map>
-
-using std::unordered_map;
 
 namespace sq {
 
@@ -11,7 +8,7 @@ namespace sq {
 template <class T>
 class ResHolder final {
 public:
-    using iterator = typename unordered_map<string, T>::iterator;
+    using iterator = typename std::unordered_map<string, T>::iterator;
     iterator begin() { return theMap.begin(); }
     iterator end()   { return theMap.end(); }
 
@@ -31,16 +28,16 @@ public:
         return theMap.count(_key);
     }
 
-    void del(const std::string& _key) {
+    void del(const string& _key) {
         theMap.erase(_key);
     }
 
-protected:
-    std::unordered_map<std::string, std::unique_ptr<T>> theMap;
+private:
+    std::unordered_map<string, unique_ptr<T>> theMap;
 };
 
 namespace res {
-std::string& path();
+string& path();
 }
 
 }

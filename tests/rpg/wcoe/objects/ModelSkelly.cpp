@@ -1,6 +1,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <sqee/gl/UniformBuffer.hpp>
+#include <sqee/gl/FixedBuffer.hpp>
+#include <sqee/gl/VertexArray.hpp>
 #include <sqee/render/Armature.hpp>
 #include <sqee/render/Camera.hpp>
 #include <sqee/render/Mesh.hpp>
@@ -14,19 +16,17 @@
 
 using namespace sqt::wcoe;
 
-ModelSkelly::ModelSkelly(const string& _name, Cell* _cell)
-    : Object(ObjType::ModelSkelly, _name, _cell) {
+ModelSkelly::ModelSkelly(const string& _name, Cell* _cell) : Object(_name, _cell) {
     ubo.reset(new sq::UniformBuffer());
     ubo->reserve("matrix", 16);
     ubo->reserve("normMat", 16);
     ubo->reserve("bones", 12*80);
-    ubo->create();
+    ubo->allocate_storage();
 }
 
 
 void ModelSkelly::load_from_spec(const ObjSpec& _spec) {
     _spec.set_if("shadow", PROP_shadow);
-    _spec.set_if("render", PROP_render);
     _spec.set_if("probes", PROP_probes);
     _spec.set_if("position", PROP_position);
     _spec.set_if("rotation", PROP_rotation);
@@ -40,7 +40,7 @@ void ModelSkelly::load_from_spec(const ObjSpec& _spec) {
 
 
 void ModelSkelly::refresh() {
-    if (invalid == true) {
+    if (check_invalid() == true) {
         if ((arma = sq::res::arma().get(PROP_arma)) == nullptr)
             arma = sq::res::arma().add(PROP_arma),
             arma->create(PROP_arma);
@@ -62,8 +62,6 @@ void ModelSkelly::refresh() {
         if (PROP_anim.empty() == false) {
             anim = arma->animMap.at(PROP_anim);
         }
-
-        invalid = false;
     }
 
     animate();
@@ -100,7 +98,7 @@ void ModelSkelly::tick() {
             state = State::Done;
             poseCalc = arma->poseMap.at(PROP_pose);
             auto uboData = sq::Armature::make_UboData(poseCalc);
-            ubo->bind(1); ubo->update("bones", uboData.data());
+            ubo->update("bones", uboData.data());
         } return;
     }
 }
@@ -126,8 +124,8 @@ void ModelSkelly::animate() {
     matrix = glm::translate(fmat4(), PROP_position + cell->DAT_position);
     matrix *= glm::mat4_cast(PROP_rotation); matrix = glm::scale(matrix, PROP_scale);
     sphere = sq::make_Sphere(matrix, mesh->origin, mesh->radius);
-    ubo->bind(1); ubo->update("matrix", &matrix);
     negScale = glm::determinant(matrix) < 0.f;
+    ubo->update("matrix", &matrix);
 }
 
 

@@ -13,15 +13,16 @@
 
 using namespace sqt::wcoe;
 
-RigBodyBasic::RigBodyBasic(const string& _name, Cell* _cell)
-    : Object(ObjType::RigBodyBasic, _name, _cell) {}
+RigBodyBasic::RigBodyBasic(const string& _name, Cell* _cell) : Object(_name, _cell) {
+
+}
 
 void RigBodyBasic::load_from_spec(const ObjSpec& _spec) {
     _spec.set_if("physobj", PROP_physobj);
 }
 
 void RigBodyBasic::refresh() {
-    if (invalid == true) {
+    if (check_invalid() == true) {
         if ((physobj = sq::res::phys().get(PROP_physobj)) == nullptr)
             physobj = sq::res::phys().add(PROP_physobj),
             physobj->create(PROP_physobj);
@@ -29,7 +30,7 @@ void RigBodyBasic::refresh() {
         if (rigBody != nullptr) cell->world->physWorld->destroyRigidBody(rigBody);
 
         if (objectPtr != nullptr) {
-            if (objectPtr->type == ObjType::ModelSimple) {
+            if (typeid(objectPtr) == typeid(ModelSimple)) {
                 auto& castObj = static_cast<ModelSimple&>(*objectPtr);
                 positionPtr = &castObj.PROP_position;
                 rotationPtr = &castObj.PROP_rotation;
@@ -62,8 +63,6 @@ void RigBodyBasic::refresh() {
                     {0.f, 0.f, 0.f, 1.f}), ss.mass * PROP_scale.x);
             }
         }
-
-        invalid = false;
     }
 
     animate();

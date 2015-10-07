@@ -20,15 +20,15 @@ vec3 tone_map(vec3 _tx) {
 }
 
 void main() {
-    vec4 texel = texture(texMain, texcrd);
-    vec3 value = tone_map(texel.rgb) / tone_map(vec3(1.f / sqrt(texel.a)));
+    vec3 texel = texture(texMain, texcrd).rgb;
+    float sqrtLuma = sqrt(dot(vec3(0.22f, 0.69f, 0.09f), texel));
+    vec3 value = tone_map(texel.rgb) / tone_map(vec3(1.f / sqrtLuma));
 //    value = texel.rgb;
 
     #ifdef BLOOM
     value += texture(texBloom, texcrd).rgb;
     #endif
 
-    value = tone_map(value) / tone_map(vec3(1.f / sqrt(texel.a)));
-
-    fragColour = vec4(value, texel.a);
+    value = tone_map(value) / tone_map(vec3(1.f / sqrtLuma));
+    fragColour = vec4(value, dot(vec3(0.22f, 0.69f, 0.09f), value));
 }

@@ -3,7 +3,6 @@
 #include <sqee/redist/gl_ext_4_2.hpp>
 #include <sqee/app/Settings.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
-#include <sqee/gl/FrameBuffer.hpp>
 #include <sqee/gl/Textures.hpp>
 #include <sqee/maths/Culling.hpp>
 #include <sqee/maths/General.hpp>
@@ -14,8 +13,7 @@
 
 using namespace sqt::wcoe;
 
-SpotLight::SpotLight(const string& _name, Cell* _cell)
-    : Object(ObjType::SpotLight, _name, _cell) {
+SpotLight::SpotLight(const string& _name, Cell* _cell) : Object(_name, _cell) {
     ubo.reset(new sq::UniformBuffer());
     ubo->reserve("direction", 3);
     ubo->reserve("intensity", 1);
@@ -25,7 +23,7 @@ SpotLight::SpotLight(const string& _name, Cell* _cell)
     ubo->reserve("angle", 1);
     ubo->reserve("matrix", 16);
     ubo->reserve("modelMat", 16);
-    ubo->create();
+    ubo->allocate_storage();
 }
 
 void SpotLight::load_from_spec(const ObjSpec& _spec) {
@@ -42,23 +40,23 @@ void SpotLight::load_from_spec(const ObjSpec& _spec) {
 }
 
 void SpotLight::refresh() {
-    if (invalid == true) {
-        if (PROP_shadow == true) {
-            tex.reset(new sq::TextureMut2D());
-            tex->create(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT16, 1u);
-            bool shadlarge = settings.get<bool>("rpg_shadlarge");
-            tex->resize(uvec2(PROP_texsize * (1u + shadlarge)));
-            tex->set_preset(sq::Texture::ShadowMap());
-            fbo.reset(new sq::FrameBuffer());
-            fbo->attach(gl::DEPTH_ATTACHMENT, *tex);
-        } else { tex.reset(); fbo.reset(); }
+    bool recreateTexture = false;
 
-        invalid = false;
+    if (check_invalid()) {
+        if (PROP_shadow == true)
+            recreateTexture = true;
+        else tex.reset();
     }
 
-    if (PROP_shadow && settings.check<bool>("rpg_shadlarge")) {
+    if (PROP_shadow && settings.check<bool>("rpg_shadlarge"))
+        recreateTexture = true;
+
+    if (recreateTexture == true) {
+        tex.reset(new sq::Texture2D());
         bool shadlarge = settings.get<bool>("rpg_shadlarge");
-        tex->resize(uvec2(PROP_texsize * (1u + shadlarge)));
+        tex->create(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT16, 1u, false);
+        tex->allocate_storage(uvec2(PROP_texsize * (1u + shadlarge)));
+        tex->set_preset(sq::Texture::ShadowMap());
     }
 
     animate();
@@ -99,7 +97,6 @@ void SpotLight::animate() {
     fvec3 scale = -fvec3(tanAngle, tanAngle, 1.f) * PROP_intensity;
     modelMat = glm::inverse(viewMat) * glm::scale(fmat4(), scale);
 
-    ubo->bind(1);
     ubo->update("direction", &PROP_direction);
     ubo->update("intensity", &PROP_intensity);
     ubo->update("position", &position);

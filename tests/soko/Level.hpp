@@ -1,5 +1,7 @@
 #pragma once
 #include <sqee/forward.hpp>
+#include <unordered_set>
+#include <list>
 
 #include <glm/gtx/hash.hpp>
 
@@ -26,17 +28,17 @@ struct Wall {
 class Level {
 public:
     struct Spec {
-        unordered_set<ivec2> ballSet;
-        unordered_set<ivec2> holeSet;
-        unordered_set<ivec2> wallSet;
+        std::unordered_set<ivec2> ballSet;
+        std::unordered_set<ivec2> holeSet;
+        std::unordered_set<ivec2> wallSet;
         ivec2 minPos = {0, 0};
         ivec2 maxPos = {1, 1};
     };
 
     Level(const Spec& _spec);
-    list<unique_ptr<Ball>> ballList;
-    list<unique_ptr<Hole>> holeList;
-    list<unique_ptr<Wall>> wallList;
+    std::list<unique_ptr<Ball>> ballList;
+    std::list<unique_ptr<Hole>> holeList;
+    std::list<unique_ptr<Wall>> wallList;
     const ivec2 minPos, maxPos;
 
     void update();

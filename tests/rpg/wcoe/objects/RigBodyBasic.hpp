@@ -37,8 +37,4 @@ private:
     fquat rotationCrnt, rotationNext;
 };
 
-template<> struct ObjTraits<RigBodyBasic> {
-    static constexpr ObjType type() { return ObjType::RigBodyBasic; }
-};
-
 }}

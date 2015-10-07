@@ -4,54 +4,46 @@
 namespace sq {
 
 /// A class for an OpenGL framebuffer
-class FrameBuffer : NonCopyable {
+class FrameBuffer final : NonCopyable {
 public:
     FrameBuffer();
     ~FrameBuffer();
 
-    /// Recreate FBO and clear draw buffers
-    void revert_to_defaults();
-
     /// Attach an immutable 2D texture
-    void attach(GLenum _attach, Texture2D& _tex);
+    void attach(GLenum _attach, const Texture2D& _tex) const;
 
     /// Attach a mutable 2D Texture
-    void attach(GLenum _attach, TextureMut2D& _tex);
+    void attach(GLenum _attach, TextureMut2D& _tex) const;
 
     /// Attach an immutable cubemap texture
-    void attach(GLenum _attach, TextureCube& _tex, uint _face);
+    void attach(GLenum _attach, const TextureCube& _tex, uint _face) const;
 
     /// Attach a mutable cubemap texture
-    void attach(GLenum _attach, TextureMutCube& _tex, uint _face);
+    void attach(GLenum _attach, TextureMutCube& _tex, uint _face) const;
 
     /// Attach an immutable 2D array texture
-    void attach(GLenum _attach, Texture2DArray& _tex, uint _index);
+    void attach(GLenum _attach, const Texture2DArray& _tex, uint _index) const;
 
     /// Attach a mutable 2D array texture
-    void attach(GLenum _attach, TextureMut2DArray& _tex, uint _index);
+    void attach(GLenum _attach, TextureMut2DArray& _tex, uint _index) const;
 
     /// Attach an immutable cubemap array texture
-    void attach(GLenum _attach, TextureCubeArray& _tex, uint _index, uint _face);
+    void attach(GLenum _attach, const TextureCubeArray& _tex, uint _index, uint _face) const;
 
     /// Attach a mutable cubemap array texture
-    void attach(GLenum _attach, TextureMutCubeArray& _tex, uint _index, uint _face);
+    void attach(GLenum _attach, TextureMutCubeArray& _tex, uint _index, uint _face) const;
 
-    /// Bind the FBO to the specified framebuffer target
-    void bind(GLenum _target);
+    /// Set which buffers to draw to when using the framebuffer
+    void draw_buffers(initializer_list<GLenum> _drawBufs) const;
 
-    /// Call gl::DrawBuffers for the active buffers
-    void draw_bufs();
+    /// Bind the fbo to gl::FRAMEBUFFER
+    void bind() const;
 
-    /// Call bind(gl::FRAMEBUFFER) and draw_bufs()
-    void use();
+    /// Blit this framebuffer directly to another
+    void blit(const FrameBuffer& _other, uvec2 _sizeA, uvec2 _sizeB, GLenum _mask, GLenum _filter) const;
 
     /// The OpenGL handle
     GLuint fbo = 0u;
-
-protected:
-    vector<GLenum> drawBufs;
-    unordered_set<GLenum> bufSet;
-    void add_buf(GLenum _attach);
 };
 
 }

@@ -1,6 +1,6 @@
 // GLSL Vertex Shader
 
-layout(location=0) in vec2 V_pos;
+#include builtin/data/screen
 
 out vec2 texcrd;
 

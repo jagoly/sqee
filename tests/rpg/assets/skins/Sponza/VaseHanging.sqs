@@ -5,7 +5,7 @@ material
 wrap repeat
 diff Sponza/Chain
 norm Sponza/Chain
-extra punch
+flags punch
 
 material
 wrap repeat

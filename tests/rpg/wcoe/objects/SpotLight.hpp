@@ -32,18 +32,10 @@ public:
     void animate();
 
     unique_ptr<sq::UniformBuffer> ubo;
-    unique_ptr<sq::TextureMut2D> tex;
-    unique_ptr<sq::FrameBuffer> fbo;
+    unique_ptr<sq::Texture2D> tex;
     sq::Frustum frus;
     fmat4 modelMat;
     fmat4 matrix;
-
-private:
-    bool track_PROP_shadow = false;
-};
-
-template<> struct ObjTraits<SpotLight> {
-    static constexpr ObjType type() { return ObjType::SpotLight; }
 };
 
 }}

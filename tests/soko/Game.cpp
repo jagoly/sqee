@@ -22,7 +22,7 @@ using namespace sqt;
 GameScene::GameScene(sq::Application* _app) : sq::Scene(_app) {
     tickRate = 10u;
 
-    camera.reset(new sq::Camera(0u));
+    camera.reset(new sq::Camera());
     camera->pos = {3.f, -2.f, 10.f};
     camera->dir = {0.f, 0.4f, -1.f};
     camera->rmin = 0.5f;
@@ -35,7 +35,7 @@ GameScene::GameScene(sq::Application* _app) : sq::Scene(_app) {
     ubo->reserve("slDirection", 4);
     ubo->reserve("slColour", 4);
     ubo->reserve("aColour", 4);
-    ubo->create();
+    ubo->allocate_storage();
 
     fvec3 slDirection = {0.f, 0.25f, -1.f};
     fvec3 slColour = {0.7f, 0.7f, 0.7f};
@@ -58,8 +58,8 @@ GameScene::GameScene(sq::Application* _app) : sq::Scene(_app) {
     VERT.object->add_uniform("normMat");  // mat4
 
     /// Load Shaders
-    VERT.object->load(app->preprocs.load("object_vs"));
-    FRAG.object->load(app->preprocs.load("object_fs"));
+    app->preprocs(*VERT.object, "object_vs");
+    app->preprocs(*FRAG.object, "object_fs");
 
     /// Create and Load Meshes
     MESH.Ball = sq::res::mesh().add("Ball", "Ball");
@@ -205,7 +205,7 @@ void GameScene::render() {
                 fmat3 normMat = sq::make_normMat(camera->viewMat * modelMat);
                 VERT.object->set_mat<fmat4>("modelMat", modelMat);
                 VERT.object->set_mat<fmat3>("normMat", normMat);
-                MESH.Floor->bind_vao(); MESH.Floor->draw_ibo(0u);
+                MESH.Floor->bind_vao(); MESH.Floor->draw_complete();
             }
         }
     }
@@ -217,7 +217,7 @@ void GameScene::render() {
         fmat3 normMat = sq::make_normMat(camera->viewMat * modelMat);
         VERT.object->set_mat<fmat4>("modelMat", modelMat);
         VERT.object->set_mat<fmat3>("normMat", normMat);
-        MESH.Ball->bind_vao(); MESH.Ball->draw_ibo(0u);
+        MESH.Ball->bind_vao(); MESH.Ball->draw_complete();
     }
 
     for (const Hole::Ptr& hole : level->holeList) {
@@ -226,7 +226,7 @@ void GameScene::render() {
         fmat3 normMat = sq::make_normMat(camera->viewMat * modelMat);
         VERT.object->set_mat<fmat4>("modelMat", modelMat);
         VERT.object->set_mat<fmat3>("normMat", normMat);
-        mesh->bind_vao(); mesh->draw_ibo(0u);
+        mesh->bind_vao(); mesh->draw_complete();
     }
 
     for (const Wall::Ptr& wall : level->wallList) {
@@ -249,7 +249,7 @@ void GameScene::render() {
         fmat3 normMat = sq::make_normMat(camera->viewMat * modelMat);
         VERT.object->set_mat<fmat4>("modelMat", modelMat);
         VERT.object->set_mat<fmat3>("normMat", normMat);
-        mesh->bind_vao(); mesh->draw_ibo(0u);
+        mesh->bind_vao(); mesh->draw_complete();
     }
 
     { // Player
@@ -260,7 +260,7 @@ void GameScene::render() {
         fmat3 normMat = sq::make_normMat(camera->viewMat * modelMat);
         VERT.object->set_mat<fmat4>("modelMat", modelMat);
         VERT.object->set_mat<fmat3>("normMat", normMat);
-        MESH.Player->bind_vao(); MESH.Player->draw_ibo(0u);
+        MESH.Player->bind_vao(); MESH.Player->draw_complete();
     }
 
 

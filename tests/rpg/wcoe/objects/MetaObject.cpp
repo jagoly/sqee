@@ -4,15 +4,13 @@
 
 using namespace sqt::wcoe;
 
-MetaObject::MetaObject(const string& _name, Cell* _cell)
-    : Object(ObjType::MetaObject, _name, _cell) {
+MetaObject::MetaObject(const string& _name, Cell* _cell) : Object(_name, _cell) {
 }
 
 void MetaObject::load_from_spec(const ObjSpec& _spec) {}
 
 void MetaObject::refresh() {
-    if (invalid == true) {
-        invalid = false;
+    if (check_invalid() == true) {
     }
 
     animate();

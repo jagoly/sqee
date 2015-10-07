@@ -12,7 +12,6 @@ public:
     void refresh(); void tick();
     void calc(double _accum);
 
-    bool   PROP_render   = false;
     bool   PROP_shadow   = false;
     bool   PROP_decals   = false;
     bool   PROP_probes   = false;
@@ -49,10 +48,6 @@ private:
     vector<sq::ArmaTransform> poseCalc, poseCrnt, poseNext;
     enum class State { Running, Ending, Paused, Done };
     State state = State::Done; bool looping = false;
-};
-
-template<> struct ObjTraits<ModelSkelly> {
-    static constexpr ObjType type() { return ObjType::ModelSkelly; }
 };
 
 }}

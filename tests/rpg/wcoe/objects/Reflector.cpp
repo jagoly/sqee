@@ -1,7 +1,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <sqee/redist/gl_ext_4_2.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
+#include <sqee/gl/FixedBuffer.hpp>
+#include <sqee/gl/VertexArray.hpp>
 #include <sqee/render/Camera.hpp>
 #include <sqee/render/Mesh.hpp>
 #include <sqee/render/Skin.hpp>
@@ -14,15 +15,14 @@
 
 using namespace sqt::wcoe;
 
-Reflector::Reflector(const string& _name, Cell* _cell)
-    : Object(ObjType::Reflector, _name, _cell) {
+Reflector::Reflector(const string& _name, Cell* _cell) : Object(_name, _cell) {
     ubo.reset(new sq::UniformBuffer());
     ubo->reserve("matrix", 16);
     ubo->reserve("normMat", 16);
     ubo->reserve("normal", 4);
     ubo->reserve("trans", 3);
     ubo->reserve("factor", 1);
-    ubo->create();
+    ubo->allocate_storage();
 }
 
 void Reflector::load_from_spec(const ObjSpec& _spec) {
@@ -38,7 +38,7 @@ void Reflector::load_from_spec(const ObjSpec& _spec) {
 }
 
 void Reflector::refresh() {
-    if (invalid == true) {
+    if (check_invalid() == true) {
         if ((mesh = sq::res::mesh().get(PROP_mesh)) == nullptr)
             mesh = sq::res::mesh().add(PROP_mesh),
             mesh->create(PROP_mesh);
@@ -46,8 +46,6 @@ void Reflector::refresh() {
         if ((skin = sq::res::skin().get(PROP_skin)) == nullptr)
             skin = sq::res::skin().add(PROP_skin),
             skin->create(PROP_skin);
-
-        invalid = false;
     }
 
     animate();
@@ -68,7 +66,7 @@ void Reflector::calc(double _accum) {
     if (ANIM_rotation.active()) { ANIM_rotation.calc(_accum); doAnim = true; }
     if (ANIM_scale.active())    { ANIM_scale.calc(_accum);    doAnim = true; }
     if (ANIM_factor.active())   { ANIM_factor.calc(_accum);   doAnim = true; }
-    if (doAnim == true) animate(); else ubo->bind(2);
+    if (doAnim == true) animate();
 
     frus = sq::reflect_Frustum(cell->world->camera->frus, normal, trans);
     fmat4 normMat(sq::make_normMat(cell->world->camera->viewMat * matrix));
@@ -85,7 +83,6 @@ void Reflector::animate() {
     bbox = sq::make_BoundBox(matrix, mesh->origin, mesh->radius, mesh->bbsize);
     offset = glm::dot(-normal, trans);
 
-    ubo->bind(2);
     ubo->update("matrix", &matrix);
     ubo->update("normal", &normal);
     ubo->update("trans", &trans);

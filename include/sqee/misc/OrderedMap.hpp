@@ -1,5 +1,7 @@
 #pragma once
 #include <sqee/forward.hpp>
+#include <unordered_map>
+#include <deque>
 
 namespace sq {
 
@@ -7,7 +9,7 @@ namespace sq {
 template <class TK, class TV>
 class OrderedMap final {
 public:
-    using iterator = typename deque<TV>::iterator;
+    using iterator = typename std::deque<TV>::iterator;
     iterator begin() { return theDeque.begin(); }
     iterator end()   { return theDeque.end(); }
 
@@ -42,19 +44,15 @@ public:
     }
 
     void remove(const TK& _key) {
-        const auto ptr  = theMap.at(_key);
-        const auto func = [ptr](TV& dptr) { return &dptr == ptr; };
-        const auto iter = std::find_if(begin(), end(), func);
+        const TV* ptr = theMap.at(_key);
+        iterator iter = theDeque.begin();
+        for (; iter != end(); ++iter) if (&*iter == ptr) break;
         theDeque.erase(iter); theMap.erase(_key);
     }
 
 private:
-    deque<TV> theDeque;
-    unordered_map<TK, TV*> theMap;
+    std::unordered_map<TK, TV*> theMap;
+    std::deque<TV> theDeque;
 };
-
-namespace res {
-string& path();
-}
 
 }

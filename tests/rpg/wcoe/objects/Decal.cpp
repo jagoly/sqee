@@ -12,14 +12,13 @@
 
 using namespace sqt::wcoe;
 
-Decal::Decal(const string& _name, Cell* _cell)
-    : Object(ObjType::Decal, _name, _cell) {
+Decal::Decal(const string& _name, Cell* _cell) : Object(_name, _cell) {
     ubo.reset(new sq::UniformBuffer());
     ubo->reserve("matrix", 16);
     ubo->reserve("invMat", 16);
     ubo->reserve("d_n_s", 3);
     ubo->reserve("alpha", 1);
-    ubo->create();
+    ubo->allocate_storage();
 }
 
 void Decal::load_from_spec(const ObjSpec& _spec) {
@@ -33,7 +32,7 @@ void Decal::load_from_spec(const ObjSpec& _spec) {
 }
 
 void Decal::refresh() {
-    if (invalid == true) {
+    if (check_invalid() == true) {
         if (PROP_diff.empty() == false) {
             const string name = "decals/" + PROP_diff + "_d";
             if ((texDiff = sq::res::tex2D().get(name)) == nullptr) {
@@ -65,9 +64,7 @@ void Decal::refresh() {
         } else texSpec = nullptr;
 
         ivec3 dns = {bool(texDiff), bool(texNorm), bool(texSpec)};
-        ubo->bind(1); ubo->update("d_n_s", &dns);
-
-        invalid = false;
+        ubo->update("d_n_s", &dns);
     }
 
     animate();
@@ -99,7 +96,6 @@ void Decal::animate() {
     invMat = glm::inverse(matrix);
     bbox = sq::make_BoundBox(matrix, {0,0,0}, 0.87f, {1,1,1});
 
-    ubo->bind(1);
     ubo->update("matrix", &matrix);
     ubo->update("invMat", &invMat);
     ubo->update("alpha", &PROP_alpha);

@@ -6,8 +6,9 @@ namespace sq {
 /// A simple SQEE Camera class
 class Camera : NonCopyable {
 public:
-    virtual ~Camera();
-    Camera(GLuint _bind);
+    Camera();
+    virtual ~Camera() = default;
+
     virtual void update();
 
     fvec3 pos;
@@ -21,7 +22,6 @@ public:
     fmat4 viewMat;
     Frustum frus;
 
-    const GLuint binding;
     unique_ptr<UniformBuffer> ubo;
 };
 

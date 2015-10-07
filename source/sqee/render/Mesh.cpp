@@ -2,6 +2,8 @@
 
 #include <sqee/redist/gl_ext_4_2.hpp>
 #include <sqee/redist/tinyformat.hpp>
+#include <sqee/gl/FixedBuffer.hpp>
+#include <sqee/gl/VertexArray.hpp>
 #include <sqee/maths/General.hpp>
 #include <sqee/render/Mesh.hpp>
 #include <sqee/misc/Files.hpp>
@@ -14,13 +16,7 @@ void throw_error(const string& _path, int _lnum, const string& _msg, const Args&
     throw runtime_error(message + tfm::format(_msg.c_str(), _args...));
 }
 
-
-Mesh::~Mesh() {
-    for (auto& iboPair : iboVec)
-        gl::DeleteBuffers(1, &iboPair.first);
-    gl::DeleteVertexArrays(1, &vao);
-    gl::DeleteBuffers(1, &vbo);
-}
+Mesh::~Mesh() = default;
 
 Mesh::Mesh(const string& _path) {
     create(_path);
@@ -33,12 +29,16 @@ void Mesh::create(const string& _path) {
 }
 
 void Mesh::bind_vao() const {
-    gl::BindVertexArray(vao);
+    vertArr->bind();
 }
 
-void Mesh::draw_ibo(uint _mtrl) const {
-    gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, iboVec[_mtrl].first);
-    gl::DrawElements(gl::TRIANGLES, iboVec[_mtrl].second, gl::UNSIGNED_INT, 0);
+void Mesh::draw_complete() const {
+    gl::DrawElements(gl::TRIANGLES, elementTotal, gl::UNSIGNED_INT, nullptr);
+}
+
+void Mesh::draw_material(uint _mtrl) const {
+    size_t start = mtrlVec[_mtrl].first; uint count = mtrlVec[_mtrl].second;
+    gl::DrawElements(gl::TRIANGLES, count, gl::UNSIGNED_INT, (void*)start);
 }
 
 void Mesh::load_ascii(const string& _path) {
@@ -154,69 +154,62 @@ void Mesh::load_binary(const string& _path) {
 }
 
 void Mesh::load_final(const VertData& _v, const FaceData& _f) {
-    gl::GenVertexArrays(1, &vao);
-    gl::BindVertexArray(vao);
+    vertArr.reset(new VertexArray());
+    vertBuf.reset(new FixedBuffer(gl::ARRAY_BUFFER));
+    elemBuf.reset(new FixedBuffer(gl::ELEMENT_ARRAY_BUFFER));
+    vertArr->set_element_buffer(*elemBuf);
 
     size_t ptOffs = 0u;
     size_t nmOffs = vertCount * 12u;
     size_t tnOffs = vertCount * 24u;
-    size_t tcOffs = ptOffs + hasNorm*vertCount*40u;
-    size_t clOffs = tcOffs + hasTcrd*vertCount*8u;
-    size_t bwOffs = clOffs + hasColr*vertCount*12u;
+    size_t tcOffs = ptOffs + hasNorm * vertCount * 40u;
+    size_t clOffs = tcOffs + hasTcrd * vertCount * 8u;
+    size_t bwOffs = clOffs + hasColr * vertCount * 12u;
 
-    gl::GenBuffers(1, &vbo); gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
     size_t vSize = 12 + hasNorm*28 + hasTcrd*8 + hasColr*12 + hasBone*64;
-    gl::BufferData(gl::ARRAY_BUFFER, vertCount*vSize, nullptr, gl::STATIC_DRAW);
 
-    gl::BufferSubData(gl::ARRAY_BUFFER, ptOffs, vertCount*12, _v.points.data());
-    gl::VertexAttribPointer(0, 3, gl::FLOAT, false, 0, (void*)ptOffs);
-    gl::EnableVertexAttribArray(0u);
+    vertBuf->allocate_editable(vertCount*vSize, nullptr);
+    vertBuf->update(ptOffs, vertCount * 12u, _v.points.data());
+    vertArr->add_attribute(*vertBuf, 0u, ptOffs, 12u, 3u, gl::FLOAT, false);
 
     if (hasNorm == true) {
-        gl::BufferSubData(gl::ARRAY_BUFFER, nmOffs, vertCount*12, _v.normals.data());
-        gl::BufferSubData(gl::ARRAY_BUFFER, tnOffs, vertCount*16, _v.tangents.data());
-        gl::VertexAttribPointer(1, 3, gl::FLOAT, false, 0, (void*)nmOffs);
-        gl::VertexAttribPointer(2, 4, gl::FLOAT, false, 0, (void*)tnOffs);
-        gl::EnableVertexAttribArray(1u); gl::EnableVertexAttribArray(2u);
+        vertBuf->update(nmOffs, vertCount * 12u, _v.normals.data());
+        vertBuf->update(tnOffs, vertCount * 16u, _v.tangents.data());
+        vertArr->add_attribute(*vertBuf, 1u, nmOffs, 12u, 3u, gl::FLOAT, false);
+        vertArr->add_attribute(*vertBuf, 2u, tnOffs, 16u, 4u, gl::FLOAT, false);
     }
 
     if (hasTcrd == true) {
-        gl::BufferSubData(gl::ARRAY_BUFFER, tcOffs, vertCount*8, _v.texcrds.data());
-        gl::VertexAttribPointer(3, 2, gl::FLOAT, false, 0, (void*)tcOffs);
-        gl::EnableVertexAttribArray(3u);
+        vertBuf->update(tcOffs, vertCount * 8u, _v.texcrds.data());
+        vertArr->add_attribute(*vertBuf, 3u, tcOffs, 8u, 2u, gl::FLOAT, false);
     }
 
     if (hasColr == true) {
-        gl::BufferSubData(gl::ARRAY_BUFFER, clOffs, vertCount*12, _v.colours.data());
-        gl::VertexAttribPointer(4, 3, gl::FLOAT, false, 0, (void*)clOffs);
-        gl::EnableVertexAttribArray(4u);
+        vertBuf->update(clOffs, vertCount * 12u, _v.colours.data());
+        vertArr->add_attribute(*vertBuf, 4u, clOffs, 12u, 3u, gl::FLOAT, false);
     }
 
     if (hasBone == true) {
         uchar* data = new uchar[vertCount*64];
-        for (uint i = 0u; i < vertCount; i++) {
+        for (uint i = 0u; i < vertCount; ++i) {
             std::memcpy(data + i * 64 + 00, &_v.bonesA.at(i), 16u);
             std::memcpy(data + i * 64 + 16, &_v.bonesB.at(i), 16u);
             std::memcpy(data + i * 64 + 32, &_v.weightsA.at(i), 16u);
             std::memcpy(data + i * 64 + 48, &_v.weightsB.at(i), 16u);
-        } gl::BufferSubData(gl::ARRAY_BUFFER, bwOffs, vertCount*64, data);
-        delete[] data;
-
-        gl::VertexAttribIPointer(5, 4, gl::INT, 64, (void*)(bwOffs+00));
-        gl::VertexAttribIPointer(6, 4, gl::INT, 64, (void*)(bwOffs+16));
-        gl::VertexAttribPointer(7, 4, gl::FLOAT, false, 64, (void*)(bwOffs+32));
-        gl::VertexAttribPointer(8, 4, gl::FLOAT, false, 64, (void*)(bwOffs+48));
-        gl::EnableVertexAttribArray(5u); gl::EnableVertexAttribArray(6u);
-        gl::EnableVertexAttribArray(7u); gl::EnableVertexAttribArray(8u);
+        } vertBuf->update(bwOffs, vertCount * 64u, data); delete[] data;
+        vertArr->add_attribute_I(*vertBuf, 5u, bwOffs + 00u, 64u, 4u, gl::INT);
+        vertArr->add_attribute_I(*vertBuf, 6u, bwOffs + 16u, 64u, 4u, gl::INT);
+        vertArr->add_attribute(*vertBuf, 7u, bwOffs + 32u, 64u, 4u, gl::FLOAT, false);
+        vertArr->add_attribute(*vertBuf, 8u, bwOffs + 48u, 64u, 4u, gl::FLOAT, false);
     }
 
-    for (uint i = 0u; i < mtrlCount; i++) {
-        iboVec.emplace_back(0u, _f[i].size()*3u);
-        auto& ibo = iboVec.back();
-        gl::GenBuffers(1, &ibo.first);
-        gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ibo.first);
-        gl::BufferData(gl::ELEMENT_ARRAY_BUFFER, ibo.second*4, _f[i].data(), gl::STATIC_DRAW);
-    }
+    vector<uvec3> faceData; uint start = 0u;
+    for (uint i = 0u; i < mtrlCount; ++i) {
+        mtrlVec.emplace_back(start, _f[i].size() * 3u);
+        start += mtrlVec.back().second * 4u;
+        faceData.insert(faceData.end(), _f[i].begin(), _f[i].end());
+    } elemBuf->allocate_constant(faceData.size() * 12u, faceData.data());
+    elementTotal = faceData.size() * 3u;
 }
 
 ResHolder<Mesh>& sq::res::mesh() {

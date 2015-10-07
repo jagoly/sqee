@@ -25,17 +25,12 @@ public:
     AnimatorFloat ANIM_intensity {&PROP_intensity};
     void animate();
 
-    array<fmat4, 6> matArr;
     unique_ptr<sq::UniformBuffer> ubo;
-    unique_ptr<sq::TextureMutCube> tex;
-    array<unique_ptr<sq::FrameBuffer>, 6> fboArr;
+    unique_ptr<sq::TextureCube> tex;
     array<sq::Frustum, 6> frusArr;
+    array<fmat4, 6> matArr;
     sq::Sphere sphere;
     fmat4 modelMat;
-};
-
-template<> struct ObjTraits<PointLight> {
-    static constexpr ObjType type() { return ObjType::PointLight; }
 };
 
 }}

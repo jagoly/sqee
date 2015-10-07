@@ -4,42 +4,37 @@
 
 namespace sq {
 
-/// A class for an OpenGL uniform buffer object
-class UniformBuffer : NonCopyable {
+/// A class for OpenGL uniform buffer objects
+class UniformBuffer final : NonCopyable {
 public:
+    UniformBuffer();
     ~UniformBuffer();
 
     /// Add and reserve space for a uniform of a specified size
     void reserve(const string& _name, uint _size);
 
-    /// Create the buffer. Must be called after reserve().
-    void create();
+    /// Allocate the buffer. Call after reserve().
+    void allocate_storage() const;
 
-    /// Bind the UBO the specified index
-    void bind(GLuint _index);
+    /// Bind the UBO to the specified index
+    void bind(GLuint _index) const;
 
     /// Update a single uniform with a pointer
-    void update(const string& _name, const void* _data);
+    void update(const string& _name, const void* _data) const;
 
     /// Update a portion of a single uniform with a pointer
-    void update(const string& _name, const void* _data, uint _offs, uint _size);
+    void update(const string& _name, uint _offs, uint _size, const void* _data) const;
 
-    /// Update an arbitary section of a the buffer with a pointer
-    void update(uint _offs, uint _size, const void* _data);
-
-    /// Get the current size a the unif
-    uint get_size();
+    /// Update an arbitary section of the buffer with a pointer
+    void update(uint _offs, uint _size, const void* _data) const;
 
     /// The OpenGL handle
     GLuint ubo = 0u;
 
-protected:
-    struct Item {
-        Item(uint _offs, uint _size) : offs(_offs), size(_size) {}
-        const uint offs, size;
-    };
+private:
+    struct Item { const uint offs, size; };
     std::unordered_map<string, Item> itemMap;
-    uint crntSize = 0u;
+    uint currentSize = 0u;
 };
 
 }

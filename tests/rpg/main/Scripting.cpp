@@ -13,7 +13,7 @@
 #include "../wcoe/objects/Emitter.hpp"
 #include "../wcoe/objects/Liquid.hpp"
 #include "../wcoe/objects/Decal.hpp"
-#include "../rndr/Graph.hpp"
+#include "../rndr/Renderer.hpp"
 #include "Scripting.hpp"
 
 using namespace sqt;
@@ -134,7 +134,6 @@ void sqt::cs_setup_wcoe(chai::ChaiScript& _cs) {
        {fun(&ModelSkelly::PROP_position), "position"},
        {fun(&ModelSkelly::PROP_rotation), "rotation"},
        {fun(&ModelSkelly::PROP_scale),    "scale"},
-       {fun(&ModelSkelly::PROP_render),   "render"},
        {fun(&ModelSkelly::PROP_shadow),   "shadow"},
        {fun(&ModelSkelly::PROP_arma),     "arma"},
        {fun(&ModelSkelly::PROP_mesh),     "mesh"},
@@ -257,9 +256,8 @@ void sqt::cs_setup_rndr(chai::ChaiScript& _cs) {
     using namespace rndr;
     chai::ModulePtr m(new chai::Module());
 
-    add_class<Graph>(*m, "Graph", {}, {
-        {fun(&Graph::reload_lists), "reload_lists"},
-        {fun(&Graph::refresh_IrrVolTree), "refresh_irrd"} });
+    add_class<Renderer>(*m, "Renderer", {}, {
+        {fun(&Renderer::reload_lists), "reload_lists"} });
 
     _cs.add(m);
 }

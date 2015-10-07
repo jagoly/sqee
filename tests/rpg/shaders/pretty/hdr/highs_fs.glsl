@@ -14,7 +14,9 @@ vec3 tone_map(vec3 _tx) {
 }
 
 void main() {
-    vec4 texel = texture(texMain, texcrd);
-    texel.rgb *= 0.333f * texel.a * texel.a * texel.a;
-    fragColour = tone_map(texel.rgb) / tone_map(vec3(1.f / texel.a));
+    vec3 texel = texture(texMain, texcrd).rgb;
+    float luma = dot(vec3(0.22f, 0.69f, 0.09f), texel);
+
+    vec3 value = texel * 0.333f * luma * luma * luma;
+    fragColour = tone_map(value) / tone_map(vec3(1.f / luma));
 }

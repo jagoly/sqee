@@ -1,3 +1,17 @@
+/// Input data for full screen with TRIANGLE_STRIP
+extern const char data_data_screen[] = R"glsl(
+
+const vec2 V_pos_data[4] = {
+    vec2(-1.f, -1.f), vec2(-1.f, +1.f),
+    vec2(+1.f, -1.f), vec2(+1.f, +1.f)
+};
+
+vec2 V_pos = V_pos_data[gl_VertexID];
+
+)glsl";
+
+
+
 /// Functions for sampling and using depth
 extern const char data_funcs_depth[] = R"glsl(
 

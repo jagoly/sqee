@@ -1,12 +1,13 @@
 #pragma once
 #include <sqee/forward.hpp>
+#include <unordered_map>
 
 namespace sqt { namespace wcoe {
 
 class Object;
 class World;
 
-class Cell : NonCopyable {
+class Cell final : NonCopyable {
 public:
     Cell(const string& _name, World* _world);
     void refresh(); void tick();
@@ -24,14 +25,14 @@ public:
     template<class T = Object>
     T* get_object(const string& _name);
 
-    unordered_map<string, shared_ptr<Object>> objectMap;
+    std::unordered_map<string, unique_ptr<Object>> objectMap;
     void load_from_file(const string& _path);
 };
 
 template<class T>
 T* Cell::add_object(const string& _name) {
     Object* ptr = new T(_name, this);
-    objectMap.emplace(_name, shared_ptr<Object>(ptr));
+    objectMap.emplace(_name, unique_ptr<Object>(ptr));
     return static_cast<T*>(objectMap.at(_name).get());
 }
 

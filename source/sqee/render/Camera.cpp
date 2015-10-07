@@ -6,9 +6,9 @@
 
 using namespace sq;
 
-Camera::~Camera() = default;
+//Camera::~Camera() = default;
 
-Camera::Camera(GLuint _bind) : binding(_bind) {
+Camera::Camera() {
     ubo.reset(new UniformBuffer());
     ubo->reserve("proj", 16);
     ubo->reserve("view", 16);
@@ -19,7 +19,7 @@ Camera::Camera(GLuint _bind) : binding(_bind) {
     ubo->reserve("rmin", 1);
     ubo->reserve("dir", 3);
     ubo->reserve("rmax", 1);
-    ubo->create();
+    ubo->allocate_storage();
 }
 
 void Camera::update() {
@@ -42,6 +42,5 @@ void Camera::update() {
     ubufData.pos = pos; ubufData.rmin = rmin;
     ubufData.dir = dir; ubufData.rmax = rmax;
 
-    ubo->bind(binding);
-    ubo->update(0u, ubo->get_size(), &ubufData);
+    ubo->update(0u, 88u, &ubufData);
 }

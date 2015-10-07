@@ -23,7 +23,7 @@ SkyBox::SkyBox(sq::Camera* _camera) : camera(_camera) {
     ubo->reserve("brightness", 1);
     ubo->reserve("contrast", 1);
     ubo->reserve("alpha", 1);
-    ubo->create();
+    ubo->allocate_storage();
 }
 
 void SkyBox::refresh() {
@@ -69,7 +69,7 @@ void SkyBox::animate() {
 Ambient::Ambient(sq::Camera* _camera) : camera(_camera) {
     ubo.reset(new sq::UniformBuffer());
     ubo->reserve("colour", 4);
-    ubo->create();
+    ubo->allocate_storage();
 }
 
 void Ambient::refresh() {
@@ -103,34 +103,20 @@ SkyLight::SkyLight(const sq::Settings& _settings, sq::Camera* _camera)
     ubo->reserve("matArrA", 4*16);
     ubo->reserve("matArrB", 2*16);
     ubo->reserve("splits", 4);
-    ubo->create();
-
-    texDepthA.reset(new sq::TextureMut2DArray());
-    texDepthB.reset(new sq::TextureMut2DArray());
-    texDepthA->create(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT16, 1u);
-    texDepthB->create(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT16, 1u);
-    texDepthA->set_preset(sq::Texture::ShadowMap());
-    texDepthB->set_preset(sq::Texture::ShadowMap());
-
-    fboArrA[0].reset(new sq::FrameBuffer());
-    fboArrA[1].reset(new sq::FrameBuffer());
-    fboArrA[2].reset(new sq::FrameBuffer());
-    fboArrA[3].reset(new sq::FrameBuffer());
-    fboArrB[0].reset(new sq::FrameBuffer());
-    fboArrB[1].reset(new sq::FrameBuffer());
-    fboArrA[0]->attach(gl::DEPTH_ATTACHMENT, *texDepthA, 0u);
-    fboArrA[1]->attach(gl::DEPTH_ATTACHMENT, *texDepthA, 1u);
-    fboArrA[2]->attach(gl::DEPTH_ATTACHMENT, *texDepthA, 2u);
-    fboArrA[3]->attach(gl::DEPTH_ATTACHMENT, *texDepthA, 3u);
-    fboArrB[0]->attach(gl::DEPTH_ATTACHMENT, *texDepthB, 0u);
-    fboArrB[1]->attach(gl::DEPTH_ATTACHMENT, *texDepthB, 1u);
+    ubo->allocate_storage();
 }
 
 void SkyLight::refresh() {
     if (settings.check<bool>("rpg_shadlarge")) {
+        texDepthA.reset(new sq::Texture2DArray());
+        texDepthB.reset(new sq::Texture2DArray());
         uint adjSize = 1024u * (1u + settings.get<bool>("rpg_shadlarge"));
-        texDepthA->resize(uvec3(adjSize, adjSize, 4u));
-        texDepthB->resize(uvec3(adjSize, adjSize, 2u));
+        texDepthA->create(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT16, 1u, false);
+        texDepthB->create(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT16, 1u, false);
+        texDepthA->allocate_storage(uvec3(adjSize, adjSize, 4u));
+        texDepthB->allocate_storage(uvec3(adjSize, adjSize, 2u));
+        texDepthA->set_preset(sq::Texture::ShadowMap());
+        texDepthB->set_preset(sq::Texture::ShadowMap());
     }
 
     if (PROP_enabled == false) return;
@@ -228,7 +214,7 @@ World::~World() {}
 
 Cell* World::add_cell(const string& _name) {
     Cell* ptr = new Cell(_name, this);
-    cellMap.emplace(_name, shared_ptr<Cell>(ptr));
+    cellMap.emplace(_name, unique_ptr<Cell>(ptr));
     return cellMap.at(_name).get();
 }
 
@@ -241,7 +227,7 @@ void World::reload_list() {
     for (auto& sc : cellMap)
         if (sc.second->DAT_enabled == true)
             for (auto& so : sc.second->objectMap)
-                objectList.emplace_front(so.second);
+                objectList.push_back(so.second.get());
 }
 
 void World::refresh() {

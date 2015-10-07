@@ -4,7 +4,7 @@
 
 in vec2 texcrd;
 
-layout(binding=1) uniform sampler2D texBloom;
+layout(binding=0) uniform sampler2D texBloom;
 
 out vec3 fragColour;
 

@@ -1,3 +1,5 @@
+#include <unordered_set>
+
 #include <sqee/redist/gl_ext_4_2.hpp>
 #include <sqee/redist/tinyformat.hpp>
 #include <sqee/gl/Textures.hpp>
@@ -12,11 +14,6 @@ void throw_error(const string& _path, int _lnum, const string& _msg, const Args&
     throw runtime_error(message + tfm::format(_msg.c_str(), _args...));
 }
 
-
-Skin::~Skin() {
-    // empty
-}
-
 Skin::Skin(const string& _path) {
     create(_path);
 }
@@ -27,7 +24,7 @@ void Skin::create(const string& _path) {
 
     struct MtrlSpec {
         int wrapMode = -1;
-        unordered_set<string> extraSet;
+        std::unordered_set<string> flagsSet;
         string norm, diff, spec;
     }; vector<MtrlSpec> specVec;
 
@@ -54,9 +51,9 @@ void Skin::create(const string& _path) {
             else if (key == "diff") specVec.back().diff = line[1];
             else if (key == "norm") specVec.back().norm = line[1];
             else if (key == "spec") specVec.back().spec = line[1];
-            else if (key == "extra")
+            else if (key == "flags")
                 for (uint i = 1u; i < line.size(); i++)
-                    specVec.back().extraSet.emplace(line[i]);
+                    specVec.back().flagsSet.emplace(line[i]);
             else throw_error(path, lnum, "Invalid property \"%s\"", key);
         }
 
@@ -66,7 +63,9 @@ void Skin::create(const string& _path) {
     for (const MtrlSpec& spec : specVec) {
         mtrlVec.emplace_back();
 
-        mtrlVec.back().punch = spec.extraSet.count("punch");
+        mtrlVec.back().punch = spec.flagsSet.count("punch");
+
+        if (mtrlVec.back().punch) hasPunchThrough = true;
 
         Texture::Preset preset;
         if      (spec.wrapMode == 0) preset = Texture::MipmapClamp();

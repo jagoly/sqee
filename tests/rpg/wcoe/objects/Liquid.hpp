@@ -15,8 +15,4 @@ public:
     void animate();
 };
 
-template<> struct ObjTraits<Liquid> {
-    static constexpr ObjType type() { return ObjType::Liquid; }
-};
-
 }}

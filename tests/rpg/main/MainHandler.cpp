@@ -40,11 +40,6 @@ bool MainHandler::handle(sf::Event _event) {
             app->settings.mod<bool>("rpg_bloom", !val);
             app->refresh(); return true;
         }
-        if (_event.key.code == sf::Keyboard::I) {
-            bool val = app->settings.get<bool>("rpg_irrd");
-            app->settings.mod<bool>("rpg_irrd", !val);
-            app->refresh(); return true;
-        }
         if (_event.key.code == sf::Keyboard::L) {
             int val = app->settings.get<int>("rpg_shafts");
             app->overlay.notify(string("light shafts set to ") +
@@ -60,10 +55,10 @@ bool MainHandler::handle(sf::Event _event) {
             app->refresh(); return true;
         }
         if (_event.key.code == sf::Keyboard::A) {
-            int val = app->settings.get<int>("rpg_fxaa");
+            int val = app->settings.get<int>("rpg_fsaa");
             app->overlay.notify(string("anti-aliasing set to ") +
                                 (val ? (val>1 ? "OFF" : "SMAA") : "FXAA"), 6u);
-            app->settings.mod<int>("rpg_fxaa", ++val == 3 ? 0 : val);
+            app->settings.mod<int>("rpg_fsaa", ++val == 3 ? 0 : val);
             app->refresh(); return true;
         }
         if (_event.key.code == sf::Keyboard::V) {

@@ -1,5 +1,7 @@
 #pragma once
 #include <sqee/forward.hpp>
+#include <functional>
+#include <deque>
 
 #include <sqee/misc/OrderedMap.hpp>
 
@@ -13,18 +15,18 @@ public:
     void render(float _ft);
 
     void toggle_active();
-    OrderedMap<string, function<void()>> onShowFuncs;
-    OrderedMap<string, function<void()>> onHideFuncs;
+    OrderedMap<string, std::function<void()>> onShowFuncs;
+    OrderedMap<string, std::function<void()>> onHideFuncs;
 
     void notify(const string& _message, uint _time);
 
     double accum = 0.0;
-    bool active = false;
+    bool active = true;
 
 private:
     const Application* const app;
 
-    deque<pair<string, uint>> notifyDeq;
+    std::deque<pair<string, uint>> notifyDeq;
     uint notifyTimeLeft = 0u;
     float ft = 1.f / 60.f;
 };

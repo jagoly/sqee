@@ -35,8 +35,4 @@ public:
     fmat4 matrix;
 };
 
-template<> struct ObjTraits<ModelSimple> {
-    static constexpr ObjType type() { return ObjType::ModelSimple; }
-};
-
 }}

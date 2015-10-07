@@ -17,8 +17,4 @@ public:
     void animate();
 };
 
-template<> struct ObjTraits<RigBodyMulti> {
-    static constexpr ObjType type() { return ObjType::RigBodyMulti; }
-};
-
 }}

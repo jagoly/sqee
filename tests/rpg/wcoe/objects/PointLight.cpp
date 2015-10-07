@@ -3,7 +3,6 @@
 #include <sqee/redist/gl_ext_4_2.hpp>
 #include <sqee/app/Settings.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
-#include <sqee/gl/FrameBuffer.hpp>
 #include <sqee/gl/Textures.hpp>
 #include <sqee/maths/Culling.hpp>
 #include <sqee/maths/General.hpp>
@@ -14,15 +13,14 @@
 
 using namespace sqt::wcoe;
 
-PointLight::PointLight(const string& _name, Cell* _cell)
-    : Object(ObjType::PointLight, _name, _cell) {
+PointLight::PointLight(const string& _name, Cell* _cell) : Object(_name, _cell) {
     ubo.reset(new sq::UniformBuffer());
     ubo->reserve("position", 4);
     ubo->reserve("colour", 3);
     ubo->reserve("intensity", 1);
     ubo->reserve("matArr", 6*16);
     ubo->reserve("modelMat", 16);
-    ubo->create();
+    ubo->allocate_storage();
 }
 
 void PointLight::load_from_spec(const ObjSpec& _spec) {
@@ -36,24 +34,23 @@ void PointLight::load_from_spec(const ObjSpec& _spec) {
 }
 
 void PointLight::refresh() {
-    if (invalid == true) {
-        if (PROP_shadow == true) {
-            tex.reset(new sq::TextureMutCube());
-            tex->create(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT16, 1u);
-            bool shadlarge = settings.get<bool>("rpg_shadlarge");
-            tex->resize(PROP_texsize * (1u + shadlarge));
-            tex->set_preset(sq::Texture::ShadowMap());
-            for (uint i = 0u; i < 6u; ++i)
-                fboArr[i].reset(new sq::FrameBuffer()),
-                fboArr[i]->attach(gl::DEPTH_ATTACHMENT, *tex, i);
-        } else { tex.reset(); for (uint i=0u; i<6u; ++i) fboArr[i].reset(); }
+    bool recreateTexture = false;
 
-        invalid = false;
+    if (check_invalid()) {
+        if (PROP_shadow == true)
+            recreateTexture = true;
+        else tex.reset();
     }
 
-    if (PROP_shadow && settings.check<bool>("rpg_shadlarge")) {
+    if (PROP_shadow && settings.check<bool>("rpg_shadlarge"))
+        recreateTexture = true;
+
+    if (recreateTexture == true) {
+        tex.reset(new sq::TextureCube());
         bool shadlarge = settings.get<bool>("rpg_shadlarge");
-        tex->resize(PROP_texsize * (1u + shadlarge));
+        tex->create(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT16, 1u, false);
+        tex->allocate_storage(PROP_texsize * (1u + shadlarge));
+        tex->set_preset(sq::Texture::ShadowMap());
     }
 
     animate();
@@ -93,7 +90,6 @@ void PointLight::animate() {
     modelMat = glm::scale(glm::translate(fmat4(), position), fvec3(PROP_intensity*2.f));
     sphere.origin = position; sphere.radius = PROP_intensity;
 
-    ubo->bind(1);
     ubo->update("position", &position);
     ubo->update("colour", &PROP_colour);
     ubo->update("intensity", &PROP_intensity);

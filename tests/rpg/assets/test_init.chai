@@ -43,7 +43,7 @@ def main() {
     world.skylight.refresh();
 
     world.reload_list();
-    graph.reload_lists();
+    renderer.reload_lists();
 
     app.console.print("Welcome to SQEE!");
 }
@@ -64,7 +64,6 @@ def add_some_shit() {
     sqeenDead.skin = "Characters/Sqeen";
     sqeenDead.pose = "Dead";
     sqeenDead.shadow = true;
-    sqeenDead.render = true;
     sqeenDead.refresh();
 
     var sqeenLiveA = cell.add_ModelSkelly("SqeenLiveA");
@@ -75,7 +74,6 @@ def add_some_shit() {
     sqeenLiveA.skin = "Characters/Sqeen";
     sqeenLiveA.pose = "Squatting";
     sqeenLiveA.shadow = true;
-    sqeenLiveA.render = true;
     sqeenLiveA.refresh();
 
     var sqeenLiveB = cell.add_ModelSkelly("SqeenLiveB");
@@ -86,7 +84,6 @@ def add_some_shit() {
     sqeenLiveB.skin = "Characters/Sqeen";
     sqeenLiveB.pose = "Standing";
     sqeenLiveB.shadow = true;
-    sqeenLiveB.render = true;
     sqeenLiveB.refresh();
 
     var decalSplat = cell.add_Decal("Splat");
@@ -178,9 +175,9 @@ def add_some_shit() {
     emitterGun.refresh();
     
     world.reload_list();
-    graph.reload_lists();
+    renderer.reload_lists();
 
-//    graph.refresh_irrd();
+//    renderer.refresh_irrd();
 }
 
 
@@ -271,13 +268,12 @@ def add_lotsa_dudes() {
         dudeA.pose = dudeB.pose = "Squatting";
         dudeA.anim = dudeB.anim = "Squats";
         dudeA.shadow = dudeB.shadow = true;
-        dudeA.render = dudeB.render = true;
         dudeA.refresh(); dudeB.refresh();
 //        dudeA.loop(4u); dudeB.loop(4u);
     }
     
     world.reload_list();
-    graph.reload_lists();
+    renderer.reload_lists();
 }
 
 
@@ -300,7 +296,7 @@ def add_some_dice() {
     }
 
     world.reload_list();
-    graph.reload_lists();
+    renderer.reload_lists();
 }
 
 
@@ -323,7 +319,7 @@ def add_some_balls() {
     }
 
     world.reload_list();
-    graph.reload_lists();
+    renderer.reload_lists();
 }
 
 
@@ -342,7 +338,7 @@ def sd(_val) {
 def rdrskyl(_x, _y, _z) {
     world.skylight.direction = fvec3(_x, _y, _z);
     world.skylight.refresh();
-    graph.refresh_irrd();
+    renderer.refresh_irrd();
 }
 
 

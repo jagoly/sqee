@@ -1,5 +1,7 @@
 #pragma once
 #include <sqee/forward.hpp>
+#include <forward_list>
+#include <functional>
 
 #include <sqee/misc/OrderedMap.hpp>
 
@@ -18,8 +20,8 @@ public:
     void handle_input(sf::Event _event);
 
     void toggle_active();
-    OrderedMap<string, function<void()>> onShowFuncs;
-    OrderedMap<string, function<void()>> onHideFuncs;
+    OrderedMap<string, std::function<void()>> onShowFuncs;
+    OrderedMap<string, std::function<void()>> onHideFuncs;
 
     void cs_print(const string& _value);
     void cs_history(); void cs_clear();
@@ -31,7 +33,7 @@ private:
     Application* const app;
 
     vector<string> history;
-    forward_list<string> output;
+    std::forward_list<string> output;
     bool cursorVis = false;
     bool cvisDelay = false;
     uint cursorPos = 0u;

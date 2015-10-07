@@ -2,8 +2,7 @@
 
 using namespace sqt::wcoe;
 
-Liquid::Liquid(const string& _name, Cell* _cell)
-    : Object(ObjType::Liquid, _name, _cell) {}
+Liquid::Liquid(const string& _name, Cell* _cell) : Object(_name, _cell) {}
 
 void Liquid::load_from_spec(const ObjSpec& _spec) {}
 

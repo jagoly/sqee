@@ -1,4 +1,5 @@
 #pragma once
+#include <forward_list>
 
 #include "../Object.hpp"
 
@@ -22,8 +23,8 @@ public:
         fvec4 crntA, crntB, nextA, nextB; uint progress;
     }; struct PartData { float x, y, z, s, r, g, b, a; };
 
-    forward_list<Particle> particleList;
-    forward_list<PartData> partDataList;
+    std::forward_list<Particle> particleList;
+    std::forward_list<PartData> partDataList;
 
     void emit_puff(uint _count,
                    fvec3 _normal, fvec3 _colour,
@@ -33,10 +34,6 @@ public:
 
     unique_ptr<sq::UniformBuffer> ubo;
     fvec3 position;
-};
-
-template<> struct ObjTraits<Emitter> {
-    static constexpr ObjType type() { return ObjType::Emitter; }
 };
 
 }}

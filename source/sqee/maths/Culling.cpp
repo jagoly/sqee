@@ -89,9 +89,9 @@ fvec3 sq::calc_frusCentre(const Frustum& _frus) {
 bool sq::sphr_in_sphr(const Sphere& _A, const Sphere& _B) {
     // Sphere <> Sphere
     if (glm::distance(_A.origin, _B.origin)
-        >= _A.radius + _B.radius) return true;
+        >= _A.radius + _B.radius) return false;
 
-    return false;
+    return true;
 }
 
 bool sq::bbox_in_sphr(const BoundBox& _A, const Sphere& _B) {
@@ -105,16 +105,16 @@ bool sq::bbox_in_sphr(const BoundBox& _A, const Sphere& _B) {
 
     // Sphere <> Sphere
     if (glm::distance(_A.sphere.origin, _B.origin)
-        >= _A.sphere.radius + _B.radius) return true;
+        >= _A.sphere.radius + _B.radius) return false;
 
     // BoundBox <> Sphere
     bool hit = false;
     for (const auto& point : points)
         if (glm::distance(point, _B.origin)
             <= _B.radius) { hit = true; break; }
-    if (hit == false) return true;
+    if (hit == false) return false;
 
-    return false;
+    return true;
 }
 
 bool sq::sphr_in_frus(const Sphere& _A, const Frustum& _B) {
@@ -122,18 +122,18 @@ bool sq::sphr_in_frus(const Sphere& _A, const Frustum& _B) {
 
     // Sphere <> Near Plane
     if (glm::dot(_A.origin, _B.pN.normal) + _B.pN.offset
-        >= _A.radius) return true;
+        >= _A.radius) return false;
 
     // Sphere <> Sphere
     if (glm::distance(_A.origin, _B.sphere.origin)
-        >= _A.radius+_B.sphere.radius) return true;
+        >= _A.radius+_B.sphere.radius) return false;
 
     // Sphere <> Frustum
     for (const auto& plane : planes)
         if (glm::dot(_A.origin, plane.normal) + plane.offset
-            >= _A.radius) return true;
+            >= _A.radius) return false;
 
-    return false;
+    return true;
 }
 
 bool sq::bbox_in_frus(const BoundBox& _A, const Frustum& _B) {
@@ -147,30 +147,30 @@ bool sq::bbox_in_frus(const BoundBox& _A, const Frustum& _B) {
 
     // Sphere <> Near Plane
     if (glm::dot(_A.sphere.origin, _B.pN.normal) + _B.pN.offset
-        >= _A.sphere.radius) return true;
+        >= _A.sphere.radius) return false;
 
     // Sphere <> Sphere
     if (glm::distance(_A.sphere.origin, _B.sphere.origin)
-        >= _A.sphere.radius+_B.sphere.radius) return true;
+        >= _A.sphere.radius+_B.sphere.radius) return false;
 
     // Sphere <> Frustum
     for (const auto& plane : planes)
         if (glm::dot(_A.sphere.origin, plane.normal) + plane.offset
-            >= _A.sphere.radius) return true;
+            >= _A.sphere.radius) return false;
 
     // BoundBox <> NearPlane
     bool less = false, more = false;
     for (const auto& point : points) {
         float dist = glm::dot(point, _B.pN.normal) + _B.pN.offset;
         if (dist >= 0.f) more=true; if (dist <= 0.f) less=true;
-    } if (more && !less) return true;
+    } if (more && !less) return false;
 
     // BoundBox <> Sphere
     bool hit = false;
     for (const auto& point : points)
         if (glm::distance(point, _B.sphere.origin)
             <= _B.sphere.radius) { hit = true; break; }
-    if (hit == false) return true;
+    if (hit == false) return false;
 
     // BoundBox <> Frustum
     for (const auto& plane : planes) {
@@ -178,10 +178,10 @@ bool sq::bbox_in_frus(const BoundBox& _A, const Frustum& _B) {
         for (const auto& point : points) {
             float dist = glm::dot(point, plane.normal) + plane.offset;
             if (dist >= 0.f) more=true; if (dist <= 0.f) less=true;
-        } if (more && !less) return true;
+        } if (more && !less) return false;
     }
 
-    return false;
+    return true;
 }
 
 bool sq::frus_in_frus(const Frustum& _A, const Frustum& _B) {
@@ -193,14 +193,14 @@ bool sq::frus_in_frus(const Frustum& _A, const Frustum& _B) {
     for (const auto& point : points)
         if (glm::dot(point, _B.pN.normal) + _B.pN.offset
             <= 0.f) { hitA = true; break; }
-    if (hitA == false) return true;
+    if (hitA == false) return false;
 
     // Frustum <> Sphere
     bool hitB = false;
     for (const auto& point : points)
         if (glm::distance(point, _B.sphere.origin)
             <= _B.sphere.radius) { hitB = true; break; }
-    if (hitB == false) return true;
+    if (hitB == false) return false;
 
     // Frustum <> Frustum
     for (const auto& plane : planes) {
@@ -208,10 +208,10 @@ bool sq::frus_in_frus(const Frustum& _A, const Frustum& _B) {
         for (const auto& point : points) {
             float dist = glm::dot(point, plane.normal) + plane.offset;
             if (dist >= 0.f) more=true; if (dist <= 0.f) less=true;
-        } if (more && !less) return true;
+        } if (more && !less) return false;
     }
 
-    return false;
+    return true;
 }
 
 bool sq::sphr_in_orth(const Sphere& _A, const OrthoFrus& _B) {
@@ -220,9 +220,9 @@ bool sq::sphr_in_orth(const Sphere& _A, const OrthoFrus& _B) {
     // Sphere <> OrthoFrus
     for (const auto& plane : planes)
         if (glm::dot(_A.origin, plane.normal) + plane.offset
-            >= _A.radius) return true;
+            >= _A.radius) return false;
 
-    return false;
+    return true;
 }
 
 bool sq::bbox_in_orth(const BoundBox& _A, const OrthoFrus& _B) {
@@ -237,7 +237,7 @@ bool sq::bbox_in_orth(const BoundBox& _A, const OrthoFrus& _B) {
     // Sphere <> OrthoFrus
     for (const auto& plane : planes)
         if (glm::dot(_A.sphere.origin, plane.normal) + plane.offset
-            >= _A.sphere.radius) return true;
+            >= _A.sphere.radius) return false;
 
     // BoundBox <> OrthoFrus
     for (const auto& plane : planes) {
@@ -245,8 +245,8 @@ bool sq::bbox_in_orth(const BoundBox& _A, const OrthoFrus& _B) {
         for (const auto& point : points) {
             float dist = glm::dot(point, plane.normal) + plane.offset;
             if (dist >= 0.f) more=true; if (dist <= 0.f) less=true;
-        } if (more && !less) return true;
+        } if (more && !less) return false;
     }
 
-    return false;
+    return true;
 }

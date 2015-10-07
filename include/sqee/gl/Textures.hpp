@@ -8,29 +8,28 @@ namespace sq {
 /// Abstract base class for OpenGL texture objects
 class Texture : NonCopyable {
 public:
-    Texture();
     virtual ~Texture();
 
     /// A group of parameters and values to set at once
-    using Preset = unordered_map<GLenum, GLenum>;
+    using Preset = vector<pair<GLenum, GLenum>>;
 
     /// Set a single texture paramater
-    void set_param(GLenum _name, GLenum _value);
+    void set_param(GLenum _name, GLenum _value) const;
 
     /// Set a group of texture paramters
-    void set_preset(Preset _preset);
+    void set_preset(Preset _preset) const;
 
     /// Generate mipmaps for the texture
-    void generate_mipmaps();
+    void generate_mipmaps() const;
 
     /// Activate a texture slot and bind the texture to it
-    void bind(GLenum _slot);
+    void bind(GLenum _slot) const;
 
     /// Bind the texture to the already active texture slot
-    void bind();
+    void bind() const;
 
     /// Return the size of the of texture
-    uvec3 get_size();
+    uvec3 get_size() const;
 
     /// The OpenGL handle
     GLuint tex = 0u;
@@ -58,9 +57,9 @@ protected:
 
 
 /// A class for immutable GL_TEXTURE_2D textures
-class Texture2D : public Texture {
+class Texture2D final : public Texture {
 public:
-    /// Set various options and (re)create the OpenGL texture object
+    /// Set various options and create the OpenGL texture object
     void create(GLenum _format, GLenum _iFormat, uint _channels, bool _mipmaps);
 
     /// Transfer some memory into the texture
@@ -78,9 +77,9 @@ public:
 
 
 /// A class for mutable GL_TEXTURE_2D textures
-class TextureMut2D : public Texture {
+class TextureMut2D final : public Texture {
 public:
-    /// Set various options and (re)create the OpenGL texture object
+    /// Set various options and create the OpenGL texture object
     void create(GLenum _format, GLenum _iFormat, uint _channels);
 
     /// Transfer some memory into the texture
@@ -92,9 +91,9 @@ public:
 
 
 /// A class for immutable GL_TEXTURE_CUBE_MAP textures
-class TextureCube : public Texture {
+class TextureCube final : public Texture {
 public:
-    /// Set various options and (re)create the OpenGL texture object
+    /// Set various options and create the OpenGL texture object
     void create(GLenum _format, GLenum _iFormat, uint _channels, bool _mipmaps);
 
     /// Transfer some memory into one face of the texture
@@ -112,9 +111,9 @@ public:
 
 
 /// A class for mutable GL_TEXTURE_CUBE_MAP textures
-class TextureMutCube : public Texture {
+class TextureMutCube final : public Texture {
 public:
-    /// Set various options and (re)create the OpenGL texture object
+    /// Set various options and create the OpenGL texture object
     void create(GLenum _format, GLenum _iFormat, uint _channels);
 
     /// Transfer some memory into one face of the texture
@@ -126,9 +125,9 @@ public:
 
 
 /// A class for immutable GL_TEXTURE_2D_ARRAY textures
-class Texture2DArray : public Texture {
+class Texture2DArray final : public Texture {
 public:
-    /// Set various options and (re)create the OpenGL texture object
+    /// Set various options and create the OpenGL texture object
     void create(GLenum _format, GLenum _iFormat, uint _channels, bool _mipmaps);
 
     /// Transfer some memory into one layer of the texture
@@ -143,9 +142,9 @@ public:
 
 
 /// A class for mutable GL_TEXTURE_2D_ARRAY textures
-class TextureMut2DArray : public Texture {
+class TextureMut2DArray final : public Texture {
 public:
-    /// Set various options and (re)create the OpenGL texture object
+    /// Set various options and create the OpenGL texture object
     void create(GLenum _format, GLenum _iFormat, uint _channels);
 
     /// Transfer some memory into one layer of the texture
@@ -157,9 +156,9 @@ public:
 
 
 /// A class for immutable GL_TEXTURE_CUBE_MAP_ARRAY textures
-class TextureCubeArray : public Texture {
+class TextureCubeArray final : public Texture {
 public:
-    /// Set various options and (re)create the OpenGL texture object
+    /// Set various options and create the OpenGL texture object
     void create(GLenum _format, GLenum _iFormat, uint _channels, bool _mipmaps);
 
     /// Transfer some memory into one layer-face of the texture
@@ -177,9 +176,9 @@ public:
 
 
 /// A class for mutable GL_TEXTURE_CUBE_MAP_ARRAY textures
-class TextureMutCubeArray : public Texture {
+class TextureMutCubeArray final : public Texture {
 public:
-    /// Set various options and (re)create the OpenGL texture object
+    /// Set various options and create the OpenGL texture object
     void create(GLenum _format, GLenum _iFormat, uint _channels);
 
     /// Transfer some memory into one layer-face of the texture
@@ -191,9 +190,9 @@ public:
 
 
 /// A class for immutable GL_TEXTURE_3D textures
-class TextureVolume : public Texture {
+class TextureVolume final : public Texture {
 public:
-    /// Set various options and (re)create the OpenGL texture object
+    /// Set various options and create the OpenGL texture object
     void create(GLenum _format, GLenum _iFormat, uint _channels);
 
     /// Transfer some memory into the texture

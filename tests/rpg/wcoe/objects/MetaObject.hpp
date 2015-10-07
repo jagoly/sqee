@@ -16,8 +16,4 @@ public:
     void animate();
 };
 
-template<> struct ObjTraits<MetaObject> {
-    static constexpr ObjType type() { return ObjType::MetaObject; }
-};
-
 }}

@@ -39,8 +39,4 @@ public:
     float offset;
 };
 
-template<> struct ObjTraits<Reflector> {
-    static constexpr ObjType type() { return ObjType::Reflector; }
-};
-
 }}

@@ -159,8 +159,4 @@ inline void FRONTFACE(bool _front) {
     gl::FrontFace(_front ? gl::CW : gl::CCW);
 }
 
-inline void BLIT_FRAMEBUFFER(uvec2 _sizeIn, uvec2 _sizeOut, GLenum _mask, GLenum _filter) {
-    gl::BlitFramebuffer(0, 0, _sizeIn.x, _sizeIn.y, 0, 0, _sizeOut.x, _sizeOut.y, _mask, _filter);
-}
-
 }

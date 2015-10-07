@@ -1,5 +1,6 @@
 #pragma once
 #include <sqee/forward.hpp>
+#include <unordered_map>
 
 #include <sqee/physics/RP3D.hpp>
 
@@ -68,10 +69,8 @@ public:
     const sq::Settings& settings;
     const sq::Camera* const camera;
     unique_ptr<sq::UniformBuffer> ubo;
-    unique_ptr<sq::TextureMut2DArray> texDepthA;
-    unique_ptr<sq::TextureMut2DArray> texDepthB;
-    array<unique_ptr<sq::FrameBuffer>, 4> fboArrA;
-    array<unique_ptr<sq::FrameBuffer>, 2> fboArrB;
+    unique_ptr<sq::Texture2DArray> texDepthA;
+    unique_ptr<sq::Texture2DArray> texDepthB;
     array<sq::OrthoFrus, 4> orthArrA;
     array<sq::OrthoFrus, 2> orthArrB;
     array<fmat4, 4> matArrA;
@@ -80,7 +79,7 @@ public:
 };
 
 
-class World : NonCopyable {
+class World final : NonCopyable {
 public:
     World(const sq::Settings& _settings, sq::Camera* _camera);
     void refresh(); void tick();
@@ -92,12 +91,12 @@ public:
     Cell* get_cell(const string& _name);
 
     template<class T>
-    forward_list<weak_ptr<T>> filtered();
-    forward_list<weak_ptr<Object>> objectList;
+    vector<T*> filtered() const;
+    vector<Object*> objectList;
     void reload_list();
 
     SkyBox skybox; Ambient ambient; SkyLight skylight;
-    unordered_map<string, shared_ptr<Cell>> cellMap;
+    std::unordered_map<string, unique_ptr<Cell>> cellMap;
 
     const sq::Settings& settings;
     const sq::Camera* const camera;
@@ -107,12 +106,12 @@ public:
 };
 
 template<class T>
-forward_list<weak_ptr<T>> World::filtered() {
-    forward_list<weak_ptr<T>> retList;
-    for (const auto& obj : objectList)
-        if (obj.lock()->type == ObjTraits<T>::type())
-            retList.emplace_front(static_wptr_cast<T>(obj));
-    return retList;
+vector<T*> World::filtered() const {
+    vector<T*> retVec;
+    for (Object* obj : objectList)
+        if (typeid(*obj) == typeid(T))
+            retVec.push_back(static_cast<T*>(obj));\
+    return retVec;
 }
 
 }}
