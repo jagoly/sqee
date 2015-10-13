@@ -15,6 +15,8 @@ namespace wcoe {
 class Cell;
 class World;
 
+using VoidFunc = std::function<void()>;
+
 class ObjSpec {
 public:
     ObjSpec(const string& _name);
@@ -39,21 +41,21 @@ public:
     virtual ~Object() = default;
 
     virtual void load_from_spec(const ObjSpec& _spec) = 0;
-    virtual void refresh() = 0; virtual void tick() = 0;
+
+    virtual void refresh() = 0, update() = 0;
     virtual void calc(double _accum) = 0;
     virtual void animate() = 0;
 
     const string name;
-
     const Cell* const cell;
+
     std::unordered_map<string, Boxed_Value> extra;
 
-    bool check_invalid();
     void invalidate();
+    bool revalidate();
 
 protected:
-    const World* const world;
-    const sq::Camera* const camera;
+    const World& world;
     const sq::Settings& settings;
 
 private:

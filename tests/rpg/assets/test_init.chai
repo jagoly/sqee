@@ -1,14 +1,14 @@
 def main() {
-    app.settings.modI("app_width", 960); 
-    app.settings.modI("app_height", 540);
-    app.settings.modS("app_title", "SQEE RPG (test_init.chai)");
+    app.settings.mod("app_width", 960); 
+    app.settings.mod("app_height", 540);
+    app.settings.mod("app_title", "SQEE RPG (test_init.chai)");
 
-//    app.settings.modI("shadQlty", 0);
-//    app.settings.modI("shadFltr", 0);
-//    app.settings.modI("ssaoMode", 0);
-//    app.settings.modI("hdrbMode", 0);
-//    app.settings.modI("fxaaMode", 0);
-//    app.settings.modI("vignMode", 0);
+//    app.settings.mod("shadQlty", 0);
+//    app.settings.mod("shadFltr", 0);
+//    app.settings.mod("ssaoMode", 0);
+//    app.settings.mod("hdrbMode", 0);
+//    app.settings.mod("fxaaMode", 0);
+//    app.settings.mod("vignMode", 0);
 
     app.refresh();
 

@@ -19,6 +19,7 @@
 #include "../rndr/Gbuffers.hpp"
 #include "../rndr/Lighting.hpp"
 #include "../rndr/Pretties.hpp"
+#include "../rndr/Reflects.hpp"
 #include "../rndr/Renderer.hpp"
 #include "../wcoe/World.hpp"
 #include "../wcoe/Cell.hpp"
@@ -51,7 +52,6 @@ MainScene::MainScene(sq::Application* _app) : sq::Scene(_app) {
     renderer.reset(new rndr::Renderer(app->settings, app->preprocs, *pipeline, *world));
 
     renderer->camera = camera.get();
-    renderer->skylight = &world->skylight;
 
     app->cs->add_global(chai::var(camera.get()), "camera");
     app->cs->add_global(chai::var(world.get()), "world");
@@ -81,84 +81,43 @@ MainScene::MainScene(sq::Application* _app) : sq::Scene(_app) {
 
 
     /// Create Textures
-    TX.pshadA.reset(new sq::TextureMut2D());
-    TX.pshadB.reset(new sq::TextureMut2D());
-    TX.reflDiff.reset(new sq::TextureMut2D());
-    TX.reflSurf.reset(new sq::TextureMut2D());
-    TX.reflDpSt.reset(new sq::TextureMut2D());
-    TX.partMain.reset(new sq::TextureMut2D());
-    TX.partDpSt.reset(new sq::TextureMut2D());
-    TX.hdrRefl.reset(new sq::TextureMut2D());
-    TX.hdrPart.reset(new sq::TextureMut2D());
-
-    /// Setup Textures
-    TX.pshadA->create(gl::RED, gl::R8, 1u);
-    TX.pshadB->create(gl::RED, gl::R8, 1u);
-    TX.reflDiff->create(gl::RGB, gl::RGB8, 3u);
-    TX.reflSurf->create(gl::RGB, gl::RGB8, 3u);
-    TX.reflDpSt->create(gl::DEPTH_STENCIL, gl::DEPTH24_STENCIL8, 1u);
-    TX.partMain->create(gl::RGBA, gl::RGBA16F, 4u);
-    TX.partDpSt->create(gl::DEPTH_STENCIL, gl::DEPTH24_STENCIL8, 1u);
-    TX.hdrRefl->create(gl::RGB, gl::RGB16F, 3u);
-    TX.hdrPart->create(gl::RGBA, gl::RGBA16F, 4u);
-
-    /// Set Texture Presets
-    TX.pshadA->set_preset(sq::Texture::LinearClamp());
-    TX.pshadB->set_preset(sq::Texture::LinearClamp());
-    TX.reflDiff->set_preset(sq::Texture::LinearClamp());
-    TX.reflSurf->set_preset(sq::Texture::LinearClamp());
-    TX.reflDpSt->set_preset(sq::Texture::LinearClamp());
-    TX.partMain->set_preset(sq::Texture::LinearClamp());
-    TX.partDpSt->set_preset(sq::Texture::LinearClamp());
-    TX.hdrRefl->set_preset(sq::Texture::LinearClamp());
-    TX.hdrPart->set_preset(sq::Texture::LinearClamp());
+    TX.pshadA.reset(new sq::Texture2D(gl::RED, gl::R8, sq::Texture::LinearClamp()));
+    TX.pshadB.reset(new sq::Texture2D(gl::RED, gl::R8, sq::Texture::LinearClamp()));
+    TX.partMain.reset(new sq::Texture2D(gl::RGBA, gl::RGBA16F, sq::Texture::LinearClamp()));
+    TX.partDpSt.reset(new sq::Texture2D(gl::DEPTH_STENCIL, gl::DEPTH24_STENCIL8, sq::Texture::LinearClamp()));
+    TX.hdrPart.reset(new sq::Texture2D(gl::RGBA, gl::RGBA16F, sq::Texture::LinearClamp()));
 
     /// Create Framebuffers
     FB.pshadA.reset(new sq::FrameBuffer());
     FB.pshadB.reset(new sq::FrameBuffer());
-    FB.defrRefl.reset(new sq::FrameBuffer());
     FB.defrPart.reset(new sq::FrameBuffer());
-    FB.hdrRefl.reset(new sq::FrameBuffer());
     FB.hdrPart.reset(new sq::FrameBuffer());
 
     /// Setup Framebuffers
     FB.pshadA->attach(gl::COLOR_ATTACHMENT0, *TX.pshadA);
     FB.pshadB->attach(gl::COLOR_ATTACHMENT0, *TX.pshadB);
-    FB.defrRefl->attach(gl::COLOR_ATTACHMENT0, *TX.reflDiff);
-    FB.defrRefl->attach(gl::COLOR_ATTACHMENT1, *TX.reflSurf);
-    FB.defrRefl->attach(gl::DEPTH_STENCIL_ATTACHMENT, *TX.reflDpSt);
     FB.defrPart->attach(gl::COLOR_ATTACHMENT0, *TX.partMain);
     FB.defrPart->attach(gl::DEPTH_STENCIL_ATTACHMENT, *TX.partDpSt);
-    FB.hdrRefl->attach(gl::COLOR_ATTACHMENT0, *TX.hdrRefl);
-    FB.hdrRefl->attach(gl::DEPTH_STENCIL_ATTACHMENT, *TX.reflDpSt);
     FB.hdrPart->attach(gl::COLOR_ATTACHMENT0, *TX.hdrPart);
     FB.hdrPart->attach(gl::DEPTH_STENCIL_ATTACHMENT, *TX.partDpSt);
 
     FB.pshadA->draw_buffers({gl::COLOR_ATTACHMENT0});
     FB.pshadB->draw_buffers({gl::COLOR_ATTACHMENT0});
-    FB.defrRefl->draw_buffers({gl::COLOR_ATTACHMENT0, gl::COLOR_ATTACHMENT1});
     FB.defrPart->draw_buffers({gl::COLOR_ATTACHMENT0});
-    FB.hdrRefl->draw_buffers({gl::COLOR_ATTACHMENT0});
     FB.hdrPart->draw_buffers({gl::COLOR_ATTACHMENT0});
 
 
     /// Set Graph Textures
     renderer->TX.pshadA = TX.pshadA.get();
     renderer->TX.pshadB = TX.pshadB.get();
-    renderer->TX.reflDiff = TX.reflDiff.get();
-    renderer->TX.reflSurf = TX.reflSurf.get();
-    renderer->TX.reflDpSt = TX.reflDpSt.get();
     renderer->TX.partMain = TX.partMain.get();
     renderer->TX.partDpSt = TX.partDpSt.get();
-    renderer->TX.hdrRefl = TX.hdrRefl.get();
     renderer->TX.hdrPart = TX.hdrPart.get();
 
     /// Set Graph Framebuffers
     renderer->FB.pshadA = FB.pshadA.get();
     renderer->FB.pshadB = FB.pshadB.get();
-    renderer->FB.defrRefl = FB.defrRefl.get();
     renderer->FB.defrPart = FB.defrPart.get();
-    renderer->FB.hdrRefl = FB.hdrRefl.get();
     renderer->FB.hdrPart = FB.hdrPart.get();
 }
 
@@ -183,7 +142,7 @@ void MainScene::update() {
             posNext += glm::rotateZ(fvec3(0.f, -0.08f, 0.f), rotZ);
     }
 
-    world->tick();
+    world->update();
 }
 
 void MainScene::render() {
@@ -217,7 +176,7 @@ void MainScene::render() {
 
 
     /// Render Models into G-Buffer
-    renderer->gbuffers->setup_render_state();
+    renderer->gbuffers->setup_render_state_base();
     renderer->gbuffers->render_msimples_base(true);
     renderer->gbuffers->render_mskellys_base(true);
     renderer->gbuffers->render_reflects_base(true);
@@ -249,7 +208,7 @@ void MainScene::render() {
     renderer->lighting->render_skylight_base();
     renderer->lighting->render_spotlights_base();
     renderer->lighting->render_pointlights_base();
-    //renderer->render_reflections();
+    renderer->reflects->render_reflections();
 
 
     /// Render Light Shafts Texture
@@ -295,15 +254,11 @@ void MainScene::refresh() {
     renderer->INFO.hPixSize = INFO.hPixSize;
     renderer->INFO.qPixSize = INFO.qPixSize;
 
-    TX.pshadA->resize(INFO.halfSize);
-    TX.pshadB->resize(INFO.halfSize);
-    TX.reflDiff->resize(INFO.halfSize);
-    TX.reflSurf->resize(INFO.halfSize);
-    TX.reflDpSt->resize(INFO.halfSize);
-    TX.partMain->resize(INFO.halfSize);
-    TX.partDpSt->resize(INFO.halfSize);
-    TX.hdrRefl->resize(INFO.halfSize);
-    TX.hdrPart->resize(INFO.halfSize);
+    TX.pshadA->allocate_storage(INFO.halfSize, false);
+    TX.pshadB->allocate_storage(INFO.halfSize, false);
+    TX.partMain->allocate_storage(INFO.halfSize, false);
+    TX.partDpSt->allocate_storage(INFO.halfSize, false);
+    TX.hdrPart->allocate_storage(INFO.halfSize, false);
 
     camera->size = fvec2(INFO.fullSize);
 

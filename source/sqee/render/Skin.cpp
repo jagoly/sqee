@@ -75,28 +75,22 @@ void Skin::create(const string& _path) {
         if (spec.diff.empty() == false) {
             const string name = "diff/" + spec.diff;
             if ((mtrlVec.back().diff = res::tex2D().get(name)) == nullptr) {
-                mtrlVec.back().diff = res::tex2D().add(name);
-                mtrlVec.back().diff->create(gl::RGBA, gl::RGBA8, 4u, true);
-                mtrlVec.back().diff->set_preset(preset);
-                mtrlVec.back().diff->buffer_auto(name);
+                mtrlVec.back().diff = res::tex2D().add(name, gl::RGBA, gl::RGBA8, preset);
+                mtrlVec.back().diff->buffer_auto(name, true);
             } mtrlVec.back().glDNS.x = true;
         }
         if (spec.norm.empty() == false) {
             const string name = "norm/" + spec.norm;
             if ((mtrlVec.back().norm = res::tex2D().get(name)) == nullptr) {
-                mtrlVec.back().norm = res::tex2D().add(name);
-                mtrlVec.back().norm->create(gl::RGB, gl::RGB8, 3u, true);
-                mtrlVec.back().norm->set_preset(preset);
-                mtrlVec.back().norm->buffer_auto(name);
+                mtrlVec.back().norm = res::tex2D().add(name, gl::RGB, gl::RGB8, preset);
+                mtrlVec.back().norm->buffer_auto(name, true);
             } mtrlVec.back().glDNS.y = true;
         }
         if (spec.spec.empty() == false) {
             const string name = "spec/" + spec.spec;
             if ((mtrlVec.back().spec = res::tex2D().get(name)) == nullptr) {
-                mtrlVec.back().spec = res::tex2D().add(name);
-                mtrlVec.back().spec->create(gl::RGB, gl::RGB8, 3u, true);
-                mtrlVec.back().spec->set_preset(preset);
-                mtrlVec.back().spec->buffer_auto(name);
+                mtrlVec.back().spec = res::tex2D().add(name, gl::RGB, gl::RGB8, preset);
+                mtrlVec.back().spec->buffer_auto(name, true);
             } mtrlVec.back().glDNS.z = true;
         }
     }

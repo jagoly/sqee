@@ -13,6 +13,7 @@ namespace rndr {
 
 class Lighting final : NonCopyable {
 friend class Pretties;
+friend class Reflects;
 public:
     Lighting(const Renderer& _renderer);
 
@@ -29,15 +30,17 @@ public:
     void render_skybox_refl();
     void render_ambient_refl();
     void render_skylight_refl();
-    void render_spotlights_refl();
-    void render_pointlights_refl();
+    void render_spotlights_refl(const ReflectorData& _data);
+    void render_pointlights_refl(const ReflectorData& _data);
 
 private:
     const Renderer& renderer;
 
     sq::FrameBuffer FB_baseHdr;
+    sq::FrameBuffer FB_reflHdr;
 
-    unique_ptr<sq::Texture2D> TEX_baseHdr;
+    sq::Texture2D TEX_baseHdr {gl::RGB, gl::RGB16F, sq::Texture::LinearClamp()};
+    sq::Texture2D TEX_reflHdr {gl::RGB, gl::RGB16F, sq::Texture::LinearClamp()};
 
     sq::Shader VS_defr_base_skybox {gl::VERTEX_SHADER};
     sq::Shader FS_defr_base_ambient {gl::FRAGMENT_SHADER};

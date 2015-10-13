@@ -1,21 +1,29 @@
 #pragma once
 #include <forward_list>
 
+#include <sqee/gl/UniformBuffer.hpp>
+
 #include "../Object.hpp"
 
 namespace sqt { namespace wcoe {
 
-class Emitter : public Object {
+class Emitter final : public Object {
 public:
     Emitter(const string& _name, Cell* _cell);
+
     void load_from_spec(const ObjSpec& _spec);
-    void refresh(); void tick();
+
+    void refresh(), update();
     void calc(double _accum);
+    void animate();
 
     fvec3 PROP_position = {0, 0, 0};
 
-    // ANIMS
-    void animate();
+    void FUNC_emit_puff(uint _count,
+                        fvec3 _normal, fvec3 _colour,
+                        float _scaleMin, float _scaleMax,
+                        float _radiusMin, float _radiusMax,
+                        uint _lifeMin, uint _lifeMax);
 
     struct Particle {
         Particle(fvec3 _origin, fvec3 _target, fvec3 _colour, float _scale, uint _life);
@@ -26,13 +34,7 @@ public:
     std::forward_list<Particle> particleList;
     std::forward_list<PartData> partDataList;
 
-    void emit_puff(uint _count,
-                   fvec3 _normal, fvec3 _colour,
-                   float _scaleMin, float _scaleMax,
-                   float _radiusMin, float _radiusMax,
-                   uint _lifeMin, uint _lifeMax);
-
-    unique_ptr<sq::UniformBuffer> ubo;
+    sq::UniformBuffer ubo;
     fvec3 position;
 };
 

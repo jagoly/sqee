@@ -1,4 +1,6 @@
-﻿#include <chaiscript/utility/utility.hpp>
+﻿#include <chaiscript/dispatchkit/dispatchkit.hpp>
+#include <chaiscript/utility/utility.hpp>
+
 #include <sqee/redist/tinyformat.hpp>
 
 #include <sqee/app/Application.hpp>
@@ -8,17 +10,19 @@
 
 #include <sqee/render/Camera.hpp>
 
-#include <sqee/scripts/Intergration.hpp>
-
-using namespace sq;
+#include <sqee/scripts/ChaiScript.hpp>
+#include <sqee/scripts/BasicSetup.hpp>
 
 using chai::fun;
 using chai::user_type;
+using chai::base_class;
 using chai::constructor;
 using chai::type_conversion;
 using chai::utility::add_class;
 using chai::Boxed_Value;
 using chai::boxed_cast;
+
+using namespace sq;
 
 
 void sq::cs_setup_app(chai::ChaiScript& _cs) {
@@ -32,23 +36,8 @@ void sq::cs_setup_app(chai::ChaiScript& _cs) {
         {fun(&Application::quit), "quit"} });
 
     add_class<Settings>(*m, "Settings", {}, {
-        {fun(&Settings::add<int>), "addI"},
-        {fun(&Settings::add<bool>), "addB"},
-        {fun(&Settings::add<float>), "addF"},
-        {fun(&Settings::add<string>), "addS"},
-        {fun(&Settings::mod<int>), "modI"},
-        {fun(&Settings::mod<bool>), "modB"},
-        {fun(&Settings::mod<float>), "modF"},
-        {fun(&Settings::mod<string>), "modS"},
-        {fun(&Settings::get<int>), "getI"},
-        {fun(&Settings::get<bool>), "getB"},
-        {fun(&Settings::get<float>), "getF"},
-        {fun(&Settings::get<string>), "getS"},
-        {fun(&Settings::check<int>), "checkI"},
-        {fun(&Settings::check<bool>), "checkB"},
-        {fun(&Settings::check<float>), "checkF"},
-        {fun(&Settings::check<string>), "checkS"},
-        {fun(&Settings::clear_changed), "clear_changed"} });
+        {fun(&Settings::cs_mod), "mod"},
+        {fun(&Settings::cs_get), "get"} });
     _cs.add(m);
 
     add_class<DebugOverlay>(*m, "DebugOverlay", {}, {

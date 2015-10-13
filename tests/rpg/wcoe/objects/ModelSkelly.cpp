@@ -1,6 +1,5 @@
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <sqee/gl/UniformBuffer.hpp>
 #include <sqee/gl/FixedBuffer.hpp>
 #include <sqee/gl/VertexArray.hpp>
 #include <sqee/render/Armature.hpp>
@@ -17,11 +16,10 @@
 using namespace sqt::wcoe;
 
 ModelSkelly::ModelSkelly(const string& _name, Cell* _cell) : Object(_name, _cell) {
-    ubo.reset(new sq::UniformBuffer());
-    ubo->reserve("matrix", 16);
-    ubo->reserve("normMat", 16);
-    ubo->reserve("bones", 12*80);
-    ubo->allocate_storage();
+    ubo.reserve("matrix", 16u);
+    ubo.reserve("normMat", 16u);
+    ubo.reserve("bones", 960u);
+    ubo.allocate_storage();
 }
 
 
@@ -40,7 +38,7 @@ void ModelSkelly::load_from_spec(const ObjSpec& _spec) {
 
 
 void ModelSkelly::refresh() {
-    if (check_invalid() == true) {
+    if (revalidate() == true) {
         if ((arma = sq::res::arma().get(PROP_arma)) == nullptr)
             arma = sq::res::arma().add(PROP_arma),
             arma->create(PROP_arma);
@@ -56,7 +54,7 @@ void ModelSkelly::refresh() {
         if (PROP_pose.empty() == false) {
             poseCalc = arma->poseMap.at(PROP_pose);
             auto uboData = sq::Armature::make_UboData(poseCalc);
-            ubo->bind(1); ubo->update("bones", uboData.data());
+            ubo.update("bones", uboData.data());
         }
 
         if (PROP_anim.empty() == false) {
@@ -68,7 +66,7 @@ void ModelSkelly::refresh() {
 }
 
 
-void ModelSkelly::tick() {
+void ModelSkelly::update() {
     bool doFinish = false;
     if (ANIM_position.active()) if (ANIM_position.tick()) doFinish = true;
     if (ANIM_rotation.active()) if (ANIM_rotation.tick()) doFinish = true;
@@ -98,7 +96,7 @@ void ModelSkelly::tick() {
             state = State::Done;
             poseCalc = arma->poseMap.at(PROP_pose);
             auto uboData = sq::Armature::make_UboData(poseCalc);
-            ubo->update("bones", uboData.data());
+            ubo.update("bones", uboData.data());
         } return;
     }
 }
@@ -109,23 +107,24 @@ void ModelSkelly::calc(double _accum) {
     if (ANIM_position.active()) { ANIM_position.calc(_accum); doAnim = true; }
     if (ANIM_rotation.active()) { ANIM_rotation.calc(_accum); doAnim = true; }
     if (ANIM_scale.active())    { ANIM_scale.calc(_accum);    doAnim = true; }
-    if (doAnim == true) animate(); else ubo->bind(1);
+    if (doAnim == true) animate();
 
-    fmat4 normMat(sq::make_normMat(cell->world->camera->viewMat * matrix));
-    ubo->update("normMat", &normMat);
+    fmat4 normMat(sq::make_normMat(world.camera->viewMat * matrix));
+    ubo.update("normMat", &normMat);
 
     if (state == State::Done || state == State::Paused) return;
     poseCalc = sq::Armature::mix_Poses(poseCrnt, poseNext, (ticks + _accum*24.f) / span);
-    auto uboData = sq::Armature::make_UboData(poseCalc); ubo->update("bones", uboData.data());
+    auto uboData = sq::Armature::make_UboData(poseCalc);
+    ubo.update("bones", uboData.data());
 }
 
 
 void ModelSkelly::animate() {
-    matrix = glm::translate(fmat4(), PROP_position + cell->DAT_position);
+    matrix = glm::translate(fmat4(), PROP_position + cell->PROP_position);
     matrix *= glm::mat4_cast(PROP_rotation); matrix = glm::scale(matrix, PROP_scale);
     sphere = sq::make_Sphere(matrix, mesh->origin, mesh->radius);
     negScale = glm::determinant(matrix) < 0.f;
-    ubo->update("matrix", &matrix);
+    ubo.update("matrix", &matrix);
 }
 
 
@@ -134,7 +133,7 @@ void ModelSkelly::FUNC_stop(uint _time) {
         state = State::Done;
         poseCalc = arma->poseMap.at(PROP_pose);
         auto uboData = sq::Armature::make_UboData(poseCalc);
-        ubo->bind(1); ubo->update("bones", uboData.data());
+        ubo.update("bones", uboData.data());
     } else {
         state = State::Ending; span = _time;
         looping = false; index = 0u; ticks = 0u;

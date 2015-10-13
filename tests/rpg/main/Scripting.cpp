@@ -1,7 +1,11 @@
+#include <chaiscript/dispatchkit/dispatchkit.hpp>
 #include <chaiscript/utility/utility.hpp>
 
 #include "../wcoe/Cell.hpp"
 #include "../wcoe/World.hpp"
+#include "../wcoe/SkyBox.hpp"
+#include "../wcoe/Ambient.hpp"
+#include "../wcoe/SkyLight.hpp"
 #include "../wcoe/objects/MetaObject.hpp"
 #include "../wcoe/objects/RigBodyBasic.hpp"
 #include "../wcoe/objects/RigBodyMulti.hpp"
@@ -16,22 +20,24 @@
 #include "../rndr/Renderer.hpp"
 #include "Scripting.hpp"
 
-using namespace sqt;
-
 using chai::fun;
+using chai::user_type;
 using chai::base_class;
 using chai::constructor;
 using chai::type_conversion;
 using chai::utility::add_class;
 using chai::Boxed_Value;
 using chai::boxed_cast;
-using chai::user_type;
+
+using namespace sqt;
+
 
 void sqt::cs_setup_main(chai::ChaiScript& _cs) {
     chai::ModulePtr m(new chai::Module());
 
     _cs.add(m);
 }
+
 
 void sqt::cs_setup_wcoe(chai::ChaiScript& _cs) {
     using namespace wcoe;
@@ -190,7 +196,7 @@ void sqt::cs_setup_wcoe(chai::ChaiScript& _cs) {
 
     add_class<Emitter>(*m, "Emitter", {}, {
        {fun(&Emitter::PROP_position), "position"},
-       {fun(&Emitter::emit_puff), "emit_puff"} });
+       {fun(&Emitter::FUNC_emit_puff), "emit_puff"} });
 
     add_class<Decal>(*m, "Decal", {}, {
        {fun(&Decal::PROP_position), "position"},
@@ -209,8 +215,8 @@ void sqt::cs_setup_wcoe(chai::ChaiScript& _cs) {
         });
 
     add_class<Cell>(*m, "Cell", {}, {
-        {fun(&Cell::DAT_enabled), "enabled"},
-        {fun(&Cell::DAT_position), "position"},
+        {fun(&Cell::PROP_enabled), "enabled"},
+        {fun(&Cell::PROP_position), "position"},
         {fun(&Cell::load_from_file), "load_from_file"},
         {fun(&Cell::add_object<MetaObject>),   "add_MetaObject"},
         {fun(&Cell::get_object<MetaObject>),   "get_MetaObject"},
@@ -249,8 +255,16 @@ void sqt::cs_setup_wcoe(chai::ChaiScript& _cs) {
     m->add(base_class<Object, Liquid>());
     m->add(base_class<Object, Decal>());
 
+    m->add(type_conversion<unique_ptr<SkyBox>&, SkyBox*>([]
+          (unique_ptr<SkyBox>& uptr) { return uptr.get(); }));
+    m->add(type_conversion<unique_ptr<Ambient>&, Ambient*>([]
+          (unique_ptr<Ambient>& uptr) { return uptr.get(); }));
+    m->add(type_conversion<unique_ptr<SkyLight>&, SkyLight*>([]
+          (unique_ptr<SkyLight>& uptr) { return uptr.get(); }));
+
     _cs.add(m);
 }
+
 
 void sqt::cs_setup_rndr(chai::ChaiScript& _cs) {
     using namespace rndr;

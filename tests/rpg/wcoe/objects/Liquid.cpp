@@ -1,3 +1,5 @@
+#include "../Cell.hpp"
+#include "../World.hpp"
 #include "Liquid.hpp"
 
 using namespace sqt::wcoe;
@@ -8,7 +10,7 @@ void Liquid::load_from_spec(const ObjSpec& _spec) {}
 
 void Liquid::refresh() {}
 
-void Liquid::tick() {}
+void Liquid::update() {}
 
 void Liquid::calc(double _accum) {}
 

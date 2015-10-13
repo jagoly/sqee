@@ -6,8 +6,8 @@ namespace sq {
 /// The basic SQEE Scene class
 class Scene : NonCopyable {
 public:
-    virtual ~Scene() = default;
     Scene(Application* _app);
+    virtual ~Scene() = default;
 
     virtual void update() = 0;
     virtual void render() = 0;

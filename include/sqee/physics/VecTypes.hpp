@@ -9,11 +9,6 @@
 #include <rp3d/mathematics/Transform.hpp>
 #include <rp3d/mathematics/Quaternion.hpp>
 
-namespace reactphysics3d {
-class DynamicsWorld;
-class RigidBody;
-}
-
 namespace sq {
 
 inline fvec2 glm_cast(rp3d::Vector2 _vec2) {

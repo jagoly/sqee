@@ -17,34 +17,15 @@ void FrameBuffer::attach(GLenum _attach, const Texture2D& _tex) const {
     gl::NamedFramebufferTexture(fbo, _attach, _tex.tex, 0);
 }
 
-void FrameBuffer::attach(GLenum _attach, TextureMut2D& _tex) const {
-    gl::NamedFramebufferTexture(fbo, _attach, _tex.tex, 0);
-}
-
-
 void FrameBuffer::attach(GLenum _attach, const TextureCube& _tex, uint _face) const {
     gl::NamedFramebufferTextureLayer(fbo, _attach, _tex.tex, 0, _face);
 }
-
-void FrameBuffer::attach(GLenum _attach, TextureMutCube& _tex, uint _face) const {
-    gl::NamedFramebufferTextureLayer(fbo, _attach, _tex.tex, 0, _face);
-}
-
 
 void FrameBuffer::attach(GLenum _attach, const Texture2DArray& _tex, uint _index) const {
     gl::NamedFramebufferTextureLayer(fbo, _attach, _tex.tex, 0, _index);
 }
 
-void FrameBuffer::attach(GLenum _attach, TextureMut2DArray& _tex, uint _index) const {
-    gl::NamedFramebufferTextureLayer(fbo, _attach, _tex.tex, 0, _index);
-}
-
-
 void FrameBuffer::attach(GLenum _attach, const TextureCubeArray& _tex, uint _index, uint _face) const {
-    gl::NamedFramebufferTextureLayer(fbo, _attach, _tex.tex, 0, _index * 6 + _face);
-}
-
-void FrameBuffer::attach(GLenum _attach, TextureMutCubeArray& _tex, uint _index, uint _face) const {
     gl::NamedFramebufferTextureLayer(fbo, _attach, _tex.tex, 0, _index * 6 + _face);
 }
 

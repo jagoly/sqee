@@ -17,6 +17,9 @@
 #include <sqee/maths/General.hpp>
 
 #include "../wcoe/World.hpp"
+#include "../wcoe/SkyBox.hpp"
+#include "../wcoe/Ambient.hpp"
+#include "../wcoe/SkyLight.hpp"
 #include "../wcoe/objects/ModelSimple.hpp"
 #include "../wcoe/objects/ModelSkelly.hpp"
 #include "../wcoe/objects/PointLight.hpp"
@@ -30,6 +33,7 @@
 #include "Gbuffers.hpp"
 #include "Lighting.hpp"
 #include "Pretties.hpp"
+#include "Reflects.hpp"
 #include "Renderer.hpp"
 
 #include <sqee/debug/Logging.hpp>
@@ -45,6 +49,7 @@ Renderer::Renderer(const sq::Settings& _settings, const sq::PreProcessor& _prepr
     gbuffers.reset(new Gbuffers(*this));
     lighting.reset(new Lighting(*this));
     pretties.reset(new Pretties(*this));
+    reflects.reset(new Reflects(*this));
 
     // Particles /////
     gl::GenVertexArrays(1, &partVAO);
@@ -64,9 +69,6 @@ Renderer::Renderer(const sq::Settings& _settings, const sq::PreProcessor& _prepr
     preprocs.load(VS_stencil_base, "generic/stencil_base_vs");
     preprocs.load(VS_stencil_refl, "generic/stencil_refl_vs");
     preprocs.load(FS_passthrough, "generic/passthrough_fs");
-
-    preprocs.load(VS_defr_reflector, "deferred/reflector_vs");
-    preprocs.load(FS_defr_reflector, "deferred/reflector_fs");
 
     preprocs.load(VS_part_soft_vertex, "particles/soft/vertex_vs");
     preprocs.load(GS_part_soft_geometry, "particles/soft/geometry_gs");
@@ -105,12 +107,12 @@ void Renderer::cull_and_sort() {
     array<std::set<const wcoe::PointLight*>, 6> shadowPLFaceSetArr;
 
     for (const wcoe::Reflector* rflct : reflectorVec) {
-        if (rflct->PROP_shadow && glm::dot(skylight->PROP_direction, rflct->normal) < 0.f) {
+        if (rflct->PROP_shadow && glm::dot(world.skylight->PROP_direction, rflct->normal) < 0.f) {
             for (uint ind = 0u; ind < 4u; ++ind)
-                if (sq::bbox_in_orth(rflct->bbox, world.skylight.orthArrA[ind]))
+                if (sq::bbox_in_orth(rflct->bbox, world.skylight->orthArrA[ind]))
                     skyLightData.reflectorVecArrA[ind].push_back(rflct);
             for (uint ind = 0u; ind < 2u; ++ind)
-                if (sq::bbox_in_orth(rflct->bbox, world.skylight.orthArrB[ind]))
+                if (sq::bbox_in_orth(rflct->bbox, world.skylight->orthArrB[ind]))
                     skyLightData.reflectorVecArrB[ind].push_back(rflct);
         }
 
@@ -148,6 +150,12 @@ void Renderer::cull_and_sort() {
                                 shadowPLFaceSetArr[ind].insert(light);
                     }
                 }
+
+            for (const wcoe::Decal* decal : decalVec) {
+                // TODO: Add orientation check
+                if (sq::bbox_in_frus(decal->bbox, rflct->frus) && decal->texDiff)
+                    reflectorDataVec.back().decalVec.push_back(decal);
+            }
 
             sort_container_by(reflectorDataVec.back().reflectorVec, [rflct]
                     (const wcoe::Reflector* a, const wcoe::Reflector* b) { return
@@ -261,10 +269,10 @@ void Renderer::cull_and_sort() {
             cameraData.modelSimpleVec.push_back(model);
         if (model->PROP_shadow == true) {
             for (uint ind = 0u; ind < 4u; ++ind)
-                if (sq::bbox_in_orth(model->bbox, world.skylight.orthArrA[ind]))
+                if (sq::bbox_in_orth(model->bbox, world.skylight->orthArrA[ind]))
                     skyLightData.modelSimpleVecArrA[ind].push_back(model);
             for (uint ind = 0u; ind < 2u; ++ind)
-                if (sq::bbox_in_orth(model->bbox, world.skylight.orthArrB[ind]))
+                if (sq::bbox_in_orth(model->bbox, world.skylight->orthArrB[ind]))
                     skyLightData.modelSimpleVecArrB[ind].push_back(model);
         }
     }
@@ -273,10 +281,10 @@ void Renderer::cull_and_sort() {
         if (sq::sphr_in_frus(model->sphere, camera->frus))
             cameraData.modelSkellyVec.push_back(model);
         for (uint ind = 0u; ind < 4u; ++ind)
-            if (sq::sphr_in_orth(model->sphere, world.skylight.orthArrA[ind]))
+            if (sq::sphr_in_orth(model->sphere, world.skylight->orthArrA[ind]))
                 skyLightData.modelSkellyVecArrA[ind].push_back(model);
         for (uint ind = 0u; ind < 2u; ++ind)
-            if (sq::sphr_in_orth(model->sphere, world.skylight.orthArrB[ind]))
+            if (sq::sphr_in_orth(model->sphere, world.skylight->orthArrB[ind]))
                 skyLightData.modelSkellyVecArrB[ind].push_back(model);
     }
 
@@ -298,35 +306,35 @@ void Renderer::cull_and_sort() {
     for (uint ind = 0u; ind < 4u; ++ind) {
         sort_container_by(skyLightData.reflectorVecArrA[ind], [this]
             (const wcoe::Reflector* a, const wcoe::Reflector* b) { return
-            glm::dot(skylight->PROP_direction, a->bbox.sphere.origin) <
-            glm::dot(skylight->PROP_direction, b->bbox.sphere.origin); });
+            glm::dot(world.skylight->PROP_direction, a->bbox.sphere.origin) <
+            glm::dot(world.skylight->PROP_direction, b->bbox.sphere.origin); });
 
         sort_container_by(skyLightData.modelSimpleVecArrA[ind], [this]
             (const wcoe::ModelSimple* a, const wcoe::ModelSimple* b) { return
-            glm::dot(skylight->PROP_direction, a->bbox.sphere.origin) <
-            glm::dot(skylight->PROP_direction, b->bbox.sphere.origin); });
+            glm::dot(world.skylight->PROP_direction, a->bbox.sphere.origin) <
+            glm::dot(world.skylight->PROP_direction, b->bbox.sphere.origin); });
 
         sort_container_by(skyLightData.modelSkellyVecArrA[ind], [this]
             (const wcoe::ModelSkelly* a, const wcoe::ModelSkelly* b) { return
-            glm::dot(skylight->PROP_direction, a->sphere.origin) <
-            glm::dot(skylight->PROP_direction, b->sphere.origin); });
+            glm::dot(world.skylight->PROP_direction, a->sphere.origin) <
+            glm::dot(world.skylight->PROP_direction, b->sphere.origin); });
     }
 
     for (uint ind = 0u; ind < 2u; ++ind) {
         sort_container_by(skyLightData.reflectorVecArrB[ind], [this]
             (const wcoe::Reflector* a, const wcoe::Reflector* b) { return
-            glm::dot(skylight->PROP_direction, a->bbox.sphere.origin) <
-            glm::dot(skylight->PROP_direction, b->bbox.sphere.origin); });
+            glm::dot(world.skylight->PROP_direction, a->bbox.sphere.origin) <
+            glm::dot(world.skylight->PROP_direction, b->bbox.sphere.origin); });
 
         sort_container_by(skyLightData.modelSimpleVecArrB[ind], [this]
             (const wcoe::ModelSimple* a, const wcoe::ModelSimple* b) { return
-            glm::dot(skylight->PROP_direction, a->bbox.sphere.origin) <
-            glm::dot(skylight->PROP_direction, b->bbox.sphere.origin); });
+            glm::dot(world.skylight->PROP_direction, a->bbox.sphere.origin) <
+            glm::dot(world.skylight->PROP_direction, b->bbox.sphere.origin); });
 
         sort_container_by(skyLightData.modelSkellyVecArrB[ind], [this]
             (const wcoe::ModelSkelly* a, const wcoe::ModelSkelly* b) { return
-            glm::dot(skylight->PROP_direction, a->sphere.origin) <
-            glm::dot(skylight->PROP_direction, b->sphere.origin); });
+            glm::dot(world.skylight->PROP_direction, a->sphere.origin) <
+            glm::dot(world.skylight->PROP_direction, b->sphere.origin); });
     }
 
     for (const wcoe::Decal* decal : decalVec) {
@@ -353,4 +361,5 @@ void Renderer::update_settings() {
     gbuffers->update_settings();
     lighting->update_settings();
     pretties->update_settings();
+    reflects->update_settings();
 }

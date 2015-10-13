@@ -6,6 +6,7 @@
 #include <sqee/render/Skin.hpp>
 
 #include "../wcoe/World.hpp"
+#include "../wcoe/SkyLight.hpp"
 #include "../wcoe/objects/SpotLight.hpp"
 #include "../wcoe/objects/PointLight.hpp"
 #include "../wcoe/objects/ModelSimple.hpp"
@@ -35,14 +36,14 @@ void Shadows::setup_render_state() {
 
 
 void Shadows::render_shadows_sky() {
-    const wcoe::SkyLight& light = *renderer.skylight;
+    const wcoe::SkyLight& light = *renderer.world.skylight;
     const SkyLightData& data = renderer.skyLightData;
 
-    sq::VIEWPORT(light.texDepthA->get_size());
+    sq::VIEWPORT(light.texA.get_size());
     sq::DCLAMP_ON();
 
     for (uint csm = 0u; csm < 4u; ++csm) {
-        FB_shadows.attach(gl::DEPTH_ATTACHMENT, *light.texDepthA, csm);
+        FB_shadows.attach(gl::DEPTH_ATTACHMENT, light.texA, csm);
         sq::CLEAR_DEPTH(); const fmat4& matrix = light.matArrA[csm];
 
         renderer.pipeline.disable_stages(0, 0, 1);
@@ -67,7 +68,7 @@ void Shadows::render_shadows_sky() {
     }
 
     for (uint csm = 0u; csm < 2u; ++csm) {
-        FB_shadows.attach(gl::DEPTH_ATTACHMENT, *light.texDepthB, csm);
+        FB_shadows.attach(gl::DEPTH_ATTACHMENT, light.texB, csm);
         sq::CLEAR_DEPTH(); const fmat4& matrix = light.matArrB[csm];
 
         renderer.pipeline.disable_stages(0, 0, 1);
@@ -98,9 +99,9 @@ void Shadows::render_shadows_sky() {
 
 void Shadows::render_shadows_spot() {
     for (const SpotLightData& data : renderer.spotLightDataVec) {
-        FB_shadows.attach(gl::DEPTH_ATTACHMENT, *data.light.tex);
+        FB_shadows.attach(gl::DEPTH_ATTACHMENT, data.light.tex);
         sq::CLEAR_DEPTH(); const fmat4& matrix = data.light.matrix;
-        sq::VIEWPORT(data.light.tex->get_size());
+        sq::VIEWPORT(data.light.tex.get_size());
 
         renderer.pipeline.disable_stages(0, 0, 1);
         renderer.pipeline.use_shader(VS_shad_simple);
@@ -129,11 +130,11 @@ void Shadows::render_shadows_spot() {
 
 void Shadows::render_shadows_point() {
     for (const PointLightData& data : renderer.pointLightDataVec) {
-        sq::VIEWPORT(data.light.tex->get_size());
+        sq::VIEWPORT(data.light.tex.get_size());
 
         for (uint face = 0u; face < 6u; ++face) {
             if (data.cullShadowFaceArr[face]) continue;
-            FB_shadows.attach(gl::DEPTH_ATTACHMENT, *data.light.tex, face);
+            FB_shadows.attach(gl::DEPTH_ATTACHMENT, data.light.tex, face);
             sq::CLEAR_DEPTH(); const fmat4& matrix = data.light.matArr[face];
 
             renderer.pipeline.disable_stages(0, 0, 1);
@@ -201,12 +202,12 @@ void Shadows::draw_ModelSimple_punch(fmat4 _lightMat, const wcoe::ModelSimple& _
 void Shadows::draw_ModelSkelly(fmat4 _lightMat, const wcoe::ModelSkelly& _model) {
     VS_shad_skelly.set_mat<fmat4>("matrix", _lightMat * _model.matrix);
     sq::FRONTFACE(_model.negScale); _model.mesh->bind_vao();
-    _model.ubo->bind(1u); _model.mesh->draw_complete();
+    _model.ubo.bind(1u); _model.mesh->draw_complete();
 }
 
 void Shadows::draw_ModelSkelly_punch(fmat4 _lightMat, const wcoe::ModelSkelly& _model) {
     VS_shad_skelly.set_mat<fmat4>("matrix", _lightMat * _model.matrix);
-    sq::FRONTFACE(_model.negScale); _model.mesh->bind_vao(); _model.ubo->bind(1u);
+    sq::FRONTFACE(_model.negScale); _model.mesh->bind_vao(); _model.ubo.bind(1u);
     for (uint i = 0u; i < _model.mesh->mtrlCount; ++i) {
         if (_model.skin->mtrlVec[i].punch == true)
             _model.skin->bind_textures(i, 1, 0, 0),

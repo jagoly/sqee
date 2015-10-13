@@ -1,10 +1,10 @@
 #include <SFML/Window/Event.hpp>
 
 #include <sqee/debug/Logging.hpp>
+#include <sqee/scripts/ChaiScript.hpp>
 #include <sqee/app/Application.hpp>
 #include <sqee/app/ChaiConsole.hpp>
 #include <sqee/app/Settings.hpp>
-#include <sqee/scripts/ChaiScript.hpp>
 #include <sqee/gl/Drawing.hpp>
 #include <sqee/text/Text.hpp>
 

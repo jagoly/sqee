@@ -14,14 +14,15 @@ using namespace sqt::wcoe;
 
 RigBodyMulti::RigBodyMulti(const string& _name, Cell* _cell) : Object(_name, _cell) {}
 
-void RigBodyMulti::load_from_spec(const ObjSpec& _spec) {
-}
+void RigBodyMulti::load_from_spec(const ObjSpec& _spec) {}
 
 void RigBodyMulti::refresh() {
+    if (revalidate() == true) {}
+
     animate();
 }
 
-void RigBodyMulti::tick() {
+void RigBodyMulti::update() {
     bool doFinish = false;
     if (doFinish == true) animate();
 }

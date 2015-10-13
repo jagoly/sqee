@@ -24,7 +24,7 @@ void throw_error(const string& _path, int _lnum, const string& _msg, const Args&
 }
 
 
-Cell::Cell(const string& _name, World* _world)
+Cell::Cell(const string& _name, World& _world)
     : name(_name), world(_world) {}
 
 void Cell::load_from_file(const string& _path) {
@@ -74,8 +74,8 @@ void Cell::refresh() {
     for (auto& so : objectMap) so.second->refresh();
 }
 
-void Cell::tick() {
-    for (auto& so : objectMap) so.second->tick();
+void Cell::update() {
+    for (auto& so : objectMap) so.second->update();
 }
 
 void Cell::calc(double _accum) {

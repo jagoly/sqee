@@ -1,3 +1,4 @@
+#include <sqee/scripts/ChaiScript.hpp>
 #include <sqee/misc/ResHolder.hpp>
 #include <sqee/debug/Logging.hpp>
 

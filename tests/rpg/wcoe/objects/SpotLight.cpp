@@ -2,8 +2,6 @@
 
 #include <sqee/redist/gl_ext_4_2.hpp>
 #include <sqee/app/Settings.hpp>
-#include <sqee/gl/UniformBuffer.hpp>
-#include <sqee/gl/Textures.hpp>
 #include <sqee/maths/Culling.hpp>
 #include <sqee/maths/General.hpp>
 
@@ -13,17 +11,18 @@
 
 using namespace sqt::wcoe;
 
-SpotLight::SpotLight(const string& _name, Cell* _cell) : Object(_name, _cell) {
-    ubo.reset(new sq::UniformBuffer());
-    ubo->reserve("direction", 3);
-    ubo->reserve("intensity", 1);
-    ubo->reserve("position", 3);
-    ubo->reserve("softness", 1);
-    ubo->reserve("colour", 3);
-    ubo->reserve("angle", 1);
-    ubo->reserve("matrix", 16);
-    ubo->reserve("modelMat", 16);
-    ubo->allocate_storage();
+SpotLight::SpotLight(const string& _name, Cell* _cell) : Object(_name, _cell),
+    tex(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT16, sq::Texture::ShadowMap()) {
+
+    ubo.reserve("direction", 3u);
+    ubo.reserve("intensity", 1u);
+    ubo.reserve("position", 3u);
+    ubo.reserve("softness", 1u);
+    ubo.reserve("colour", 3u);
+    ubo.reserve("angle", 1u);
+    ubo.reserve("matrix", 16u);
+    ubo.reserve("modelMat", 16u);
+    ubo.allocate_storage();
 }
 
 void SpotLight::load_from_spec(const ObjSpec& _spec) {
@@ -40,29 +39,17 @@ void SpotLight::load_from_spec(const ObjSpec& _spec) {
 }
 
 void SpotLight::refresh() {
-    bool recreateTexture = false;
-
-    if (check_invalid()) {
-        if (PROP_shadow == true)
-            recreateTexture = true;
-        else tex.reset();
-    }
-
-    if (PROP_shadow && settings.check<bool>("rpg_shadlarge"))
-        recreateTexture = true;
-
-    if (recreateTexture == true) {
-        tex.reset(new sq::Texture2D());
-        bool shadlarge = settings.get<bool>("rpg_shadlarge");
-        tex->create(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT16, 1u, false);
-        tex->allocate_storage(uvec2(PROP_texsize * (1u + shadlarge)));
-        tex->set_preset(sq::Texture::ShadowMap());
+    if (revalidate() == true) {
+        if (PROP_shadow == true) {
+            uint sizeMult = settings.get<bool>("rpg_shadlarge") + 1u;
+            tex.allocate_storage(uvec2(PROP_texsize * sizeMult), false);
+        } else tex.delete_object();
     }
 
     animate();
 }
 
-void SpotLight::tick() {
+void SpotLight::update() {
     bool doFinish = false;
     if (ANIM_direction.active()) if (ANIM_direction.tick()) doFinish = true;
     if (ANIM_position.active())  if (ANIM_position.tick())  doFinish = true;
@@ -85,7 +72,7 @@ void SpotLight::calc(double _accum) {
 }
 
 void SpotLight::animate() {
-    fvec3 position = PROP_position + cell->DAT_position;
+    fvec3 position = PROP_position + cell->PROP_position;
     fvec3 tangent = sq::make_tangent(PROP_direction);
     float angle = glm::radians(PROP_angle);
 
@@ -97,12 +84,12 @@ void SpotLight::animate() {
     fvec3 scale = -fvec3(tanAngle, tanAngle, 1.f) * PROP_intensity;
     modelMat = glm::inverse(viewMat) * glm::scale(fmat4(), scale);
 
-    ubo->update("direction", &PROP_direction);
-    ubo->update("intensity", &PROP_intensity);
-    ubo->update("position", &position);
-    ubo->update("softness", &PROP_softness);
-    ubo->update("colour", &PROP_colour);
-    ubo->update("angle", &angle);
-    ubo->update("matrix", &matrix);
-    ubo->update("modelMat", &modelMat);
+    ubo.update("direction", &PROP_direction);
+    ubo.update("intensity", &PROP_intensity);
+    ubo.update("position", &position);
+    ubo.update("softness", &PROP_softness);
+    ubo.update("colour", &PROP_colour);
+    ubo.update("angle", &angle);
+    ubo.update("matrix", &matrix);
+    ubo.update("modelMat", &modelMat);
 }

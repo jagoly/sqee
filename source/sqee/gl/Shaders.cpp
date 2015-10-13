@@ -22,7 +22,8 @@ void Shader::add_uniform(const string& _name, uint _cnt) {
 
 void Shader::load(const string& _source) {
     const char* src = _source.c_str();
-    gl::DeleteProgram(program); program = gl::CreateShaderProgramv(stage, 1, &src);
+    if (program != 0u) gl::DeleteProgram(program);
+    program = gl::CreateShaderProgramv(stage, 1, &src);
     int length = 0; char log[2048]; gl::GetProgramInfoLog(program, 2048, &length, log);
     if (length > 0) { string logStr(log); logStr.erase(logStr.rfind('\n'));
         log_error("Failed to compile shader from string\n%s", logStr); }
@@ -31,16 +32,13 @@ void Shader::load(const string& _source) {
 
 void Shader::load(const string& _source, const string& _path) {
     const char* src = _source.c_str();
-    gl::DeleteProgram(program); program = gl::CreateShaderProgramv(stage, 1, &src);
+    if (program != 0u) gl::DeleteProgram(program);
+    program = gl::CreateShaderProgramv(stage, 1, &src);
     int length = 0; char log[2048]; gl::GetProgramInfoLog(program, 2048, &length, log);
     if (length > 0) { string logStr(log); logStr.erase(logStr.rfind('\n'));
         log_error("Failed to compile shader from %s\n%s", _path, logStr); }
     for (auto& uf : uniforms) uf.second.ref = gl::GetUniformLocation(program, uf.first.c_str());
 }
-
-//void Shader::set_subroutines(uint _count, const uint* _values) {
-//    gl::UniformSubroutinesuiv(stage, _count, _values);
-//}
 
 
 // Uniforms /////

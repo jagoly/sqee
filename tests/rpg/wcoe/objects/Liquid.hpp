@@ -4,14 +4,14 @@
 
 namespace sqt { namespace wcoe {
 
-class Liquid : public Object {
+class Liquid final : public Object {
 public:
     Liquid(const string& _name, Cell* _cell);
-    void load_from_spec(const ObjSpec& _spec);
-    void refresh(); void tick();
-    void calc(double _accum);
 
-    // ANIMS
+    void load_from_spec(const ObjSpec& _spec);
+
+    void refresh(), update();
+    void calc(double _accum);
     void animate();
 };
 

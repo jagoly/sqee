@@ -1,16 +1,21 @@
 #pragma once
 
+#include <sqee/gl/UniformBuffer.hpp>
+
 #include "../Object.hpp"
 #include "../Animation.hpp"
 
 namespace sqt { namespace wcoe {
 
-class Decal : public Object {
+class Decal final : public Object {
 public:
     Decal(const string& _name, Cell* _cell);
+
     void load_from_spec(const ObjSpec& _spec);
-    void refresh(); void tick();
+
+    void refresh(), update();
     void calc(double _accum);
+    void animate();
 
     fvec3  PROP_position = {0.f, 0.f, 0.f};
     fquat  PROP_rotation = {1.f, 0.f, 0.f, 0.f};
@@ -24,12 +29,11 @@ public:
     AnimatorFQuat ANIM_rotation {&PROP_rotation};
     AnimatorFVec3 ANIM_scale    {&PROP_scale};
     AnimatorFloat ANIM_alpha    {&PROP_alpha};
-    void animate();
 
-    unique_ptr<sq::UniformBuffer> ubo;
     sq::Texture2D* texDiff = nullptr;
     sq::Texture2D* texNorm = nullptr;
     sq::Texture2D* texSpec = nullptr;
+    sq::UniformBuffer ubo;
     fmat4 matrix, invMat;
     sq::BoundBox bbox;
 };

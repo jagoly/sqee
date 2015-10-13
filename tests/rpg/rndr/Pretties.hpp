@@ -33,13 +33,12 @@ private:
 
     sq::FrameBuffer FB_simple;
 
-    // todo: make non pointers
-    unique_ptr<sq::Texture2D> TEX_ssao;
-    unique_ptr<sq::Texture2D> TEX_ssaoB;
-    unique_ptr<sq::Texture2D> TEX_bloom;
-    unique_ptr<sq::Texture2D> TEX_bloomB;
-    unique_ptr<sq::Texture2D> TEX_shafts;
-    unique_ptr<sq::Texture2D> TEX_final;
+    sq::Texture2D TEX_ssao {gl::RED, gl::R8, sq::Texture::LinearClamp()};
+    sq::Texture2D TEX_ssaoB {gl::RED, gl::R8, sq::Texture::LinearClamp()};
+    sq::Texture2D TEX_bloom {gl::RGB, gl::RGB8, sq::Texture::LinearClamp()};
+    sq::Texture2D TEX_bloomB {gl::RGB, gl::RGB8, sq::Texture::LinearClamp()};
+    sq::Texture2D TEX_shafts {gl::RED, gl::R8, sq::Texture::LinearClamp()};
+    sq::Texture2D TEX_final {gl::RGBA, gl::RGBA8, sq::Texture::LinearClamp()};
 
     sq::Shader FS_prty_ssao_ssao {gl::FRAGMENT_SHADER};
     sq::Shader FS_prty_ssao_blur {gl::FRAGMENT_SHADER};

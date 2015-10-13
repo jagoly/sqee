@@ -13,11 +13,8 @@ public:
     /// A group of parameters and values to set at once
     using Preset = vector<pair<GLenum, GLenum>>;
 
-    /// Set a single texture paramater
-    void set_param(GLenum _name, GLenum _value) const;
-
-    /// Set a group of texture paramters
-    void set_preset(Preset _preset) const;
+    /// Manually delete the GL object
+    void delete_object();
 
     /// Generate mipmaps for the texture
     void generate_mipmaps() const;
@@ -46,58 +43,42 @@ public:
     static Preset ShadowMap();
 
 protected:
-    GLenum target;
-    GLenum format;
-    GLenum iFormat;
-    GLenum dataType;
-    uint channels;
-    bool mipmaps;
-    uvec3 size;
+    Texture(GLenum _target, GLenum _format, GLenum _iFormat, Preset _preset) :
+        target(_target), format(_format), iFormat(_iFormat), preset(_preset) {};
+    const GLenum target, format, iFormat; const Preset preset; uvec3 size;
+
+    void create_and_setup_texture();
 };
 
 
 /// A class for immutable GL_TEXTURE_2D textures
 class Texture2D final : public Texture {
 public:
-    /// Set various options and create the OpenGL texture object
-    void create(GLenum _format, GLenum _iFormat, uint _channels, bool _mipmaps);
+    /// Constructor
+    Texture2D(GLenum _format, GLenum _iFormat, Preset _preset);
 
     /// Transfer some memory into the texture
-    void buffer_memory(const void* _data);
+    void buffer_memory(const void* _data, GLenum _type);
 
     /// Load a png or jpg image into the texture
     void buffer_file(const string& _path);
 
     /// Load an image, allocate storage and generate mipmaps
-    void buffer_auto(const string& _path);
+    void buffer_auto(const string& _path, bool _mipmaps);
 
     /// Allocate immutable storage for the texture
-    void allocate_storage(uvec2 _size);
-};
-
-
-/// A class for mutable GL_TEXTURE_2D textures
-class TextureMut2D final : public Texture {
-public:
-    /// Set various options and create the OpenGL texture object
-    void create(GLenum _format, GLenum _iFormat, uint _channels);
-
-    /// Transfer some memory into the texture
-    void buffer_memory(const void* _data);
-
-    /// Resize the texture and allocate mutable storage
-    void resize(uvec2 _size);
+    void allocate_storage(uvec2 _size, bool _mipmaps);
 };
 
 
 /// A class for immutable GL_TEXTURE_CUBE_MAP textures
 class TextureCube final : public Texture {
 public:
-    /// Set various options and create the OpenGL texture object
-    void create(GLenum _format, GLenum _iFormat, uint _channels, bool _mipmaps);
+    /// Constructor
+    TextureCube(GLenum _format, GLenum _iFormat, Preset _preset);
 
     /// Transfer some memory into one face of the texture
-    void buffer_memory(const void* _data, uint _face);
+    void buffer_memory(const void* _data, uint _face, GLenum _type);
 
     /// Load a png or jpg image into one face of the texture
     void buffer_file(const string& _path, uint _face);
@@ -106,63 +87,35 @@ public:
     void buffer_full(const string& _path);
 
     /// Allocate immutable storage for the texture
-    void allocate_storage(uint _size);
-};
-
-
-/// A class for mutable GL_TEXTURE_CUBE_MAP textures
-class TextureMutCube final : public Texture {
-public:
-    /// Set various options and create the OpenGL texture object
-    void create(GLenum _format, GLenum _iFormat, uint _channels);
-
-    /// Transfer some memory into one face of the texture
-    void buffer_memory(const void* _data, uint _face);
-
-    /// Resize the texture and allocate mutable storage
-    void resize(uint _size);
+    void allocate_storage(uint _size, bool _mipmaps);
 };
 
 
 /// A class for immutable GL_TEXTURE_2D_ARRAY textures
 class Texture2DArray final : public Texture {
 public:
-    /// Set various options and create the OpenGL texture object
-    void create(GLenum _format, GLenum _iFormat, uint _channels, bool _mipmaps);
+    /// Constructor
+    Texture2DArray(GLenum _format, GLenum _iFormat, Preset _preset);
 
     /// Transfer some memory into one layer of the texture
-    void buffer_memory(const void* _data, uint _index);
+    void buffer_memory(const void* _data, uint _index, GLenum _type);
 
     /// Load a png or jpg image into one layer of the texture
     void buffer_file(const string& _path, uint _index);
 
     /// Allocate immutable storage for the texture
-    void allocate_storage(uvec3 _size);
-};
-
-
-/// A class for mutable GL_TEXTURE_2D_ARRAY textures
-class TextureMut2DArray final : public Texture {
-public:
-    /// Set various options and create the OpenGL texture object
-    void create(GLenum _format, GLenum _iFormat, uint _channels);
-
-    /// Transfer some memory into one layer of the texture
-    void buffer_memory(const void* _data, uint _index);
-
-    /// Resize the texture and allocate mutable storage
-    void resize(uvec3 _size);
+    void allocate_storage(uvec3 _size, bool _mipmaps);
 };
 
 
 /// A class for immutable GL_TEXTURE_CUBE_MAP_ARRAY textures
 class TextureCubeArray final : public Texture {
 public:
-    /// Set various options and create the OpenGL texture object
-    void create(GLenum _format, GLenum _iFormat, uint _channels, bool _mipmaps);
+    /// Constructor
+    TextureCubeArray(GLenum _format, GLenum _iFormat, Preset _preset);
 
     /// Transfer some memory into one layer-face of the texture
-    void buffer_memory(const void* _data, uint _face, uint _index);
+    void buffer_memory(const void* _data, uint _face, uint _index, GLenum _type);
 
     /// Load a png or jpg image into one layer-face of the texture
     void buffer_file(const string& _path, uint _face, uint _index);
@@ -171,32 +124,18 @@ public:
     void buffer_full(const string& _path, uint _index);
 
     /// Allocate immutable storage for the texture
-    void allocate_storage(uvec2 _size);
-};
-
-
-/// A class for mutable GL_TEXTURE_CUBE_MAP_ARRAY textures
-class TextureMutCubeArray final : public Texture {
-public:
-    /// Set various options and create the OpenGL texture object
-    void create(GLenum _format, GLenum _iFormat, uint _channels);
-
-    /// Transfer some memory into one layer-face of the texture
-    void buffer_memory(const void* _data, uint _face, uint _index);
-
-    /// Resize the texture and allocate mutable storage
-    void resize(uvec2 _size);
+    void allocate_storage(uvec2 _size, bool _mipmaps);
 };
 
 
 /// A class for immutable GL_TEXTURE_3D textures
 class TextureVolume final : public Texture {
 public:
-    /// Set various options and create the OpenGL texture object
-    void create(GLenum _format, GLenum _iFormat, uint _channels);
+    /// Constructor
+    TextureVolume(GLenum _format, GLenum _iFormat, Preset _preset);
 
     /// Transfer some memory into the texture
-    void buffer_memory(const void* _data);
+    void buffer_memory(const void* _data, GLenum _type);
 
     /// Allocate immutable storage for the texture
     void allocate_storage(uvec3 _size);

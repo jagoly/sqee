@@ -67,12 +67,12 @@ struct NonCopyable {
 };
 
 template<class T, class U>
-weak_ptr<T> static_wptr_cast(weak_ptr<U> const& _wptr) {
+inline weak_ptr<T> static_wptr_cast(weak_ptr<U> const& _wptr) {
     return std::static_pointer_cast<T>(shared_ptr<U>(_wptr));
 }
 
 template<class T>
-bool wptr_expired(weak_ptr<T> const& _wptr) {
+inline bool wptr_expired(weak_ptr<T> const& _wptr) {
     return _wptr.expired();
 }
 
@@ -105,13 +105,9 @@ class DynamicBuffer;
 class UniformBuffer;
 
 class Texture2D;
-class TextureMut2D;
 class TextureCube;
-class TextureMutCube;
 class Texture2DArray;
-class TextureMut2DArray;
 class TextureCubeArray;
-class TextureMutCubeArray;
 class TextureVolume;
 
 struct Plane { fvec3 normal; float offset; };
@@ -121,6 +117,11 @@ struct BoundBox { Sphere sphere; fvec3 size, nX{1,0,0}, nY{0,1,0}, nZ{0,0,1}; };
 struct OrthoFrus { Plane pT, pB, pL, pR; };
 
 }
+
+namespace chaiscript {}
+namespace reactphysics3d {}
+namespace chai = chaiscript;
+namespace rp3d = reactphysics3d;
 
 #ifdef SQEE_DEBUG
 #define SQDEBUG(code) code

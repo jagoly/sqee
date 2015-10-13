@@ -10,7 +10,6 @@
 
 namespace sf { class Window; class ContextSettings; class Event; }
 namespace chaiscript { class ChaiScript; }
-namespace chai = chaiscript;
 
 namespace sq {
 
@@ -27,19 +26,13 @@ public:
     fvec2 mouse_centre();
     uvec2 get_size() const;
 
-    template <class T>
-    T& append_scene(const string& _key);
-    template <class T>
-    T& prepend_scene(const string& _key);
-    template <class T>
-    T& get_scene(const string& _key);
+    template<class T> T& append_scene(const string& _key);
+    template<class T> T& prepend_scene(const string& _key);
+    template<class T> T& get_scene(const string& _key);
 
-    template <class T>
-    T& append_handler(const string& _key);
-    template <class T>
-    T& prepend_handler(const string& _key);
-    template<class T>
-    T& get_handler(const string& _key);
+    template<class T> T& append_handler(const string& _key);
+    template<class T> T& prepend_handler(const string& _key);
+    template<class T> T& get_handler(const string& _key);
 
     void sweep_scene(const string& _key);
     void sweep_handler(const string& _key);

@@ -22,6 +22,7 @@ class Shadows;
 class Gbuffers;
 class Lighting;
 class Pretties;
+class Reflects;
 
 struct CameraData {
     vector<const wcoe::Reflector*> reflectorVec;
@@ -77,6 +78,7 @@ struct ReflectorData {
     vector<const wcoe::ModelSkelly*> modelSkellyVec;
     vector<const wcoe::PointLight*> pointLightVec;
     vector<const wcoe::SpotLight*> spotLightVec;
+    vector<const wcoe::Decal*> decalVec;
     const wcoe::Reflector& rflct;
 };
 
@@ -89,10 +91,6 @@ struct EmitterData {
 
 
 class Renderer final : NonCopyable {
-friend class Shadows;
-friend class Gbuffers;
-friend class Lighting;
-friend class Pretties;
 public:
     Renderer(const sq::Settings& _settings, const sq::PreProcessor& _preprocs,
              const sq::Pipeline& _pipeline, const wcoe::World& _world);
@@ -102,7 +100,6 @@ public:
     void update_settings();
 
     // E //////
-    void render_reflections();
     void render_particles();
 
     vector<wcoe::SpotLight*> spotLightVec;
@@ -121,27 +118,20 @@ public:
     vector<EmitterData> emitterDataVec;
 
     const sq::Camera* camera = nullptr;
-    const wcoe::SkyLight* skylight = nullptr;
 
     struct {
-        sq::TextureMut2D* pshadA = nullptr;
-        sq::TextureMut2D* pshadB = nullptr;
-        sq::TextureMut2D* reflDpSt = nullptr;
-        sq::TextureMut2D* reflDiff = nullptr;
-        sq::TextureMut2D* reflSurf = nullptr;
-        sq::TextureMut2D* partDpSt = nullptr;
-        sq::TextureMut2D* partMain = nullptr;
-        sq::TextureMut2D* hdrRefl = nullptr;
-        sq::TextureMut2D* hdrPart = nullptr;
+        sq::Texture2D* pshadA = nullptr;
+        sq::Texture2D* pshadB = nullptr;
+        sq::Texture2D* partDpSt = nullptr;
+        sq::Texture2D* partMain = nullptr;
+        sq::Texture2D* hdrPart = nullptr;
     } TX;
 
     struct {
         sq::FrameBuffer* pshadA = nullptr;
         sq::FrameBuffer* pshadB = nullptr;
-        sq::FrameBuffer* defrRefl = nullptr;
         sq::FrameBuffer* defrPart = nullptr;
         sq::FrameBuffer* hdrPart = nullptr;
-        sq::FrameBuffer* hdrRefl = nullptr;
     } FB;
 
     struct {
@@ -165,11 +155,14 @@ public:
     unique_ptr<Gbuffers> gbuffers;
     unique_ptr<Lighting> lighting;
     unique_ptr<Pretties> pretties;
+    unique_ptr<Reflects> reflects;
 
 private:
-
-    sq::Shader VS_defr_reflector {gl::VERTEX_SHADER};
-    sq::Shader FS_defr_reflector {gl::FRAGMENT_SHADER};
+    friend class Shadows;
+    friend class Gbuffers;
+    friend class Lighting;
+    friend class Pretties;
+    friend class Reflects;
 
     sq::Shader VS_part_soft_vertex {gl::VERTEX_SHADER};
     sq::Shader GS_part_soft_geometry {gl::GEOMETRY_SHADER};

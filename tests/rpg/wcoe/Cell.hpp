@@ -9,16 +9,17 @@ class World;
 
 class Cell final : NonCopyable {
 public:
-    Cell(const string& _name, World* _world);
-    void refresh(); void tick();
+    Cell(const string& _name, World& _world);
+
+    void refresh(), update();
     void calc(double _accum);
     void invalidate();
 
     const string name;
-    World* const world;
+    World& world;
 
-    bool DAT_enabled = false;
-    fvec3 DAT_position = {0, 0, 0};
+    bool PROP_enabled = false;
+    fvec3 PROP_position = {0, 0, 0};
 
     template<class T>
     T* add_object(const string& _name);

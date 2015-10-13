@@ -2,9 +2,6 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <sqee/gl/UniformBuffer.hpp>
-#include <sqee/gl/FrameBuffer.hpp>
-#include <sqee/gl/Textures.hpp>
 #include <sqee/maths/Culling.hpp>
 #include <sqee/maths/General.hpp>
 
@@ -15,9 +12,8 @@
 using namespace sqt::wcoe;
 
 Emitter::Emitter(const string& _name, Cell* _cell) : Object(_name, _cell) {
-    ubo.reset(new sq::UniformBuffer());
-    ubo->reserve("matrix", 16);
-    ubo->allocate_storage();
+    ubo.reserve("matrix", 16u);
+    ubo.allocate_storage();
 }
 
 void Emitter::load_from_spec(const ObjSpec& _spec) {
@@ -32,11 +28,11 @@ Emitter::Particle::Particle(fvec3 _origin, fvec3 _target, fvec3 _colour, float _
 }
 
 
-void Emitter::emit_puff(uint _count,
-                        fvec3 _normal, fvec3 _colour,
-                        float _scaleMin, float _scaleMax,
-                        float _radiusMin, float _radiusMax,
-                        uint _lifeMin, uint _lifeMax) {
+void Emitter::FUNC_emit_puff(uint _count,
+                             fvec3 _normal, fvec3 _colour,
+                             float _scaleMin, float _scaleMax,
+                             float _radiusMin, float _radiusMax,
+                             uint _lifeMin, uint _lifeMax) {
     std::random_device rd; std::mt19937 gen(rd());
     std::uniform_int_distribution<uint> distLife(_lifeMin, _lifeMax);
     std::uniform_real_distribution<float> distScale(_scaleMin, _scaleMax);
@@ -54,23 +50,23 @@ void Emitter::emit_puff(uint _count,
         float scale = distScale(gen);
         float radius = distRadius(gen);
 
-        particleList.emplace_front(PROP_position + cell->DAT_position,
-                                   PROP_position + cell->DAT_position
+        particleList.emplace_front(PROP_position + cell->PROP_position,
+                                   PROP_position + cell->PROP_position
                                    + normal * radius, _colour, scale, life);
     }
 }
 
 
 void Emitter::refresh() {
-    if (check_invalid() == true) {
-        position = PROP_position + cell->DAT_position;
+    if (revalidate() == true) {
+        position = PROP_position + cell->PROP_position;
     }
 
     animate();
 }
 
 
-void Emitter::tick() {
+void Emitter::update() {
     for (auto& p : particleList) { p.crntA = p.nextA; p.crntB = p.nextB;
         float percent = float(++p.progress) / p.life; p.nextB.a = 1.f - percent;
         fvec3 pos = glm::mix(p.origin, p.target, (glm::sqrt(percent) + percent) / 2.f);

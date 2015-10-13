@@ -1,5 +1,8 @@
 #pragma once
 
+#include <sqee/gl/UniformBuffer.hpp>
+#include <sqee/gl/Textures.hpp>
+
 #include "../Object.hpp"
 #include "../Animation.hpp"
 
@@ -8,9 +11,12 @@ namespace sqt { namespace wcoe {
 class SpotLight : public Object {
 public:
     SpotLight(const string& _name, Cell* _cell);
+
     void load_from_spec(const ObjSpec& _spec);
-    void refresh(); void tick();
+
+    void refresh(), update();
     void calc(double _accum);
+    void animate();
 
     bool  PROP_shadow    = false;
     bool  PROP_specular  = false;
@@ -29,10 +35,9 @@ public:
     AnimatorFloat ANIM_intensity {&PROP_intensity};
     AnimatorFloat ANIM_softness  {&PROP_softness};
     AnimatorFloat ANIM_angle     {&PROP_angle};
-    void animate();
 
-    unique_ptr<sq::UniformBuffer> ubo;
-    unique_ptr<sq::Texture2D> tex;
+    sq::UniformBuffer ubo;
+    sq::Texture2D tex;
     sq::Frustum frus;
     fmat4 modelMat;
     fmat4 matrix;

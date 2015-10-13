@@ -2,7 +2,6 @@
 #include <sqee/forward.hpp>
 
 #include <sqee/misc/ResHolder.hpp>
-#include <sqee/physics/RP3D.hpp>
 
 namespace sq {
 

@@ -65,7 +65,7 @@ OBJSPEC_SET_TEMPLATE(string, stringMap)
 
 
 Object::Object(const string& _name, Cell* _cell) : name(_name), cell(_cell),
-    world(cell->world), camera(world->camera), settings(world->settings) {}
+    world(_cell->world), settings(_cell->world.settings) {}
 
-bool Object::check_invalid() { bool iv = invalid; invalid = false; return iv; }
 void Object::invalidate() { invalid = true; }
+bool Object::revalidate() { bool iv = invalid; invalid = false; return iv; }

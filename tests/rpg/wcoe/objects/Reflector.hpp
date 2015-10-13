@@ -1,5 +1,7 @@
 #pragma once
 
+#include <sqee/gl/UniformBuffer.hpp>
+
 #include "../Object.hpp"
 #include "../Animation.hpp"
 
@@ -8,9 +10,12 @@ namespace sqt { namespace wcoe {
 class Reflector : public Object {
 public:
     Reflector(const string& _name, Cell* _cell);
+
     void load_from_spec(const ObjSpec& _spec);
-    void refresh(); void tick();
+
+    void refresh(), update();
     void calc(double _accum);
+    void animate();
 
     bool   PROP_shadow   = false;
     bool   PROP_decals   = false;
@@ -26,11 +31,10 @@ public:
     AnimatorFQuat ANIM_rotation {&PROP_rotation};
     AnimatorFVec3 ANIM_scale    {&PROP_scale};
     AnimatorFloat ANIM_factor   {&PROP_factor};
-    void animate();
 
-    unique_ptr<sq::UniformBuffer> ubo;
     sq::Mesh* mesh = nullptr;
     sq::Skin* skin = nullptr;
+    sq::UniformBuffer ubo;
     fvec3 trans, normal;
     sq::BoundBox bbox;
     sq::Frustum frus;

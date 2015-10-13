@@ -1,11 +1,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <sqee/redist/gl_ext_4_2.hpp>
-#include <sqee/app/Settings.hpp>
-#include <sqee/gl/UniformBuffer.hpp>
-#include <sqee/gl/Textures.hpp>
 #include <sqee/maths/Culling.hpp>
 #include <sqee/maths/General.hpp>
+#include <sqee/app/Settings.hpp>
 
 #include "../Cell.hpp"
 #include "../World.hpp"
@@ -13,14 +11,15 @@
 
 using namespace sqt::wcoe;
 
-PointLight::PointLight(const string& _name, Cell* _cell) : Object(_name, _cell) {
-    ubo.reset(new sq::UniformBuffer());
-    ubo->reserve("position", 4);
-    ubo->reserve("colour", 3);
-    ubo->reserve("intensity", 1);
-    ubo->reserve("matArr", 6*16);
-    ubo->reserve("modelMat", 16);
-    ubo->allocate_storage();
+PointLight::PointLight(const string& _name, Cell* _cell) : Object(_name, _cell),
+    tex(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT16, sq::Texture::ShadowMap()) {
+
+    ubo.reserve("position", 4u);
+    ubo.reserve("colour", 3u);
+    ubo.reserve("intensity", 1u);
+    ubo.reserve("matArr", 96u);
+    ubo.reserve("modelMat", 16u);
+    ubo.allocate_storage();
 }
 
 void PointLight::load_from_spec(const ObjSpec& _spec) {
@@ -34,29 +33,17 @@ void PointLight::load_from_spec(const ObjSpec& _spec) {
 }
 
 void PointLight::refresh() {
-    bool recreateTexture = false;
-
-    if (check_invalid()) {
-        if (PROP_shadow == true)
-            recreateTexture = true;
-        else tex.reset();
-    }
-
-    if (PROP_shadow && settings.check<bool>("rpg_shadlarge"))
-        recreateTexture = true;
-
-    if (recreateTexture == true) {
-        tex.reset(new sq::TextureCube());
-        bool shadlarge = settings.get<bool>("rpg_shadlarge");
-        tex->create(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT16, 1u, false);
-        tex->allocate_storage(PROP_texsize * (1u + shadlarge));
-        tex->set_preset(sq::Texture::ShadowMap());
+    if (revalidate() == true) {
+        if (PROP_shadow == true) {
+            uint shadMult = settings.get<bool>("rpg_shadlarge") + 1u;
+            tex.allocate_storage(PROP_texsize * shadMult, false);
+        } else tex.delete_object();
     }
 
     animate();
 }
 
-void PointLight::tick() {
+void PointLight::update() {
     bool doFinish = false;
     if (ANIM_position.active())  if (ANIM_position.tick())  doFinish = true;
     if (ANIM_colour.active())    if (ANIM_colour.tick())    doFinish = true;
@@ -73,7 +60,7 @@ void PointLight::calc(double _accum) {
 }
 
 void PointLight::animate() {
-    fvec3 position = PROP_position + cell->DAT_position;
+    fvec3 position = PROP_position + cell->PROP_position;
     fmat4 projMat = glm::perspective(glm::radians(90.f), 1.f, 0.1f, PROP_intensity);
     matArr[0] = projMat * glm::lookAt(position, position+fvec3(+1.f, 0.f, 0.f), fvec3(0.f, -1.f, 0.f));
     matArr[1] = projMat * glm::lookAt(position, position+fvec3(-1.f, 0.f, 0.f), fvec3(0.f, -1.f, 0.f));
@@ -90,9 +77,9 @@ void PointLight::animate() {
     modelMat = glm::scale(glm::translate(fmat4(), position), fvec3(PROP_intensity*2.f));
     sphere.origin = position; sphere.radius = PROP_intensity;
 
-    ubo->update("position", &position);
-    ubo->update("colour", &PROP_colour);
-    ubo->update("intensity", &PROP_intensity);
-    ubo->update("matArr", matArr.data());
-    ubo->update("modelMat", &modelMat);
+    ubo.update("position", &position);
+    ubo.update("colour", &PROP_colour);
+    ubo.update("intensity", &PROP_intensity);
+    ubo.update("matArr", matArr.data());
+    ubo.update("modelMat", &modelMat);
 }

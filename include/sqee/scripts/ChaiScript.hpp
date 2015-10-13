@@ -1,11 +1,8 @@
 #pragma once
 #include <sqee/forward.hpp>
 
-#include <chaiscript/chaiscript.hpp>
-
-#undef bool
-
-namespace chai = chaiscript;
+#include <chaiscript/language/chaiscript_eval.hpp>
+#include <chaiscript/language/chaiscript_engine.hpp>
 
 namespace sq {
 

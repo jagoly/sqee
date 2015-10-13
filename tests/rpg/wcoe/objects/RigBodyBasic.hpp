@@ -1,9 +1,9 @@
 #pragma once
 
-#include <sqee/physics/RP3D.hpp>
-
 #include "../Object.hpp"
 #include "../Animation.hpp"
+
+namespace reactphysics3d { class RigidBody; }
 
 namespace sqt { namespace wcoe {
 
@@ -15,16 +15,17 @@ class Emitter;
 class RigBodyBasic : public Object {
 public:
     RigBodyBasic(const string& _name, Cell* _cell);
+
     void load_from_spec(const ObjSpec& _spec);
-    void refresh(); void tick();
+
+    void refresh(), update();
     void calc(double _accum);
+    void animate();
 
     fvec3  PROP_scale    = {1.f, 1.f, 1.f};
     string PROP_physobj  = "";
 
     void FUNC_set_ModelSimple(ModelSimple* _object);
-
-    void animate();
 
     sq::PhysObject* physobj = nullptr;
     rp3d::RigidBody* rigBody = nullptr;

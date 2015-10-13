@@ -1,5 +1,7 @@
 #pragma once
 
+#include <sqee/gl/UniformBuffer.hpp>
+
 #include "../Object.hpp"
 #include "../Animation.hpp"
 
@@ -8,9 +10,12 @@ namespace sqt { namespace wcoe {
 class ModelSkelly : public Object {
 public:
     ModelSkelly(const string& _name, Cell* _cell);
+
     void load_from_spec(const ObjSpec& _spec);
-    void refresh(); void tick();
+
+    void refresh(), update();
     void calc(double _accum);
+    void animate();
 
     bool   PROP_shadow   = false;
     bool   PROP_decals   = false;
@@ -27,16 +32,15 @@ public:
     AnimatorFVec3 ANIM_position {&PROP_position};
     AnimatorFQuat ANIM_rotation {&PROP_rotation};
     AnimatorFVec3 ANIM_scale    {&PROP_scale};
-    void animate();
 
     void FUNC_stop(uint _time);
     void FUNC_loop(uint _time);
     void FUNC_play(uint _timeA, uint _timeB);
 
-    unique_ptr<sq::UniformBuffer> ubo;
     sq::Armature* arma = nullptr;
     sq::Mesh* mesh = nullptr;
     sq::Skin* skin = nullptr;
+    sq::UniformBuffer ubo;
     sq::Sphere sphere;
     bool negScale;
     fmat4 matrix;

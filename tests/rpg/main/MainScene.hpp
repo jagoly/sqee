@@ -27,23 +27,17 @@ private:
 
 
     struct {
-        unique_ptr<sq::TextureMut2D> pshadA;
-        unique_ptr<sq::TextureMut2D> pshadB;
-        unique_ptr<sq::TextureMut2D> reflDiff;
-        unique_ptr<sq::TextureMut2D> reflSurf;
-        unique_ptr<sq::TextureMut2D> reflDpSt;
-        unique_ptr<sq::TextureMut2D> partMain;
-        unique_ptr<sq::TextureMut2D> partDpSt;
-        unique_ptr<sq::TextureMut2D> hdrRefl;
-        unique_ptr<sq::TextureMut2D> hdrPart;
+        unique_ptr<sq::Texture2D> pshadA;
+        unique_ptr<sq::Texture2D> pshadB;
+        unique_ptr<sq::Texture2D> partMain;
+        unique_ptr<sq::Texture2D> partDpSt;
+        unique_ptr<sq::Texture2D> hdrPart;
     } TX;
 
     struct {
         unique_ptr<sq::FrameBuffer> pshadA;
         unique_ptr<sq::FrameBuffer> pshadB;
-        unique_ptr<sq::FrameBuffer> defrRefl;
         unique_ptr<sq::FrameBuffer> defrPart;
-        unique_ptr<sq::FrameBuffer> hdrRefl;
         unique_ptr<sq::FrameBuffer> hdrPart;
     } FB;
 

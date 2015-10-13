@@ -4,6 +4,7 @@
 #include <rp3d/collision/shapes/SphereShape.hpp>
 
 #include <sqee/physics/PhysObject.hpp>
+#include <sqee/physics/VecTypes.hpp>
 #include <sqee/maths/General.hpp>
 
 #include "../Cell.hpp"
@@ -22,12 +23,12 @@ void RigBodyBasic::load_from_spec(const ObjSpec& _spec) {
 }
 
 void RigBodyBasic::refresh() {
-    if (check_invalid() == true) {
+    if (revalidate() == true) {
         if ((physobj = sq::res::phys().get(PROP_physobj)) == nullptr)
             physobj = sq::res::phys().add(PROP_physobj),
             physobj->create(PROP_physobj);
 
-        if (rigBody != nullptr) cell->world->physWorld->destroyRigidBody(rigBody);
+        if (rigBody != nullptr) world.physWorld->destroyRigidBody(rigBody);
 
         if (objectPtr != nullptr) {
             if (typeid(objectPtr) == typeid(ModelSimple)) {
@@ -37,9 +38,9 @@ void RigBodyBasic::refresh() {
             }
             positionCrnt = positionNext = *positionPtr;
             rotationCrnt = rotationNext = *rotationPtr;
-            rigBody = cell->world->physWorld->createRigidBody(rp3d::Transform(
+            rigBody = world.physWorld->createRigidBody(rp3d::Transform(
                 sq::rp3d_cast(*positionPtr), sq::rp3d_cast(*rotationPtr)));
-        } else rigBody = cell->world->physWorld->createRigidBody(rp3d::Transform());
+        } else rigBody = world.physWorld->createRigidBody(rp3d::Transform());
 
         if (physobj->bodyType == sq::PhysObject::BodyType::STATIC)
             rigBody->setType(rp3d::BodyType::STATIC);
@@ -68,7 +69,7 @@ void RigBodyBasic::refresh() {
     animate();
 }
 
-void RigBodyBasic::tick() {
+void RigBodyBasic::update() {
     bool doFinish = false;
     if (doFinish == true) animate();
 
@@ -91,8 +92,7 @@ void RigBodyBasic::calc(double _accum) {
     }
 }
 
-void RigBodyBasic::animate() {
-}
+void RigBodyBasic::animate() {}
 
 
 void RigBodyBasic::FUNC_set_ModelSimple(ModelSimple* _object) {

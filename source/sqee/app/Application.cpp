@@ -5,12 +5,14 @@
 #include <sqee/debug/Logging.hpp>
 #include <sqee/debug/OpenGL.hpp>
 #include <sqee/sounds/SoundManager.hpp>
-#include <sqee/scripts/Intergration.hpp>
+#include <sqee/scripts/ChaiScript.hpp>
+#include <sqee/scripts/BasicSetup.hpp>
 #include <sqee/handlers/Handler.hpp>
 #include <sqee/scenes/Scene.hpp>
 #include <sqee/app/Application.hpp>
 
 using namespace sq;
+
 
 Application::~Application() = default;
 
@@ -35,6 +37,10 @@ Application::Application() : overlay(this), console(this) {
 
     cs.reset(make_ChaiScript());
 
+    cs_setup_app(*cs);
+    cs_setup_render(*cs);
+    cs_setup_maths(*cs);
+
     settings.add<int>("app_fpslimit", 0);
     settings.add<bool>("app_keyrepeat", false);
     settings.add<bool>("app_resizable", false);
@@ -43,10 +49,6 @@ Application::Application() : overlay(this), console(this) {
     settings.add<int>("app_width", 800u);
     settings.add<int>("app_height", 600u);
     settings.add<string>("app_title", "SQEE Application");
-
-    cs_setup_app(*cs);
-    cs_setup_render(*cs);
-    cs_setup_maths(*cs);
 
     cs->add_global(chai::var(this), "app");
 
