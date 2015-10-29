@@ -1,5 +1,9 @@
 #pragma once
-#include <sqee/forward.hpp>
+
+#include <sqee/gl/UniformBuffer.hpp>
+#include <sqee/maths/Vectors.hpp>
+#include <sqee/maths/Matrices.hpp>
+#include <sqee/maths/Volumes.hpp>
 
 namespace sq {
 
@@ -11,18 +15,18 @@ public:
 
     virtual void update();
 
-    fvec3 pos;
-    fvec3 dir;
+    Vec3F pos;
+    Vec3F dir;
     float rmin;
     float rmax;
-    fvec2 size;
+    Vec2F size;
     float fov;
 
-    fmat4 projMat;
-    fmat4 viewMat;
+    Mat4F projMat;
+    Mat4F viewMat;
     Frustum frus;
 
-    unique_ptr<UniformBuffer> ubo;
+    UniformBuffer ubo;
 };
 
 }

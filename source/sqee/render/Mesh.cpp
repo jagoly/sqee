@@ -1,9 +1,11 @@
 #include <cstring>
+#include <stdexcept>
 
 #include <sqee/redist/gl_ext_4_2.hpp>
 #include <sqee/redist/tinyformat.hpp>
 #include <sqee/gl/FixedBuffer.hpp>
 #include <sqee/gl/VertexArray.hpp>
+#include <sqee/app/Resources.hpp>
 #include <sqee/maths/General.hpp>
 #include <sqee/render/Mesh.hpp>
 #include <sqee/misc/Files.hpp>
@@ -13,23 +15,25 @@ using namespace sq;
 template<typename... Args>
 void throw_error(const string& _path, int _lnum, const string& _msg, const Args&... _args) {
     string message = tfm::format("Parsing SQM \"%s\"\nline %d: ", _path, _lnum);
-    throw runtime_error(message + tfm::format(_msg.c_str(), _args...));
+    throw std::runtime_error(message + tfm::format(_msg.c_str(), _args...));
 }
 
 Mesh::~Mesh() = default;
 
-Mesh::Mesh(const string& _path) {
+Mesh::Mesh() : vertBuf(gl::ARRAY_BUFFER), elemBuf(gl::ELEMENT_ARRAY_BUFFER) { vertArr.set_element_buffer(elemBuf); }
+
+Mesh::Mesh(const string& _path) : Mesh() {
     create(_path);
 }
 
 void Mesh::create(const string& _path) {
-    string path = res::path() + "meshes/" + _path + ".sqm";
-    if (get_file_first_byte(path) == '#') load_ascii(path);
+    string path = static_path() + "meshes/" + _path + ".sqm";
+    if (get_file_first_char(path) == '#') load_ascii(path);
     else load_binary(path);
 }
 
 void Mesh::bind_vao() const {
-    vertArr->bind();
+    vertArr.bind();
 }
 
 void Mesh::draw_complete() const {
@@ -154,11 +158,6 @@ void Mesh::load_binary(const string& _path) {
 }
 
 void Mesh::load_final(const VertData& _v, const FaceData& _f) {
-    vertArr.reset(new VertexArray());
-    vertBuf.reset(new FixedBuffer(gl::ARRAY_BUFFER));
-    elemBuf.reset(new FixedBuffer(gl::ELEMENT_ARRAY_BUFFER));
-    vertArr->set_element_buffer(*elemBuf);
-
     size_t ptOffs = 0u;
     size_t nmOffs = vertCount * 12u;
     size_t tnOffs = vertCount * 24u;
@@ -168,25 +167,25 @@ void Mesh::load_final(const VertData& _v, const FaceData& _f) {
 
     size_t vSize = 12 + hasNorm*28 + hasTcrd*8 + hasColr*12 + hasBone*64;
 
-    vertBuf->allocate_editable(vertCount*vSize, nullptr);
-    vertBuf->update(ptOffs, vertCount * 12u, _v.points.data());
-    vertArr->add_attribute(*vertBuf, 0u, ptOffs, 12u, 3u, gl::FLOAT, false);
+    vertBuf.allocate_editable(vertCount*vSize, nullptr);
+    vertBuf.update(ptOffs, vertCount * 12u, _v.points.data());
+    vertArr.add_attribute(vertBuf, 0u, ptOffs, 12u, 3u, gl::FLOAT, false);
 
     if (hasNorm == true) {
-        vertBuf->update(nmOffs, vertCount * 12u, _v.normals.data());
-        vertBuf->update(tnOffs, vertCount * 16u, _v.tangents.data());
-        vertArr->add_attribute(*vertBuf, 1u, nmOffs, 12u, 3u, gl::FLOAT, false);
-        vertArr->add_attribute(*vertBuf, 2u, tnOffs, 16u, 4u, gl::FLOAT, false);
+        vertBuf.update(nmOffs, vertCount * 12u, _v.normals.data());
+        vertBuf.update(tnOffs, vertCount * 16u, _v.tangents.data());
+        vertArr.add_attribute(vertBuf, 1u, nmOffs, 12u, 3u, gl::FLOAT, false);
+        vertArr.add_attribute(vertBuf, 2u, tnOffs, 16u, 4u, gl::FLOAT, false);
     }
 
     if (hasTcrd == true) {
-        vertBuf->update(tcOffs, vertCount * 8u, _v.texcrds.data());
-        vertArr->add_attribute(*vertBuf, 3u, tcOffs, 8u, 2u, gl::FLOAT, false);
+        vertBuf.update(tcOffs, vertCount * 8u, _v.texcrds.data());
+        vertArr.add_attribute(vertBuf, 3u, tcOffs, 8u, 2u, gl::FLOAT, false);
     }
 
     if (hasColr == true) {
-        vertBuf->update(clOffs, vertCount * 12u, _v.colours.data());
-        vertArr->add_attribute(*vertBuf, 4u, clOffs, 12u, 3u, gl::FLOAT, false);
+        vertBuf.update(clOffs, vertCount * 12u, _v.colours.data());
+        vertArr.add_attribute(vertBuf, 4u, clOffs, 12u, 3u, gl::FLOAT, false);
     }
 
     if (hasBone == true) {
@@ -196,23 +195,18 @@ void Mesh::load_final(const VertData& _v, const FaceData& _f) {
             std::memcpy(data + i * 64 + 16, &_v.bonesB.at(i), 16u);
             std::memcpy(data + i * 64 + 32, &_v.weightsA.at(i), 16u);
             std::memcpy(data + i * 64 + 48, &_v.weightsB.at(i), 16u);
-        } vertBuf->update(bwOffs, vertCount * 64u, data); delete[] data;
-        vertArr->add_attribute_I(*vertBuf, 5u, bwOffs + 00u, 64u, 4u, gl::INT);
-        vertArr->add_attribute_I(*vertBuf, 6u, bwOffs + 16u, 64u, 4u, gl::INT);
-        vertArr->add_attribute(*vertBuf, 7u, bwOffs + 32u, 64u, 4u, gl::FLOAT, false);
-        vertArr->add_attribute(*vertBuf, 8u, bwOffs + 48u, 64u, 4u, gl::FLOAT, false);
+        } vertBuf.update(bwOffs, vertCount * 64u, data); delete[] data;
+        vertArr.add_attribute_I(vertBuf, 5u, bwOffs + 00u, 64u, 4u, gl::INT);
+        vertArr.add_attribute_I(vertBuf, 6u, bwOffs + 16u, 64u, 4u, gl::INT);
+        vertArr.add_attribute(vertBuf, 7u, bwOffs + 32u, 64u, 4u, gl::FLOAT, false);
+        vertArr.add_attribute(vertBuf, 8u, bwOffs + 48u, 64u, 4u, gl::FLOAT, false);
     }
 
-    vector<uvec3> faceData; uint start = 0u;
+    vector<Vec3U> faceData; uint start = 0u;
     for (uint i = 0u; i < mtrlCount; ++i) {
         mtrlVec.emplace_back(start, _f[i].size() * 3u);
         start += mtrlVec.back().second * 4u;
         faceData.insert(faceData.end(), _f[i].begin(), _f[i].end());
-    } elemBuf->allocate_constant(faceData.size() * 12u, faceData.data());
+    } elemBuf.allocate_constant(faceData.size() * 12u, faceData.data());
     elementTotal = faceData.size() * 3u;
-}
-
-ResHolder<Mesh>& sq::res::mesh() {
-    static ResHolder<Mesh> holder;
-    return holder;
 }

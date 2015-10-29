@@ -1,12 +1,17 @@
 #pragma once
-#include <sqee/forward.hpp>
-#include <functional>
-#include <deque>
 
+#include <deque>
+#include <functional>
+
+#include <sqee/builtins.hpp>
 #include <sqee/misc/OrderedMap.hpp>
+
+// Forward Declarations /////
+namespace sq { class Application; }
 
 namespace sq {
 
+/// The SQEE Debug Overlay
 class DebugOverlay final : NonCopyable {
 public:
     DebugOverlay(const Application* _app);

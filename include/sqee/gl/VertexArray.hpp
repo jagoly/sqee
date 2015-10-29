@@ -1,13 +1,16 @@
 #pragma once
-#include <sqee/forward.hpp>
+
+#include <sqee/setup.hpp>
+
+// Forward Declarations /////
+namespace sq { class FixedBuffer; class DynamicBuffer; }
 
 namespace sq {
 
 /// A class for OpenGL vertex array objects
 class VertexArray final : NonCopyable {
 public:
-    VertexArray();
-    ~VertexArray();
+    VertexArray(); ~VertexArray();
 
     /// Add a float attribute from a fixed size buffer
     void add_attribute(const FixedBuffer& _buffer, uint _index, uint _offs,

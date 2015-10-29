@@ -1,18 +1,21 @@
 #pragma once
-#include <sqee/forward.hpp>
+
 #include <unordered_map>
+
+#include <sqee/builtins.hpp>
 
 #include "Cell.hpp"
 #include "Object.hpp"
 #include "Animation.hpp"
 
+namespace sq { class Camera; }
 namespace reactphysics3d { class DynamicsWorld; }
 
 namespace sqt { namespace wcoe {
 
 class SkyBox; class Ambient; class SkyLight;
 
-class World final : NonCopyable {
+class World final : sq::NonCopyable {
 public:
     World(const sq::Settings& _settings, const sq::Camera* _camera);
     ~World();
@@ -44,7 +47,7 @@ template<class T>
 vector<T*> World::filtered() const {
     vector<T*> retVec;
     for (Object* obj : objectList)
-        if (typeid(*obj) == typeid(T))
+        if (obj->type == typeid(T))
             retVec.push_back(static_cast<T*>(obj));
     return retVec;
 }

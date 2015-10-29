@@ -44,7 +44,7 @@ void Shadows::render_shadows_sky() {
 
     for (uint csm = 0u; csm < 4u; ++csm) {
         FB_shadows.attach(gl::DEPTH_ATTACHMENT, light.texA, csm);
-        sq::CLEAR_DEPTH(); const fmat4& matrix = light.matArrA[csm];
+        sq::CLEAR_DEPTH(); const Mat4F& matrix = light.matArrA[csm];
 
         renderer.pipeline.disable_stages(0, 0, 1);
         renderer.pipeline.use_shader(VS_shad_simple);
@@ -69,7 +69,7 @@ void Shadows::render_shadows_sky() {
 
     for (uint csm = 0u; csm < 2u; ++csm) {
         FB_shadows.attach(gl::DEPTH_ATTACHMENT, light.texB, csm);
-        sq::CLEAR_DEPTH(); const fmat4& matrix = light.matArrB[csm];
+        sq::CLEAR_DEPTH(); const Mat4F& matrix = light.matArrB[csm];
 
         renderer.pipeline.disable_stages(0, 0, 1);
         renderer.pipeline.use_shader(VS_shad_simple);
@@ -100,7 +100,7 @@ void Shadows::render_shadows_sky() {
 void Shadows::render_shadows_spot() {
     for (const SpotLightData& data : renderer.spotLightDataVec) {
         FB_shadows.attach(gl::DEPTH_ATTACHMENT, data.light.tex);
-        sq::CLEAR_DEPTH(); const fmat4& matrix = data.light.matrix;
+        sq::CLEAR_DEPTH(); const Mat4F& matrix = data.light.matrix;
         sq::VIEWPORT(data.light.tex.get_size());
 
         renderer.pipeline.disable_stages(0, 0, 1);
@@ -135,7 +135,7 @@ void Shadows::render_shadows_point() {
         for (uint face = 0u; face < 6u; ++face) {
             if (data.cullShadowFaceArr[face]) continue;
             FB_shadows.attach(gl::DEPTH_ATTACHMENT, data.light.tex, face);
-            sq::CLEAR_DEPTH(); const fmat4& matrix = data.light.matArr[face];
+            sq::CLEAR_DEPTH(); const Mat4F& matrix = data.light.matArr[face];
 
             renderer.pipeline.disable_stages(0, 0, 1);
             renderer.pipeline.use_shader(VS_shad_simple);
@@ -163,14 +163,19 @@ void Shadows::render_shadows_point() {
 }
 
 
-void Shadows::draw_Reflector(fmat4 _lightMat, const wcoe::Reflector& _rflct) {
-    VS_shad_simple.set_mat<fmat4>("matrix", _lightMat * _rflct.matrix);
+void Shadows::update_settings() {
+
+}
+
+
+void Shadows::draw_Reflector(const Mat4F& _lightMat, const wcoe::Reflector& _rflct) {
+    VS_shad_simple.set_mat<Mat4F>("matrix", _lightMat * _rflct.matrix);
     sq::FRONTFACE(_rflct.negScale); _rflct.mesh->bind_vao();
     _rflct.mesh->draw_complete();
 }
 
-void Shadows::draw_Reflector_punch(fmat4 _lightMat, const wcoe::Reflector& _rflct) {
-    VS_shad_simple.set_mat<fmat4>("matrix", _lightMat * _rflct.matrix);
+void Shadows::draw_Reflector_punch(const Mat4F& _lightMat, const wcoe::Reflector& _rflct) {
+    VS_shad_simple.set_mat<Mat4F>("matrix", _lightMat * _rflct.matrix);
     sq::FRONTFACE(_rflct.negScale); _rflct.mesh->bind_vao();
     for (uint i = 0u; i < _rflct.mesh->mtrlCount; ++i) {
         if (_rflct.skin->mtrlVec[i].punch == true)
@@ -181,14 +186,14 @@ void Shadows::draw_Reflector_punch(fmat4 _lightMat, const wcoe::Reflector& _rflc
     }
 }
 
-void Shadows::draw_ModelSimple(fmat4 _lightMat, const wcoe::ModelSimple& _model) {
-    VS_shad_simple.set_mat<fmat4>("matrix", _lightMat * _model.matrix);
+void Shadows::draw_ModelSimple(const Mat4F& _lightMat, const wcoe::ModelSimple& _model) {
+    VS_shad_simple.set_mat<Mat4F>("matrix", _lightMat * _model.matrix);
     sq::FRONTFACE(_model.negScale); _model.mesh->bind_vao();
     _model.mesh->draw_complete();
 }
 
-void Shadows::draw_ModelSimple_punch(fmat4 _lightMat, const wcoe::ModelSimple& _model) {
-    VS_shad_simple.set_mat<fmat4>("matrix", _lightMat * _model.matrix);
+void Shadows::draw_ModelSimple_punch(const Mat4F& _lightMat, const wcoe::ModelSimple& _model) {
+    VS_shad_simple.set_mat<Mat4F>("matrix", _lightMat * _model.matrix);
     sq::FRONTFACE(_model.negScale); _model.mesh->bind_vao();
     for (uint i = 0u; i < _model.mesh->mtrlCount; ++i) {
         if (_model.skin->mtrlVec[i].punch == true)
@@ -199,14 +204,14 @@ void Shadows::draw_ModelSimple_punch(fmat4 _lightMat, const wcoe::ModelSimple& _
     }
 }
 
-void Shadows::draw_ModelSkelly(fmat4 _lightMat, const wcoe::ModelSkelly& _model) {
-    VS_shad_skelly.set_mat<fmat4>("matrix", _lightMat * _model.matrix);
+void Shadows::draw_ModelSkelly(const Mat4F& _lightMat, const wcoe::ModelSkelly& _model) {
+    VS_shad_skelly.set_mat<Mat4F>("matrix", _lightMat * _model.matrix);
     sq::FRONTFACE(_model.negScale); _model.mesh->bind_vao();
     _model.ubo.bind(1u); _model.mesh->draw_complete();
 }
 
-void Shadows::draw_ModelSkelly_punch(fmat4 _lightMat, const wcoe::ModelSkelly& _model) {
-    VS_shad_skelly.set_mat<fmat4>("matrix", _lightMat * _model.matrix);
+void Shadows::draw_ModelSkelly_punch(const Mat4F& _lightMat, const wcoe::ModelSkelly& _model) {
+    VS_shad_skelly.set_mat<Mat4F>("matrix", _lightMat * _model.matrix);
     sq::FRONTFACE(_model.negScale); _model.mesh->bind_vao(); _model.ubo.bind(1u);
     for (uint i = 0u; i < _model.mesh->mtrlCount; ++i) {
         if (_model.skin->mtrlVec[i].punch == true)

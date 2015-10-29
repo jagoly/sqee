@@ -1,52 +1,53 @@
 #pragma once
-#include <sqee/forward.hpp>
-#include <unordered_set>
-#include <list>
 
-#include <glm/gtx/hash.hpp>
+#include <list>
+#include <set>
+
+#include <sqee/builtins.hpp>
+#include <sqee/maths/Vectors.hpp>
 
 namespace sqt {
 
 struct Ball {
     using Ptr = unique_ptr<Ball>;
-    fvec2 posCrnt, posNext;
+    Vec2F posCrnt, posNext;
     bool pushed, inhole;
-    ivec2 position;
+    Vec2I position;
 };
 
 struct Hole {
     using Ptr = unique_ptr<Hole>;
-    bool filled; ivec2 position;
+    bool filled; Vec2I position;
 };
 
 struct Wall {
     using Ptr = unique_ptr<Wall>;
     uchar connect, rotate;
-    ivec2 position;
+    Vec2I position;
 };
 
 class Level {
 public:
     struct Spec {
-        std::unordered_set<ivec2> ballSet;
-        std::unordered_set<ivec2> holeSet;
-        std::unordered_set<ivec2> wallSet;
-        ivec2 minPos = {0, 0};
-        ivec2 maxPos = {1, 1};
+        std::set<Vec2I> ballSet;
+        std::set<Vec2I> holeSet;
+        std::set<Vec2I> wallSet;
+        Vec2I minPos = {0, 0};
+        Vec2I maxPos = {1, 1};
     };
 
     Level(const Spec& _spec);
     std::list<unique_ptr<Ball>> ballList;
     std::list<unique_ptr<Hole>> holeList;
     std::list<unique_ptr<Wall>> wallList;
-    const ivec2 minPos, maxPos;
+    const Vec2I minPos, maxPos;
 
     void update();
 
-    Ball* get_Ball(ivec2 _pos);
-    Hole* get_Hole(ivec2 _pos);
-    Wall* get_Wall(ivec2 _pos);
-    bool outside(ivec2 _pos);
+    Ball* get_Ball(Vec2I _pos);
+    Hole* get_Hole(Vec2I _pos);
+    Wall* get_Wall(Vec2I _pos);
+    bool outside(Vec2I _pos);
 };
 
 }

@@ -30,7 +30,7 @@ void FrameBuffer::attach(GLenum _attach, const TextureCubeArray& _tex, uint _ind
 }
 
 
-void FrameBuffer::draw_buffers(initializer_list<GLenum> _drawBufs) const {
+void FrameBuffer::draw_buffers(std::initializer_list<GLenum> _drawBufs) const {
     gl::NamedFramebufferDrawBuffers(fbo, _drawBufs.size(), _drawBufs.begin());
 }
 
@@ -39,7 +39,7 @@ void FrameBuffer::bind() const {
 }
 
 
-void FrameBuffer::blit(const FrameBuffer& _other, uvec2 _sizeA, uvec2 _sizeB,
+void FrameBuffer::blit(const FrameBuffer& _other, Vec2U _sizeA, Vec2U _sizeB,
                        GLenum _mask, GLenum _filter) const {
     gl::BlitNamedFramebuffer(fbo, _other.fbo, 0, 0, _sizeA.x, _sizeA.y,
                              0, 0, _sizeB.x, _sizeB.y, _mask, _filter);

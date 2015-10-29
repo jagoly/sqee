@@ -1,6 +1,8 @@
 #pragma once
-#include <sqee/forward.hpp>
+
 #include <unordered_map>
+
+#include <sqee/builtins.hpp>
 
 namespace sq {
 
@@ -35,9 +37,5 @@ public:
 private:
     std::unordered_map<string, unique_ptr<T>> theMap;
 };
-
-namespace res {
-string& path();
-}
 
 }

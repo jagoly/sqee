@@ -1,18 +1,16 @@
 #pragma once
-#include <sqee/forward.hpp>
 
 #include <sqee/redist/gl_ext_4_2.hpp>
 #include <sqee/gl/FrameBuffer.hpp>
 #include <sqee/gl/Textures.hpp>
 #include <sqee/gl/Shaders.hpp>
+#include <sqee/maths/Vectors.hpp>
 
 #include "Renderer.hpp"
 
-namespace sqt {
-namespace rndr {
+namespace sqt { namespace rndr {
 
-class Pretties final : NonCopyable {
-friend class Lighting;
+class Pretties final : sq::NonCopyable {
 public:
     Pretties(const Renderer& _renderer);
 
@@ -20,13 +18,9 @@ public:
 
     void setup_render_state();
 
-    void render_ssao_texture();
-    void render_bloom_texture();
-    void render_shafts_texture();
-
-    void render_hdr_tonemap();
-    void render_fsaa_screen();
-    void render_vignette();
+    void render_post_gbuffers();
+    void render_post_lighting();
+    void render_final_screen();
 
 private:
     const Renderer& renderer;
@@ -54,6 +48,12 @@ private:
 
     sq::Shader FS_prty_fsaa_last {gl::FRAGMENT_SHADER};
     sq::Shader FS_prty_vignette {gl::FRAGMENT_SHADER};
+
+    Vec2U INFO_fullSize, INFO_halfSize, INFO_qterSize;
+    int INFO_ssao, INFO_shafts, INFO_fsaa;
+    bool INFO_bloom, INFO_vignette;
+
+    friend class Lighting;
 };
 
 }}

@@ -1,5 +1,7 @@
+#include <stdexcept>
+
 #include <sqee/redist/tinyformat.hpp>
-#include <sqee/misc/ResHolder.hpp>
+#include <sqee/app/Resources.hpp>
 #include <sqee/misc/Files.hpp>
 
 #include "objects/MetaObject.hpp"
@@ -20,7 +22,7 @@ using namespace sqt::wcoe;
 template<typename... Args>
 void throw_error(const string& _path, int _lnum, const string& _msg, const Args&... _args) {
     string message = tfm::format("Parsing SQ_CELL \"%s\"\nline %d: ", _path, _lnum);
-    throw runtime_error(message + tfm::format(_msg.c_str(), _args...));
+    throw std::runtime_error(message + tfm::format(_msg.c_str(), _args...));
 }
 
 
@@ -28,7 +30,7 @@ Cell::Cell(const string& _name, World& _world)
     : name(_name), world(_world) {}
 
 void Cell::load_from_file(const string& _path) {
-    string path = sq::res::path() + "cells/" + _path + ".sq_cell";
+    string path = sq::static_path() + "cells/" + _path + ".sq_cell";
     const auto fileVec = sq::tokenise_file(path);
 
     vector<ObjSpec> specVec;
@@ -71,17 +73,21 @@ void Cell::load_from_file(const string& _path) {
 }
 
 void Cell::refresh() {
-    for (auto& so : objectMap) so.second->refresh();
+    for (auto& so : objectMap)
+        so.second->refresh();
 }
 
 void Cell::update() {
-    for (auto& so : objectMap) so.second->update();
+    for (auto& so : objectMap)
+        so.second->update();
 }
 
 void Cell::calc(double _accum) {
-    for (auto& so : objectMap) so.second->calc(_accum);
+    for (auto& so : objectMap)
+        so.second->calc(_accum);
 }
 
 void Cell::invalidate() {
-    for (auto& so : objectMap) so.second->invalidate();
+    for (auto& so : objectMap)
+        so.second->invalidate();
 }

@@ -1,13 +1,16 @@
 #include <sqee/redist/gl_ext_4_2.hpp>
+#include <sqee/app/Resources.hpp>
 #include <sqee/render/Camera.hpp>
-#include <sqee/gl/Textures.hpp>
 
 #include "World.hpp"
 #include "SkyBox.hpp"
 
 using namespace sqt::wcoe;
 
-SkyBox::SkyBox(const World& _world) : world(_world) {
+SkyBox::SkyBox(const World& _world) :
+    tex(gl::RGB, gl::RGB8, sq::Texture::LinearClamp()),
+    world(_world) {
+
     ubo.reserve("saturation", 1u);
     ubo.reserve("brightness", 1u);
     ubo.reserve("contrast", 1u);
@@ -19,9 +22,8 @@ void SkyBox::refresh() {
     if (PROP_enabled == false) return;
 
     string texPath = "skybox/" + PROP_texture;
-    if (!(tex = sq::res::texCube().get(texPath)))
-        tex = sq::res::texCube().add(texPath, gl::RGB, gl::RGB8, sq::Texture::LinearClamp()),
-        tex->allocate_storage(1024u, false), tex->buffer_full(texPath);
+    tex.allocate_storage(1024u, false);
+    tex.buffer_full(texPath);
 
     animate();
 }

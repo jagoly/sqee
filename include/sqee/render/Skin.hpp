@@ -1,7 +1,10 @@
 #pragma once
-#include <sqee/forward.hpp>
 
-#include <sqee/misc/ResHolder.hpp>
+#include <sqee/builtins.hpp>
+#include <sqee/maths/Vectors.hpp>
+
+// Forward Declarations /////
+namespace sq { class Texture2D; }
 
 namespace sq {
 
@@ -17,7 +20,7 @@ public:
         sq::Texture2D* diff = nullptr;
         sq::Texture2D* norm = nullptr;
         sq::Texture2D* spec = nullptr;
-        ivec3 glDNS = {0, 0, 0};
+        Vec3I glDNS = {0, 0, 0};
     }; vector<Material> mtrlVec;
 
     bool hasPunchThrough = false;
@@ -25,9 +28,5 @@ public:
     void bind_textures(uint _mtrl) const;
     void bind_textures(uint _mtrl, bool _diff, bool _norm, bool _spec) const;
 };
-
-namespace res {
-ResHolder<Skin>& skin();
-}
 
 }

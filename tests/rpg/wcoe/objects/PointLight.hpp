@@ -1,7 +1,10 @@
 #pragma once
 
-#include <sqee/gl/UniformBuffer.hpp>
 #include <sqee/gl/Textures.hpp>
+#include <sqee/gl/UniformBuffer.hpp>
+#include <sqee/maths/Vectors.hpp>
+#include <sqee/maths/Matrices.hpp>
+#include <sqee/maths/Volumes.hpp>
 
 #include "../Object.hpp"
 #include "../Animation.hpp"
@@ -21,21 +24,21 @@ public:
     bool  PROP_shadow    = false;
     bool  PROP_specular  = false;
     bool  PROP_probes    = false;
-    fvec3 PROP_position  = {0.f, 0.f, 0.f};
-    fvec3 PROP_colour    = {1.f, 1.f, 1.f};
+    Vec3F PROP_position  = {0.f, 0.f, 0.f};
+    Vec3F PROP_colour    = {1.f, 1.f, 1.f};
     float PROP_intensity = 10.f;
     uint  PROP_texsize   = 0u;
 
-    AnimatorFVec3 ANIM_position  {&PROP_position};
-    AnimatorFVec3 ANIM_colour    {&PROP_colour};
+    AnimatorVec3F ANIM_position  {&PROP_position};
+    AnimatorVec3F ANIM_colour    {&PROP_colour};
     AnimatorFloat ANIM_intensity {&PROP_intensity};
 
-    sq::UniformBuffer ubo;
     sq::TextureCube tex;
+    sq::UniformBuffer ubo;
     array<sq::Frustum, 6> frusArr;
-    array<fmat4, 6> matArr;
+    array<Mat4F, 6> matArr;
     sq::Sphere sphere;
-    fmat4 modelMat;
+    Mat4F modelMat;
 };
 
 }}

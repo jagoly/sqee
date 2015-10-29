@@ -1,7 +1,9 @@
+#include <stdexcept>
 #include <unordered_set>
 
 #include <sqee/redist/gl_ext_4_2.hpp>
 #include <sqee/redist/tinyformat.hpp>
+#include <sqee/app/Resources.hpp>
 #include <sqee/gl/Textures.hpp>
 #include <sqee/render/Skin.hpp>
 #include <sqee/misc/Files.hpp>
@@ -11,7 +13,7 @@ using namespace sq;
 template<typename... Args>
 void throw_error(const string& _path, int _lnum, const string& _msg, const Args&... _args) {
     string message = tfm::format("Parsing SQS \"%s\"\nline %d: ", _path, _lnum);
-    throw runtime_error(message + tfm::format(_msg.c_str(), _args...));
+    throw std::runtime_error(message + tfm::format(_msg.c_str(), _args...));
 }
 
 Skin::Skin(const string& _path) {
@@ -19,7 +21,7 @@ Skin::Skin(const string& _path) {
 }
 
 void Skin::create(const string& _path) {
-    string path = res::path() + "skins/" + _path + ".sqs";
+    string path = static_path() + "skins/" + _path + ".sqs";
     const auto fileVec = tokenise_file(path);
 
     struct MtrlSpec {
@@ -74,22 +76,22 @@ void Skin::create(const string& _path) {
 
         if (spec.diff.empty() == false) {
             const string name = "diff/" + spec.diff;
-            if ((mtrlVec.back().diff = res::tex2D().get(name)) == nullptr) {
-                mtrlVec.back().diff = res::tex2D().add(name, gl::RGBA, gl::RGBA8, preset);
+            if ((mtrlVec.back().diff = static_Texture2D().get(name)) == nullptr) {
+                mtrlVec.back().diff = static_Texture2D().add(name, gl::RGBA, gl::RGBA8, preset);
                 mtrlVec.back().diff->buffer_auto(name, true);
             } mtrlVec.back().glDNS.x = true;
         }
         if (spec.norm.empty() == false) {
             const string name = "norm/" + spec.norm;
-            if ((mtrlVec.back().norm = res::tex2D().get(name)) == nullptr) {
-                mtrlVec.back().norm = res::tex2D().add(name, gl::RGB, gl::RGB8, preset);
+            if ((mtrlVec.back().norm = static_Texture2D().get(name)) == nullptr) {
+                mtrlVec.back().norm = static_Texture2D().add(name, gl::RGB, gl::RGB8, preset);
                 mtrlVec.back().norm->buffer_auto(name, true);
             } mtrlVec.back().glDNS.y = true;
         }
         if (spec.spec.empty() == false) {
             const string name = "spec/" + spec.spec;
-            if ((mtrlVec.back().spec = res::tex2D().get(name)) == nullptr) {
-                mtrlVec.back().spec = res::tex2D().add(name, gl::RGB, gl::RGB8, preset);
+            if ((mtrlVec.back().spec = static_Texture2D().get(name)) == nullptr) {
+                mtrlVec.back().spec = static_Texture2D().add(name, gl::RGB, gl::RGB8, preset);
                 mtrlVec.back().spec->buffer_auto(name, true);
             } mtrlVec.back().glDNS.z = true;
         }
@@ -108,10 +110,4 @@ void Skin::bind_textures(uint _mtrl, bool _diff, bool _norm, bool _spec) const {
     if (_diff && mtrl.diff != nullptr) mtrl.diff->bind(gl::TEXTURE0);
     if (_norm && mtrl.norm != nullptr) mtrl.norm->bind(gl::TEXTURE1);
     if (_spec && mtrl.spec != nullptr) mtrl.spec->bind(gl::TEXTURE2);
-}
-
-
-ResHolder<Skin>& sq::res::skin() {
-    static ResHolder<Skin> holder;
-    return holder;
 }

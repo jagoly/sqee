@@ -24,12 +24,12 @@ void UniformBuffer::bind(GLuint _index) const {
     gl::BindBufferBase(gl::UNIFORM_BUFFER, _index, ubo);
 }
 
-void UniformBuffer::update(const string& _name, const void* _data) const {
+void UniformBuffer::update(const std::string& _name, const void* _data) const {
     const Item& item = itemMap.at(_name);
     gl::NamedBufferSubData(ubo, item.offs*4, item.size*4, _data);
 }
 
-void UniformBuffer::update(const string& _name, uint _offs, uint _size, const void* _data) const {
+void UniformBuffer::update(const std::string& _name, uint _offs, uint _size, const void* _data) const {
     const Item& item = itemMap.at(_name);
     gl::NamedBufferSubData(ubo, (item.offs+_offs)*4, _size*4, _data);
 }

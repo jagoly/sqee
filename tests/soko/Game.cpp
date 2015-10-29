@@ -1,4 +1,3 @@
-#include <glm/gtc/matrix_transform.hpp>
 #include <SFML/Window/Event.hpp>
 
 #include <sqee/redist/gl_ext_4_2.hpp>
@@ -18,6 +17,7 @@
 #include "Game.hpp"
 
 using namespace sqt;
+namespace maths = sq::maths;
 
 GameScene::GameScene(sq::Application* _app) : sq::Scene(_app) {
     tickRate = 10u;
@@ -32,16 +32,15 @@ GameScene::GameScene(sq::Application* _app) : sq::Scene(_app) {
     camera->update();
 
     ubo.reset(new sq::UniformBuffer());
-    ubo->reserve("slDirection", 4);
-    ubo->reserve("slColour", 4);
-    ubo->reserve("aColour", 4);
+    ubo->reserve("slDirection", 4u);
+    ubo->reserve("slColour", 4u);
+    ubo->reserve("aColour", 4u);
     ubo->allocate_storage();
 
-    fvec3 slDirection = {0.f, 0.25f, -1.f};
-    fvec3 slColour = {0.7f, 0.7f, 0.7f};
-    fvec3 aColour = {0.3f, 0.3f, 0.3f};
+    Vec3F slDirection = {0.f, 0.25f, -1.f};
+    Vec3F slColour = {0.7f, 0.7f, 0.7f};
+    Vec3F aColour = {0.3f, 0.3f, 0.3f};
 
-    ubo->bind(1u);
     ubo->update("slDirection", &slDirection);
     ubo->update("slColour", &slColour);
     ubo->update("aColour", &aColour);
@@ -50,29 +49,29 @@ GameScene::GameScene(sq::Application* _app) : sq::Scene(_app) {
     app->preprocs.import_header("uniform_block");
 
     /// Create Shaders
-    VERT.object.reset(new sq::Shader(gl::VERTEX_SHADER));
-    FRAG.object.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    VS_object.reset(new sq::Shader(gl::VERTEX_SHADER));
+    FS_object.reset(new sq::Shader(gl::FRAGMENT_SHADER));
 
     /// Add Uniforms to Shaders
-    VERT.object->add_uniform("modelMat"); // mat4
-    VERT.object->add_uniform("normMat");  // mat4
+    VS_object->add_uniform("modelMat"); // mat4
+    VS_object->add_uniform("normMat");  // mat4
 
     /// Load Shaders
-    app->preprocs(*VERT.object, "object_vs");
-    app->preprocs(*FRAG.object, "object_fs");
+    app->preprocs.load(*VS_object, "object_vs");
+    app->preprocs.load(*FS_object, "object_fs");
 
     /// Create and Load Meshes
-    MESH.Ball = sq::res::mesh().add("Ball", "Ball");
-    MESH.Floor = sq::res::mesh().add("Floor", "Floor");
-    MESH.HoleA = sq::res::mesh().add("HoleA", "HoleA");
-    MESH.HoleB = sq::res::mesh().add("HoleB", "HoleB");
-    MESH.WallA = sq::res::mesh().add("WallA", "WallA");
-    MESH.WallB = sq::res::mesh().add("WallB", "WallB");
-    MESH.WallC = sq::res::mesh().add("WallC", "WallC");
-    MESH.WallD = sq::res::mesh().add("WallD", "WallD");
-    MESH.WallE = sq::res::mesh().add("WallE", "WallE");
-    MESH.WallF = sq::res::mesh().add("WallF", "WallF");
-    MESH.Player = sq::res::mesh().add("Player", "Player");
+    MESH_Ball.reset(new sq::Mesh("Ball"));
+    MESH_Floor.reset(new sq::Mesh("Floor"));
+    MESH_HoleA.reset(new sq::Mesh("HoleA"));
+    MESH_HoleB.reset(new sq::Mesh("HoleB"));
+    MESH_WallA.reset(new sq::Mesh("WallA"));
+    MESH_WallB.reset(new sq::Mesh("WallB"));
+    MESH_WallC.reset(new sq::Mesh("WallC"));
+    MESH_WallD.reset(new sq::Mesh("WallD"));
+    MESH_WallE.reset(new sq::Mesh("WallE"));
+    MESH_WallF.reset(new sq::Mesh("WallF"));
+    MESH_Player.reset(new sq::Mesh("Player"));
 
     /// Setup Level
     Level::Spec spec;
@@ -105,7 +104,7 @@ GameScene::GameScene(sq::Application* _app) : sq::Scene(_app) {
 
 
 void GameScene::update() {
-    const ivec2 offsets[4] = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+    const Vec2I offsets[4] = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
     rotCrnt = rotNext; posCrnt = posNext;
     bool skipTurnMove = false;
 
@@ -117,8 +116,8 @@ void GameScene::update() {
     }
 
     if (animate == true) {
-        rotNext = glm::radians(90.f * rotation);
-        posNext = position; animate = false;
+        rotNext = maths::radians(90.f * rotation);
+        posNext = Vec2F(position); animate = false;
         skipTurnMove = true;
     }
 
@@ -135,47 +134,47 @@ void GameScene::update() {
         if (!turnNeg && !turnPos) {
             rotation = rotation % 4;
             if (rotation < 0) rotation = 4 - rotation * -1;
-            rotCrnt = rotNext = glm::radians(90.f * rotation);
+            rotCrnt = rotNext = maths::radians(90.f * rotation);
         }
 
         if (turnNeg == true) {
-            float rotPrev = glm::radians(90.f * rotation); animate = true;
-            rotNext = glm::mix(rotPrev, glm::radians(90.f * --rotation), 0.5f);
+            float rotPrev = maths::radians(90.f * rotation); animate = true;
+            rotNext = maths::mix(rotPrev, maths::radians(90.f * --rotation), 0.5f);
         }
 
         if (turnPos == true) {
-            float rotPrev = glm::radians(90.f * rotation); animate = true;
-            rotNext = glm::mix(rotPrev, glm::radians(90.f * ++rotation), 0.5f);
+            float rotPrev = maths::radians(90.f * rotation); animate = true;
+            rotNext = maths::mix(rotPrev, maths::radians(90.f * ++rotation), 0.5f);
         }
 
         if (movePos == true) {
-            ivec2 gridNew = position + offsets[rotation%4];
+            Vec2I gridNew = position + offsets[rotation%4];
             if (level->outside(gridNew) == false && level->get_Wall(gridNew) == nullptr && (
                 level->get_Hole(gridNew) == nullptr || level->get_Hole(gridNew)->filled == true)) {
                 pushing = level->get_Ball(gridNew) != nullptr;
 
                 if (pushing == true) {
-                    ivec2 pushedPos = gridNew + offsets[rotation%4];
+                    Vec2I pushedPos = gridNew + offsets[rotation%4];
                     if (level->outside(pushedPos) ||
                         level->get_Ball(pushedPos) ||
                         level->get_Wall(pushedPos)) {
                         pushing = false; gridNew = position;
                     } else {
-                        posNext = glm::mix(fvec2(position), fvec2(gridNew), 0.5f);
+                        posNext = maths::mix(Vec2F(position), Vec2F(gridNew), 0.5f);
                         position = gridNew; animate = true;
                     }
                 } else {
-                    posNext = glm::mix(fvec2(position), fvec2(gridNew), 0.5f);
+                    posNext = maths::mix(Vec2F(position), Vec2F(gridNew), 0.5f);
                     position = gridNew; animate = true;
                 }
             }
         }
 
         if (moveNeg == true) {
-            ivec2 gridNew = position - offsets[rotation%4];
+            Vec2I gridNew = position - offsets[rotation%4];
             if (level->outside(gridNew) == false && level->get_Wall(gridNew) == nullptr && (
                 level->get_Hole(gridNew) == nullptr || level->get_Hole(gridNew)->filled == true)) {
-                posNext = glm::mix(fvec2(position), fvec2(gridNew), 0.5f);
+                posNext = maths::mix(Vec2F(position), Vec2F(gridNew), 0.5f);
                 position = gridNew; animate = true;
             }
         }
@@ -194,73 +193,74 @@ void GameScene::render() {
     sq::BLEND_OFF();
 
     pipeline->bind();
-    pipeline->use_shader(*VERT.object);
-    pipeline->use_shader(*FRAG.object);
-    camera->ubo->bind(0u);
+    pipeline->use_shader(*VS_object);
+    pipeline->use_shader(*FS_object);
+    camera->ubo.bind(0u);
+    ubo->bind(1u);
 
     for (int x = level->minPos.x; x < level->maxPos.x; x++) {
         for (int y = level->minPos.x; y < level->maxPos.y; y++) {
             if (!level->get_Hole({x, y}) && !level->get_Wall({x, y})) {
-                fmat4 modelMat = glm::translate(fmat4(), fvec3(x, y, 0.f));
-                fmat3 normMat = sq::make_normMat(camera->viewMat * modelMat);
-                VERT.object->set_mat<fmat4>("modelMat", modelMat);
-                VERT.object->set_mat<fmat3>("normMat", normMat);
-                MESH.Floor->bind_vao(); MESH.Floor->draw_complete();
+                Mat4F modelMat = maths::translate(Mat4F(), Vec3F(x, y, 0.f));
+                Mat3F normMat = sq::make_normMat(camera->viewMat * modelMat);
+                VS_object->set_mat<Mat4F>("modelMat", modelMat);
+                VS_object->set_mat<Mat3F>("normMat", normMat);
+                MESH_Floor->bind_vao(); MESH_Floor->draw_complete();
             }
         }
     }
 
     for (const Ball::Ptr& ball : level->ballList) {
-        float zTrans = glm::mix(0.f, -float(ball->inhole), accum*tickRate);
-        fvec2 translation = glm::mix(ball->posCrnt, ball->posNext, accum*tickRate);
-        fmat4 modelMat = glm::translate(fmat4(), fvec3(translation, zTrans));
-        fmat3 normMat = sq::make_normMat(camera->viewMat * modelMat);
-        VERT.object->set_mat<fmat4>("modelMat", modelMat);
-        VERT.object->set_mat<fmat3>("normMat", normMat);
-        MESH.Ball->bind_vao(); MESH.Ball->draw_complete();
+        float zTrans = -float(ball->inhole) * float(accum*tickRate);
+        Vec2F translation = maths::mix(ball->posCrnt, ball->posNext, float(accum*tickRate));
+        Mat4F modelMat = maths::translate(Mat4F(), Vec3F(translation, zTrans));
+        Mat3F normMat = sq::make_normMat(camera->viewMat * modelMat);
+        VS_object->set_mat<Mat4F>("modelMat", modelMat);
+        VS_object->set_mat<Mat3F>("normMat", normMat);
+        MESH_Ball->bind_vao(); MESH_Ball->draw_complete();
     }
 
     for (const Hole::Ptr& hole : level->holeList) {
-        const sq::Mesh* mesh = hole->filled ? MESH.HoleB : MESH.HoleA;
-        fmat4 modelMat = glm::translate(fmat4(), fvec3(hole->position, 0.f));
-        fmat3 normMat = sq::make_normMat(camera->viewMat * modelMat);
-        VERT.object->set_mat<fmat4>("modelMat", modelMat);
-        VERT.object->set_mat<fmat3>("normMat", normMat);
+        const auto& mesh = hole->filled ? MESH_HoleB : MESH_HoleA;
+        Mat4F modelMat = maths::translate(Mat4F(), Vec3F(Vec2F(hole->position), 0.f));
+        Mat3F normMat = sq::make_normMat(camera->viewMat * modelMat);
+        VS_object->set_mat<Mat4F>("modelMat", modelMat);
+        VS_object->set_mat<Mat3F>("normMat", normMat);
         mesh->bind_vao(); mesh->draw_complete();
     }
 
     for (const Wall::Ptr& wall : level->wallList) {
         const sq::Mesh* mesh = nullptr;
-        if (wall->connect == 0u) mesh = MESH.WallA;
-        if (wall->connect == 1u) mesh = MESH.WallB;
-        if (wall->connect == 2u) mesh = MESH.WallC;
-        if (wall->connect == 3u) mesh = MESH.WallD;
-        if (wall->connect == 4u) mesh = MESH.WallE;
-        if (wall->connect == 5u) mesh = MESH.WallF;
+        if (wall->connect == 0u) mesh = MESH_WallA.get();
+        if (wall->connect == 1u) mesh = MESH_WallB.get();
+        if (wall->connect == 2u) mesh = MESH_WallC.get();
+        if (wall->connect == 3u) mesh = MESH_WallD.get();
+        if (wall->connect == 4u) mesh = MESH_WallE.get();
+        if (wall->connect == 5u) mesh = MESH_WallF.get();
 
         float rotation = 45.f;
-        if (wall->rotate == 0u) rotation = glm::radians(0.f);
-        if (wall->rotate == 1u) rotation = glm::radians(90.f);
-        if (wall->rotate == 2u) rotation = glm::radians(180.f);
-        if (wall->rotate == 3u) rotation = glm::radians(270.f);
+        if (wall->rotate == 0u) rotation = maths::radians(0.f);
+        if (wall->rotate == 1u) rotation = maths::radians(90.f);
+        if (wall->rotate == 2u) rotation = maths::radians(180.f);
+        if (wall->rotate == 3u) rotation = maths::radians(270.f);
 
-        fmat4 modelMat = glm::translate(fmat4(), fvec3(wall->position, 0.f));
-        modelMat = glm::rotate(modelMat, rotation, fvec3(0.f, 0.f, -1.f));
-        fmat3 normMat = sq::make_normMat(camera->viewMat * modelMat);
-        VERT.object->set_mat<fmat4>("modelMat", modelMat);
-        VERT.object->set_mat<fmat3>("normMat", normMat);
+        Mat4F modelMat = maths::translate(Mat4F(), Vec3F(Vec2F(wall->position), 0.f));
+        modelMat = maths::rotate(modelMat, Vec3F(0.f, 0.f, -1.f), rotation);
+        Mat3F normMat = sq::make_normMat(camera->viewMat * modelMat);
+        VS_object->set_mat<Mat4F>("modelMat", modelMat);
+        VS_object->set_mat<Mat3F>("normMat", normMat);
         mesh->bind_vao(); mesh->draw_complete();
     }
 
     { // Player
-        float rotation = glm::mix(rotCrnt, rotNext, accum*tickRate);
-        fvec2 translation = glm::mix(posCrnt, posNext, accum*tickRate);
-        fmat4 modelMat = glm::translate(fmat4(), fvec3(translation, 0.f));
-        modelMat = glm::rotate(modelMat, rotation, fvec3(0.f, 0.f, -1.f));
-        fmat3 normMat = sq::make_normMat(camera->viewMat * modelMat);
-        VERT.object->set_mat<fmat4>("modelMat", modelMat);
-        VERT.object->set_mat<fmat3>("normMat", normMat);
-        MESH.Player->bind_vao(); MESH.Player->draw_complete();
+        float rotation = maths::mix(rotCrnt, rotNext, float(accum*tickRate));
+        Vec2F translation = maths::mix(posCrnt, posNext, float(accum*tickRate));
+        Mat4F modelMat = maths::translate(Mat4F(), Vec3F(translation, 0.f));
+        modelMat = maths::rotate(modelMat, Vec3F(0.f, 0.f, -1.f), rotation);
+        Mat3F normMat = sq::make_normMat(camera->viewMat * modelMat);
+        VS_object->set_mat<Mat4F>("modelMat", modelMat);
+        VS_object->set_mat<Mat3F>("normMat", normMat);
+        MESH_Player->bind_vao(); MESH_Player->draw_complete();
     }
 
 
@@ -270,12 +270,12 @@ void GameScene::render() {
 
 
 void GameScene::refresh() {
-    camera->size = app->get_size();
+    camera->size = Vec2F(app->get_size());
 }
 
 
 bool GameHandler::handle(sf::Event _event) {
-    GameScene& scene = app->get_scene<GameScene>("game");
+    //GameScene& scene = app->get_scene<GameScene>("game");
 
     return false;
 }

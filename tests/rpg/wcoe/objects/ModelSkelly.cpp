@@ -1,21 +1,20 @@
-#include <glm/gtc/matrix_transform.hpp>
-
-#include <sqee/gl/FixedBuffer.hpp>
-#include <sqee/gl/VertexArray.hpp>
+#include <sqee/app/Resources.hpp>
+#include <sqee/maths/General.hpp>
 #include <sqee/render/Armature.hpp>
 #include <sqee/render/Camera.hpp>
 #include <sqee/render/Mesh.hpp>
 #include <sqee/render/Skin.hpp>
-#include <sqee/maths/Culling.hpp>
-#include <sqee/maths/General.hpp>
 
 #include "../Cell.hpp"
 #include "../World.hpp"
 #include "ModelSkelly.hpp"
 
 using namespace sqt::wcoe;
+namespace maths = sq::maths;
 
-ModelSkelly::ModelSkelly(const string& _name, Cell* _cell) : Object(_name, _cell) {
+ModelSkelly::ModelSkelly(const string& _name, Cell* _cell)
+    : Object(typeid(ModelSkelly), _name, _cell) {
+
     ubo.reserve("matrix", 16u);
     ubo.reserve("normMat", 16u);
     ubo.reserve("bones", 960u);
@@ -38,31 +37,31 @@ void ModelSkelly::load_from_spec(const ObjSpec& _spec) {
 
 
 void ModelSkelly::refresh() {
-    if (revalidate() == true) {
-        if ((arma = sq::res::arma().get(PROP_arma)) == nullptr)
-            arma = sq::res::arma().add(PROP_arma),
-            arma->create(PROP_arma);
+    if (invalid == false) return;
 
-        if ((mesh = sq::res::mesh().get(PROP_mesh)) == nullptr)
-            mesh = sq::res::mesh().add(PROP_mesh),
-            mesh->create(PROP_mesh);
+    if ((arma = sq::static_Armature().get(PROP_arma)) == nullptr)
+        arma = sq::static_Armature().add(PROP_arma),
+        arma->create(PROP_arma);
 
-        if ((skin = sq::res::skin().get(PROP_skin)) == nullptr)
-            skin = sq::res::skin().add(PROP_skin),
-            skin->create(PROP_skin);
+    if ((mesh = sq::static_Mesh().get(PROP_mesh)) == nullptr)
+        mesh = sq::static_Mesh().add(PROP_mesh),
+        mesh->create(PROP_mesh);
 
-        if (PROP_pose.empty() == false) {
-            poseCalc = arma->poseMap.at(PROP_pose);
-            auto uboData = sq::Armature::make_UboData(poseCalc);
-            ubo.update("bones", uboData.data());
-        }
+    if ((skin = sq::static_Skin().get(PROP_skin)) == nullptr)
+        skin = sq::static_Skin().add(PROP_skin),
+        skin->create(PROP_skin);
 
-        if (PROP_anim.empty() == false) {
-            anim = arma->animMap.at(PROP_anim);
-        }
+    if (PROP_pose.empty() == false) {
+        poseCalc = arma->poseMap.at(PROP_pose);
+        auto uboData = sq::Armature::make_UboData(poseCalc);
+        ubo.update("bones", uboData.data());
     }
 
-    animate();
+    if (PROP_anim.empty() == false) {
+        anim = arma->animMap.at(PROP_anim);
+    }
+
+    animate(); invalid = false;
 }
 
 
@@ -109,21 +108,21 @@ void ModelSkelly::calc(double _accum) {
     if (ANIM_scale.active())    { ANIM_scale.calc(_accum);    doAnim = true; }
     if (doAnim == true) animate();
 
-    fmat4 normMat(sq::make_normMat(world.camera->viewMat * matrix));
+    Mat4F normMat(sq::make_normMat(world.camera->viewMat * matrix));
     ubo.update("normMat", &normMat);
 
     if (state == State::Done || state == State::Paused) return;
-    poseCalc = sq::Armature::mix_Poses(poseCrnt, poseNext, (ticks + _accum*24.f) / span);
+    poseCalc = sq::Armature::mix_Poses(poseCrnt, poseNext, float(_accum*24.f + ticks) / span);
     auto uboData = sq::Armature::make_UboData(poseCalc);
     ubo.update("bones", uboData.data());
 }
 
 
 void ModelSkelly::animate() {
-    matrix = glm::translate(fmat4(), PROP_position + cell->PROP_position);
-    matrix *= glm::mat4_cast(PROP_rotation); matrix = glm::scale(matrix, PROP_scale);
+    matrix = maths::translate(Mat4F(), PROP_position + cell->PROP_position);
+    matrix *= Mat4F(PROP_rotation); matrix = maths::scale(matrix, PROP_scale);
     sphere = sq::make_Sphere(matrix, mesh->origin, mesh->radius);
-    negScale = glm::determinant(matrix) < 0.f;
+    negScale = maths::determinant(matrix) < 0.f;
     ubo.update("matrix", &matrix);
 }
 

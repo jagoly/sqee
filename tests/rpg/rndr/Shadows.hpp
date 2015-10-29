@@ -1,16 +1,16 @@
 #pragma once
-#include <sqee/forward.hpp>
 
 #include <sqee/redist/gl_ext_4_2.hpp>
 #include <sqee/gl/FrameBuffer.hpp>
 #include <sqee/gl/Shaders.hpp>
+#include <sqee/maths/Vectors.hpp>
+#include <sqee/maths/Matrices.hpp>
 
 #include "Renderer.hpp"
 
-namespace sqt {
-namespace rndr {
+namespace sqt { namespace rndr {
 
-class Shadows final : NonCopyable {
+class Shadows final : sq::NonCopyable {
 public:
     Shadows(const Renderer& _renderer);
 
@@ -32,12 +32,12 @@ private:
     sq::Shader FS_shad_punch {gl::FRAGMENT_SHADER};
 
     // Helpers /////
-    void draw_Reflector(fmat4 _lightMat, const wcoe::Reflector& _rflct);
-    void draw_ModelSimple(fmat4 _lightMat, const wcoe::ModelSimple& _model);
-    void draw_ModelSkelly(fmat4 _lightMat, const wcoe::ModelSkelly& _model);
-    void draw_Reflector_punch(fmat4 _lightMat, const wcoe::Reflector& _rflct);
-    void draw_ModelSimple_punch(fmat4 _lightMat, const wcoe::ModelSimple& _model);
-    void draw_ModelSkelly_punch(fmat4 _lightMat, const wcoe::ModelSkelly& _model);
+    void draw_Reflector(const Mat4F& _lightMat, const wcoe::Reflector& _rflct);
+    void draw_ModelSimple(const Mat4F& _lightMat, const wcoe::ModelSimple& _model);
+    void draw_ModelSkelly(const Mat4F& _lightMat, const wcoe::ModelSkelly& _model);
+    void draw_Reflector_punch(const Mat4F& _lightMat, const wcoe::Reflector& _rflct);
+    void draw_ModelSimple_punch(const Mat4F& _lightMat, const wcoe::ModelSimple& _model);
+    void draw_ModelSkelly_punch(const Mat4F& _lightMat, const wcoe::ModelSkelly& _model);
 };
 
 }}

@@ -1,6 +1,11 @@
 #pragma once
 
+#include <sqee/forward.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
+#include <sqee/maths/Vectors.hpp>
+#include <sqee/maths/Matrices.hpp>
+#include <sqee/maths/Quaternion.hpp>
+#include <sqee/maths/Volumes.hpp>
 
 #include "../Object.hpp"
 #include "../Animation.hpp"
@@ -21,22 +26,22 @@ public:
     bool   PROP_shadow   = false;
     bool   PROP_decals   = false;
     bool   PROP_probes   = false;
-    fvec3  PROP_position = {0.f, 0.f, 0.f};
-    fquat  PROP_rotation = {1.f, 0.f, 0.f, 0.f};
-    fvec3  PROP_scale    = {1.f, 1.f, 1.f};
+    Vec3F  PROP_position = {0.f, 0.f, 0.f};
+    QuatF  PROP_rotation = {0.f, 0.f, 0.f, 1.f};
+    Vec3F  PROP_scale    = {1.f, 1.f, 1.f};
     string PROP_mesh     = "";
     string PROP_skin     = "";
 
-    AnimatorFVec3 ANIM_position {&PROP_position};
-    AnimatorFQuat ANIM_rotation {&PROP_rotation};
-    AnimatorFVec3 ANIM_scale    {&PROP_scale};
+    AnimatorVec3F ANIM_position {&PROP_position};
+    AnimatorQuatF ANIM_rotation {&PROP_rotation};
+    AnimatorVec3F ANIM_scale    {&PROP_scale};
 
     sq::Mesh* mesh = nullptr;
     sq::Skin* skin = nullptr;
     sq::UniformBuffer ubo;
     sq::BoundBox bbox;
     bool negScale;
-    fmat4 matrix;
+    Mat4F matrix;
 };
 
 }}

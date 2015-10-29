@@ -17,9 +17,9 @@ using namespace sq;
 Application::~Application() = default;
 
 Application::Application() : overlay(this), console(this) {
-    context.reset(new sf::ContextSettings(24u, 8u, 0u, 4u, 2u, sf::ContextSettings::Core));
     sf::Uint32 wStyle = sf::Style::Titlebar | sf::Style::Close | sf::Style::Resize;
-    window.reset(new sf::Window({800u, 600u}, "", wStyle, *context));
+    sf::ContextSettings context(24u, 8u, 0u, 4u, 2u, sf::ContextSettings::Core);
+    window.reset(new sf::Window({800u, 600u}, "", wStyle, context));
 
     gl::sys::LoadFunctions();
 
@@ -183,17 +183,17 @@ bool Application::handle_default(sf::Event _event) {
 }
 
 
-fvec2 Application::mouse_centre() {
+Vec2F Application::mouse_centre() {
     sf::Vector2i winCentre(window->getSize() / 2u);
     sf::Vector2i mouseMove = winCentre - sf::Mouse::getPosition(*window);
     sf::Mouse::setPosition(winCentre, *window);
-    return fvec2(mouseMove.x, mouseMove.y);
+    return Vec2F(mouseMove.x, mouseMove.y);
 }
 
-uvec2 Application::get_size() const {
+Vec2U Application::get_size() const {
     uint width = settings.get<int>("app_width");
     uint height = settings.get<int>("app_height");
-    return uvec2(width, height);
+    return Vec2U(width, height);
 }
 
 void Application::sweep_handler(const string& _id) {

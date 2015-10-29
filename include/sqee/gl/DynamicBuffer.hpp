@@ -1,5 +1,6 @@
 #pragma once
-#include <sqee/forward.hpp>
+
+#include <sqee/setup.hpp>
 
 namespace sq {
 

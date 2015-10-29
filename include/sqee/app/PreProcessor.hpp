@@ -1,6 +1,11 @@
 #pragma once
-#include <sqee/forward.hpp>
+
 #include <unordered_map>
+
+#include <sqee/builtins.hpp>
+
+// Forward Declarations /////
+namespace sq { class Shader; }
 
 namespace sq {
 

@@ -33,7 +33,6 @@ float nearest_depth_sca(vec2 _texcrd, sampler2D _sampler,
     float txFull = texture(_depTexFull, _texcrd).r;
     txFull = linearise(txFull, _rmin, _rmax);
 
-
     float distA = distance(txFull, linearise(txHalf.r, _rmin, _rmax));
     float distB = distance(txFull, linearise(txHalf.g, _rmin, _rmax));
     float distC = distance(txFull, linearise(txHalf.b, _rmin, _rmax));

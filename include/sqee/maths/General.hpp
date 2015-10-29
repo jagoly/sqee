@@ -1,12 +1,14 @@
 #pragma once
-#include <sqee/forward.hpp>
+
+#include <sqee/maths/Vectors.hpp>
+#include <sqee/maths/Matrices.hpp>
 
 namespace sq {
 
-fvec3 make_tangent(fvec3 _norm);
+Vec3F make_tangent(const Vec3F& _norm);
 
-fmat3 make_normMat(fmat4 _viewModelMat);
+Mat3F make_normMat(const Mat4F& _viewModelMat);
 
-fvec3 norm_from_tri(fvec3 _t0, fvec3 _t1, fvec3 _t2);
+Vec3F norm_from_tri(const Vec3F& _t0, const Vec3F& _t1, const Vec3F& _t2);
 
 }

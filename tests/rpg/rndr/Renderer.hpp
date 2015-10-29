@@ -1,5 +1,4 @@
 #pragma once
-#include <sqee/forward.hpp>
 
 #include <sqee/redist/gl_ext_4_2.hpp>
 #include <sqee/gl/Shaders.hpp>
@@ -90,7 +89,7 @@ struct EmitterData {
 };
 
 
-class Renderer final : NonCopyable {
+class Renderer final : sq::NonCopyable {
 public:
     Renderer(const sq::Settings& _settings, const sq::PreProcessor& _preprocs,
              const sq::Pipeline& _pipeline, const wcoe::World& _world);
@@ -133,23 +132,6 @@ public:
         sq::FrameBuffer* defrPart = nullptr;
         sq::FrameBuffer* hdrPart = nullptr;
     } FB;
-
-    struct {
-        float viewdist;
-        bool shadlarge;
-        bool shadfilter;
-        uvec2 fullSize;
-        uvec2 halfSize;
-        uvec2 qterSize;
-        fvec2 fPixSize;
-        fvec2 hPixSize;
-        fvec2 qPixSize;
-        float aspect;
-        bool bloom;
-        int shafts;
-        int ssao;
-        int fsaa;
-    } INFO;
 
     unique_ptr<Shadows> shadows;
     unique_ptr<Gbuffers> gbuffers;

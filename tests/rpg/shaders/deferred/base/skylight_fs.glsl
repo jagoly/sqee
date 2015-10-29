@@ -32,10 +32,10 @@ float get_shadow_value(vec3 _lightDir, vec3 _vpos, vec3 _vsurf, vec3 _wpos, vec3
 
     #if defined FILTER && defined LARGE
     int filterNum = max(3 - index, 0);
-    float radius = 1.f / (pow(2.f, 3.f - float(filterNum)) * 512.f);
+    float radius = 1.f / (pow(2.f, 3.f - float(filterNum)) * 256.f);
     #elif defined FILTER
     int filterNum = max(2 - index, 0);
-    float radius = 1.f / (pow(2.f, 2.f - float(filterNum)) * 512.f);
+    float radius = 1.f / (pow(2.f, 2.f - float(filterNum)) * 256.f);
     #else
     int filterNum = 0;
     float radius = 0.f;

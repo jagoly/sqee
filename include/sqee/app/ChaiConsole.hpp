@@ -1,10 +1,13 @@
 #pragma once
-#include <sqee/forward.hpp>
+
 #include <forward_list>
 #include <functional>
 
+#include <sqee/builtins.hpp>
 #include <sqee/misc/OrderedMap.hpp>
 
+// Forward Declarations /////
+namespace sq { class Application; }
 namespace sf { class Event; }
 
 namespace sq {
@@ -32,13 +35,13 @@ public:
 private:
     Application* const app;
 
+    string input;
     vector<string> history;
     std::forward_list<string> output;
     bool cursorVis = false;
     bool cvisDelay = false;
     uint cursorPos = 0u;
     int histInd = -1;
-    string input;
 };
 
 }

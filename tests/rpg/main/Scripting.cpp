@@ -87,36 +87,36 @@ void sqt::cs_setup_wcoe(chai::ChaiScript& _cs) {
        {fun(&AnimatorFloat::times),  "times"},
        {fun(&AnimatorFloat::start),  "start"} });
 
-    add_class<AnimatorFVec2>(*m, "AnimatorFVec2", {}, {
-       {fun(&AnimatorFVec2::values), "values"},
-       {fun(&AnimatorFVec2::times),  "times"},
-       {fun(&AnimatorFVec2::start),  "start"} });
+    add_class<AnimatorVec2F>(*m, "AnimatorVec2F", {}, {
+       {fun(&AnimatorVec2F::values), "values"},
+       {fun(&AnimatorVec2F::times),  "times"},
+       {fun(&AnimatorVec2F::start),  "start"} });
 
-    add_class<AnimatorFVec3>(*m, "AnimatorFVec3", {}, {
-       {fun(&AnimatorFVec3::values), "values"},
-       {fun(&AnimatorFVec3::times),  "times"},
-       {fun(&AnimatorFVec3::start),  "start"} });
+    add_class<AnimatorVec3F>(*m, "AnimatorVec3F", {}, {
+       {fun(&AnimatorVec3F::values), "values"},
+       {fun(&AnimatorVec3F::times),  "times"},
+       {fun(&AnimatorVec3F::start),  "start"} });
 
-    add_class<AnimatorFVec4>(*m, "AnimatorFVec4", {}, {
-       {fun(&AnimatorFVec4::values), "values"},
-       {fun(&AnimatorFVec4::times),  "times"},
-       {fun(&AnimatorFVec4::start),  "start"} });
+    add_class<AnimatorVec4F>(*m, "AnimatorVec4F", {}, {
+       {fun(&AnimatorVec4F::values), "values"},
+       {fun(&AnimatorVec4F::times),  "times"},
+       {fun(&AnimatorVec4F::start),  "start"} });
 
-    add_class<AnimatorFNorm>(*m, "AnimatorFNorm", {}, {
-       {fun(&AnimatorFNorm::values), "values"},
-       {fun(&AnimatorFNorm::times),  "times"},
-       {fun(&AnimatorFNorm::start),  "start"} });
+    add_class<AnimatorNormF>(*m, "AnimatorNormF", {}, {
+       {fun(&AnimatorNormF::values), "values"},
+       {fun(&AnimatorNormF::times),  "times"},
+       {fun(&AnimatorNormF  ::start),  "start"} });
 
-    add_class<AnimatorFQuat>(*m, "AnimatorFQuat", {}, {
-       {fun(&AnimatorFQuat::values), "values"},
-       {fun(&AnimatorFQuat::times),  "times"},
-       {fun(&AnimatorFQuat::start),  "start"} });
+    add_class<AnimatorQuatF>(*m, "AnimatorQuatF", {}, {
+       {fun(&AnimatorQuatF::values), "values"},
+       {fun(&AnimatorQuatF::times),  "times"},
+       {fun(&AnimatorQuatF::start),  "start"} });
 
     add_class<Object>(*m, "Object", {}, {
        {fun(&Object::name),       "name"},
        {fun(&Object::cell),       "cell"},
-       {fun(&Object::extra),      "extra"},
        {fun(&Object::refresh),    "refresh"},
+       //{fun(&Object::extra),      "extra"},
        {fun(&Object::invalidate), "invalidate"} });
 
     add_class<RigBodyBasic>(*m, "RigBodyBasic", {}, {

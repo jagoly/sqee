@@ -1,20 +1,19 @@
-#include <glm/gtc/matrix_transform.hpp>
-
-#include <sqee/gl/FixedBuffer.hpp>
-#include <sqee/gl/VertexArray.hpp>
+#include <sqee/app/Resources.hpp>
+#include <sqee/maths/General.hpp>
 #include <sqee/render/Camera.hpp>
 #include <sqee/render/Mesh.hpp>
 #include <sqee/render/Skin.hpp>
-#include <sqee/maths/Culling.hpp>
-#include <sqee/maths/General.hpp>
 
 #include "../Cell.hpp"
 #include "../World.hpp"
 #include "ModelSimple.hpp"
 
 using namespace sqt::wcoe;
+namespace maths = sq::maths;
 
-ModelSimple::ModelSimple(const string& _name, Cell* _cell) : Object(_name, _cell) {
+ModelSimple::ModelSimple(const string& _name, Cell* _cell)
+    : Object(typeid(ModelSimple), _name, _cell) {
+
     ubo.reserve("matrix", 16u);
     ubo.reserve("normMat", 16u);
     ubo.allocate_storage();
@@ -33,17 +32,17 @@ void ModelSimple::load_from_spec(const ObjSpec& _spec) {
 }
 
 void ModelSimple::refresh() {
-    if (revalidate() == true) {
-        if ((mesh = sq::res::mesh().get(PROP_mesh)) == nullptr)
-            mesh = sq::res::mesh().add(PROP_mesh),
-            mesh->create(PROP_mesh);
+    if (invalid == false) return;
 
-        if ((skin = sq::res::skin().get(PROP_skin)) == nullptr)
-            skin = sq::res::skin().add(PROP_skin),
-            skin->create(PROP_skin);
-    }
+    if ((mesh = sq::static_Mesh().get(PROP_mesh)) == nullptr)
+        mesh = sq::static_Mesh().add(PROP_mesh),
+        mesh->create(PROP_mesh);
 
-    animate();
+    if ((skin = sq::static_Skin().get(PROP_skin)) == nullptr)
+        skin = sq::static_Skin().add(PROP_skin),
+        skin->create(PROP_skin);
+
+    animate(); invalid = false;
 }
 
 void ModelSimple::update() {
@@ -61,14 +60,14 @@ void ModelSimple::calc(double _accum) {
     if (ANIM_scale.active())    { ANIM_scale.calc(_accum);    doAnim = true; }
     if (doAnim == true) animate();
 
-    fmat4 normMat(sq::make_normMat(world.camera->viewMat * matrix));
+    Mat4F normMat(sq::make_normMat(world.camera->viewMat * matrix));
     ubo.update("normMat", &normMat);
 }
 
 void ModelSimple::animate() {
-    matrix = glm::translate(fmat4(), PROP_position + cell->PROP_position);
-    matrix *= glm::mat4_cast(PROP_rotation); matrix = glm::scale(matrix, PROP_scale);
+    matrix = maths::translate(Mat4F(), PROP_position + cell->PROP_position);
+    matrix *= Mat4F(PROP_rotation); matrix = maths::scale(matrix, PROP_scale);
     bbox = sq::make_BoundBox(matrix, mesh->origin, mesh->radius, mesh->bbsize);
-    negScale = glm::determinant(matrix) < 0.f;
+    negScale = maths::determinant(matrix) < 0.f;
     ubo.update("matrix", &matrix);
 }

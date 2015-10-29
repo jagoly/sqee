@@ -1,17 +1,16 @@
-#include <glm/gtc/matrix_transform.hpp>
-
 #include <sqee/redist/gl_ext_4_2.hpp>
-#include <sqee/app/Settings.hpp>
-#include <sqee/maths/Culling.hpp>
 #include <sqee/maths/General.hpp>
+#include <sqee/app/Settings.hpp>
 
 #include "../Cell.hpp"
 #include "../World.hpp"
 #include "SpotLight.hpp"
 
 using namespace sqt::wcoe;
+namespace maths = sq::maths;
 
-SpotLight::SpotLight(const string& _name, Cell* _cell) : Object(_name, _cell),
+SpotLight::SpotLight(const string& _name, Cell* _cell)
+    : Object(typeid(SpotLight), _name, _cell),
     tex(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT16, sq::Texture::ShadowMap()) {
 
     ubo.reserve("direction", 3u);
@@ -39,14 +38,14 @@ void SpotLight::load_from_spec(const ObjSpec& _spec) {
 }
 
 void SpotLight::refresh() {
-    if (revalidate() == true) {
-        if (PROP_shadow == true) {
-            uint sizeMult = settings.get<bool>("rpg_shadlarge") + 1u;
-            tex.allocate_storage(uvec2(PROP_texsize * sizeMult), false);
-        } else tex.delete_object();
-    }
+    if (invalid == false) return;
 
-    animate();
+    if (PROP_shadow == true) {
+        uint sizeMult = settings.get<bool>("rpg_shadlarge") + 1u;
+        tex.allocate_storage(Vec2U(PROP_texsize * sizeMult), false);
+    } else tex.delete_object();
+
+    animate(); invalid = false;
 }
 
 void SpotLight::update() {
@@ -72,17 +71,17 @@ void SpotLight::calc(double _accum) {
 }
 
 void SpotLight::animate() {
-    fvec3 position = PROP_position + cell->PROP_position;
-    fvec3 tangent = sq::make_tangent(PROP_direction);
-    float angle = glm::radians(PROP_angle);
+    Vec3F position = PROP_position + cell->PROP_position;
+    Vec3F tangent = sq::make_tangent(PROP_direction);
+    float angle = maths::radians(PROP_angle);
 
-    fmat4 viewMat = glm::lookAt(position, position+PROP_direction, tangent);
-    matrix = glm::perspective(2.f*angle, 1.f, 0.2f, PROP_intensity) * viewMat;
+    Mat4F viewMat = maths::look_at(position, position+PROP_direction, tangent);
+    matrix = maths::perspective(2.f*angle, 1.f, 0.2f, PROP_intensity) * viewMat;
     frus = sq::make_Frustum(matrix, position, PROP_direction, 0.2, PROP_intensity);
 
-    float tanAngle = glm::tan(angle*2.f);
-    fvec3 scale = -fvec3(tanAngle, tanAngle, 1.f) * PROP_intensity;
-    modelMat = glm::inverse(viewMat) * glm::scale(fmat4(), scale);
+    float tanAngle = -std::tan(angle*2.f);
+    Vec3F scale = Vec3F(tanAngle, tanAngle, -1.f) * PROP_intensity;
+    modelMat = maths::inverse(viewMat) * maths::scale(Mat4F(), scale);
 
     ubo.update("direction", &PROP_direction);
     ubo.update("intensity", &PROP_intensity);

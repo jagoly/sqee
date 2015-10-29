@@ -1,6 +1,6 @@
 #pragma once
-#include <sqee/forward.hpp>
 
+#include <sqee/builtins.hpp>
 #include <sqee/redist/tinyformat.hpp>
 
 namespace sq {

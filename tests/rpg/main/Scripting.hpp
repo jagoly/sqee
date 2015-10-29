@@ -1,5 +1,4 @@
 #pragma once
-#include <sqee/forward.hpp>
 
 namespace chaiscript { class ChaiScript; }
 

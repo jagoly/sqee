@@ -2,7 +2,7 @@
 #include <iostream>
 
 #include <sqee/redist/lmccop.hpp>
-#include <sqee/misc/ResHolder.hpp>
+#include <sqee/app/Resources.hpp>
 
 #include "RpgApp.hpp"
 
@@ -33,8 +33,8 @@ int main(int argc, char* argv[]) {
     }
 
     if (options[TEST]) {
-        sq::res::path() = options[TEST].arg;
-    } else sq::res::path() = "assets/";
+        sq::static_path() = options[TEST].arg;
+    } else sq::static_path() = "assets/";
 
     sqt::RpgApp app;
     app.eval_test_init();

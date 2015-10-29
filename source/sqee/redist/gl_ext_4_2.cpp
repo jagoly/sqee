@@ -93,6 +93,7 @@ namespace gl
 		LoadTest var_KHR_debug;
 		LoadTest var_ARB_buffer_storage;
 		LoadTest var_ARB_explicit_uniform_location;
+		LoadTest var_ARB_invalidate_subdata;
 		LoadTest var_ARB_direct_state_access;
 		
 	} //namespace exts
@@ -158,6 +159,37 @@ namespace gl
 			int numFailed = 0;
 			BufferStorage = reinterpret_cast<PFNBUFFERSTORAGE>(IntGetProcAddress("glBufferStorage"));
 			if(!BufferStorage) ++numFailed;
+			return numFailed;
+		}
+		
+		typedef void (CODEGEN_FUNCPTR *PFNINVALIDATEBUFFERDATA)(GLuint);
+		PFNINVALIDATEBUFFERDATA InvalidateBufferData = 0;
+		typedef void (CODEGEN_FUNCPTR *PFNINVALIDATEBUFFERSUBDATA)(GLuint, GLintptr, GLsizeiptr);
+		PFNINVALIDATEBUFFERSUBDATA InvalidateBufferSubData = 0;
+		typedef void (CODEGEN_FUNCPTR *PFNINVALIDATEFRAMEBUFFER)(GLenum, GLsizei, const GLenum *);
+		PFNINVALIDATEFRAMEBUFFER InvalidateFramebuffer = 0;
+		typedef void (CODEGEN_FUNCPTR *PFNINVALIDATESUBFRAMEBUFFER)(GLenum, GLsizei, const GLenum *, GLint, GLint, GLsizei, GLsizei);
+		PFNINVALIDATESUBFRAMEBUFFER InvalidateSubFramebuffer = 0;
+		typedef void (CODEGEN_FUNCPTR *PFNINVALIDATETEXIMAGE)(GLuint, GLint);
+		PFNINVALIDATETEXIMAGE InvalidateTexImage = 0;
+		typedef void (CODEGEN_FUNCPTR *PFNINVALIDATETEXSUBIMAGE)(GLuint, GLint, GLint, GLint, GLint, GLsizei, GLsizei, GLsizei);
+		PFNINVALIDATETEXSUBIMAGE InvalidateTexSubImage = 0;
+		
+		static int Load_ARB_invalidate_subdata()
+		{
+			int numFailed = 0;
+			InvalidateBufferData = reinterpret_cast<PFNINVALIDATEBUFFERDATA>(IntGetProcAddress("glInvalidateBufferData"));
+			if(!InvalidateBufferData) ++numFailed;
+			InvalidateBufferSubData = reinterpret_cast<PFNINVALIDATEBUFFERSUBDATA>(IntGetProcAddress("glInvalidateBufferSubData"));
+			if(!InvalidateBufferSubData) ++numFailed;
+			InvalidateFramebuffer = reinterpret_cast<PFNINVALIDATEFRAMEBUFFER>(IntGetProcAddress("glInvalidateFramebuffer"));
+			if(!InvalidateFramebuffer) ++numFailed;
+			InvalidateSubFramebuffer = reinterpret_cast<PFNINVALIDATESUBFRAMEBUFFER>(IntGetProcAddress("glInvalidateSubFramebuffer"));
+			if(!InvalidateSubFramebuffer) ++numFailed;
+			InvalidateTexImage = reinterpret_cast<PFNINVALIDATETEXIMAGE>(IntGetProcAddress("glInvalidateTexImage"));
+			if(!InvalidateTexImage) ++numFailed;
+			InvalidateTexSubImage = reinterpret_cast<PFNINVALIDATETEXSUBIMAGE>(IntGetProcAddress("glInvalidateTexSubImage"));
+			if(!InvalidateTexSubImage) ++numFailed;
 			return numFailed;
 		}
 		
@@ -708,6 +740,10 @@ namespace gl
 		typedef void (CODEGEN_FUNCPTR *PFNSAMPLECOVERAGE)(GLfloat, GLboolean);
 		PFNSAMPLECOVERAGE SampleCoverage = 0;
 		
+		typedef void (CODEGEN_FUNCPTR *PFNBLENDCOLOR)(GLfloat, GLfloat, GLfloat, GLfloat);
+		PFNBLENDCOLOR BlendColor = 0;
+		typedef void (CODEGEN_FUNCPTR *PFNBLENDEQUATION)(GLenum);
+		PFNBLENDEQUATION BlendEquation = 0;
 		typedef void (CODEGEN_FUNCPTR *PFNBLENDFUNCSEPARATE)(GLenum, GLenum, GLenum, GLenum);
 		PFNBLENDFUNCSEPARATE BlendFuncSeparate = 0;
 		typedef void (CODEGEN_FUNCPTR *PFNMULTIDRAWARRAYS)(GLenum, const GLint *, const GLsizei *, GLsizei);
@@ -1698,6 +1734,10 @@ namespace gl
 			if(!GetCompressedTexImage) ++numFailed;
 			SampleCoverage = reinterpret_cast<PFNSAMPLECOVERAGE>(IntGetProcAddress("glSampleCoverage"));
 			if(!SampleCoverage) ++numFailed;
+			BlendColor = reinterpret_cast<PFNBLENDCOLOR>(IntGetProcAddress("glBlendColor"));
+			if(!BlendColor) ++numFailed;
+			BlendEquation = reinterpret_cast<PFNBLENDEQUATION>(IntGetProcAddress("glBlendEquation"));
+			if(!BlendEquation) ++numFailed;
 			BlendFuncSeparate = reinterpret_cast<PFNBLENDFUNCSEPARATE>(IntGetProcAddress("glBlendFuncSeparate"));
 			if(!BlendFuncSeparate) ++numFailed;
 			MultiDrawArrays = reinterpret_cast<PFNMULTIDRAWARRAYS>(IntGetProcAddress("glMultiDrawArrays"));
@@ -2564,10 +2604,11 @@ namespace gl
 			
 			void InitializeMappingTable(std::vector<MapEntry> &table)
 			{
-				table.reserve(4);
+				table.reserve(5);
 				table.push_back(MapEntry("GL_KHR_debug", &exts::var_KHR_debug, _detail::Load_KHR_debug));
 				table.push_back(MapEntry("GL_ARB_buffer_storage", &exts::var_ARB_buffer_storage, _detail::Load_ARB_buffer_storage));
 				table.push_back(MapEntry("GL_ARB_explicit_uniform_location", &exts::var_ARB_explicit_uniform_location));
+				table.push_back(MapEntry("GL_ARB_invalidate_subdata", &exts::var_ARB_invalidate_subdata, _detail::Load_ARB_invalidate_subdata));
 				table.push_back(MapEntry("GL_ARB_direct_state_access", &exts::var_ARB_direct_state_access, _detail::Load_ARB_direct_state_access));
 			}
 			
@@ -2576,6 +2617,7 @@ namespace gl
 				exts::var_KHR_debug = exts::LoadTest();
 				exts::var_ARB_buffer_storage = exts::LoadTest();
 				exts::var_ARB_explicit_uniform_location = exts::LoadTest();
+				exts::var_ARB_invalidate_subdata = exts::LoadTest();
 				exts::var_ARB_direct_state_access = exts::LoadTest();
 			}
 			

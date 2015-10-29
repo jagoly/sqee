@@ -1,8 +1,9 @@
 #pragma once
-#include <sqee/forward.hpp>
 
 #include <chaiscript/language/chaiscript_eval.hpp>
 #include <chaiscript/language/chaiscript_engine.hpp>
+
+#include <sqee/setup.hpp>
 
 namespace sq {
 

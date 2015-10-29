@@ -4,11 +4,16 @@
 
 using namespace sqt::wcoe;
 
-Liquid::Liquid(const string& _name, Cell* _cell) : Object(_name, _cell) {}
+Liquid::Liquid(const string& _name, Cell* _cell)
+    : Object(typeid(Liquid), _name, _cell) {}
 
 void Liquid::load_from_spec(const ObjSpec& _spec) {}
 
-void Liquid::refresh() {}
+void Liquid::refresh() {
+    if (invalid == false) return;
+
+    animate(); invalid = false;
+}
 
 void Liquid::update() {}
 

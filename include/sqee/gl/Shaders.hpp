@@ -1,6 +1,8 @@
 #pragma once
-#include <sqee/forward.hpp>
+
 #include <unordered_map>
+
+#include <sqee/builtins.hpp>
 
 namespace sq {
 
@@ -12,7 +14,7 @@ public:
     ~Shader();
 
     /// Add a uniform to the shader. Call before load().
-    void add_uniform(const string& _name, uint _cnt = 1u);
+    void add_uniform(const string& _name, uint _count = 1u);
 
     /// Load a shader from a string
     void load(const string& _source);
@@ -51,10 +53,7 @@ private:
     const GLenum stage;
     GLbitfield stageBit;
 
-    struct Uniform {
-        Uniform(uint _cnt) : cnt(_cnt) {}
-        const uint cnt; GLint ref;
-    };
+    struct Uniform { uint count; GLint id; };
 
     std::unordered_map<string, Uniform> uniforms;
 };

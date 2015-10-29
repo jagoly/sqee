@@ -13,7 +13,7 @@ def main() {
     app.refresh();
 
     var cellSponza = world.add_cell("Sponza");
-    cellSponza.position = fvec3(0.0, 0.0, 0.0);
+    cellSponza.position = Vec3F(0.0, 0.0, 0.0);
     cellSponza.load_from_file("Sponza/Main");
     cellSponza.enabled = true;
     cellSponza.refresh();
@@ -30,16 +30,16 @@ def main() {
     world.skybox.refresh();
 
     world.ambient.enabled = true;
-    world.ambient.colour = fvec3(0.4, 0.4, 0.4);
-//    world.ambient.colour = fvec3(0.4, 0.35, 0.35);
-//    world.ambient.colour = fvec3(0.3, 0.3, 0.33);
+    world.ambient.colour = Vec3F(0.4, 0.4, 0.4);
+//    world.ambient.colour = Vec3F(0.4, 0.35, 0.35);
+//    world.ambient.colour = Vec3F(0.3, 0.3, 0.33);
     world.ambient.refresh();
 
     world.skylight.enabled = true;
 //    world.skylight.direction = vec3(0.0, 0.0, -1.0);
-    world.skylight.direction = fvec3(-0.355, -0.465, -0.815);
-//    world.skylight.colour = fvec3(0.35, 0.35, 0.38);
-    world.skylight.colour = fvec3(0.9, 0.9, 0.9);
+    world.skylight.direction = Vec3F(-0.355, -0.465, -0.815);
+//    world.skylight.colour = Vec3F(0.35, 0.35, 0.38);
+    world.skylight.colour = Vec3F(0.9, 0.9, 0.9);
     world.skylight.refresh();
 
     world.reload_list();
@@ -57,8 +57,8 @@ def add_some_shit() {
     boxPhys.refresh();
 
     var sqeenDead = cell.add_ModelSkelly("SqeenDead");
-    sqeenDead.position = fvec3(-0.8, 0.0, 0.05);
-    sqeenDead.rotation = fquat(-0.5, 0.5, -0.5, 0.5);
+    sqeenDead.position = Vec3F(-0.8, 0.0, 0.05);
+    sqeenDead.rotation = QuatF(0.5, -0.5, 0.5, -0.5);
     sqeenDead.arma = "Characters/Sqeen";
     sqeenDead.mesh = "Characters/Sqeen";
     sqeenDead.skin = "Characters/Sqeen";
@@ -67,8 +67,8 @@ def add_some_shit() {
     sqeenDead.refresh();
 
     var sqeenLiveA = cell.add_ModelSkelly("SqeenLiveA");
-    sqeenLiveA.position = fvec3(1.5, 0.0, 0.0);
-    sqeenLiveA.rotation = fquat(0.707107, 0.0, 0.0, -0.707107);
+    sqeenLiveA.position = Vec3F(1.5, 0.0, 0.0);
+    sqeenLiveA.rotation = QuatF(0.0, 0.0, -0.707107, 0.707107);
     sqeenLiveA.arma = "Characters/Sqeen";
     sqeenLiveA.mesh = "Characters/Sqeen";
     sqeenLiveA.skin = "Characters/Sqeen";
@@ -77,8 +77,8 @@ def add_some_shit() {
     sqeenLiveA.refresh();
 
     var sqeenLiveB = cell.add_ModelSkelly("SqeenLiveB");
-    sqeenLiveB.position = fvec3(-1.5, 0.0, 0.0);
-    sqeenLiveB.rotation = fquat(0.707107, 0.0, 0.0, 0.707107);
+    sqeenLiveB.position = Vec3F(-1.5, 0.0, 0.0);
+    sqeenLiveB.rotation = QuatF(0.0, 0.0, 0.707107, 0.707107);
     sqeenLiveB.arma = "Characters/Sqeen";
     sqeenLiveB.mesh = "Characters/Sqeen";
     sqeenLiveB.skin = "Characters/Sqeen";
@@ -87,9 +87,9 @@ def add_some_shit() {
     sqeenLiveB.refresh();
 
     var decalSplat = cell.add_Decal("Splat");
-    decalSplat.position = fvec3(0.2, 0.0, 0.3);
-    decalSplat.rotation = fquat(0.0, 0.707107, 0.707107, 0.0);
-    decalSplat.scale = fvec3(2.0, 2.0, 0.7);
+    decalSplat.position = Vec3F(0.2, 0.0, 0.3);
+    decalSplat.rotation = QuatF(0.707107, 0.707107, 0.0, 0.0);
+    decalSplat.scale = Vec3F(2.0, 2.0, 0.7);
     decalSplat.alpha = 1.0f;
     decalSplat.diff = "Blood";
     decalSplat.norm = "Blood";
@@ -97,8 +97,8 @@ def add_some_shit() {
     decalSplat.refresh();
 
     var lightPoint = cell.add_PointLight("PointCentre");
-    lightPoint.position = fvec3(0.0, 0.0, 2.0);
-    lightPoint.colour = fvec3(1.0, 1.0, 1.0);
+    lightPoint.position = Vec3F(0.0, 0.0, 2.0);
+    lightPoint.colour = Vec3F(1.0, 1.0, 1.0);
     lightPoint.intensity = 4.0f;
     lightPoint.texsize = 128u;
     lightPoint.shadow = true;
@@ -106,8 +106,8 @@ def add_some_shit() {
     lightPoint.refresh();
 
     var lightSpotN = cell.add_SpotLight("SpotN");
-    lightSpotN.direction = fvec3(0.0, -0.7, -0.3);
-    lightSpotN.position = fvec3(0.0, 7.0, 3.3);
+    lightSpotN.direction = Vec3F(0.0, -0.7, -0.3);
+    lightSpotN.position = Vec3F(0.0, 7.0, 3.3);
     lightSpotN.intensity = 20.0f;
     lightSpotN.softness = 0.3f;
     lightSpotN.angle = 35.0f;
@@ -117,8 +117,8 @@ def add_some_shit() {
     lightSpotN.refresh();
 
     var lightSpotS = cell.add_SpotLight("SpotS");
-    lightSpotS.direction = fvec3(0.0, 0.7, -0.3);
-    lightSpotS.position = fvec3(0.0, -7.0, 3.3);
+    lightSpotS.direction = Vec3F(0.0, 0.7, -0.3);
+    lightSpotS.position = Vec3F(0.0, -7.0, 3.3);
     lightSpotS.intensity = 20.0f;
     lightSpotS.softness = 0.3f;
     lightSpotS.angle = 35.0f;
@@ -128,7 +128,7 @@ def add_some_shit() {
     lightSpotS.refresh();
 
     var lightPointNE = cell.add_PointLight("PointNE");
-    lightPointNE.position = fvec3(14.0, 5.0, 2.0);
+    lightPointNE.position = Vec3F(14.0, 5.0, 2.0);
     lightPointNE.intensity = 7.0f;
     lightPointNE.texsize = 128u;
     lightPointNE.shadow = true;
@@ -136,7 +136,7 @@ def add_some_shit() {
     lightPointNE.refresh();
 
     var lightPointSE = cell.add_PointLight("PointSE");
-    lightPointSE.position = fvec3(14.0, -5.0, 2.0);
+    lightPointSE.position = Vec3F(14.0, -5.0, 2.0);
     lightPointSE.intensity = 7.0f;
     lightPointSE.texsize = 128u;
     lightPointSE.shadow = true;
@@ -144,7 +144,7 @@ def add_some_shit() {
     lightPointSE.refresh();
 
     var lightPointSW = cell.add_PointLight("PointSW");
-    lightPointSW.position = fvec3(-14.0, -5.0, 2.0);
+    lightPointSW.position = Vec3F(-14.0, -5.0, 2.0);
     lightPointSW.intensity = 7.0f;
     lightPointSW.texsize = 128u;
     lightPointSW.shadow = true;
@@ -152,7 +152,7 @@ def add_some_shit() {
     lightPointSW.refresh();
 
     var lightPointNW = cell.add_PointLight("PointNW");
-    lightPointNW.position = fvec3(-14.0, 5.0, 2.0);
+    lightPointNW.position = Vec3F(-14.0, 5.0, 2.0);
     lightPointNW.intensity = 7.0f;
     lightPointNW.texsize = 128u;
     lightPointNW.shadow = true;
@@ -160,15 +160,15 @@ def add_some_shit() {
     lightPointNW.refresh();
 
     var emitterA = cell.add_Emitter("EmitterA");
-    emitterA.position = fvec3(+1.0, 0.0, 2.0);
+    emitterA.position = Vec3F(+1.0, 0.0, 2.0);
     emitterA.refresh();
 
     var emitterB = cell.add_Emitter("EmitterB");
-    emitterB.position = fvec3(-1.0, 0.0, 2.0);
+    emitterB.position = Vec3F(-1.0, 0.0, 2.0);
     emitterB.refresh();
 
     var emitterC = cell.add_Emitter("EmitterC");
-    emitterC.position = fvec3(0.0, 0.0, 1.0);
+    emitterC.position = Vec3F(0.0, 0.0, 1.0);
     emitterC.refresh();
 
     var emitterGun = cell.add_Emitter("EmitterGun");
@@ -176,8 +176,6 @@ def add_some_shit() {
     
     world.reload_list();
     renderer.reload_lists();
-
-//    renderer.refresh_irrd();
 }
 
 
@@ -190,23 +188,23 @@ def animate_the_shit() {
     splat.animAlpha.start();
 
     var point = cell.get_PointLight("PointCentre");
-    point.animColour.values = [fvec3(1,0,0) - point.colour, point.colour - fvec3(1,0,0),
-                               fvec3(0,1,0) - point.colour, point.colour - fvec3(0,1,0),
-                               fvec3(0,0,1) - point.colour, point.colour - fvec3(0,0,1)];
+    point.animColour.values = [Vec3F(1,0,0) - point.colour, point.colour - Vec3F(1,0,0),
+                               Vec3F(0,1,0) - point.colour, point.colour - Vec3F(0,1,0),
+                               Vec3F(0,0,1) - point.colour, point.colour - Vec3F(0,0,1)];
     point.animIntensity.values = [1.0f, -2.0f, 2.0f, -2.0f, 2.0f, -1.0f];
     point.animColour.times = [6u, 10u, 6u, 10u, 6u, 10u];
     point.animIntensity.times = [6u, 10u, 6u, 10u, 6u, 10u];
     point.animColour.start(); point.animIntensity.start();
 
     var spotN = cell.get_SpotLight("SpotN");
-    spotN.animDirection.values = [fvec3(2,-1,-1) - spotN.direction, spotN.direction - fvec3(2,-1,-1),
-                                  fvec3(-2,-1,-1) - spotN.direction, spotN.direction - fvec3(-2,-1,-1)];
+    spotN.animDirection.values = [Vec3F(2,-1,-1) - spotN.direction, spotN.direction - Vec3F(2,-1,-1),
+                                  Vec3F(-2,-1,-1) - spotN.direction, spotN.direction - Vec3F(-2,-1,-1)];
     spotN.animDirection.times = [10u, 14u, 14u, 10u];
     spotN.animDirection.start();
 
     var spotS = cell.get_SpotLight("SpotS");
-    spotS.animDirection.values = [fvec3(-2,1,-1) - spotS.direction, spotS.direction - fvec3(-2,1,-1),
-                                  fvec3(2,1,-1) - spotS.direction, spotS.direction - fvec3(2,1,-1)];
+    spotS.animDirection.values = [Vec3F(-2,1,-1) - spotS.direction, spotS.direction - Vec3F(-2,1,-1),
+                                  Vec3F(2,1,-1) - spotS.direction, spotS.direction - Vec3F(2,1,-1)];
     spotS.animDirection.times = [10u, 14u, 14u, 10u];
     spotS.animDirection.start();
 
@@ -214,10 +212,10 @@ def animate_the_shit() {
     var pointSE = cell.get_PointLight("PointSE");
     var pointSW = cell.get_PointLight("PointSW");
     var pointNW = cell.get_PointLight("PointNW");
-    pointNE.animPosition.values = [fvec3(0,-10,0), fvec3(-28,0,0), fvec3(0,10,0), fvec3(28,0,0)];
-    pointSE.animPosition.values = [fvec3(-28,0,0), fvec3(0,10,0), fvec3(28,0,0), fvec3(0,-10,0)];
-    pointSW.animPosition.values = [fvec3(0,10,0), fvec3(28,0,0), fvec3(0,-10,0), fvec3(-28,0,0)];
-    pointNW.animPosition.values = [fvec3(28,0,0), fvec3(0,-10,0), fvec3(-28,0,0), fvec3(0,10,0)];
+    pointNE.animPosition.values = [Vec3F(0,-10,0), Vec3F(-28,0,0), Vec3F(0,10,0), Vec3F(28,0,0)];
+    pointSE.animPosition.values = [Vec3F(-28,0,0), Vec3F(0,10,0), Vec3F(28,0,0), Vec3F(0,-10,0)];
+    pointSW.animPosition.values = [Vec3F(0,10,0), Vec3F(28,0,0), Vec3F(0,-10,0), Vec3F(-28,0,0)];
+    pointNW.animPosition.values = [Vec3F(28,0,0), Vec3F(0,-10,0), Vec3F(-28,0,0), Vec3F(0,10,0)];
     pointNE.animPosition.times = [8u*4, 16u*4, 8u*4, 16u*4]; pointNE.animPosition.start();
     pointSE.animPosition.times = [16u*4, 8u*4, 16u*4, 8u*4]; pointSE.animPosition.start();
     pointSW.animPosition.times = [8u*4, 16u*4, 8u*4, 16u*4]; pointSW.animPosition.start();
@@ -230,9 +228,9 @@ def puffA(_count) {
     var emitterA = cell.get_Emitter("EmitterA");
     var emitterB = cell.get_Emitter("EmitterB");
     var emitterC = cell.get_Emitter("EmitterC");
-    emitterA.emit_puff(_count, fvec3(-1,0,2), fvec3(0.8, 0.2, 0.2), 0.2, 0.3, 9.0, 12.0, 1000u, 1600u);
-    emitterB.emit_puff(_count, fvec3(+1,0,2), fvec3(0.2, 0.8, 0.2), 0.2, 0.3, 9.0, 12.0, 1000u, 1600u);
-    emitterC.emit_puff(_count, fvec3( 0,0,3), fvec3(0.2, 0.2, 0.8), 0.2, 0.3, 9.0, 12.0, 1000u, 1600u);
+    emitterA.emit_puff(_count, Vec3F(-1,0,2), Vec3F(0.8, 0.2, 0.2), 0.2, 0.3, 9.0, 12.0, 1000u, 1600u);
+    emitterB.emit_puff(_count, Vec3F(+1,0,2), Vec3F(0.2, 0.8, 0.2), 0.2, 0.3, 9.0, 12.0, 1000u, 1600u);
+    emitterC.emit_puff(_count, Vec3F( 0,0,3), Vec3F(0.2, 0.2, 0.8), 0.2, 0.3, 9.0, 12.0, 1000u, 1600u);
 }
 
 def puffB(_count) {
@@ -240,17 +238,17 @@ def puffB(_count) {
     var emitterA = cell.get_Emitter("EmitterA");
     var emitterB = cell.get_Emitter("EmitterB");
     var emitterC = cell.get_Emitter("EmitterC");
-    emitterA.emit_puff(_count, fvec3(0,0,0), fvec3(1.0, 1.0, 1.0), 0.3, 0.5, 1.0, 1.5, 30u, 60u);
-    emitterB.emit_puff(_count, fvec3(0,0,0), fvec3(1.0, 1.0, 1.0), 0.3, 0.5, 1.0, 1.5, 30u, 60u);
-    emitterC.emit_puff(_count, fvec3(0,0,0), fvec3(1.0, 1.0, 1.0), 0.3, 0.5, 1.0, 1.5, 30u, 60u);
+    emitterA.emit_puff(_count, Vec3F(0,0,0), Vec3F(1.0, 1.0, 1.0), 0.3, 0.5, 1.0, 1.5, 30u, 60u);
+    emitterB.emit_puff(_count, Vec3F(0,0,0), Vec3F(1.0, 1.0, 1.0), 0.3, 0.5, 1.0, 1.5, 30u, 60u);
+    emitterC.emit_puff(_count, Vec3F(0,0,0), Vec3F(1.0, 1.0, 1.0), 0.3, 0.5, 1.0, 1.5, 30u, 60u);
 }
 
 def puffC(_count) {
     var cell = world.get_cell("Sponza");
     var emitterGun = cell.get_Emitter("EmitterGun");
-    var gunDir = fvec3(camera.direction);
+    var gunDir = Vec3F(camera.direction);
     emitterGun.position = camera.position; emitterGun.refresh();
-    emitterGun.emit_puff(_count, gunDir*10.0f, fvec3(1.0, 1.0, 0.0), 0.2, 0.2, 7.5, 10.0, 75u, 75u);
+    emitterGun.emit_puff(_count, gunDir*10.0f, Vec3F(1.0, 1.0, 0.0), 0.2, 0.2, 7.5, 10.0, 75u, 75u);
 }
 
 
@@ -258,10 +256,10 @@ def add_lotsa_dudes() {
     for (var i = 0; i < 10; i += 1) {
         var dudeA = world.get_cell("Sponza").add_ModelSkelly("DudeA"+to_string(i));
         var dudeB = world.get_cell("Sponza").add_ModelSkelly("DudeB"+to_string(i));
-        dudeA.position = fvec3(-5.0 + i, +1.0, 0.0);
-        dudeB.position = fvec3(-5.0 + i, -1.0, 0.0);
-        dudeA.rotation = fquat(0.707107, 0.0, 0.0, -0.707107);
-        dudeB.rotation = fquat(0.707107, 0.0, 0.0, +0.707107);
+        dudeA.position = Vec3F(-5.0 + i, +1.0, 0.0);
+        dudeB.position = Vec3F(-5.0 + i, -1.0, 0.0);
+        dudeA.rotation = QuatF(0.0, 0.0, -0.707107, 0.707107);
+        dudeB.rotation = QuatF(0.0, 0.0, +0.707107, 0.707107);
         dudeA.arma = dudeB.arma = "Characters/Sqeen";
         dudeA.mesh = dudeB.mesh = "Characters/Sqeen";
         dudeA.skin = dudeB.skin = "Characters/Sqeen";
@@ -279,19 +277,23 @@ def add_lotsa_dudes() {
 
 def add_some_dice() {
     for (var i = 0; i < 111; i += 1) {
-        var dice = world.get_cell("Sponza").add_ModelStatic("Dice"+to_string(i));
-        dice.position = fvec3(3.0, 0.0, float(i)*0.4 + 1.0);
-        dice.scale = fvec3(0.3, 0.3, 0.3);
+        var dice = world.get_cell("Sponza").add_ModelSimple("Dice"+to_string(i));
+
+        print("FUCK");
+        dice.position = Vec3F(3.0, 0.0, float(i)*0.4 + 1.0);
+        dice.scale = Vec3F(0.3, 0.3, 0.3);
         dice.mesh = "Test/Dice";
         dice.skin = "Test/Dice";
         dice.shadow = true;
         dice.render = true;
         dice.refresh();
 
+        print("FUCK");
+
         var phys = world.get_cell("Sponza").add_RigBodyBasic("DiceP"+to_string(i));
-        phys.scale = fvec3(0.3, 0.3, 0.3);
-        phys.phys = "Test/Dice";
-        phys.set_ModelStatic(dice);
+        phys.scale = Vec3F(0.3, 0.3, 0.3);
+        phys.physobj = "Test/Dice";
+        phys.set_ModelSimple(dice);
         phys.refresh();
     }
 
@@ -302,9 +304,9 @@ def add_some_dice() {
 
 def add_some_balls() {
     for (var i = 0; i < 111; i += 1) {
-        var ball = world.get_cell("Sponza").add_ModelStatic("Ball"+to_string(i));
-        ball.position = fvec3(-3.0, 0.0, float(i)*0.4 + 1.0);
-        ball.scale = fvec3(0.3, 0.3, 0.3);
+        var ball = world.get_cell("Sponza").add_ModelSimple("Ball"+to_string(i));
+        ball.position = Vec3F(-3.0, 0.0, float(i)*0.4 + 1.0);
+        ball.scale = Vec3F(0.3, 0.3, 0.3);
         ball.mesh = "Test/Ball";
         ball.skin = "Test/Ball";
         ball.shadow = true;
@@ -312,9 +314,9 @@ def add_some_balls() {
         ball.refresh();
 
         var phys = world.get_cell("Sponza").add_RigBodyBasic("BallP"+to_string(i));
-        phys.scale = fvec3(0.3, 0.3, 0.3);
-        phys.phys = "Test/Ball";
-        phys.set_ModelStatic(ball);
+        phys.scale = Vec3F(0.3, 0.3, 0.3);
+        phys.physobj = "Test/Ball";
+        phys.set_ModelSimple(ball);
         phys.refresh();
     }
 
@@ -336,7 +338,7 @@ def sd(_val) {
 
 
 def rdrskyl(_x, _y, _z) {
-    world.skylight.direction = fvec3(_x, _y, _z);
+    world.skylight.direction = Vec3F(_x, _y, _z);
     world.skylight.refresh();
     renderer.refresh_irrd();
 }

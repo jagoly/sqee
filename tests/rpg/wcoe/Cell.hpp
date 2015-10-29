@@ -1,13 +1,15 @@
 #pragma once
-#include <sqee/forward.hpp>
+
 #include <unordered_map>
+
+#include <sqee/builtins.hpp>
+#include <sqee/maths/Vectors.hpp>
 
 namespace sqt { namespace wcoe {
 
-class Object;
-class World;
+class Object; class World;
 
-class Cell final : NonCopyable {
+class Cell final : sq::NonCopyable {
 public:
     Cell(const string& _name, World& _world);
 
@@ -19,7 +21,7 @@ public:
     World& world;
 
     bool PROP_enabled = false;
-    fvec3 PROP_position = {0, 0, 0};
+    Vec3F PROP_position = {0, 0, 0};
 
     template<class T>
     T* add_object(const string& _name);

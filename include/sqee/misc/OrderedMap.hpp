@@ -1,7 +1,10 @@
 #pragma once
-#include <sqee/forward.hpp>
-#include <unordered_map>
+
 #include <deque>
+#include <stdexcept>
+#include <unordered_map>
+
+#include <sqee/setup.hpp>
 
 namespace sq {
 

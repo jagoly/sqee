@@ -1,7 +1,8 @@
 #pragma once
-#include <sqee/forward.hpp>
 
+#include <sqee/gl/Textures.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
+#include <sqee/maths/Vectors.hpp>
 
 #include "Animation.hpp"
 
@@ -11,7 +12,7 @@ class World;
 
 // todo: add invalidate() to match other objects
 
-class SkyBox final : NonCopyable {
+class SkyBox final : sq::NonCopyable {
 public:
     SkyBox(const World& _camera);
 
@@ -31,8 +32,8 @@ public:
     AnimatorFloat ANIM_contrast   {&PROP_contrast};
     AnimatorFloat ANIM_alpha      {&PROP_alpha};
 
+    sq::TextureCube tex;
     sq::UniformBuffer ubo;
-    sq::TextureCube* tex = nullptr;
 
 private:
     const World& world;

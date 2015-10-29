@@ -1,7 +1,10 @@
 #pragma once
-#include <sqee/forward.hpp>
 
+#include <sqee/forward.hpp>
+#include <sqee/builtins.hpp>
 #include <sqee/scenes/Scene.hpp>
+#include <sqee/maths/Vectors.hpp>
+
 
 namespace sqt {
 
@@ -22,9 +25,8 @@ private:
     unique_ptr<wcoe::World> world;
     unique_ptr<rndr::Renderer> renderer;
 
-    fvec3 posCrnt, posNext;
+    Vec3F posCrnt, posNext;
     float rotX =0, rotZ =0;
-
 
     struct {
         unique_ptr<sq::Texture2D> pshadA;
@@ -42,21 +44,8 @@ private:
     } FB;
 
     struct {
-        float viewdist;
-        bool shadfilter;
-        bool shadlarge;
-        bool vignette;
-        bool bloom;
-        int shafts;
-        int ssao;
-        int fsaa;
-        uvec2 fullSize;
-        uvec2 halfSize;
-        uvec2 qterSize;
-        fvec2 fPixSize;
-        fvec2 hPixSize;
-        fvec2 qPixSize;
-        float aspect;
+        bool vignette, bloom;
+        int shafts, ssao, fsaa;
     } INFO;
 
     void reload_shaders();

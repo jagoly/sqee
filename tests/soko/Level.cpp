@@ -3,12 +3,13 @@
 #include "Level.hpp"
 
 using namespace sqt;
+namespace maths = sq::maths;
 
 Level::Level(const Spec& _spec) : minPos(_spec.minPos), maxPos(_spec.maxPos) {
-    for (ivec2 pos : _spec.ballSet) ballList.emplace_front(new Ball{pos, pos, false, false, pos});
-    for (ivec2 pos : _spec.holeSet) holeList.emplace_front(new Hole{false, pos});
+    for (Vec2I pos : _spec.ballSet) ballList.emplace_front(new Ball{Vec2F(pos), Vec2F(pos), false, false, pos});
+    for (Vec2I pos : _spec.holeSet) holeList.emplace_front(new Hole{false, pos});
 
-    for (ivec2 pos : _spec.wallSet) {
+    for (Vec2I pos : _spec.wallSet) {
         bool xNeg, xPos, yNeg, yPos;
         uchar connect = 6u, rotate = 4u;
 
@@ -53,11 +54,11 @@ void Level::update() {
             hole->filled = true;
         } else {
             bool inhole = !ball.pushed && hole != nullptr && !hole->filled;
-            fvec2 posCrnt = ball.posNext, posNext = ball.posNext;
-            ivec2 position = ball.position;
+            Vec2F posCrnt = ball.posNext, posNext = ball.posNext;
+            Vec2I position = ball.position;
 
-            if (ball.pushed == false) posNext = position;
-            else posNext = glm::mix(posCrnt, fvec2(position), 0.5f);
+            if (ball.pushed == false) posNext = Vec2F(position);
+            else posNext = maths::mix(posCrnt, Vec2F(position), 0.5f);
             iter->reset(new Ball{posCrnt, posNext, false, inhole, position});
 
             std::advance(iter, 1u);
@@ -66,28 +67,28 @@ void Level::update() {
 }
 
 
-Ball* Level::get_Ball(ivec2 _pos) {
+Ball* Level::get_Ball(Vec2I _pos) {
     for (Ball::Ptr& ball : ballList) {
         if (ball->position == _pos) return ball.get();
     } return nullptr;
 }
 
 
-Hole* Level::get_Hole(ivec2 _pos) {
+Hole* Level::get_Hole(Vec2I _pos) {
     for (Hole::Ptr& hole : holeList) {
         if (hole->position == _pos) return hole.get();
     } return nullptr;
 }
 
 
-Wall* Level::get_Wall(ivec2 _pos) {
+Wall* Level::get_Wall(Vec2I _pos) {
     for (Wall::Ptr& wall : wallList) {
         if (wall->position == _pos) return wall.get();
     } return nullptr;
 }
 
 
-bool Level::outside(ivec2 _pos) {
+bool Level::outside(Vec2I _pos) {
     return _pos.x < minPos.x || _pos.y < minPos.y ||
            _pos.x >= maxPos.x || _pos.y >= maxPos.y;
 }

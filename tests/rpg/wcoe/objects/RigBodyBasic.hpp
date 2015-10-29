@@ -1,5 +1,9 @@
 #pragma once
 
+#include <sqee/forward.hpp>
+#include <sqee/maths/Vectors.hpp>
+#include <sqee/maths/Quaternion.hpp>
+
 #include "../Object.hpp"
 #include "../Animation.hpp"
 
@@ -22,7 +26,7 @@ public:
     void calc(double _accum);
     void animate();
 
-    fvec3  PROP_scale    = {1.f, 1.f, 1.f};
+    Vec3F  PROP_scale    = {1.f, 1.f, 1.f};
     string PROP_physobj  = "";
 
     void FUNC_set_ModelSimple(ModelSimple* _object);
@@ -32,10 +36,10 @@ public:
 
 private:
     Object* objectPtr = nullptr;
-    fvec3* positionPtr = nullptr;
-    fquat* rotationPtr = nullptr;
-    fvec3 positionCrnt, positionNext;
-    fquat rotationCrnt, rotationNext;
+    Vec3F* positionPtr = nullptr;
+    QuatF* rotationPtr = nullptr;
+    Vec3F positionCrnt, positionNext;
+    QuatF rotationCrnt, rotationNext;
 };
 
 }}

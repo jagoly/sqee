@@ -1,14 +1,18 @@
 #pragma once
-#include <sqee/forward.hpp>
+
 #include <unordered_set>
 
+#include <sqee/builtins.hpp>
 #include <sqee/app/Settings.hpp>
 #include <sqee/app/ChaiConsole.hpp>
 #include <sqee/app/DebugOverlay.hpp>
 #include <sqee/app/PreProcessor.hpp>
 #include <sqee/misc/OrderedMap.hpp>
+#include <sqee/maths/Vectors.hpp>
 
-namespace sf { class Window; class ContextSettings; class Event; }
+// Forward Declarations /////
+namespace sq { class Scene; class Handler; }
+namespace sf { class Window; class Event; }
 namespace chaiscript { class ChaiScript; }
 
 namespace sq {
@@ -23,8 +27,8 @@ public:
     virtual void quit(int _code);
     virtual void refresh();
 
-    fvec2 mouse_centre();
-    uvec2 get_size() const;
+    Vec2F mouse_centre();
+    Vec2U get_size() const;
 
     template<class T> T& append_scene(const string& _key);
     template<class T> T& prepend_scene(const string& _key);
@@ -45,7 +49,6 @@ public:
     ChaiConsole console;
 
 protected:
-    unique_ptr<sf::ContextSettings> context;
     unique_ptr<sf::Window> window;
     int retCode = -1;
 

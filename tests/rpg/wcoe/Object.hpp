@@ -1,21 +1,18 @@
 #pragma once
-#include <sqee/forward.hpp>
+
+#include <typeindex>
 #include <unordered_map>
 #include <unordered_set>
 
-#include <chaiscript/dispatchkit/boxed_value.hpp>
-#include <chaiscript/dispatchkit/boxed_cast.hpp>
-using chaiscript::Boxed_Value;
-using chaiscript::boxed_cast;
-#undef bool
+#include <sqee/builtins.hpp>
+#include <sqee/maths/Vectors.hpp>
+#include <sqee/maths/Quaternion.hpp>
 
-namespace sqt {
-namespace wcoe {
+namespace sq { class Settings; }
 
-class Cell;
-class World;
+namespace sqt { namespace wcoe {
 
-using VoidFunc = std::function<void()>;
+class Cell; class World;
 
 class ObjSpec {
 public:
@@ -27,17 +24,17 @@ public:
 private:
     template <class T> using TypeMap = std::unordered_map<string, T>;
     TypeMap<int> intMap; TypeMap<uint> uintMap; TypeMap<float> floatMap;
-    TypeMap<fvec2> fvec2Map; TypeMap<fvec3> fvec3Map; TypeMap<fvec4> fvec4Map;
-    TypeMap<uvec2> uvec2Map; TypeMap<uvec3> uvec3Map; TypeMap<uvec4> uvec4Map;
-    TypeMap<ivec2> ivec2Map; TypeMap<ivec3> ivec3Map; TypeMap<ivec4> ivec4Map;
-    TypeMap<fquat> fquatMap; TypeMap<string> stringMap;
+    TypeMap<Vec2I> ivec2Map; TypeMap<Vec3I> ivec3Map; TypeMap<Vec4I> ivec4Map;
+    TypeMap<Vec2U> uvec2Map; TypeMap<Vec3U> uvec3Map; TypeMap<Vec4U> uvec4Map;
+    TypeMap<Vec2F> fvec2Map; TypeMap<Vec3F> fvec3Map; TypeMap<Vec4F> fvec4Map;
+    TypeMap<QuatF> fquatMap; TypeMap<string> stringMap;
     std::unordered_set<string> flagSet;
 };
 
 
-class Object : NonCopyable {
+class Object : sq::NonCopyable {
 public:
-    Object(const string& _name, Cell* _cell);
+    Object(std::type_index _type, const string& _name, Cell* _cell);
     virtual ~Object() = default;
 
     virtual void load_from_spec(const ObjSpec& _spec) = 0;
@@ -46,19 +43,18 @@ public:
     virtual void calc(double _accum) = 0;
     virtual void animate() = 0;
 
+    const std::type_index type;
     const string name;
     const Cell* const cell;
 
-    std::unordered_map<string, Boxed_Value> extra;
+    //chai::dispatch::Dynamic_Object extra;
 
     void invalidate();
-    bool revalidate();
 
 protected:
     const World& world;
     const sq::Settings& settings;
 
-private:
     bool invalid = true;
 };
 

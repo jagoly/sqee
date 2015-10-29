@@ -29,7 +29,7 @@ void ChaiConsole::render() {
     render_text_basic(outStr, app->get_size(),
                       TextBasicFlow::Positive, TextBasicFlow::Negative,
                       TextBasicAlign::Negative, TextBasicAlign::Positive,
-                      fvec2(24.f, 30.f), fvec3(1.f, 1.f, 1.f), 1.f, true);
+                      Vec2F(24.f, 30.f), Vec3F(1.f, 1.f, 1.f), 1.f, true);
 }
 
 void ChaiConsole::handle_input(sf::Event _event) {
@@ -52,6 +52,7 @@ void ChaiConsole::handle_input(sf::Event _event) {
             catch (chai::exception::eval_error& err) {
                 output.emplace_front(err.what()); }
             input.clear(); cursorPos = 0u;
+            std::cout << std::endl;
 
         } else if (_event.key.code == sf::Keyboard::Up) {
             if (history.empty() == false) {

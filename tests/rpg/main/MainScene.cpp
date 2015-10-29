@@ -1,5 +1,3 @@
-#include <glm/gtx/string_cast.hpp>
-#include <glm/gtx/rotate_vector.hpp>
 #include <rp3d/engine/DynamicsWorld.hpp>
 #include <SFML/Window/Keyboard.hpp>
 
@@ -25,9 +23,8 @@
 #include "../wcoe/Cell.hpp"
 #include "MainScene.hpp"
 
-#include <sqee/debug/Misc.hpp>
-
 using namespace sqt;
+namespace maths = sq::maths;
 
 MainScene::MainScene(sq::Application* _app) : sq::Scene(_app) {
     tickRate = 24u;
@@ -132,27 +129,26 @@ void MainScene::update() {
         if (KB::isKeyPressed(KB::PageDown)) posNext.z -= 0.05f;
 
         if (KB::isKeyPressed(KB::Right) && !KB::isKeyPressed(KB::Left))
-            posNext += glm::rotateZ(fvec3(0.08f, 0.f, 0.f), rotZ);
+            posNext += maths::rotate_z(Vec3F(+0.08f, 0.f, 0.f), rotZ);
         else if (KB::isKeyPressed(KB::Left) && !KB::isKeyPressed(KB::Right))
-            posNext += glm::rotateZ(fvec3(-0.08f, 0.f, 0.f), rotZ);
+            posNext += maths::rotate_z(Vec3F(-0.08f, 0.f, 0.f), rotZ);
 
         if (KB::isKeyPressed(KB::Up) && !KB::isKeyPressed(KB::Down))
-            posNext += glm::rotateZ(fvec3(0.f, 0.08f, 0.f), rotZ);
+            posNext += maths::rotate_z(Vec3F(0.f, +0.08f, 0.f), rotZ);
         else if (KB::isKeyPressed(KB::Down) && !KB::isKeyPressed(KB::Up))
-            posNext += glm::rotateZ(fvec3(0.f, -0.08f, 0.f), rotZ);
+            posNext += maths::rotate_z(Vec3F(0.f, -0.08f, 0.f), rotZ);
     }
 
     world->update();
 }
 
 void MainScene::render() {
-
-    camera->pos = glm::mix(posCrnt, posNext, accum * 24.f);
     if (app->console.active == false) {
-        fvec2 mMove = app->mouse_centre();
+        Vec2F mMove = app->mouse_centre();
         rotZ = rotZ + mMove.x / 600.f;
-        rotX = glm::clamp(rotX + mMove.y / 900.f, -1.25f, 1.25f);
-        camera->dir = glm::rotateZ(glm::rotateX(fvec3(0,1,0), rotX), rotZ);
+        rotX = maths::clamp(rotX + mMove.y / 900.f, -1.25f, 1.25f);
+        camera->dir = maths::rotate_z(maths::rotate_x(Vec3F(0.f, 1.f, 0.f), rotX), rotZ);
+        camera->pos = maths::mix(posCrnt, posNext, float(accum)*24.f);
     }
 
     camera->update();
@@ -164,72 +160,27 @@ void MainScene::render() {
 
     /// Setup Stuff
     pipeline->bind();
-    camera->ubo->bind(0u);
+    camera->ubo.bind(0u);
     gl::DepthFunc(gl::LEQUAL);
 
-
-    /// Light Shadows
     renderer->shadows->setup_render_state();
     renderer->shadows->render_shadows_sky();
     renderer->shadows->render_shadows_spot();
     renderer->shadows->render_shadows_point();
 
+    renderer->gbuffers->render_gbuffers_base();
 
-    /// Render Models into G-Buffer
-    renderer->gbuffers->setup_render_state_base();
-    renderer->gbuffers->render_msimples_base(true);
-    renderer->gbuffers->render_mskellys_base(true);
-    renderer->gbuffers->render_reflects_base(true);
-    renderer->gbuffers->bind_textures_base();
-    renderer->gbuffers->render_decals_base();
-    renderer->gbuffers->render_msimples_base(false);
-    renderer->gbuffers->render_mskellys_base(false);
-    renderer->gbuffers->render_reflects_base(false);
+    renderer->pretties->render_post_gbuffers();
 
+    renderer->lighting->render_lighting_base();
 
-    /// Render Downscaled Depth Buffers
-    renderer->gbuffers->render_downscaled_depth();
-
-
-    /// Render SSAO Texture
-    if (INFO.ssao != 0) {
-        renderer->pretties->setup_render_state();
-        renderer->pretties->render_ssao_texture();
-    }
-
-
-    /// Clear HDR Framebuffer
-
-
-    /// Render Lights and Reflections
-    renderer->lighting->setup_render_state();
-    renderer->lighting->render_skybox_base();
-    renderer->lighting->render_ambient_base();
-    renderer->lighting->render_skylight_base();
-    renderer->lighting->render_spotlights_base();
-    renderer->lighting->render_pointlights_base();
     renderer->reflects->render_reflections();
 
+    //renderer->render_particles();
 
-    /// Render Light Shafts Texture
+    renderer->pretties->render_post_lighting();
 
-
-    /// Render Particles
-    renderer->render_particles();
-
-    /// Render Bloom Texture
-    renderer->pretties->setup_render_state();
-    if (INFO.shafts) renderer->pretties->render_shafts_texture();
-    if (INFO.bloom) renderer->pretties->render_bloom_texture();
-    renderer->pretties->render_hdr_tonemap();
-
-
-    /// Antialiasing and Write to Screen
-    renderer->pretties->render_fsaa_screen();
-
-
-    /// Vignetting Effect
-    renderer->pretties->render_vignette();
+    renderer->pretties->render_final_screen();
 
 
     gl::BindProgramPipeline(0);
@@ -238,48 +189,20 @@ void MainScene::render() {
 
 
 void MainScene::refresh() {
-    INFO.fullSize = app->get_size();
-    INFO.halfSize = INFO.fullSize / 2u;
-    INFO.qterSize = INFO.fullSize / 4u;
-    INFO.fPixSize = 1.f / fvec2(INFO.fullSize);
-    INFO.hPixSize = 1.f / fvec2(INFO.halfSize);
-    INFO.qPixSize = 1.f / fvec2(INFO.qterSize);
-    INFO.aspect = float(INFO.fullSize.x) /
-                  float(INFO.fullSize.y);
+//    TX.pshadA->allocate_storage(INFO.halfSize, false);
+//    TX.pshadB->allocate_storage(INFO.halfSize, false);
+//    TX.partMain->allocate_storage(INFO.halfSize, false);
+//    TX.partDpSt->allocate_storage(INFO.halfSize, false);
+//    TX.hdrPart->allocate_storage(INFO.halfSize, false);
 
-    renderer->INFO.fullSize = INFO.fullSize;
-    renderer->INFO.halfSize = INFO.halfSize;
-    renderer->INFO.qterSize = INFO.qterSize;
-    renderer->INFO.fPixSize = INFO.fPixSize;
-    renderer->INFO.hPixSize = INFO.hPixSize;
-    renderer->INFO.qPixSize = INFO.qPixSize;
+    camera->size = Vec2F(app->settings.get<int>("app_width"),
+                         app->settings.get<int>("app_height"));
 
-    TX.pshadA->allocate_storage(INFO.halfSize, false);
-    TX.pshadB->allocate_storage(INFO.halfSize, false);
-    TX.partMain->allocate_storage(INFO.halfSize, false);
-    TX.partDpSt->allocate_storage(INFO.halfSize, false);
-    TX.hdrPart->allocate_storage(INFO.halfSize, false);
-
-    camera->size = fvec2(INFO.fullSize);
-
-    INFO.viewdist   = app->settings.get<float>("rpg_viewdist");
-    INFO.shadfilter = app->settings.get<bool>("rpg_shadfilter");
-    INFO.shadlarge  = app->settings.get<bool>("rpg_shadlarge");
     INFO.vignette   = app->settings.get<bool>("rpg_vignette");
     INFO.bloom      = app->settings.get<bool>("rpg_bloom");
     INFO.shafts     = app->settings.get<int>("rpg_shafts");
     INFO.ssao       = app->settings.get<int>("rpg_ssao");
     INFO.fsaa       = app->settings.get<int>("rpg_fsaa");
-
-    renderer->INFO.viewdist = INFO.viewdist;
-    renderer->INFO.shadlarge = INFO.shadlarge;
-    renderer->INFO.shadfilter = INFO.shadfilter;
-    renderer->INFO.aspect = INFO.aspect;
-    renderer->INFO.bloom = INFO.bloom;
-    renderer->INFO.shafts = INFO.shafts;
-    renderer->INFO.ssao = INFO.ssao;
-    renderer->INFO.fsaa = INFO.fsaa;
-    camera->rmax = INFO.viewdist;
 
     world->invalidate();
     world->refresh();

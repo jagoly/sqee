@@ -1,6 +1,6 @@
-#include <glm/gtc/type_ptr.hpp>
-
 #include <sqee/redist/gl_ext_4_2.hpp>
+#include <sqee/maths/Vectors.hpp>
+#include <sqee/maths/Matrices.hpp>
 #include <sqee/debug/Logging.hpp>
 #include <sqee/gl/Shaders.hpp>
 
@@ -16,8 +16,8 @@ Shader::~Shader() {
     gl::DeleteProgram(program);
 }
 
-void Shader::add_uniform(const string& _name, uint _cnt) {
-    uniforms.emplace(_name, Uniform(_cnt));
+void Shader::add_uniform(const string& _name, uint _count) {
+    uniforms.emplace(_name, Uniform{_count, 0});
 }
 
 void Shader::load(const string& _source) {
@@ -27,7 +27,7 @@ void Shader::load(const string& _source) {
     int length = 0; char log[2048]; gl::GetProgramInfoLog(program, 2048, &length, log);
     if (length > 0) { string logStr(log); logStr.erase(logStr.rfind('\n'));
         log_error("Failed to compile shader from string\n%s", logStr); }
-    for (auto& uf : uniforms) uf.second.ref = gl::GetUniformLocation(program, uf.first.c_str());
+    for (auto& uf : uniforms) uf.second.id = gl::GetUniformLocation(program, uf.first.c_str());
 }
 
 void Shader::load(const string& _source, const string& _path) {
@@ -37,7 +37,7 @@ void Shader::load(const string& _source, const string& _path) {
     int length = 0; char log[2048]; gl::GetProgramInfoLog(program, 2048, &length, log);
     if (length > 0) { string logStr(log); logStr.erase(logStr.rfind('\n'));
         log_error("Failed to compile shader from %s\n%s", _path, logStr); }
-    for (auto& uf : uniforms) uf.second.ref = gl::GetUniformLocation(program, uf.first.c_str());
+    for (auto& uf : uniforms) uf.second.id = gl::GetUniformLocation(program, uf.first.c_str());
 }
 
 
@@ -47,34 +47,34 @@ template <class T> struct Trait;
 
 template <class T>
 void Shader::set_sca(const string& _name, const T& _value) const {
-    Trait<T>::func(program, uniforms.at(_name).ref, 1, &_value);
+    Trait<T>::func(program, uniforms.at(_name).id, 1, &_value);
 }
 template <class T>
 void Shader::set_scaptr(const string& _name, const T* _value) const {
     const Uniform& uform = uniforms.at(_name);
-    Trait<T>::func(program, uform.ref, uform.cnt, _value);
+    Trait<T>::func(program, uform.id, uform.count, _value);
 }
 
 template <class T>
 void Shader::set_vec(const string& _name, const T& _value) const {
     const Uniform& uform = uniforms.at(_name);
-    Trait<T>::func(program, uform.ref, uform.cnt, glm::value_ptr(_value));
+    Trait<T>::func(program, uform.id, uform.count, &_value.x);
 }
 template <class T, class D>
 void Shader::set_vecptr(const string& _name, const D* _value) const {
     const Uniform& uform = uniforms.at(_name);
-    Trait<T>::func(program, uform.ref, uform.cnt, _value);
+    Trait<T>::func(program, uform.id, uform.count, _value);
 }
 
 template <class T>
 void Shader::set_mat(const string& _name, const T& _value) const {
     const Uniform& uform = uniforms.at(_name);
-    Trait<T>::func(program, uform.ref, uform.cnt, false, glm::value_ptr(_value));
+    Trait<T>::func(program, uform.id, uform.count, false, _value.ptr());
 }
 template <class T, class D>
 void Shader::set_matptr(const string& _name, const D* _value) const {
     const Uniform& uform = uniforms.at(_name);
-    Trait<T>::func(program, uform.ref, uform.cnt, false, _value);
+    Trait<T>::func(program, uform.id, uform.count, false, _value);
 }
 
 #define UFORM_DEFINE(type, f) \
@@ -96,15 +96,15 @@ template<> struct Trait<glmtype> { \
 template void Shader::set_vec<glmtype>(const string& _name, const glmtype& _value) const; \
 template void Shader::set_vecptr<glmtype>(const string& _name, const datatype* _value) const;
 
-UFORM_DEFINE(fvec2, GLfloat, gl::ProgramUniform2fv)
-UFORM_DEFINE(fvec3, GLfloat, gl::ProgramUniform3fv)
-UFORM_DEFINE(fvec4, GLfloat, gl::ProgramUniform4fv)
-UFORM_DEFINE(ivec2, GLint,   gl::ProgramUniform2iv)
-UFORM_DEFINE(ivec3, GLint,   gl::ProgramUniform3iv)
-UFORM_DEFINE(ivec4, GLint,   gl::ProgramUniform4iv)
-UFORM_DEFINE(uvec2, GLuint,  gl::ProgramUniform2uiv)
-UFORM_DEFINE(uvec3, GLuint,  gl::ProgramUniform3uiv)
-UFORM_DEFINE(uvec4, GLuint,  gl::ProgramUniform4uiv)
+UFORM_DEFINE(Vec2I, GLint,   gl::ProgramUniform2iv)
+UFORM_DEFINE(Vec3I, GLint,   gl::ProgramUniform3iv)
+UFORM_DEFINE(Vec4I, GLint,   gl::ProgramUniform4iv)
+UFORM_DEFINE(Vec2U, GLuint,  gl::ProgramUniform2uiv)
+UFORM_DEFINE(Vec3U, GLuint,  gl::ProgramUniform3uiv)
+UFORM_DEFINE(Vec4U, GLuint,  gl::ProgramUniform4uiv)
+UFORM_DEFINE(Vec2F, GLfloat, gl::ProgramUniform2fv)
+UFORM_DEFINE(Vec3F, GLfloat, gl::ProgramUniform3fv)
+UFORM_DEFINE(Vec4F, GLfloat, gl::ProgramUniform4fv)
 #undef UFORM_DEFINE
 
 #define UFORM_DEFINE(glmtype, f) \
@@ -114,9 +114,9 @@ template<> struct Trait<glmtype> { \
 template void Shader::set_mat<glmtype>(const string& _name, const glmtype& _value) const; \
 template void Shader::set_matptr<glmtype>(const string& _name, const GLfloat* _value) const;
 
-UFORM_DEFINE(fmat2, gl::ProgramUniformMatrix2fv)
-UFORM_DEFINE(fmat3, gl::ProgramUniformMatrix3fv)
-UFORM_DEFINE(fmat4, gl::ProgramUniformMatrix4fv)
+//UFORM_DEFINE(fmat2, gl::ProgramUniformMatrix2fv)
+UFORM_DEFINE(Mat3F, gl::ProgramUniformMatrix3fv)
+UFORM_DEFINE(Mat4F, gl::ProgramUniformMatrix4fv)
 #undef UFORM_DEFINE
 
 

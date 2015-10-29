@@ -1,7 +1,7 @@
 #pragma once
-#include <sqee/forward.hpp>
 
-#include <sqee/misc/ResHolder.hpp>
+#include <sqee/builtins.hpp>
+#include <sqee/maths/Vectors.hpp>
 
 namespace sq {
 
@@ -26,7 +26,7 @@ public:
     void bind() const;
 
     /// Return the size of the of texture
-    uvec3 get_size() const;
+    Vec3U get_size() const;
 
     /// The OpenGL handle
     GLuint tex = 0u;
@@ -45,7 +45,7 @@ public:
 protected:
     Texture(GLenum _target, GLenum _format, GLenum _iFormat, Preset _preset) :
         target(_target), format(_format), iFormat(_iFormat), preset(_preset) {};
-    const GLenum target, format, iFormat; const Preset preset; uvec3 size;
+    const GLenum target, format, iFormat; const Preset preset; Vec3U size;
 
     void create_and_setup_texture();
 };
@@ -67,7 +67,7 @@ public:
     void buffer_auto(const string& _path, bool _mipmaps);
 
     /// Allocate immutable storage for the texture
-    void allocate_storage(uvec2 _size, bool _mipmaps);
+    void allocate_storage(Vec2U _size, bool _mipmaps);
 };
 
 
@@ -104,7 +104,7 @@ public:
     void buffer_file(const string& _path, uint _index);
 
     /// Allocate immutable storage for the texture
-    void allocate_storage(uvec3 _size, bool _mipmaps);
+    void allocate_storage(Vec3U _size, bool _mipmaps);
 };
 
 
@@ -124,7 +124,7 @@ public:
     void buffer_full(const string& _path, uint _index);
 
     /// Allocate immutable storage for the texture
-    void allocate_storage(uvec2 _size, bool _mipmaps);
+    void allocate_storage(Vec2U _size, bool _mipmaps);
 };
 
 
@@ -138,13 +138,7 @@ public:
     void buffer_memory(const void* _data, GLenum _type);
 
     /// Allocate immutable storage for the texture
-    void allocate_storage(uvec3 _size);
+    void allocate_storage(Vec3U _size);
 };
-
-
-namespace res {
-ResHolder<Texture2D>& tex2D();
-ResHolder<TextureCube>& texCube();
-}
 
 }

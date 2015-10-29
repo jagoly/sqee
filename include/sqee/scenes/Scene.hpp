@@ -1,5 +1,9 @@
 #pragma once
-#include <sqee/forward.hpp>
+
+#include <sqee/setup.hpp>
+
+// Forward Declarations /////
+namespace sq { class Application; }
 
 namespace sq {
 

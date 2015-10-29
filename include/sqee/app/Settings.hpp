@@ -1,7 +1,10 @@
 #pragma once
-#include <sqee/forward.hpp>
+
 #include <unordered_map>
 
+#include <sqee/builtins.hpp>
+
+// Forward Declarations /////
 namespace chaiscript { class Boxed_Value; }
 
 namespace sq {

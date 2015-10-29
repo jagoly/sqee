@@ -1,6 +1,8 @@
 #pragma once
-#include <sqee/forward.hpp>
 
+#include <sqee/setup.hpp>
+
+// Forward Declarations /////
 namespace chaiscript { class ChaiScript; }
 
 namespace sq {

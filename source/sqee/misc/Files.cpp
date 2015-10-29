@@ -21,7 +21,7 @@ bool sq::check_file_exists(const string& _path) {
 }
 
 
-char sq::get_file_first_byte(const string& _path) {
+char sq::get_file_first_char(const string& _path) {
     ifstream src(_path);
     if (!src.is_open()) {
         log_error("Couldn't open file %s", _path);
@@ -43,14 +43,14 @@ string sq::get_string_from_file(const string& _path) {
 }
 
 
-vector<char> sq::get_bytes_from_file(const string& _path) {
+vector<uchar> sq::get_bytes_from_file(const string& _path) {
     ifstream src(_path, std::ios::binary | std::ios::ate);
     if (!src.is_open()) {
         log_error("Couldn't open file %s", _path);
-        return vector<char>();
+        return vector<uchar>();
     }
 
-    vector<char> retVec(src.tellg());
+    vector<uchar> retVec(src.tellg());
     src.seekg(0, src.beg);
     src.read((char*)&retVec[0], retVec.size());
     return retVec;

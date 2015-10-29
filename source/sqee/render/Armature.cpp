@@ -1,5 +1,8 @@
+#include <stdexcept>
+
 #include <sqee/redist/tinyformat.hpp>
 #include <sqee/render/Armature.hpp>
+#include <sqee/app/Resources.hpp>
 #include <sqee/misc/Files.hpp>
 
 using namespace sq;
@@ -7,17 +10,17 @@ using namespace sq;
 template<typename... Args>
 void throw_error(const string& _path, int _lnum, const string& _msg, const Args&... _args) {
     string message = tfm::format("Parsing SQA \"%s\"\nline %d: ", _path, _lnum);
-    throw runtime_error(message + tfm::format(_msg.c_str(), _args...));
+    throw std::runtime_error(message + tfm::format(_msg.c_str(), _args...));
 }
 
 
 void Armature::create(const string& _path) {
-    string path = res::path() + "armatures/" + _path + ".sqa";
+    string path = static_path() + "armatures/" + _path + ".sqa";
     const auto fileVec = tokenise_file(path);
 
     struct BoneSpec {
         string name; int parentIndex;
-        fvec3 head, tail; fquat quat;
+        Vec3F head, tail; QuatF quat;
     }; vector<BoneSpec> specVec;
 
     string section = "";
@@ -51,14 +54,14 @@ void Armature::create(const string& _path) {
          boneVector.emplace_back(spec.name, spec.parentIndex, spec.head, spec.tail, spec.quat);
     }
 
-    for (const string& libName : get_files_from_dir(res::path() + "armatures/" + _path + ".lib")) {
+    for (const string& libName : get_files_from_dir(static_path() + "armatures/" + _path + ".lib")) {
         load_library(_path + ".lib/" + libName.substr(0u, libName.size() - 8u));
     }
 }
 
 
 void Armature::load_library(const string& _path) {
-    string path = res::path() + "armatures/" + _path + ".sqa_lib";
+    string path = static_path() + "armatures/" + _path + ".sqa_lib";
     const auto fileVec = tokenise_file(path);
 
     Pose* pose = nullptr; Anim* anim = nullptr;
@@ -100,37 +103,32 @@ void Armature::load_library(const string& _path) {
 
 
 Armature::UboData Armature::make_UboData(Pose& _pose) {
-    vector<pair<fquat, fvec3>> cacheVector(_pose.size());
-    UboData retUboData; fvec3 translation;
+    vector<pair<QuatF, Vec3F>> cacheVector(_pose.size());
+    UboData retUboData; Vec3F translation;
 
     for (uint tfInd = 0u; tfInd != _pose.size(); tfInd++) {
-        fquat& crntRotation = cacheVector[tfInd].first;
-        fvec3& crntPosition = cacheVector[tfInd].second;
+        QuatF& crntRotation = cacheVector[tfInd].first;
+        Vec3F& crntPosition = cacheVector[tfInd].second;
         const ArmaTransform& tf = _pose[tfInd];
 
         if (tf.bone->prntInd != -1) {
-
-            fquat prntRotation = cacheVector[tf.bone->prntInd].first;
-            fvec3 prntPosition = cacheVector[tf.bone->prntInd].second;
             const ArmaTransform& parent = _pose[tf.bone->prntInd];
+            QuatF prntRotation = cacheVector[tf.bone->prntInd].first;
+            Vec3F prntPosition = cacheVector[tf.bone->prntInd].second;
 
-            crntRotation = prntRotation * tf.bone->quat
-                         * tf.rotation * glm::inverse(tf.bone->quat);
-
-            crntPosition = prntPosition + prntRotation
-                         * (parent.bone->tail - parent.bone->head);
-
+            crntRotation = prntRotation * tf.bone->quat * tf.rotation * maths::inverse(tf.bone->quat);
+            crntPosition = prntPosition + prntRotation * (parent.bone->tail - parent.bone->head);
             translation = crntPosition - crntRotation * tf.bone->head;
-
         } else {
-            crntRotation = tf.bone->quat * tf.rotation * glm::inverse(tf.bone->quat);
+            crntRotation = tf.bone->quat * tf.rotation * maths::inverse(tf.bone->quat);
             crntPosition = tf.bone->head + tf.offset; translation = tf.offset;
         }
 
         //fvec4 vquat = fvec4(crntRotation.w, crntRotation.x, crntRotation.y, crntRotation.z);
         //sq::log_only("%s: %s | %s", tf.bone->name, glm::to_string(vquat), glm::to_string(translation));
 
-        fmat3 mat = glm::mat3_cast(crntRotation);
+        Mat3F mat(crntRotation);
+
         retUboData.emplace_back(
             mat[0].x, mat[1].x, mat[2].x, translation.x,
             mat[0].y, mat[1].y, mat[2].y, translation.y,
@@ -141,17 +139,12 @@ Armature::UboData Armature::make_UboData(Pose& _pose) {
     return retUboData;
 }
 
+
 Armature::Pose Armature::mix_Poses(const Pose& _a, const Pose& _b, float _factor) {
     Pose retPose; retPose.reserve(_a.size());
     for (uint tfInd = 0u; tfInd < _a.size(); tfInd++) {
         retPose.emplace_back(_a[tfInd].bone,
-            glm::slerp(_a[tfInd].rotation, _b[tfInd].rotation, _factor),
-            glm::mix(_a[tfInd].offset, _b[tfInd].offset, _factor));
+            maths::slerp(_a[tfInd].rotation, _b[tfInd].rotation, _factor),
+            maths::mix(_a[tfInd].offset, _b[tfInd].offset, _factor));
     } return retPose;
-}
-
-
-ResHolder<Armature>& sq::res::arma() {
-    static ResHolder<Armature> holder;
-    return holder;
 }

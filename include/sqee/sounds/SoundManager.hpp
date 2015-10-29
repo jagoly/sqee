@@ -1,10 +1,11 @@
 #pragma once
-#include <sqee/forward.hpp>
 
 #include <map>
 #include <queue>
 
 #include <SFML/Audio.hpp>
+
+#include <sqee/builtins.hpp>
 
 namespace sq {
 

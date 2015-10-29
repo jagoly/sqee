@@ -1,17 +1,17 @@
-#include <glm/gtc/matrix_transform.hpp>
-
 #include <sqee/redist/gl_ext_4_2.hpp>
+#include <sqee/app/Resources.hpp>
 #include <sqee/gl/Textures.hpp>
-#include <sqee/maths/Culling.hpp>
-#include <sqee/maths/General.hpp>
 
 #include "../Cell.hpp"
 #include "../World.hpp"
 #include "Decal.hpp"
 
 using namespace sqt::wcoe;
+namespace maths = sq::maths;
 
-Decal::Decal(const string& _name, Cell* _cell) : Object(_name, _cell) {
+Decal::Decal(const string& _name, Cell* _cell)
+    : Object(typeid(Decal), _name, _cell) {
+
     ubo.reserve("matrix", 16u);
     ubo.reserve("invMat", 16u);
     ubo.reserve("d_n_s", 3u);
@@ -30,36 +30,36 @@ void Decal::load_from_spec(const ObjSpec& _spec) {
 }
 
 void Decal::refresh() {
-    if (revalidate() == true) {
-        if (PROP_diff.empty() == false) {
-            const string name = "decals/" + PROP_diff + "_d";
-            if ((texDiff = sq::res::tex2D().get(name)) == nullptr) {
-                texDiff = sq::res::tex2D().add(name, gl::RGBA, gl::RGBA8, sq::Texture::MipmapClamp());
-                texDiff->buffer_auto(name, true);
-            }
-        } else texDiff = nullptr;
+    if (invalid == false) return;
 
-        if (PROP_norm.empty() == false) {
-            const string name = "decals/" + PROP_norm + "_n";
-            if ((texNorm = sq::res::tex2D().get(name)) == nullptr) {
-                texNorm = sq::res::tex2D().add(name, gl::RGBA, gl::RGBA8, sq::Texture::MipmapClamp());
-                texNorm->buffer_auto(name, true);
-            }
-        } else texNorm = nullptr;
+    if (PROP_diff.empty() == false) {
+        const string name = "decals/" + PROP_diff + "_d";
+        if ((texDiff = sq::static_Texture2D().get(name)) == nullptr) {
+            texDiff = sq::static_Texture2D().add(name, gl::RGBA, gl::RGBA8, sq::Texture::MipmapClamp());
+            texDiff->buffer_auto(name, true);
+        }
+    } else texDiff = nullptr;
 
-        if (PROP_spec.empty() == false) {
-            const string name = "decals/" + PROP_spec + "_s";
-            if ((texSpec = sq::res::tex2D().get(name)) == nullptr) {
-                texSpec = sq::res::tex2D().add(name, gl::RGBA, gl::RGBA8, sq::Texture::MipmapClamp());
-                texSpec->buffer_auto(name, true);
-            }
-        } else texSpec = nullptr;
+    if (PROP_norm.empty() == false) {
+        const string name = "decals/" + PROP_norm + "_n";
+        if ((texNorm = sq::static_Texture2D().get(name)) == nullptr) {
+            texNorm = sq::static_Texture2D().add(name, gl::RGBA, gl::RGBA8, sq::Texture::MipmapClamp());
+            texNorm->buffer_auto(name, true);
+        }
+    } else texNorm = nullptr;
 
-        ivec3 dns = {bool(texDiff), bool(texNorm), bool(texSpec)};
-        ubo.update("d_n_s", &dns);
-    }
+    if (PROP_spec.empty() == false) {
+        const string name = "decals/" + PROP_spec + "_s";
+        if ((texSpec = sq::static_Texture2D().get(name)) == nullptr) {
+            texSpec = sq::static_Texture2D().add(name, gl::RGBA, gl::RGBA8, sq::Texture::MipmapClamp());
+            texSpec->buffer_auto(name, true);
+        }
+    } else texSpec = nullptr;
 
-    animate();
+    Vec3I dns = {bool(texDiff), bool(texNorm), bool(texSpec)};
+    ubo.update("d_n_s", &dns);
+
+    animate(); invalid = false;
 }
 
 void Decal::update() {
@@ -81,12 +81,10 @@ void Decal::calc(double _accum) {
 }
 
 void Decal::animate() {
-    fvec3 position = PROP_position + cell->PROP_position;
-    matrix = glm::translate(fmat4(), position);
-    matrix *= glm::mat4_cast(PROP_rotation);
-    matrix = glm::scale(matrix, PROP_scale);
-    invMat = glm::inverse(matrix);
-    bbox = sq::make_BoundBox(matrix, {0,0,0}, 0.87f, {1,1,1});
+    matrix = maths::translate(Mat4F(), PROP_position + cell->PROP_position);
+    matrix *= Mat4F(PROP_rotation); matrix = maths::scale(matrix, PROP_scale);
+    bbox = sq::make_BoundBox(matrix, {0.f, 0.f, 0.f}, 0.87f, {1.f, 1.f, 1.f});
+    invMat = maths::inverse(matrix);
 
     ubo.update("matrix", &matrix);
     ubo.update("invMat", &invMat);

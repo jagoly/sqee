@@ -29,7 +29,7 @@
 #ifndef APIENTRY
 	#if defined(__MINGW32__)
 		#ifndef WIN32_LEAN_AND_MEAN
-			#define WIN32_LEAN_AND_MEAN 1
+			#define WIN32_LEAN_AND_MEAN
 		#endif
 		#ifndef NOMINMAX
 			#define NOMINMAX
@@ -177,6 +177,7 @@ namespace gl
 		extern LoadTest var_KHR_debug;
 		extern LoadTest var_ARB_buffer_storage;
 		extern LoadTest var_ARB_explicit_uniform_location;
+		extern LoadTest var_ARB_invalidate_subdata;
 		extern LoadTest var_ARB_direct_state_access;
 		
 	} //namespace exts
@@ -223,7 +224,6 @@ namespace gl
 		STACK_OVERFLOW                   = 0x0503,
 		STACK_UNDERFLOW                  = 0x0504,
 		VERTEX_ARRAY                     = 0x8074,
-		//VERTEX_ARRAY taken from ext: KHR_debug
 		
 		BUFFER_IMMUTABLE_STORAGE         = 0x821F,
 		BUFFER_STORAGE_FLAGS             = 0x8220,
@@ -553,7 +553,6 @@ namespace gl
 		BLEND_COLOR                      = 0x8005,
 		BLEND_DST_ALPHA                  = 0x80CA,
 		BLEND_DST_RGB                    = 0x80C8,
-		BLEND_EQUATION                   = 0x8009,
 		BLEND_SRC_ALPHA                  = 0x80CB,
 		BLEND_SRC_RGB                    = 0x80C9,
 		CONSTANT_ALPHA                   = 0x8003,
@@ -728,8 +727,24 @@ namespace gl
 		COLOR_ATTACHMENT13               = 0x8CED,
 		COLOR_ATTACHMENT14               = 0x8CEE,
 		COLOR_ATTACHMENT15               = 0x8CEF,
+		COLOR_ATTACHMENT16               = 0x8CF0,
+		COLOR_ATTACHMENT17               = 0x8CF1,
+		COLOR_ATTACHMENT18               = 0x8CF2,
+		COLOR_ATTACHMENT19               = 0x8CF3,
 		COLOR_ATTACHMENT2                = 0x8CE2,
+		COLOR_ATTACHMENT20               = 0x8CF4,
+		COLOR_ATTACHMENT21               = 0x8CF5,
+		COLOR_ATTACHMENT22               = 0x8CF6,
+		COLOR_ATTACHMENT23               = 0x8CF7,
+		COLOR_ATTACHMENT24               = 0x8CF8,
+		COLOR_ATTACHMENT25               = 0x8CF9,
+		COLOR_ATTACHMENT26               = 0x8CFA,
+		COLOR_ATTACHMENT27               = 0x8CFB,
+		COLOR_ATTACHMENT28               = 0x8CFC,
+		COLOR_ATTACHMENT29               = 0x8CFD,
 		COLOR_ATTACHMENT3                = 0x8CE3,
+		COLOR_ATTACHMENT30               = 0x8CFE,
+		COLOR_ATTACHMENT31               = 0x8CFF,
 		COLOR_ATTACHMENT4                = 0x8CE4,
 		COLOR_ATTACHMENT5                = 0x8CE5,
 		COLOR_ATTACHMENT6                = 0x8CE6,
@@ -1311,6 +1326,13 @@ namespace gl
 		extern void (CODEGEN_FUNCPTR *BufferStorage)(GLenum target, GLsizeiptr size, const void * data, GLbitfield flags);
 		
 		
+		extern void (CODEGEN_FUNCPTR *InvalidateBufferData)(GLuint buffer);
+		extern void (CODEGEN_FUNCPTR *InvalidateBufferSubData)(GLuint buffer, GLintptr offset, GLsizeiptr length);
+		extern void (CODEGEN_FUNCPTR *InvalidateFramebuffer)(GLenum target, GLsizei numAttachments, const GLenum * attachments);
+		extern void (CODEGEN_FUNCPTR *InvalidateSubFramebuffer)(GLenum target, GLsizei numAttachments, const GLenum * attachments, GLint x, GLint y, GLsizei width, GLsizei height);
+		extern void (CODEGEN_FUNCPTR *InvalidateTexImage)(GLuint texture, GLint level);
+		extern void (CODEGEN_FUNCPTR *InvalidateTexSubImage)(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth);
+		
 		extern void (CODEGEN_FUNCPTR *BindTextureUnit)(GLuint unit, GLuint texture);
 		extern void (CODEGEN_FUNCPTR *BlitNamedFramebuffer)(GLuint readFramebuffer, GLuint drawFramebuffer, GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
 		extern GLenum (CODEGEN_FUNCPTR *CheckNamedFramebufferStatus)(GLuint framebuffer, GLenum target);
@@ -1487,6 +1509,8 @@ namespace gl
 		extern void (CODEGEN_FUNCPTR *GetCompressedTexImage)(GLenum target, GLint level, void * img);
 		extern void (CODEGEN_FUNCPTR *SampleCoverage)(GLfloat value, GLboolean invert);
 		
+		extern void (CODEGEN_FUNCPTR *BlendColor)(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
+		extern void (CODEGEN_FUNCPTR *BlendEquation)(GLenum mode);
 		extern void (CODEGEN_FUNCPTR *BlendFuncSeparate)(GLenum sfactorRGB, GLenum dfactorRGB, GLenum sfactorAlpha, GLenum dfactorAlpha);
 		extern void (CODEGEN_FUNCPTR *MultiDrawArrays)(GLenum mode, const GLint * first, const GLsizei * count, GLsizei drawcount);
 		extern void (CODEGEN_FUNCPTR *MultiDrawElements)(GLenum mode, const GLsizei * count, GLenum type, const void *const* indices, GLsizei drawcount);
@@ -1929,6 +1953,13 @@ namespace gl
 	inline void BufferStorage(GLenum target, GLsizeiptr size, const void * data, GLbitfield flags){_detail::BufferStorage(target, size, data, flags);}
 	
 	
+	inline void InvalidateBufferData(GLuint buffer){_detail::InvalidateBufferData(buffer);}
+	inline void InvalidateBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr length){_detail::InvalidateBufferSubData(buffer, offset, length);}
+	inline void InvalidateFramebuffer(GLenum target, GLsizei numAttachments, const GLenum * attachments){_detail::InvalidateFramebuffer(target, numAttachments, attachments);}
+	inline void InvalidateSubFramebuffer(GLenum target, GLsizei numAttachments, const GLenum * attachments, GLint x, GLint y, GLsizei width, GLsizei height){_detail::InvalidateSubFramebuffer(target, numAttachments, attachments, x, y, width, height);}
+	inline void InvalidateTexImage(GLuint texture, GLint level){_detail::InvalidateTexImage(texture, level);}
+	inline void InvalidateTexSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth){_detail::InvalidateTexSubImage(texture, level, xoffset, yoffset, zoffset, width, height, depth);}
+	
 	inline void BindTextureUnit(GLuint unit, GLuint texture){_detail::BindTextureUnit(unit, texture);}
 	inline void BlitNamedFramebuffer(GLuint readFramebuffer, GLuint drawFramebuffer, GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter){_detail::BlitNamedFramebuffer(readFramebuffer, drawFramebuffer, srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);}
 	inline GLenum CheckNamedFramebufferStatus(GLuint framebuffer, GLenum target){return _detail::CheckNamedFramebufferStatus(framebuffer, target);}
@@ -2105,6 +2136,8 @@ namespace gl
 	inline void GetCompressedTexImage(GLenum target, GLint level, void * img){_detail::GetCompressedTexImage(target, level, img);}
 	inline void SampleCoverage(GLfloat value, GLboolean invert){_detail::SampleCoverage(value, invert);}
 	
+	inline void BlendColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha){_detail::BlendColor(red, green, blue, alpha);}
+	inline void BlendEquation(GLenum mode){_detail::BlendEquation(mode);}
 	inline void BlendFuncSeparate(GLenum sfactorRGB, GLenum dfactorRGB, GLenum sfactorAlpha, GLenum dfactorAlpha){_detail::BlendFuncSeparate(sfactorRGB, dfactorRGB, sfactorAlpha, dfactorAlpha);}
 	inline void MultiDrawArrays(GLenum mode, const GLint * first, const GLsizei * count, GLsizei drawcount){_detail::MultiDrawArrays(mode, first, count, drawcount);}
 	inline void MultiDrawElements(GLenum mode, const GLsizei * count, GLenum type, const void *const* indices, GLsizei drawcount){_detail::MultiDrawElements(mode, count, type, indices, drawcount);}

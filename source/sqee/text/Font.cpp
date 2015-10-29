@@ -1,1 +1,3 @@
-#include "sqee/text/Font.hpp"
+#include <sqee/text/Font.hpp>
+
+using namespace sq;

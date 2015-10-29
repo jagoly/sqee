@@ -33,14 +33,14 @@ void DebugOverlay::render(float _ft) {
     render_text_basic(rounded, app->get_size(),
                       TextBasicFlow::Positive, TextBasicFlow::Negative,
                       TextBasicAlign::Negative, TextBasicAlign::Negative,
-                      fvec2(40.f, 50.f), fvec3(1.f, 1.f, 1.f), 1.f, true);
+                      Vec2F(40.f, 50.f), Vec3F(1.f, 1.f, 1.f), 1.f, true);
 
     if (notifyDeq.empty() == false && notifyTimeLeft != notifyDeq.front().second) {
         float a = notifyTimeLeft == 1u ? 1.f - accum * 8.f : 1.f;
         render_text_basic(notifyDeq.front().first, app->get_size(),
                           TextBasicFlow::Positive, TextBasicFlow::Negative,
                           TextBasicAlign::Positive, TextBasicAlign::Negative,
-                          fvec2(25.f, 30.f), fvec3(1.f, 1.f, 1.f), a, true);
+                          Vec2F(25.f, 30.f), Vec3F(1.f, 1.f, 1.f), a, true);
     }
 }
 

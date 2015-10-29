@@ -1,8 +1,10 @@
 #pragma once
-#include <sqee/forward.hpp>
 
+#include <sqee/forward.hpp>
+#include <sqee/builtins.hpp>
 #include <sqee/scenes/Scene.hpp>
 #include <sqee/handlers/Handler.hpp>
+#include <sqee/maths/Vectors.hpp>
 
 namespace sqt {
 
@@ -22,32 +24,25 @@ private:
     unique_ptr<sq::Camera> camera;
     unique_ptr<Level> level;
 
-    struct {
-        unique_ptr<sq::Shader> object;
-    } VERT;
+    unique_ptr<sq::Shader> VS_object;
+    unique_ptr<sq::Shader> FS_object;
 
-    struct {
-        unique_ptr<sq::Shader> object;
-    } FRAG;
-
-    struct {
-        sq::Mesh* Ball = nullptr;
-        sq::Mesh* Floor = nullptr;
-        sq::Mesh* HoleA = nullptr;
-        sq::Mesh* HoleB = nullptr;
-        sq::Mesh* WallA = nullptr;
-        sq::Mesh* WallB = nullptr;
-        sq::Mesh* WallC = nullptr;
-        sq::Mesh* WallD = nullptr;
-        sq::Mesh* WallE = nullptr;
-        sq::Mesh* WallF = nullptr;
-        sq::Mesh* Player = nullptr;
-    } MESH;
+    unique_ptr<sq::Mesh> MESH_Ball;
+    unique_ptr<sq::Mesh> MESH_Floor;
+    unique_ptr<sq::Mesh> MESH_HoleA;
+    unique_ptr<sq::Mesh> MESH_HoleB;
+    unique_ptr<sq::Mesh> MESH_WallA;
+    unique_ptr<sq::Mesh> MESH_WallB;
+    unique_ptr<sq::Mesh> MESH_WallC;
+    unique_ptr<sq::Mesh> MESH_WallD;
+    unique_ptr<sq::Mesh> MESH_WallE;
+    unique_ptr<sq::Mesh> MESH_WallF;
+    unique_ptr<sq::Mesh> MESH_Player;
 
     int rotation = 0;
-    ivec2 position = {0, 0};
+    Vec2I position = {0, 0};
     float rotCrnt, rotNext;
-    fvec2 posCrnt, posNext;
+    Vec2F posCrnt, posNext;
     bool animate = false;
     bool pushing = false;
 };

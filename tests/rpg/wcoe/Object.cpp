@@ -1,3 +1,5 @@
+#include <stdexcept>
+
 #include <sqee/redist/tinyformat.hpp>
 #include <sqee/misc/Files.hpp>
 
@@ -30,7 +32,7 @@ void ObjSpec::parse_line(const vector<string>& _line) {
     else if (key == "fvec4") fvec4Map.emplace(_line[1], svtofv4(_line, 2));
     else if (key == "fquat") fquatMap.emplace(_line[1], svtofeu(_line, 2));
     else if (key == "string") stringMap.emplace(_line[1], _line[2]);
-    else throw runtime_error("Invalid type \""+ key +"\" when loading object \""+ name +"\"");
+    else throw std::runtime_error("Invalid type \""+ key +"\" when loading object \""+ name +"\"");
 }
 
 namespace sqt { namespace wcoe {
@@ -47,16 +49,16 @@ template<> void ObjSpec::set_if<Type>(const string& _key, Type& _ref) const { \
 OBJSPEC_SET_TEMPLATE(int, intMap)
 OBJSPEC_SET_TEMPLATE(uint, uintMap)
 OBJSPEC_SET_TEMPLATE(float, floatMap)
-OBJSPEC_SET_TEMPLATE(fvec2, fvec2Map)
-OBJSPEC_SET_TEMPLATE(fvec3, fvec3Map)
-OBJSPEC_SET_TEMPLATE(fvec4, fvec4Map)
-OBJSPEC_SET_TEMPLATE(ivec2, ivec2Map)
-OBJSPEC_SET_TEMPLATE(ivec3, ivec3Map)
-OBJSPEC_SET_TEMPLATE(ivec4, ivec4Map)
-OBJSPEC_SET_TEMPLATE(uvec2, uvec2Map)
-OBJSPEC_SET_TEMPLATE(uvec3, uvec3Map)
-OBJSPEC_SET_TEMPLATE(uvec4, uvec4Map)
-OBJSPEC_SET_TEMPLATE(fquat, fquatMap)
+OBJSPEC_SET_TEMPLATE(Vec2I, ivec2Map)
+OBJSPEC_SET_TEMPLATE(Vec3I, ivec3Map)
+OBJSPEC_SET_TEMPLATE(Vec4I, ivec4Map)
+OBJSPEC_SET_TEMPLATE(Vec2U, uvec2Map)
+OBJSPEC_SET_TEMPLATE(Vec3U, uvec3Map)
+OBJSPEC_SET_TEMPLATE(Vec4U, uvec4Map)
+OBJSPEC_SET_TEMPLATE(QuatF, fquatMap)
+OBJSPEC_SET_TEMPLATE(Vec2F, fvec2Map)
+OBJSPEC_SET_TEMPLATE(Vec3F, fvec3Map)
+OBJSPEC_SET_TEMPLATE(Vec4F, fvec4Map)
 OBJSPEC_SET_TEMPLATE(string, stringMap)
 
 #undef OBJSPEC_GET_TEMPLATE
@@ -64,8 +66,7 @@ OBJSPEC_SET_TEMPLATE(string, stringMap)
 }}
 
 
-Object::Object(const string& _name, Cell* _cell) : name(_name), cell(_cell),
-    world(_cell->world), settings(_cell->world.settings) {}
+Object::Object(std::type_index _type, const string& _name, Cell* _cell) : type(_type),
+    name(_name), cell(_cell), world(_cell->world), settings(_cell->world.settings) {}
 
 void Object::invalidate() { invalid = true; }
-bool Object::revalidate() { bool iv = invalid; invalid = false; return iv; }

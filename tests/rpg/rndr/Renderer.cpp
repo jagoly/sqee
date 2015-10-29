@@ -1,5 +1,5 @@
-﻿#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/string_cast.hpp>
+﻿#include <set>
+#include <algorithm>
 
 #include <sqee/redist/gl_ext_4_2.hpp>
 #include <sqee/app/PreProcessor.hpp>
@@ -13,8 +13,8 @@
 #include <sqee/render/Camera.hpp>
 #include <sqee/render/Mesh.hpp>
 #include <sqee/render/Skin.hpp>
-#include <sqee/maths/Culling.hpp>
 #include <sqee/maths/General.hpp>
+#include <sqee/maths/Volumes.hpp>
 
 #include "../wcoe/World.hpp"
 #include "../wcoe/SkyBox.hpp"
@@ -36,9 +36,8 @@
 #include "Reflects.hpp"
 #include "Renderer.hpp"
 
-#include <sqee/debug/Logging.hpp>
-
 using namespace sqt::rndr;
+namespace maths = sq::maths;
 
 Renderer::Renderer(const sq::Settings& _settings, const sq::PreProcessor& _preprocs,
                    const sq::Pipeline& _pipeline, const wcoe::World& _world)
@@ -107,7 +106,7 @@ void Renderer::cull_and_sort() {
     array<std::set<const wcoe::PointLight*>, 6> shadowPLFaceSetArr;
 
     for (const wcoe::Reflector* rflct : reflectorVec) {
-        if (rflct->PROP_shadow && glm::dot(world.skylight->PROP_direction, rflct->normal) < 0.f) {
+        if (rflct->PROP_shadow && maths::dot(world.skylight->PROP_direction, rflct->normal) < 0.f) {
             for (uint ind = 0u; ind < 4u; ++ind)
                 if (sq::bbox_in_orth(rflct->bbox, world.skylight->orthArrA[ind]))
                     skyLightData.reflectorVecArrA[ind].push_back(rflct);
@@ -116,7 +115,7 @@ void Renderer::cull_and_sort() {
                     skyLightData.reflectorVecArrB[ind].push_back(rflct);
         }
 
-        if (glm::dot(camera->pos, rflct->normal) + rflct->offset > 0.f
+        if (maths::dot(camera->pos, rflct->normal) + rflct->offset > 0.f
             && sq::bbox_in_frus(rflct->bbox, camera->frus)) {
             reflectorDataVec.emplace_back(rflct);
             cameraData.reflectorVec.push_back(rflct);
@@ -159,18 +158,18 @@ void Renderer::cull_and_sort() {
 
             sort_container_by(reflectorDataVec.back().reflectorVec, [rflct]
                     (const wcoe::Reflector* a, const wcoe::Reflector* b) { return
-                    glm::distance(rflct->frus.sphere.origin, a->bbox.sphere.origin) <
-                    glm::distance(rflct->frus.sphere.origin, b->bbox.sphere.origin); });
+                    maths::distance(rflct->frus.sphere.origin, a->bbox.sphere.origin) <
+                    maths::distance(rflct->frus.sphere.origin, b->bbox.sphere.origin); });
 
             sort_container_by(reflectorDataVec.back().modelSimpleVec, [rflct]
                     (const wcoe::ModelSimple* a, const wcoe::ModelSimple* b) { return
-                    glm::distance(rflct->frus.sphere.origin, a->bbox.sphere.origin) <
-                    glm::distance(rflct->frus.sphere.origin, b->bbox.sphere.origin); });
+                    maths::distance(rflct->frus.sphere.origin, a->bbox.sphere.origin) <
+                    maths::distance(rflct->frus.sphere.origin, b->bbox.sphere.origin); });
 
             sort_container_by(reflectorDataVec.back().modelSkellyVec, [rflct]
                     (const wcoe::ModelSkelly* a, const wcoe::ModelSkelly* b) { return
-                    glm::distance(rflct->frus.sphere.origin, a->sphere.origin) <
-                    glm::distance(rflct->frus.sphere.origin, b->sphere.origin); });
+                    maths::distance(rflct->frus.sphere.origin, a->sphere.origin) <
+                    maths::distance(rflct->frus.sphere.origin, b->sphere.origin); });
         }
     }
 
@@ -184,7 +183,7 @@ void Renderer::cull_and_sort() {
             spotLightDataVec.emplace_back(light);
 
             for (const wcoe::Reflector* rflct : reflectorVec)
-                if (glm::dot(light->PROP_position, rflct->normal) + rflct->offset < 0.f
+                if (maths::dot(light->PROP_position, rflct->normal) + rflct->offset < 0.f
                     && rflct->PROP_shadow && sq::bbox_in_frus(rflct->bbox, light->frus))
                     spotLightDataVec.back().reflectorVec.push_back(rflct);
 
@@ -198,18 +197,18 @@ void Renderer::cull_and_sort() {
 
             sort_container_by(spotLightDataVec.back().reflectorVec, [light]
                     (const wcoe::Reflector* a, const wcoe::Reflector* b) { return
-                    glm::distance(light->PROP_position, a->bbox.sphere.origin) <
-                    glm::distance(light->PROP_position, b->bbox.sphere.origin); });
+                    maths::distance(light->PROP_position, a->bbox.sphere.origin) <
+                    maths::distance(light->PROP_position, b->bbox.sphere.origin); });
 
             sort_container_by(spotLightDataVec.back().modelSimpleVec, [light]
                     (const wcoe::ModelSimple* a, const wcoe::ModelSimple* b) { return
-                    glm::distance(light->PROP_position, a->bbox.sphere.origin) <
-                    glm::distance(light->PROP_position, b->bbox.sphere.origin); });
+                    maths::distance(light->PROP_position, a->bbox.sphere.origin) <
+                    maths::distance(light->PROP_position, b->bbox.sphere.origin); });
 
             sort_container_by(spotLightDataVec.back().modelSkellyVec, [light]
                     (const wcoe::ModelSkelly* a, const wcoe::ModelSkelly* b) { return
-                    glm::distance(light->PROP_position, a->sphere.origin) <
-                    glm::distance(light->PROP_position, b->sphere.origin); });
+                    maths::distance(light->PROP_position, a->sphere.origin) <
+                    maths::distance(light->PROP_position, b->sphere.origin); });
         }
     }
 
@@ -233,7 +232,7 @@ void Renderer::cull_and_sort() {
                     pointLightDataVec.back().cullShadowFaceArr[ind] = false;
 
                     for (const wcoe::Reflector* rflct : reflectorVec)
-                        if (glm::dot(light->PROP_position, rflct->normal) + rflct->offset < 0.f &&
+                        if (maths::dot(light->PROP_position, rflct->normal) + rflct->offset < 0.f &&
                             rflct->PROP_shadow && sq::bbox_in_frus(rflct->bbox, light->frusArr[ind]))
                             pointLightDataVec.back().reflectorVecArr[ind].push_back(rflct);
 
@@ -247,18 +246,18 @@ void Renderer::cull_and_sort() {
 
                     sort_container_by(pointLightDataVec.back().reflectorVecArr[ind], [light]
                             (const wcoe::Reflector* a, const wcoe::Reflector* b) { return
-                            glm::distance(light->PROP_position, a->bbox.sphere.origin) <
-                            glm::distance(light->PROP_position, b->bbox.sphere.origin); });
+                            maths::distance(light->PROP_position, a->bbox.sphere.origin) <
+                            maths::distance(light->PROP_position, b->bbox.sphere.origin); });
 
                     sort_container_by(pointLightDataVec.back().modelSimpleVecArr[ind], [light]
                             (const wcoe::ModelSimple* a, const wcoe::ModelSimple* b) { return
-                            glm::distance(light->PROP_position, a->bbox.sphere.origin) <
-                            glm::distance(light->PROP_position, b->bbox.sphere.origin); });
+                            maths::distance(light->PROP_position, a->bbox.sphere.origin) <
+                            maths::distance(light->PROP_position, b->bbox.sphere.origin); });
 
                     sort_container_by(pointLightDataVec.back().modelSkellyVecArr[ind], [light]
                             (const wcoe::ModelSkelly* a, const wcoe::ModelSkelly* b) { return
-                            glm::distance(light->PROP_position, a->sphere.origin) <
-                            glm::distance(light->PROP_position, b->sphere.origin); });
+                            maths::distance(light->PROP_position, a->sphere.origin) <
+                            maths::distance(light->PROP_position, b->sphere.origin); });
                 }
             }
         }
@@ -290,51 +289,51 @@ void Renderer::cull_and_sort() {
 
     sort_container_by(cameraData.reflectorVec, [this]
             (const wcoe::Reflector* a, const wcoe::Reflector* b) { return
-            glm::distance(camera->pos, a->bbox.sphere.origin) <
-            glm::distance(camera->pos, b->bbox.sphere.origin); });
+            maths::distance(camera->pos, a->bbox.sphere.origin) <
+            maths::distance(camera->pos, b->bbox.sphere.origin); });
 
     sort_container_by(cameraData.modelSimpleVec, [this]
             (const wcoe::ModelSimple* a, const wcoe::ModelSimple* b) { return
-            glm::distance(camera->pos, a->bbox.sphere.origin) <
-            glm::distance(camera->pos, b->bbox.sphere.origin); });
+            maths::distance(camera->pos, a->bbox.sphere.origin) <
+            maths::distance(camera->pos, b->bbox.sphere.origin); });
 
     sort_container_by(cameraData.modelSkellyVec, [this]
             (const wcoe::ModelSkelly* a, const wcoe::ModelSkelly* b) { return
-            glm::distance(camera->pos, a->sphere.origin) <
-            glm::distance(camera->pos, b->sphere.origin); });
+            maths::distance(camera->pos, a->sphere.origin) <
+            maths::distance(camera->pos, b->sphere.origin); });
 
     for (uint ind = 0u; ind < 4u; ++ind) {
         sort_container_by(skyLightData.reflectorVecArrA[ind], [this]
             (const wcoe::Reflector* a, const wcoe::Reflector* b) { return
-            glm::dot(world.skylight->PROP_direction, a->bbox.sphere.origin) <
-            glm::dot(world.skylight->PROP_direction, b->bbox.sphere.origin); });
+            maths::dot(world.skylight->PROP_direction, a->bbox.sphere.origin) <
+            maths::dot(world.skylight->PROP_direction, b->bbox.sphere.origin); });
 
         sort_container_by(skyLightData.modelSimpleVecArrA[ind], [this]
             (const wcoe::ModelSimple* a, const wcoe::ModelSimple* b) { return
-            glm::dot(world.skylight->PROP_direction, a->bbox.sphere.origin) <
-            glm::dot(world.skylight->PROP_direction, b->bbox.sphere.origin); });
+            maths::dot(world.skylight->PROP_direction, a->bbox.sphere.origin) <
+            maths::dot(world.skylight->PROP_direction, b->bbox.sphere.origin); });
 
         sort_container_by(skyLightData.modelSkellyVecArrA[ind], [this]
             (const wcoe::ModelSkelly* a, const wcoe::ModelSkelly* b) { return
-            glm::dot(world.skylight->PROP_direction, a->sphere.origin) <
-            glm::dot(world.skylight->PROP_direction, b->sphere.origin); });
+            maths::dot(world.skylight->PROP_direction, a->sphere.origin) <
+            maths::dot(world.skylight->PROP_direction, b->sphere.origin); });
     }
 
     for (uint ind = 0u; ind < 2u; ++ind) {
         sort_container_by(skyLightData.reflectorVecArrB[ind], [this]
             (const wcoe::Reflector* a, const wcoe::Reflector* b) { return
-            glm::dot(world.skylight->PROP_direction, a->bbox.sphere.origin) <
-            glm::dot(world.skylight->PROP_direction, b->bbox.sphere.origin); });
+            maths::dot(world.skylight->PROP_direction, a->bbox.sphere.origin) <
+            maths::dot(world.skylight->PROP_direction, b->bbox.sphere.origin); });
 
         sort_container_by(skyLightData.modelSimpleVecArrB[ind], [this]
             (const wcoe::ModelSimple* a, const wcoe::ModelSimple* b) { return
-            glm::dot(world.skylight->PROP_direction, a->bbox.sphere.origin) <
-            glm::dot(world.skylight->PROP_direction, b->bbox.sphere.origin); });
+            maths::dot(world.skylight->PROP_direction, a->bbox.sphere.origin) <
+            maths::dot(world.skylight->PROP_direction, b->bbox.sphere.origin); });
 
         sort_container_by(skyLightData.modelSkellyVecArrB[ind], [this]
             (const wcoe::ModelSkelly* a, const wcoe::ModelSkelly* b) { return
-            glm::dot(world.skylight->PROP_direction, a->sphere.origin) <
-            glm::dot(world.skylight->PROP_direction, b->sphere.origin); });
+            maths::dot(world.skylight->PROP_direction, a->sphere.origin) <
+            maths::dot(world.skylight->PROP_direction, b->sphere.origin); });
     }
 
     for (const wcoe::Decal* decal : decalVec) {
@@ -346,18 +345,19 @@ void Renderer::cull_and_sort() {
 
 
 void Renderer::update_settings() {    
-    string defLightBase = "";
-    if (INFO.shadlarge) defLightBase += "#define LARGE\n";
-    if (INFO.shadfilter) defLightBase += "#define FILTER";
-    string defLightShad = defLightBase + "\n#define SHADOW";
+    //string defLightBase = "";
+    //if (INFO.shadlarge) defLightBase += "#define LARGE\n";
+    //if (INFO.shadfilter) defLightBase += "#define FILTER";
+    //string defLightShad = defLightBase + "\n#define SHADOW";
 
     /// Lighting
-    preprocs.load(FS_part_soft_skylight, "particles/soft/skylight_fs", defLightBase);
-    preprocs.load(FS_part_soft_spot_none, "particles/soft/spotlight_fs", defLightBase);
-    preprocs.load(FS_part_soft_spot_shad, "particles/soft/spotlight_fs", defLightShad);
-    preprocs.load(FS_part_soft_point_none, "particles/soft/pointlight_fs", defLightBase);
-    preprocs.load(FS_part_soft_point_shad, "particles/soft/pointlight_fs", defLightShad);
+    //preprocs.load(FS_part_soft_skylight, "particles/soft/skylight_fs", defLightBase);
+    //preprocs.load(FS_part_soft_spot_none, "particles/soft/spotlight_fs", defLightBase);
+    //preprocs.load(FS_part_soft_spot_shad, "particles/soft/spotlight_fs", defLightShad);
+    //preprocs.load(FS_part_soft_point_none, "particles/soft/pointlight_fs", defLightBase);
+    //preprocs.load(FS_part_soft_point_shad, "particles/soft/pointlight_fs", defLightShad);
 
+    shadows->update_settings();
     gbuffers->update_settings();
     lighting->update_settings();
     pretties->update_settings();

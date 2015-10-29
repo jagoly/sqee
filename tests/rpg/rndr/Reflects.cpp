@@ -1,21 +1,12 @@
+#include <sqee/app/Settings.hpp>
 #include <sqee/app/PreProcessor.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
 #include <sqee/gl/Drawing.hpp>
 #include <sqee/render/Mesh.hpp>
 #include <sqee/render/Skin.hpp>
 
-#include "../wcoe/World.hpp"
-#include "../wcoe/SkyBox.hpp"
-#include "../wcoe/Ambient.hpp"
-#include "../wcoe/SkyLight.hpp"
-#include "../wcoe/objects/SpotLight.hpp"
-#include "../wcoe/objects/PointLight.hpp"
-#include "../wcoe/objects/ModelSimple.hpp"
-#include "../wcoe/objects/ModelSkelly.hpp"
 #include "../wcoe/objects/Reflector.hpp"
-#include "../wcoe/objects/Decal.hpp"
 #include "Gbuffers.hpp"
-#include "Pretties.hpp"
 #include "Lighting.hpp"
 #include "Reflects.hpp"
 
@@ -25,66 +16,68 @@ using namespace sqt::rndr;
 Reflects::Reflects(const Renderer& _renderer) : renderer(_renderer) {
     renderer.preprocs(VS_defr_reflector, "deferred/reflector_vs");
     renderer.preprocs(FS_defr_reflector, "deferred/reflector_fs");
+
+    FB_reflGbuf.draw_buffers({gl::COLOR_ATTACHMENT0, gl::COLOR_ATTACHMENT1});
+    FB_reflHdr.draw_buffers({gl::COLOR_ATTACHMENT0});
 }
 
 
 void Reflects::render_reflections() {
     for (const ReflectorData& data : renderer.reflectorDataVec) {
-        data.rflct.ubo.bind(2u);
-
-        sq::DEPTH_ON(); sq::DEPTH_READ();
-        sq::BLEND_OFF(); sq::STENCIL_ON();
+        FB_stencil.bind(); gl::StencilMask(0b1111);
+        sq::CLEAR_STENC(); gl::StencilMask(0b0100);
+        sq::CULLFACE_ON(); sq::CULLFACE_BACK();
+        sq::STENCIL_ON(); sq::DEPTH_READ();
+        sq::DEPTH_ON(); sq::BLEND_OFF();
         sq::STENCIL_REPLACE();
-        sq::VIEWPORT(renderer.INFO.fullSize);
-        FB_stencil.bind(); gl::StencilMask(0b0100);
-        gl::ClearStencil(0b0000); sq::CLEAR_STENC();
+
+        sq::VIEWPORT(INFO_fullSize);
+        sq::FRONTFACE(data.rflct.negScale);
         gl::StencilFunc(gl::ALWAYS, 0b0100, 0b0000);
+
         renderer.pipeline.disable_stages(0, 0, 1);
         renderer.pipeline.use_shader(renderer.VS_stencil_base);
-        renderer.VS_stencil_base.set_mat<fmat4>("matrix", data.rflct.matrix);
+        renderer.VS_stencil_base.set_mat<Mat4F>("matrix", data.rflct.matrix);
         data.rflct.mesh->bind_vao(); data.rflct.mesh->draw_complete();
 
+        FB_stencil.blit(FB_reflGbuf, INFO_fullSize, INFO_halfSize,
+                        gl::STENCIL_BUFFER_BIT, gl::NEAREST);
 
-        FB_stencil.blit(renderer.gbuffers->FB_reflGbuf, renderer.INFO.fullSize,
-                        renderer.INFO.halfSize, gl::STENCIL_BUFFER_BIT, gl::NEAREST);
-
-
-        sq::VIEWPORT(renderer.INFO.halfSize);
-        sq::DEPTH_WRITE(); gl::StencilMask(0b0011);
-        renderer.gbuffers->FB_reflGbuf.bind();
-        sq::CLEAR_COLOR_DEPTH_STENC();
-
-        sq::CLIP_ON();
-        renderer.gbuffers->setup_render_state_refl();
-        renderer.gbuffers->render_msimples_refl(data, true);
-        renderer.gbuffers->render_mskellys_refl(data, true);
-        renderer.gbuffers->render_reflects_refl(data, true);
-        renderer.gbuffers->bind_textures_refl();
-        renderer.gbuffers->render_decals_refl(data);
-        renderer.gbuffers->render_msimples_refl(data, false);
-        renderer.gbuffers->render_mskellys_refl(data, false);
-        renderer.gbuffers->render_reflects_refl(data, false);
-        sq::CLIP_OFF();
+        data.rflct.ubo.bind(2u);
+        TEX_reflDiff.bind(gl::TEXTURE3);
+        TEX_reflSurf.bind(gl::TEXTURE4);
+        TEX_reflDpSt.bind(gl::TEXTURE7);
+        sq::VIEWPORT(INFO_halfSize);
 
 
-        sq::CULLFACE_OFF();
-        sq::DEPTH_OFF(); sq::STENCIL_ON();
-        renderer.lighting->FB_reflHdr.bind();
-        sq::CLEAR_COLOR();
+        // GBuffers /////
 
-        renderer.lighting->render_skybox_refl();
-        renderer.lighting->render_ambient_refl();
-        renderer.lighting->render_skylight_refl();
-        renderer.lighting->render_spotlights_refl(data);
-        renderer.lighting->render_pointlights_refl(data);
+        sq::CLIP_ON(); gl::StencilMask(0b0001);
+        sq::DEPTH_WRITE(); sq::CULLFACE_FRONT();
+        FB_reflGbuf.bind(); sq::CLEAR_COLOR_DEPTH();
 
+        renderer.gbuffers->render_gbuffers_refl(data);
+
+
+        // Lighting /////
+
+        gl::StencilMask(0b0010);
+        sq::CLIP_OFF(); sq::BLEND_ONEONE();
+        sq::CULLFACE_OFF(); sq::DEPTH_READ();
+        FB_reflHdr.bind(); sq::CLEAR_COLOR();
+
+        renderer.lighting->render_lighting_refl(data);
+
+
+        // Composite /////
+
+        sq::VIEWPORT(INFO_fullSize);
         sq::BLEND_PREM(); sq::STENCIL_KEEP();
         gl::StencilFunc(gl::EQUAL, 0b0100, 0b0100);
         renderer.pipeline.use_shader(VS_defr_reflector);
         renderer.pipeline.use_shader(FS_defr_reflector);
         renderer.lighting->FB_baseHdr.bind();
-        sq::VIEWPORT(renderer.INFO.fullSize);
-        renderer.lighting->TEX_reflHdr.bind(gl::TEXTURE0);
+        TEX_reflHdr.bind(gl::TEXTURE0);
 
         data.rflct.mesh->bind_vao();
         for (uint i = 0u; i < data.rflct.mesh->mtrlCount; ++i)
@@ -95,6 +88,23 @@ void Reflects::render_reflections() {
 
 
 void Reflects::update_settings() {
+    INFO_fullSize = Vec2U(renderer.settings.get<int>("app_width"),
+                          renderer.settings.get<int>("app_height"));
+    INFO_halfSize = INFO_fullSize / 2u;
+
+    TEX_reflDiff.allocate_storage(INFO_halfSize, false);
+    TEX_reflSurf.allocate_storage(INFO_halfSize, false);
+    TEX_reflDpSt.allocate_storage(INFO_halfSize, false);
+
+    TEX_reflHdr.allocate_storage(INFO_halfSize, false);
+
+    FB_reflGbuf.attach(gl::COLOR_ATTACHMENT0, TEX_reflDiff);
+    FB_reflGbuf.attach(gl::COLOR_ATTACHMENT1, TEX_reflSurf);
+    FB_reflGbuf.attach(gl::DEPTH_STENCIL_ATTACHMENT, TEX_reflDpSt);
+
+    FB_reflHdr.attach(gl::COLOR_ATTACHMENT0, TEX_reflHdr);
+    FB_reflHdr.attach(gl::DEPTH_STENCIL_ATTACHMENT, TEX_reflDpSt);
+
     FB_stencil.attach(gl::DEPTH_STENCIL_ATTACHMENT, renderer.gbuffers->TEX_baseDpSt);
 }
 

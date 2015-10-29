@@ -1,17 +1,15 @@
 #include <random>
 
-#include <glm/gtc/matrix_transform.hpp>
-
-#include <sqee/maths/Culling.hpp>
-#include <sqee/maths/General.hpp>
-
 #include "../Cell.hpp"
 #include "../World.hpp"
 #include "Emitter.hpp"
 
 using namespace sqt::wcoe;
+namespace maths = sq::maths;
 
-Emitter::Emitter(const string& _name, Cell* _cell) : Object(_name, _cell) {
+Emitter::Emitter(const string& _name, Cell* _cell)
+    : Object(typeid(Emitter), _name, _cell) {
+
     ubo.reserve("matrix", 16u);
     ubo.allocate_storage();
 }
@@ -21,15 +19,15 @@ void Emitter::load_from_spec(const ObjSpec& _spec) {
 }
 
 
-Emitter::Particle::Particle(fvec3 _origin, fvec3 _target, fvec3 _colour, float _scale, uint _life)
+Emitter::Particle::Particle(Vec3F _origin, Vec3F _target, Vec3F _colour, float _scale, uint _life)
     : origin(_origin), target(_target), colour(_colour), scale(_scale), life(_life) {
-    crntA = nextA = fvec4(origin.x, origin.y, origin.z, scale * 0.5f);
-    crntB = nextB = fvec4(colour.r, colour.g, colour.b, 1.f);
+    crntA = nextA = Vec4F(origin.x, origin.y, origin.z, scale * 0.5f);
+    crntB = nextB = Vec4F(colour.r, colour.g, colour.b, 1.f);
 }
 
 
 void Emitter::FUNC_emit_puff(uint _count,
-                             fvec3 _normal, fvec3 _colour,
+                             Vec3F _normal, Vec3F _colour,
                              float _scaleMin, float _scaleMax,
                              float _radiusMin, float _radiusMax,
                              uint _lifeMin, uint _lifeMax) {
@@ -42,9 +40,9 @@ void Emitter::FUNC_emit_puff(uint _count,
     for (uint i = 0u; i < _count; i++) {
         float z = distZO(gen) * 2.f - 1.f;
         float azimuth = distZO(gen) * 2.f * 3.1415927f;
-        float x = glm::cos(azimuth) * glm::sqrt(1.f-z*z);
-        float y = glm::sin(azimuth) * glm::sqrt(1.f-z*z);
-        fvec3 normal = glm::normalize(fvec3(x, y, z) + _normal);
+        float x = std::cos(azimuth) * std::sqrt(1.f-z*z);
+        float y = std::sin(azimuth) * std::sqrt(1.f-z*z);
+        Vec3F normal = maths::normalize(Vec3F(x, y, z) + _normal);
 
         float life = distLife(gen);
         float scale = distScale(gen);
@@ -58,20 +56,20 @@ void Emitter::FUNC_emit_puff(uint _count,
 
 
 void Emitter::refresh() {
-    if (revalidate() == true) {
-        position = PROP_position + cell->PROP_position;
-    }
+    if (invalid == false) return;
 
-    animate();
+    position = PROP_position + cell->PROP_position;
+
+    animate(); invalid = false;
 }
 
 
 void Emitter::update() {
     for (auto& p : particleList) { p.crntA = p.nextA; p.crntB = p.nextB;
         float percent = float(++p.progress) / p.life; p.nextB.a = 1.f - percent;
-        fvec3 pos = glm::mix(p.origin, p.target, (glm::sqrt(percent) + percent) / 2.f);
+        Vec3F pos = maths::mix(p.origin, p.target, (std::sqrt(percent) + percent) / 2.f);
         p.nextA.x = pos.x; p.nextA.y = pos.y; p.nextA.z = pos.z;
-        p.nextA.w = glm::mix(0.5f * p.scale, p.scale, percent);
+        p.nextA.w = maths::mix(0.5f * p.scale, p.scale, percent);
     } particleList.remove_if([](Particle& p) { return p.progress == p.life; });
 }
 
@@ -79,10 +77,9 @@ void Emitter::update() {
 void Emitter::calc(double _accum) {
     partDataList.clear();
     for (auto& p : particleList) {
-        fvec4 datA = glm::mix(p.crntA, p.nextA, _accum * 24.f);
-        fvec4 datB = glm::mix(p.crntB, p.nextB, _accum * 24.f);
-        PartData pd = {datA.x, datA.y, datA.z, datA.w,
-                       datB.r, datB.g, datB.b, datB.a};
+        Vec4F datA = maths::mix(p.crntA, p.nextA, float(_accum) * 24.f);
+        Vec4F datB = maths::mix(p.crntB, p.nextB, float(_accum) * 24.f);
+        PartData pd = {datA.x, datA.y, datA.z, datA.w, datB.r, datB.g, datB.b, datB.a};
         partDataList.emplace_front(pd);
     }
 }

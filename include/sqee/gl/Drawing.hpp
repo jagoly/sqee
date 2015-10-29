@@ -1,7 +1,7 @@
 #pragma once
-#include <sqee/forward.hpp>
 
 #include <sqee/redist/gl_ext_4_2.hpp>
+#include <sqee/maths/Vectors.hpp>
 
 namespace sq {
 
@@ -147,11 +147,11 @@ inline void VIEWPORT(uint _size) {
     gl::Viewport(0, 0, _size, _size);
 }
 
-inline void VIEWPORT(uvec2 _size) {
+inline void VIEWPORT(Vec2U _size) {
     gl::Viewport(0, 0, _size.x, _size.y);
 }
 
-inline void VIEWPORT(uvec3 _size) {
+inline void VIEWPORT(Vec3U _size) {
     gl::Viewport(0, 0, _size.x, _size.y);
 }
 

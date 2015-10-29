@@ -1,7 +1,7 @@
 #pragma once
-#include <sqee/forward.hpp>
 
-#include <sqee/misc/ResHolder.hpp>
+#include <sqee/builtins.hpp>
+#include <sqee/maths/Vectors.hpp>
 
 namespace sq {
 
@@ -21,12 +21,12 @@ public:
 
     struct Shape {
         Shape(ShapeType _type) : type(_type) {}
-        ShapeType type; fvec3 offset; float mass;
+        ShapeType type; Vec3F offset; float mass;
     };
 
     struct BoxShape : public Shape {
         BoxShape() : Shape(ShapeType::BOX) {}
-        fvec3 halfsize;
+        Vec3F halfsize;
     };
 
     struct SphereShape : public Shape {
@@ -36,9 +36,5 @@ public:
 
     vector<unique_ptr<Shape>> shapeVec;
 };
-
-namespace res {
-ResHolder<PhysObject>& phys();
-}
 
 }

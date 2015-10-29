@@ -1,5 +1,6 @@
 #include <sqee/redist/tinyformat.hpp>
 #include <sqee/physics/PhysObject.hpp>
+#include <sqee/app/Resources.hpp>
 #include <sqee/misc/Files.hpp>
 
 using namespace sq;
@@ -12,7 +13,7 @@ void throw_error(const string& _path, int _lnum, const string& _msg, const Args&
 
 
 void PhysObject::create(const string& _path) {
-    string path = res::path() + "physobjs/" + _path + ".sqp";
+    string path = static_path() + "physobjs/" + _path + ".sqp";
     const auto fileVec = tokenise_file(path);
 
     string section = "";
@@ -63,10 +64,4 @@ void PhysObject::create(const string& _path) {
 
         else throw_error(path, lnum, "Invalid section \"%s\"", section);
     }
-
-}
-
-ResHolder<PhysObject>& sq::res::phys() {
-    static ResHolder<PhysObject> holder;
-    return holder;
 }

@@ -12,14 +12,15 @@
 
 using namespace sqt::wcoe;
 
-RigBodyMulti::RigBodyMulti(const string& _name, Cell* _cell) : Object(_name, _cell) {}
+RigBodyMulti::RigBodyMulti(const string& _name, Cell* _cell)
+    : Object(typeid(RigBodyMulti), _name, _cell) {}
 
 void RigBodyMulti::load_from_spec(const ObjSpec& _spec) {}
 
 void RigBodyMulti::refresh() {
-    if (revalidate() == true) {}
+    if (invalid == false) return;
 
-    animate();
+    animate(); invalid = false;
 }
 
 void RigBodyMulti::update() {

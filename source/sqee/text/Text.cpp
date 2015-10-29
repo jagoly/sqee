@@ -24,10 +24,10 @@ void main() { fragColour = vec4(colour, texture(tex, texcrd).r) * alpha; }
 
 struct PTCDat { float px, py, tx, ty, num; };
 
-void sq::render_text_basic(const string& _text, uvec2 _view,
+void sq::render_text_basic(const string& _text, Vec2U _view,
                            TextBasicFlow _hFlow, TextBasicFlow _vFlow,
                            TextBasicAlign _hAlign, TextBasicAlign _vAlign,
-                           fvec2 _scale, fvec3 _colour, float _alpha, bool _shadow) {
+                           Vec2F _scale, Vec3F _colour, float _alpha, bool _shadow) {
     static GLuint vbo = 0u;
     static GLuint vao = 0u;
     static GLuint texG = 0u;
@@ -143,14 +143,14 @@ void sq::render_text_basic(const string& _text, uvec2 _view,
     DEPTH_OFF(); STENCIL_OFF(); CULLFACE_OFF();
 
     if (_shadow == true) {
-        fvec3 colour(glm::dot(fvec3(0.33f, 0.33f, 0.33f), _colour) < 0.5f);
+        float colour = maths::dot(Vec3F(0.33f, 0.33f, 0.33f), _colour) < 0.5f;
         gl::BindTexture(gl::TEXTURE_2D_ARRAY, texG);
-        gl::Uniform3f(1, colour.r, colour.g, colour.b);
+        gl::Uniform3f(1, colour, colour, colour);
         gl::DrawArrays(gl::TRIANGLES, 0, ptcVec.size()*6);
     }
 
     gl::BindTexture(gl::TEXTURE_2D_ARRAY, texF);
-    gl::Uniform3f(1, _colour.r, _colour.g, _colour.b);
+    gl::Uniform3f(1, _colour.x, _colour.y, _colour.z);
     gl::DrawArrays(gl::TRIANGLES, 0, ptcVec.size()*6);
     gl::BindVertexArray(0u); gl::UseProgram(0u);
 }

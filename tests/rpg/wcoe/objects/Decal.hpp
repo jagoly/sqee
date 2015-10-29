@@ -1,6 +1,11 @@
 #pragma once
 
+#include <sqee/forward.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
+#include <sqee/maths/Vectors.hpp>
+#include <sqee/maths/Matrices.hpp>
+#include <sqee/maths/Quaternion.hpp>
+#include <sqee/maths/Volumes.hpp>
 
 #include "../Object.hpp"
 #include "../Animation.hpp"
@@ -17,24 +22,24 @@ public:
     void calc(double _accum);
     void animate();
 
-    fvec3  PROP_position = {0.f, 0.f, 0.f};
-    fquat  PROP_rotation = {1.f, 0.f, 0.f, 0.f};
-    fvec3  PROP_scale    = {1.f, 1.f, 1.f};
+    Vec3F  PROP_position = {0.f, 0.f, 0.f};
+    QuatF  PROP_rotation = {1.f, 0.f, 0.f, 0.f};
+    Vec3F  PROP_scale    = {1.f, 1.f, 1.f};
     float  PROP_alpha    = 1.f;
     string PROP_diff     = "";
     string PROP_norm     = "";
     string PROP_spec     = "";
 
-    AnimatorFVec3 ANIM_position {&PROP_position};
-    AnimatorFQuat ANIM_rotation {&PROP_rotation};
-    AnimatorFVec3 ANIM_scale    {&PROP_scale};
+    AnimatorVec3F ANIM_position {&PROP_position};
+    AnimatorQuatF ANIM_rotation {&PROP_rotation};
+    AnimatorVec3F ANIM_scale    {&PROP_scale};
     AnimatorFloat ANIM_alpha    {&PROP_alpha};
 
     sq::Texture2D* texDiff = nullptr;
     sq::Texture2D* texNorm = nullptr;
     sq::Texture2D* texSpec = nullptr;
     sq::UniformBuffer ubo;
-    fmat4 matrix, invMat;
+    Mat4F matrix, invMat;
     sq::BoundBox bbox;
 };
 

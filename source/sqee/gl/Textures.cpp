@@ -1,6 +1,7 @@
 #include <sqee/redist/gl_ext_4_2.hpp>
 #include <sqee/redist/stb_image.hpp>
 #include <sqee/debug/Logging.hpp>
+#include <sqee/app/Resources.hpp>
 #include <sqee/gl/Textures.hpp>
 #include <sqee/misc/Files.hpp>
 
@@ -48,7 +49,7 @@ Texture::~Texture() {
 void Texture::delete_object() {
     if (tex != 0u) {
         gl::DeleteTextures(1, &tex);
-        tex = 0u; size = uvec3(0u);
+        tex = 0u; size = Vec3U(0u, 0u, 0u);
     }
 }
 
@@ -65,7 +66,7 @@ void Texture::bind() const {
     gl::BindTexture(target, tex);
 }
 
-uvec3 Texture::get_size() const {
+Vec3U Texture::get_size() const {
     return size;
 }
 
@@ -88,7 +89,7 @@ void Texture2D::buffer_memory(const void* _data, GLenum _type) {
 }
 
 void Texture2D::buffer_file(const string& _path) {
-    string path = res::path() + "textures/" + _path;
+    string path = static_path() + "textures/" + _path;
     if (check_file_exists(path+".png")) path += ".png";
     else if (check_file_exists(path+".jpg")) path += ".jpg";
 
@@ -98,19 +99,19 @@ void Texture2D::buffer_file(const string& _path) {
 }
 
 void Texture2D::buffer_auto(const string& _path, bool _mipmaps) {
-    string path = res::path() + "textures/" + _path;
+    string path = static_path() + "textures/" + _path;
     if (check_file_exists(path+".png")) path += ".png";
     else if (check_file_exists(path+".jpg")) path += ".jpg";
 
     LoadedImage img = load_image(path, format);
     if (!img.data) log_error("Failed to load texture from %s", path);
-    else { allocate_storage({img.width, img.height}, _mipmaps);
+    else { allocate_storage(Vec2U(img.width, img.height), _mipmaps);
            buffer_memory(img.data, gl::UNSIGNED_BYTE);
            if (_mipmaps) generate_mipmaps(); }
 }
 
-void Texture2D::allocate_storage(uvec2 _size, bool _mipmaps) {
-    create_and_setup_texture(); size = uvec3(_size.x, _size.y, 0u);
+void Texture2D::allocate_storage(Vec2U _size, bool _mipmaps) {
+    create_and_setup_texture(); size = Vec3U(_size.x, _size.y, 0u);
     int maxLevel = _mipmaps ? std::floor(std::log2(std::max(size.x, size.y))) + 1 : 1;
     gl::TextureStorage2D(tex, maxLevel, iFormat, size.x, size.y);
 }
@@ -126,7 +127,7 @@ void TextureCube::buffer_memory(const void* _data, uint _face, GLenum _type) {
 }
 
 void TextureCube::buffer_file(const string& _path, uint _face) {
-    string path = res::path() + "textures/" + _path;
+    string path = static_path() + "textures/" + _path;
     if (check_file_exists(path+".png")) path += ".png";
     else if (check_file_exists(path+".jpg")) path += ".jpg";
 
@@ -145,7 +146,7 @@ void TextureCube::buffer_full(const string& _path) {
 }
 
 void TextureCube::allocate_storage(uint _size, bool _mipmaps) {
-    create_and_setup_texture(); size = uvec3(_size, _size, 0u);
+    create_and_setup_texture(); size = Vec3U(_size, _size, 0u);
     int maxLevel = _mipmaps ? std::floor(std::log2(size.x)) + 1 : 1;
     gl::TextureStorage2D(tex, maxLevel, iFormat, size.x, size.x);
 }
@@ -161,7 +162,7 @@ void Texture2DArray::buffer_memory(const void* _data, uint _index, GLenum _type)
 }
 
 void Texture2DArray::buffer_file(const string& _path, uint _index) {
-    string path = res::path() + "textures/" + _path;
+    string path = static_path() + "textures/" + _path;
     if (check_file_exists(path+".png")) path += ".png";
     else if (check_file_exists(path+".jpg")) path += ".jpg";
 
@@ -170,8 +171,8 @@ void Texture2DArray::buffer_file(const string& _path, uint _index) {
     else buffer_memory(img.data, _index, gl::UNSIGNED_BYTE);
 }
 
-void Texture2DArray::allocate_storage(uvec3 _size, bool _mipmaps) {
-    create_and_setup_texture(); size = uvec3(_size.x, _size.y, _size.z);
+void Texture2DArray::allocate_storage(Vec3U _size, bool _mipmaps) {
+    create_and_setup_texture(); size = Vec3U(_size.x, _size.y, _size.z);
     int maxLevel = _mipmaps ? std::floor(std::log2(std::max(size.x, size.y))) + 1 : 1;
     gl::TextureStorage3D(tex, maxLevel, iFormat, size.x, size.y, size.z);
 }
@@ -187,7 +188,7 @@ void TextureCubeArray::buffer_memory(const void* _data, uint _face, uint _index,
 }
 
 void TextureCubeArray::buffer_file(const string& _path, uint _face, uint _index) {
-    string path = res::path() + "textures/" + _path;
+    string path = static_path() + "textures/" + _path;
     if (check_file_exists(path+".png")) path += ".png";
     else if (check_file_exists(path+".jpg")) path += ".jpg";
 
@@ -205,8 +206,8 @@ void TextureCubeArray::buffer_full(const string& _path, uint _index) {
     buffer_file(_path+"/z-", 5, _index);
 }
 
-void TextureCubeArray::allocate_storage(uvec2 _size, bool _mipmaps) {
-    create_and_setup_texture(); size = uvec3(_size.x, _size.x, _size.y);
+void TextureCubeArray::allocate_storage(Vec2U _size, bool _mipmaps) {
+    create_and_setup_texture(); size = Vec3U(_size.x, _size.x, _size.y);
     int maxLevel = _mipmaps ? std::floor(std::log2(size.x)) + 1 : 1;
     gl::TextureStorage3D(tex, maxLevel, iFormat, size.x, size.y, size.z*6);
 }
@@ -227,8 +228,8 @@ void TextureVolume::buffer_memory(const void* _data, GLenum _type) {
 //    //gl::TexImage3D(target, 0u, iFormat, size.x, size.y, size.z, 0, format, gl::FLOAT, _data);
 }
 
-void TextureVolume::allocate_storage(uvec3 _size) {
-    create_and_setup_texture(); size = uvec3(_size.x, _size.y, _size.z);
+void TextureVolume::allocate_storage(Vec3U _size) {
+    create_and_setup_texture(); size = Vec3U(_size.x, _size.y, _size.z);
     gl::TextureStorage3D(tex, 1, iFormat, size.x, size.y, size.z);
 }
 
@@ -325,17 +326,4 @@ Texture::Preset Texture::ShadowMap() {
         {gl::TEXTURE_WRAP_R, gl::CLAMP_TO_EDGE},
         {gl::TEXTURE_COMPARE_MODE, gl::COMPARE_REF_TO_TEXTURE}
     };
-}
-
-
-// Resource Holder Singletons /////
-
-ResHolder<Texture2D>& sq::res::tex2D() {
-    static ResHolder<Texture2D> holder;
-    return holder;
-}
-
-ResHolder<TextureCube>& sq::res::texCube() {
-    static ResHolder<TextureCube> holder;
-    return holder;
 }
