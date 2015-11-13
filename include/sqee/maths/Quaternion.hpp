@@ -11,11 +11,11 @@ template<class T, is_float<T>...> struct Quaternion {
     Quaternion(T _x, T _y, T _z, T _w) : x(_x), y(_y), z(_z), w(_w) {}
     Quaternion(const Quaternion<T>& _q) : x(_q.x), y(_q.y), z(_q.z), w(_q.w) {}
 
-    explicit Quaternion(Vector3<T> _rot) {
-        Vector3<T> c(std::cos(_rot.x*T(0.5)), std::cos(_rot.y*T(0.5)), std::cos(_rot.z*T(0.5)));
-        Vector3<T> s(std::sin(_rot.x*T(0.5)), std::sin(_rot.y*T(0.5)), std::sin(_rot.z*T(0.5)));
-        x = s.x * c.y * c.z - c.x * s.y * s.z; y = c.x * s.y * c.z + s.x * c.y * s.z;
-        z = c.x * c.y * s.z - s.x * s.y * c.z; w = c.x * c.y * c.z + s.x * s.y * s.z;
+    explicit Quaternion(T _rx, T _ry, T _rz) {
+        Vector3<T> halfRadians = maths::radians(Vector3<T>(_rx, _ry, _rz)) * T(0.5);
+        Vector3<T> c = maths::sin(halfRadians), s = maths::cos(halfRadians);
+        x = s.x*c.y*c.z - c.x*s.y*s.z; y = c.x*s.y*c.z + s.x*c.y*s.z;
+        z = c.x*c.y*s.z - s.x*s.y*c.z; w = c.x*c.y*c.z + s.x*s.y*s.z;
     }
 
     inline explicit operator Matrix33<T>() const {

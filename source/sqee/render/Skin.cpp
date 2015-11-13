@@ -16,9 +16,7 @@ void throw_error(const string& _path, int _lnum, const string& _msg, const Args&
     throw std::runtime_error(message + tfm::format(_msg.c_str(), _args...));
 }
 
-Skin::Skin(const string& _path) {
-    create(_path);
-}
+Skin::Skin(const string& _path) { create(_path); }
 
 void Skin::create(const string& _path) {
     string path = static_path() + "skins/" + _path + ".sqs";

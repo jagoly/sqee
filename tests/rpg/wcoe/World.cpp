@@ -15,8 +15,14 @@ using namespace sqt::wcoe;
 
 World::~World() = default;
 
-World::World(const sq::Settings& _settings, const sq::Camera* _camera)
-    : settings(_settings), camera(_camera) {
+
+void World::update_stuff() {
+
+}
+
+
+World::World(sq::MessageBus& _messageBus, const sq::Settings& _settings, const sq::Camera* _camera)
+    : messageBus(_messageBus), settings(_settings), camera(_camera), root("root") {
 
     skybox.reset(new SkyBox(*this));
     ambient.reset(new Ambient(*this));
@@ -24,6 +30,9 @@ World::World(const sq::Settings& _settings, const sq::Camera* _camera)
     physWorld.reset(new rp3d::DynamicsWorld({0.f, 0.f, -1.f}));
     physWorld->setNbIterationsVelocitySolver(18u);
     physWorld->setNbIterationsPositionSolver(10u);
+
+    messageBus.register_type<Entity*>("TransformComponentModified");
+    messageBus.register_type<Entity*>("ModelComponentModified");
 }
 
 Cell* World::add_cell(const string& _name) {

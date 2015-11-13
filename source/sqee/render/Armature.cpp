@@ -13,6 +13,7 @@ void throw_error(const string& _path, int _lnum, const string& _msg, const Args&
     throw std::runtime_error(message + tfm::format(_msg.c_str(), _args...));
 }
 
+Armature::Armature(const string& _path) { create(_path); }
 
 void Armature::create(const string& _path) {
     string path = static_path() + "armatures/" + _path + ".sqa";

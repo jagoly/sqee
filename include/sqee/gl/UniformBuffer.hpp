@@ -16,25 +16,32 @@ public:
     void reserve(const string& _name, uint _size);
 
     /// Allocate the buffer. Call after reserve().
-    void allocate_storage() const;
-
-    /// Bind the UBO to the specified index
-    void bind(GLuint _index) const;
+    void allocate_storage();
 
     /// Update a single uniform with a pointer
-    void update(const string& _name, const void* _data) const;
+    void update(const string& _name, const void* _data);
 
-    /// Update a portion of a single uniform with a pointer
-    void update(const string& _name, uint _offs, uint _size, const void* _data) const;
+    /// Update part of the buffer relative to a uniform
+    void update(const string& _name, uint _offset, uint _size, const void* _data);
 
-    /// Update an arbitary section of the buffer with a pointer
-    void update(uint _offs, uint _size, const void* _data) const;
+    /// Update an arbitary section of the buffer
+    void update(uint _offset, uint _size, const void* _data);
+
+    /// Check if the buffer has been allocated yet
+    bool check_allocated() const { return allocated; }
+
+    /// Bind the buffer to the specified index
+    void bind(GLuint _index) const;
+
+    /// Bind a range of the buffer to the specified index
+    void bind(GLuint _index, uint _offset, uint _size) const;
 
     /// The OpenGL handle
     GLuint ubo = 0u;
 
 private:
-    struct Item { const uint offs, size; };
+    bool allocated = false;
+    struct Item { const uint offset, size; };
     std::unordered_map<string, Item> itemMap;
     uint currentSize = 0u;
 };

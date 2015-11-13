@@ -3,10 +3,12 @@
 #include <unordered_map>
 
 #include <sqee/builtins.hpp>
+#include <sqee/app/MessageBus.hpp>
 
 #include "Cell.hpp"
 #include "Object.hpp"
 #include "Animation.hpp"
+#include "Entity.hpp"
 
 namespace sq { class Camera; }
 namespace reactphysics3d { class DynamicsWorld; }
@@ -17,12 +19,17 @@ class SkyBox; class Ambient; class SkyLight;
 
 class World final : sq::NonCopyable {
 public:
-    World(const sq::Settings& _settings, const sq::Camera* _camera);
+    World(sq::MessageBus& _messageBus, const sq::Settings& _settings, const sq::Camera* _camera);
     ~World();
 
     void refresh(), update();
     void calc(double _accum);
     void invalidate();
+
+
+    void update_stuff();
+    wcoe::Entity root;
+
 
     Cell* add_cell(const string& _name);
     Cell* get_cell(const string& _name);
@@ -37,6 +44,7 @@ public:
     unique_ptr<SkyLight> skylight;
     std::unordered_map<string, unique_ptr<Cell>> cellMap;
 
+    sq::MessageBus& messageBus;
     const sq::Settings& settings;
     const sq::Camera* const camera;
 

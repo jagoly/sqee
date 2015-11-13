@@ -16,7 +16,7 @@ out float fragColour;
 
 
 #ifdef HIGH
-const float distThres = 1.0f;
+const float distThres = 0.8f;
 const float filterSize = 0.4f;
 const int diskSize = 36;
 const vec2 disk[36] = {

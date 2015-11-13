@@ -240,6 +240,7 @@ void sqt::cs_setup_wcoe(chai::ChaiScript& _cs) {
         {fun(&Cell::get_object<Liquid>),       "get_Liquid"},
         {fun(&Cell::add_object<Decal>),        "add_Decal"},
         {fun(&Cell::get_object<Decal>),        "get_Decal"},
+        {fun(&Cell::get_object<Object>),       "get_Object"},
         {fun(&Cell::invalidate), "invalidate"},
         {fun(&Cell::refresh), "refresh"} });
 

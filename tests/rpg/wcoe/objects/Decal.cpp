@@ -56,7 +56,7 @@ void Decal::refresh() {
         }
     } else texSpec = nullptr;
 
-    Vec3I dns = {bool(texDiff), bool(texNorm), bool(texSpec)};
+    Vec3I dns{bool(texDiff), bool(texNorm), bool(texSpec)};
     ubo.update("d_n_s", &dns);
 
     animate(); invalid = false;

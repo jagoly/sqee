@@ -29,7 +29,7 @@ inline Vec4U svtouv4(const vector<string>& _vec, uint _pos) {
 inline QuatF svtofqt(const vector<string>& _vec, uint _pos) {
     return QuatF(stof(_vec[_pos+1]), stof(_vec[_pos+2]), stof(_vec[_pos+3]), stof(_vec[_pos+0])); }
 inline QuatF svtofeu(const vector<string>& _vec, uint _pos) {
-    return QuatF(sq::maths::radians(Vec3F(stof(_vec[_pos+0]), stof(_vec[_pos+1]), stof(_vec[_pos+2])))); }
+    return QuatF(stof(_vec[_pos+0]), stof(_vec[_pos+1]), stof(_vec[_pos+2])); }
 
 namespace sq {
 

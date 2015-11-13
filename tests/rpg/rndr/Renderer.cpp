@@ -1,9 +1,15 @@
-﻿#include <set>
-#include <algorithm>
+﻿#include <algorithm>
+#include <map>
+#include <set>
+
+#include <sqee/assert.hpp>
+#include <sqee/debug/Logging.hpp>
+#include <sqee/app/MessageBus.hpp>
 
 #include <sqee/redist/gl_ext_4_2.hpp>
 #include <sqee/app/PreProcessor.hpp>
 #include <sqee/app/Settings.hpp>
+#include <sqee/app/Resources.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
 #include <sqee/gl/FrameBuffer.hpp>
 #include <sqee/gl/Textures.hpp>
@@ -28,6 +34,7 @@
 #include "../wcoe/objects/Emitter.hpp"
 #include "../wcoe/objects/Liquid.hpp"
 #include "../wcoe/objects/Decal.hpp"
+#include "../wcoe/Entity.hpp"
 
 #include "Shadows.hpp"
 #include "Gbuffers.hpp"
@@ -39,10 +46,117 @@
 using namespace sqt::rndr;
 namespace maths = sq::maths;
 
-Renderer::Renderer(const sq::Settings& _settings, const sq::PreProcessor& _preprocs,
-                   const sq::Pipeline& _pipeline, const wcoe::World& _world)
-    : settings(_settings), preprocs(_preprocs),
-      pipeline(_pipeline), world(_world) {
+using sqt::wcoe::Entity;
+using sqt::wcoe::Component;
+using sqt::wcoe::TransformComponent;
+using sqt::wcoe::ModelComponent;
+
+Renderer::~Renderer() = default;
+
+template<class Container, class Compare> inline void
+sort_container_by(Container& _container, const Compare _compare) {
+    std::sort(_container.begin(), _container.end(), _compare); }
+
+struct Renderer::Implementation {
+    Implementation(Renderer& _renderer) : renderer(_renderer) {
+//        renderer.messageBus.subscribe_last("TransformComponentModified", R_TransformComponentModified);
+//        renderer.messageBus.subscribe_last("ModelComponentModified", R_ModelComponentModified);
+    }
+
+    void update_component_transform(TransformComponent* _c);
+
+    void update_component_model(ModelComponent* _c);
+
+    void update_render_lists(const Entity* _e);
+
+    void sort_render_lists();
+
+    Renderer& renderer;
+
+//    sq::Receiver<Entity*> R_TransformComponentModified {
+//        [this](Entity* entity) { updateTransformSet.insert(entity);
+//        if (entity->get_component("Model")) updateModelSet.insert(entity);
+//        for (auto child : entity->get_children()) if (entity->get_component("Transform"))
+//                renderer.messageBus.send_message("TransformComponentModified", entity);
+//    } };
+
+//    sq::Receiver<Entity*> R_ModelComponentModified {
+//        [this](Entity* entity) { updateModelSet.insert(entity);
+//    } };
+
+    void update_entity_data(Entity* _e);
+};
+
+
+void Renderer::Implementation::update_entity_data(Entity* _e) {
+    if (auto c = _e->get_component<TransformComponent>("Transform"))
+        update_component_transform(c);//, c->needsUpdate = false;
+
+    if (auto c = _e->get_component<ModelComponent>("Model"))
+        update_component_model(c);//, c->needsUpdate = false;
+
+    for (auto child : _e->get_children())
+        update_entity_data(child);
+}
+
+
+void Renderer::Implementation::update_component_transform(TransformComponent* _c) {
+    _c->matrix = maths::translate(Mat4F(), _c->PROP_position);
+    _c->matrix = _c->matrix * Mat4F(_c->PROP_rotation);
+    _c->matrix = maths::scale(_c->matrix, _c->PROP_scale);
+
+    if (_c->PRNT_transform) _c->matrix = _c->PRNT_transform->matrix * _c->matrix;
+    _c->negScale = maths::determinant(_c->matrix) < 0.f;
+}
+
+
+void Renderer::Implementation::update_component_model(ModelComponent* _c) {
+    if ((_c->mesh = sq::static_Mesh().get(_c->PROP_mesh)) == nullptr)
+        _c->mesh = sq::static_Mesh().add(_c->PROP_mesh, _c->PROP_mesh);
+    if ((_c->skin = sq::static_Skin().get(_c->PROP_skin)) == nullptr)
+        _c->skin = sq::static_Skin().add(_c->PROP_skin, _c->PROP_skin);
+
+    _c->bbox = sq::make_BoundBox(_c->DEP_transform->matrix, _c->mesh->origin, _c->mesh->radius, _c->mesh->bbsize);
+    Mat4F normMat(maths::transpose(maths::inverse(Mat3F(renderer.world.camera->viewMat * _c->DEP_transform->matrix))));
+    _c->ubo.update("matrix", &_c->DEP_transform->matrix); _c->ubo.update("normMat", &normMat);
+}
+
+
+void Renderer::Implementation::update_render_lists(const Entity* _e) {
+    auto modelC = _e->get_component<ModelComponent>("Model");
+
+    if (modelC != nullptr && modelC->PROP_render == true) {
+        if (sq::bbox_in_frus(modelC->bbox, renderer.camera->frus))
+            renderer.cameraData.modelSimpleVecB.push_back(modelC);
+    }
+
+    for (auto child : _e->get_children())
+        update_render_lists(child);
+}
+
+
+void Renderer::Implementation::sort_render_lists() {
+    sort_container_by(renderer.cameraData.modelSimpleVecB, [this]
+        (const ModelComponent* a, const ModelComponent* b) { return
+        maths::distance(renderer.camera->pos, a->bbox.sphere.origin) <
+        maths::distance(renderer.camera->pos, b->bbox.sphere.origin); });
+}
+
+
+void Renderer::prepare_render_stuff() {
+    cameraData.modelSimpleVecB.clear();
+
+    impl->update_entity_data(&world.root);
+    impl->update_render_lists(&world.root);
+    impl->sort_render_lists();
+}
+
+
+Renderer::Renderer(sq::MessageBus& _messageBus, const sq::Settings& _settings,
+                   const sq::PreProcessor& _preprocs, const sq::Pipeline& _pipeline,
+                   wcoe::World& _world)
+    : messageBus(_messageBus), settings(_settings), preprocs(_preprocs),
+      pipeline(_pipeline), world(_world), impl(new Implementation(*this)) {
 
     shadows.reset(new Shadows(*this));
     gbuffers.reset(new Gbuffers(*this));
@@ -88,10 +202,6 @@ void Renderer::reload_lists() {
     update_settings();
 }
 
-
-template<class T_Container, class T_Compare>
-inline void sort_container_by(T_Container& _container, const T_Compare _compare) {
-    std::sort(_container.begin(), _container.end(), _compare); }
 
 void Renderer::cull_and_sort() {
     cameraData = CameraData();

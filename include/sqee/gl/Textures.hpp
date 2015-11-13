@@ -26,7 +26,7 @@ public:
     void bind() const;
 
     /// Return the size of the of texture
-    Vec3U get_size() const;
+    Vec3U get_size() const { return size; }
 
     /// The OpenGL handle
     GLuint tex = 0u;

@@ -41,10 +41,10 @@ inline T mix(T _a, T _b, T _factor) { return _a * (T(1.0) - _factor) + _b * _fac
 
 // To Radians /////
 template<class T, is_float<T>...>
-inline T radians(T _deg) { return _deg * T(0.01745329251994329576923690768489); }
+inline T radians(T _cycles) { return _cycles * T(2.0 * M_PI); }
 
-// To Degrees /////
+// To Cycles /////
 template<class T, is_float<T>...>
-inline T degrees(T _rad) { return _rad * T(57.29577951308232087679815481409246); }
+inline T cycles(T _radians) { return _radians * T(0.5 / M_PI); }
 
 }}

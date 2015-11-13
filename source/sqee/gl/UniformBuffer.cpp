@@ -12,28 +12,33 @@ UniformBuffer::~UniformBuffer() {
 }
 
 void UniformBuffer::reserve(const string& _name, uint _size) {
-    itemMap.emplace(_name, Item{currentSize, _size});
-    currentSize += _size;
+    itemMap.emplace(_name, Item{currentSize, _size*4});
+    currentSize += _size*4;
 }
 
-void UniformBuffer::allocate_storage() const {
-    gl::NamedBufferStorage(ubo, currentSize*4, nullptr, gl::DYNAMIC_STORAGE_BIT);
+void UniformBuffer::allocate_storage() {
+    gl::NamedBufferStorage(ubo, currentSize, nullptr, gl::DYNAMIC_STORAGE_BIT);
+    allocated = true;
+}
+
+void UniformBuffer::update(const string& _name, const void* _data) {
+    const Item& item = itemMap.at(_name);
+    gl::NamedBufferSubData(ubo, item.offset, item.size, _data);
+}
+
+void UniformBuffer::update(const string& _name, uint _offset, uint _size, const void* _data) {
+    const Item& item = itemMap.at(_name);
+    gl::NamedBufferSubData(ubo, item.offset + _offset*4, _size*4, _data);
+}
+
+void UniformBuffer::update(uint _offset, uint _size, const void* _data) {
+    gl::NamedBufferSubData(ubo, _offset*4, _size*4, _data);
 }
 
 void UniformBuffer::bind(GLuint _index) const {
     gl::BindBufferBase(gl::UNIFORM_BUFFER, _index, ubo);
 }
 
-void UniformBuffer::update(const std::string& _name, const void* _data) const {
-    const Item& item = itemMap.at(_name);
-    gl::NamedBufferSubData(ubo, item.offs*4, item.size*4, _data);
-}
-
-void UniformBuffer::update(const std::string& _name, uint _offs, uint _size, const void* _data) const {
-    const Item& item = itemMap.at(_name);
-    gl::NamedBufferSubData(ubo, (item.offs+_offs)*4, _size*4, _data);
-}
-
-void UniformBuffer::update(uint _offs, uint _size, const void* _data) const {
-    gl::NamedBufferSubData(ubo, _offs*4, _size*4, _data);
+void UniformBuffer::bind(GLuint _index, uint _offset, uint _size) const {
+    gl::BindBufferRange(gl::UNIFORM_BUFFER, _index, ubo, _offset*4, _size*4);
 }

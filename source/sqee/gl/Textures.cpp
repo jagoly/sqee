@@ -66,10 +66,6 @@ void Texture::bind() const {
     gl::BindTexture(target, tex);
 }
 
-Vec3U Texture::get_size() const {
-    return size;
-}
-
 void Texture::create_and_setup_texture() {
     if (tex != 0u) gl::DeleteTextures(1, &tex);
     gl::CreateTextures(target, 1, &tex);

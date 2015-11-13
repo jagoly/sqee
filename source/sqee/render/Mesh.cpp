@@ -3,12 +3,10 @@
 
 #include <sqee/redist/gl_ext_4_2.hpp>
 #include <sqee/redist/tinyformat.hpp>
-#include <sqee/gl/FixedBuffer.hpp>
-#include <sqee/gl/VertexArray.hpp>
 #include <sqee/app/Resources.hpp>
 #include <sqee/maths/General.hpp>
-#include <sqee/render/Mesh.hpp>
 #include <sqee/misc/Files.hpp>
+#include <sqee/render/Mesh.hpp>
 
 using namespace sq;
 
@@ -18,13 +16,9 @@ void throw_error(const string& _path, int _lnum, const string& _msg, const Args&
     throw std::runtime_error(message + tfm::format(_msg.c_str(), _args...));
 }
 
-Mesh::~Mesh() = default;
-
 Mesh::Mesh() : vertBuf(gl::ARRAY_BUFFER), elemBuf(gl::ELEMENT_ARRAY_BUFFER) { vertArr.set_element_buffer(elemBuf); }
 
-Mesh::Mesh(const string& _path) : Mesh() {
-    create(_path);
-}
+Mesh::Mesh(const string& _path) : Mesh() { create(_path); }
 
 void Mesh::create(const string& _path) {
     string path = static_path() + "meshes/" + _path + ".sqm";

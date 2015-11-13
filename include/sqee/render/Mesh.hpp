@@ -10,7 +10,7 @@ namespace sq {
 /// The SQEE Mesh class
 class Mesh final : NonCopyable {
 public:
-    Mesh(); ~Mesh();
+    Mesh();
     Mesh(const string& _path);
     void create(const string& _path);
 

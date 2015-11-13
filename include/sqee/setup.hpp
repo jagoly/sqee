@@ -1,15 +1,6 @@
 #pragma once
 
 #include <cmath>
-#include <cassert>
-
-#ifdef SQEE_DEBUG
-#define SQDEBUG(code) code
-#define SQASSERT(code) assert(code)
-#else
-#define SQDEBUG(code)
-#define SQASSERT(code)
-#endif
 
 typedef unsigned char uchar;
 typedef unsigned short ushort;

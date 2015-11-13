@@ -112,6 +112,15 @@ void Gbuffers::draw_msimples_base(bool _decals) {
             FS_gbuf_base_model.set_vec<Vec3I>("d_n_s", model->skin->mtrlVec[i].glDNS),
             model->skin->bind_textures(i), model->mesh->draw_material(i);
     }
+
+    for (const auto modelC : renderer.cameraData.modelSimpleVecB) {
+        if (modelC->PROP_decals != _decals) continue;
+        sq::FRONTFACE(modelC->DEP_transform->negScale);
+        modelC->mesh->bind_vao(); modelC->ubo.bind(1u);
+        for (uint i = 0u; i < modelC->mesh->mtrlCount; ++i)
+            FS_gbuf_base_model.set_vec<Vec3I>("d_n_s", modelC->skin->mtrlVec[i].glDNS),
+            modelC->skin->bind_textures(i), modelC->mesh->draw_material(i);
+    }
 }
 
 void Gbuffers::draw_mskellys_base(bool _decals) {

@@ -1,0 +1,111 @@
+
+
+
+
+
+object modelsimple ArchAA_A1
+fvec3 position -8.887 2.86 3.8
+fquat rotation 0.0 0.0 0.0
+fvec3 scale 1.0 1.0 1.0
+string mesh Sponza/ArchAA
+string skin Sponza/Arch
+flags render shadow decals probes
+
+    bool   PROP_render   = false;
+    bool   PROP_shadow   = false;
+    bool   PROP_decals   = false;
+    bool   PROP_probes   = false;
+    Vec3F  PROP_position = {0.f, 0.f, 0.f};
+    QuatF  PROP_rotation = {0.f, 0.f, 0.f, 1.f};
+    Vec3F  PROP_scale    = {1.f, 1.f, 1.f};
+    string PROP_mesh     = "";
+    string PROP_skin     = "";
+
+var cell = world.add_cell("Sponza");
+
+var obj = cell.add_Object("Dice");
+obj.add_transform(Vec3F(0.f, 2.f, 0.f), QuatF(50.f), Vec3F(1.f, 0.5f, 4.f));
+
+obj.position = Vec3F(3.0, 0.0, float(i)*0.4 + 1.0);
+obj.scale = Vec3F(0.3, 0.3, 0.3);
+obj.mesh = "Test/Dice";
+obj.skin = "Test/Dice";
+obj.shadow = true;
+obj.render = true;
+obj.refresh();
+
+
+cell = world.add_cell("Sponza");
+
+def add_ModelSimple(Cell _cell, String _name, bool _render, bool _shadow, bool _decals, String _mesh, String _skin, Vec3F _position, QuatF _rotation, Vec3F _scale) {
+    e = Entitiy("ModelSimple", _name);
+    mc = ModelComponent();
+    mc.render = _render; 
+    mc.shadow = _shadow; 
+    mc.decals = _decals;
+    mc.mesh = _mesh; 
+    mc.skin = _skin;
+    e.add(mc); 
+    tc = TransformComponent();
+    tc.position = _position;
+    tc.rotation = _rotation;
+    tc.scale = _scale;
+    e.add(tc);
+}
+
+{ e = Entitiy("ModelSimple", "Dice");
+  { c = ModelComponent();
+    c.render = false;
+    c.shadow = false;
+    c.decals = false;
+    c.mesh = "Dice";
+    c.skin = "Dice";
+    e.add(c); }
+  { c = TransformComponent();
+    c.position = Vec3F(-0.2, 1.3, 0.6);
+    c.rotation = QuatF(0.0, 0.0, 45.0);
+    c.scale = Vec3F(1.0, 1.0, 2.0);
+    e.add(c); }
+  cell.add(e); 
+}
+{ e = Entitiy("ModelSimple", "Ball");
+  { c = ModelComponent();
+    c.mesh = "Ball";
+    c.skin = "Ball";
+    e.add(c); }
+  { c = TransformComponent();
+    c.position = Vec3F(2.0, 3.3, 4.1);
+    e.add(c); }
+  cell.add(e); 
+}
+
+add_ModelSimple(cell, "Dice", false, false, false, "Dice", "Dice", Vec3F(-0.2, 1.3, 0.6), QuatF(0.0, 0.0, 45.0), Vec3F(1.0, 1.0, 2.0));
+
+
+c = ModelComponent("WallA", "Wall");
+obj.add(ModelComponent("WallA", "Wall"));
+
+
+
+
+
+
+
+
+
+
+{ e = Entitiy("ModelSimple", "Dice");
+  { c = ModelComponent();
+    c.render = false;
+    c.shadow = false;
+    c.decals = false;
+    c.mesh = "Dice";
+    c.skin = "Dice";
+    e.add(c); }
+  { c = TransformComponent();
+    c.position = Vec3F(-0.2, 1.3, 0.6);
+    c.rotation = QuatF(0.0, 0.0, 45.0);
+    c.scale = Vec3F(1.0, 1.0, 2.0);
+    e.add(c); }
+  cell.add(e); 
+}

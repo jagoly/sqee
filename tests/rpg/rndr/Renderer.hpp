@@ -1,7 +1,12 @@
 #pragma once
 
+#include <sqee/forward.hpp>
+#include <sqee/builtins.hpp>
 #include <sqee/redist/gl_ext_4_2.hpp>
+#include <sqee/app/MessageBus.hpp>
 #include <sqee/gl/Shaders.hpp>
+
+#include "../wcoe/Entity.hpp"
 
 namespace sqt {
 
@@ -13,7 +18,8 @@ namespace wcoe { class World;
                  class ModelSkelly;
                  class Reflector;
                  class Emitter;
-                 class Decal; }
+                 class Decal;
+                 class Entity; }
 
 namespace rndr {
 
@@ -30,6 +36,8 @@ struct CameraData {
     vector<const wcoe::PointLight*> pointLightVec;
     vector<const wcoe::SpotLight*> spotLightVec;
     vector<const wcoe::Decal*> decalVec;
+
+    vector<const wcoe::ModelComponent*> modelSimpleVecB;
 };
 
 struct SkyLightData {
@@ -91,12 +99,19 @@ struct EmitterData {
 
 class Renderer final : sq::NonCopyable {
 public:
-    Renderer(const sq::Settings& _settings, const sq::PreProcessor& _preprocs,
-             const sq::Pipeline& _pipeline, const wcoe::World& _world);
+    Renderer(sq::MessageBus& _messageBus, const sq::Settings& _settings,
+             const sq::PreProcessor& _preprocs, const sq::Pipeline& _pipeline,
+             wcoe::World& _world);
+
+    ~Renderer();
 
     void reload_lists();
     void cull_and_sort();
     void update_settings();
+
+
+    void prepare_render_stuff();
+
 
     // E //////
     void render_particles();
@@ -164,12 +179,18 @@ private:
     const wcoe::Reflector* crntRflct = nullptr;
     const wcoe::Emitter* crntEmitr = nullptr;
 
+    sq::MessageBus& messageBus;
+
     const sq::Settings& settings;
     const sq::PreProcessor& preprocs;
     const sq::Pipeline& pipeline;
-    const wcoe::World& world;
+    wcoe::World& world;
 
     GLuint partVAO = 0u, partVBO = 0u, partIBO = 0u;
+
+    struct Implementation;
+    friend struct Implementation;
+    unique_ptr<Implementation> impl;
 };
 
 }}

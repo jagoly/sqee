@@ -1,6 +1,6 @@
 #pragma once
 
-#include <deque>
+#include <list>
 #include <stdexcept>
 #include <unordered_map>
 
@@ -12,50 +12,63 @@ namespace sq {
 template <class TK, class TV>
 class OrderedMap final {
 public:
-    using iterator = typename std::deque<TV>::iterator;
-    iterator begin() { return theDeque.begin(); }
-    iterator end()   { return theDeque.end(); }
+    using iterator = typename std::list<TV>::iterator;
 
-    template<typename... TvArgs>
-    void append(const TK& _key, TvArgs&&... _args) {
+    iterator begin() { return theList.begin(); }
+    iterator end()   { return theList.end(); }
+
+    template<class... Args>
+    void prepend(const TK& _key, Args&&... _args) {
         if (has(_key)) throw std::out_of_range("");
-        theDeque.emplace_back(_args...);
-        theMap.emplace(_key, &theDeque.back());
+        theList.emplace_front(_args...);
+        theMap.emplace(_key, &theList.front());
     }
 
-    template<typename... TvArgs>
-    void prepend(const TK& _key, TvArgs&&... _args) {
+    template<class... Args>
+    void append(const TK& _key, Args&&... _args) {
         if (has(_key)) throw std::out_of_range("");
-        theDeque.emplace_front(_args...);
-        theMap.emplace(_key, &theDeque.front());
-    }
-
-    bool has(const TK& _key) const {
-        return theMap.count(_key);
-    }
-
-    TV& get(const TK& _key) {
-        return *theMap.at(_key);
-    }
-
-    TV& front() {
-        return theDeque.front();
-    }
-
-    TV& back() {
-        return theDeque.back();
+        theList.emplace_back(_args...);
+        theMap.emplace(_key, &theList.back());
     }
 
     void remove(const TK& _key) {
         const TV* ptr = theMap.at(_key);
-        iterator iter = theDeque.begin();
-        for (; iter != end(); ++iter) if (&*iter == ptr) break;
-        theDeque.erase(iter); theMap.erase(_key);
+        iterator iter = theList.begin();
+        while (&*iter != ptr && ++iter != end()){}
+        theList.erase(iter); theMap.erase(_key);
     }
+
+    template<class... Args>
+    void insert_before(const TK& _pos, const TK& _key, Args&&... _args) {
+        const TV* ptr = theMap.at(_pos);
+        iterator iter = theList.begin();
+        while (&*iter != ptr && ++iter != end()){}
+        theList.emplace(iter, _args...);
+        theMap.emplace(_key, &*(--iter));
+    }
+
+    template<class... Args>
+    void insert_after(const TK& _pos, const TK& _key, Args&&... _args) {
+        const TV* ptr = theMap.at(_pos);
+        iterator iter = theList.begin();
+        while (&*iter != ptr && ++iter != end()){}
+        theList.emplace(++iter, _args...);
+        theMap.emplace(_key, &*(--iter));
+    }
+
+    bool has(const TK& _key) const { return theMap.count(_key); }
+
+    TV& get(const TK& _key) { return *theMap.at(_key); }
+    const TV& get(const TK& _key) const { return *theMap.at(_key); }
+
+    TV& front() { return theList.front(); }
+    const TV& front() const { return theList.front(); }
+    TV& back() { return theList.back(); }
+    const TV& back() const { return theList.back(); }
 
 private:
     std::unordered_map<TK, TV*> theMap;
-    std::deque<TV> theDeque;
+    std::list<TV> theList;
 };
 
 }

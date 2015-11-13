@@ -253,7 +253,7 @@ template<class T> inline Matrix44<T> translate(Matrix44<T> _m, Vector3<T> _v) {
 
 // Rotate /////
 template<class T> inline Matrix44<T> rotate(Matrix44<T> _m, Vector3<T> _axis, T _angle) {
-    T s = std::sin(_angle); T c = std::cos(_angle);
+    T a = radians(_angle), s = std::sin(a), c = std::cos(a);
     Vector3<T> axis(normalize(_axis)), temp(axis * (T(1.0) - c));
 
     return Matrix44<T>(_m[0]*(c+temp.x*axis.x) + _m[1]*(temp.x*axis.y+s*axis.z) + _m[2]*(temp.x*axis.z-s*axis.y),

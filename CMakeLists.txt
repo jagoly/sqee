@@ -65,7 +65,7 @@ set(SOURCES
     "${INCDIR}/redist/stb_image.hpp"        "${SRCDIR}/redist/stb_image.cpp"
 
 # SQEE Source
-    "${INCDIR}/setup.hpp"
+    "${INCDIR}/setup.hpp"                   "${INCDIR}/assert.hpp"
     "${INCDIR}/forward.hpp"                 "${INCDIR}/builtins.hpp"
     "${INCDIR}/debug/Misc.hpp"              "${SRCDIR}/debug/Misc.cpp"
     "${INCDIR}/debug/Logging.hpp"           "${SRCDIR}/debug/Logging.cpp"
@@ -86,6 +86,7 @@ set(SOURCES
     "${INCDIR}/app/PreProcessor.hpp"        "${SRCDIR}/app/PreProcessor.cpp"
     "${INCDIR}/app/DebugOverlay.hpp"        "${SRCDIR}/app/DebugOverlay.cpp"
     "${INCDIR}/app/ChaiConsole.hpp"         "${SRCDIR}/app/ChaiConsole.cpp"
+    "${INCDIR}/app/MessageBus.hpp"          "${SRCDIR}/app/MessageBus.cpp"
     "${INCDIR}/handlers/Handler.hpp"        "${SRCDIR}/handlers/Handler.cpp"
     "${INCDIR}/handlers/Basics.hpp"         "${SRCDIR}/handlers/Basics.cpp"
     "${INCDIR}/text/Font.hpp"               "${SRCDIR}/text/Font.cpp"
@@ -101,6 +102,7 @@ set(SOURCES
     "${INCDIR}/render/Skin.hpp"             "${SRCDIR}/render/Skin.cpp"
     "${INCDIR}/physics/VecTypes.hpp"
     "${INCDIR}/physics/PhysObject.hpp"      "${SRCDIR}/physics/PhysObject.cpp"
+    "${INCDIR}/misc/Algorithm.hpp"          "${INCDIR}/misc/Variant.hpp"
     "${INCDIR}/misc/StringCast.hpp"         "${SRCDIR}/misc/StringCast.cpp"
     "${INCDIR}/misc/OrderedMap.hpp"         "${INCDIR}/misc/ResHolder.hpp"
     "${INCDIR}/misc/Files.hpp"              "${SRCDIR}/misc/Files.cpp"

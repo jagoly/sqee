@@ -4,11 +4,13 @@
 
 #include <sqee/builtins.hpp>
 #include <sqee/app/Settings.hpp>
+#include <sqee/app/MessageBus.hpp>
 #include <sqee/app/ChaiConsole.hpp>
 #include <sqee/app/DebugOverlay.hpp>
 #include <sqee/app/PreProcessor.hpp>
 #include <sqee/misc/OrderedMap.hpp>
 #include <sqee/maths/Vectors.hpp>
+
 
 // Forward Declarations /////
 namespace sq { class Scene; class Handler; }
@@ -42,6 +44,8 @@ public:
     void sweep_handler(const string& _key);
 
     unique_ptr<chai::ChaiScript> cs;
+
+    MessageBus messageBus;
 
     Settings settings;
     PreProcessor preprocs;

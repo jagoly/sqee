@@ -116,7 +116,7 @@ void GameScene::update() {
     }
 
     if (animate == true) {
-        rotNext = maths::radians(90.f * rotation);
+        rotNext = maths::radians(0.25f * rotation);
         posNext = Vec2F(position); animate = false;
         skipTurnMove = true;
     }
@@ -134,17 +134,17 @@ void GameScene::update() {
         if (!turnNeg && !turnPos) {
             rotation = rotation % 4;
             if (rotation < 0) rotation = 4 - rotation * -1;
-            rotCrnt = rotNext = maths::radians(90.f * rotation);
+            rotCrnt = rotNext = maths::radians(0.25f * rotation);
         }
 
         if (turnNeg == true) {
-            float rotPrev = maths::radians(90.f * rotation); animate = true;
-            rotNext = maths::mix(rotPrev, maths::radians(90.f * --rotation), 0.5f);
+            float rotPrev = maths::radians(0.25f * rotation); animate = true;
+            rotNext = maths::mix(rotPrev, maths::radians(0.25f * --rotation), 0.5f);
         }
 
         if (turnPos == true) {
-            float rotPrev = maths::radians(90.f * rotation); animate = true;
-            rotNext = maths::mix(rotPrev, maths::radians(90.f * ++rotation), 0.5f);
+            float rotPrev = maths::radians(0.25f * rotation); animate = true;
+            rotNext = maths::mix(rotPrev, maths::radians(0.25f * ++rotation), 0.5f);
         }
 
         if (movePos == true) {
@@ -240,9 +240,9 @@ void GameScene::render() {
 
         float rotation = 45.f;
         if (wall->rotate == 0u) rotation = maths::radians(0.f);
-        if (wall->rotate == 1u) rotation = maths::radians(90.f);
-        if (wall->rotate == 2u) rotation = maths::radians(180.f);
-        if (wall->rotate == 3u) rotation = maths::radians(270.f);
+        if (wall->rotate == 1u) rotation = maths::radians(0.25f);
+        if (wall->rotate == 2u) rotation = maths::radians(0.5f);
+        if (wall->rotate == 3u) rotation = maths::radians(0.75f);
 
         Mat4F modelMat = maths::translate(Mat4F(), Vec3F(Vec2F(wall->position), 0.f));
         modelMat = maths::rotate(modelMat, Vec3F(0.f, 0.f, -1.f), rotation);

@@ -40,16 +40,13 @@ void ModelSkelly::refresh() {
     if (invalid == false) return;
 
     if ((arma = sq::static_Armature().get(PROP_arma)) == nullptr)
-        arma = sq::static_Armature().add(PROP_arma),
-        arma->create(PROP_arma);
+        arma = sq::static_Armature().add(PROP_arma, PROP_arma);
 
     if ((mesh = sq::static_Mesh().get(PROP_mesh)) == nullptr)
-        mesh = sq::static_Mesh().add(PROP_mesh),
-        mesh->create(PROP_mesh);
+        mesh = sq::static_Mesh().add(PROP_mesh, PROP_mesh);
 
     if ((skin = sq::static_Skin().get(PROP_skin)) == nullptr)
-        skin = sq::static_Skin().add(PROP_skin),
-        skin->create(PROP_skin);
+        skin = sq::static_Skin().add(PROP_skin, PROP_skin);
 
     if (PROP_pose.empty() == false) {
         poseCalc = arma->poseMap.at(PROP_pose);

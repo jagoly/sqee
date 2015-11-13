@@ -170,14 +170,14 @@ template<int S, class T, is_float<T>...> inline Vector<S, T> tan(Vector<S, T> _v
 
 // To Radians /////
 template<int S, class T, is_float<T>...>
-inline Vector<S, T> radians(Vector<S, T> _deg) {
-    return _deg * T(0.01745329251994329576923690768489);
+inline Vector<S, T> radians(Vector<S, T> _cycles) {
+    return _cycles * T(2.0 * M_PI);
 }
 
-// To Degrees /////
+// To Cycles /////
 template<int S, class T, is_float<T>...>
-inline Vector<S, T> degrees(Vector<S, T> _rad) {
-    return _rad * T(57.29577951308232087679815481409246);
+inline Vector<S, T> cycles(Vector<S, T> _radians) {
+    return _radians * T(0.5 / M_PI);
 }
 
 // Dot Product /////
@@ -225,21 +225,21 @@ inline Vector3<T> cross(Vector3<T> _a, Vector3<T> _b) {
 // Rotate X Axis /////
 template<class T, is_float<T>...>
 inline Vector3<T> rotate_x(Vector3<T> _v, T _angle) {
-    T c = std::cos(_angle); T s = std::sin(_angle);
+    T a = radians(_angle), s = std::sin(a), c = std::cos(a);
     return Vector3<T>(_v.x, +_v.y*c -_v.z*s, +_v.y*s +_v.z*c);
 }
 
 // Rotate Y Axis /////
 template<class T, is_float<T>...>
 inline Vector3<T> rotate_y(Vector3<T> _v, T _angle) {
-    T c = std::cos(_angle); T s = std::sin(_angle);
+    T a = radians(_angle), s = std::sin(a), c = std::cos(a);
     return Vector3<T>(+_v.x*c +_v.z*s, _v.y, -_v.x*s +_v.z*c);
 }
 
 // Rotate Z Axis /////
 template<class T, is_float<T>...>
 inline Vector3<T> rotate_z(Vector3<T> _v, T _angle) {
-    T c = std::cos(_angle); T s = std::sin(_angle);
+    T a = radians(_angle), s = std::sin(a), c = std::cos(a);
     return Vector3<T>(+_v.x*c -_v.y*s, +_v.x*s +_v.y*c, _v.z);
 }
 

@@ -20,6 +20,7 @@ set(SOURCES
     "wcoe/Ambient.hpp"              "wcoe/Ambient.cpp"
     "wcoe/SkyLight.hpp"             "wcoe/SkyLight.cpp"
     "wcoe/Animation.hpp"            "wcoe/Animation.cpp"
+    "wcoe/Entity.hpp"               "wcoe/Entity.cpp"
     "wcoe/objects/MetaObject.hpp"   "wcoe/objects/MetaObject.cpp"
     "wcoe/objects/RigBodyBasic.hpp" "wcoe/objects/RigBodyBasic.cpp"
     "wcoe/objects/RigBodyMulti.hpp" "wcoe/objects/RigBodyMulti.cpp"

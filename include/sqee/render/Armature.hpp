@@ -25,6 +25,8 @@ struct ArmaTransform {
 /// The SQEE Armature class
 class Armature : NonCopyable {
 public:
+    Armature() = default;
+    Armature(const string& _path);
     void create(const string& _path);
     void load_library(const string& _path);
 

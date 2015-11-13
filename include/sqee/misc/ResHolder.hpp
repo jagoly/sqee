@@ -10,27 +10,28 @@ namespace sq {
 template <class T>
 class ResHolder final {
 public:
-    using iterator = typename std::unordered_map<string, T>::iterator;
+    using iterator = typename std::unordered_map<string, unique_ptr<T>>::iterator;
+
     iterator begin() { return theMap.begin(); }
     iterator end()   { return theMap.end(); }
 
-    template<typename... TvArgs>
-    T* add(const string& _key, TvArgs&&... _args) {
-        if (has(_key)) theMap.erase(_key);
-        theMap[_key] = unique_ptr<T>(new T(_args...));
+    template<class... Args>
+    T* add(const string& _key, Args&&... _args) {
+        if (has(_key)) throw std::runtime_error("");
+        theMap[_key].reset(new T(_args...));
         return theMap.at(_key).get();
     }
 
     T* get(const string& _key) {
-        if (has(_key)) return theMap.at(_key).get();
-        else return nullptr;
+        iterator it = theMap.find(_key);
+        return it != theMap.end() ? it->second.get() : nullptr;
     }
 
     bool has(const string& _key) const {
         return theMap.count(_key);
     }
 
-    void del(const string& _key) {
+    void erase(const string& _key) {
         theMap.erase(_key);
     }
 

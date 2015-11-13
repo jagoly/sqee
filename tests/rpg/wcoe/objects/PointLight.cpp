@@ -59,7 +59,7 @@ void PointLight::calc(double _accum) {
 
 void PointLight::animate() {
     Vec3F position = PROP_position + cell->PROP_position;
-    Mat4F projMat = maths::perspective(maths::radians(90.f), 1.f, 0.1f, PROP_intensity);
+    Mat4F projMat = maths::perspective(maths::radians(0.25f), 1.f, 0.1f, PROP_intensity);
     matArr[0] = projMat * maths::look_at(position, position+Vec3F(+1.f, 0.f, 0.f), {0.f, -1.f, 0.f});
     matArr[1] = projMat * maths::look_at(position, position+Vec3F(-1.f, 0.f, 0.f), {0.f, -1.f, 0.f});
     matArr[2] = projMat * maths::look_at(position, position+Vec3F(0.f, +1.f, 0.f), {0.f, 0.f, +1.f});

@@ -45,8 +45,8 @@ MainScene::MainScene(sq::Application* _app) : sq::Scene(_app) {
 
     camera.reset(new sq::Camera());
     pipeline.reset(new sq::Pipeline());
-    world.reset(new wcoe::World(app->settings, camera.get()));
-    renderer.reset(new rndr::Renderer(app->settings, app->preprocs, *pipeline, *world));
+    world.reset(new wcoe::World(app->messageBus, app->settings, camera.get()));
+    renderer.reset(new rndr::Renderer(app->messageBus, app->settings, app->preprocs, *pipeline, *world));
 
     renderer->camera = camera.get();
 
@@ -116,6 +116,37 @@ MainScene::MainScene(sq::Application* _app) : sq::Scene(_app) {
     renderer->FB.pshadB = FB.pshadB.get();
     renderer->FB.defrPart = FB.defrPart.get();
     renderer->FB.hdrPart = FB.hdrPart.get();
+
+
+    // ///////////////////////////////////////////////
+
+    using namespace wcoe;
+
+    auto eDiceGroup = world->root.add_child("DiceGroup");
+    auto cTransformGroup = eDiceGroup->add_component<TransformComponent>();
+    cTransformGroup->PROP_position = Vec3F(0.f, 0.f, 5.f);
+    cTransformGroup->PROP_rotation = QuatF(0.f, 0.f, 0.f);
+    cTransformGroup->PROP_scale = Vec3F(1.f, 1.f, 1.f);
+
+    auto eDiceA = eDiceGroup->add_child("DiceA");
+    auto cTransformA = eDiceA->add_component<TransformComponent>();
+    auto cModelA = eDiceA->add_component<ModelComponent>();
+    cTransformA->PROP_position = Vec3F(-0.2f, 1.3f, 0.6f);
+    cTransformA->PROP_rotation = QuatF(0.f, 0.f, 0.f);
+    cTransformA->PROP_scale = Vec3F(1.f, 1.f, 1.f);
+    cModelA->PROP_mesh = "Test/Dice";
+    cModelA->PROP_skin = "Test/Dice";
+
+    auto eDiceB = eDiceGroup->add_child("DiceB");
+    auto cTransformB = eDiceB->add_component<TransformComponent>();
+    auto cModelB = eDiceB->add_component<ModelComponent>();
+    cTransformB->PROP_position = Vec3F(-1.2f, 0.6f, 0.6f);
+    cModelB->PROP_mesh = "Test/Dice";
+    cModelB->PROP_skin = "Test/Dice";
+    cModelB->PROP_shadow = false;
+
+    //app->messageBus.send_message("TransformComponentUpdated", eDiceGroup);
+    //app->messageBus.send_message("ModelComponentUpdated", eDiceGroup);
 }
 
 
@@ -145,8 +176,8 @@ void MainScene::update() {
 void MainScene::render() {
     if (app->console.active == false) {
         Vec2F mMove = app->mouse_centre();
-        rotZ = rotZ + mMove.x / 600.f;
-        rotX = maths::clamp(rotX + mMove.y / 900.f, -1.25f, 1.25f);
+        rotZ = rotZ + mMove.x / 1600.f;
+        rotX = maths::clamp(rotX + mMove.y / 2400.f, -0.2f, 0.2f);
         camera->dir = maths::rotate_z(maths::rotate_x(Vec3F(0.f, 1.f, 0.f), rotX), rotZ);
         camera->pos = maths::mix(posCrnt, posNext, float(accum)*24.f);
     }
@@ -162,6 +193,8 @@ void MainScene::render() {
     pipeline->bind();
     camera->ubo.bind(0u);
     gl::DepthFunc(gl::LEQUAL);
+
+    renderer->prepare_render_stuff();
 
     renderer->shadows->setup_render_state();
     renderer->shadows->render_shadows_sky();

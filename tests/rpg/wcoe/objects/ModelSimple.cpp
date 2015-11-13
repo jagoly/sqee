@@ -35,12 +35,10 @@ void ModelSimple::refresh() {
     if (invalid == false) return;
 
     if ((mesh = sq::static_Mesh().get(PROP_mesh)) == nullptr)
-        mesh = sq::static_Mesh().add(PROP_mesh),
-        mesh->create(PROP_mesh);
+        mesh = sq::static_Mesh().add(PROP_mesh, PROP_mesh);
 
     if ((skin = sq::static_Skin().get(PROP_skin)) == nullptr)
-        skin = sq::static_Skin().add(PROP_skin),
-        skin->create(PROP_skin);
+        skin = sq::static_Skin().add(PROP_skin, PROP_skin);
 
     animate(); invalid = false;
 }

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <sqee/redist/gl_ext_4_2.hpp>
 #include <sqee/gl/FrameBuffer.hpp>
 #include <sqee/gl/Textures.hpp>
 #include <sqee/gl/Shaders.hpp>
@@ -59,6 +58,8 @@ private:
     friend class Lighting;
     friend class Reflects;
     friend class Pretties;
+
+    friend class Renderer;
 };
 
 }}
