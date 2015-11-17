@@ -40,6 +40,7 @@ Application::Application() : overlay(this), console(this) {
     cs_setup_app(*cs);
     cs_setup_render(*cs);
     cs_setup_maths(*cs);
+    cs_setup_ecs(*cs);
 
     settings.add<int>("app_fpslimit", 0);
     settings.add<bool>("app_keyrepeat", false);

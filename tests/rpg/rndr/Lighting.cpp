@@ -17,6 +17,9 @@
 #include "Pretties.hpp"
 #include "Lighting.hpp"
 
+#include "../components/Transform.hpp"
+#include "../components/SpotLight.hpp"
+
 using namespace sqt::rndr;
 
 Lighting::Lighting(const Renderer& _renderer) : renderer(_renderer) {
@@ -88,6 +91,39 @@ void Lighting::render_lighting_base() {
         gl::StencilFunc(gl::EQUAL, 0b0011, 0b0011); light->ubo.bind(1u);
         if (light->PROP_shadow) light->tex.bind(gl::TEXTURE8);
         sq::STENCIL_KEEP(); sq::draw_screen_quad();
+    }
+
+    for (const auto light : renderer.cameraData.spotLightShadVecB) {
+        renderer.pipeline.disable_stages(0, 0, 1);
+        renderer.pipeline.use_shader(renderer.VS_stencil_base);
+        renderer.VS_stencil_base.set_mat("matrix", light->modelMat);
+        sq::DEPTH_ON(); sq::BLEND_ON(); sq::CLEAR_STENC();
+        gl::StencilOp(gl::KEEP, gl::INVERT, gl::KEEP);
+        gl::StencilFunc(gl::EQUAL, 0b0011, 0b0001);
+        sq::draw_volume_cone(); sq::DEPTH_OFF();
+
+        renderer.pipeline.use_shader(renderer.VS_fullscreen);
+        renderer.pipeline.use_shader(FS_defr_base_spot_both);
+        gl::StencilFunc(gl::EQUAL, 0b0011, 0b0011);
+        light->ubo.bind(1u); sq::STENCIL_KEEP();
+        light->tex.bind(gl::TEXTURE8);
+        sq::draw_screen_quad();
+    }
+
+    for (const auto light : renderer.cameraData.spotLightNoShadVecB) {
+        renderer.pipeline.disable_stages(0, 0, 1);
+        renderer.pipeline.use_shader(renderer.VS_stencil_base);
+        renderer.VS_stencil_base.set_mat("matrix", light->modelMat);
+        sq::DEPTH_ON(); sq::BLEND_ON(); sq::CLEAR_STENC();
+        gl::StencilOp(gl::KEEP, gl::INVERT, gl::KEEP);
+        gl::StencilFunc(gl::EQUAL, 0b0011, 0b0001);
+        sq::draw_volume_cone(); sq::DEPTH_OFF();
+
+        renderer.pipeline.use_shader(renderer.VS_fullscreen);
+        renderer.pipeline.use_shader(FS_defr_base_spot_spec);
+        gl::StencilFunc(gl::EQUAL, 0b0011, 0b0011);
+        light->ubo.bind(1u); sq::STENCIL_KEEP();
+        sq::draw_screen_quad();
     }
 
     for (const wcoe::PointLight* light : renderer.cameraData.pointLightVec) {

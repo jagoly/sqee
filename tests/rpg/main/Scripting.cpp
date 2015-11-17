@@ -20,6 +20,10 @@
 #include "../rndr/Renderer.hpp"
 #include "Scripting.hpp"
 
+#include "../components/Transform.hpp"
+#include "../components/Model.hpp"
+#include "../components/SpotLight.hpp"
+
 using chai::fun;
 using chai::user_type;
 using chai::base_class;
@@ -36,6 +40,15 @@ void sqt::cs_setup_main(chai::ChaiScript& _cs) {
     chai::ModulePtr m(new chai::Module());
 
     _cs.add(m);
+}
+
+
+template<class ComponentType>
+void setup_component(chai::Module& _m, const string& _name, const vector<pair<chai::Proxy_Function, string>>& _funcs) {
+    _m.add(user_type<ComponentType>(), _name); for (const auto& func : _funcs) _m.add(func.first, func.second);
+    _m.add(fun<ComponentType*(sq::Entity::*)()>(&sq::Entity::get_component<ComponentType>), "get_" + _name);
+    _m.add(fun(&sq::Entity::add_component<ComponentType>), "add_" + _name);
+    _m.add(base_class<sq::Component, ComponentType>());
 }
 
 
@@ -73,6 +86,7 @@ void sqt::cs_setup_wcoe(chai::ChaiScript& _cs) {
         {fun(&SkyLight::refresh),        "refresh"} });
 
     add_class<World>(*m, "World", {}, {
+        {fun(&World::root),        "root"},
         {fun(&World::skybox),      "skybox"},
         {fun(&World::ambient),     "ambient"},
         {fun(&World::skylight),    "skylight"},
@@ -262,6 +276,29 @@ void sqt::cs_setup_wcoe(chai::ChaiScript& _cs) {
           (unique_ptr<Ambient>& uptr) { return uptr.get(); }));
     m->add(type_conversion<unique_ptr<SkyLight>&, SkyLight*>([]
           (unique_ptr<SkyLight>& uptr) { return uptr.get(); }));
+
+    setup_component<TransformComponent>(*m, "TransformComponent", {
+        {fun(&TransformComponent::PROP_position), "position"},
+        {fun(&TransformComponent::PROP_rotation), "rotation"},
+        {fun(&TransformComponent::PROP_scale),    "scale"}
+    });
+
+    setup_component<ModelComponent>(*m, "ModelComponent", {
+        {fun(&ModelComponent::PROP_scale),  "scale"},
+        {fun(&ModelComponent::PROP_render), "render"},
+        {fun(&ModelComponent::PROP_shadow), "shadow"},
+        {fun(&ModelComponent::PROP_mesh),   "mesh"},
+        {fun(&ModelComponent::PROP_skin),   "skin"}
+    });
+
+    setup_component<SpotLightComponent>(*m, "SpotLightComponent", {
+        {fun(&SpotLightComponent::PROP_texsize),   "texsize"},
+        {fun(&SpotLightComponent::PROP_offset),    "offset"},
+        {fun(&SpotLightComponent::PROP_direction), "direction"},
+        {fun(&SpotLightComponent::PROP_colour),    "colour"},
+        {fun(&SpotLightComponent::PROP_softness),  "softness"},
+        {fun(&SpotLightComponent::PROP_angle),     "angle"},
+    });
 
     _cs.add(m);
 }

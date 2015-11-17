@@ -4,11 +4,11 @@
 
 #include <sqee/builtins.hpp>
 #include <sqee/app/MessageBus.hpp>
+#include <sqee/ecs/Entity.hpp>
 
 #include "Cell.hpp"
 #include "Object.hpp"
 #include "Animation.hpp"
-#include "Entity.hpp"
 
 namespace sq { class Camera; }
 namespace reactphysics3d { class DynamicsWorld; }
@@ -28,7 +28,7 @@ public:
 
 
     void update_stuff();
-    wcoe::Entity root;
+    sq::Entity root;
 
 
     Cell* add_cell(const string& _name);

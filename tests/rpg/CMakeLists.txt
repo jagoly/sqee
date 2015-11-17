@@ -20,7 +20,6 @@ set(SOURCES
     "wcoe/Ambient.hpp"              "wcoe/Ambient.cpp"
     "wcoe/SkyLight.hpp"             "wcoe/SkyLight.cpp"
     "wcoe/Animation.hpp"            "wcoe/Animation.cpp"
-    "wcoe/Entity.hpp"               "wcoe/Entity.cpp"
     "wcoe/objects/MetaObject.hpp"   "wcoe/objects/MetaObject.cpp"
     "wcoe/objects/RigBodyBasic.hpp" "wcoe/objects/RigBodyBasic.cpp"
     "wcoe/objects/RigBodyMulti.hpp" "wcoe/objects/RigBodyMulti.cpp"
@@ -32,6 +31,12 @@ set(SOURCES
     "wcoe/objects/Emitter.hpp"      "wcoe/objects/Emitter.cpp"
     "wcoe/objects/Liquid.hpp"       "wcoe/objects/Liquid.cpp"
     "wcoe/objects/Decal.hpp"        "wcoe/objects/Decal.cpp"
+
+    "components/Transform.hpp"      "components/Transform.cpp"
+    "components/Decal.hpp"          "components/Decal.cpp"
+    "components/Model.hpp"          "components/Model.cpp"
+    "components/SpotLight.hpp"      "components/SpotLight.cpp"
+    "components/PointLight.hpp"     "components/PointLight.cpp"
 )
 
 add_executable(sqee_rpg ${SOURCES})

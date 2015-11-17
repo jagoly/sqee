@@ -6,6 +6,8 @@
 #include <sqee/debug/Logging.hpp>
 #include <sqee/app/MessageBus.hpp>
 
+#include <sqee/misc/StringCast.hpp>
+
 #include <sqee/redist/gl_ext_4_2.hpp>
 #include <sqee/app/PreProcessor.hpp>
 #include <sqee/app/Settings.hpp>
@@ -34,7 +36,10 @@
 #include "../wcoe/objects/Emitter.hpp"
 #include "../wcoe/objects/Liquid.hpp"
 #include "../wcoe/objects/Decal.hpp"
-#include "../wcoe/Entity.hpp"
+
+#include "../components/Transform.hpp"
+#include "../components/Model.hpp"
+#include "../components/SpotLight.hpp"
 
 #include "Shadows.hpp"
 #include "Gbuffers.hpp"
@@ -46,11 +51,6 @@
 using namespace sqt::rndr;
 namespace maths = sq::maths;
 
-using sqt::wcoe::Entity;
-using sqt::wcoe::Component;
-using sqt::wcoe::TransformComponent;
-using sqt::wcoe::ModelComponent;
-
 Renderer::~Renderer() = default;
 
 template<class Container, class Compare> inline void
@@ -58,93 +58,122 @@ sort_container_by(Container& _container, const Compare _compare) {
     std::sort(_container.begin(), _container.end(), _compare); }
 
 struct Renderer::Implementation {
-    Implementation(Renderer& _renderer) : renderer(_renderer) {
-//        renderer.messageBus.subscribe_last("TransformComponentModified", R_TransformComponentModified);
-//        renderer.messageBus.subscribe_last("ModelComponentModified", R_ModelComponentModified);
-    }
+    Implementation(Renderer& _renderer) : renderer(_renderer) {}
 
-    void update_component_transform(TransformComponent* _c);
+    void update_component_Transform(TransformComponent* _c);
 
-    void update_component_model(ModelComponent* _c);
+    void update_component_Model(ModelComponent* _c);
 
-    void update_render_lists(const Entity* _e);
+    void update_component_SpotLight(SpotLightComponent* _c);
+
+    void update_render_lists(const sq::Entity* _e);
 
     void sort_render_lists();
 
     Renderer& renderer;
 
-//    sq::Receiver<Entity*> R_TransformComponentModified {
-//        [this](Entity* entity) { updateTransformSet.insert(entity);
-//        if (entity->get_component("Model")) updateModelSet.insert(entity);
-//        for (auto child : entity->get_children()) if (entity->get_component("Transform"))
-//                renderer.messageBus.send_message("TransformComponentModified", entity);
-//    } };
-
-//    sq::Receiver<Entity*> R_ModelComponentModified {
-//        [this](Entity* entity) { updateModelSet.insert(entity);
-//    } };
-
-    void update_entity_data(Entity* _e);
+    void update_entity_data(sq::Entity* _e);
 };
 
 
-void Renderer::Implementation::update_entity_data(Entity* _e) {
-    if (auto c = _e->get_component<TransformComponent>("Transform"))
-        update_component_transform(c);//, c->needsUpdate = false;
+void Renderer::Implementation::update_entity_data(sq::Entity* _e) {
+    if (auto c = _e->get_component<TransformComponent>())
+        update_component_Transform(c), c->needsUpdate = false;
 
-    if (auto c = _e->get_component<ModelComponent>("Model"))
-        update_component_model(c);//, c->needsUpdate = false;
+    if (auto c = _e->get_component<ModelComponent>())
+        update_component_Model(c), c->needsUpdate = false;
 
-    for (auto child : _e->get_children())
-        update_entity_data(child);
+    if (auto c = _e->get_component<SpotLightComponent>())
+        update_component_SpotLight(c), c->needsUpdate = false;
+
+    for (auto& child : _e->get_children())
+        update_entity_data(child.get());
 }
 
 
-void Renderer::Implementation::update_component_transform(TransformComponent* _c) {
+void Renderer::Implementation::update_component_Transform(TransformComponent* _c) {
     _c->matrix = maths::translate(Mat4F(), _c->PROP_position);
-    _c->matrix = _c->matrix * Mat4F(_c->PROP_rotation);
-    _c->matrix = maths::scale(_c->matrix, _c->PROP_scale);
+    _c->matrix *= Mat4F(Mat3F(_c->PROP_rotation) * Mat3F(_c->PROP_scale));
 
-    if (_c->PRNT_transform) _c->matrix = _c->PRNT_transform->matrix * _c->matrix;
+    if (_c->PRNT_Transform) _c->matrix = _c->PRNT_Transform->matrix * _c->matrix;
     _c->negScale = maths::determinant(_c->matrix) < 0.f;
 }
 
-
-void Renderer::Implementation::update_component_model(ModelComponent* _c) {
+void Renderer::Implementation::update_component_Model(ModelComponent* _c) {
     if ((_c->mesh = sq::static_Mesh().get(_c->PROP_mesh)) == nullptr)
         _c->mesh = sq::static_Mesh().add(_c->PROP_mesh, _c->PROP_mesh);
     if ((_c->skin = sq::static_Skin().get(_c->PROP_skin)) == nullptr)
         _c->skin = sq::static_Skin().add(_c->PROP_skin, _c->PROP_skin);
 
-    _c->bbox = sq::make_BoundBox(_c->DEP_transform->matrix, _c->mesh->origin, _c->mesh->radius, _c->mesh->bbsize);
-    Mat4F normMat(maths::transpose(maths::inverse(Mat3F(renderer.world.camera->viewMat * _c->DEP_transform->matrix))));
-    _c->ubo.update("matrix", &_c->DEP_transform->matrix); _c->ubo.update("normMat", &normMat);
+    Mat4F matrix = maths::scale(_c->DEP_Transform->matrix, _c->PROP_scale);
+    Mat4F normMat(maths::transpose(maths::inverse(Mat3F(renderer.world.camera->viewMat * matrix))));
+    _c->bbox = sq::make_BoundBox(matrix, _c->mesh->origin, _c->mesh->radius, _c->mesh->bbsize);
+    _c->ubo.update("matrix", &matrix); _c->ubo.update("normMat", &normMat);
+}
+
+void Renderer::Implementation::update_component_SpotLight(SpotLightComponent* _c) {
+    Vec3F position = Vec3F(_c->DEP_Transform->matrix * Vec4F(_c->PROP_offset, 1.f));
+    Vec3F direction = maths::normalize(Mat3F(_c->DEP_Transform->matrix) * _c->PROP_direction);
+    float scale = maths::length(Vec3F(_c->DEP_Transform->matrix[0])) * _c->PROP_intensity;
+
+    Vec3F tangent = sq::make_tangent(_c->PROP_direction);
+    tangent = maths::normalize(Mat3F(_c->DEP_Transform->matrix) * tangent);
+    Mat4F viewMat = maths::look_at(position, position + direction, tangent);
+    float angle = maths::radians(_c->PROP_angle);
+
+    _c->matrix = maths::perspective(angle*2.f, 1.f, 0.2f, scale) * viewMat;
+    _c->frus = sq::make_Frustum(_c->matrix, position, direction, 0.2f, scale);
+
+    Vec3F modelScale = Vec3F(Vec2F(-std::tan(angle*2.f)), -1.f) * scale;
+    _c->modelMat = maths::scale(maths::inverse(viewMat), modelScale);
+
+    _c->ubo.update("direction", &direction);
+    _c->ubo.update("intensity", &_c->PROP_intensity);
+    _c->ubo.update("position", &position);
+    _c->ubo.update("softness", &_c->PROP_softness);
+    _c->ubo.update("colour", &_c->PROP_colour);
+    _c->ubo.update("angle", &angle);
+    _c->ubo.update("matrix", &_c->matrix);
+
+    if (uint newSize = _c->PROP_texsize * (renderer.settings.get<bool>("rpg_shadlarge") + 1u)) {
+        if (newSize != _c->tex.get_size().x) _c->tex.allocate_storage(Vec2U(newSize), false);
+    } else _c->tex.delete_object();
 }
 
 
-void Renderer::Implementation::update_render_lists(const Entity* _e) {
-    auto modelC = _e->get_component<ModelComponent>("Model");
+void Renderer::Implementation::update_render_lists(const sq::Entity* _e) {
+    auto modelC = _e->get_component<ModelComponent>();
+    auto spotLightC = _e->get_component<SpotLightComponent>();
 
-    if (modelC != nullptr && modelC->PROP_render == true) {
+    if (modelC != nullptr && modelC->PROP_render == true)
         if (sq::bbox_in_frus(modelC->bbox, renderer.camera->frus))
             renderer.cameraData.modelSimpleVecB.push_back(modelC);
-    }
 
-    for (auto child : _e->get_children())
-        update_render_lists(child);
+    if (spotLightC != nullptr && spotLightC->PROP_texsize != 0u)
+        if (sq::frus_in_frus(spotLightC->frus, renderer.camera->frus))
+            renderer.cameraData.spotLightShadVecB.push_back(spotLightC);
+
+    if (spotLightC != nullptr && spotLightC->PROP_texsize == 0u)
+        if (sq::frus_in_frus(spotLightC->frus, renderer.camera->frus))
+            renderer.cameraData.spotLightNoShadVecB.push_back(spotLightC);
+
+    for (auto& child : _e->get_children())
+        update_render_lists(child.get());
 }
 
 
 void Renderer::Implementation::sort_render_lists() {
     sort_container_by(renderer.cameraData.modelSimpleVecB, [this]
         (const ModelComponent* a, const ModelComponent* b) { return
-        maths::distance(renderer.camera->pos, a->bbox.sphere.origin) <
-        maths::distance(renderer.camera->pos, b->bbox.sphere.origin); });
+        maths::distance(renderer.camera->pos, a->bbox.origin) <
+        maths::distance(renderer.camera->pos, b->bbox.origin); });
 }
 
 
 void Renderer::prepare_render_stuff() {
     cameraData.modelSimpleVecB.clear();
+    cameraData.spotLightShadVecB.clear();
+    cameraData.spotLightNoShadVecB.clear();
 
     impl->update_entity_data(&world.root);
     impl->update_render_lists(&world.root);
@@ -268,18 +297,18 @@ void Renderer::cull_and_sort() {
 
             sort_container_by(reflectorDataVec.back().reflectorVec, [rflct]
                     (const wcoe::Reflector* a, const wcoe::Reflector* b) { return
-                    maths::distance(rflct->frus.sphere.origin, a->bbox.sphere.origin) <
-                    maths::distance(rflct->frus.sphere.origin, b->bbox.sphere.origin); });
+                    maths::distance(rflct->frus.points[0], a->bbox.origin) <
+                    maths::distance(rflct->frus.points[0], b->bbox.origin); });
 
             sort_container_by(reflectorDataVec.back().modelSimpleVec, [rflct]
                     (const wcoe::ModelSimple* a, const wcoe::ModelSimple* b) { return
-                    maths::distance(rflct->frus.sphere.origin, a->bbox.sphere.origin) <
-                    maths::distance(rflct->frus.sphere.origin, b->bbox.sphere.origin); });
+                    maths::distance(rflct->frus.points[0], a->bbox.origin) <
+                    maths::distance(rflct->frus.points[0], b->bbox.origin); });
 
             sort_container_by(reflectorDataVec.back().modelSkellyVec, [rflct]
                     (const wcoe::ModelSkelly* a, const wcoe::ModelSkelly* b) { return
-                    maths::distance(rflct->frus.sphere.origin, a->sphere.origin) <
-                    maths::distance(rflct->frus.sphere.origin, b->sphere.origin); });
+                    maths::distance(rflct->frus.points[0], a->sphere.origin) <
+                    maths::distance(rflct->frus.points[0], b->sphere.origin); });
         }
     }
 
@@ -307,13 +336,13 @@ void Renderer::cull_and_sort() {
 
             sort_container_by(spotLightDataVec.back().reflectorVec, [light]
                     (const wcoe::Reflector* a, const wcoe::Reflector* b) { return
-                    maths::distance(light->PROP_position, a->bbox.sphere.origin) <
-                    maths::distance(light->PROP_position, b->bbox.sphere.origin); });
+                    maths::distance(light->PROP_position, a->bbox.origin) <
+                    maths::distance(light->PROP_position, b->bbox.origin); });
 
             sort_container_by(spotLightDataVec.back().modelSimpleVec, [light]
                     (const wcoe::ModelSimple* a, const wcoe::ModelSimple* b) { return
-                    maths::distance(light->PROP_position, a->bbox.sphere.origin) <
-                    maths::distance(light->PROP_position, b->bbox.sphere.origin); });
+                    maths::distance(light->PROP_position, a->bbox.origin) <
+                    maths::distance(light->PROP_position, b->bbox.origin); });
 
             sort_container_by(spotLightDataVec.back().modelSkellyVec, [light]
                     (const wcoe::ModelSkelly* a, const wcoe::ModelSkelly* b) { return
@@ -356,13 +385,13 @@ void Renderer::cull_and_sort() {
 
                     sort_container_by(pointLightDataVec.back().reflectorVecArr[ind], [light]
                             (const wcoe::Reflector* a, const wcoe::Reflector* b) { return
-                            maths::distance(light->PROP_position, a->bbox.sphere.origin) <
-                            maths::distance(light->PROP_position, b->bbox.sphere.origin); });
+                            maths::distance(light->PROP_position, a->bbox.origin) <
+                            maths::distance(light->PROP_position, b->bbox.origin); });
 
                     sort_container_by(pointLightDataVec.back().modelSimpleVecArr[ind], [light]
                             (const wcoe::ModelSimple* a, const wcoe::ModelSimple* b) { return
-                            maths::distance(light->PROP_position, a->bbox.sphere.origin) <
-                            maths::distance(light->PROP_position, b->bbox.sphere.origin); });
+                            maths::distance(light->PROP_position, a->bbox.origin) <
+                            maths::distance(light->PROP_position, b->bbox.origin); });
 
                     sort_container_by(pointLightDataVec.back().modelSkellyVecArr[ind], [light]
                             (const wcoe::ModelSkelly* a, const wcoe::ModelSkelly* b) { return
@@ -399,13 +428,13 @@ void Renderer::cull_and_sort() {
 
     sort_container_by(cameraData.reflectorVec, [this]
             (const wcoe::Reflector* a, const wcoe::Reflector* b) { return
-            maths::distance(camera->pos, a->bbox.sphere.origin) <
-            maths::distance(camera->pos, b->bbox.sphere.origin); });
+            maths::distance(camera->pos, a->bbox.origin) <
+            maths::distance(camera->pos, b->bbox.origin); });
 
     sort_container_by(cameraData.modelSimpleVec, [this]
             (const wcoe::ModelSimple* a, const wcoe::ModelSimple* b) { return
-            maths::distance(camera->pos, a->bbox.sphere.origin) <
-            maths::distance(camera->pos, b->bbox.sphere.origin); });
+            maths::distance(camera->pos, a->bbox.origin) <
+            maths::distance(camera->pos, b->bbox.origin); });
 
     sort_container_by(cameraData.modelSkellyVec, [this]
             (const wcoe::ModelSkelly* a, const wcoe::ModelSkelly* b) { return
@@ -415,13 +444,13 @@ void Renderer::cull_and_sort() {
     for (uint ind = 0u; ind < 4u; ++ind) {
         sort_container_by(skyLightData.reflectorVecArrA[ind], [this]
             (const wcoe::Reflector* a, const wcoe::Reflector* b) { return
-            maths::dot(world.skylight->PROP_direction, a->bbox.sphere.origin) <
-            maths::dot(world.skylight->PROP_direction, b->bbox.sphere.origin); });
+            maths::dot(world.skylight->PROP_direction, a->bbox.origin) <
+            maths::dot(world.skylight->PROP_direction, b->bbox.origin); });
 
         sort_container_by(skyLightData.modelSimpleVecArrA[ind], [this]
             (const wcoe::ModelSimple* a, const wcoe::ModelSimple* b) { return
-            maths::dot(world.skylight->PROP_direction, a->bbox.sphere.origin) <
-            maths::dot(world.skylight->PROP_direction, b->bbox.sphere.origin); });
+            maths::dot(world.skylight->PROP_direction, a->bbox.origin) <
+            maths::dot(world.skylight->PROP_direction, b->bbox.origin); });
 
         sort_container_by(skyLightData.modelSkellyVecArrA[ind], [this]
             (const wcoe::ModelSkelly* a, const wcoe::ModelSkelly* b) { return
@@ -432,13 +461,13 @@ void Renderer::cull_and_sort() {
     for (uint ind = 0u; ind < 2u; ++ind) {
         sort_container_by(skyLightData.reflectorVecArrB[ind], [this]
             (const wcoe::Reflector* a, const wcoe::Reflector* b) { return
-            maths::dot(world.skylight->PROP_direction, a->bbox.sphere.origin) <
-            maths::dot(world.skylight->PROP_direction, b->bbox.sphere.origin); });
+            maths::dot(world.skylight->PROP_direction, a->bbox.origin) <
+            maths::dot(world.skylight->PROP_direction, b->bbox.origin); });
 
         sort_container_by(skyLightData.modelSimpleVecArrB[ind], [this]
             (const wcoe::ModelSimple* a, const wcoe::ModelSimple* b) { return
-            maths::dot(world.skylight->PROP_direction, a->bbox.sphere.origin) <
-            maths::dot(world.skylight->PROP_direction, b->bbox.sphere.origin); });
+            maths::dot(world.skylight->PROP_direction, a->bbox.origin) <
+            maths::dot(world.skylight->PROP_direction, b->bbox.origin); });
 
         sort_container_by(skyLightData.modelSkellyVecArrB[ind], [this]
             (const wcoe::ModelSkelly* a, const wcoe::ModelSkelly* b) { return

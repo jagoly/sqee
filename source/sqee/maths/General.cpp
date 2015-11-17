@@ -18,5 +18,5 @@ Mat3F sq::make_normMat(const Mat4F& _viewModelMat) {
 
 
 Vec3F sq::norm_from_tri(const Vec3F& _t0, const Vec3F& _t1, const Vec3F& _t2) {
-    return maths::normalize(maths::cross(_t1-_t0, _t2-_t0));
+    return maths::normalize(maths::cross(_t1 - _t0, _t2 - _t0));
 }

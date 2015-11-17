@@ -1,3 +1,5 @@
+use("assets/load_cell.chai");
+
 def main() {
     app.settings.mod("app_width", 960); 
     app.settings.mod("app_height", 540);
@@ -17,6 +19,8 @@ def main() {
     cellSponza.load_from_file("Sponza/Main");
     cellSponza.enabled = true;
     cellSponza.refresh();
+
+    load_cell();
 
     world.skybox.enabled = true;
 //    world.skybox.saturation = 1.75;

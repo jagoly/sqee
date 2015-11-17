@@ -4,9 +4,9 @@
 #include <sqee/builtins.hpp>
 #include <sqee/redist/gl_ext_4_2.hpp>
 #include <sqee/app/MessageBus.hpp>
+#include <sqee/ecs/Entity.hpp>
 #include <sqee/gl/Shaders.hpp>
 
-#include "../wcoe/Entity.hpp"
 
 namespace sqt {
 
@@ -18,8 +18,13 @@ namespace wcoe { class World;
                  class ModelSkelly;
                  class Reflector;
                  class Emitter;
-                 class Decal;
-                 class Entity; }
+                 class Decal; }
+
+class TransformComponent;
+class ModelComponent;
+class SpotLightComponent;
+class PointLightComponent;
+class DecalComponent;
 
 namespace rndr {
 
@@ -37,7 +42,9 @@ struct CameraData {
     vector<const wcoe::SpotLight*> spotLightVec;
     vector<const wcoe::Decal*> decalVec;
 
-    vector<const wcoe::ModelComponent*> modelSimpleVecB;
+    vector<const ModelComponent*> modelSimpleVecB;
+    vector<const SpotLightComponent*> spotLightShadVecB;
+    vector<const SpotLightComponent*> spotLightNoShadVecB;
 };
 
 struct SkyLightData {

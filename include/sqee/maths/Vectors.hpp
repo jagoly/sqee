@@ -210,10 +210,16 @@ inline T distance(Vector<S, T> _a, Vector<S, T> _b) {
     return length(_a - _b);
 }
 
-// Reflect /////
+// Reflect Normal /////
 template<int S, class T, is_float<T>...>
 inline Vector<S, T> reflect(Vector<S, T> _incident, Vector<S, T> _normal) {
     return _incident - _normal * dot(_normal, _incident) * T(2.0);
+}
+
+// Reflect Point /////
+template<int S, class T, is_float<T>...>
+inline Vector<S, T> reflect(Vector<S, T> _point, Vector<S, T> _normal, Vector<S, T> _translation) {
+    return reflect(_point - _translation, _normal) + _translation;
 }
 
 // Cross Product /////
@@ -251,6 +257,9 @@ using Vec4I = sq::Vector<4, int>;
 using Vec2U = sq::Vector<2, uint>;
 using Vec3U = sq::Vector<3, uint>;
 using Vec4U = sq::Vector<4, uint>;
+using Vec2B = sq::Vector<2, bool>;
+using Vec3B = sq::Vector<3, bool>;
+using Vec4B = sq::Vector<4, bool>;
 using Vec2F = sq::Vector<2, float>;
 using Vec3F = sq::Vector<3, float>;
 using Vec4F = sq::Vector<4, float>;

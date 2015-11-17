@@ -118,32 +118,7 @@ MainScene::MainScene(sq::Application* _app) : sq::Scene(_app) {
     renderer->FB.hdrPart = FB.hdrPart.get();
 
 
-    // ///////////////////////////////////////////////
-
-    using namespace wcoe;
-
-    auto eDiceGroup = world->root.add_child("DiceGroup");
-    auto cTransformGroup = eDiceGroup->add_component<TransformComponent>();
-    cTransformGroup->PROP_position = Vec3F(0.f, 0.f, 5.f);
-    cTransformGroup->PROP_rotation = QuatF(0.f, 0.f, 0.f);
-    cTransformGroup->PROP_scale = Vec3F(1.f, 1.f, 1.f);
-
-    auto eDiceA = eDiceGroup->add_child("DiceA");
-    auto cTransformA = eDiceA->add_component<TransformComponent>();
-    auto cModelA = eDiceA->add_component<ModelComponent>();
-    cTransformA->PROP_position = Vec3F(-0.2f, 1.3f, 0.6f);
-    cTransformA->PROP_rotation = QuatF(0.f, 0.f, 0.f);
-    cTransformA->PROP_scale = Vec3F(1.f, 1.f, 1.f);
-    cModelA->PROP_mesh = "Test/Dice";
-    cModelA->PROP_skin = "Test/Dice";
-
-    auto eDiceB = eDiceGroup->add_child("DiceB");
-    auto cTransformB = eDiceB->add_component<TransformComponent>();
-    auto cModelB = eDiceB->add_component<ModelComponent>();
-    cTransformB->PROP_position = Vec3F(-1.2f, 0.6f, 0.6f);
-    cModelB->PROP_mesh = "Test/Dice";
-    cModelB->PROP_skin = "Test/Dice";
-    cModelB->PROP_shadow = false;
+    // /////////////////////////////////////////////// //
 
     //app->messageBus.send_message("TransformComponentUpdated", eDiceGroup);
     //app->messageBus.send_message("ModelComponentUpdated", eDiceGroup);

@@ -22,7 +22,7 @@ template<class T> struct Matrix<3, 3, T> {
     Matrix() : cols{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}} {}
     Matrix(const Matrix33<T>& _m) : cols{_m[0], _m[1], _m[2]} {}
 
-    explicit Matrix(Vector3<T> _x, Vector3<T> _y, Vector3<T> _z) : cols(_x, _y, _z) {}
+    explicit Matrix(Vector3<T> _x, Vector3<T> _y, Vector3<T> _z) : cols{_x, _y, _z} {}
     explicit Matrix(T x0, T x1, T x2, T y0, T y1, T y2, T z0, T z1, T z2)
         : cols{{x0, x1, x2}, {y0, y1, y2}, {z0, z1, z2}} {}
     explicit Matrix(T _s) : cols{{_s, 0, 0}, {0, _s, 0}, {0, 0, _s}} {}
@@ -37,7 +37,6 @@ template<class T> struct Matrix<3, 3, T> {
     inline const Vector3<T>& operator[](int _index) const { return cols[_index]; }
 
     inline Matrix33<T>& operator*=(Matrix33<T> _m) { return *this = (*this * _m); }
-
 
     inline bool operator==(Matrix33<T> _m) const {
         return cols[0]==_m[0] && cols[1]==_m[1] && cols[2]==_m[2];
@@ -248,7 +247,7 @@ template<class T> inline Matrix44<T> scale(Matrix44<T> _m, Vector3<T> _v) {
 
 // Translate /////
 template<class T> inline Matrix44<T> translate(Matrix44<T> _m, Vector3<T> _v) {
-    return Matrix44<T>(_m[0], _m[1], _m[2], _m[0]*_v[0] + _m[1]*_v[1] + _m[2]*_v[2] + _m[3]);
+    return Matrix44<T>(_m[0], _m[1], _m[2], _m[0]*_v.x + _m[1]*_v.y + _m[2]*_v.z + _m[3]);
 }
 
 // Rotate /////

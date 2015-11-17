@@ -12,6 +12,9 @@
 #include "../wcoe/objects/Decal.hpp"
 #include "Gbuffers.hpp"
 
+#include "../components/Transform.hpp"
+#include "../components/Model.hpp"
+
 using namespace sqt::rndr;
 
 Gbuffers::Gbuffers(const Renderer& _renderer) : renderer(_renderer) {
@@ -115,7 +118,7 @@ void Gbuffers::draw_msimples_base(bool _decals) {
 
     for (const auto modelC : renderer.cameraData.modelSimpleVecB) {
         if (modelC->PROP_decals != _decals) continue;
-        sq::FRONTFACE(modelC->DEP_transform->negScale);
+        sq::FRONTFACE(modelC->DEP_Transform->negScale);
         modelC->mesh->bind_vao(); modelC->ubo.bind(1u);
         for (uint i = 0u; i < modelC->mesh->mtrlCount; ++i)
             FS_gbuf_base_model.set_vec<Vec3I>("d_n_s", modelC->skin->mtrlVec[i].glDNS),

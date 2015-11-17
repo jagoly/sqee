@@ -20,7 +20,6 @@ SpotLight::SpotLight(const string& _name, Cell* _cell)
     ubo.reserve("colour", 3u);
     ubo.reserve("angle", 1u);
     ubo.reserve("matrix", 16u);
-    ubo.reserve("modelMat", 16u);
     ubo.allocate_storage();
 }
 
@@ -77,7 +76,7 @@ void SpotLight::animate() {
 
     Mat4F viewMat = maths::look_at(position, position+PROP_direction, tangent);
     matrix = maths::perspective(2.f*angle, 1.f, 0.2f, PROP_intensity) * viewMat;
-    frus = sq::make_Frustum(matrix, position, PROP_direction, 0.2, PROP_intensity);
+    frus = sq::make_Frustum(matrix, position, PROP_direction, 0.2f, PROP_intensity);
 
     float tanAngle = -std::tan(angle*2.f);
     Vec3F scale = Vec3F(tanAngle, tanAngle, -1.f) * PROP_intensity;
@@ -90,5 +89,4 @@ void SpotLight::animate() {
     ubo.update("colour", &PROP_colour);
     ubo.update("angle", &angle);
     ubo.update("matrix", &matrix);
-    ubo.update("modelMat", &modelMat);
 }
