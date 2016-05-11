@@ -89,8 +89,6 @@ set(SOURCES
     "${INCDIR}/app/DebugOverlay.hpp"        "${SRCDIR}/app/DebugOverlay.cpp"
     "${INCDIR}/app/ChaiConsole.hpp"         "${SRCDIR}/app/ChaiConsole.cpp"
     "${INCDIR}/app/MessageBus.hpp"          "${SRCDIR}/app/MessageBus.cpp"
-    "${INCDIR}/handlers/Handler.hpp"        "${SRCDIR}/handlers/Handler.cpp"
-    "${INCDIR}/handlers/Basics.hpp"         "${SRCDIR}/handlers/Basics.cpp"
     "${INCDIR}/text/Font.hpp"               "${SRCDIR}/text/Font.cpp"
     "${INCDIR}/text/Text.hpp"               "${SRCDIR}/text/Text.cpp"
     "${INCDIR}/maths/Scalar.hpp"            "${INCDIR}/maths/Vectors.hpp"
@@ -125,7 +123,6 @@ include_directories("${PROJECT_SOURCE_DIR}/include")
 if(SQEE_BUNDLED_LIBS)
     include_directories("${PROJECT_SOURCE_DIR}/extlibs/include/")
 endif()
-
 
 if(SQEE_STATIC_LIB)
     add_library(sqee STATIC ${SOURCES})
@@ -170,7 +167,9 @@ endif()
 find_library(SFML_AUDIO_LIB sfml-audio /)
 find_library(SFML_WINDOW_LIB sfml-window /)
 find_library(SFML_SYSTEM_LIB sfml-system /)
+
 find_library(REACTPHYSICS3D_LIB reactphysics3d /)
+
 find_library(OPENGL_LIB NAMES GL opengl32 PATHS /)
 find_library(OPENAL_LIB NAMES openal openal32 PATHS /)
 
@@ -210,5 +209,6 @@ if(SQEE_STATIC_LINK)
 endif()
 
 
+add_subdirectory("tests/test")
 add_subdirectory("tests/soko")
 add_subdirectory("tests/rpg")

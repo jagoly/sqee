@@ -7,18 +7,16 @@
 #include "../wcoe/SkyBox.hpp"
 #include "../wcoe/Ambient.hpp"
 #include "../wcoe/SkyLight.hpp"
-#include "../wcoe/objects/SpotLight.hpp"
-#include "../wcoe/objects/PointLight.hpp"
-#include "../wcoe/objects/ModelSimple.hpp"
-#include "../wcoe/objects/ModelSkelly.hpp"
-#include "../wcoe/objects/Reflector.hpp"
-#include "../wcoe/objects/Decal.hpp"
+
 #include "Gbuffers.hpp"
 #include "Pretties.hpp"
 #include "Lighting.hpp"
 
 #include "../components/Transform.hpp"
 #include "../components/SpotLight.hpp"
+#include "../components/PointLight.hpp"
+
+#include <sqee/misc/StringCast.hpp>
 
 using namespace sqt::rndr;
 
@@ -75,25 +73,7 @@ void Lighting::render_lighting_base() {
         sq::BLEND_ON(); sq::draw_screen_quad();
     }
 
-    for (const wcoe::SpotLight* light : renderer.cameraData.spotLightVec) {
-        renderer.pipeline.disable_stages(0, 0, 1);
-        renderer.pipeline.use_shader(renderer.VS_stencil_base);
-        renderer.VS_stencil_base.set_mat("matrix", light->modelMat);
-        sq::DEPTH_ON(); sq::BLEND_ON(); sq::CLEAR_STENC();
-        gl::StencilOp(gl::KEEP, gl::INVERT, gl::KEEP);
-        gl::StencilFunc(gl::EQUAL, 0b0011, 0b0001);
-        sq::draw_volume_cone(); sq::DEPTH_OFF();
-
-        renderer.pipeline.use_shader(renderer.VS_fullscreen);
-        renderer.pipeline.use_shader(light->PROP_shadow
-            ? (light->PROP_specular ? FS_defr_base_spot_both : FS_defr_base_spot_shad)
-            : (light->PROP_specular ? FS_defr_base_spot_spec : FS_defr_base_spot_none));
-        gl::StencilFunc(gl::EQUAL, 0b0011, 0b0011); light->ubo.bind(1u);
-        if (light->PROP_shadow) light->tex.bind(gl::TEXTURE8);
-        sq::STENCIL_KEEP(); sq::draw_screen_quad();
-    }
-
-    for (const auto light : renderer.cameraData.spotLightShadVecB) {
+    for (const auto light : renderer.cameraData.spotLightShadowVec) {
         renderer.pipeline.disable_stages(0, 0, 1);
         renderer.pipeline.use_shader(renderer.VS_stencil_base);
         renderer.VS_stencil_base.set_mat("matrix", light->modelMat);
@@ -110,7 +90,7 @@ void Lighting::render_lighting_base() {
         sq::draw_screen_quad();
     }
 
-    for (const auto light : renderer.cameraData.spotLightNoShadVecB) {
+    for (const auto light : renderer.cameraData.spotLightNoShadowVec) {
         renderer.pipeline.disable_stages(0, 0, 1);
         renderer.pipeline.use_shader(renderer.VS_stencil_base);
         renderer.VS_stencil_base.set_mat("matrix", light->modelMat);
@@ -126,7 +106,7 @@ void Lighting::render_lighting_base() {
         sq::draw_screen_quad();
     }
 
-    for (const wcoe::PointLight* light : renderer.cameraData.pointLightVec) {
+    for (const auto light : renderer.cameraData.pointLightShadowVec) {
         renderer.pipeline.disable_stages(0, 0, 1);
         renderer.pipeline.use_shader(renderer.VS_stencil_base);
         renderer.VS_stencil_base.set_mat("matrix", light->modelMat);
@@ -136,17 +116,34 @@ void Lighting::render_lighting_base() {
         sq::draw_volume_sphr(); sq::DEPTH_OFF();
 
         renderer.pipeline.use_shader(renderer.VS_fullscreen);
-        renderer.pipeline.use_shader(light->PROP_shadow
-            ? (light->PROP_specular ? FS_defr_base_point_both : FS_defr_base_point_shad)
-            : (light->PROP_specular ? FS_defr_base_point_spec : FS_defr_base_point_none));
-        gl::StencilFunc(gl::EQUAL, 0b0011, 0b0011); light->ubo.bind(1u);
-        if (light->PROP_shadow) light->tex.bind(gl::TEXTURE8);
-        sq::STENCIL_KEEP(); sq::draw_screen_quad();
+        renderer.pipeline.use_shader(FS_defr_base_point_both);
+        gl::StencilFunc(gl::EQUAL, 0b0011, 0b0011);
+        light->ubo.bind(1u); sq::STENCIL_KEEP();
+        light->tex.bind(gl::TEXTURE8);
+        sq::draw_screen_quad();
+    }
+
+    for (const auto light : renderer.cameraData.pointLightNoShadowVec) {
+        renderer.pipeline.disable_stages(0, 0, 1);
+        renderer.pipeline.use_shader(renderer.VS_stencil_base);
+        renderer.VS_stencil_base.set_mat("matrix", light->modelMat);
+        sq::DEPTH_ON(); sq::BLEND_ON(); sq::CLEAR_STENC();
+        gl::StencilOp(gl::KEEP, gl::INVERT, gl::KEEP);
+        gl::StencilFunc(gl::EQUAL, 0b0011, 0b0001);
+        sq::draw_volume_sphr(); sq::DEPTH_OFF();
+
+        renderer.pipeline.use_shader(renderer.VS_fullscreen);
+        renderer.pipeline.use_shader(FS_defr_base_point_spec);
+        gl::StencilFunc(gl::EQUAL, 0b0011, 0b0011);
+        light->ubo.bind(1u); sq::STENCIL_KEEP();
+        sq::draw_screen_quad();
+
+        std::cout << sq::chai_string(light->modelMat) << std::endl;
     }
 }
 
 
-void Lighting::render_lighting_refl(const ReflectorData& _data) {
+void Lighting::render_lighting_refl(const ReflectData& _data) {
     if (renderer.world.skybox->PROP_enabled == true) {
         renderer.world.skybox->tex.bind(gl::TEXTURE0);
         renderer.pipeline.use_shader(VS_defr_refl_skybox);
@@ -179,39 +176,69 @@ void Lighting::render_lighting_refl(const ReflectorData& _data) {
         sq::BLEND_ON(); sq::draw_screen_quad();
     }
 
-    for (const wcoe::SpotLight* light : _data.spotLightVec) {
+    for (const auto lightC : _data.spotLightShadowVec) {
         renderer.pipeline.disable_stages(0, 0, 1);
         renderer.pipeline.use_shader(renderer.VS_stencil_refl);
-        renderer.VS_stencil_refl.set_mat("matrix", light->modelMat);
+        renderer.VS_stencil_refl.set_mat("matrix", lightC->modelMat);
         sq::DEPTH_ON(); sq::BLEND_ON(); sq::CLEAR_STENC();
         gl::StencilOp(gl::KEEP, gl::INVERT, gl::KEEP);
         gl::StencilFunc(gl::EQUAL, 0b0111, 0b0101);
         sq::draw_volume_cone(); sq::DEPTH_OFF();
 
         renderer.pipeline.use_shader(renderer.VS_fullscreen);
-        renderer.pipeline.use_shader(light->PROP_shadow ?
-            FS_defr_refl_spot_shad : FS_defr_refl_spot_none);
-        if (light->PROP_shadow) light->tex.bind(gl::TEXTURE8);
+        renderer.pipeline.use_shader(FS_defr_refl_spot_shad);
         gl::StencilFunc(gl::EQUAL, 0b0111, 0b0111);
-        sq::STENCIL_KEEP(); light->ubo.bind(1u);
+        sq::STENCIL_KEEP(); lightC->ubo.bind(1u);
+        lightC->tex.bind(gl::TEXTURE8);
         sq::draw_screen_quad();
     }
 
-    for (const wcoe::PointLight* light : _data.pointLightVec) {
+    for (const auto lightC : _data.spotLightNoShadowVec) {
         renderer.pipeline.disable_stages(0, 0, 1);
         renderer.pipeline.use_shader(renderer.VS_stencil_refl);
-        renderer.VS_stencil_refl.set_mat("matrix", light->modelMat);
+        renderer.VS_stencil_refl.set_mat("matrix", lightC->modelMat);
+        sq::DEPTH_ON(); sq::BLEND_ON(); sq::CLEAR_STENC();
+        gl::StencilOp(gl::KEEP, gl::INVERT, gl::KEEP);
+        gl::StencilFunc(gl::EQUAL, 0b0111, 0b0101);
+        sq::draw_volume_cone(); sq::DEPTH_OFF();
+
+        renderer.pipeline.use_shader(renderer.VS_fullscreen);
+        renderer.pipeline.use_shader(FS_defr_refl_spot_none);
+        gl::StencilFunc(gl::EQUAL, 0b0111, 0b0111);
+        sq::STENCIL_KEEP(); lightC->ubo.bind(1u);
+        sq::draw_screen_quad();
+    }
+
+    for (const auto lightC : _data.pointLightShadowVec) {
+        renderer.pipeline.disable_stages(0, 0, 1);
+        renderer.pipeline.use_shader(renderer.VS_stencil_refl);
+        renderer.VS_stencil_refl.set_mat("matrix", lightC->modelMat);
         sq::DEPTH_ON(); sq::BLEND_ON(); sq::CLEAR_STENC();
         gl::StencilOp(gl::KEEP, gl::INVERT, gl::KEEP);
         gl::StencilFunc(gl::EQUAL, 0b0111, 0b0101);
         sq::draw_volume_sphr(); sq::DEPTH_OFF();
 
         renderer.pipeline.use_shader(renderer.VS_fullscreen);
-        renderer.pipeline.use_shader(light->PROP_shadow ?
-            FS_defr_refl_point_shad : FS_defr_refl_point_none);
-        if (light->PROP_shadow) light->tex.bind(gl::TEXTURE8);
+        renderer.pipeline.use_shader(FS_defr_refl_point_shad);
         gl::StencilFunc(gl::EQUAL, 0b0111, 0b0111);
-        sq::STENCIL_KEEP(); light->ubo.bind(1u);
+        sq::STENCIL_KEEP(); lightC->ubo.bind(1u);
+        lightC->tex.bind(gl::TEXTURE8);
+        sq::draw_screen_quad();
+    }
+
+    for (const auto lightC : _data.pointLightNoShadowVec) {
+        renderer.pipeline.disable_stages(0, 0, 1);
+        renderer.pipeline.use_shader(renderer.VS_stencil_refl);
+        renderer.VS_stencil_refl.set_mat("matrix", lightC->modelMat);
+        sq::DEPTH_ON(); sq::BLEND_ON(); sq::CLEAR_STENC();
+        gl::StencilOp(gl::KEEP, gl::INVERT, gl::KEEP);
+        gl::StencilFunc(gl::EQUAL, 0b0111, 0b0101);
+        sq::draw_volume_sphr(); sq::DEPTH_OFF();
+
+        renderer.pipeline.use_shader(renderer.VS_fullscreen);
+        renderer.pipeline.use_shader(FS_defr_refl_point_none);
+        gl::StencilFunc(gl::EQUAL, 0b0111, 0b0111);
+        sq::STENCIL_KEEP(); lightC->ubo.bind(1u);
         sq::draw_screen_quad();
     }
 }

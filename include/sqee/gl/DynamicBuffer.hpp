@@ -10,6 +10,9 @@ public:
     DynamicBuffer(GLenum _target);
     ~DynamicBuffer();
 
+    /// Manually delete the GL object
+    void delete_object();
+
     /// Allocate the buffer with constant data
     void allocate_constant(uint _size, const void* _data) const;
 

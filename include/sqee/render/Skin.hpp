@@ -23,7 +23,7 @@ public:
         Vec3I glDNS = {0, 0, 0};
     }; vector<Material> mtrlVec;
 
-    bool hasPunchThrough = false;
+    bool hasPunchThru = false;
 
     void bind_textures(uint _mtrl) const;
     void bind_textures(uint _mtrl, bool _diff, bool _norm, bool _spec) const;

@@ -8,6 +8,5 @@ struct SpotLightBlock {
     vec3 colour;     // 3
     float angle;     // 1
     mat4 matrix;     // 16
-    mat4 modelMat;   // 16
-    // Size: 44
+    // Size: 28
 };

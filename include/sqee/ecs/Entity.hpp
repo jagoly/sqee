@@ -58,7 +58,7 @@ public:
 
     void erase_attr(const string& _name);
 
-    void clear_marked_updates();
+    void clear_marked_refresh();
 
     const string name;
 

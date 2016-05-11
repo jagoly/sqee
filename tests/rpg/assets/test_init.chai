@@ -14,12 +14,6 @@ def main() {
 
     app.refresh();
 
-    var cellSponza = world.add_cell("Sponza");
-    cellSponza.position = Vec3F(0.0, 0.0, 0.0);
-    cellSponza.load_from_file("Sponza/Main");
-    cellSponza.enabled = true;
-    cellSponza.refresh();
-
     load_cell();
 
     world.skybox.enabled = true;
@@ -46,9 +40,6 @@ def main() {
     world.skylight.colour = Vec3F(0.9, 0.9, 0.9);
     world.skylight.refresh();
 
-    world.reload_list();
-    renderer.reload_lists();
-
     app.console.print("Welcome to SQEE!");
 }
 
@@ -59,77 +50,6 @@ def add_some_shit() {
     var boxPhys = cell.add_RigBodyBasic("BoxPhys");
     boxPhys.physobj = "Sponza/BigBox";
     boxPhys.refresh();
-
-    var sqeenDead = cell.add_ModelSkelly("SqeenDead");
-    sqeenDead.position = Vec3F(-0.8, 0.0, 0.05);
-    sqeenDead.rotation = QuatF(0.5, -0.5, 0.5, -0.5);
-    sqeenDead.arma = "Characters/Sqeen";
-    sqeenDead.mesh = "Characters/Sqeen";
-    sqeenDead.skin = "Characters/Sqeen";
-    sqeenDead.pose = "Dead";
-    sqeenDead.shadow = true;
-    sqeenDead.refresh();
-
-    var sqeenLiveA = cell.add_ModelSkelly("SqeenLiveA");
-    sqeenLiveA.position = Vec3F(1.5, 0.0, 0.0);
-    sqeenLiveA.rotation = QuatF(0.0, 0.0, -0.707107, 0.707107);
-    sqeenLiveA.arma = "Characters/Sqeen";
-    sqeenLiveA.mesh = "Characters/Sqeen";
-    sqeenLiveA.skin = "Characters/Sqeen";
-    sqeenLiveA.pose = "Squatting";
-    sqeenLiveA.shadow = true;
-    sqeenLiveA.refresh();
-
-    var sqeenLiveB = cell.add_ModelSkelly("SqeenLiveB");
-    sqeenLiveB.position = Vec3F(-1.5, 0.0, 0.0);
-    sqeenLiveB.rotation = QuatF(0.0, 0.0, 0.707107, 0.707107);
-    sqeenLiveB.arma = "Characters/Sqeen";
-    sqeenLiveB.mesh = "Characters/Sqeen";
-    sqeenLiveB.skin = "Characters/Sqeen";
-    sqeenLiveB.pose = "Standing";
-    sqeenLiveB.shadow = true;
-    sqeenLiveB.refresh();
-
-    var decalSplat = cell.add_Decal("Splat");
-    decalSplat.position = Vec3F(0.2, 0.0, 0.3);
-    decalSplat.rotation = QuatF(0.707107, 0.707107, 0.0, 0.0);
-    decalSplat.scale = Vec3F(2.0, 2.0, 0.7);
-    decalSplat.alpha = 1.0f;
-    decalSplat.diff = "Blood";
-    decalSplat.norm = "Blood";
-    decalSplat.spec = "Blood";
-    decalSplat.refresh();
-
-    var lightPoint = cell.add_PointLight("PointCentre");
-    lightPoint.position = Vec3F(0.0, 0.0, 2.0);
-    lightPoint.colour = Vec3F(1.0, 1.0, 1.0);
-    lightPoint.intensity = 4.0f;
-    lightPoint.texsize = 128u;
-    lightPoint.shadow = true;
-    lightPoint.specular = true;
-    lightPoint.refresh();
-
-    var lightSpotN = cell.add_SpotLight("SpotN");
-    lightSpotN.direction = Vec3F(0.0, -0.7, -0.3);
-    lightSpotN.position = Vec3F(0.0, 7.0, 3.3);
-    lightSpotN.intensity = 20.0f;
-    lightSpotN.softness = 0.3f;
-    lightSpotN.angle = 35.0f;
-    lightSpotN.texsize = 256u;
-    lightSpotN.shadow = true;
-    lightSpotN.specular = true;
-    lightSpotN.refresh();
-
-    var lightSpotS = cell.add_SpotLight("SpotS");
-    lightSpotS.direction = Vec3F(0.0, 0.7, -0.3);
-    lightSpotS.position = Vec3F(0.0, -7.0, 3.3);
-    lightSpotS.intensity = 20.0f;
-    lightSpotS.softness = 0.3f;
-    lightSpotS.angle = 35.0f;
-    lightSpotS.texsize = 256u;
-    lightSpotS.shadow = true;
-    lightSpotS.specular = true;
-    lightSpotS.refresh();
 
     var lightPointNE = cell.add_PointLight("PointNE");
     lightPointNE.position = Vec3F(14.0, 5.0, 2.0);
@@ -179,7 +99,6 @@ def add_some_shit() {
     emitterGun.refresh();
     
     world.reload_list();
-    renderer.reload_lists();
 }
 
 
@@ -330,26 +249,7 @@ def add_some_balls() {
 
 
 main();
-add_some_shit();
+//add_some_shit();
 //add_some_dice();
 //add_some_balls();
 //add_lotsa_dudes();
-
-def sd(_val) {
-    world.skylight.density = _val;
-    world.skylight.refresh();
-}
-
-
-def rdrskyl(_x, _y, _z) {
-    world.skylight.direction = Vec3F(_x, _y, _z);
-    world.skylight.refresh();
-    renderer.refresh_irrd();
-}
-
-
-var slA = world.get_cell("Sponza").get_ModelSkelly("SqeenLiveA");
-var slB = world.get_cell("Sponza").get_ModelSkelly("SqeenLiveB");
-
-var cell = world.get_cell("Sponza");
-var meta = cell.add_MetaObject("meta");

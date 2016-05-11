@@ -1,4 +1,4 @@
-#pragma once
+/*#pragma once
 
 #include <forward_list>
 
@@ -41,3 +41,4 @@ public:
 };
 
 }}
+*/

@@ -17,7 +17,7 @@ public:
 
     void render_gbuffers_base();
 
-    void render_gbuffers_refl(const ReflectorData& _data);
+    void render_gbuffers_refl(const ReflectData& _data);
 
 private:
     const Renderer& renderer;
@@ -47,13 +47,11 @@ private:
 
     Vec2U INFO_fullSize, INFO_halfSize, INFO_qterSize;
 
-    void draw_reflects_base(bool _decals);
     void draw_msimples_base(bool _decals);
     void draw_mskellys_base(bool _decals);
 
-    void draw_reflects_refl(const ReflectorData& _data, bool _decals);
-    void draw_msimples_refl(const ReflectorData& _data, bool _decals);
-    void draw_mskellys_refl(const ReflectorData& _data, bool _decals);
+    void draw_msimples_refl(const ReflectData& _data, bool _decals);
+    void draw_mskellys_refl(const ReflectData& _data, bool _decals);
 
     friend class Lighting;
     friend class Reflects;

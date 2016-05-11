@@ -15,7 +15,7 @@ SkyBox::SkyBox(const World& _world) :
     ubo.reserve("brightness", 1u);
     ubo.reserve("contrast", 1u);
     ubo.reserve("alpha", 1u);
-    ubo.allocate_storage();
+    ubo.create_and_allocate();
 }
 
 void SkyBox::refresh() {

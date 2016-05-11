@@ -8,11 +8,11 @@ in vec2 texcrd;
 
 #include builtin/blocks/camera
 #include headers/blocks/pointlight
-#include headers/blocks/reflector
+#include headers/blocks/reflect
 
 layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
 layout(std140, binding=1) uniform POINTLIGHTBLOCK { PointLightBlock LB; };
-layout(std140, binding=2) uniform REFLECTORBLOCK { ReflectorBlock RB; };
+layout(std140, binding=2) uniform REFLECTBLOCK { ReflectBlock RB; };
 
 layout(binding=3) uniform sampler2D defrDiff;
 layout(binding=4) uniform sampler2D defrSurf;

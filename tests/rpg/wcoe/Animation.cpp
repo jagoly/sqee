@@ -1,5 +1,5 @@
 #include <sqee/misc/Files.hpp>
 
-#include "Object.hpp"
+#include "Animation.hpp"
 
 using namespace sqt::wcoe;

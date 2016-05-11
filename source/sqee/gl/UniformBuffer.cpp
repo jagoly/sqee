@@ -3,12 +3,13 @@
 
 using namespace sq;
 
-UniformBuffer::UniformBuffer() {
-    gl::CreateBuffers(1, &ubo);
+UniformBuffer::~UniformBuffer() {
+    if (ubo != 0u) gl::DeleteBuffers(1, &ubo);
 }
 
-UniformBuffer::~UniformBuffer() {
-    gl::DeleteBuffers(1, &ubo);
+void UniformBuffer::delete_object() {
+    if (ubo != 0u) gl::DeleteBuffers(1, &ubo);
+    itemMap.clear(); currentSize = 0u;
 }
 
 void UniformBuffer::reserve(const string& _name, uint _size) {
@@ -16,9 +17,9 @@ void UniformBuffer::reserve(const string& _name, uint _size) {
     currentSize += _size*4;
 }
 
-void UniformBuffer::allocate_storage() {
+void UniformBuffer::create_and_allocate() {
+    if (ubo != 0u) gl::DeleteBuffers(1, &ubo); gl::CreateBuffers(1, &ubo);
     gl::NamedBufferStorage(ubo, currentSize, nullptr, gl::DYNAMIC_STORAGE_BIT);
-    allocated = true;
 }
 
 void UniformBuffer::update(const string& _name, const void* _data) {

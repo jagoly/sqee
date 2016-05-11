@@ -38,6 +38,14 @@ void FrameBuffer::bind() const {
     gl::BindFramebuffer(gl::FRAMEBUFFER, fbo);
 }
 
+void FrameBuffer::bind_read_only() const {
+    gl::BindFramebuffer(gl::READ_FRAMEBUFFER, fbo);
+}
+
+void FrameBuffer::bind_draw_only() const {
+    gl::BindFramebuffer(gl::DRAW_FRAMEBUFFER, fbo);
+}
+
 
 void FrameBuffer::blit(const FrameBuffer& _other, Vec2U _sizeA, Vec2U _sizeB,
                        GLenum _mask, GLenum _filter) const {

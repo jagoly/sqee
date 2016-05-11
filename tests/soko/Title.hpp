@@ -1,7 +1,6 @@
 #pragma once
 
 #include <sqee/scenes/Scene.hpp>
-#include <sqee/handlers/Handler.hpp>
 
 namespace sqt {
 
@@ -12,13 +11,8 @@ public:
     void update();
     void render();
     void refresh();
-};
 
-
-class TitleHandler: public sq::Handler {
-public:
-    using sq::Handler::Handler;
-    bool handle(sf::Event event);
+    bool handle(sf::Event _event);
 };
 
 }

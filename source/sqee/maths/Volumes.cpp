@@ -27,7 +27,7 @@ Frustum sq::make_Frustum(const Mat4F& _matrix, Vec3F _pos, Vec3F _dir, float _rm
     frus.planes[1].normal = norm_from_tri(frus.points[3], frus.points[1], _pos);
     frus.planes[1].offset = maths::dot(-frus.planes[1].normal, _pos);
     frus.planes[2].normal = norm_from_tri(frus.points[2], frus.points[4], _pos);
-    frus.planes[2].offset = maths::dot(-frus.planes[1].normal, _pos);
+    frus.planes[2].offset = maths::dot(-frus.planes[2].normal, _pos);
     frus.planes[3].normal = norm_from_tri(frus.points[1], frus.points[2], _pos);
     frus.planes[3].offset = maths::dot(-frus.planes[3].normal, _pos);
     frus.planes[4].normal = norm_from_tri(frus.points[4], frus.points[3], _pos);
@@ -87,6 +87,7 @@ Frustum sq::reflect_Frustum(const Frustum& _frus, Vec3F _normal, Vec3F _trans) {
     frus.planes[3] = {tmp, maths::dot(-tmp, frus.points[0])};
     tmp = maths::reflect(_frus.planes[4].normal, _normal);
     frus.planes[4] = {tmp, maths::dot(-tmp, frus.points[0])};
+    frus.radius = _frus.radius;
     return frus;
 }
 
@@ -177,7 +178,7 @@ bool sq::bbox_in_frus(const BoundBox& _a, const Frustum& _b) {
         Vec3F{_a.normZ * _a.sizeZ}
     };
 
-    const auto points {
+    const auto points = {
         Vec3F{_a.origin -offs[0] -offs[1] -offs[2]},
         Vec3F{_a.origin -offs[0] -offs[1] +offs[2]},
         Vec3F{_a.origin -offs[0] +offs[1] -offs[2]},
@@ -188,7 +189,7 @@ bool sq::bbox_in_frus(const BoundBox& _a, const Frustum& _b) {
         Vec3F{_a.origin +offs[0] +offs[1] +offs[2]}
     };
 
-    const auto planes {
+    const auto planes = {
         Plane{ _a.normX, maths::dot(-_a.normX, _a.origin + offs[0])},
         Plane{-_a.normX, maths::dot( _a.normX, _a.origin - offs[0])},
         Plane{ _a.normY, maths::dot(-_a.normY, _a.origin + offs[1])},
@@ -238,7 +239,7 @@ bool sq::bbox_in_orth(const BoundBox& _a, const OrthoFrus& _b) {
         Vec3F{_a.normZ * _a.sizeZ}
     };
 
-    const auto points {
+    const auto points = {
         Vec3F{_a.origin -offs[0] -offs[1] -offs[2]},
         Vec3F{_a.origin -offs[0] -offs[1] +offs[2]},
         Vec3F{_a.origin -offs[0] +offs[1] -offs[2]},

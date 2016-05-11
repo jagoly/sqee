@@ -5,15 +5,13 @@
 #include <sqee/render/Mesh.hpp>
 #include <sqee/render/Skin.hpp>
 
-#include "../wcoe/World.hpp"
-#include "../wcoe/objects/ModelSimple.hpp"
-#include "../wcoe/objects/ModelSkelly.hpp"
-#include "../wcoe/objects/Reflector.hpp"
-#include "../wcoe/objects/Decal.hpp"
-#include "Gbuffers.hpp"
+//#include "../wcoe/World.hpp"
 
 #include "../components/Transform.hpp"
 #include "../components/Model.hpp"
+#include "../components/Decal.hpp"
+
+#include "Gbuffers.hpp"
 
 using namespace sqt::rndr;
 
@@ -59,7 +57,6 @@ void Gbuffers::render_gbuffers_base() {
     gl::StencilFunc(gl::ALWAYS, 0b0001, 0b0000);
     renderer.pipeline.use_shader(FS_gbuf_base_model);
     renderer.pipeline.use_shader(VS_gbuf_base_simple);
-    draw_reflects_base(true);
     draw_msimples_base(true);
     renderer.pipeline.use_shader(VS_gbuf_base_skelly);
     draw_mskellys_base(true);
@@ -70,11 +67,21 @@ void Gbuffers::render_gbuffers_base() {
     renderer.pipeline.use_shader(VS_gbuf_base_decal);
     renderer.pipeline.use_shader(FS_gbuf_base_decal);
 
-    for (const wcoe::Decal* decal : renderer.cameraData.decalVec) {
-        if (decal->texDiff) decal->texDiff->bind(gl::TEXTURE0);
-        if (decal->texNorm) decal->texNorm->bind(gl::TEXTURE1);
-        if (decal->texSpec) decal->texSpec->bind(gl::TEXTURE2);
-        decal->ubo.bind(1u); sq::draw_volume_cube();
+
+    // TODO: Add shader for complete decals
+
+    for (const DecalComponent* decalC : renderer.cameraData.decalCompleteVec) {
+        decalC->texDiff->bind(gl::TEXTURE0);
+        decalC->texNorm->bind(gl::TEXTURE1);
+        decalC->texSpec->bind(gl::TEXTURE2);
+        decalC->ubo.bind(1u); sq::draw_volume_cube();
+    }
+
+    for (const DecalComponent* decalC : renderer.cameraData.decalPartialVec) {
+        if (decalC->texDiff) decalC->texDiff->bind(gl::TEXTURE0);
+        if (decalC->texNorm) decalC->texNorm->bind(gl::TEXTURE1);
+        if (decalC->texSpec) decalC->texSpec->bind(gl::TEXTURE2);
+        decalC->ubo.bind(1u); sq::draw_volume_cube();
     }
 
     sq::CULLFACE_BACK();
@@ -82,7 +89,6 @@ void Gbuffers::render_gbuffers_base() {
     gl::StencilFunc(gl::ALWAYS, 0b0001, 0b0000);
     renderer.pipeline.use_shader(FS_gbuf_base_model);
     renderer.pipeline.use_shader(VS_gbuf_base_simple);
-    draw_reflects_base(false);
     draw_msimples_base(false);
     renderer.pipeline.use_shader(VS_gbuf_base_skelly);
     draw_mskellys_base(false);
@@ -97,29 +103,10 @@ void Gbuffers::render_gbuffers_base() {
 }
 
 
-void Gbuffers::draw_reflects_base(bool _decals) {
-    for (const wcoe::Reflector* rflct : renderer.cameraData.reflectorVec) {
-        if (rflct->PROP_decals != _decals) continue;
-        sq::FRONTFACE(rflct->negScale); rflct->mesh->bind_vao(); rflct->ubo.bind(1u);
-        for (uint i = 0u; i < rflct->mesh->mtrlCount; ++i)
-            FS_gbuf_base_model.set_vec<Vec3I>("d_n_s", rflct->skin->mtrlVec[i].glDNS),
-            rflct->skin->bind_textures(i), rflct->mesh->draw_material(i);
-    }
-}
-
 void Gbuffers::draw_msimples_base(bool _decals) {
-    for (const wcoe::ModelSimple* model : renderer.cameraData.modelSimpleVec) {
-        if (model->PROP_decals != _decals) continue;
-        sq::FRONTFACE(model->negScale); model->mesh->bind_vao(); model->ubo.bind(1u);
-        for (uint i = 0u; i < model->mesh->mtrlCount; ++i)
-            FS_gbuf_base_model.set_vec<Vec3I>("d_n_s", model->skin->mtrlVec[i].glDNS),
-            model->skin->bind_textures(i), model->mesh->draw_material(i);
-    }
-
-    for (const auto modelC : renderer.cameraData.modelSimpleVecB) {
+    for (const auto modelC : renderer.cameraData.modelSimpleVec) {
         if (modelC->PROP_decals != _decals) continue;
-        sq::FRONTFACE(modelC->DEP_Transform->negScale);
-        modelC->mesh->bind_vao(); modelC->ubo.bind(1u);
+        sq::FRONTFACE(modelC->negScale); modelC->mesh->bind_vao(); modelC->ubo.bind(1u);
         for (uint i = 0u; i < modelC->mesh->mtrlCount; ++i)
             FS_gbuf_base_model.set_vec<Vec3I>("d_n_s", modelC->skin->mtrlVec[i].glDNS),
             modelC->skin->bind_textures(i), modelC->mesh->draw_material(i);
@@ -127,21 +114,20 @@ void Gbuffers::draw_msimples_base(bool _decals) {
 }
 
 void Gbuffers::draw_mskellys_base(bool _decals) {
-    for (const wcoe::ModelSkelly* model : renderer.cameraData.modelSkellyVec) {
-        if (model->PROP_decals != _decals) continue;
-        sq::FRONTFACE(model->negScale); model->mesh->bind_vao(); model->ubo.bind(1u);
-        for (uint i = 0u; i < model->mesh->mtrlCount; ++i)
-            FS_gbuf_base_model.set_vec<Vec3I>("d_n_s", model->skin->mtrlVec[i].glDNS),
-            model->skin->bind_textures(i), model->mesh->draw_material(i);
+    for (const auto modelC : renderer.cameraData.modelSkellyVec) {
+        if (modelC->PROP_decals != _decals) continue;
+        sq::FRONTFACE(modelC->negScale); modelC->mesh->bind_vao(); modelC->ubo.bind(1u);
+        for (uint i = 0u; i < modelC->mesh->mtrlCount; ++i)
+            FS_gbuf_base_model.set_vec<Vec3I>("d_n_s", modelC->skin->mtrlVec[i].glDNS),
+            modelC->skin->bind_textures(i), modelC->mesh->draw_material(i);
     }
 }
 
 
-void Gbuffers::render_gbuffers_refl(const ReflectorData& _data) {
+void Gbuffers::render_gbuffers_refl(const ReflectData& _data) {
     gl::StencilFunc(gl::EQUAL, 0b0101, 0b0100);
     renderer.pipeline.use_shader(FS_gbuf_refl_model);
     renderer.pipeline.use_shader(VS_gbuf_refl_simple);
-    draw_reflects_refl(_data, true);
     draw_msimples_refl(_data, true);
     renderer.pipeline.use_shader(VS_gbuf_refl_skelly);
     draw_mskellys_refl(_data, true);
@@ -152,7 +138,7 @@ void Gbuffers::render_gbuffers_refl(const ReflectorData& _data) {
     renderer.pipeline.use_shader(VS_gbuf_refl_decal);
     renderer.pipeline.use_shader(FS_gbuf_refl_decal);
 
-    for (const wcoe::Decal* decal : _data.decalVec) {
+    for (const DecalComponent* decal : _data.decalDiffVec) {
         decal->texDiff->bind(gl::TEXTURE0);
         decal->ubo.bind(1u); sq::draw_volume_cube();
     }
@@ -162,7 +148,6 @@ void Gbuffers::render_gbuffers_refl(const ReflectorData& _data) {
     gl::StencilFunc(gl::EQUAL, 0b0101, 0b0100);
     renderer.pipeline.use_shader(FS_gbuf_refl_model);
     renderer.pipeline.use_shader(VS_gbuf_refl_simple);
-    draw_reflects_refl(_data, false);
     draw_msimples_refl(_data, false);
     renderer.pipeline.use_shader(VS_gbuf_refl_skelly);
     draw_mskellys_refl(_data, false);
@@ -170,33 +155,23 @@ void Gbuffers::render_gbuffers_refl(const ReflectorData& _data) {
     sq::FRONTFACE(false);
 }
 
-void Gbuffers::draw_msimples_refl(const ReflectorData& _data, bool _decals) {
-    for (const wcoe::ModelSimple* model : _data.modelSimpleVec) {
-        if (model->PROP_decals != _decals) continue;
-        sq::FRONTFACE(model->negScale); model->mesh->bind_vao(); model->ubo.bind(1u);
-        for (uint i = 0u; i < model->mesh->mtrlCount; ++i)
-            FS_gbuf_refl_model.set_vec<Vec3I>("d_n_s", model->skin->mtrlVec[i].glDNS),
-            model->skin->bind_textures(i), model->mesh->draw_material(i);
+void Gbuffers::draw_msimples_refl(const ReflectData& _data, bool _decals) {
+    for (const ModelComponent* modelC : _data.modelSimpleVec) {
+        if (modelC->PROP_decals != _decals) continue;
+        sq::FRONTFACE(modelC->negScale); modelC->mesh->bind_vao(); modelC->ubo.bind(1u);
+        for (uint i = 0u; i < modelC->mesh->mtrlCount; ++i)
+            FS_gbuf_refl_model.set_vec<Vec3I>("d_n_s", modelC->skin->mtrlVec[i].glDNS),
+            modelC->skin->bind_textures(i), modelC->mesh->draw_material(i);
     }
 }
 
-void Gbuffers::draw_reflects_refl(const ReflectorData& _data, bool _decals) {
-    for (const wcoe::Reflector* rflct : _data.reflectorVec) {
-        if (rflct->PROP_decals != _decals) continue;
-        sq::FRONTFACE(rflct->negScale); rflct->mesh->bind_vao(); rflct->ubo.bind(1u);
-        for (uint i = 0u; i < rflct->mesh->mtrlCount; ++i)
-            FS_gbuf_refl_model.set_vec<Vec3I>("d_n_s", rflct->skin->mtrlVec[i].glDNS),
-            rflct->skin->bind_textures(i), rflct->mesh->draw_material(i);
-    }
-}
-
-void Gbuffers::draw_mskellys_refl(const ReflectorData& _data, bool _decals) {
-    for (const wcoe::ModelSkelly* model : _data.modelSkellyVec) {
-        if (model->PROP_decals != _decals) continue;
-        sq::FRONTFACE(model->negScale); model->mesh->bind_vao(); model->ubo.bind(1u);
-        for (uint i = 0u; i < model->mesh->mtrlCount; ++i)
-            FS_gbuf_refl_model.set_vec<Vec3I>("d_n_s", model->skin->mtrlVec[i].glDNS),
-            model->skin->bind_textures(i), model->mesh->draw_material(i);
+void Gbuffers::draw_mskellys_refl(const ReflectData& _data, bool _decals) {
+    for (const ModelComponent* modelC : _data.modelSkellyVec) {
+        if (modelC->PROP_decals != _decals) continue;
+        sq::FRONTFACE(modelC->negScale); modelC->mesh->bind_vao(); modelC->ubo.bind(1u);
+        for (uint i = 0u; i < modelC->mesh->mtrlCount; ++i)
+            FS_gbuf_refl_model.set_vec<Vec3I>("d_n_s", modelC->skin->mtrlVec[i].glDNS),
+            modelC->skin->bind_textures(i), modelC->mesh->draw_material(i);
     }
 }
 

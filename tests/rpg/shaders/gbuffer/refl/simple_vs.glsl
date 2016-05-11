@@ -6,11 +6,11 @@ layout(location=3) in vec2 V_texcrd;
 
 #include builtin/blocks/camera
 #include headers/blocks/msimple
-#include headers/blocks/reflector
+#include headers/blocks/reflect
 
 layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
 layout(std140, binding=1) uniform MSIMPLEBLOCK { MSimpleBlock MB; };
-layout(std140, binding=2) uniform REFLECTORBLOCK { ReflectorBlock RB; };
+layout(std140, binding=2) uniform REFLECTBLOCK { ReflectBlock RB; };
 
 out vec2 texcrd;
 out vec3 surface;

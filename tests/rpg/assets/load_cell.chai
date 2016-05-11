@@ -23,22 +23,1459 @@ def load_cell() {
       cModel.skin = "Test/Dice";
       cModel.shadow = false;
   } }
-  { var eSpotA = eDiceGroup.add_child("SpotA");
-    { var cTransform = eSpotA.add_TransformComponent();
-      cTransform.position = Vec3F(0.0f, 0.0f, 2.0f);
-      cTransform.scale = 2.0f;
-      var cSpotLight = eSpotA.add_SpotLightComponent();
-      cSpotLight.angle = 0.07f;
-      cSpotLight.texsize = 128u;
-  } }
-  { var eSpotB = eDiceGroup.add_child("SpotB");
-    { var cTransform = eSpotB.add_TransformComponent();
-      cTransform.position = Vec3F(4.0f, 0.0f, 5.0f);
-      cTransform.rotation = QuatF(0.0f, 0.3f, 0.0f);
-      var cSpotLight = eSpotB.add_SpotLightComponent();
-      cSpotLight.angle = 0.02f;
-      cSpotLight.texsize = 32u;
-  } }
 }
+
+{ var eSqeenDead = world.root.add_child("SqeenDead");
+  { var cTransform = eSqeenDead.add_TransformComponent();
+    cTransform.position = Vec3F(-0.8f, 0.0f, 0.05f);
+    cTransform.rotation = QuatF(0.25f, 0.0f, 0.25f);
+    var cModel = eSqeenDead.add_ModelComponent();
+    cModel.mesh = "Characters/Sqeen";
+    cModel.skin = "Characters/Sqeen";
+    cModel.arma = "Characters/Sqeen";
+    cModel.pose = "Dead";
+} }
+
+{ var eSqeenEast = world.root.add_child("SqeenEast");
+  { var cTransform = eSqeenEast.add_TransformComponent();
+    cTransform.position = Vec3F(1.5f, 0.0f, 0.0f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.25f);
+    var cModel = eSqeenEast.add_ModelComponent();
+    cModel.mesh = "Characters/Sqeen";
+    cModel.skin = "Characters/Sqeen";
+    cModel.arma = "Characters/Sqeen";
+    cModel.pose = "Squatting";
+} }
+
+{ var eSqeenWest = world.root.add_child("SqeenWest");
+  { var cTransform = eSqeenWest.add_TransformComponent();
+    cTransform.position = Vec3F(-1.5f, 0.0f, 0.0f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, -0.25f);
+    var cModel = eSqeenWest.add_ModelComponent();
+    cModel.mesh = "Characters/Sqeen";
+    cModel.skin = "Characters/Sqeen";
+    cModel.arma = "Characters/Sqeen";
+    cModel.pose = "Standing";
+} }
+
+{ var eSpotA = world.root.add_child("SpotA");
+  { var cTransform = eSpotA.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 7.0f, 3.3f);
+    cTransform.rotation = QuatF(0.23f, 0.0f, 0.0f);
+    cTransform.scale = 20.0f;
+    var cSpotLight = eSpotA.add_SpotLightComponent();
+    cSpotLight.angle = 0.07f;
+    cSpotLight.softness = 0.2f;
+    cSpotLight.texsize = 128u;
+} }
+
+{ var ePointCentre = world.root.add_child("ePointCentre");
+  { var cTransform = ePointCentre.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 3.0f);
+    cTransform.scale = 6.0f;
+    var cPointLight = ePointCentre.add_PointLightComponent();
+    cPointLight.texsize = 128u;
+} }
+
+{ var eDecalCurtain = world.root.add_child("eDecalCurtain");
+  { var cTransform = eDecalCurtain.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 2.87f, 2.0f);
+    cTransform.rotation = QuatF(-0.25f, 0.0f, 0.0f);
+    var cDecal = eDecalCurtain.add_DecalComponent();
+    cDecal.diff = cDecal.norm = cDecal.spec = "Blood";
+    cDecal.scale = Vec3F(2.0f, 2.0f, 0.22f);
+} }
+
+
+{ var eFloorA = world.root.add_child("FloorA");
+  { var cTransform = eFloorA.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 0.0f);
+    var cModel = eFloorA.add_ModelComponent();
+    cModel.mesh = "Sponza/FloorA";
+    cModel.skin = "Sponza/Floor";
+    var cReflect = eFloorA.add_ReflectComponent();
+    cReflect.factor = 0.5f;
+} }
+{ var eFloorB = world.root.add_child("FloorB");
+  { var cTransform = eFloorB.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 5.0f);
+    var cModel = eFloorB.add_ModelComponent();
+    cModel.mesh = "Sponza/FloorB";
+    cModel.skin = "Sponza/Floor";
+    var cReflect = eFloorB.add_ReflectComponent();
+    cReflect.factor = 0.5f;
+} }
+{ var eShadowBox = world.root.add_child("ShadowBox");
+  { var cTransform = eShadowBox.add_TransformComponent();
+    var cModel = eShadowBox.add_ModelComponent();
+    cModel.mesh = "Sponza/ShadowBox";
+    cModel.skin = "Null";
+    cModel.render = false;
+} }
+{ var ePointNE = world.root.add_child("ePointNE");
+  { var cTransform = ePointNE.add_TransformComponent();
+    cTransform.position = Vec3F(14.0f, 5.0f, 2.0f);
+    cTransform.scale = 7.0f;
+    var cPointLight = ePointNE.add_PointLightComponent();
+    cPointLight.texsize = 128u;
+} }
+{ var ePointSE = world.root.add_child("ePointSE");
+  { var cTransform = ePointSE.add_TransformComponent();
+    cTransform.position = Vec3F(14.0f, -5.0f, 2.0f);
+    cTransform.scale = 7.0f;
+    var cPointLight = ePointSE.add_PointLightComponent();
+    cPointLight.texsize = 128u;
+} }
+{ var ePointNW = world.root.add_child("ePointNW");
+  { var cTransform = ePointNW.add_TransformComponent();
+    cTransform.position = Vec3F(-14.0f, 5.0f, 2.0f);
+    cTransform.scale = 7.0f;
+    var cPointLight = ePointNW.add_PointLightComponent();
+    cPointLight.texsize = 128u;
+} }
+{ var ePointSW = world.root.add_child("ePointSW");
+  { var cTransform = ePointSW.add_TransformComponent();
+    cTransform.position = Vec3F(-14.0f, -5.0f, 2.0f);
+    cTransform.scale = 7.0f;
+    var cPointLight = ePointSW.add_PointLightComponent();
+    cPointLight.texsize = 128u;
+} }
+{ var eArchAA_A1 = world.root.add_child("ArchAA_A1");
+  { var cTransform = eArchAA_A1.add_TransformComponent();
+    cTransform.position = Vec3F(-8.887f, 2.86f, 3.8f);
+    var cModel = eArchAA_A1.add_ModelComponent();
+    cModel.mesh = "Sponza/ArchAA";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eArchAA_A2 = world.root.add_child("ArchAA_A2");
+  { var cTransform = eArchAA_A2.add_TransformComponent();
+    cTransform.position = Vec3F(-4.439f, 2.86f, 3.8f);
+    var cModel = eArchAA_A2.add_ModelComponent();
+    cModel.mesh = "Sponza/ArchAA";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eArchAA_A3 = world.root.add_child("ArchAA_A3");
+  { var cTransform = eArchAA_A3.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 2.86f, 3.8f);
+    var cModel = eArchAA_A3.add_ModelComponent();
+    cModel.scale = Vec3F(0.996f, 1.0f, 1.0f);
+    cModel.mesh = "Sponza/ArchAA";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eArchAA_A4 = world.root.add_child("ArchAA_A4");
+  { var cTransform = eArchAA_A4.add_TransformComponent();
+    cTransform.position = Vec3F(4.439f, 2.86f, 3.8f);
+    var cModel = eArchAA_A4.add_ModelComponent();
+    cModel.mesh = "Sponza/ArchAA";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eArchAA_A5 = world.root.add_child("ArchAA_A5");
+  { var cTransform = eArchAA_A5.add_TransformComponent();
+    cTransform.position = Vec3F(8.887f, 2.86f, 3.8f);
+    var cModel = eArchAA_A5.add_ModelComponent();
+    cModel.mesh = "Sponza/ArchAA";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eArchAA_B1 = world.root.add_child("ArchAA_B1");
+  { var cTransform = eArchAA_B1.add_TransformComponent();
+    cTransform.position = Vec3F(-8.887f, -2.86f, 3.8f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eArchAA_B1.add_ModelComponent();
+    cModel.mesh = "Sponza/ArchAA";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eArchAA_B2 = world.root.add_child("ArchAA_B2");
+  { var cTransform = eArchAA_B2.add_TransformComponent();
+    cTransform.position = Vec3F(-4.439f, -2.86f, 3.8f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eArchAA_B2.add_ModelComponent();
+    cModel.mesh = "Sponza/ArchAA";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eArchAA_B3 = world.root.add_child("ArchAA_B3");
+  { var cTransform = eArchAA_B3.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, -2.86f, 3.8f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eArchAA_B3.add_ModelComponent();
+    cModel.scale = Vec3F(0.996f, 1.0f, 1.0f);
+    cModel.mesh = "Sponza/ArchAA";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eArchAA_B4 = world.root.add_child("ArchAA_B4");
+  { var cTransform = eArchAA_B4.add_TransformComponent();
+    cTransform.position = Vec3F(4.439f, -2.86f, 3.8f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eArchAA_B4.add_ModelComponent();
+    cModel.mesh = "Sponza/ArchAA";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eArchAA_B5 = world.root.add_child("ArchAA_B5");
+  { var cTransform = eArchAA_B5.add_TransformComponent();
+    cTransform.position = Vec3F(8.887f, -2.86f, 3.8f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eArchAA_B5.add_ModelComponent();
+    cModel.mesh = "Sponza/ArchAA";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eArchAB_1 = world.root.add_child("ArchAB_1");
+  { var cTransform = eArchAB_1.add_TransformComponent();
+    cTransform.position = Vec3F(-11.38f, 0.0f, 3.8f);
+    var cModel = eArchAB_1.add_ModelComponent();
+    cModel.mesh = "Sponza/ArchAB";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eArchAB_2 = world.root.add_child("ArchAB_2");
+  { var cTransform = eArchAB_2.add_TransformComponent();
+    cTransform.position = Vec3F(11.38f, 0.0f, 3.8f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eArchAB_2.add_ModelComponent();
+    cModel.mesh = "Sponza/ArchAB";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eArchBA_A1 = world.root.add_child("ArchBA_A1");
+  { var cTransform = eArchBA_A1.add_TransformComponent();
+    cTransform.position = Vec3F(-8.887f, 2.86f, 9.09f);
+    var cModel = eArchBA_A1.add_ModelComponent();
+    cModel.mesh = "Sponza/ArchBA";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eArchBA_A2 = world.root.add_child("ArchBA_A2");
+  { var cTransform = eArchBA_A2.add_TransformComponent();
+    cTransform.position = Vec3F(-4.439f, 2.86f, 9.09f);
+    var cModel = eArchBA_A2.add_ModelComponent();
+    cModel.mesh = "Sponza/ArchBA";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eArchBA_A3 = world.root.add_child("ArchBA_A3");
+  { var cTransform = eArchBA_A3.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 2.86f, 9.09f);
+    var cModel = eArchBA_A3.add_ModelComponent();
+    cModel.scale = Vec3F(0.996f, 1.0f, 1.0f);
+    cModel.mesh = "Sponza/ArchBA";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eArchBA_A4 = world.root.add_child("ArchBA_A4");
+  { var cTransform = eArchBA_A4.add_TransformComponent();
+    cTransform.position = Vec3F(4.439f, 2.86f, 9.09f);
+    var cModel = eArchBA_A4.add_ModelComponent();
+    cModel.mesh = "Sponza/ArchBA";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eArchBA_A5 = world.root.add_child("ArchBA_A5");
+  { var cTransform = eArchBA_A5.add_TransformComponent();
+    cTransform.position = Vec3F(8.887f, 2.86f, 9.09f);
+    var cModel = eArchBA_A5.add_ModelComponent();
+    cModel.mesh = "Sponza/ArchBA";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eArchBA_B1 = world.root.add_child("ArchBA_B1");
+  { var cTransform = eArchBA_B1.add_TransformComponent();
+    cTransform.position = Vec3F(-8.887f, -2.86f, 9.09f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eArchBA_B1.add_ModelComponent();
+    cModel.mesh = "Sponza/ArchBA";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eArchBA_B2 = world.root.add_child("ArchBA_B2");
+  { var cTransform = eArchBA_B2.add_TransformComponent();
+    cTransform.position = Vec3F(-4.439f, -2.86f, 9.09f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eArchBA_B2.add_ModelComponent();
+    cModel.mesh = "Sponza/ArchBA";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eArchBA_B3 = world.root.add_child("ArchBA_B3");
+  { var cTransform = eArchBA_B3.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, -2.86f, 9.09f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eArchBA_B3.add_ModelComponent();
+    cModel.scale = Vec3F(0.996f, 1.0f, 1.0f);
+    cModel.mesh = "Sponza/ArchBA";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eArchBA_B4 = world.root.add_child("ArchBA_B4");
+  { var cTransform = eArchBA_B4.add_TransformComponent();
+    cTransform.position = Vec3F(4.439f, -2.86f, 9.09f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eArchBA_B4.add_ModelComponent();
+    cModel.mesh = "Sponza/ArchBA";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eArchBA_B5 = world.root.add_child("ArchBA_B5");
+  { var cTransform = eArchBA_B5.add_TransformComponent();
+    cTransform.position = Vec3F(8.887f, -2.86f, 9.09f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eArchBA_B5.add_ModelComponent();
+    cModel.mesh = "Sponza/ArchBA";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eArchBB_1 = world.root.add_child("ArchBB_1");
+  { var cTransform = eArchBB_1.add_TransformComponent();
+    cTransform.position = Vec3F(-11.3f, 0.0f, 9.08f);
+    var cModel = eArchBB_1.add_ModelComponent();
+    cModel.mesh = "Sponza/ArchBB";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eArchBB_2 = world.root.add_child("ArchBB_2");
+  { var cTransform = eArchBB_2.add_TransformComponent();
+    cTransform.position = Vec3F(11.3f, 0.0f, 9.08f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eArchBB_2.add_ModelComponent();
+    cModel.mesh = "Sponza/ArchBB";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eCeilingRoof_A1 = world.root.add_child("CeilingRoof_A1");
+  { var cTransform = eCeilingRoof_A1.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 3.63f);
+    var cModel = eCeilingRoof_A1.add_ModelComponent();
+    cModel.mesh = "Sponza/CeilingRoof";
+    cModel.skin = "Sponza/CeilingRoof";
+} }
+{ var eCeilingRoof_A2 = world.root.add_child("CeilingRoof_A2");
+  { var cTransform = eCeilingRoof_A2.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 3.63f);
+    var cModel = eCeilingRoof_A2.add_ModelComponent();
+    cModel.scale = Vec3F(1.0f, -1.0f, 1.0f);
+    cModel.mesh = "Sponza/CeilingRoof";
+    cModel.skin = "Sponza/CeilingRoof";
+} }
+{ var eCeilingRoof_A3 = world.root.add_child("CeilingRoof_A3");
+  { var cTransform = eCeilingRoof_A3.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 3.63f);
+    var cModel = eCeilingRoof_A3.add_ModelComponent();
+    cModel.scale = Vec3F(-1.0f, -1.0f, 1.0f);
+    cModel.mesh = "Sponza/CeilingRoof";
+    cModel.skin = "Sponza/CeilingRoof";
+} }
+{ var eCeilingRoof_A4 = world.root.add_child("CeilingRoof_A4");
+  { var cTransform = eCeilingRoof_A4.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 3.63f);
+    var cModel = eCeilingRoof_A4.add_ModelComponent();
+    cModel.scale = Vec3F(-1.0f, 1.0f, 1.0f);
+    cModel.mesh = "Sponza/CeilingRoof";
+    cModel.skin = "Sponza/CeilingRoof";
+} }
+{ var eCeilingRoof_B1 = world.root.add_child("CeilingRoof_B1");
+  { var cTransform = eCeilingRoof_B1.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 9.343f);
+    var cModel = eCeilingRoof_B1.add_ModelComponent();
+    cModel.mesh = "Sponza/CeilingRoof";
+    cModel.skin = "Sponza/CeilingRoof";
+} }
+{ var eCeilingRoof_B2 = world.root.add_child("CeilingRoof_B2");
+  { var cTransform = eCeilingRoof_B2.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 9.343f);
+    var cModel = eCeilingRoof_B2.add_ModelComponent();
+    cModel.scale = Vec3F(1.0f, -1.0f, 1.0f);
+    cModel.mesh = "Sponza/CeilingRoof";
+    cModel.skin = "Sponza/CeilingRoof";
+} }
+{ var eCeilingRoof_B3 = world.root.add_child("CeilingRoof_B3");
+  { var cTransform = eCeilingRoof_B3.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 9.343f);
+    var cModel = eCeilingRoof_B3.add_ModelComponent();
+    cModel.scale = Vec3F(-1.0f, -1.0f, 1.0f);
+    cModel.mesh = "Sponza/CeilingRoof";
+    cModel.skin = "Sponza/CeilingRoof";
+} }
+{ var eCeilingRoof_B4 = world.root.add_child("CeilingRoof_B4");
+  { var cTransform = eCeilingRoof_B4.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 9.343f);
+    var cModel = eCeilingRoof_B4.add_ModelComponent();
+    cModel.scale = Vec3F(-1.0f, 1.0f, 1.0f);
+    cModel.mesh = "Sponza/CeilingRoof";
+    cModel.skin = "Sponza/CeilingRoof";
+} }
+{ var eCeilingSide_1 = world.root.add_child("CeilingSide_1");
+  { var cTransform = eCeilingSide_1.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 9.7f);
+    var cModel = eCeilingSide_1.add_ModelComponent();
+    cModel.mesh = "Sponza/CeilingSide";
+    cModel.skin = "Sponza/CeilingSide";
+} }
+{ var eCeilingSide_2 = world.root.add_child("CeilingSide_2");
+  { var cTransform = eCeilingSide_2.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 9.7f);
+    var cModel = eCeilingSide_2.add_ModelComponent();
+    cModel.scale = Vec3F(1.0f, -1.0f, 1.0f);
+    cModel.mesh = "Sponza/CeilingSide";
+    cModel.skin = "Sponza/CeilingSide";
+} }
+{ var eCeilingSide_3 = world.root.add_child("CeilingSide_3");
+  { var cTransform = eCeilingSide_3.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 9.7f);
+    var cModel = eCeilingSide_3.add_ModelComponent();
+    cModel.scale = Vec3F(-1.0f, -1.0f, 1.0f);
+    cModel.mesh = "Sponza/CeilingSide";
+    cModel.skin = "Sponza/CeilingSide";
+} }
+{ var eCeilingSide_4 = world.root.add_child("CeilingSide_4");
+  { var cTransform = eCeilingSide_4.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 9.7f);
+    var cModel = eCeilingSide_4.add_ModelComponent();
+    cModel.scale = Vec3F(-1.0f, 1.0f, 1.0f);
+    cModel.mesh = "Sponza/CeilingSide";
+    cModel.skin = "Sponza/CeilingSide";
+} }
+{ var eColumnA_A1 = world.root.add_child("ColumnA_A1");
+  { var cTransform = eColumnA_A1.add_TransformComponent();
+    cTransform.position = Vec3F(-6.663f, 2.9f, 1.32f);
+    var cModel = eColumnA_A1.add_ModelComponent();
+    cModel.mesh = "Sponza/ColumnA";
+    cModel.skin = "Sponza/ColumnA";
+} }
+{ var eColumnA_A2 = world.root.add_child("ColumnA_A2");
+  { var cTransform = eColumnA_A2.add_TransformComponent();
+    cTransform.position = Vec3F(-2.21f, 2.9f, 1.32f);
+    var cModel = eColumnA_A2.add_ModelComponent();
+    cModel.mesh = "Sponza/ColumnA";
+    cModel.skin = "Sponza/ColumnA";
+} }
+{ var eColumnA_A3 = world.root.add_child("ColumnA_A3");
+  { var cTransform = eColumnA_A3.add_TransformComponent();
+    cTransform.position = Vec3F(2.21f, 2.9f, 1.32f);
+    var cModel = eColumnA_A3.add_ModelComponent();
+    cModel.mesh = "Sponza/ColumnA";
+    cModel.skin = "Sponza/ColumnA";
+} }
+{ var eColumnA_A4 = world.root.add_child("ColumnA_A4");
+  { var cTransform = eColumnA_A4.add_TransformComponent();
+    cTransform.position = Vec3F(6.663f, 2.9f, 1.32f);
+    var cModel = eColumnA_A4.add_ModelComponent();
+    cModel.mesh = "Sponza/ColumnA";
+    cModel.skin = "Sponza/ColumnA";
+} }
+{ var eColumnA_B1 = world.root.add_child("ColumnA_B1");
+  { var cTransform = eColumnA_B1.add_TransformComponent();
+    cTransform.position = Vec3F(-6.663f, -2.9f, 1.32f);
+    var cModel = eColumnA_B1.add_ModelComponent();
+    cModel.mesh = "Sponza/ColumnA";
+    cModel.skin = "Sponza/ColumnA";
+} }
+{ var eColumnA_B2 = world.root.add_child("ColumnA_B2");
+  { var cTransform = eColumnA_B2.add_TransformComponent();
+    cTransform.position = Vec3F(-2.21f, -2.9f, 1.32f);
+    var cModel = eColumnA_B2.add_ModelComponent();
+    cModel.mesh = "Sponza/ColumnA";
+    cModel.skin = "Sponza/ColumnA";
+} }
+{ var eColumnA_B3 = world.root.add_child("ColumnA_B3");
+  { var cTransform = eColumnA_B3.add_TransformComponent();
+    cTransform.position = Vec3F(2.21f, -2.9f, 1.32f);
+    var cModel = eColumnA_B3.add_ModelComponent();
+    cModel.mesh = "Sponza/ColumnA";
+    cModel.skin = "Sponza/ColumnA";
+} }
+{ var eColumnA_B4 = world.root.add_child("ColumnA_B4");
+  { var cTransform = eColumnA_B4.add_TransformComponent();
+    cTransform.position = Vec3F(6.663f, -2.9f, 1.32f);
+    var cModel = eColumnA_B4.add_ModelComponent();
+    cModel.mesh = "Sponza/ColumnA";
+    cModel.skin = "Sponza/ColumnA";
+} }
+{ var eColumnACnr_1 = world.root.add_child("ColumnACnr_1");
+  { var cTransform = eColumnACnr_1.add_TransformComponent();
+    cTransform.position = Vec3F(-11.25f, 2.77f, 1.32f);
+    var cModel = eColumnACnr_1.add_ModelComponent();
+    cModel.mesh = "Sponza/ColumnACorner";
+    cModel.skin = "Sponza/ColumnA";
+} }
+{ var eColumnACnr_2 = world.root.add_child("ColumnACnr_2");
+  { var cTransform = eColumnACnr_2.add_TransformComponent();
+    cTransform.position = Vec3F(11.25f, 2.77f, 1.32f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, -0.25f);
+    var cModel = eColumnACnr_2.add_ModelComponent();
+    cModel.mesh = "Sponza/ColumnACorner";
+    cModel.skin = "Sponza/ColumnA";
+} }
+{ var eColumnACnr_3 = world.root.add_child("ColumnACnr_3");
+  { var cTransform = eColumnACnr_3.add_TransformComponent();
+    cTransform.position = Vec3F(11.25f, -2.77f, 1.32f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eColumnACnr_3.add_ModelComponent();
+    cModel.mesh = "Sponza/ColumnACorner";
+    cModel.skin = "Sponza/ColumnA";
+} }
+{ var eColumnACnr_4 = world.root.add_child("ColumnACnr_4");
+  { var cTransform = eColumnACnr_4.add_TransformComponent();
+    cTransform.position = Vec3F(-11.25f, -2.77f, 1.32f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.25f);
+    var cModel = eColumnACnr_4.add_ModelComponent();
+    cModel.mesh = "Sponza/ColumnACorner";
+    cModel.skin = "Sponza/ColumnA";
+} }
+{ var eColumnB_A1 = world.root.add_child("ColumnB_A1");
+  { var cTransform = eColumnB_A1.add_TransformComponent();
+    cTransform.position = Vec3F(-8.887f, 2.89f, 7.22f);
+    var cModel = eColumnB_A1.add_ModelComponent();
+    cModel.mesh = "Sponza/ColumnB";
+    cModel.skin = "Sponza/ColumnB";
+} }
+{ var eColumnB_A2 = world.root.add_child("ColumnB_A2");
+  { var cTransform = eColumnB_A2.add_TransformComponent();
+    cTransform.position = Vec3F(-4.439f, 2.89f, 7.22f);
+    var cModel = eColumnB_A2.add_ModelComponent();
+    cModel.mesh = "Sponza/ColumnB";
+    cModel.skin = "Sponza/ColumnB";
+} }
+{ var eColumnB_A3 = world.root.add_child("ColumnB_A3");
+  { var cTransform = eColumnB_A3.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 2.89f, 7.22f);
+    var cModel = eColumnB_A3.add_ModelComponent();
+    cModel.mesh = "Sponza/ColumnB";
+    cModel.skin = "Sponza/ColumnB";
+} }
+{ var eColumnB_A4 = world.root.add_child("ColumnB_A4");
+  { var cTransform = eColumnB_A4.add_TransformComponent();
+    cTransform.position = Vec3F(4.439f, 2.89f, 7.22f);
+    var cModel = eColumnB_A4.add_ModelComponent();
+    cModel.mesh = "Sponza/ColumnB";
+    cModel.skin = "Sponza/ColumnB";
+} }
+{ var eColumnB_A5 = world.root.add_child("ColumnB_A5");
+  { var cTransform = eColumnB_A5.add_TransformComponent();
+    cTransform.position = Vec3F(8.887f, 2.89f, 7.22f);
+    var cModel = eColumnB_A5.add_ModelComponent();
+    cModel.mesh = "Sponza/ColumnB";
+    cModel.skin = "Sponza/ColumnB";
+} }
+{ var eColumnB_B1 = world.root.add_child("ColumnB_B1");
+  { var cTransform = eColumnB_B1.add_TransformComponent();
+    cTransform.position = Vec3F(-8.887f, -2.89f, 7.22f);
+    var cModel = eColumnB_B1.add_ModelComponent();
+    cModel.mesh = "Sponza/ColumnB";
+    cModel.skin = "Sponza/ColumnB";
+} }
+{ var eColumnB_B2 = world.root.add_child("ColumnB_B2");
+  { var cTransform = eColumnB_B2.add_TransformComponent();
+    cTransform.position = Vec3F(-4.439f, -2.89f, 7.22f);
+    var cModel = eColumnB_B2.add_ModelComponent();
+    cModel.mesh = "Sponza/ColumnB";
+    cModel.skin = "Sponza/ColumnB";
+} }
+{ var eColumnB_B3 = world.root.add_child("ColumnB_B3");
+  { var cTransform = eColumnB_B3.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, -2.89f, 7.22f);
+    var cModel = eColumnB_B3.add_ModelComponent();
+    cModel.mesh = "Sponza/ColumnB";
+    cModel.skin = "Sponza/ColumnB";
+} }
+{ var eColumnB_B4 = world.root.add_child("ColumnB_B4");
+  { var cTransform = eColumnB_B4.add_TransformComponent();
+    cTransform.position = Vec3F(4.439f, -2.89f, 7.22f);
+    var cModel = eColumnB_B4.add_ModelComponent();
+    cModel.mesh = "Sponza/ColumnB";
+    cModel.skin = "Sponza/ColumnB";
+} }
+{ var eColumnB_B5 = world.root.add_child("ColumnB_B5");
+  { var cTransform = eColumnB_B5.add_TransformComponent();
+    cTransform.position = Vec3F(8.887f, -2.89f, 7.22f);
+    var cModel = eColumnB_B5.add_ModelComponent();
+    cModel.mesh = "Sponza/ColumnB";
+    cModel.skin = "Sponza/ColumnB";
+} }
+{ var eColumnB_C1 = world.root.add_child("ColumnB_C1");
+  { var cTransform = eColumnB_C1.add_TransformComponent();
+    cTransform.position = Vec3F(-11.33f, 0.0f, 7.24f);
+    var cModel = eColumnB_C1.add_ModelComponent();
+    cModel.scale = Vec3F(0.865f, 0.865f, 1.018f);
+    cModel.mesh = "Sponza/ColumnB";
+    cModel.skin = "Sponza/ColumnB";
+} }
+{ var eColumnB_C2 = world.root.add_child("ColumnB_C2");
+  { var cTransform = eColumnB_C2.add_TransformComponent();
+    cTransform.position = Vec3F(11.33f, 0.0f, 7.24f);
+    var cModel = eColumnB_C2.add_ModelComponent();
+    cModel.scale = Vec3F(0.865f, 0.865f, 1.018f);
+    cModel.mesh = "Sponza/ColumnB";
+    cModel.skin = "Sponza/ColumnB";
+} }
+{ var eColumnC_A1 = world.root.add_child("ColumnC_A1");
+  { var cTransform = eColumnC_A1.add_TransformComponent();
+    cTransform.position = Vec3F(-6.663f, 2.89f, 7.22f);
+    var cModel = eColumnC_A1.add_ModelComponent();
+    cModel.mesh = "Sponza/ColumnC";
+    cModel.skin = "Sponza/ColumnC";
+} }
+{ var eColumnC_A2 = world.root.add_child("ColumnC_A2");
+  { var cTransform = eColumnC_A2.add_TransformComponent();
+    cTransform.position = Vec3F(-2.21f, 2.89f, 7.22f);
+    var cModel = eColumnC_A2.add_ModelComponent();
+    cModel.mesh = "Sponza/ColumnC";
+    cModel.skin = "Sponza/ColumnC";
+} }
+{ var eColumnC_A3 = world.root.add_child("ColumnC_A3");
+  { var cTransform = eColumnC_A3.add_TransformComponent();
+    cTransform.position = Vec3F(2.21f, 2.89f, 7.22f);
+    var cModel = eColumnC_A3.add_ModelComponent();
+    cModel.mesh = "Sponza/ColumnC";
+    cModel.skin = "Sponza/ColumnC";
+} }
+{ var eColumnC_A4 = world.root.add_child("ColumnC_A4");
+  { var cTransform = eColumnC_A4.add_TransformComponent();
+    cTransform.position = Vec3F(6.663f, 2.89f, 7.22f);
+    var cModel = eColumnC_A4.add_ModelComponent();
+    cModel.mesh = "Sponza/ColumnC";
+    cModel.skin = "Sponza/ColumnC";
+} }
+{ var eColumnC_B1 = world.root.add_child("ColumnC_B1");
+  { var cTransform = eColumnC_B1.add_TransformComponent();
+    cTransform.position = Vec3F(-6.663f, -2.89f, 7.22f);
+    var cModel = eColumnC_B1.add_ModelComponent();
+    cModel.mesh = "Sponza/ColumnC";
+    cModel.skin = "Sponza/ColumnC";
+} }
+{ var eColumnC_B2 = world.root.add_child("ColumnC_B2");
+  { var cTransform = eColumnC_B2.add_TransformComponent();
+    cTransform.position = Vec3F(-2.21f, -2.89f, 7.22f);
+    var cModel = eColumnC_B2.add_ModelComponent();
+    cModel.mesh = "Sponza/ColumnC";
+    cModel.skin = "Sponza/ColumnC";
+} }
+{ var eColumnC_B3 = world.root.add_child("ColumnC_B3");
+  { var cTransform = eColumnC_B3.add_TransformComponent();
+    cTransform.position = Vec3F(2.21f, -2.89f, 7.22f);
+    var cModel = eColumnC_B3.add_ModelComponent();
+    cModel.mesh = "Sponza/ColumnC";
+    cModel.skin = "Sponza/ColumnC";
+} }
+{ var eColumnC_B4 = world.root.add_child("ColumnC_B4");
+  { var cTransform = eColumnC_B4.add_TransformComponent();
+    cTransform.position = Vec3F(6.663f, -2.89f, 7.22f);
+    var cModel = eColumnC_B4.add_ModelComponent();
+    cModel.mesh = "Sponza/ColumnC";
+    cModel.skin = "Sponza/ColumnC";
+} }
+{ var eColumnCCnr_1 = world.root.add_child("ColumnCCnr_1");
+  { var cTransform = eColumnCCnr_1.add_TransformComponent();
+    cTransform.position = Vec3F(-11.21f, 2.77f, 7.22f);
+    var cModel = eColumnCCnr_1.add_ModelComponent();
+    cModel.mesh = "Sponza/ColumnCCorner";
+    cModel.skin = "Sponza/ColumnC";
+} }
+{ var eColumnCCnr_2 = world.root.add_child("ColumnCCnr_2");
+  { var cTransform = eColumnCCnr_2.add_TransformComponent();
+    cTransform.position = Vec3F(11.21f, 2.77f, 7.22f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, -0.25f);
+    var cModel = eColumnCCnr_2.add_ModelComponent();
+    cModel.mesh = "Sponza/ColumnCCorner";
+    cModel.skin = "Sponza/ColumnC";
+} }
+{ var eColumnCCnr_3 = world.root.add_child("ColumnCCnr_3");
+  { var cTransform = eColumnCCnr_3.add_TransformComponent();
+    cTransform.position = Vec3F(11.21f, -2.77f, 7.22f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eColumnCCnr_3.add_ModelComponent();
+    cModel.mesh = "Sponza/ColumnCCorner";
+    cModel.skin = "Sponza/ColumnC";
+} }
+{ var eColumnCCnr_4 = world.root.add_child("ColumnCCnr_4");
+  { var cTransform = eColumnCCnr_4.add_TransformComponent();
+    cTransform.position = Vec3F(-11.21f, -2.77f, 7.22f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.25f);
+    var cModel = eColumnCCnr_4.add_ModelComponent();
+    cModel.mesh = "Sponza/ColumnCCorner";
+    cModel.skin = "Sponza/ColumnC";
+} }
+{ var eCurtainA_A1 = world.root.add_child("CurtainA_A1");
+  { var cTransform = eCurtainA_A1.add_TransformComponent();
+    cTransform.position = Vec3F(-8.887f, 2.9f, 1.762f);
+    var cModel = eCurtainA_A1.add_ModelComponent();
+    cModel.mesh = "Sponza/CurtainA";
+    cModel.skin = "Sponza/CurtainRed";
+} }
+{ var eCurtainB_A2 = world.root.add_child("CurtainB_A2");
+  { var cTransform = eCurtainB_A2.add_TransformComponent();
+    cTransform.position = Vec3F(-4.439f, 2.96f, 1.762f);
+    var cModel = eCurtainB_A2.add_ModelComponent();
+    cModel.mesh = "Sponza/CurtainB";
+    cModel.skin = "Sponza/CurtainBlue";
+} }
+{ var eCurtainA_A3 = world.root.add_child("CurtainA_A3");
+  { var cTransform = eCurtainA_A3.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 2.9f, 1.762f);
+    var cModel = eCurtainA_A3.add_ModelComponent();
+    cModel.mesh = "Sponza/CurtainA";
+    cModel.skin = "Sponza/CurtainGreen";
+} }
+{ var eCurtainB_A4 = world.root.add_child("CurtainB_A4");
+  { var cTransform = eCurtainB_A4.add_TransformComponent();
+    cTransform.position = Vec3F(4.439f, 2.96f, 1.762f);
+    var cModel = eCurtainB_A4.add_ModelComponent();
+    cModel.mesh = "Sponza/CurtainB";
+    cModel.skin = "Sponza/CurtainRed";
+} }
+{ var eCurtainA_A5 = world.root.add_child("CurtainA_A5");
+  { var cTransform = eCurtainA_A5.add_TransformComponent();
+    cTransform.position = Vec3F(8.887f, 2.9f, 1.762f);
+    var cModel = eCurtainA_A5.add_ModelComponent();
+    cModel.mesh = "Sponza/CurtainA";
+    cModel.skin = "Sponza/CurtainBlue";
+} }
+{ var eCurtainA_B1 = world.root.add_child("CurtainA_B1");
+  { var cTransform = eCurtainA_B1.add_TransformComponent();
+    cTransform.position = Vec3F(-8.887f, -2.96f, 1.762f);
+    var cModel = eCurtainA_B1.add_ModelComponent();
+    cModel.mesh = "Sponza/CurtainA";
+    cModel.skin = "Sponza/CurtainGreen";
+} }
+{ var eCurtainB_B2 = world.root.add_child("CurtainB_B2");
+  { var cTransform = eCurtainB_B2.add_TransformComponent();
+    cTransform.position = Vec3F(-4.439f, -2.9f, 1.762f);
+    var cModel = eCurtainB_B2.add_ModelComponent();
+    cModel.mesh = "Sponza/CurtainB";
+    cModel.skin = "Sponza/CurtainRed";
+} }
+{ var eCurtainA_B3 = world.root.add_child("CurtainA_B3");
+  { var cTransform = eCurtainA_B3.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, -2.96f, 1.762f);
+    var cModel = eCurtainA_B3.add_ModelComponent();
+    cModel.mesh = "Sponza/CurtainA";
+    cModel.skin = "Sponza/CurtainBlue";
+} }
+{ var eCurtainB_B4 = world.root.add_child("CurtainB_B4");
+  { var cTransform = eCurtainB_B4.add_TransformComponent();
+    cTransform.position = Vec3F(4.439f, -2.9f, 1.762f);
+    var cModel = eCurtainB_B4.add_ModelComponent();
+    cModel.mesh = "Sponza/CurtainB";
+    cModel.skin = "Sponza/CurtainGreen";
+} }
+{ var eCurtainA_B5 = world.root.add_child("CurtainA_B5");
+  { var cTransform = eCurtainA_B5.add_TransformComponent();
+    cTransform.position = Vec3F(8.887f, -2.96f, 1.762f);
+    var cModel = eCurtainA_B5.add_ModelComponent();
+    cModel.mesh = "Sponza/CurtainA";
+    cModel.skin = "Sponza/CurtainRed";
+} }
+{ var eDoorRound_1 = world.root.add_child("DoorRound_1");
+  { var cTransform = eDoorRound_1.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 7.31f, 1.8f);
+    var cModel = eDoorRound_1.add_ModelComponent();
+    cModel.mesh = "Sponza/DoorRound";
+    cModel.skin = "Sponza/Details";
+} }
+{ var eDoorRound_2 = world.root.add_child("DoorRound_2");
+  { var cTransform = eDoorRound_2.add_TransformComponent();
+    cTransform.position = Vec3F(16.41f, 0.0f, 6.8f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, -0.25f);
+    var cModel = eDoorRound_2.add_ModelComponent();
+    cModel.mesh = "Sponza/DoorRound";
+    cModel.skin = "Sponza/Details";
+} }
+{ var eDoorSquare = world.root.add_child("DoorSquare");
+  { var cTransform = eDoorSquare.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, -7.325f, 1.46f);
+    var cModel = eDoorSquare.add_ModelComponent();
+    cModel.mesh = "Sponza/DoorSquare";
+    cModel.skin = "Sponza/Details";
+} }
+{ var eDrape_A1 = world.root.add_child("Drape_A1");
+  { var cTransform = eDrape_A1.add_TransformComponent();
+    cTransform.position = Vec3F(-6.676f, 2.88f, 5.16f);
+    var cModel = eDrape_A1.add_ModelComponent();
+    cModel.mesh = "Sponza/Drape";
+    cModel.skin = "Sponza/DrapeBlue";
+} }
+{ var eDrape_A2 = world.root.add_child("Drape_A2");
+  { var cTransform = eDrape_A2.add_TransformComponent();
+    cTransform.position = Vec3F(-2.223f, 2.88f, 5.16f);
+    var cModel = eDrape_A2.add_ModelComponent();
+    cModel.mesh = "Sponza/Drape";
+    cModel.skin = "Sponza/DrapeRed";
+} }
+{ var eDrape_A3 = world.root.add_child("Drape_A3");
+  { var cTransform = eDrape_A3.add_TransformComponent();
+    cTransform.position = Vec3F(2.197f, 2.88f, 5.16f);
+    var cModel = eDrape_A3.add_ModelComponent();
+    cModel.mesh = "Sponza/Drape";
+    cModel.skin = "Sponza/DrapeGreen";
+} }
+{ var eDrape_A4 = world.root.add_child("Drape_A4");
+  { var cTransform = eDrape_A4.add_TransformComponent();
+    cTransform.position = Vec3F(6.65f, 2.88f, 5.16f);
+    var cModel = eDrape_A4.add_ModelComponent();
+    cModel.mesh = "Sponza/Drape";
+    cModel.skin = "Sponza/DrapeBlue";
+} }
+{ var eDrape_B1 = world.root.add_child("Drape_B1");
+  { var cTransform = eDrape_B1.add_TransformComponent();
+    cTransform.position = Vec3F(-6.65f, -2.88f, 5.16f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eDrape_B1.add_ModelComponent();
+    cModel.mesh = "Sponza/Drape";
+    cModel.skin = "Sponza/DrapeGreen";
+} }
+{ var eDrape_B2 = world.root.add_child("Drape_B2");
+  { var cTransform = eDrape_B2.add_TransformComponent();
+    cTransform.position = Vec3F(-2.197f, -2.88f, 5.16f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eDrape_B2.add_ModelComponent();
+    cModel.mesh = "Sponza/Drape";
+    cModel.skin = "Sponza/DrapeBlue";
+} }
+{ var eDrape_B3 = world.root.add_child("Drape_B3");
+  { var cTransform = eDrape_B3.add_TransformComponent();
+    cTransform.position = Vec3F(2.223f, -2.88f, 5.16f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eDrape_B3.add_ModelComponent();
+    cModel.mesh = "Sponza/Drape";
+    cModel.skin = "Sponza/DrapeRed";
+} }
+{ var eDrape_B4 = world.root.add_child("Drape_B4");
+  { var cTransform = eDrape_B4.add_TransformComponent();
+    cTransform.position = Vec3F(6.676f, -2.88f, 5.16f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eDrape_B4.add_ModelComponent();
+    cModel.mesh = "Sponza/Drape";
+    cModel.skin = "Sponza/DrapeGreen";
+} }
+{ var eEdgeCover_A1 = world.root.add_child("EdgeCover_A1");
+  { var cTransform = eEdgeCover_A1.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 6.01f);
+    var cModel = eEdgeCover_A1.add_ModelComponent();
+    cModel.mesh = "Sponza/EdgeCover";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eEdgeCover_A2 = world.root.add_child("EdgeCover_A2");
+  { var cTransform = eEdgeCover_A2.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 6.01f);
+    var cModel = eEdgeCover_A2.add_ModelComponent();
+    cModel.scale = Vec3F(1.0f, -1.0f, 1.0f);
+    cModel.mesh = "Sponza/EdgeCover";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eEdgeCover_A3 = world.root.add_child("EdgeCover_A3");
+  { var cTransform = eEdgeCover_A3.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 6.01f);
+    var cModel = eEdgeCover_A3.add_ModelComponent();
+    cModel.scale = Vec3F(-1.0f, -1.0f, 1.0f);
+    cModel.mesh = "Sponza/EdgeCover";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eEdgeCover_A4 = world.root.add_child("EdgeCover_A4");
+  { var cTransform = eEdgeCover_A4.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 6.01f);
+    var cModel = eEdgeCover_A4.add_ModelComponent();
+    cModel.scale = Vec3F(-1.0f, 1.0f, 1.0f);
+    cModel.mesh = "Sponza/EdgeCover";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eEdgeCover_B1 = world.root.add_child("EdgeCover_B1");
+  { var cTransform = eEdgeCover_B1.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 11.0f);
+    var cModel = eEdgeCover_B1.add_ModelComponent();
+    cModel.mesh = "Sponza/EdgeCover";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eEdgeCover_B2 = world.root.add_child("EdgeCover_B2");
+  { var cTransform = eEdgeCover_B2.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 11.0f);
+    var cModel = eEdgeCover_B2.add_ModelComponent();
+    cModel.scale = Vec3F(1.0f, -1.0f, 1.0f);
+    cModel.mesh = "Sponza/EdgeCover";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eEdgeCover_B3 = world.root.add_child("EdgeCover_B3");
+  { var cTransform = eEdgeCover_B3.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 11.0f);
+    var cModel = eEdgeCover_B3.add_ModelComponent();
+    cModel.scale = Vec3F(-1.0f, -1.0f, 1.0f);
+    cModel.mesh = "Sponza/EdgeCover";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eEdgeCover_B4 = world.root.add_child("EdgeCover_B4");
+  { var cTransform = eEdgeCover_B4.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 11.0f);
+    var cModel = eEdgeCover_B4.add_ModelComponent();
+    cModel.scale = Vec3F(-1.0f, 1.0f, 1.0f);
+    cModel.mesh = "Sponza/EdgeCover";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eFlagPole_A1 = world.root.add_child("FlagPole_A1");
+  { var cTransform = eFlagPole_A1.add_TransformComponent();
+    cTransform.position = Vec3F(-6.663f, 1.61f, 10.29f);
+    var cModel = eFlagPole_A1.add_ModelComponent();
+    cModel.mesh = "Sponza/FlagPole";
+    cModel.skin = "Sponza/FlagPole";
+} }
+{ var eFlagPole_A2 = world.root.add_child("FlagPole_A2");
+  { var cTransform = eFlagPole_A2.add_TransformComponent();
+    cTransform.position = Vec3F(-2.21f, 1.61f, 10.29f);
+    var cModel = eFlagPole_A2.add_ModelComponent();
+    cModel.mesh = "Sponza/FlagPole";
+    cModel.skin = "Sponza/FlagPole";
+} }
+{ var eFlagPole_A3 = world.root.add_child("FlagPole_A3");
+  { var cTransform = eFlagPole_A3.add_TransformComponent();
+    cTransform.position = Vec3F(2.21f, 1.61f, 10.29f);
+    var cModel = eFlagPole_A3.add_ModelComponent();
+    cModel.mesh = "Sponza/FlagPole";
+    cModel.skin = "Sponza/FlagPole";
+} }
+{ var eFlagPole_A4 = world.root.add_child("FlagPole_A4");
+  { var cTransform = eFlagPole_A4.add_TransformComponent();
+    cTransform.position = Vec3F(6.663f, 1.61f, 10.29f);
+    var cModel = eFlagPole_A4.add_ModelComponent();
+    cModel.mesh = "Sponza/FlagPole";
+    cModel.skin = "Sponza/FlagPole";
+} }
+{ var eFlagPole_B1 = world.root.add_child("FlagPole_B1");
+  { var cTransform = eFlagPole_B1.add_TransformComponent();
+    cTransform.position = Vec3F(-6.663f, -1.61f, 10.29f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eFlagPole_B1.add_ModelComponent();
+    cModel.mesh = "Sponza/FlagPole";
+    cModel.skin = "Sponza/FlagPole";
+} }
+{ var eFlagPole_B2 = world.root.add_child("FlagPole_B2");
+  { var cTransform = eFlagPole_B2.add_TransformComponent();
+    cTransform.position = Vec3F(-2.21f, -1.61f, 10.29f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eFlagPole_B2.add_ModelComponent();
+    cModel.mesh = "Sponza/FlagPole";
+    cModel.skin = "Sponza/FlagPole";
+} }
+{ var eFlagPole_B3 = world.root.add_child("FlagPole_B3");
+  { var cTransform = eFlagPole_B3.add_TransformComponent();
+    cTransform.position = Vec3F(2.21f, -1.61f, 10.29f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eFlagPole_B3.add_ModelComponent();
+    cModel.mesh = "Sponza/FlagPole";
+    cModel.skin = "Sponza/FlagPole";
+} }
+{ var eFlagPole_B4 = world.root.add_child("FlagPole_B4");
+  { var cTransform = eFlagPole_B4.add_TransformComponent();
+    cTransform.position = Vec3F(6.663f, -1.61f, 10.29f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eFlagPole_B4.add_ModelComponent();
+    cModel.mesh = "Sponza/FlagPole";
+    cModel.skin = "Sponza/FlagPole";
+} }
+{ var eVaseHanging_A1 = world.root.add_child("VaseHanging_A1");
+  { var cTransform = eVaseHanging_A1.add_TransformComponent();
+    cTransform.position = Vec3F(-6.663f, 2.2f, 1.89f);
+    var cModel = eVaseHanging_A1.add_ModelComponent();
+    cModel.mesh = "Sponza/VaseHanging";
+    cModel.skin = "Sponza/VaseHanging";
+} }
+{ var eVaseHanging_A2 = world.root.add_child("VaseHanging_A2");
+  { var cTransform = eVaseHanging_A2.add_TransformComponent();
+    cTransform.position = Vec3F(6.663f, 2.2f, 1.89f);
+    var cModel = eVaseHanging_A2.add_ModelComponent();
+    cModel.mesh = "Sponza/VaseHanging";
+    cModel.skin = "Sponza/VaseHanging";
+} }
+{ var eVaseHanging_B1 = world.root.add_child("VaseHanging_B1");
+  { var cTransform = eVaseHanging_B1.add_TransformComponent();
+    cTransform.position = Vec3F(-6.663f, -2.2f, 1.89f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eVaseHanging_B1.add_ModelComponent();
+    cModel.mesh = "Sponza/VaseHanging";
+    cModel.skin = "Sponza/VaseHanging";
+} }
+{ var eVaseHanging_B2 = world.root.add_child("VaseHanging_B2");
+  { var cTransform = eVaseHanging_B2.add_TransformComponent();
+    cTransform.position = Vec3F(6.663f, -2.2f, 1.89f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eVaseHanging_B2.add_ModelComponent();
+    cModel.mesh = "Sponza/VaseHanging";
+    cModel.skin = "Sponza/VaseHanging";
+} }
+{ var eLion_1 = world.root.add_child("Lion_1");
+  { var cTransform = eLion_1.add_TransformComponent();
+    cTransform.position = Vec3F(-16.425f, 0.0f, 2.225f);
+    var cModel = eLion_1.add_ModelComponent();
+    cModel.mesh = "Sponza/Lion";
+    cModel.skin = "Sponza/Lion";
+} }
+{ var eLion_2 = world.root.add_child("Lion_2");
+  { var cTransform = eLion_2.add_TransformComponent();
+    cTransform.position = Vec3F(16.425f, 0.0f, 2.225f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eLion_2.add_ModelComponent();
+    cModel.mesh = "Sponza/Lion";
+    cModel.skin = "Sponza/Lion";
+} }
+{ var ePlaque_1 = world.root.add_child("Plaque_1");
+  { var cTransform = ePlaque_1.add_TransformComponent();
+    cTransform.position = Vec3F(-16.425f, 0.0f, 2.25f);
+    var cModel = ePlaque_1.add_ModelComponent();
+    cModel.mesh = "Sponza/Plaque";
+    cModel.skin = "Sponza/Plaque";
+} }
+{ var ePlaque_2 = world.root.add_child("Plaque_2");
+  { var cTransform = ePlaque_2.add_TransformComponent();
+    cTransform.position = Vec3F(16.425f, 0.0f, 2.25f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = ePlaque_2.add_ModelComponent();
+    cModel.mesh = "Sponza/Plaque";
+    cModel.skin = "Sponza/Plaque";
+} }
+{ var ePlaque_3 = world.root.add_child("Plaque_3");
+  { var cTransform = ePlaque_3.add_TransformComponent();
+    cTransform.position = Vec3F(-16.425f, 0.0f, 8.0f);
+    var cModel = ePlaque_3.add_ModelComponent();
+    cModel.mesh = "Sponza/Plaque";
+    cModel.skin = "Sponza/Plaque";
+} }
+{ var eVasePlant_A1 = world.root.add_child("VasePlant_A1");
+  { var cTransform = eVasePlant_A1.add_TransformComponent();
+    cTransform.position = Vec3F(-10.7f, 2.27f, 0.0f);
+    var cModel = eVasePlant_A1.add_ModelComponent();
+    cModel.mesh = "Sponza/VasePlant";
+    cModel.skin = "Sponza/VasePlant";
+} }
+{ var eVasePlant_A2 = world.root.add_child("VasePlant_A2");
+  { var cTransform = eVasePlant_A2.add_TransformComponent();
+    cTransform.position = Vec3F(-2.21f, 2.27f, 0.0f);
+    var cModel = eVasePlant_A2.add_ModelComponent();
+    cModel.mesh = "Sponza/VasePlant";
+    cModel.skin = "Sponza/VasePlant";
+} }
+{ var eVasePlant_A3 = world.root.add_child("VasePlant_A3");
+  { var cTransform = eVasePlant_A3.add_TransformComponent();
+    cTransform.position = Vec3F(2.21f, 2.27f, 0.0f);
+    var cModel = eVasePlant_A3.add_ModelComponent();
+    cModel.mesh = "Sponza/VasePlant";
+    cModel.skin = "Sponza/VasePlant";
+} }
+{ var eVasePlant_A4 = world.root.add_child("VasePlant_A4");
+  { var cTransform = eVasePlant_A4.add_TransformComponent();
+    cTransform.position = Vec3F(10.7f, 2.27f, 0.0f);
+    var cModel = eVasePlant_A4.add_ModelComponent();
+    cModel.mesh = "Sponza/VasePlant";
+    cModel.skin = "Sponza/VasePlant";
+} }
+{ var eVasePlant_B1 = world.root.add_child("VasePlant_B1");
+  { var cTransform = eVasePlant_B1.add_TransformComponent();
+    cTransform.position = Vec3F(-10.7f, -2.27f, 0.0f);
+    var cModel = eVasePlant_B1.add_ModelComponent();
+    cModel.mesh = "Sponza/VasePlant";
+    cModel.skin = "Sponza/VasePlant";
+} }
+{ var eVasePlant_B2 = world.root.add_child("VasePlant_B2");
+  { var cTransform = eVasePlant_B2.add_TransformComponent();
+    cTransform.position = Vec3F(-2.21f, -2.27f, 0.0f);
+    var cModel = eVasePlant_B2.add_ModelComponent();
+    cModel.mesh = "Sponza/VasePlant";
+    cModel.skin = "Sponza/VasePlant";
+} }
+{ var eVasePlant_B3 = world.root.add_child("VasePlant_B3");
+  { var cTransform = eVasePlant_B3.add_TransformComponent();
+    cTransform.position = Vec3F(2.21f, -2.27f, 0.0f);
+    var cModel = eVasePlant_B3.add_ModelComponent();
+    cModel.mesh = "Sponza/VasePlant";
+    cModel.skin = "Sponza/VasePlant";
+} }
+{ var eVasePlant_B4 = world.root.add_child("VasePlant_B4");
+  { var cTransform = eVasePlant_B4.add_TransformComponent();
+    cTransform.position = Vec3F(10.7f, -2.27f, 0.0f);
+    var cModel = eVasePlant_B4.add_ModelComponent();
+    cModel.mesh = "Sponza/VasePlant";
+    cModel.skin = "Sponza/VasePlant";
+} }
+{ var eWindow_1 = world.root.add_child("Window_1");
+  { var cTransform = eWindow_1.add_TransformComponent();
+    cTransform.position = Vec3F(4.454f, -7.325f, 2.439f);
+    var cModel = eWindow_1.add_ModelComponent();
+    cModel.mesh = "Sponza/Window";
+    cModel.skin = "Sponza/Details";
+} }
+{ var eWindow_2 = world.root.add_child("Window_2");
+  { var cTransform = eWindow_2.add_TransformComponent();
+    cTransform.position = Vec3F(-4.454f, -7.325f, 2.439f);
+    var cModel = eWindow_2.add_ModelComponent();
+    cModel.mesh = "Sponza/Window";
+    cModel.skin = "Sponza/Details";
+} }
+{ var eMouldingA_1 = world.root.add_child("MouldingA_1");
+  { var cTransform = eMouldingA_1.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 5.02f);
+    var cModel = eMouldingA_1.add_ModelComponent();
+    cModel.mesh = "Sponza/MouldingA";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eMouldingA_2 = world.root.add_child("MouldingA_2");
+  { var cTransform = eMouldingA_2.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 5.02f);
+    var cModel = eMouldingA_2.add_ModelComponent();
+    cModel.scale = Vec3F(1.0f, -1.0f, 1.0f);
+    cModel.mesh = "Sponza/MouldingA";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eMouldingA_3 = world.root.add_child("MouldingA_3");
+  { var cTransform = eMouldingA_3.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 5.02f);
+    var cModel = eMouldingA_3.add_ModelComponent();
+    cModel.scale = Vec3F(-1.0f, -1.0f, 1.0f);
+    cModel.mesh = "Sponza/MouldingA";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eMouldingA_4 = world.root.add_child("MouldingA_4");
+  { var cTransform = eMouldingA_4.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 5.02f);
+    var cModel = eMouldingA_4.add_ModelComponent();
+    cModel.scale = Vec3F(-1.0f, 1.0f, 1.0f);
+    cModel.mesh = "Sponza/MouldingA";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eMouldingB_A1 = world.root.add_child("MouldingB_A1");
+  { var cTransform = eMouldingB_A1.add_TransformComponent();
+    var cModel = eMouldingB_A1.add_ModelComponent();
+    cModel.mesh = "Sponza/MouldingB";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eMouldingB_A2 = world.root.add_child("MouldingB_A2");
+  { var cTransform = eMouldingB_A2.add_TransformComponent();
+    var cModel = eMouldingB_A2.add_ModelComponent();
+    cModel.scale = Vec3F(1.0f, -1.0f, 1.0f);
+    cModel.mesh = "Sponza/MouldingB";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eMouldingB_A3 = world.root.add_child("MouldingB_A3");
+  { var cTransform = eMouldingB_A3.add_TransformComponent();
+    var cModel = eMouldingB_A3.add_ModelComponent();
+    cModel.scale = Vec3F(-1.0f, -1.0f, 1.0f);
+    cModel.mesh = "Sponza/MouldingB";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eMouldingB_A4 = world.root.add_child("MouldingB_A4");
+  { var cTransform = eMouldingB_A4.add_TransformComponent();
+    var cModel = eMouldingB_A4.add_ModelComponent();
+    cModel.scale = Vec3F(-1.0f, 1.0f, 1.0f);
+    cModel.mesh = "Sponza/MouldingB";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eMouldingB_B1 = world.root.add_child("MouldingB_B1");
+  { var cTransform = eMouldingB_B1.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 5.0f);
+    var cModel = eMouldingB_B1.add_ModelComponent();
+    cModel.mesh = "Sponza/MouldingB";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eMouldingB_B2 = world.root.add_child("MouldingB_B2");
+  { var cTransform = eMouldingB_B2.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 5.0f);
+    var cModel = eMouldingB_B2.add_ModelComponent();
+    cModel.scale = Vec3F(1.0f, -1.0f, 1.0f);
+    cModel.mesh = "Sponza/MouldingB";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eMouldingB_B3 = world.root.add_child("MouldingB_B3");
+  { var cTransform = eMouldingB_B3.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 5.0f);
+    var cModel = eMouldingB_B3.add_ModelComponent();
+    cModel.scale = Vec3F(-1.0f, -1.0f, 1.0f);
+    cModel.mesh = "Sponza/MouldingB";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eMouldingB_B4 = world.root.add_child("MouldingB_B4");
+  { var cTransform = eMouldingB_B4.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 5.0f);
+    var cModel = eMouldingB_B4.add_ModelComponent();
+    cModel.scale = Vec3F(-1.0f, 1.0f, 1.0f);
+    cModel.mesh = "Sponza/MouldingB";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eHoleA_A1 = world.root.add_child("HoleA_A1");
+  { var cTransform = eHoleA_A1.add_TransformComponent();
+    cTransform.position = Vec3F(-8.887f, 2.69f, 11.6f);
+    var cModel = eHoleA_A1.add_ModelComponent();
+    cModel.mesh = "Sponza/HoleA";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eHoleA_A2 = world.root.add_child("HoleA_A2");
+  { var cTransform = eHoleA_A2.add_TransformComponent();
+    cTransform.position = Vec3F(-4.439f, 2.69f, 11.6f);
+    var cModel = eHoleA_A2.add_ModelComponent();
+    cModel.mesh = "Sponza/HoleA";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eHoleA_A3 = world.root.add_child("HoleA_A3");
+  { var cTransform = eHoleA_A3.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 2.69f, 11.6f);
+    var cModel = eHoleA_A3.add_ModelComponent();
+    cModel.mesh = "Sponza/HoleA";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eHoleA_A4 = world.root.add_child("HoleA_A4");
+  { var cTransform = eHoleA_A4.add_TransformComponent();
+    cTransform.position = Vec3F(4.439f, 2.69f, 11.6f);
+    var cModel = eHoleA_A4.add_ModelComponent();
+    cModel.mesh = "Sponza/HoleA";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eHoleA_A5 = world.root.add_child("HoleA_A5");
+  { var cTransform = eHoleA_A5.add_TransformComponent();
+    cTransform.position = Vec3F(8.887f, 2.69f, 11.6f);
+    var cModel = eHoleA_A5.add_ModelComponent();
+    cModel.mesh = "Sponza/HoleA";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eHoleA_B1 = world.root.add_child("HoleA_B1");
+  { var cTransform = eHoleA_B1.add_TransformComponent();
+    cTransform.position = Vec3F(-8.887f, -2.69f, 11.6f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eHoleA_B1.add_ModelComponent();
+    cModel.mesh = "Sponza/HoleA";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eHoleA_B2 = world.root.add_child("HoleA_B2");
+  { var cTransform = eHoleA_B2.add_TransformComponent();
+    cTransform.position = Vec3F(-4.439f, -2.69f, 11.6f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eHoleA_B2.add_ModelComponent();
+    cModel.mesh = "Sponza/HoleA";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eHoleA_B3 = world.root.add_child("HoleA_B3");
+  { var cTransform = eHoleA_B3.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, -2.69f, 11.6f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eHoleA_B3.add_ModelComponent();
+    cModel.mesh = "Sponza/HoleA";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eHoleA_B4 = world.root.add_child("HoleA_B4");
+  { var cTransform = eHoleA_B4.add_TransformComponent();
+    cTransform.position = Vec3F(4.439f, -2.69f, 11.6f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eHoleA_B4.add_ModelComponent();
+    cModel.mesh = "Sponza/HoleA";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eHoleA_B5 = world.root.add_child("HoleA_B5");
+  { var cTransform = eHoleA_B5.add_TransformComponent();
+    cTransform.position = Vec3F(8.887f, -2.69f, 11.6f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eHoleA_B5.add_ModelComponent();
+    cModel.mesh = "Sponza/HoleA";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eHoleA_C = world.root.add_child("HoleA_C");
+  { var cTransform = eHoleA_C.add_TransformComponent();
+    cTransform.position = Vec3F(-11.25f, 0.0f, 11.6f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.25f);
+    var cModel = eHoleA_C.add_ModelComponent();
+    cModel.mesh = "Sponza/HoleA";
+    cModel.skin = "Sponza/Arch";
+} }
+{ var eHoleB_A1 = world.root.add_child("HoleB_A1");
+  { var cTransform = eHoleB_A1.add_TransformComponent();
+    cTransform.position = Vec3F(-6.85f, 2.64f, 14.9f);
+    var cModel = eHoleB_A1.add_ModelComponent();
+    cModel.mesh = "Sponza/HoleB";
+    cModel.skin = "Sponza/HoleB";
+} }
+{ var eHoleB_A2 = world.root.add_child("HoleB_A2");
+  { var cTransform = eHoleB_A2.add_TransformComponent();
+    cTransform.position = Vec3F(-2.41f, 2.64f, 14.9f);
+    var cModel = eHoleB_A2.add_ModelComponent();
+    cModel.mesh = "Sponza/HoleB";
+    cModel.skin = "Sponza/HoleB";
+} }
+{ var eHoleB_A3 = world.root.add_child("HoleB_A3");
+  { var cTransform = eHoleB_A3.add_TransformComponent();
+    cTransform.position = Vec3F(2.41f, 2.64f, 14.9f);
+    var cModel = eHoleB_A3.add_ModelComponent();
+    cModel.mesh = "Sponza/HoleB";
+    cModel.skin = "Sponza/HoleB";
+} }
+{ var eHoleB_A4 = world.root.add_child("HoleB_A4");
+  { var cTransform = eHoleB_A4.add_TransformComponent();
+    cTransform.position = Vec3F(6.85f, 2.64f, 14.9f);
+    var cModel = eHoleB_A4.add_ModelComponent();
+    cModel.mesh = "Sponza/HoleB";
+    cModel.skin = "Sponza/HoleB";
+} }
+{ var eHoleB_B1 = world.root.add_child("HoleB_B1");
+  { var cTransform = eHoleB_B1.add_TransformComponent();
+    cTransform.position = Vec3F(-6.85f, -2.64f, 14.9f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eHoleB_B1.add_ModelComponent();
+    cModel.mesh = "Sponza/HoleB";
+    cModel.skin = "Sponza/HoleB";
+} }
+{ var eHoleB_B2 = world.root.add_child("HoleB_B2");
+  { var cTransform = eHoleB_B2.add_TransformComponent();
+    cTransform.position = Vec3F(-2.41f, -2.64f, 14.9f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eHoleB_B2.add_ModelComponent();
+    cModel.mesh = "Sponza/HoleB";
+    cModel.skin = "Sponza/HoleB";
+} }
+{ var eHoleB_B3 = world.root.add_child("HoleB_B3");
+  { var cTransform = eHoleB_B3.add_TransformComponent();
+    cTransform.position = Vec3F(2.41f, -2.64f, 14.9f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eHoleB_B3.add_ModelComponent();
+    cModel.mesh = "Sponza/HoleB";
+    cModel.skin = "Sponza/HoleB";
+} }
+{ var eHoleB_B4 = world.root.add_child("HoleB_B4");
+  { var cTransform = eHoleB_B4.add_TransformComponent();
+    cTransform.position = Vec3F(6.85f, -2.64f, 14.9f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eHoleB_B4.add_ModelComponent();
+    cModel.mesh = "Sponza/HoleB";
+    cModel.skin = "Sponza/HoleB";
+} }
+{ var eHoleB_C = world.root.add_child("HoleB_C");
+  { var cTransform = eHoleB_C.add_TransformComponent();
+    cTransform.position = Vec3F(-11.14f, 0.0f, 14.9f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, -0.25f);
+    var cModel = eHoleB_C.add_ModelComponent();
+    cModel.mesh = "Sponza/HoleB";
+    cModel.skin = "Sponza/HoleB";
+} }
+{ var eRoof_1 = world.root.add_child("Roof_1");
+  { var cTransform = eRoof_1.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 16.25f);
+    var cModel = eRoof_1.add_ModelComponent();
+    cModel.mesh = "Sponza/Roof";
+    cModel.skin = "Sponza/Roof";
+} }
+{ var eRoof_2 = world.root.add_child("Roof_2");
+  { var cTransform = eRoof_2.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 16.25f);
+    var cModel = eRoof_2.add_ModelComponent();
+    cModel.scale = Vec3F(1.0f, -1.0f, 1.0f);
+    cModel.mesh = "Sponza/Roof";
+    cModel.skin = "Sponza/Roof";
+} }
+{ var eRoof_3 = world.root.add_child("Roof_3");
+  { var cTransform = eRoof_3.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 16.25f);
+    var cModel = eRoof_3.add_ModelComponent();
+    cModel.scale = Vec3F(-1.0f, -1.0f, 1.0f);
+    cModel.mesh = "Sponza/Roof";
+    cModel.skin = "Sponza/Roof";
+} }
+{ var eRoof_4 = world.root.add_child("Roof_4");
+  { var cTransform = eRoof_4.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 16.25f);
+    var cModel = eRoof_4.add_ModelComponent();
+    cModel.scale = Vec3F(-1.0f, 1.0f, 1.0f);
+    cModel.mesh = "Sponza/Roof";
+    cModel.skin = "Sponza/Roof";
+} }
+{ var eWallA_1 = world.root.add_child("WallA_1");
+  { var cTransform = eWallA_1.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 4.37f);
+    var cModel = eWallA_1.add_ModelComponent();
+    cModel.mesh = "Sponza/WallA";
+    cModel.skin = "Sponza/Bricks";
+} }
+{ var eWallA_2 = world.root.add_child("WallA_2");
+  { var cTransform = eWallA_2.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 4.37f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eWallA_2.add_ModelComponent();
+    cModel.mesh = "Sponza/WallA";
+    cModel.skin = "Sponza/Bricks";
+} }
+{ var eWallB_1 = world.root.add_child("WallB_1");
+  { var cTransform = eWallB_1.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 5.45f);
+    var cModel = eWallB_1.add_ModelComponent();
+    cModel.mesh = "Sponza/WallB";
+    cModel.skin = "Sponza/Bricks";
+} }
+{ var eWallB_2 = world.root.add_child("WallB_2");
+  { var cTransform = eWallB_2.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 5.45f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eWallB_2.add_ModelComponent();
+    cModel.mesh = "Sponza/WallB";
+    cModel.skin = "Sponza/Bricks";
+} }
+{ var eWallC_1 = world.root.add_child("WallC_1");
+  { var cTransform = eWallC_1.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 9.7f);
+    var cModel = eWallC_1.add_ModelComponent();
+    cModel.mesh = "Sponza/WallC";
+    cModel.skin = "Sponza/Bricks";
+} }
+{ var eWallC_2 = world.root.add_child("WallC_2");
+  { var cTransform = eWallC_2.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 9.7f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eWallC_2.add_ModelComponent();
+    cModel.mesh = "Sponza/WallC";
+    cModel.skin = "Sponza/Bricks";
+} }
+{ var eWallD_A1 = world.root.add_child("WallD_A1");
+  { var cTransform = eWallD_A1.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 2.34f);
+    var cModel = eWallD_A1.add_ModelComponent();
+    cModel.scale = Vec3F(1.0f, 1.0f, 0.92f);
+    cModel.mesh = "Sponza/WallD";
+    cModel.skin = "Sponza/Bricks";
+} }
+{ var eWallD_A2 = world.root.add_child("WallD_A2");
+  { var cTransform = eWallD_A2.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 2.34f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eWallD_A2.add_ModelComponent();
+    cModel.scale = Vec3F(1.0f, 1.0f, 0.92f);
+    cModel.mesh = "Sponza/WallD";
+    cModel.skin = "Sponza/Bricks";
+} }
+{ var eWallD_B1 = world.root.add_child("WallD_B1");
+  { var cTransform = eWallD_B1.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 7.7f);
+    var cModel = eWallD_B1.add_ModelComponent();
+    cModel.scale = Vec3F(1.0f, 1.0f, 1.06f);
+    cModel.mesh = "Sponza/WallD";
+    cModel.skin = "Sponza/Bricks";
+} }
+{ var eWallD_B2 = world.root.add_child("WallD_B2");
+  { var cTransform = eWallD_B2.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 7.7f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eWallD_B2.add_ModelComponent();
+    cModel.scale = Vec3F(1.0f, 1.0f, 1.06f);
+    cModel.mesh = "Sponza/WallD";
+    cModel.skin = "Sponza/Bricks";
+} }
+{ var eWallD_C1 = world.root.add_child("WallD_C1");
+  { var cTransform = eWallD_C1.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 13.35f);
+    var cModel = eWallD_C1.add_ModelComponent();
+    cModel.scale = Vec3F(0.72f, 0.462f, 0.92f);
+    cModel.mesh = "Sponza/WallD";
+    cModel.skin = "Sponza/Bricks";
+} }
+{ var eWallD_C2 = world.root.add_child("WallD_C2");
+  { var cTransform = eWallD_C2.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 13.35f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eWallD_C2.add_ModelComponent();
+    cModel.scale = Vec3F(0.72f, 0.462f, 0.92f);
+    cModel.mesh = "Sponza/WallD";
+    cModel.skin = "Sponza/Bricks";
+} }
+{ var eWallE_1 = world.root.add_child("WallE_1");
+  { var cTransform = eWallE_1.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 13.3f);
+    var cModel = eWallE_1.add_ModelComponent();
+    cModel.mesh = "Sponza/WallE";
+    cModel.skin = "Sponza/Bricks";
+} }
+{ var eWallE_2 = world.root.add_child("WallE_2");
+  { var cTransform = eWallE_2.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 13.3f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.5f);
+    var cModel = eWallE_2.add_ModelComponent();
+    cModel.mesh = "Sponza/WallE";
+    cModel.skin = "Sponza/Bricks";
+} }
+{ var eWallEFill = world.root.add_child("WallEFill");
+  { var cTransform = eWallEFill.add_TransformComponent();
+    cTransform.position = Vec3F(11.11f, 0.0f, 13.3f);
+    var cModel = eWallEFill.add_ModelComponent();
+    cModel.mesh = "Sponza/WallEFill";
+    cModel.skin = "Sponza/Bricks";
+} }
 
 }

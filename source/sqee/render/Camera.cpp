@@ -14,7 +14,7 @@ Camera::Camera() {
     ubo.reserve("rmin", 1);
     ubo.reserve("dir", 3);
     ubo.reserve("rmax", 1);
-    ubo.allocate_storage();
+    ubo.create_and_allocate();
 }
 
 void Camera::update() {

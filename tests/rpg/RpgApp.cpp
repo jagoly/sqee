@@ -3,7 +3,6 @@
 #include <sqee/app/Resources.hpp>
 
 #include "main/MainScene.hpp"
-#include "main/MainHandler.hpp"
 #include "main/Scripting.hpp"
 #include "RpgApp.hpp"
 
@@ -12,7 +11,6 @@ namespace maths = sq::maths;
 
 RpgApp::RpgApp() {
     append_scene<MainScene>("main");
-    append_handler<MainHandler>("main");
 
     cs_setup_main(*cs);
     cs_setup_wcoe(*cs);

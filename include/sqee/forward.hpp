@@ -6,7 +6,6 @@ class Application;
 class PreProcessor;
 class SoundManager;
 class Settings;
-class Handler;
 class Scene;
 
 class ChaiConsole;

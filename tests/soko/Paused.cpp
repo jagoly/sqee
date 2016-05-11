@@ -28,6 +28,6 @@ void PausedScene::refresh() {
 }
 
 
-bool PausedHandler::handle(sf::Event _event) {
+bool PausedScene::handle(sf::Event _event) {
     return false;
 }

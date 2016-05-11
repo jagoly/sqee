@@ -1,62 +1,105 @@
-#pragma once
+/*void ModelSkelly::refresh() {
+    if (PROP_pose.empty() == false) {
+        poseCalc = arma->poseMap.at(PROP_pose);
+        auto uboData = sq::Armature::make_UboData(poseCalc);
+        ubo.update("bones", uboData.data());
+    }
 
-#include <sqee/forward.hpp>
-#include <sqee/gl/UniformBuffer.hpp>
-#include <sqee/maths/Vectors.hpp>
-#include <sqee/maths/Matrices.hpp>
-#include <sqee/maths/Quaternion.hpp>
-#include <sqee/maths/Volumes.hpp>
+    if (PROP_anim.empty() == false) {
+        anim = arma->animMap.at(PROP_anim);
+    }
+}
 
-#include "../Object.hpp"
-#include "../Animation.hpp"
 
-namespace sqt { namespace wcoe {
+void ModelSkelly::update() {
+    if (state == State::Done || state == State::Paused) return;
+    ticks += 1u;
 
-class ModelSkelly : public Object {
-public:
-    ModelSkelly(const string& _name, Cell* _cell);
+    if (state == State::Running) {
+        if (ticks == span) {
+            poseCrnt = poseNext;
+            ticks = 0u; index += 1u;
+            if (index == anim.size()) {
+                if (looping == true) {
+                    index = 0u; span = anim[index].second;
+                    poseNext = anim[index].first;
+                } else FUNC_stop(spanEnd);
+            } else { span = anim[index].second;
+                poseNext = anim[index].first;
+            }
+        }
+    }
 
-    void load_from_spec(const ObjSpec& _spec);
+    if (state == State::Ending) {
+        if (ticks == span) {
+            state = State::Done;
+            poseCalc = arma->poseMap.at(PROP_pose);
+            auto uboData = sq::Armature::make_UboData(poseCalc);
+            ubo.update("bones", uboData.data());
+        } return;
+    }
+}
 
-    void refresh(), update();
-    void calc(double _accum);
-    void animate();
 
-    bool   PROP_shadow   = false;
-    bool   PROP_decals   = false;
-    bool   PROP_probes   = false;
-    Vec3F  PROP_position = {0.f, 0.f, 0.f};
-    QuatF  PROP_rotation = {0.f, 0.f, 0.f, 1.f};
-    Vec3F  PROP_scale    = {1.f, 1.f, 1.f};
-    string PROP_mesh     = "";
-    string PROP_skin     = "";
-    string PROP_arma     = "";
-    string PROP_pose     = "";
-    string PROP_anim     = "";
+void ModelSkelly::calc(double _accum) {
+    Mat4F normMat(sq::make_normMat(world.camera->viewMat * matrix));
+    ubo.update("normMat", &normMat);
 
-    AnimatorVec3F ANIM_position {&PROP_position};
-    AnimatorQuatF ANIM_rotation {&PROP_rotation};
-    AnimatorVec3F ANIM_scale    {&PROP_scale};
+    if (state == State::Done || state == State::Paused) return;
+    poseCalc = sq::Armature::mix_Poses(poseCrnt, poseNext, float(_accum*24.f + ticks) / span);
+    auto uboData = sq::Armature::make_UboData(poseCalc);
+    ubo.update("bones", uboData.data());
+}
 
-    void FUNC_stop(uint _time);
-    void FUNC_loop(uint _time);
-    void FUNC_play(uint _timeA, uint _timeB);
 
-    sq::Armature* arma = nullptr;
-    sq::Mesh* mesh = nullptr;
-    sq::Skin* skin = nullptr;
-    sq::UniformBuffer ubo;
-    sq::Sphere sphere;
-    bool negScale;
-    Mat4F matrix;
+void ModelSkelly::FUNC_stop(uint _time) {
+    if (_time == 0u) {
+        state = State::Done;
+        poseCalc = arma->poseMap.at(PROP_pose);
+        auto uboData = sq::Armature::make_UboData(poseCalc);
+        ubo.update("bones", uboData.data());
+    } else {
+        state = State::Ending; span = _time;
+        looping = false; index = 0u; ticks = 0u;
+        poseNext = arma->poseMap.at(PROP_pose);
+        poseCrnt = poseCalc;
+    }
+}
 
-private:
-    uint index = 0u, ticks = 0u;
-    uint span = 0u, spanEnd = 0u;
-    vector<pair<vector<sq::ArmaTransform>&, uint>> anim;
-    vector<sq::ArmaTransform> poseCalc, poseCrnt, poseNext;
-    enum class State { Running, Ending, Paused, Done };
-    State state = State::Done; bool looping = false;
-};
 
-}}
+void ModelSkelly::FUNC_loop(uint _time) {
+    anim = arma->animMap.at(PROP_anim);
+    looping = true; ticks = 0u;
+    state = State::Running;
+
+    if (_time == 0u) {
+        poseCrnt = anim.front().first;
+        poseNext = anim[1].first;
+        span = anim[0].second;
+        index = 1u;
+    } else {
+        poseCrnt = poseCalc;
+        poseNext = anim.front().first;
+        span = _time; index = 0u;
+    }
+}
+
+
+void ModelSkelly::FUNC_play(uint _timeA, uint _timeB) {
+    anim = arma->animMap.at(PROP_anim);
+    looping = false; ticks = 0u;
+    state = State::Running;
+    spanEnd = _timeB;
+
+    if (_timeA == 0u) {
+        poseCrnt = anim.front().first;
+        poseNext = anim[1].first;
+        span = anim[0].second;
+        index = 1u;
+    } else {
+        poseCrnt = poseCalc;
+        poseNext = anim.front().first;
+        span = _timeA; index = 0u;
+    }
+}
+*/

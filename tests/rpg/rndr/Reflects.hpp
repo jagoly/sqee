@@ -28,6 +28,7 @@ private:
     sq::Texture2D TEX_reflSurf {gl::RGB, gl::RGB8, sq::Texture::LinearClamp()};
     sq::Texture2D TEX_reflDpSt {gl::DEPTH_STENCIL, gl::DEPTH24_STENCIL8, sq::Texture::LinearClamp()};
     sq::Texture2D TEX_reflHdr {gl::RGB, gl::RGB16F, sq::Texture::LinearClamp()};
+    sq::Texture2D TEX_reflHdrB {gl::RGB, gl::RGB16F, sq::Texture::LinearClamp()};
 
     sq::Shader VS_defr_reflector {gl::VERTEX_SHADER};
     sq::Shader FS_defr_reflector {gl::FRAGMENT_SHADER};

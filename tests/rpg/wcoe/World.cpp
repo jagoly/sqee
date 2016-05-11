@@ -35,50 +35,17 @@ World::World(sq::MessageBus& _messageBus, const sq::Settings& _settings, const s
     //messageBus.register_type<sq::Entity*>("ModelComponentModified");
 }
 
-Cell* World::add_cell(const string& _name) {
-    Cell* ptr = new Cell(_name, *this);
-    cellMap.emplace(_name, unique_ptr<Cell>(ptr));
-    return cellMap.at(_name).get();
-}
-
-Cell* World::get_cell(const string& _name) {
-    return cellMap.at(_name).get();
-}
-
-void World::reload_list() {
-    objectList.clear();
-    for (auto& sc : cellMap)
-        if (sc.second->PROP_enabled)
-            for (auto& so : sc.second->objectMap)
-                objectList.push_back(so.second.get());
-}
-
-void World::invalidate() {
-    for (auto& sc : cellMap)
-        if (sc.second->PROP_enabled)
-            sc.second->invalidate();
-}
 
 void World::refresh() {
     skybox->refresh();
     ambient->refresh();
     skylight->refresh();
-
-    for (auto& sc : cellMap)
-        if (sc.second->PROP_enabled)
-            sc.second->refresh();
-
-    reload_list();
 }
 
 void World::update() {
     skybox->update();
     ambient->update();
     skylight->update();
-
-    for (auto& sc : cellMap)
-        if (sc.second->PROP_enabled)
-            sc.second->update();
 
     physWorld->update(1.f / 24.f);
 }
@@ -87,8 +54,4 @@ void World::calc(double _accum) {
     skybox->calc(_accum);
     ambient->calc(_accum);
     skylight->calc(_accum);
-
-    for (auto& sc : cellMap)
-        if (sc.second->PROP_enabled)
-            sc.second->calc(_accum);
 }

@@ -3,10 +3,10 @@
 layout(location=0) in vec3 V_pos;
 
 #include builtin/blocks/camera
-#include headers/blocks/reflector
+#include headers/blocks/reflect
 
 layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
-layout(std140, binding=2) uniform REFLECTORBLOCK { ReflectorBlock RB; };
+layout(std140, binding=2) uniform REFLECTBLOCK { ReflectBlock RB; };
 
 uniform mat4 matrix;
 

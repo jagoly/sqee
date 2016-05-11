@@ -29,7 +29,7 @@ void Entity::erase_attr(const string& _name) {
     attributes->erase(_name);
 }
 
-void Entity::clear_marked_updates() {
-    for (auto& c : components) c.second->needsUpdate = false;
-    for (auto& child : children) child->clear_marked_updates();
+void Entity::clear_marked_refresh() {
+    for (auto& c : components) c.second->needsRefresh = false;
+    for (auto& child : children) child->clear_marked_refresh();
 }

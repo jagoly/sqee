@@ -1,4 +1,4 @@
-#include <random>
+/*#include <random>
 
 #include "../Cell.hpp"
 #include "../World.hpp"
@@ -11,7 +11,7 @@ Emitter::Emitter(const string& _name, Cell* _cell)
     : Object(typeid(Emitter), _name, _cell) {
 
     ubo.reserve("matrix", 16u);
-    ubo.allocate_storage();
+    ubo.create_and_allocate();
 }
 
 void Emitter::load_from_spec(const ObjSpec& _spec) {
@@ -86,3 +86,4 @@ void Emitter::calc(double _accum) {
 
 
 void Emitter::animate() {}
+*/

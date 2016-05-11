@@ -43,7 +43,7 @@ LoadedImage load_image(const string _path, GLenum _channels) {
 // sq::Texture /////
 
 Texture::~Texture() {
-    gl::DeleteTextures(1, &tex);
+    if (tex != 0u) gl::DeleteTextures(1, &tex);
 }
 
 void Texture::delete_object() {

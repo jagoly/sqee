@@ -1,5 +1,6 @@
 #include <rp3d/engine/DynamicsWorld.hpp>
 #include <SFML/Window/Keyboard.hpp>
+#include <SFML/Window/Event.hpp>
 
 #include <sqee/redist/gl_ext_4_2.hpp>
 #include <sqee/app/Application.hpp>
@@ -11,8 +12,6 @@
 #include <sqee/gl/Drawing.hpp>
 #include <sqee/render/Camera.hpp>
 
-#include <sqee/debug/OpenGL.hpp>
-
 #include "../rndr/Shadows.hpp"
 #include "../rndr/Gbuffers.hpp"
 #include "../rndr/Lighting.hpp"
@@ -20,8 +19,8 @@
 #include "../rndr/Reflects.hpp"
 #include "../rndr/Renderer.hpp"
 #include "../wcoe/World.hpp"
-#include "../wcoe/Cell.hpp"
 #include "MainScene.hpp"
+
 
 using namespace sqt;
 namespace maths = sq::maths;
@@ -30,14 +29,14 @@ MainScene::MainScene(sq::Application* _app) : sq::Scene(_app) {
     tickRate = 24u;
 
     /// Import GLSL Headers
-    app->preprocs.import_header("headers/blocks/skybox");
+    app->preprocs.import_header("headers/blocks/msimple");
+    app->preprocs.import_header("headers/blocks/mskelly");
     app->preprocs.import_header("headers/blocks/ambient");
     app->preprocs.import_header("headers/blocks/skylight");
     app->preprocs.import_header("headers/blocks/spotlight");
     app->preprocs.import_header("headers/blocks/pointlight");
-    app->preprocs.import_header("headers/blocks/reflector");
-    app->preprocs.import_header("headers/blocks/msimple");
-    app->preprocs.import_header("headers/blocks/mskelly");
+    app->preprocs.import_header("headers/blocks/reflect");
+    app->preprocs.import_header("headers/blocks/skybox");
     app->preprocs.import_header("headers/blocks/decal");
     app->preprocs.import_header("headers/shadow/sample_sky");
     app->preprocs.import_header("headers/shadow/sample_spot");
@@ -160,10 +159,6 @@ void MainScene::render() {
     camera->update();
     world->calc(accum);
 
-
-    renderer->cull_and_sort();
-
-
     /// Setup Stuff
     pipeline->bind();
     camera->ubo.bind(0u);
@@ -190,6 +185,8 @@ void MainScene::render() {
 
     renderer->pretties->render_final_screen();
 
+    renderer->draw_debug_bounds();
+
 
     gl::BindProgramPipeline(0);
     gl::BindVertexArray(0);
@@ -212,12 +209,68 @@ void MainScene::refresh() {
     INFO.ssao       = app->settings.get<int>("rpg_ssao");
     INFO.fsaa       = app->settings.get<int>("rpg_fsaa");
 
-    world->invalidate();
     world->refresh();
     renderer->update_settings();
-    reload_shaders();
 }
 
 
-void MainScene::reload_shaders() {
+bool MainScene::handle(sf::Event _event) {
+    if (_event.type == sf::Event::KeyPressed) {
+        if (_event.key.code == sf::Keyboard::F) {
+            bool val = app->settings.get<bool>("rpg_shadfilter");
+            app->overlay.notify(string("shadow filtering set to ") + (val ? "LOW" : "HIGH"), 6u);
+            app->settings.mod<bool>("rpg_shadfilter", !val);
+            app->refresh(); return true;
+        }
+        if (_event.key.code == sf::Keyboard::S) {
+            bool val = app->settings.get<bool>("rpg_shadlarge");
+            app->overlay.notify(string("shadow resolution set to ") + (val ? "SMALL" : "LARGE"), 6u);
+            app->settings.mod<bool>("rpg_shadlarge", !val);
+            app->refresh(); return true;
+        }
+        if (_event.key.code == sf::Keyboard::C) {
+            bool val = app->settings.get<bool>("rpg_vignette");
+            app->overlay.notify(string("vignetting set to ") + (val ? "OFF" : "ON"), 6u);
+            app->settings.mod<bool>("rpg_vignette", !val);
+            app->refresh(); return true;
+        }
+        if (_event.key.code == sf::Keyboard::B) {
+            bool val = app->settings.get<bool>("rpg_bloom");
+            app->overlay.notify(string("hdr bloom set to ") + (val ? "OFF" : "ON"), 6u);
+            app->settings.mod<bool>("rpg_bloom", !val);
+            app->refresh(); return true;
+        }
+        if (_event.key.code == sf::Keyboard::L) {
+            int val = app->settings.get<int>("rpg_shafts");
+            app->overlay.notify(string("light shafts set to ") + (val ? (val>1 ? "OFF" : "HIGH") : "LOW"), 6u);
+            app->settings.mod<int>("rpg_shafts", ++val == 3 ? 0 : val);
+            app->refresh(); return true;
+        }
+        if (_event.key.code == sf::Keyboard::O) {
+            int val = app->settings.get<int>("rpg_ssao");
+            app->overlay.notify(string("ssao set to ") + (val ? (val>1 ? "OFF" : "HIGH") : "LOW"), 6u);
+            app->settings.mod<int>("rpg_ssao", ++val == 3 ? 0 : val);
+            app->refresh(); return true;
+        }
+        if (_event.key.code == sf::Keyboard::A) {
+            int val = app->settings.get<int>("rpg_fsaa");
+            app->overlay.notify(string("anti-aliasing set to ") + (val ? (val>1 ? "OFF" : "SMAA") : "FXAA"), 6u);
+            app->settings.mod<int>("rpg_fsaa", ++val == 3 ? 0 : val);
+            app->refresh(); return true;
+        }
+        if (_event.key.code == sf::Keyboard::V) {
+            int val = app->settings.get<int>("app_fpslimit");
+            app->overlay.notify(string("framerate limit set to ") + (val ? (val>1 ? "NONE" : "VSYNC") : "75FPS"), 6u);
+            app->settings.mod<int>("app_fpslimit", ++val == 3 ? 0 : val);
+            app->refresh(); return true;
+        }
+    }
+
+//    if (_event.type == sf::Event::MouseButtonPressed) {
+//        if (_event.mouseButton.button == sf::Mouse::Left) {
+//            if (app->settings.get<bool>("console_active")) return false;
+//            app->mouse_relatify(); scene->focused = true; return true;
+//        }
+//    }
+    return false;
 }

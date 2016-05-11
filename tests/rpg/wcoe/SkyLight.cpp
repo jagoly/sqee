@@ -20,7 +20,7 @@ SkyLight::SkyLight(const World& _world) :
     ubo.reserve("matArrA", 64u);
     ubo.reserve("matArrB", 32u);
     ubo.reserve("splits", 4u);
-    ubo.allocate_storage();
+    ubo.create_and_allocate();
 }
 
 void SkyLight::refresh() {

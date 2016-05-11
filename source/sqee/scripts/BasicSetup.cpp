@@ -69,7 +69,7 @@ void sq::cs_setup_ecs(chai::ChaiScript& _cs) {
     chai::ModulePtr m(new chai::Module());
 
     add_class<Component>(*m, "Component", {}, {
-        {fun(&Component::mark_for_update), "mark_for_update"} });
+        {fun(&Component::mark_for_refresh), "mark_for_refresh"} });
 
     add_class<Entity>(*m, "Entity", {}, {
         {fun(&Entity::set_parent), "set_parent"}, {fun(&Entity::add_child), "add_child"},

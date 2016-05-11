@@ -16,7 +16,7 @@ public:
     void update_settings();
 
     void render_lighting_base();
-    void render_lighting_refl(const ReflectorData& _data);
+    void render_lighting_refl(const ReflectData& _data);
 
 private:
     const Renderer& renderer;

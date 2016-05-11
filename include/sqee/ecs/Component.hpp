@@ -13,10 +13,12 @@ public:
 
     virtual void setup_depends(Entity*) {}
 
-    void mark_for_update();
+    void mark_for_configure();
+    void mark_for_refresh();
 
     vector<Component*> rDepends;
-    bool needsUpdate = true;
+    bool needsConfigure = true;
+    bool needsRefresh = true;
 };
 
 }

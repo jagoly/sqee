@@ -8,7 +8,7 @@ using namespace sqt::wcoe;
 
 Ambient::Ambient(const World& _world) : world(_world) {
     ubo.reserve("colour", 4u);
-    ubo.allocate_storage();
+    ubo.create_and_allocate();
 }
 
 void Ambient::refresh() {

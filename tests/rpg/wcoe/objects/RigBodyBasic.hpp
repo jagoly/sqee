@@ -1,4 +1,4 @@
-#pragma once
+/*#pragma once
 
 #include <sqee/forward.hpp>
 #include <sqee/maths/Vectors.hpp>
@@ -43,3 +43,4 @@ private:
 };
 
 }}
+*/

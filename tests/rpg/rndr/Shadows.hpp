@@ -31,12 +31,10 @@ private:
     sq::Shader FS_shad_punch {gl::FRAGMENT_SHADER};
 
     // Helpers /////
-    void draw_Reflector(const Mat4F& _lightMat, const wcoe::Reflector& _rflct);
-    void draw_ModelSimple(const Mat4F& _lightMat, const wcoe::ModelSimple& _model);
-    void draw_ModelSkelly(const Mat4F& _lightMat, const wcoe::ModelSkelly& _model);
-    void draw_Reflector_punch(const Mat4F& _lightMat, const wcoe::Reflector& _rflct);
-    void draw_ModelSimple_punch(const Mat4F& _lightMat, const wcoe::ModelSimple& _model);
-    void draw_ModelSkelly_punch(const Mat4F& _lightMat, const wcoe::ModelSkelly& _model);
+    void draw_ModelSimple(const Mat4F& _lightMat, const ModelComponent* _modelC);
+    void draw_ModelSimple_punch(const Mat4F& _lightMat, const ModelComponent* _modelC);
+    void draw_ModelSkelly(const Mat4F& _lightMat, const ModelComponent* _modelC);
+    void draw_ModelSkelly_punch(const Mat4F& _lightMat, const ModelComponent* _modelC);
 };
 
 }}

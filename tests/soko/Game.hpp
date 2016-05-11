@@ -3,7 +3,6 @@
 #include <sqee/forward.hpp>
 #include <sqee/builtins.hpp>
 #include <sqee/scenes/Scene.hpp>
-#include <sqee/handlers/Handler.hpp>
 #include <sqee/maths/Vectors.hpp>
 
 namespace sqt {
@@ -17,6 +16,8 @@ public:
     void update();
     void render();
     void refresh();
+
+    bool handle(sf::Event event);
 
 private:
     unique_ptr<sq::Pipeline> pipeline;
@@ -45,13 +46,6 @@ private:
     Vec2F posCrnt, posNext;
     bool animate = false;
     bool pushing = false;
-};
-
-
-class GameHandler: public sq::Handler {
-public:
-    using sq::Handler::Handler;
-    bool handle(sf::Event event);
 };
 
 }

@@ -12,10 +12,6 @@ SokoApp::SokoApp() {
     append_scene<TitleScene>("title");
     append_scene<PausedScene>("paused");
 
-    append_handler<GameHandler>("game");
-    append_handler<TitleHandler>("title");
-    append_handler<PausedHandler>("paused");
-
     settings.mod<int>("app_fpslimit", 2);
     settings.mod<bool>("app_resizable", true);
 }

@@ -7,7 +7,6 @@
 #include <sqee/sounds/SoundManager.hpp>
 #include <sqee/scripts/ChaiScript.hpp>
 #include <sqee/scripts/BasicSetup.hpp>
-#include <sqee/handlers/Handler.hpp>
 #include <sqee/scenes/Scene.hpp>
 #include <sqee/app/Application.hpp>
 
@@ -64,17 +63,13 @@ int Application::run() {
             sceneMap.remove(key);
         sceneSweep.clear();
 
-        for (auto& key : handlerSweep)
-            handlerMap.remove(key);
-        sceneSweep.clear();
-
         //soundman->clean();
 
         sf::Event event;
         while (window->pollEvent(event))
             if (handle_default(event) == false)
-                for (auto& handler : handlerMap)
-                    if (handler->handle(event)) break;
+                for (auto& scene : sceneMap)
+                    if (scene->handle(event)) break;
 
         float ft = clockFT.restart().asSeconds();
 
@@ -148,7 +143,6 @@ void Application::refresh() {
         window->setSize({get_size().x, get_size().y});
 
     for (auto& scene : sceneMap) scene->refresh();
-    for (auto& handler : handlerMap) handler->refresh();
 }
 
 
@@ -195,10 +189,6 @@ Vec2U Application::get_size() const {
     uint width = settings.get<int>("app_width");
     uint height = settings.get<int>("app_height");
     return Vec2U(width, height);
-}
-
-void Application::sweep_handler(const string& _id) {
-    handlerSweep.emplace(_id);
 }
 
 void Application::sweep_scene(const string& _id) {

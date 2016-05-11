@@ -13,7 +13,7 @@
 
 
 // Forward Declarations /////
-namespace sq { class Scene; class Handler; }
+namespace sq { class Scene; }
 namespace sf { class Window; class Event; }
 namespace chaiscript { class ChaiScript; }
 
@@ -36,12 +36,7 @@ public:
     template<class T> T& prepend_scene(const string& _key);
     template<class T> T& get_scene(const string& _key);
 
-    template<class T> T& append_handler(const string& _key);
-    template<class T> T& prepend_handler(const string& _key);
-    template<class T> T& get_handler(const string& _key);
-
     void sweep_scene(const string& _key);
-    void sweep_handler(const string& _key);
 
     unique_ptr<chai::ChaiScript> cs;
 
@@ -57,10 +52,8 @@ protected:
     int retCode = -1;
 
     OrderedMap<string, unique_ptr<Scene>> sceneMap;
-    OrderedMap<string, unique_ptr<Handler>> handlerMap;
 
     std::unordered_set<string> sceneSweep;
-    std::unordered_set<string> handlerSweep;
 
     virtual bool handle_default(sf::Event _event);
 };
@@ -79,21 +72,6 @@ T& Application::prepend_scene(const string& _key) {
 template<class T>
 T& Application::get_scene(const string& _key) {
     return static_cast<T&>(*sceneMap.get(_key));
-}
-
-template<class T>
-T& Application::append_handler(const string& _key) {
-    handlerMap.append(_key, new T(this));
-    return static_cast<T&>(*handlerMap.back());
-}
-template<class T>
-T& Application::prepend_handler(const string& _key) {
-    handlerMap.prepend(_key, new T(this));
-    return static_cast<T&>(*handlerMap.front());
-}
-template<class T>
-T& Application::get_handler(const string& _key) {
-    return static_cast<T&>(*handlerMap.get(_key));
 }
 
 }

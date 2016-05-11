@@ -65,7 +65,7 @@ template<class T> struct Vector<4, T> {
     explicit Vector(T a, T b, Vector2<T> cd) : x(a), y(b), z(cd.x), w(cd.y) {}
     explicit Vector(Vector3<T> abc, T d) : x(abc.x), y(abc.y), z(abc.z), w(d) {}
     explicit Vector(T a, Vector3<T> bcd) : x(a), y(bcd.x), z(bcd.y), w(bcd.z) {}
-    explicit Vector(Vector2<T> ab, Vector2<T> cd) : x(ab.x), y(ab.y), z(cd.x), w(cd.w)  {}
+    explicit Vector(Vector2<T> ab, Vector2<T> cd) : x(ab.x), y(ab.y), z(cd.x), w(cd.y)  {}
 
     inline T& operator[](int _index) { return (&x)[_index]; }
     inline const T& operator[](int _index) const { return (&x)[_index]; }
@@ -129,9 +129,15 @@ template<int S, class T> inline Vector<S, T> operator-(Vector<S, T> _v) {
 }
 
 // Equality Operator /////
-template<int S, class T, is_integer<T>...>
+template<int S, class T>
 inline bool operator==(Vector<S, T> _a, Vector<S, T> _b) {
     for (int i=0; i<S; ++i) if (_a[i] != _b[i]) return false; return true;
+}
+
+// Inequality Operator /////
+template<int S, class T>
+inline bool operator!=(Vector<S, T> _a, Vector<S, T> _b) {
+    for (int i=0; i<S; ++i) if (_a[i] != _b[i]) return true; return false;
 }
 
 // Comparison Operator /////

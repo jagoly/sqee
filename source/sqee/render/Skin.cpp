@@ -65,7 +65,7 @@ void Skin::create(const string& _path) {
 
         mtrlVec.back().punch = spec.flagsSet.count("punch");
 
-        if (mtrlVec.back().punch) hasPunchThrough = true;
+        if (mtrlVec.back().punch) hasPunchThru = true;
 
         Texture::Preset preset;
         if      (spec.wrapMode == 0) preset = Texture::MipmapClamp();

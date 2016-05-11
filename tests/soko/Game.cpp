@@ -35,7 +35,7 @@ GameScene::GameScene(sq::Application* _app) : sq::Scene(_app) {
     ubo->reserve("slDirection", 4u);
     ubo->reserve("slColour", 4u);
     ubo->reserve("aColour", 4u);
-    ubo->allocate_storage();
+    ubo->create_and_allocate();
 
     Vec3F slDirection = {0.f, 0.25f, -1.f};
     Vec3F slColour = {0.7f, 0.7f, 0.7f};
@@ -274,8 +274,6 @@ void GameScene::refresh() {
 }
 
 
-bool GameHandler::handle(sf::Event _event) {
-    //GameScene& scene = app->get_scene<GameScene>("game");
-
+bool GameScene::handle(sf::Event _event) {
     return false;
 }

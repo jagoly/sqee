@@ -28,6 +28,6 @@ void TitleScene::refresh() {
 }
 
 
-bool TitleHandler::handle(sf::Event _event) {
+bool TitleScene::handle(sf::Event _event) {
     return false;
 }

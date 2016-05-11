@@ -33,6 +33,12 @@ public:
     /// Bind the fbo to gl::FRAMEBUFFER
     void bind() const;
 
+    /// Bind the fbo to gl::READ_FRAMEBUFFER
+    void bind_read_only() const;
+
+    /// Bind the fbo to gl::DRAW_FRAMEBUFFER
+    void bind_draw_only() const;
+
     /// Blit this framebuffer directly to another
     void blit(const FrameBuffer& _other, Vec2U _sizeA, Vec2U _sizeB, GLenum _mask, GLenum _filter) const;
 

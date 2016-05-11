@@ -19,6 +19,8 @@ public:
     void render();
     void refresh();
 
+    bool handle(sf::Event _event);
+
 private:
     unique_ptr<sq::Pipeline> pipeline;
     unique_ptr<sq::Camera> camera;
@@ -47,8 +49,6 @@ private:
         bool vignette, bloom;
         int shafts, ssao, fsaa;
     } INFO;
-
-    void reload_shaders();
 };
 
 }
