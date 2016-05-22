@@ -5,15 +5,13 @@
 #include <sqee/maths/Quaternion.hpp>
 
 #include <sqee/ecs/Component.hpp>
-#include <sqee/ecs/Entity.hpp>
 
 namespace sqt {
 
-class TransformComponent : public sq::Component {
+class TransformComponent : public sq::Component
+                         , public sq::ecs::TagRefresh {
 public:
     static string type() { return "Transform"; }
-
-    void setup_depends(sq::Entity* _e);
 
     // User Properties /////
     Vec3F PROP_position = {0.f, 0.f, 0.f};
@@ -22,9 +20,6 @@ public:
 
     // System Properties /////
     Mat4F matrix;
-
-    // Soft Depended Components /////
-    const TransformComponent* PRNT_Transform = nullptr;
 };
 
 }

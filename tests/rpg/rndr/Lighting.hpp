@@ -7,9 +7,9 @@
 
 #include "Renderer.hpp"
 
-namespace sqt { namespace rndr {
+namespace sqt {
 
-class Lighting final : sq::NonCopyable {
+class Renderer::Lighting : sq::NonCopyable {
 public:
     Lighting(const Renderer& _renderer);
 
@@ -50,8 +50,8 @@ private:
     Vec2U INFO_fullSize, INFO_halfSize;
     int INFO_ssao;
 
-    friend class Pretties;
-    friend class Reflects;
+    friend class Renderer::Pretties;
+    friend class Renderer::Reflects;
 };
 
-}}
+}

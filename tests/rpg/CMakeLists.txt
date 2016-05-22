@@ -16,12 +16,12 @@ set(SOURCES
     "wcoe/SkyBox.hpp"               "wcoe/SkyBox.cpp"
     "wcoe/Ambient.hpp"              "wcoe/Ambient.cpp"
     "wcoe/SkyLight.hpp"             "wcoe/SkyLight.cpp"
-    "wcoe/Animation.hpp"            "wcoe/Animation.cpp"
 
     "wcoe/objects/ModelSkelly.hpp"  "wcoe/objects/ModelSkelly.cpp"
     "wcoe/objects/RigBodyBasic.hpp" "wcoe/objects/RigBodyBasic.cpp"
     "wcoe/objects/Emitter.hpp"      "wcoe/objects/Emitter.cpp"
 
+    "components/Animator.hpp"       "components/Animator.cpp"
     "components/Transform.hpp"      "components/Transform.cpp"
     "components/Model.hpp"          "components/Model.cpp"
     "components/SpotLight.hpp"      "components/SpotLight.cpp"

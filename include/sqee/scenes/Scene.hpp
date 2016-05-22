@@ -14,9 +14,9 @@ public:
     Scene(Application* _app);
     virtual ~Scene() = default;
 
-    virtual void update() = 0;
+    virtual void tick() = 0;
     virtual void render() = 0;
-    virtual void refresh() {}
+    virtual void configure() {}
 
     virtual bool handle(sf::Event _event);
 

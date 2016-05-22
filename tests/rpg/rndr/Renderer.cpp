@@ -29,12 +29,13 @@
 #include "../wcoe/Ambient.hpp"
 #include "../wcoe/SkyLight.hpp"
 
+#include "../components/Animator.hpp"
 #include "../components/Transform.hpp"
 #include "../components/Model.hpp"
+#include "../components/Decal.hpp"
 #include "../components/SpotLight.hpp"
 #include "../components/PointLight.hpp"
 #include "../components/Reflect.hpp"
-#include "../components/Decal.hpp"
 
 #include "Shadows.hpp"
 #include "Gbuffers.hpp"
@@ -43,43 +44,13 @@
 #include "Reflects.hpp"
 #include "Renderer.hpp"
 
-using namespace sqt::rndr;
+using namespace sqt;
 namespace maths = sq::maths;
 
 Renderer::~Renderer() = default;
 
-template<class Container, class Compare> inline void
-sort_container_by(Container& _container, const Compare _compare) {
-    std::sort(_container.begin(), _container.end(), _compare); }
-
-struct Renderer::Implementation {
-    Implementation(Renderer& _renderer) : renderer(_renderer) {}
-
-    void configure_and_update_entity(sq::Entity* _e);
-
-    void configure_component_Transform(TransformComponent* _c);
-    void refresh_component_Transform(TransformComponent* _c);
-    void update_component_Transform(TransformComponent* _c);
-
-    void configure_component_Model(ModelComponent* _c);
-    void refresh_component_Model(ModelComponent* _c);
-    void update_component_Model(ModelComponent* _c);
-
-    void configure_component_SpotLight(SpotLightComponent* _c);
-    void refresh_component_SpotLight(SpotLightComponent* _c);
-    void update_component_SpotLight(SpotLightComponent* _c);
-
-    void configure_component_PointLight(PointLightComponent* _c);
-    void refresh_component_PointLight(PointLightComponent* _c);
-    void update_component_PointLight(PointLightComponent* _c);
-
-    void configure_component_Reflect(ReflectComponent* _c);
-    void refresh_component_Reflect(ReflectComponent* _c);
-    void update_component_Reflect(ReflectComponent* _c);
-
-    void configure_component_Decal(DecalComponent* _c);
-    void refresh_component_Decal(DecalComponent* _c);
-    void update_component_Decal(DecalComponent* _c);
+struct Renderer::Impl {
+    Impl(Renderer& _renderer) : renderer(_renderer) {}
 
     void update_render_lists(const sq::Entity* _e);
     void update_reflect_lists(const sq::Entity* _e);
@@ -94,364 +65,163 @@ struct Renderer::Implementation {
 };
 
 
-void Renderer::Implementation::configure_and_update_entity(sq::Entity* _e) {
-    if (auto c = _e->get_component<TransformComponent>()) {
-        if (c->needsConfigure == true) configure_component_Transform(c), c->needsConfigure = true;
-        if (c->needsRefresh == true) refresh_component_Transform(c), c->needsRefresh = true;
-    }
+void Renderer::Impl::update_render_lists(const sq::Entity* _e) {
+    auto model = _e->get_component<ModelComponent>();
+    auto decal = _e->get_component<DecalComponent>();
+    auto spotLight = _e->get_component<SpotLightComponent>();
+    auto pointLight = _e->get_component<PointLightComponent>();
+    auto reflect = _e->get_component<ReflectComponent>();
 
-    if (auto c = _e->get_component<ModelComponent>()) {
-        if (c->needsConfigure == true) configure_component_Model(c), c->needsConfigure = true;
-        if (c->needsRefresh == true) refresh_component_Model(c), c->needsRefresh = true; }
+    if (model != nullptr && reflect == nullptr && model->PROP_render == true)
+        if (sq::bbox_in_frus(model->bbox, renderer.camera.frus)) {
+            if (model->arma) renderer.cameraData.modelSkellyVec.push_back(model);
+            else renderer.cameraData.modelSimpleVec.push_back(model); }
 
-    if (auto c = _e->get_component<SpotLightComponent>()) {
-        if (c->needsConfigure == true) configure_component_SpotLight(c), c->needsConfigure = true;
-        if (c->needsRefresh == true) refresh_component_SpotLight(c), c->needsRefresh = true; }
+    if (model != nullptr && reflect != nullptr && model->PROP_render == true) {
+        float camOffset = maths::dot(renderer.camera.pos, reflect->normal);
+        float offset = maths::dot(-reflect->normal, reflect->trans);
+        if (camOffset + offset > 0.f && sq::bbox_in_frus(model->bbox, renderer.camera.frus)) {
+            renderer.reflectDataVec.emplace_back(reflect, model, sq::reflect_Frustum(renderer.camera.frus, reflect->normal, reflect->trans));
+            renderer.cameraData.modelSimpleVec.push_back(model); } }
 
-    if (auto c = _e->get_component<PointLightComponent>()) {
-        if (c->needsConfigure == true) configure_component_PointLight(c), c->needsConfigure = true;
-        if (c->needsRefresh == true) refresh_component_PointLight(c), c->needsRefresh = true; }
-
-    if (auto c = _e->get_component<ReflectComponent>()) {
-        if (c->needsConfigure == true) configure_component_Reflect(c), c->needsConfigure = true;
-        if (c->needsRefresh == true) refresh_component_Reflect(c), c->needsRefresh = true; }
-
-    if (auto c = _e->get_component<DecalComponent>()) {
-        if (c->needsConfigure == true) configure_component_Decal(c), c->needsConfigure = true;
-        if (c->needsRefresh == true) refresh_component_Decal(c), c->needsRefresh = true; }
-
-    for (auto& child : _e->get_children())
-        configure_and_update_entity(child.get());
-}
-
-
-void Renderer::Implementation::configure_component_Transform(TransformComponent* _c) {}
-
-void Renderer::Implementation::refresh_component_Transform(TransformComponent* _c) {
-    _c->matrix = maths::translate(Mat4F(), _c->PROP_position);
-    _c->matrix *= Mat4F(Mat3F(_c->PROP_rotation) * Mat3F(_c->PROP_scale));
-
-    if (_c->PRNT_Transform != nullptr)
-        _c->matrix = _c->PRNT_Transform->matrix * _c->matrix;
-}
-
-void Renderer::Implementation::update_component_Transform(TransformComponent* _c) {}
-
-
-void Renderer::Implementation::configure_component_Model(ModelComponent* _c) {
-    if ((_c->mesh = sq::static_Mesh().get(_c->PROP_mesh)) == nullptr)
-        _c->mesh = sq::static_Mesh().add(_c->PROP_mesh, _c->PROP_mesh);
-    if ((_c->skin = sq::static_Skin().get(_c->PROP_skin)) == nullptr)
-        _c->skin = sq::static_Skin().add(_c->PROP_skin, _c->PROP_skin);
-
-    if (_c->PROP_arma.empty() == false) {
-        if ((_c->arma = sq::static_Armature().get(_c->PROP_arma)) == nullptr)
-            _c->arma = sq::static_Armature().add(_c->PROP_arma, _c->PROP_arma);
-
-        if (_c->arma->boneVector.size() * 12u != _c->ubo.get_size() - 32u) {
-            _c->ubo.delete_object();
-            _c->ubo.reserve("matrix", 16u);
-            _c->ubo.reserve("normMat", 16u);
-            _c->ubo.reserve("bones", _c->arma->boneVector.size() * 12u);
-            _c->ubo.create_and_allocate();
-        }
-    } else if (_c->ubo.get_size() != 32u) {
-        _c->ubo.delete_object();
-        _c->ubo.reserve("matrix", 16u);
-        _c->ubo.reserve("normMat", 16u);
-        _c->ubo.create_and_allocate();
-        _c->arma = nullptr;
-    }
-}
-
-void Renderer::Implementation::refresh_component_Model(ModelComponent* _c) {
-    _c->matrix = maths::scale(_c->DEP_Transform->matrix, _c->PROP_scale);
-    _c->normMat = Mat4F(maths::transpose(maths::inverse(Mat3F(renderer.world.camera->viewMat * _c->matrix))));
-    _c->bbox = sq::make_BoundBox(_c->matrix, _c->mesh->origin, _c->mesh->radius, _c->mesh->bbsize);
-    _c->negScale = maths::determinant(_c->matrix) < 0.f;
-
-    _c->ubo.update("matrix", &_c->matrix);
-    _c->ubo.update("normMat", &_c->normMat);
-
-    if (_c->arma != nullptr) {
-        const auto uboData = sq::Armature::make_UboData(_c->arma->poseMap.at(_c->PROP_pose));
-        _c->ubo.update("bones", uboData.data());
-    }
-}
-
-void Renderer::Implementation::update_component_Model(ModelComponent* _c) {}
-
-
-void Renderer::Implementation::configure_component_SpotLight(SpotLightComponent* _c) {
-    if (_c->PROP_texsize == 0u) _c->tex.delete_object();
-    else { uint newSize = _c->PROP_texsize * (renderer.settings.get<bool>("rpg_shadlarge") + 1u);
-        if (newSize != _c->tex.get_size().x) _c->tex.allocate_storage(Vec2U(newSize), false); }
-}
-
-void Renderer::Implementation::refresh_component_SpotLight(SpotLightComponent* _c) {
-    Vec3F position = Vec3F(_c->DEP_Transform->matrix[3]);
-    Vec3F direction = maths::normalize(Mat3F(_c->DEP_Transform->matrix) * Vec3F(0.f, 0.f, -1.f));
-    Vec3F tangent = maths::normalize(Mat3F(_c->DEP_Transform->matrix) * Vec3F(0.f, 1.f, 0.f));
-    Mat4F viewMat = maths::look_at(position, position + direction, tangent);
-
-    float angle = maths::radians(_c->PROP_angle);
-    float intensity = maths::length(Vec3F(_c->DEP_Transform->matrix[0]));
-    _c->matrix = maths::perspective(angle*2.f, 1.f, 0.2f, intensity) * viewMat;
-    _c->frus = sq::make_Frustum(_c->matrix, position, direction, 0.2f, intensity);
-    Vec3F modelScale = Vec3F(Vec2F(-std::tan(angle*2.f)), -1.f) * intensity;
-    _c->modelMat = maths::scale(maths::inverse(viewMat), modelScale);
-
-    _c->ubo.update("direction", &direction);
-    _c->ubo.update("intensity", &intensity);
-    _c->ubo.update("position", &position);
-    _c->ubo.update("softness", &_c->PROP_softness);
-    _c->ubo.update("colour", &_c->PROP_colour);
-    _c->ubo.update("angle", &angle);
-    _c->ubo.update("matrix", &_c->matrix);
-}
-
-void Renderer::Implementation::update_component_SpotLight(SpotLightComponent* _c) {}
-
-
-void Renderer::Implementation::configure_component_PointLight(PointLightComponent* _c) {
-    if (_c->PROP_texsize == 0u) _c->tex.delete_object();
-    else { uint newSize = _c->PROP_texsize * (renderer.settings.get<bool>("rpg_shadlarge") + 1u);
-        if (newSize != _c->tex.get_size().x) _c->tex.allocate_storage(newSize, false); }
-}
-
-void Renderer::Implementation::refresh_component_PointLight(PointLightComponent* _c) {
-    Vec3F position = Vec3F(_c->DEP_Transform->matrix[3]);
-    float intensity = maths::length(Vec3F(_c->DEP_Transform->matrix[0]));
-    _c->modelMat = maths::scale(maths::translate(Mat4F(), position), Vec3F(intensity*2.f));
-    _c->sphere.origin = position; _c->sphere.radius = intensity;
-
-    _c->ubo.update("position", &position);
-    _c->ubo.update("colour", &_c->PROP_colour);
-    _c->ubo.update("intensity", &intensity);
-
-    if (_c->PROP_texsize != 0u) {
-        Mat4F projMat = maths::perspective(maths::radians(0.25f), 1.f, 0.1f, intensity);
-        _c->matArr[0] = projMat * maths::look_at(position, position+Vec3F(+1.f, 0.f, 0.f), {0.f, -1.f, 0.f});
-        _c->matArr[1] = projMat * maths::look_at(position, position+Vec3F(-1.f, 0.f, 0.f), {0.f, -1.f, 0.f});
-        _c->matArr[2] = projMat * maths::look_at(position, position+Vec3F(0.f, +1.f, 0.f), {0.f, 0.f, +1.f});
-        _c->matArr[3] = projMat * maths::look_at(position, position+Vec3F(0.f, -1.f, 0.f), {0.f, 0.f, -1.f});
-        _c->matArr[4] = projMat * maths::look_at(position, position+Vec3F(0.f, 0.f, +1.f), {0.f, -1.f, 0.f});
-        _c->matArr[5] = projMat * maths::look_at(position, position+Vec3F(0.f, 0.f, -1.f), {0.f, -1.f, 0.f});
-        _c->frusArr[0] = sq::make_Frustum(_c->matArr[0], position, {+1.f, 0.f, 0.f}, 0.1f, intensity);
-        _c->frusArr[1] = sq::make_Frustum(_c->matArr[1], position, {-1.f, 0.f, 0.f}, 0.1f, intensity);
-        _c->frusArr[2] = sq::make_Frustum(_c->matArr[2], position, {0.f, +1.f, 0.f}, 0.1f, intensity);
-        _c->frusArr[3] = sq::make_Frustum(_c->matArr[3], position, {0.f, -1.f, 0.f}, 0.1f, intensity);
-        _c->frusArr[4] = sq::make_Frustum(_c->matArr[4], position, {0.f, 0.f, +1.f}, 0.1f, intensity);
-        _c->frusArr[5] = sq::make_Frustum(_c->matArr[5], position, {0.f, 0.f, -1.f}, 0.1f, intensity);
-        _c->ubo.update("matArr", _c->matArr.data());
-    }
-}
-
-void Renderer::Implementation::update_component_PointLight(PointLightComponent* _c) {}
-
-
-void Renderer::Implementation::configure_component_Reflect(ReflectComponent* _c) {}
-
-void Renderer::Implementation::refresh_component_Reflect(ReflectComponent* _c) {
-    _c->normal = maths::normalize(sq::make_normMat(_c->DEP_Transform->matrix) * Vec3F(0.f, 0.f, 1.f));
-    _c->trans = Vec3F(_c->DEP_Transform->matrix[3]);
-
-    _c->ubo.update("normal", &_c->normal);
-    _c->ubo.update("trans", &_c->trans);
-    _c->ubo.update("factor", &_c->PROP_factor);
-}
-
-void Renderer::Implementation::update_component_Reflect(ReflectComponent* _c) {}
-
-
-void Renderer::Implementation::configure_component_Decal(DecalComponent* _c) {
-    if (_c->PROP_diff.empty() == false) {
-        const string path = "decals/" + _c->PROP_diff + "_d";
-        if ((_c->texDiff = sq::static_Texture2D().get(path)) == nullptr) {
-            _c->texDiff = sq::static_Texture2D().add(path, gl::RGBA, gl::RGBA8, sq::Texture::MipmapClamp());
-            _c->texDiff->buffer_auto(path, true); } }
-    if (_c->PROP_norm.empty() == false) {
-        const string path = "decals/" + _c->PROP_norm + "_n";
-        if ((_c->texNorm = sq::static_Texture2D().get(path)) == nullptr) {
-            _c->texNorm = sq::static_Texture2D().add(path, gl::RGBA, gl::RGBA8, sq::Texture::MipmapClamp());
-            _c->texNorm->buffer_auto(path, true); } }
-    if (_c->PROP_spec.empty() == false) {
-        const string path = "decals/" + _c->PROP_spec + "_s";
-        if ((_c->texSpec = sq::static_Texture2D().get(path)) == nullptr) {
-            _c->texSpec = sq::static_Texture2D().add(path, gl::RGBA, gl::RGBA8, sq::Texture::MipmapClamp());
-            _c->texSpec->buffer_auto(path, true); } }
-
-    Vec3I d_n_s(Vec3B(_c->texDiff, _c->texNorm, _c->texSpec));
-    _c->ubo.update("d_n_s", &d_n_s);
-}
-
-void Renderer::Implementation::refresh_component_Decal(DecalComponent* _c) {
-    _c->matrix = maths::scale(_c->DEP_Transform->matrix, _c->PROP_scale);
-    _c->bbox = sq::make_BoundBox(_c->matrix, Vec3F(0.f), 0.87f, Vec3F(1.f));
-    _c->invMat = maths::inverse(_c->matrix);
-
-    _c->ubo.update("matrix", &_c->matrix);
-    _c->ubo.update("invMat", &_c->invMat);
-    _c->ubo.update("alpha", &_c->PROP_alpha);
-}
-
-void Renderer::Implementation::update_component_Decal(DecalComponent* _c) {}
-
-
-void Renderer::Implementation::update_render_lists(const sq::Entity* _e) {
-    auto modelC = _e->get_component<ModelComponent>();
-    auto spotLightC = _e->get_component<SpotLightComponent>();
-    auto pointLightC = _e->get_component<PointLightComponent>();
-    auto reflectC = _e->get_component<ReflectComponent>();
-    auto decalC = _e->get_component<DecalComponent>();
-
-    if (modelC != nullptr && reflectC == nullptr && modelC->PROP_render == true)
-        if (sq::bbox_in_frus(modelC->bbox, renderer.camera->frus)) {
-            if (modelC->arma) renderer.cameraData.modelSkellyVec.push_back(modelC);
-            else renderer.cameraData.modelSimpleVec.push_back(modelC); }
-
-    if (modelC != nullptr && reflectC != nullptr && modelC->PROP_render == true) {
-        float camOffset = maths::dot(renderer.camera->pos, reflectC->normal);
-        float offset = maths::dot(-reflectC->normal, reflectC->trans);
-        if (camOffset + offset > 0.f && sq::bbox_in_frus(modelC->bbox, renderer.camera->frus)) {
-            renderer.reflectDataVec.emplace_back(reflectC, sq::reflect_Frustum(renderer.camera->frus, reflectC->normal, reflectC->trans));
-            renderer.cameraData.modelSimpleVec.push_back(modelC); } }
-
-    if (modelC != nullptr && modelC->PROP_shadow == true) {
+    if (model != nullptr && model->PROP_shadow == true) {
         for (uint csm = 0u; csm < 4u; ++csm)
-            if (sq::bbox_in_orth(modelC->bbox, renderer.world.skylight->orthArrA[csm])) {
-                if (modelC->arma && modelC->skin->hasPunchThru) renderer.skyLightData.modelSkellyPunchVecArrA[csm].push_back(modelC);
-                else if (modelC->skin->hasPunchThru) renderer.skyLightData.modelSimplePunchVecArrA[csm].push_back(modelC);
-                else if (modelC->arma) renderer.skyLightData.modelSkellyVecArrA[csm].push_back(modelC);
-                else renderer.skyLightData.modelSimpleVecArrA[csm].push_back(modelC); }
+            if (sq::bbox_in_orth(model->bbox, renderer.world.skylight->orthArrA[csm])) {
+                if (model->arma && model->skin->hasPunchThru) renderer.skyLightData.modelSkellyPunchVecArrA[csm].push_back(model);
+                else if (model->skin->hasPunchThru) renderer.skyLightData.modelSimplePunchVecArrA[csm].push_back(model);
+                else if (model->arma) renderer.skyLightData.modelSkellyVecArrA[csm].push_back(model);
+                else renderer.skyLightData.modelSimpleVecArrA[csm].push_back(model); }
 
         for (uint csm = 0u; csm < 2u; ++csm)
-            if (sq::bbox_in_orth(modelC->bbox, renderer.world.skylight->orthArrB[csm])) {
-                if (modelC->arma && modelC->skin->hasPunchThru) renderer.skyLightData.modelSkellyPunchVecArrB[csm].push_back(modelC);
-                else if (modelC->skin->hasPunchThru) renderer.skyLightData.modelSimplePunchVecArrB[csm].push_back(modelC);
-                else if (modelC->arma) renderer.skyLightData.modelSkellyVecArrB[csm].push_back(modelC);
-                else renderer.skyLightData.modelSimpleVecArrB[csm].push_back(modelC); }
+            if (sq::bbox_in_orth(model->bbox, renderer.world.skylight->orthArrB[csm])) {
+                if (model->arma && model->skin->hasPunchThru) renderer.skyLightData.modelSkellyPunchVecArrB[csm].push_back(model);
+                else if (model->skin->hasPunchThru) renderer.skyLightData.modelSimplePunchVecArrB[csm].push_back(model);
+                else if (model->arma) renderer.skyLightData.modelSkellyVecArrB[csm].push_back(model);
+                else renderer.skyLightData.modelSimpleVecArrB[csm].push_back(model); }
     }
 
-    if (spotLightC != nullptr && spotLightC->PROP_texsize != 0u)
-        if (sq::frus_in_frus(spotLightC->frus, renderer.camera->frus))
-            renderer.cameraData.spotLightShadowVec.push_back(spotLightC),
-            visibleSpotLightSet.emplace(spotLightC);
+    if (decal != nullptr && decal->PROP_alpha > 0.001f)
+        if (sq::bbox_in_frus(decal->bbox, renderer.camera.frus)) {
+            if (decal->texDiff && decal->texNorm && decal->texSpec)
+                renderer.cameraData.decalCompleteVec.push_back(decal);
+            else renderer.cameraData.decalPartialVec.push_back(decal); }
 
-    if (spotLightC != nullptr && spotLightC->PROP_texsize == 0u)
-        if (sq::frus_in_frus(spotLightC->frus, renderer.camera->frus))
-            renderer.cameraData.spotLightNoShadowVec.push_back(spotLightC);
+    if (spotLight != nullptr && spotLight->PROP_texsize != 0u)
+        if (sq::frus_in_frus(spotLight->frus, renderer.camera.frus))
+            renderer.cameraData.spotLightShadowVec.push_back(spotLight),
+            visibleSpotLightSet.emplace(spotLight);
 
-    if (pointLightC != nullptr && pointLightC->PROP_texsize != 0u)
-        if (sq::sphr_in_frus(pointLightC->sphere, renderer.camera->frus)) {
-            auto& visible = visiblePointLightMap[pointLightC];
-            visible[0] = sq::frus_in_frus(pointLightC->frusArr[0], renderer.camera->frus);
-            visible[1] = sq::frus_in_frus(pointLightC->frusArr[1], renderer.camera->frus);
-            visible[2] = sq::frus_in_frus(pointLightC->frusArr[2], renderer.camera->frus);
-            visible[3] = sq::frus_in_frus(pointLightC->frusArr[3], renderer.camera->frus);
-            visible[4] = sq::frus_in_frus(pointLightC->frusArr[4], renderer.camera->frus);
-            visible[5] = sq::frus_in_frus(pointLightC->frusArr[5], renderer.camera->frus);
-            renderer.cameraData.pointLightShadowVec.push_back(pointLightC); }
+    if (spotLight != nullptr && spotLight->PROP_texsize == 0u)
+        if (sq::frus_in_frus(spotLight->frus, renderer.camera.frus))
+            renderer.cameraData.spotLightNoShadowVec.push_back(spotLight);
 
-    if (pointLightC != nullptr && pointLightC->PROP_texsize == 0u)
-        if (sq::sphr_in_frus(pointLightC->sphere, renderer.camera->frus))
-            renderer.cameraData.pointLightNoShadowVec.push_back(pointLightC);
+    if (pointLight != nullptr && pointLight->PROP_texsize != 0u)
+        if (sq::sphr_in_frus(pointLight->sphere, renderer.camera.frus)) {
+            auto& visible = visiblePointLightMap[pointLight];
+            visible[0] = sq::frus_in_frus(pointLight->frusArr[0], renderer.camera.frus);
+            visible[1] = sq::frus_in_frus(pointLight->frusArr[1], renderer.camera.frus);
+            visible[2] = sq::frus_in_frus(pointLight->frusArr[2], renderer.camera.frus);
+            visible[3] = sq::frus_in_frus(pointLight->frusArr[3], renderer.camera.frus);
+            visible[4] = sq::frus_in_frus(pointLight->frusArr[4], renderer.camera.frus);
+            visible[5] = sq::frus_in_frus(pointLight->frusArr[5], renderer.camera.frus);
+            renderer.cameraData.pointLightShadowVec.push_back(pointLight); }
 
-    if (decalC != nullptr && decalC->PROP_alpha > 0.001f)
-        if (sq::bbox_in_frus(decalC->bbox, renderer.camera->frus)) {
-            if (decalC->texDiff && decalC->texNorm && decalC->texSpec)
-                renderer.cameraData.decalCompleteVec.push_back(decalC);
-            else renderer.cameraData.decalPartialVec.push_back(decalC); }
+    if (pointLight != nullptr && pointLight->PROP_texsize == 0u)
+        if (sq::sphr_in_frus(pointLight->sphere, renderer.camera.frus))
+            renderer.cameraData.pointLightNoShadowVec.push_back(pointLight);
 
     for (auto& child : _e->get_children())
         update_render_lists(child.get());
 }
 
 
-void Renderer::Implementation::update_reflect_lists(const sq::Entity* _e) {
-    auto modelC = _e->get_component<ModelComponent>();
-    auto spotLightC = _e->get_component<SpotLightComponent>();
-    auto pointLightC = _e->get_component<PointLightComponent>();
-    auto decalC = _e->get_component<DecalComponent>();
+void Renderer::Impl::update_reflect_lists(const sq::Entity* _e) {
+    auto model = _e->get_component<ModelComponent>();
+    auto decal = _e->get_component<DecalComponent>();
+    auto spotLight = _e->get_component<SpotLightComponent>();
+    auto pointLight = _e->get_component<PointLightComponent>();
 
-    if (modelC != nullptr && modelC->PROP_render == true)
+    if (model != nullptr && model->PROP_render == true)
         for (auto& data : renderer.reflectDataVec)
-            if (sq::bbox_in_frus(modelC->bbox, data.frus)) {
-                if (modelC->arma) data.modelSkellyVec.push_back(modelC);
-                else data.modelSimpleVec.push_back(modelC); }
+            if (sq::bbox_in_frus(model->bbox, data.frus)) {
+                if (model->arma) data.modelSkellyVec.push_back(model);
+                else data.modelSimpleVec.push_back(model); }
 
-    if (spotLightC != nullptr && spotLightC->PROP_texsize != 0u)
+    if (decal != nullptr && decal->PROP_alpha > 0.001f)
         for (auto& data : renderer.reflectDataVec)
-            if (sq::frus_in_frus(spotLightC->frus, data.frus))
-                data.spotLightShadowVec.push_back(spotLightC),
-                visibleSpotLightSet.emplace(spotLightC);
+            if (sq::bbox_in_frus(decal->bbox, data.frus))
+                if (decal->texDiff) data.decalDiffVec.push_back(decal);
 
-    if (spotLightC != nullptr && spotLightC->PROP_texsize == 0u)
+    if (spotLight != nullptr && spotLight->PROP_texsize != 0u)
         for (auto& data : renderer.reflectDataVec)
-        if (sq::frus_in_frus(spotLightC->frus, data.frus))
-            data.spotLightNoShadowVec.push_back(spotLightC);
+            if (sq::frus_in_frus(spotLight->frus, data.frus))
+                data.spotLightShadowVec.push_back(spotLight),
+                visibleSpotLightSet.emplace(spotLight);
 
-    if (pointLightC != nullptr && pointLightC->PROP_texsize != 0u)
+    if (spotLight != nullptr && spotLight->PROP_texsize == 0u)
         for (auto& data : renderer.reflectDataVec)
-            if (sq::sphr_in_frus(pointLightC->sphere, data.frus)) {
-                auto& visible = visiblePointLightMap[pointLightC];
-                visible[0] |= sq::frus_in_frus(pointLightC->frusArr[0], data.frus);
-                visible[1] |= sq::frus_in_frus(pointLightC->frusArr[1], data.frus);
-                visible[2] |= sq::frus_in_frus(pointLightC->frusArr[2], data.frus);
-                visible[3] |= sq::frus_in_frus(pointLightC->frusArr[3], data.frus);
-                visible[4] |= sq::frus_in_frus(pointLightC->frusArr[4], data.frus);
-                visible[5] |= sq::frus_in_frus(pointLightC->frusArr[5], data.frus);
-                data.pointLightShadowVec.push_back(pointLightC); }
+        if (sq::frus_in_frus(spotLight->frus, data.frus))
+            data.spotLightNoShadowVec.push_back(spotLight);
 
-    if (pointLightC != nullptr && pointLightC->PROP_texsize == 0u)
+    if (pointLight != nullptr && pointLight->PROP_texsize != 0u)
         for (auto& data : renderer.reflectDataVec)
-            if (sq::sphr_in_frus(pointLightC->sphere, data.frus))
-                data.pointLightNoShadowVec.push_back(pointLightC);
+            if (sq::sphr_in_frus(pointLight->sphere, data.frus)) {
+                auto& visible = visiblePointLightMap[pointLight];
+                visible[0] |= sq::frus_in_frus(pointLight->frusArr[0], data.frus);
+                visible[1] |= sq::frus_in_frus(pointLight->frusArr[1], data.frus);
+                visible[2] |= sq::frus_in_frus(pointLight->frusArr[2], data.frus);
+                visible[3] |= sq::frus_in_frus(pointLight->frusArr[3], data.frus);
+                visible[4] |= sq::frus_in_frus(pointLight->frusArr[4], data.frus);
+                visible[5] |= sq::frus_in_frus(pointLight->frusArr[5], data.frus);
+                data.pointLightShadowVec.push_back(pointLight); }
 
-    if (decalC != nullptr && decalC->PROP_alpha > 0.001f)
+    if (pointLight != nullptr && pointLight->PROP_texsize == 0u)
         for (auto& data : renderer.reflectDataVec)
-            if (sq::bbox_in_frus(decalC->bbox, data.frus))
-                if (decalC->texDiff) data.decalDiffVec.push_back(decalC);
+            if (sq::sphr_in_frus(pointLight->sphere, data.frus))
+                data.pointLightNoShadowVec.push_back(pointLight);
 
     for (auto& child : _e->get_children())
         update_reflect_lists(child.get());
 }
 
 
-void Renderer::Implementation::update_light_lists(const sq::Entity* _e) {
-    auto modelC = _e->get_component<ModelComponent>();
+void Renderer::Impl::update_light_lists(const sq::Entity* _e) {
+    auto model = _e->get_component<ModelComponent>();
 
-    if (modelC != nullptr && modelC->PROP_shadow == true)
+    if (model != nullptr && model->PROP_shadow == true)
         for (auto& data : renderer.spotLightDataVec)
-            if (sq::bbox_in_frus(modelC->bbox, data.light->frus)) {
-                if (modelC->arma && modelC->skin->hasPunchThru) data.modelSkellyPunchVec.push_back(modelC);
-                else if (modelC->skin->hasPunchThru) data.modelSimplePunchVec.push_back(modelC);
-                else if (modelC->arma) data.modelSkellyVec.push_back(modelC);
-                else data.modelSimpleVec.push_back(modelC); }
+            if (sq::bbox_in_frus(model->bbox, data.light->frus)) {
+                if (model->arma && model->skin->hasPunchThru) data.modelSkellyPunchVec.push_back(model);
+                else if (model->skin->hasPunchThru) data.modelSimplePunchVec.push_back(model);
+                else if (model->arma) data.modelSkellyVec.push_back(model);
+                else data.modelSimpleVec.push_back(model); }
 
-    if (modelC != nullptr && modelC->PROP_shadow == true)
+    if (model != nullptr && model->PROP_shadow == true)
         for (auto& data : renderer.pointLightDataVec)
             for (uint face = 0u; face < 6u; ++face)
-                if (data.visibleFaceArr[face] && sq::bbox_in_frus(modelC->bbox, data.light->frusArr[face])) {
-                    if (modelC->arma && modelC->skin->hasPunchThru) data.modelSkellyPunchVecArr[face].push_back(modelC);
-                    else if (modelC->skin->hasPunchThru) data.modelSimplePunchVecArr[face].push_back(modelC);
-                    else if (modelC->arma) data.modelSkellyVecArr[face].push_back(modelC);
-                    else data.modelSimpleVecArr[face].push_back(modelC); }
+                if (data.visibleFaceArr[face] && sq::bbox_in_frus(model->bbox, data.light->frusArr[face])) {
+                    if (model->arma && model->skin->hasPunchThru) data.modelSkellyPunchVecArr[face].push_back(model);
+                    else if (model->skin->hasPunchThru) data.modelSimplePunchVecArr[face].push_back(model);
+                    else if (model->arma) data.modelSkellyVecArr[face].push_back(model);
+                    else data.modelSimpleVecArr[face].push_back(model); }
 
     for (auto& child : _e->get_children())
         update_light_lists(child.get());
 }
 
 
-void Renderer::Implementation::sort_render_lists() {
-    const auto cameraCompareFunc = [this](const ModelComponent* a, const ModelComponent* b) {
-        return maths::distance(renderer.camera->pos, a->bbox.origin) <
-               maths::distance(renderer.camera->pos, b->bbox.origin); };
+void Renderer::Impl::sort_render_lists() {
+    auto sort_container_by = [](auto& _container, const auto _compare) {
+        std::sort(_container.begin(), _container.end(), _compare); };
+
+    auto cameraCompareFunc = [this](const ModelComponent* a, const ModelComponent* b) {
+        return maths::distance(renderer.camera.pos, a->bbox.origin) <
+               maths::distance(renderer.camera.pos, b->bbox.origin); };
 
     sort_container_by(renderer.cameraData.modelSimpleVec, cameraCompareFunc);
     sort_container_by(renderer.cameraData.modelSkellyVec, cameraCompareFunc);
 
-    const auto skyLightCompareFunc = [this](const ModelComponent* a, const ModelComponent* b) {
+    auto skyLightCompareFunc = [this](const ModelComponent* a, const ModelComponent* b) {
         return maths::dot(renderer.world.skylight->PROP_direction, a->bbox.origin) <
                maths::dot(renderer.world.skylight->PROP_direction, b->bbox.origin); };
 
@@ -470,7 +240,7 @@ void Renderer::Implementation::sort_render_lists() {
     }
 
     for (auto& data : renderer.spotLightDataVec) {
-        const auto spotLightCompareFunc = [&](const ModelComponent* a, const ModelComponent* b) {
+        auto spotLightCompareFunc = [&](const ModelComponent* a, const ModelComponent* b) {
             return maths::distance(data.light->frus.points[0], a->bbox.origin) <
                    maths::distance(data.light->frus.points[0], b->bbox.origin); };
 
@@ -482,7 +252,7 @@ void Renderer::Implementation::sort_render_lists() {
 
     for (auto& data : renderer.pointLightDataVec) {
         for (uint face = 0u; face < 6u; ++face) {
-            const auto pointLightCompareFunc = [&](const ModelComponent* a, const ModelComponent* b) {
+            auto pointLightCompareFunc = [&](const ModelComponent* a, const ModelComponent* b) {
                 return maths::distance(data.light->sphere.origin, a->bbox.origin) <
                        maths::distance(data.light->sphere.origin, b->bbox.origin); };
 
@@ -494,9 +264,9 @@ void Renderer::Implementation::sort_render_lists() {
     }
 
     for (auto& data : renderer.reflectDataVec) {
-        const auto reflectCompareFunc = [&](const ModelComponent* a, const ModelComponent* b) {
-            return maths::distance(renderer.camera->pos, maths::reflect(a->bbox.origin, data.reflect->normal, data.reflect->trans)) <
-                   maths::distance(renderer.camera->pos, maths::reflect(a->bbox.origin, data.reflect->normal, data.reflect->trans)); };
+        auto reflectCompareFunc = [&](const ModelComponent* a, const ModelComponent* b) {
+            return maths::distance(renderer.camera.pos, maths::reflect(a->bbox.origin, data.reflect->normal, data.reflect->trans)) <
+                   maths::distance(renderer.camera.pos, maths::reflect(a->bbox.origin, data.reflect->normal, data.reflect->trans)); };
 
         sort_container_by(data.modelSimpleVec, reflectCompareFunc);
         sort_container_by(data.modelSkellyVec, reflectCompareFunc);
@@ -504,7 +274,8 @@ void Renderer::Implementation::sort_render_lists() {
 }
 
 
-void Renderer::prepare_render_stuff() {
+void Renderer::render_scene() {
+    // clear old render lists
     cameraData = CameraData();
     skyLightData = SkyLightData();
     impl->visibleSpotLightSet.clear();
@@ -513,29 +284,49 @@ void Renderer::prepare_render_stuff() {
     pointLightDataVec.clear();
     reflectDataVec.clear();
 
-    impl->configure_and_update_entity(&world.root);
-
+    // fill and sort new render lists
     impl->update_render_lists(&world.root);
-
     impl->update_reflect_lists(&world.root);
-
     for (auto light : impl->visibleSpotLightSet)
         spotLightDataVec.emplace_back(light);
-
     for (const auto& light : impl->visiblePointLightMap)
         pointLightDataVec.emplace_back(light.first, light.second);
-
     impl->update_light_lists(&world.root);
-
     impl->sort_render_lists();
+
+    // render to shadow maps
+    shadows->setup_render_state();
+    shadows->render_shadows_sky();
+    shadows->render_shadows_spot();
+    shadows->render_shadows_point();
+
+    // write gbuffers for main view
+    gbuffers->render_gbuffers_base();
+
+    // render ssao texture for main view
+    pretties->render_post_gbuffers();
+
+    // render lighting for main view
+    lighting->render_lighting_base();
+
+    // render reflections to main view
+    reflects->render_reflections();
+
+    //renderer->render_particles();
+
+    // render light shafts and bloom
+    pretties->render_post_lighting();
+
+    // composite final image to screen
+    pretties->render_final_screen();
 }
 
 
 Renderer::Renderer(sq::MessageBus& _messageBus, const sq::Settings& _settings,
                    const sq::PreProcessor& _preprocs, const sq::Pipeline& _pipeline,
-                   wcoe::World& _world)
+                   const sq::Camera& _camera, const World& _world)
     : messageBus(_messageBus), settings(_settings), preprocs(_preprocs),
-      pipeline(_pipeline), world(_world), impl(new Implementation(*this)) {
+      pipeline(_pipeline), camera(_camera), world(_world), impl(new Impl(*this)) {
 
     shadows.reset(new Shadows(*this));
     gbuffers.reset(new Gbuffers(*this));
@@ -543,7 +334,7 @@ Renderer::Renderer(sq::MessageBus& _messageBus, const sq::Settings& _settings,
     pretties.reset(new Pretties(*this));
     reflects.reset(new Reflects(*this));
 
-    // Particles /////
+    /*// Particles /////
     gl::GenVertexArrays(1, &partVAO);
     gl::GenBuffers(1, &partVBO);
     gl::GenBuffers(1, &partIBO);
@@ -552,7 +343,7 @@ Renderer::Renderer(sq::MessageBus& _messageBus, const sq::Settings& _settings,
     gl::BindBuffer(gl::ARRAY_BUFFER, partVBO);
     gl::VertexAttribPointer(0, 4, gl::FLOAT, false, 32, (void*)(0));
     gl::VertexAttribPointer(1, 4, gl::FLOAT, false, 32, (void*)(16));
-    gl::EnableVertexAttribArray(0); gl::EnableVertexAttribArray(1);
+    gl::EnableVertexAttribArray(0); gl::EnableVertexAttribArray(1);*/
 
     VS_stencil_base.add_uniform("matrix"); // mat4
     VS_stencil_refl.add_uniform("matrix"); // mat4
@@ -577,7 +368,7 @@ Renderer::Renderer(sq::MessageBus& _messageBus, const sq::Settings& _settings,
 }
 
 
-void Renderer::update_settings() {    
+void Renderer::configure() {
     //string defLightBase = "";
     //if (INFO.shadlarge) defLightBase += "#define LARGE\n";
     //if (INFO.shadfilter) defLightBase += "#define FILTER";
@@ -589,8 +380,6 @@ void Renderer::update_settings() {
     //preprocs.load(FS_part_soft_spot_shad, "particles/soft/spotlight_fs", defLightShad);
     //preprocs.load(FS_part_soft_point_none, "particles/soft/pointlight_fs", defLightBase);
     //preprocs.load(FS_part_soft_point_shad, "particles/soft/pointlight_fs", defLightShad);
-
-    impl->configure_and_update_entity(&world.root);
 
     shadows->update_settings();
     gbuffers->update_settings();

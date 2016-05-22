@@ -103,7 +103,12 @@ GameScene::GameScene(sq::Application* _app) : sq::Scene(_app) {
 }
 
 
-void GameScene::update() {
+void GameScene::configure() {
+    camera->size = Vec2F(app->get_size());
+}
+
+
+void GameScene::tick() {
     const Vec2I offsets[4] = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
     rotCrnt = rotNext; posCrnt = posNext;
     bool skipTurnMove = false;
@@ -266,11 +271,6 @@ void GameScene::render() {
 
     gl::BindProgramPipeline(0u);
     gl::BindVertexArray(0u);
-}
-
-
-void GameScene::refresh() {
-    camera->size = Vec2F(app->get_size());
 }
 
 

@@ -8,19 +8,16 @@
 #include <sqee/gl/Textures.hpp>
 
 #include <sqee/ecs/Component.hpp>
-#include <sqee/ecs/Entity.hpp>
 
 namespace sqt {
 
-class TransformComponent;
-
-class PointLightComponent : public sq::Component {
+class PointLightComponent : public sq::Component
+                          , public sq::ecs::TagConfigure
+                          , public sq::ecs::TagRefresh {
 public:
     PointLightComponent();
 
     static string type() { return "PointLight"; }
-
-    void setup_depends(sq::Entity* _e);
 
     // User Properties /////
     Vec3F PROP_colour  = {1.f, 1.f, 1.f};
@@ -33,9 +30,6 @@ public:
     array<Mat4F, 6> matArr;
     sq::Sphere sphere;
     Mat4F modelMat;
-
-    // Hard Depended Components /////
-    const TransformComponent* DEP_Transform;
 };
 
 }

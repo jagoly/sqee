@@ -7,9 +7,9 @@
 
 #include "Renderer.hpp"
 
-namespace sqt { namespace rndr {
+namespace sqt {
 
-class Shadows final : sq::NonCopyable {
+class Renderer::Shadows : sq::NonCopyable {
 public:
     Shadows(const Renderer& _renderer);
 
@@ -37,4 +37,4 @@ private:
     void draw_ModelSkelly_punch(const Mat4F& _lightMat, const ModelComponent* _modelC);
 };
 
-}}
+}

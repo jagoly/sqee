@@ -12,10 +12,9 @@
 #include "Lighting.hpp"
 #include "Pretties.hpp"
 
-using namespace sqt::rndr;
+using namespace sqt;
 
-Pretties::Pretties(const Renderer& _renderer) : renderer(_renderer) {
-
+Renderer::Pretties::Pretties(const Renderer& _renderer) : renderer(_renderer) {
     FB_simple.draw_buffers({gl::COLOR_ATTACHMENT0});
 
     renderer.preprocs(FS_prty_hdr_highs, "pretty/hdr/highs_fs");
@@ -25,7 +24,7 @@ Pretties::Pretties(const Renderer& _renderer) : renderer(_renderer) {
 }
 
 
-void Pretties::render_post_gbuffers() {
+void Renderer::Pretties::render_post_gbuffers() {
     sq::DEPTH_OFF(); sq::STENCIL_OFF();
     sq::BLEND_OFF(); sq::CULLFACE_OFF();
     FB_simple.bind();
@@ -47,7 +46,7 @@ void Pretties::render_post_gbuffers() {
 }
 
 
-void Pretties::render_post_lighting() {
+void Renderer::Pretties::render_post_lighting() {
     sq::DEPTH_OFF(); sq::CULLFACE_OFF();
     sq::BLEND_OFF(); sq::STENCIL_OFF();
     sq::VIEWPORT(INFO_qterSize);
@@ -89,7 +88,7 @@ void Pretties::render_post_lighting() {
 }
 
 
-void Pretties::render_final_screen() {
+void Renderer::Pretties::render_final_screen() {
     renderer.pipeline.use_shader(renderer.VS_fullscreen);
     sq::DEPTH_OFF(); sq::BLEND_OFF(); sq::STENCIL_OFF();
     sq::CULLFACE_OFF(); sq::VIEWPORT(INFO_fullSize);
@@ -116,7 +115,7 @@ void Pretties::render_final_screen() {
 }
 
 
-void Pretties::update_settings() {
+void Renderer::Pretties::update_settings() {
     INFO_fullSize = Vec2U(renderer.settings.get<int>("app_width"),
                           renderer.settings.get<int>("app_height"));
     INFO_halfSize = INFO_fullSize / 2u;

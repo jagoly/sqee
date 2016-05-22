@@ -97,11 +97,11 @@ void ChaiConsole::toggle_active() {
     if ((active = !active)) {
         app->settings.mod<bool>("app_keyrepeat", true);
         for (auto func : onShowFuncs) func();
-        app->refresh();
+        app->configure();
     } else {
         app->settings.mod<bool>("app_keyrepeat", false);
         for (auto func : onHideFuncs) func();
-        app->refresh();
+        app->configure();
     }
 }
 

@@ -8,9 +8,8 @@ class TitleScene : public sq::Scene {
 public:
     TitleScene(sq::Application* _app);
 
-    void update();
-    void render();
-    void refresh();
+    void configure();
+    void tick(), render();
 
     bool handle(sf::Event _event);
 };

@@ -15,9 +15,9 @@
 
 #include "Shadows.hpp"
 
-using namespace sqt::rndr;
+using namespace sqt;
 
-Shadows::Shadows(const Renderer& _renderer) : renderer(_renderer) {
+Renderer::Shadows::Shadows(const Renderer& _renderer) : renderer(_renderer) {
 
     VS_shad_simple.add_uniform("matrix"); // mat4
     VS_shad_skelly.add_uniform("matrix"); // mat4
@@ -28,7 +28,7 @@ Shadows::Shadows(const Renderer& _renderer) : renderer(_renderer) {
 }
 
 
-void Shadows::setup_render_state() {
+void Renderer::Shadows::setup_render_state() {
     sq::DEPTH_ON(); sq::DEPTH_WRITE();
     sq::BLEND_OFF(); sq::STENCIL_OFF();
     sq::CULLFACE_ON(); sq::CULLFACE_BACK();
@@ -36,8 +36,8 @@ void Shadows::setup_render_state() {
 }
 
 
-void Shadows::render_shadows_sky() {
-    const wcoe::SkyLight& light = *renderer.world.skylight;
+void Renderer::Shadows::render_shadows_sky() {
+    const SkyLight& light = *renderer.world.skylight;
     const SkyLightData& data = renderer.skyLightData;
 
     sq::VIEWPORT(light.texA.get_size());
@@ -86,7 +86,7 @@ void Shadows::render_shadows_sky() {
 }
 
 
-void Shadows::render_shadows_spot() {
+void Renderer::Shadows::render_shadows_spot() {
     for (const SpotLightData& data : renderer.spotLightDataVec) {
         FB_shadows.attach(gl::DEPTH_ATTACHMENT, data.light->tex);
         sq::CLEAR_DEPTH(); const Mat4F& matrix = data.light->matrix;
@@ -111,7 +111,7 @@ void Shadows::render_shadows_spot() {
 }
 
 
-void Shadows::render_shadows_point() {
+void Renderer::Shadows::render_shadows_point() {
     for (const PointLightData& data : renderer.pointLightDataVec) {
         sq::VIEWPORT(data.light->tex.get_size());
 
@@ -140,18 +140,18 @@ void Shadows::render_shadows_point() {
 }
 
 
-void Shadows::update_settings() {
+void Renderer::Shadows::update_settings() {
 
 }
 
 
-void Shadows::draw_ModelSimple(const Mat4F& _lightMat, const ModelComponent* _modelC) {
+void Renderer::Shadows::draw_ModelSimple(const Mat4F& _lightMat, const ModelComponent* _modelC) {
     VS_shad_simple.set_mat<Mat4F>("matrix", _lightMat * _modelC->matrix);
     sq::FRONTFACE(_modelC->negScale); _modelC->mesh->bind_vao();
     _modelC->mesh->draw_complete();
 }
 
-void Shadows::draw_ModelSimple_punch(const Mat4F& _lightMat, const ModelComponent* _modelC) {
+void Renderer::Shadows::draw_ModelSimple_punch(const Mat4F& _lightMat, const ModelComponent* _modelC) {
     VS_shad_simple.set_mat<Mat4F>("matrix", _lightMat * _modelC->matrix);
     sq::FRONTFACE(_modelC->negScale); _modelC->mesh->bind_vao();
     for (uint i = 0u; i < _modelC->mesh->mtrlCount; ++i) {
@@ -163,13 +163,13 @@ void Shadows::draw_ModelSimple_punch(const Mat4F& _lightMat, const ModelComponen
     }
 }
 
-void Shadows::draw_ModelSkelly(const Mat4F& _lightMat, const ModelComponent* _modelC) {
+void Renderer::Shadows::draw_ModelSkelly(const Mat4F& _lightMat, const ModelComponent* _modelC) {
     VS_shad_skelly.set_mat<Mat4F>("matrix", _lightMat * _modelC->matrix);
     sq::FRONTFACE(_modelC->negScale); _modelC->mesh->bind_vao();
     _modelC->ubo.bind(1u); _modelC->mesh->draw_complete();
 }
 
-void Shadows::draw_ModelSkelly_punch(const Mat4F& _lightMat, const ModelComponent* _modelC) {
+void Renderer::Shadows::draw_ModelSkelly_punch(const Mat4F& _lightMat, const ModelComponent* _modelC) {
     VS_shad_skelly.set_mat<Mat4F>("matrix", _lightMat * _modelC->matrix);
     sq::FRONTFACE(_modelC->negScale); _modelC->mesh->bind_vao(); _modelC->ubo.bind(1u);
     for (uint i = 0u; i < _modelC->mesh->mtrlCount; ++i) {

@@ -2,22 +2,22 @@
 
 #include <sqee/forward.hpp>
 
+#include <sqee/maths/Vectors.hpp>
+#include <sqee/maths/Matrices.hpp>
 #include <sqee/maths/Volumes.hpp>
 
 #include <sqee/gl/UniformBuffer.hpp>
 
 #include <sqee/ecs/Component.hpp>
-#include <sqee/ecs/Entity.hpp>
 
 namespace sqt {
 
-class TransformComponent;
-
-class ModelComponent : public sq::Component {
+class ModelComponent : public sq::Component
+                     , public sq::ecs::TagConfigure
+                     , public sq::ecs::TagRefresh
+                     , public sq::ecs::TagUpdate {
 public:
     static string type() { return "Model"; }
-
-    void setup_depends(sq::Entity* _e);
 
     // User Properties /////
     Vec3F  PROP_scale  = {1.f, 1.f, 1.f};
@@ -38,9 +38,6 @@ public:
     Mat4F matrix;
     Mat4F normMat;
     bool negScale;
-
-    // Hard Depended Components /////
-    const TransformComponent* DEP_Transform;
 };
 
 }

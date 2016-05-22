@@ -7,9 +7,9 @@
 
 #include "Renderer.hpp"
 
-namespace sqt { namespace rndr {
+namespace sqt {
 
-class Gbuffers final : sq::NonCopyable {
+class Renderer::Gbuffers : sq::NonCopyable {
 public:
     Gbuffers(const Renderer& _renderer);
 
@@ -53,11 +53,9 @@ private:
     void draw_msimples_refl(const ReflectData& _data, bool _decals);
     void draw_mskellys_refl(const ReflectData& _data, bool _decals);
 
-    friend class Lighting;
-    friend class Reflects;
-    friend class Pretties;
-
-    friend class Renderer;
+    friend class Renderer::Lighting;
+    friend class Renderer::Reflects;
+    friend class Renderer::Pretties;
 };
 
-}}
+}

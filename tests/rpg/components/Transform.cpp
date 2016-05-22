@@ -1,10 +1,17 @@
+#include "../wcoe/World.hpp"
 #include "Transform.hpp"
 
-using namespace sqt;
+namespace maths = sq::maths;
 
-void TransformComponent::setup_depends(sq::Entity* _e) {
-    if (sq::Entity* parent = _e->get_parent()) {
-        if (auto pcTransform = parent->get_component<TransformComponent>())
-            pcTransform->rDepends.push_back(this), PRNT_Transform = pcTransform;
-    }
+namespace sqt {
+
+template<> void World::refresh_component(TransformComponent* _c, sq::Entity* _e) {
+    _c->matrix = maths::translate(Mat4F(), _c->PROP_position);
+    _c->matrix *= Mat4F(Mat3F(_c->PROP_rotation) * Mat3F(_c->PROP_scale));
+
+    if (const auto parent = _e->get_parent())
+        if (const auto pc = parent->get_component<TransformComponent>())
+            _c->matrix = pc->matrix * _c->matrix;
+}
+
 }

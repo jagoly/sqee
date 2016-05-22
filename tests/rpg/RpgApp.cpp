@@ -12,9 +12,9 @@ namespace maths = sq::maths;
 RpgApp::RpgApp() {
     append_scene<MainScene>("main");
 
-    cs_setup_main(*cs);
-    cs_setup_wcoe(*cs);
-    cs_setup_rndr(*cs);
+    cs_setup_world(*cs);
+    cs_setup_renderer(*cs);
+    cs_setup_components(*cs);
 }
 
 void RpgApp::eval_test_init() {

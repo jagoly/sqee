@@ -13,17 +13,17 @@ TitleScene::TitleScene(sq::Application* _app) : sq::Scene(_app) {
 }
 
 
-void TitleScene::update() {
+void TitleScene::configure() {
+
+}
+
+
+void TitleScene::tick() {
 
 }
 
 
 void TitleScene::render() {
-
-}
-
-
-void TitleScene::refresh() {
 
 }
 

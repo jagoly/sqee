@@ -18,9 +18,9 @@
 
 #include <sqee/misc/StringCast.hpp>
 
-using namespace sqt::rndr;
+using namespace sqt;
 
-Lighting::Lighting(const Renderer& _renderer) : renderer(_renderer) {
+Renderer::Lighting::Lighting(const Renderer& _renderer) : renderer(_renderer) {
 
     FB_baseHdr.draw_buffers({gl::COLOR_ATTACHMENT0});
 
@@ -31,7 +31,7 @@ Lighting::Lighting(const Renderer& _renderer) : renderer(_renderer) {
 }
 
 
-void Lighting::render_lighting_base() {
+void Renderer::Lighting::render_lighting_base() {
     FB_baseHdr.bind(); sq::CLEAR_COLOR();
     sq::STENCIL_ON(); sq::CULLFACE_OFF();
     sq::DEPTH_READ(); sq::BLEND_ONEONE();
@@ -143,7 +143,7 @@ void Lighting::render_lighting_base() {
 }
 
 
-void Lighting::render_lighting_refl(const ReflectData& _data) {
+void Renderer::Lighting::render_lighting_refl(const ReflectData& _data) {
     if (renderer.world.skybox->PROP_enabled == true) {
         renderer.world.skybox->tex.bind(gl::TEXTURE0);
         renderer.pipeline.use_shader(VS_defr_refl_skybox);
@@ -244,7 +244,7 @@ void Lighting::render_lighting_refl(const ReflectData& _data) {
 }
 
 
-void Lighting::update_settings() {
+void Renderer::Lighting::update_settings() {
     INFO_fullSize = Vec2U(renderer.settings.get<int>("app_width"),
                           renderer.settings.get<int>("app_height"));
     INFO_halfSize = INFO_fullSize / 2u;

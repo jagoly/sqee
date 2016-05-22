@@ -13,17 +13,17 @@ PausedScene::PausedScene(sq::Application* _app) : sq::Scene(_app) {
 }
 
 
-void PausedScene::update() {
+void PausedScene::configure() {
+
+}
+
+
+void PausedScene::tick() {
 
 }
 
 
 void PausedScene::render() {
-
-}
-
-
-void PausedScene::refresh() {
 
 }
 

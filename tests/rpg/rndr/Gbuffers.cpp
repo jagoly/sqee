@@ -5,18 +5,15 @@
 #include <sqee/render/Mesh.hpp>
 #include <sqee/render/Skin.hpp>
 
-//#include "../wcoe/World.hpp"
-
 #include "../components/Transform.hpp"
 #include "../components/Model.hpp"
 #include "../components/Decal.hpp"
 
 #include "Gbuffers.hpp"
 
-using namespace sqt::rndr;
+using namespace sqt;
 
-Gbuffers::Gbuffers(const Renderer& _renderer) : renderer(_renderer) {
-
+Renderer::Gbuffers::Gbuffers(const Renderer& _renderer) : renderer(_renderer) {
     FB_baseGbuf.draw_buffers({gl::COLOR_ATTACHMENT0, gl::COLOR_ATTACHMENT1,
                               gl::COLOR_ATTACHMENT2, gl::COLOR_ATTACHMENT3});
 
@@ -37,7 +34,7 @@ Gbuffers::Gbuffers(const Renderer& _renderer) : renderer(_renderer) {
 }
 
 
-void Gbuffers::render_gbuffers_base() {
+void Renderer::Gbuffers::render_gbuffers_base() {
     TEX_baseDiff.bind(gl::TEXTURE3);
     TEX_baseSurf.bind(gl::TEXTURE4);
     TEX_baseNorm.bind(gl::TEXTURE5);
@@ -103,7 +100,7 @@ void Gbuffers::render_gbuffers_base() {
 }
 
 
-void Gbuffers::draw_msimples_base(bool _decals) {
+void Renderer::Gbuffers::draw_msimples_base(bool _decals) {
     for (const auto modelC : renderer.cameraData.modelSimpleVec) {
         if (modelC->PROP_decals != _decals) continue;
         sq::FRONTFACE(modelC->negScale); modelC->mesh->bind_vao(); modelC->ubo.bind(1u);
@@ -113,7 +110,7 @@ void Gbuffers::draw_msimples_base(bool _decals) {
     }
 }
 
-void Gbuffers::draw_mskellys_base(bool _decals) {
+void Renderer::Gbuffers::draw_mskellys_base(bool _decals) {
     for (const auto modelC : renderer.cameraData.modelSkellyVec) {
         if (modelC->PROP_decals != _decals) continue;
         sq::FRONTFACE(modelC->negScale); modelC->mesh->bind_vao(); modelC->ubo.bind(1u);
@@ -124,7 +121,7 @@ void Gbuffers::draw_mskellys_base(bool _decals) {
 }
 
 
-void Gbuffers::render_gbuffers_refl(const ReflectData& _data) {
+void Renderer::Gbuffers::render_gbuffers_refl(const ReflectData& _data) {
     gl::StencilFunc(gl::EQUAL, 0b0101, 0b0100);
     renderer.pipeline.use_shader(FS_gbuf_refl_model);
     renderer.pipeline.use_shader(VS_gbuf_refl_simple);
@@ -155,7 +152,7 @@ void Gbuffers::render_gbuffers_refl(const ReflectData& _data) {
     sq::FRONTFACE(false);
 }
 
-void Gbuffers::draw_msimples_refl(const ReflectData& _data, bool _decals) {
+void Renderer::Gbuffers::draw_msimples_refl(const ReflectData& _data, bool _decals) {
     for (const ModelComponent* modelC : _data.modelSimpleVec) {
         if (modelC->PROP_decals != _decals) continue;
         sq::FRONTFACE(modelC->negScale); modelC->mesh->bind_vao(); modelC->ubo.bind(1u);
@@ -165,7 +162,7 @@ void Gbuffers::draw_msimples_refl(const ReflectData& _data, bool _decals) {
     }
 }
 
-void Gbuffers::draw_mskellys_refl(const ReflectData& _data, bool _decals) {
+void Renderer::Gbuffers::draw_mskellys_refl(const ReflectData& _data, bool _decals) {
     for (const ModelComponent* modelC : _data.modelSkellyVec) {
         if (modelC->PROP_decals != _decals) continue;
         sq::FRONTFACE(modelC->negScale); modelC->mesh->bind_vao(); modelC->ubo.bind(1u);
@@ -176,7 +173,7 @@ void Gbuffers::draw_mskellys_refl(const ReflectData& _data, bool _decals) {
 }
 
 
-void Gbuffers::update_settings() {
+void Renderer::Gbuffers::update_settings() {
     INFO_fullSize = Vec2U(renderer.settings.get<int>("app_width"),
                           renderer.settings.get<int>("app_height"));
     INFO_halfSize = INFO_fullSize / 2u;

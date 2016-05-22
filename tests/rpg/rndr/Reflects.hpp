@@ -7,9 +7,9 @@
 
 #include "Renderer.hpp"
 
-namespace sqt { namespace rndr {
+namespace sqt {
 
-class Reflects final : sq::NonCopyable {
+class Renderer::Reflects : sq::NonCopyable {
 public:
     Reflects(const Renderer& _renderer);
 
@@ -36,4 +36,4 @@ private:
     Vec2U INFO_fullSize, INFO_halfSize;
 };
 
-}}
+}

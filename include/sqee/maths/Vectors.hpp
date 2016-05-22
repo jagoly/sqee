@@ -4,7 +4,7 @@
 
 namespace sq {
 
-template<int S, class T, is_numeric<T>...> struct Vector {};
+template<int S, class T, if_numeric<T>...> struct Vector {};
 
 template<class T> using Vector2 = Vector<2, T>;
 template<class T> using Vector3 = Vector<3, T>;
@@ -141,7 +141,7 @@ inline bool operator!=(Vector<S, T> _a, Vector<S, T> _b) {
 }
 
 // Comparison Operator /////
-template<int S, class T, is_integer<T>...>
+template<int S, class T, if_integer<T>...>
 inline bool operator<(Vector<S, T> _a, Vector<S, T> _b) {
     for (int i=0; i<S; ++i) if (_a[i] != _b[i]) return _a[i] < _b[i]; return false;
 }
@@ -160,96 +160,96 @@ template<int S, class T> inline Vector<S, T> max(Vector<S, T> _a, Vector<S, T> _
 }
 
 // Sine /////
-template<int S, class T, is_float<T>...> inline Vector<S, T> sin(Vector<S, T> _v) {
+template<int S, class T, if_float<T>...> inline Vector<S, T> sin(Vector<S, T> _v) {
     Vector<S, T> ret; for (int i=0; i<S; ++i) ret[i] = std::sin(_v[i]); return ret;
 }
 
 // Cosine /////
-template<int S, class T, is_float<T>...> inline Vector<S, T> cos(Vector<S, T> _v) {
+template<int S, class T, if_float<T>...> inline Vector<S, T> cos(Vector<S, T> _v) {
     Vector<S, T> ret; for (int i=0; i<S; ++i) ret[i] = std::cos(_v[i]); return ret;
 }
 
 // Tangent /////
-template<int S, class T, is_float<T>...> inline Vector<S, T> tan(Vector<S, T> _v) {
+template<int S, class T, if_float<T>...> inline Vector<S, T> tan(Vector<S, T> _v) {
     Vector<S, T> ret; for (int i=0; i<S; ++i) ret[i] = std::tan(_v[i]); return ret;
 }
 
 // To Radians /////
-template<int S, class T, is_float<T>...>
+template<int S, class T, if_float<T>...>
 inline Vector<S, T> radians(Vector<S, T> _cycles) {
     return _cycles * T(2.0 * M_PI);
 }
 
 // To Cycles /////
-template<int S, class T, is_float<T>...>
+template<int S, class T, if_float<T>...>
 inline Vector<S, T> cycles(Vector<S, T> _radians) {
     return _radians * T(0.5 / M_PI);
 }
 
 // Dot Product /////
-template<int S, class T, is_float<T>...>
+template<int S, class T, if_float<T>...>
 inline T dot(Vector<S, T> _a, Vector<S, T> _b) {
     T ret(0); for (int i=0; i<S; ++i) ret += _a[i]*_b[i]; return ret;
 }
 
 // Linear Mix /////
-template<int S, class T, is_float<T>...>
+template<int S, class T, if_float<T>...>
 inline Vector<S, T> mix(Vector<S, T> _a, Vector<S, T> _b, T _factor) {
     return _a * (T(1.0) - _factor) + _b * _factor;
 }
 
 // Normalize /////
-template<int S, class T, is_float<T>...>
+template<int S, class T, if_float<T>...>
 inline Vector<S, T> normalize(Vector<S, T> _v) {
     return _v * (T(1.0) / std::sqrt(dot(_v, _v)));
 }
 
 // Length /////
-template<int S, class T, is_float<T>...>
+template<int S, class T, if_float<T>...>
 inline T length(Vector<S, T> _v) {
     return std::sqrt(dot(_v, _v));
 }
 
 // Distance /////
-template<int S, class T, is_float<T>...>
+template<int S, class T, if_float<T>...>
 inline T distance(Vector<S, T> _a, Vector<S, T> _b) {
     return length(_a - _b);
 }
 
 // Reflect Normal /////
-template<int S, class T, is_float<T>...>
+template<int S, class T, if_float<T>...>
 inline Vector<S, T> reflect(Vector<S, T> _incident, Vector<S, T> _normal) {
     return _incident - _normal * dot(_normal, _incident) * T(2.0);
 }
 
 // Reflect Point /////
-template<int S, class T, is_float<T>...>
+template<int S, class T, if_float<T>...>
 inline Vector<S, T> reflect(Vector<S, T> _point, Vector<S, T> _normal, Vector<S, T> _translation) {
     return reflect(_point - _translation, _normal) + _translation;
 }
 
 // Cross Product /////
-template<class T, is_float<T>...>
+template<class T, if_float<T>...>
 inline Vector3<T> cross(Vector3<T> _a, Vector3<T> _b) {
     return Vector3<T>(_a.y*_b.z - _b.y*_a.z, _a.z*_b.x - _b.z*_a.x, _a.x*_b.y - _b.x*_a.y);
 }
 
 // Rotate X Axis /////
-template<class T, is_float<T>...>
+template<class T, if_float<T>...>
 inline Vector3<T> rotate_x(Vector3<T> _v, T _angle) {
     T a = radians(_angle), s = std::sin(a), c = std::cos(a);
     return Vector3<T>(_v.x, +_v.y*c -_v.z*s, +_v.y*s +_v.z*c);
 }
 
 // Rotate Y Axis /////
-template<class T, is_float<T>...>
+template<class T, if_float<T>...>
 inline Vector3<T> rotate_y(Vector3<T> _v, T _angle) {
     T a = radians(_angle), s = std::sin(a), c = std::cos(a);
     return Vector3<T>(+_v.x*c +_v.z*s, _v.y, -_v.x*s +_v.z*c);
 }
 
 // Rotate Z Axis /////
-template<class T, is_float<T>...>
+template<class T, if_float<T>...>
 inline Vector3<T> rotate_z(Vector3<T> _v, T _angle) {
     T a = radians(_angle), s = std::sin(a), c = std::cos(a);
     return Vector3<T>(+_v.x*c -_v.y*s, +_v.x*s +_v.y*c, _v.z);
@@ -263,9 +263,6 @@ using Vec4I = sq::Vector<4, int>;
 using Vec2U = sq::Vector<2, uint>;
 using Vec3U = sq::Vector<3, uint>;
 using Vec4U = sq::Vector<4, uint>;
-using Vec2B = sq::Vector<2, bool>;
-using Vec3B = sq::Vector<3, bool>;
-using Vec4B = sq::Vector<4, bool>;
 using Vec2F = sq::Vector<2, float>;
 using Vec3F = sq::Vector<3, float>;
 using Vec4F = sq::Vector<4, float>;

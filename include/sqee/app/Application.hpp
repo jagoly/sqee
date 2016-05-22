@@ -27,7 +27,7 @@ public:
 
     virtual int run();
     virtual void quit(int _code);
-    virtual void refresh();
+    virtual void configure();
 
     Vec2F mouse_centre();
     Vec2U get_size() const;

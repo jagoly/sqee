@@ -52,7 +52,7 @@ Application::Application() : overlay(this), console(this) {
 
     cs->add_global(chai::var(this), "app");
 
-    refresh();
+    configure();
 }
 
 int Application::run() {
@@ -78,7 +78,7 @@ int Application::run() {
             double dt = 1.0 / double(scene->tickRate);
             while (scene->accum >= dt) {
                 scene->accum -= dt;
-                scene->update();
+                scene->tick();
             }
         }
 
@@ -114,7 +114,7 @@ void Application::quit(int _code) {
     retCode = _code;
 }
 
-void Application::refresh() {
+void Application::configure() {
     int fpslimit = settings.get<int>("app_fpslimit");
     bool resizable = settings.get<bool>("app_resizable");
     bool keyrepeat = settings.get<bool>("app_keyrepeat");
@@ -142,7 +142,7 @@ void Application::refresh() {
     if (window->getSize() != sf::Vector2u(get_size().x, get_size().y))
         window->setSize({get_size().x, get_size().y});
 
-    for (auto& scene : sceneMap) scene->refresh();
+    for (auto& scene : sceneMap) scene->configure();
 }
 
 
@@ -154,7 +154,7 @@ bool Application::handle_default(sf::Event _event) {
     if (_event.type == sf::Event::Resized) {
         settings.mod<int>("app_width", _event.size.width);
         settings.mod<int>("app_height", _event.size.height);
-        refresh(); return true;
+        configure(); return true;
     }
 
     if (_event.type == sf::Event::KeyPressed) {

@@ -6,7 +6,7 @@
 #include "World.hpp"
 #include "SkyLight.hpp"
 
-using namespace sqt::wcoe;
+using namespace sqt;
 namespace maths = sq::maths;
 
 SkyLight::SkyLight(const World& _world) :
@@ -23,7 +23,7 @@ SkyLight::SkyLight(const World& _world) :
     ubo.create_and_allocate();
 }
 
-void SkyLight::refresh() {
+void SkyLight::configure() {
     if (PROP_enabled == false) {
         texA.delete_object();
         texB.delete_object();
@@ -33,44 +33,25 @@ void SkyLight::refresh() {
         texA.allocate_storage(Vec3U(adjSize, adjSize, 4u), false);
         texB.allocate_storage(Vec3U(adjSize, adjSize, 2u), false);
     }
-
-    animate();
 }
 
 void SkyLight::update() {
-    if (PROP_enabled == false) return; bool doFinish = false;
-    if (ANIM_direction.active() && ANIM_direction.tick()) doFinish = true;
-    if (ANIM_colour.active()    && ANIM_colour.tick())    doFinish = true;
-    if (ANIM_density.active()   && ANIM_density.tick())   doFinish = true;
-    if (doFinish == true) animate();
-}
-
-void SkyLight::calc(double _accum) {
-    if (PROP_enabled == false) return; bool doAnim = false;
-    if (ANIM_direction.active()) { ANIM_direction.calc(_accum); doAnim = true; }
-    if (ANIM_colour.active())    { ANIM_colour.calc(_accum);    doAnim = true; }
-    if (ANIM_density.active())   { ANIM_density.calc(_accum);   doAnim = true; }
-    if (doAnim == true) animate();
-
-    // todo: holy fuck
+    if (PROP_enabled == false) return;
 
     Vec4F& sp = splits; array<Vec3F, 4> centres;
     const Vec3F tangent = sq::make_tangent(PROP_direction);
-    const float rmin = world.camera->rmin, rmax = world.camera->rmax;
+    const float rmin = world.camera.rmin, rmax = world.camera.rmax;
     sp.x = maths::mix(rmin+(rmax-rmin)*0.25f, rmin*std::pow(rmax/rmin, 0.25f), 0.6f);
     sp.y = maths::mix(rmin+(rmax-rmin)*0.50f, rmin*std::pow(rmax/rmin, 0.50f), 0.6f);
     sp.z = maths::mix(rmin+(rmax-rmin)*0.75f, rmin*std::pow(rmax/rmin, 0.75f), 0.6f);
-    centres[0] = world.camera->pos + world.camera->dir * (rmin + sp.x) / 2.f;
-    centres[1] = world.camera->pos + world.camera->dir * (sp.x + sp.y) / 2.f;
-    centres[2] = world.camera->pos + world.camera->dir * (sp.y + sp.z) / 2.f;
-    centres[3] = world.camera->pos + world.camera->dir * (sp.z + rmax) / 2.f;
+    centres[0] = world.camera.pos + world.camera.dir * (rmin + sp.x) / 2.f;
+    centres[1] = world.camera.pos + world.camera.dir * (sp.x + sp.y) / 2.f;
+    centres[2] = world.camera.pos + world.camera.dir * (sp.y + sp.z) / 2.f;
+    centres[3] = world.camera.pos + world.camera.dir * (sp.z + rmax) / 2.f;
     Mat4F viewMatA0 = maths::look_at(centres[0]-PROP_direction, centres[0], tangent);
     Mat4F viewMatA1 = maths::look_at(centres[1]-PROP_direction, centres[1], tangent);
     Mat4F viewMatA2 = maths::look_at(centres[2]-PROP_direction, centres[2], tangent);
     Mat4F viewMatA3 = maths::look_at(centres[3]-PROP_direction, centres[3], tangent);
-
-    //std::cout << viewMatA0[3][0] - glm::mod(viewMatA0[3][0], sp.x / 512.f) << std::endl;
-    //std::cout << viewMatA0[3][0] - std::fmod(viewMatA0[3][0], sp.x / 512.f) << std::endl << std::endl;
 
     viewMatA0[3][0] -= std::fmod(viewMatA0[3][0], sp.x / 512.f);
     viewMatA0[3][1] -= std::fmod(viewMatA0[3][1], sp.x / 512.f);
@@ -89,7 +70,7 @@ void SkyLight::calc(double _accum) {
     matArrA[2] = maths::ortho(-sp.z, sp.z, -sp.z, sp.z, -sp.z, sp.z) * viewMatA2;
     matArrA[3] = maths::ortho(-rmax, rmax, -rmax, rmax, -rmax, rmax) * viewMatA3;
 
-    Mat4F viewMatB = maths::look_at(world.camera->pos-PROP_direction, world.camera->pos, tangent);
+    Mat4F viewMatB = maths::look_at(world.camera.pos-PROP_direction, world.camera.pos, tangent);
     sp.w = rmax * 0.4f; Mat4F viewMatB0 = viewMatB, viewMatB1 = viewMatB;
     viewMatB0[3][0] -= std::fmod(viewMatB0[3][0], sp.w / 512.f);
     viewMatB0[3][1] -= std::fmod(viewMatB0[3][1], sp.w / 512.f);
@@ -104,16 +85,13 @@ void SkyLight::calc(double _accum) {
     orthArrA[1] = sq::make_OrthoFrus(matArrA[1], centres[1]);
     orthArrA[2] = sq::make_OrthoFrus(matArrA[2], centres[2]);
     orthArrA[3] = sq::make_OrthoFrus(matArrA[3], centres[3]);
-    orthArrB[0] = sq::make_OrthoFrus(matArrB[0], world.camera->pos);
-    orthArrB[1] = sq::make_OrthoFrus(matArrB[1], world.camera->pos);
+    orthArrB[0] = sq::make_OrthoFrus(matArrB[0], world.camera.pos);
+    orthArrB[1] = sq::make_OrthoFrus(matArrB[1], world.camera.pos);
 
-    ubo.update("matArrA", matArrA.data());
-    ubo.update("matArrB", matArrB.data());
-    ubo.update("splits", &splits);
-}
-
-void SkyLight::animate() {
     ubo.update("direction", &PROP_direction);
     ubo.update("colour", &PROP_colour);
     ubo.update("density", &PROP_density);
+    ubo.update("matArrA", matArrA.data());
+    ubo.update("matArrB", matArrB.data());
+    ubo.update("splits", &splits);
 }

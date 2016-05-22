@@ -19,8 +19,6 @@ template<> std::string chai_string<Vec2I>(const Vec2I& _val) {
     return tfm::format("Vec2I(%i, %i)", _val.x, _val.y); }
 template<> std::string chai_string<Vec2U>(const Vec2U& _val) {
     return tfm::format("Vec2U(%u, %u)", _val.x, _val.y); }
-template<> std::string chai_string<Vec2B>(const Vec2B& _val) {
-    return tfm::format("Vec2B(%b, %b)", _val.x, _val.y); }
 template<> std::string chai_string<Vec2F>(const Vec2F& _val) {
     return tfm::format("Vec2F(%f, %f)", _val.x, _val.y); }
 
@@ -37,8 +35,6 @@ template<> std::string chai_string<Vec3I>(const Vec3I& _val) {
     return tfm::format("Vec3I(%i, %i, %i)", _val.x, _val.y, _val.z); }
 template<> std::string chai_string<Vec3U>(const Vec3U& _val) {
     return tfm::format("Vec3U(%u, %u, %u)", _val.x, _val.y, _val.z); }
-template<> std::string chai_string<Vec3B>(const Vec3B& _val) {
-    return tfm::format("Vec3B(%b, %b, %b)", _val.x, _val.y, _val.z); }
 template<> std::string chai_string<Vec3F>(const Vec3F& _val) {
     return tfm::format("Vec3F(%f, %f, %f)", _val.x, _val.y, _val.z); }
 
@@ -55,8 +51,6 @@ template<> std::string chai_string<Vec4I>(const Vec4I& _val) {
     return tfm::format("Vec4I(%i, %i, %i, %i)", _val.x, _val.y, _val.z, _val.w); }
 template<> std::string chai_string<Vec4U>(const Vec4U& _val) {
     return tfm::format("Vec4U(%u, %u, %u, %u)", _val.x, _val.y, _val.z, _val.w); }
-template<> std::string chai_string<Vec4B>(const Vec4B& _val) {
-    return tfm::format("Vec4B(%b, %b, %b, %b)", _val.x, _val.y, _val.z, _val.w); }
 template<> std::string chai_string<Vec4F>(const Vec4F& _val) {
     return tfm::format("Vec4F(%f, %f, %f, %f)", _val.x, _val.y, _val.z, _val.w); }
 

@@ -6,7 +6,7 @@
 
 namespace sq {
 
-template<class T, is_float<T>...> struct Quaternion {
+template<class T, if_float<T>...> struct Quaternion {
     Quaternion() : x(T(0.0)), y(T(0.0)), z(T(0.0)), w(T(1.0)) {}
     Quaternion(T _x, T _y, T _z, T _w) : x(_x), y(_y), z(_z), w(_w) {}
     Quaternion(const Quaternion<T>& _q) : x(_q.x), y(_q.y), z(_q.z), w(_q.w) {}
@@ -114,6 +114,11 @@ template<class T> inline Quaternion<T> slerp(Quaternion<T> _a, Quaternion<T> _b,
         Vector4<T> vc(va * std::sin((T(1.0) - _factor) * angle) + vb * std::sin(_factor * angle));
         vc /= std::sin(angle); return Quaternion<T>(vc.x, vc.y, vc.z, vc.w);
     }
+}
+
+// Mix Alias for Slerp /////
+template<class T> inline Quaternion<T> mix(Quaternion<T> _a, Quaternion<T> _b, T _factor) {
+    return slerp(_a, _b, _factor);
 }
 
 }}

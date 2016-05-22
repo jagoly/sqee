@@ -14,10 +14,10 @@
 #include "../components/Model.hpp"
 #include "../components/Reflect.hpp"
 
-using namespace sqt::rndr;
+using namespace sqt;
 
 
-Reflects::Reflects(const Renderer& _renderer) : renderer(_renderer) {
+Renderer::Reflects::Reflects(const Renderer& _renderer) : renderer(_renderer) {
     renderer.preprocs(VS_defr_reflector, "deferred/reflector_vs");
 
     FB_reflGbuf.draw_buffers({gl::COLOR_ATTACHMENT0, gl::COLOR_ATTACHMENT1});
@@ -25,7 +25,7 @@ Reflects::Reflects(const Renderer& _renderer) : renderer(_renderer) {
 }
 
 
-void Reflects::render_reflections() {
+void Renderer::Reflects::render_reflections() {
     for (const ReflectData& data : renderer.reflectDataVec) {
         FB_stencil.bind(); gl::StencilMask(0b1111);
         sq::CLEAR_STENC(); gl::StencilMask(0b0100);
@@ -34,14 +34,14 @@ void Reflects::render_reflections() {
         sq::DEPTH_ON(); sq::BLEND_OFF();
         sq::STENCIL_REPLACE();
 
-        sq::FRONTFACE(data.reflect->DEP_Model->negScale);
+        sq::FRONTFACE(data.model->negScale);
         gl::StencilFunc(gl::ALWAYS, 0b0100, 0b0000);
 
         renderer.pipeline.disable_stages(0, 0, 1);
         renderer.pipeline.use_shader(renderer.VS_stencil_base);
-        renderer.VS_stencil_base.set_mat<Mat4F>("matrix", data.reflect->DEP_Model->matrix);
-        sq::VIEWPORT(INFO_fullSize); data.reflect->DEP_Model->mesh->bind_vao();
-        data.reflect->DEP_Model->mesh->draw_complete();
+        renderer.VS_stencil_base.set_mat<Mat4F>("matrix", data.model->matrix);
+        sq::VIEWPORT(INFO_fullSize); data.model->mesh->bind_vao();
+        data.model->mesh->draw_complete();
 
         FB_stencil.blit(FB_reflGbuf, INFO_fullSize, INFO_halfSize, gl::STENCIL_BUFFER_BIT, gl::NEAREST);
 
@@ -96,16 +96,15 @@ void Reflects::render_reflections() {
         renderer.lighting->FB_baseHdr.bind();
         TEX_reflHdr.bind(gl::TEXTURE0);
 
-        data.reflect->DEP_Model->ubo.bind(1u);
-        data.reflect->DEP_Model->mesh->bind_vao();
-        for (uint i = 0u; i < data.reflect->DEP_Model->mesh->mtrlCount; ++i)
-            data.reflect->DEP_Model->skin->bind_textures(i, 0, 0, 1),
-            data.reflect->DEP_Model->mesh->draw_material(i);
+        data.model->ubo.bind(1u); data.model->mesh->bind_vao();
+        for (uint i = 0u; i < data.model->mesh->mtrlCount; ++i)
+            data.model->skin->bind_textures(i, 0, 0, 1),
+            data.model->mesh->draw_material(i);
     }
 }
 
 
-void Reflects::update_settings() {
+void Renderer::Reflects::update_settings() {
     INFO_fullSize = Vec2U(renderer.settings.get<int>("app_width"),
                           renderer.settings.get<int>("app_height"));
     INFO_halfSize = INFO_fullSize / 2u;
@@ -132,7 +131,7 @@ void Reflects::update_settings() {
 }
 
 
-void Renderer::render_particles() {
+void Renderer::Renderer::render_particles() {
 //    using PartData = wcoe::Emitter::PartData;
 
 //    vector<PartData> partDataVec;

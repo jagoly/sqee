@@ -8,29 +8,29 @@
 
 namespace sqt {
 
-namespace wcoe { class World; }
-namespace rndr { class Renderer; }
+class World;
+class Renderer;
 
 class MainScene : public sq::Scene {
 public:
     MainScene(sq::Application* _app);
 
-    void update();
+    void tick();
     void render();
-    void refresh();
+    void configure();
 
     bool handle(sf::Event _event);
 
 private:
     unique_ptr<sq::Pipeline> pipeline;
     unique_ptr<sq::Camera> camera;
-    unique_ptr<wcoe::World> world;
-    unique_ptr<rndr::Renderer> renderer;
+    unique_ptr<World> world;
+    unique_ptr<Renderer> renderer;
 
     Vec3F posCrnt, posNext;
     float rotX =0, rotZ =0;
 
-    struct {
+    /*struct {
         unique_ptr<sq::Texture2D> pshadA;
         unique_ptr<sq::Texture2D> pshadB;
         unique_ptr<sq::Texture2D> partMain;
@@ -43,7 +43,7 @@ private:
         unique_ptr<sq::FrameBuffer> pshadB;
         unique_ptr<sq::FrameBuffer> defrPart;
         unique_ptr<sq::FrameBuffer> hdrPart;
-    } FB;
+    } FB;*/
 
     struct {
         bool vignette, bloom;

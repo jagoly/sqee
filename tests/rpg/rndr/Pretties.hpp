@@ -7,9 +7,9 @@
 
 #include "Renderer.hpp"
 
-namespace sqt { namespace rndr {
+namespace sqt {
 
-class Pretties final : sq::NonCopyable {
+class Renderer::Pretties : sq::NonCopyable {
 public:
     Pretties(const Renderer& _renderer);
 
@@ -55,4 +55,4 @@ private:
     friend class Lighting;
 };
 
-}}
+}

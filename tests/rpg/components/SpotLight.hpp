@@ -8,19 +8,16 @@
 #include <sqee/gl/Textures.hpp>
 
 #include <sqee/ecs/Component.hpp>
-#include <sqee/ecs/Entity.hpp>
 
 namespace sqt {
 
-class TransformComponent;
-
-class SpotLightComponent : public sq::Component {
+class SpotLightComponent : public sq::Component
+                         , public sq::ecs::TagConfigure
+                         , public sq::ecs::TagRefresh {
 public:
     SpotLightComponent();
 
     static string type() { return "SpotLight"; }
-
-    void setup_depends(sq::Entity* _e);
 
     // User Properties /////
     Vec3F PROP_colour   = {1.f, 1.f, 1.f};
@@ -34,9 +31,6 @@ public:
     sq::Frustum frus;
     Mat4F modelMat;
     Mat4F matrix;
-
-    // Hard Depended Components /////
-    const TransformComponent* DEP_Transform;
 };
 
 }

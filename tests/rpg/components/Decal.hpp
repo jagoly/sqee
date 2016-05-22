@@ -2,24 +2,23 @@
 
 #include <sqee/forward.hpp>
 
+#include <sqee/maths/Vectors.hpp>
+#include <sqee/maths/Matrices.hpp>
 #include <sqee/maths/Volumes.hpp>
 
 #include <sqee/gl/UniformBuffer.hpp>
 
 #include <sqee/ecs/Component.hpp>
-#include <sqee/ecs/Entity.hpp>
 
 namespace sqt {
 
-class TransformComponent;
-
-class DecalComponent : public sq::Component {
+class DecalComponent : public sq::Component
+                     , public sq::ecs::TagConfigure
+                     , public sq::ecs::TagRefresh {
 public:
     DecalComponent();
 
     static string type() { return "Decal"; }
-
-    void setup_depends(sq::Entity* _e);
 
     // User Properties /////
     Vec3F  PROP_scale = {1.f, 1.f, 1.f};
@@ -36,9 +35,6 @@ public:
     sq::BoundBox bbox;
     Mat4F matrix;
     Mat4F invMat;
-
-    // Hard Depended Components /////
-    const TransformComponent* DEP_Transform;
 };
 
 }

@@ -5,7 +5,7 @@
 
 namespace sq {
 
-template<int W, int H, class T, is_float<T>...> struct Matrix {};
+template<int W, int H, class T, if_float<T>...> struct Matrix {};
 
 //template<class T> using Matrix22 = Matrix<T, 2, 2>;
 //template<class T> using Matrix23 = Matrix<T, 2, 3>;

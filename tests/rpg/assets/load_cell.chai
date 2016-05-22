@@ -483,7 +483,7 @@ def load_cell() {
 { var eColumnACnr_2 = world.root.add_child("ColumnACnr_2");
   { var cTransform = eColumnACnr_2.add_TransformComponent();
     cTransform.position = Vec3F(11.25f, 2.77f, 1.32f);
-    cTransform.rotation = QuatF(0.0f, 0.0f, -0.25f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.25f);
     var cModel = eColumnACnr_2.add_ModelComponent();
     cModel.mesh = "Sponza/ColumnACorner";
     cModel.skin = "Sponza/ColumnA";
@@ -499,7 +499,7 @@ def load_cell() {
 { var eColumnACnr_4 = world.root.add_child("ColumnACnr_4");
   { var cTransform = eColumnACnr_4.add_TransformComponent();
     cTransform.position = Vec3F(-11.25f, -2.77f, 1.32f);
-    cTransform.rotation = QuatF(0.0f, 0.0f, 0.25f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.75f);
     var cModel = eColumnACnr_4.add_ModelComponent();
     cModel.mesh = "Sponza/ColumnACorner";
     cModel.skin = "Sponza/ColumnA";
@@ -656,7 +656,7 @@ def load_cell() {
 { var eColumnCCnr_2 = world.root.add_child("ColumnCCnr_2");
   { var cTransform = eColumnCCnr_2.add_TransformComponent();
     cTransform.position = Vec3F(11.21f, 2.77f, 7.22f);
-    cTransform.rotation = QuatF(0.0f, 0.0f, -0.25f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.25f);
     var cModel = eColumnCCnr_2.add_ModelComponent();
     cModel.mesh = "Sponza/ColumnCCorner";
     cModel.skin = "Sponza/ColumnC";
@@ -672,7 +672,7 @@ def load_cell() {
 { var eColumnCCnr_4 = world.root.add_child("ColumnCCnr_4");
   { var cTransform = eColumnCCnr_4.add_TransformComponent();
     cTransform.position = Vec3F(-11.21f, -2.77f, 7.22f);
-    cTransform.rotation = QuatF(0.0f, 0.0f, 0.25f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.75f);
     var cModel = eColumnCCnr_4.add_ModelComponent();
     cModel.mesh = "Sponza/ColumnCCorner";
     cModel.skin = "Sponza/ColumnC";

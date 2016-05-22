@@ -12,9 +12,11 @@ def main() {
 //    app.settings.mod("fxaaMode", 0);
 //    app.settings.mod("vignMode", 0);
 
-    app.refresh();
+    app.configure();
 
     load_cell();
+
+    world.root.get_child("DiceGroup").add_AnimatorComponent();
 
     world.skybox.enabled = true;
 //    world.skybox.saturation = 1.75;
@@ -25,22 +27,31 @@ def main() {
     world.skybox.contrast = 1.0;
     world.skybox.alpha = 1.0;
     world.skybox.texture = "Miramar";
-    world.skybox.refresh();
+    world.skybox.configure();
 
     world.ambient.enabled = true;
     world.ambient.colour = Vec3F(0.4, 0.4, 0.4);
 //    world.ambient.colour = Vec3F(0.4, 0.35, 0.35);
 //    world.ambient.colour = Vec3F(0.3, 0.3, 0.33);
-    world.ambient.refresh();
+    world.ambient.configure();
 
     world.skylight.enabled = true;
 //    world.skylight.direction = vec3(0.0, 0.0, -1.0);
     world.skylight.direction = Vec3F(-0.355, -0.465, -0.815);
 //    world.skylight.colour = Vec3F(0.35, 0.35, 0.38);
     world.skylight.colour = Vec3F(0.9, 0.9, 0.9);
-    world.skylight.refresh();
+    world.skylight.configure();
 
     app.console.print("Welcome to SQEE!");
+}
+
+
+def anim_dice() {
+    var animC = world.root.get_child("DiceGroup").get_AnimatorComponent();
+    var trnsC = world.root.get_child("DiceGroup").get_TransformComponent();
+    var apZ = animC.add_Float(trnsC.position.z);
+    apZ.values = [0.9f, 1.1f, 0.8f, 1.2f, 0.7f, 1.3f, 0.6f, 1.4f, 0.5f, 1.5f];
+    apZ.times = [10u, 4u, 6u, 8u, 10u, 12u, 14u, 16u, 18u, 20u];
 }
 
 
