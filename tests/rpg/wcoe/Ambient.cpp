@@ -11,7 +11,5 @@ void Ambient::configure() {
 }
 
 void Ambient::update() {
-    if (PROP_enabled == false) return;
-
     ubo.update("colour", &PROP_colour);
 }

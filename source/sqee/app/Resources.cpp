@@ -1,7 +1,6 @@
 #include <sqee/app/Resources.hpp>
 
 #include <sqee/gl/Textures.hpp>
-#include <sqee/physics/PhysObject.hpp>
 #include <sqee/render/Armature.hpp>
 #include <sqee/render/Mesh.hpp>
 #include <sqee/render/Skin.hpp>
@@ -15,11 +14,6 @@ string& sq::static_path() {
 
 ResHolder<Texture2D>& sq::static_Texture2D() {
     static ResHolder<Texture2D> holder;
-    return holder;
-}
-
-ResHolder<PhysObject>& sq::static_PhysObject() {
-    static ResHolder<PhysObject> holder;
     return holder;
 }
 

@@ -1,22 +1,21 @@
 #pragma once
 
+#include <sqee/gl/Textures.hpp>
+#include <sqee/gl/UniformBuffer.hpp>
+
 #include <sqee/maths/Vectors.hpp>
 #include <sqee/maths/Matrices.hpp>
 #include <sqee/maths/Volumes.hpp>
 
-#include <sqee/gl/UniformBuffer.hpp>
-#include <sqee/gl/Textures.hpp>
-
-#include <sqee/ecs/Component.hpp>
+#include "Helpers.hpp"
 
 namespace sqt {
 
-class PointLightComponent : public sq::Component
-                          , public sq::ecs::TagConfigure
-                          , public sq::ecs::TagRefresh {
+class PointLightComponent : public ComponentRPG
+                          , public ecs::TagConfigure
+                          , public ecs::TagRefresh {
 public:
-    PointLightComponent();
-
+    PointLightComponent(EntityRPG&, World&);
     static string type() { return "PointLight"; }
 
     // User Properties /////

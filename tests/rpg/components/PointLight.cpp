@@ -7,7 +7,7 @@
 namespace sqt {
 namespace maths = sq::maths;
 
-PointLightComponent::PointLightComponent() :
+PointLightComponent::PointLightComponent(EntityRPG&, World&) :
     tex(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT16, sq::Texture::ShadowMap()) {
 
     ubo.reserve("position", 4u);
@@ -17,13 +17,13 @@ PointLightComponent::PointLightComponent() :
     ubo.create_and_allocate();
 }
 
-template<> void World::configure_component(PointLightComponent* _c, sq::Entity* _e) {
+template<> void World::configure_component(PointLightComponent* _c, EntityRPG* _e) {
     if (_c->PROP_texsize == 0u) _c->tex.delete_object();
     else { uint newSize = _c->PROP_texsize * (settings.get<bool>("rpg_shadlarge") + 1u);
         if (newSize != _c->tex.get_size().x) _c->tex.allocate_storage(newSize, false); }
 }
 
-template<> void World::refresh_component(PointLightComponent* _c, sq::Entity* _e) {
+template<> void World::refresh_component(PointLightComponent* _c, EntityRPG* _e) {
     const auto transform = _e->get_component<TransformComponent>();
 
     Vec3F position = Vec3F(transform->matrix[3]);

@@ -38,7 +38,7 @@ void Renderer::Lighting::render_lighting_base() {
     sq::VIEWPORT(INFO_fullSize);
     gl::StencilMask(0b0010);
 
-    if (renderer.world.skybox->PROP_enabled == true) {
+    if (bool(renderer.world.skybox) == true) {
         renderer.world.skybox->tex.bind(gl::TEXTURE0);
         renderer.pipeline.use_shader(VS_defr_base_skybox);
         renderer.pipeline.use_shader(FS_defr_skybox);
@@ -49,7 +49,7 @@ void Renderer::Lighting::render_lighting_base() {
         sq::BLEND_OFF(); sq::draw_screen_quad();
     }
 
-    if (renderer.world.ambient->PROP_enabled == true) {
+    if (bool(renderer.world.ambient) == true) {
         if (INFO_ssao > 0)
             renderer.pretties->TEX_ssao.bind(gl::TEXTURE0),
             renderer.gbuffers->TEX_depHalf.bind(gl::TEXTURE1);
@@ -62,7 +62,7 @@ void Renderer::Lighting::render_lighting_base() {
         sq::BLEND_OFF(); sq::draw_screen_quad();
     }
 
-    if (renderer.world.skylight->PROP_enabled == true) {
+    if (bool(renderer.world.skylight) == true) {
         renderer.world.skylight->texA.bind(gl::TEXTURE8);
         renderer.pipeline.use_shader(renderer.VS_fullscreen);
         renderer.pipeline.use_shader(FS_defr_base_skylight);
@@ -144,7 +144,7 @@ void Renderer::Lighting::render_lighting_base() {
 
 
 void Renderer::Lighting::render_lighting_refl(const ReflectData& _data) {
-    if (renderer.world.skybox->PROP_enabled == true) {
+    if (bool(renderer.world.skybox) == true) {
         renderer.world.skybox->tex.bind(gl::TEXTURE0);
         renderer.pipeline.use_shader(VS_defr_refl_skybox);
         renderer.pipeline.use_shader(FS_defr_skybox);
@@ -155,7 +155,7 @@ void Renderer::Lighting::render_lighting_refl(const ReflectData& _data) {
         sq::BLEND_OFF(); sq::draw_screen_quad();
     }
 
-    if (renderer.world.ambient->PROP_enabled == true) {
+    if (bool(renderer.world.ambient) == true) {
         renderer.pipeline.use_shader(renderer.VS_fullscreen);
         renderer.pipeline.use_shader(FS_defr_refl_ambient);
         renderer.world.ambient->ubo.bind(1u);
@@ -165,7 +165,7 @@ void Renderer::Lighting::render_lighting_refl(const ReflectData& _data) {
         sq::BLEND_OFF(); sq::draw_screen_quad();
     }
 
-    if (renderer.world.skylight->PROP_enabled == true) {
+    if (bool(renderer.world.skylight) == true) {
         renderer.world.skylight->texB.bind(gl::TEXTURE8);
         renderer.pipeline.use_shader(renderer.VS_fullscreen);
         renderer.pipeline.use_shader(FS_defr_refl_skylight);

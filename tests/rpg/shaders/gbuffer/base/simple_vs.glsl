@@ -22,7 +22,7 @@ out gl_PerVertex {
 void main() {
     texcrd = V_texcrd;
     N = normalize(mat3(MB.normMat) * V_norm);
-    T = normalize(mat3(MB.normMat) * -V_tan.xyz);
-    B = normalize(mat3(MB.normMat) * -cross(V_norm, V_tan.xyz) * V_tan.w);
+    T = normalize(mat3(MB.normMat) * V_tan.xyz);
+    B = normalize(mat3(MB.normMat) * cross(V_norm, V_tan.xyz) * V_tan.w);
     gl_Position = CB.proj * CB.view * MB.matrix * vec4(V_pos, 1.f);
 }

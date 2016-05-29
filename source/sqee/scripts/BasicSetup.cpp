@@ -10,11 +10,12 @@
 #include <sqee/misc/StringCast.hpp>
 #include <sqee/scripts/ChaiScript.hpp>
 #include <sqee/scripts/BasicSetup.hpp>
+#include <sqee/physics/Bodies.hpp>
 #include <sqee/maths/Vectors.hpp>
 #include <sqee/maths/Matrices.hpp>
 #include <sqee/maths/Quaternion.hpp>
-#include <sqee/ecs/Component.hpp>
-#include <sqee/ecs/Entity.hpp>
+//#include <sqee/ecs/Component.hpp>
+//#include <sqee/ecs/Entity.hpp>
 
 using chai::fun;
 using chai::user_type;
@@ -56,6 +57,66 @@ void sq::cs_setup_app(chai::ChaiScript& _cs) {
 }
 
 
+void sq::cs_setup_physics(chai::ChaiScript& _cs) {
+    chai::ModulePtr m(new chai::Module());
+
+    m->add(fun(&BaseBody::set_transform),  "set_transform");
+    m->add(fun(&BaseBody::set_position),   "set_position");
+    m->add(fun(&BaseBody::set_rotation),   "set_rotation");
+    m->add(fun(&BaseBody::set_friction),   "set_friction");
+    m->add(fun(&BaseBody::set_bounciness), "set_bounciness");
+
+    m->add(fun(&BaseBody::get_transform),  "get_transform");
+    m->add(fun(&BaseBody::get_position),   "get_position");
+    m->add(fun(&BaseBody::get_rotation),   "get_rotation");
+    m->add(fun(&BaseBody::get_friction),   "get_friction");
+    m->add(fun(&BaseBody::get_bounciness), "get_bounciness");
+
+    add_class<StaticBody>(*m, "StaticBody", {}, {
+        {fun<void(StaticBody::*)(uint, Vec3F, Vec3F, QuatF)>        (&StaticBody::add_BoxShape),      "add_BoxShape"},
+        {fun<void(StaticBody::*)(uint, float, Vec3F, QuatF)>        (&StaticBody::add_SphereShape),   "add_SphereShape"},
+        {fun<void(StaticBody::*)(uint, float, float, Vec3F, QuatF)> (&StaticBody::add_ConeShape),     "add_ConeShape"},
+        {fun<void(StaticBody::*)(uint, float, float, Vec3F, QuatF)> (&StaticBody::add_CylinderShape), "add_CylinderShape"},
+        {fun<void(StaticBody::*)(uint, float, float, Vec3F, QuatF)> (&StaticBody::add_CapsuleShape),  "add_CapsuleShape"},
+
+        {fun<void(StaticBody::*)(uint, Vec3F)>        (&StaticBody::add_BoxShape),      "add_BoxShape"},
+        {fun<void(StaticBody::*)(uint, float)>        (&StaticBody::add_SphereShape),   "add_SphereShape"},
+        {fun<void(StaticBody::*)(uint, float, float)> (&StaticBody::add_ConeShape),     "add_ConeShape"},
+        {fun<void(StaticBody::*)(uint, float, float)> (&StaticBody::add_CylinderShape), "add_CylinderShape"},
+        {fun<void(StaticBody::*)(uint, float, float)> (&StaticBody::add_CapsuleShape),  "add_CapsuleShape"}
+    });
+
+    add_class<DynamicBody>(*m, "DynamicBody", {}, {
+        {fun<void(DynamicBody::*)(uint, Vec3F, Vec3F, QuatF, float)>        (&DynamicBody::add_BoxShape),      "add_BoxShape"},
+        {fun<void(DynamicBody::*)(uint, float, Vec3F, QuatF, float)>        (&DynamicBody::add_SphereShape),   "add_SphereShape"},
+        {fun<void(DynamicBody::*)(uint, float, float, Vec3F, QuatF, float)> (&DynamicBody::add_ConeShape),     "add_ConeShape"},
+        {fun<void(DynamicBody::*)(uint, float, float, Vec3F, QuatF, float)> (&DynamicBody::add_CylinderShape), "add_CylinderShape"},
+        {fun<void(DynamicBody::*)(uint, float, float, Vec3F, QuatF, float)> (&DynamicBody::add_CapsuleShape),  "add_CapsuleShape"},
+
+        {fun<void(DynamicBody::*)(uint, Vec3F, float)>        (&DynamicBody::add_BoxShape),      "add_BoxShape"},
+        {fun<void(DynamicBody::*)(uint, float, float)>        (&DynamicBody::add_SphereShape),   "add_SphereShape"},
+        {fun<void(DynamicBody::*)(uint, float, float, float)> (&DynamicBody::add_ConeShape),     "add_ConeShape"},
+        {fun<void(DynamicBody::*)(uint, float, float, float)> (&DynamicBody::add_CylinderShape), "add_CylinderShape"},
+        {fun<void(DynamicBody::*)(uint, float, float, float)> (&DynamicBody::add_CapsuleShape),  "add_CapsuleShape"},
+
+        {fun(&DynamicBody::set_linearDamp),      "set_linearDamp"},
+        {fun(&DynamicBody::set_angularDamp),     "set_angularDamp"},
+        {fun(&DynamicBody::set_linearVelocity),  "set_linearVelocity"},
+        {fun(&DynamicBody::set_angularVelocity), "set_angularVelocity"},
+        {fun(&DynamicBody::set_rollResistance),  "set_rollResistance"},
+
+        {fun(&DynamicBody::get_linearDamp),      "get_linearDamp"},
+        {fun(&DynamicBody::get_angularDamp),     "get_angularDamp"},
+        {fun(&DynamicBody::get_linearVelocity),  "get_linearVelocity"},
+        {fun(&DynamicBody::get_angularVelocity), "get_angularVelocity"},
+        {fun(&DynamicBody::get_rollResistance),  "get_rollResistance"},
+        {fun(&DynamicBody::get_mass),            "get_mass"},
+    });
+
+    _cs.add(m);
+}
+
+
 void sq::cs_setup_render(chai::ChaiScript& _cs) {
     chai::ModulePtr m(new chai::Module());
 
@@ -70,22 +131,6 @@ void sq::cs_setup_render(chai::ChaiScript& _cs) {
 
 void sq::cs_setup_ecs(chai::ChaiScript& _cs) {
     chai::ModulePtr m(new chai::Module());
-
-    add_class<Component>(*m, "Component", {}, {});
-
-    add_class<Entity>(*m, "Entity", {}, {
-        {fun(&Entity::add_child), "add_child"},
-        {fun(&Entity::remove_child), "remove_child"},
-        {fun<Entity* (Entity::*)()>(&Entity::get_parent), "get_parent"},
-        {fun<Entity* (Entity::*)(const string&)>(&Entity::get_child), "get_child"},
-        {fun<vector<unique_ptr<Entity>>& (Entity::*)()>(&Entity::get_children), "get_children"},
-        {fun(&Entity::mark_configure_all), "mark_configure_all"},
-        {fun(&Entity::mark_refresh_all), "mark_refresh_all"},
-        {fun(&Entity::get_attr), "get"}, {fun(&Entity::erase_attr), "erase"},
-        {fun<decltype(&Entity::operator[])>(&Entity::operator[]), "[]"}
-    });
-
-    m->add(user_type<vector<unique_ptr<Entity>>>(), "Vector<Entity>");
 
     _cs.add(m);
 }

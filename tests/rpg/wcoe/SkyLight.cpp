@@ -1,9 +1,9 @@
 #include <sqee/redist/gl_ext_4_2.hpp>
 #include <sqee/maths/General.hpp>
-#include <sqee/render/Camera.hpp>
 #include <sqee/app/Settings.hpp>
 
 #include "World.hpp"
+#include "Camera.hpp"
 #include "SkyLight.hpp"
 
 using namespace sqt;
@@ -24,30 +24,27 @@ SkyLight::SkyLight(const World& _world) :
 }
 
 void SkyLight::configure() {
-    if (PROP_enabled == false) {
-        texA.delete_object();
-        texB.delete_object();
-        return;
-    } else {
-        uint adjSize = 1024u * (1u + world.settings.get<bool>("rpg_shadlarge"));
-        texA.allocate_storage(Vec3U(adjSize, adjSize, 4u), false);
-        texB.allocate_storage(Vec3U(adjSize, adjSize, 2u), false);
-    }
+    uint newSize = 1024u * (world.settings.get<bool>("rpg_shadlarge") + 1u);
+    if (newSize != texA.get_size().x) texA.allocate_storage(Vec3U(newSize, newSize, 4u), false);
+    if (newSize != texB.get_size().x) texB.allocate_storage(Vec3U(newSize, newSize, 2u), false);
+
+    const float rmin = world.camera->rmin, rmax = world.camera->rmax;
+    splits.x = maths::mix(rmin+(rmax-rmin)*0.25f, rmin*std::pow(rmax/rmin, 0.25f), 0.6f);
+    splits.y = maths::mix(rmin+(rmax-rmin)*0.50f, rmin*std::pow(rmax/rmin, 0.50f), 0.6f);
+    splits.z = maths::mix(rmin+(rmax-rmin)*0.75f, rmin*std::pow(rmax/rmin, 0.75f), 0.6f);
+    splits.w = rmax * 0.4f; ubo.update("splits", &splits);
 }
 
 void SkyLight::update() {
-    if (PROP_enabled == false) return;
-
-    Vec4F& sp = splits; array<Vec3F, 4> centres;
+    const Vec4F sp = splits; array<Vec3F, 4> centres;
     const Vec3F tangent = sq::make_tangent(PROP_direction);
-    const float rmin = world.camera.rmin, rmax = world.camera.rmax;
-    sp.x = maths::mix(rmin+(rmax-rmin)*0.25f, rmin*std::pow(rmax/rmin, 0.25f), 0.6f);
-    sp.y = maths::mix(rmin+(rmax-rmin)*0.50f, rmin*std::pow(rmax/rmin, 0.50f), 0.6f);
-    sp.z = maths::mix(rmin+(rmax-rmin)*0.75f, rmin*std::pow(rmax/rmin, 0.75f), 0.6f);
-    centres[0] = world.camera.pos + world.camera.dir * (rmin + sp.x) / 2.f;
-    centres[1] = world.camera.pos + world.camera.dir * (sp.x + sp.y) / 2.f;
-    centres[2] = world.camera.pos + world.camera.dir * (sp.y + sp.z) / 2.f;
-    centres[3] = world.camera.pos + world.camera.dir * (sp.z + rmax) / 2.f;
+    const float rmin = world.camera->rmin, rmax = world.camera->rmax;
+    const Vec3F cameraPos = world.camera->PROP_position;
+    const Vec3F cameraDir = world.camera->PROP_direction;
+    centres[0] = cameraPos + cameraDir * (rmin + sp.x) / 2.f;
+    centres[1] = cameraPos + cameraDir * (sp.x + sp.y) / 2.f;
+    centres[2] = cameraPos + cameraDir * (sp.y + sp.z) / 2.f;
+    centres[3] = cameraPos + cameraDir * (sp.z + rmax) / 2.f;
     Mat4F viewMatA0 = maths::look_at(centres[0]-PROP_direction, centres[0], tangent);
     Mat4F viewMatA1 = maths::look_at(centres[1]-PROP_direction, centres[1], tangent);
     Mat4F viewMatA2 = maths::look_at(centres[2]-PROP_direction, centres[2], tangent);
@@ -70,8 +67,8 @@ void SkyLight::update() {
     matArrA[2] = maths::ortho(-sp.z, sp.z, -sp.z, sp.z, -sp.z, sp.z) * viewMatA2;
     matArrA[3] = maths::ortho(-rmax, rmax, -rmax, rmax, -rmax, rmax) * viewMatA3;
 
-    Mat4F viewMatB = maths::look_at(world.camera.pos-PROP_direction, world.camera.pos, tangent);
-    sp.w = rmax * 0.4f; Mat4F viewMatB0 = viewMatB, viewMatB1 = viewMatB;
+    Mat4F viewMatB0 = maths::look_at(cameraPos - PROP_direction, cameraPos, tangent);
+    Mat4F viewMatB1 = maths::look_at(cameraPos - PROP_direction, cameraPos, tangent);
     viewMatB0[3][0] -= std::fmod(viewMatB0[3][0], sp.w / 512.f);
     viewMatB0[3][1] -= std::fmod(viewMatB0[3][1], sp.w / 512.f);
     viewMatB0[3][2] -= std::fmod(viewMatB0[3][2], sp.w / 512.f);
@@ -85,13 +82,12 @@ void SkyLight::update() {
     orthArrA[1] = sq::make_OrthoFrus(matArrA[1], centres[1]);
     orthArrA[2] = sq::make_OrthoFrus(matArrA[2], centres[2]);
     orthArrA[3] = sq::make_OrthoFrus(matArrA[3], centres[3]);
-    orthArrB[0] = sq::make_OrthoFrus(matArrB[0], world.camera.pos);
-    orthArrB[1] = sq::make_OrthoFrus(matArrB[1], world.camera.pos);
+    orthArrB[0] = sq::make_OrthoFrus(matArrB[0], cameraPos);
+    orthArrB[1] = sq::make_OrthoFrus(matArrB[1], cameraPos);
 
     ubo.update("direction", &PROP_direction);
     ubo.update("colour", &PROP_colour);
     ubo.update("density", &PROP_density);
     ubo.update("matArrA", matArrA.data());
     ubo.update("matArrB", matArrB.data());
-    ubo.update("splits", &splits);
 }

@@ -22,9 +22,9 @@ template<class T> struct Vector<2, T> {
     explicit Vector(Vector3<T> _v) : x(_v.x), y(_v.y) {}
     explicit Vector(Vector4<T> _v) : x(_v.x), y(_v.y) {}
 
-    inline T& operator[](int _index) { return (&x)[_index]; }
-    inline const T& operator[](int _index) const { return (&x)[_index]; }
-    inline const T* ptr() const { return &x; }
+    T& operator[](int _index) { return (&x)[_index]; }
+    const T& operator[](int _index) const { return (&x)[_index]; }
+    const T* ptr() const { return &x; }
 
     union {T x, r;}; union {T y, g;};
 };
@@ -43,9 +43,9 @@ template<class T> struct Vector<3, T> {
     explicit Vector(Vector2<T> ab, T c) : x(ab.x), y(ab.y), z(c) {}
     explicit Vector(T a, Vector2<T> bc) : x(a), y(bc.x), z(bc.y) {}
 
-    inline T& operator[](int _index) { return (&x)[_index]; }
-    inline const T& operator[](int _index) const { return (&x)[_index]; }
-    inline const T* ptr() const { return &x; }
+    T& operator[](int _index) { return (&x)[_index]; }
+    const T& operator[](int _index) const { return (&x)[_index]; }
+    const T* ptr() const { return &x; }
 
     union {T x, r;}; union {T y, g;}; union {T z, b;};
 };
@@ -67,9 +67,9 @@ template<class T> struct Vector<4, T> {
     explicit Vector(T a, Vector3<T> bcd) : x(a), y(bcd.x), z(bcd.y), w(bcd.z) {}
     explicit Vector(Vector2<T> ab, Vector2<T> cd) : x(ab.x), y(ab.y), z(cd.x), w(cd.y)  {}
 
-    inline T& operator[](int _index) { return (&x)[_index]; }
-    inline const T& operator[](int _index) const { return (&x)[_index]; }
-    inline const T* ptr() const { return &x; }
+    T& operator[](int _index) { return (&x)[_index]; }
+    const T& operator[](int _index) const { return (&x)[_index]; }
+    const T* ptr() const { return &x; }
 
     union {T x, r;}; union {T y, g;}; union {T z, b;}; union {T w, a;};
 };

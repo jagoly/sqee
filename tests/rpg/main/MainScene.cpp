@@ -10,7 +10,6 @@
 #include <sqee/gl/Textures.hpp>
 #include <sqee/gl/Shaders.hpp>
 #include <sqee/gl/Drawing.hpp>
-#include <sqee/render/Camera.hpp>
 
 #include <sqee/debug/Misc.hpp>
 
@@ -20,7 +19,9 @@
 #include "../rndr/Pretties.hpp"
 #include "../rndr/Reflects.hpp"
 #include "../rndr/Renderer.hpp"
+#include "../wcoe/Camera.hpp"
 #include "../wcoe/World.hpp"
+#include "Scripting.hpp"
 #include "MainScene.hpp"
 
 
@@ -44,23 +45,18 @@ MainScene::MainScene(sq::Application* _app) : sq::Scene(_app) {
     app->preprocs.import_header("headers/shadow/sample_spot");
     app->preprocs.import_header("headers/shadow/sample_point");
 
-    camera.reset(new sq::Camera());
     pipeline.reset(new sq::Pipeline());
-    world.reset(new World(app->messageBus, app->settings, *camera));
-    renderer.reset(new Renderer(app->messageBus, app->settings, app->preprocs, *pipeline, *camera, *world));
+    world.reset(new World(app->messageBus, app->settings));
+    renderer.reset(new Renderer(app->messageBus, app->settings, app->preprocs, *pipeline, *world));
 
-    app->cs->add_global(chai::var(camera.get()), "camera");
+    posCrnt = posNext = world->camera->PROP_position;
+
+    cs_setup_components(*app->cs, *world);
+    cs_setup_functions(*app->cs, *world);
+
     app->cs->add_global(chai::var(world.get()), "world");
     app->cs->add_global(chai::var(renderer.get()), "renderer");
 
-    camera->pos = {-4.f, -1.f, 3.f};
-    camera->dir = {0.7, 0.2, -0.1};
-    camera->rmin = 0.1f;
-    camera->rmax = 40.f;
-    camera->size = {16.f, 10.f};
-    camera->fov = 1.f;
-    posNext = camera->pos;
-    camera->update();
 
     app->console.onHideFuncs.append("MainScene_reset_mouse",
         std::bind<void>(&sq::Application::mouse_centre, app));
@@ -147,25 +143,24 @@ void MainScene::tick() {
 }
 
 void MainScene::render() {
+    float tickPercent = accum * 24.0;
+    world->tickPercent = tickPercent;
+    renderer->tickPercent = tickPercent;
+
     if (app->console.active == false) {
         Vec2F mMove = app->mouse_centre();
         rotZ = rotZ + mMove.x / 1600.f;
-        rotX = maths::clamp(rotX + mMove.y / 2400.f, -0.2f, 0.2f);
-        camera->dir = maths::rotate_z(maths::rotate_x(Vec3F(0.f, 1.f, 0.f), rotX), rotZ);
-        camera->pos = maths::mix(posCrnt, posNext, float(accum)*24.f);
+        rotX = maths::clamp(rotX + mMove.y / 2400.f, -0.23f, 0.23f);
+        world->camera->PROP_direction = maths::rotate_z(maths::rotate_x(Vec3F(0.f, 1.f, 0.f), rotX), rotZ);
+        world->camera->PROP_position = maths::mix(posCrnt, posNext, tickPercent);
     }
 
-    camera->update();
-
-    world->accum = accum;
     world->update();
 
     // Setup Stuff /////
-    gl::DepthFunc(gl::LEQUAL);
-    camera->ubo.bind(0u);
+
     pipeline->bind();
 
-    renderer->accum = accum;
     renderer->render_scene();
 
     gl::BindProgramPipeline(0u);
@@ -180,8 +175,8 @@ void MainScene::configure() {
 //    TX.partDpSt->allocate_storage(INFO.halfSize, false);
 //    TX.hdrPart->allocate_storage(INFO.halfSize, false);
 
-    camera->size = Vec2F(app->settings.get<int>("app_width"),
-                         app->settings.get<int>("app_height"));
+    world->camera->size = Vec2F(app->settings.get<int>("app_width"),
+                                app->settings.get<int>("app_height"));
 
     INFO.vignette   = app->settings.get<bool>("rpg_vignette");
     INFO.bloom      = app->settings.get<bool>("rpg_bloom");

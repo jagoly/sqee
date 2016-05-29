@@ -1,44 +1,43 @@
 use("assets/load_cell.chai");
 
 def main() {
-    app.settings.mod("app_width", 960); 
-    app.settings.mod("app_height", 540);
+    app.settings.mod("app_width", 1280); 
+    app.settings.mod("app_height", 720);
     app.settings.mod("app_title", "SQEE RPG (test_init.chai)");
 
-//    app.settings.mod("shadQlty", 0);
-//    app.settings.mod("shadFltr", 0);
-//    app.settings.mod("ssaoMode", 0);
-//    app.settings.mod("hdrbMode", 0);
-//    app.settings.mod("fxaaMode", 0);
-//    app.settings.mod("vignMode", 0);
+//    app.settings.mod("rpg_shadfilter", false);
+//    app.settings.mod("rpg_shadlarge", false);
+//    app.settings.mod("rpg_bloom", false);
+//    app.settings.mod("rpg_shafts", 0);
+//    app.settings.mod("rpg_ssao", 0);
+//    app.settings.mod("rpg_fsaa", 0);
 
     app.configure();
 
     load_cell();
 
+    world.mark_configure_all_components(world.root, true);
+    world.mark_refresh_all_components(world.root, true);
+
     world.root.get_child("DiceGroup").add_AnimatorComponent();
 
-    world.skybox.enabled = true;
 //    world.skybox.saturation = 1.75;
 //    world.skybox.brightness = -0.2;
 //    world.skybox.contrast = 0.5f;
-    world.skybox.saturation = 1.0;
-    world.skybox.brightness = 0.0;
-    world.skybox.contrast = 1.0;
-    world.skybox.alpha = 1.0;
     world.skybox.texture = "Miramar";
+    world.skybox.saturation = 1.0f;
+    world.skybox.brightness = 0.0f;
+    world.skybox.contrast = 1.0f;
+    world.skybox.alpha = 1.0f;
     world.skybox.configure();
 
-    world.ambient.enabled = true;
+//    world.ambient.colour = Vec3F(0.3, 0.3, 0.4);
     world.ambient.colour = Vec3F(0.4, 0.4, 0.4);
-//    world.ambient.colour = Vec3F(0.4, 0.35, 0.35);
-//    world.ambient.colour = Vec3F(0.3, 0.3, 0.33);
     world.ambient.configure();
 
-    world.skylight.enabled = true;
-//    world.skylight.direction = vec3(0.0, 0.0, -1.0);
+//    world.skylight.direction = Vec3F(0.0, 0.0, -1.0);
+//    world.skylight.colour = Vec3F(0.6, 0.6, 0.7);
     world.skylight.direction = Vec3F(-0.355, -0.465, -0.815);
-//    world.skylight.colour = Vec3F(0.35, 0.35, 0.38);
     world.skylight.colour = Vec3F(0.9, 0.9, 0.9);
     world.skylight.configure();
 
@@ -49,7 +48,7 @@ def main() {
 def anim_dice() {
     var animC = world.root.get_child("DiceGroup").get_AnimatorComponent();
     var trnsC = world.root.get_child("DiceGroup").get_TransformComponent();
-    var apZ = animC.add_Float(trnsC.position.z);
+    var apZ = animC.add_Float(trnsC.position.z); //apZ.repeat = true;
     apZ.values = [0.9f, 1.1f, 0.8f, 1.2f, 0.7f, 1.3f, 0.6f, 1.4f, 0.5f, 1.5f];
     apZ.times = [10u, 4u, 6u, 8u, 10u, 12u, 14u, 16u, 18u, 20u];
 }
@@ -61,38 +60,6 @@ def add_some_shit() {
     var boxPhys = cell.add_RigBodyBasic("BoxPhys");
     boxPhys.physobj = "Sponza/BigBox";
     boxPhys.refresh();
-
-    var lightPointNE = cell.add_PointLight("PointNE");
-    lightPointNE.position = Vec3F(14.0, 5.0, 2.0);
-    lightPointNE.intensity = 7.0f;
-    lightPointNE.texsize = 128u;
-    lightPointNE.shadow = true;
-    lightPointNE.specular = true;
-    lightPointNE.refresh();
-
-    var lightPointSE = cell.add_PointLight("PointSE");
-    lightPointSE.position = Vec3F(14.0, -5.0, 2.0);
-    lightPointSE.intensity = 7.0f;
-    lightPointSE.texsize = 128u;
-    lightPointSE.shadow = true;
-    lightPointSE.specular = true;
-    lightPointSE.refresh();
-
-    var lightPointSW = cell.add_PointLight("PointSW");
-    lightPointSW.position = Vec3F(-14.0, -5.0, 2.0);
-    lightPointSW.intensity = 7.0f;
-    lightPointSW.texsize = 128u;
-    lightPointSW.shadow = true;
-    lightPointSW.specular = true;
-    lightPointSW.refresh();
-
-    var lightPointNW = cell.add_PointLight("PointNW");
-    lightPointNW.position = Vec3F(-14.0, 5.0, 2.0);
-    lightPointNW.intensity = 7.0f;
-    lightPointNW.texsize = 128u;
-    lightPointNW.shadow = true;
-    lightPointNW.specular = true;
-    lightPointNW.refresh();
 
     var emitterA = cell.add_Emitter("EmitterA");
     emitterA.position = Vec3F(+1.0, 0.0, 2.0);
@@ -109,7 +76,6 @@ def add_some_shit() {
     var emitterGun = cell.add_Emitter("EmitterGun");
     emitterGun.refresh();
     
-    world.reload_list();
 }
 
 
@@ -264,3 +230,5 @@ main();
 //add_some_dice();
 //add_some_balls();
 //add_lotsa_dudes();
+
+var d = world.root.get_child("DicePhys");

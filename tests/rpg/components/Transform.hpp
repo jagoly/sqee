@@ -4,13 +4,14 @@
 #include <sqee/maths/Matrices.hpp>
 #include <sqee/maths/Quaternion.hpp>
 
-#include <sqee/ecs/Component.hpp>
+#include "Helpers.hpp"
 
 namespace sqt {
 
-class TransformComponent : public sq::Component
-                         , public sq::ecs::TagRefresh {
+class TransformComponent : public ComponentRPG
+                         , public ecs::TagRefresh {
 public:
+    TransformComponent(EntityRPG&, World&) {}
     static string type() { return "Transform"; }
 
     // User Properties /////

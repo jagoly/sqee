@@ -23,7 +23,6 @@ public:
 
 private:
     unique_ptr<sq::Pipeline> pipeline;
-    unique_ptr<sq::Camera> camera;
     unique_ptr<World> world;
     unique_ptr<Renderer> renderer;
 

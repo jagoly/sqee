@@ -9,10 +9,6 @@ public:
     RpgApp();
 
     void eval_test_init();
-
-    struct {
-        bool foop = true;
-    } SETTINGS;
 };
 
 }

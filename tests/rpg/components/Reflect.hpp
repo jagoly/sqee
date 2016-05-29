@@ -1,18 +1,17 @@
 #pragma once
 
-#include <sqee/maths/Vectors.hpp>
-
 #include <sqee/gl/UniformBuffer.hpp>
 
-#include <sqee/ecs/Component.hpp>
+#include <sqee/maths/Vectors.hpp>
+
+#include "Helpers.hpp"
 
 namespace sqt {
 
-class ReflectComponent : public sq::Component
-                       , public sq::ecs::TagRefresh {
+class ReflectComponent : public ComponentRPG
+                       , public ecs::TagRefresh {
 public:
-    ReflectComponent();
-
+    ReflectComponent(EntityRPG&, World&);
     static string type() { return "Reflect"; }
 
     // User Properties /////

@@ -23,6 +23,10 @@ struct NonCopyable {
     NonCopyable& operator=(const NonCopyable&) = delete;
 };
 
+struct expand {
+    template<class... Args> expand(Args&&...) {}
+};
+
 }
 
 namespace chaiscript {}

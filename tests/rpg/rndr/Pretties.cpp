@@ -94,6 +94,7 @@ void Renderer::Pretties::render_final_screen() {
     sq::CULLFACE_OFF(); sq::VIEWPORT(INFO_fullSize);
 
     renderer.lighting->TEX_baseHdr.bind(gl::TEXTURE0);
+    //renderer.gbuffers->TEX_baseNorm.bind(gl::TEXTURE0);
     if (INFO_shafts > 0) TEX_shafts.bind(gl::TEXTURE1),
         renderer.gbuffers->TEX_depQter.bind(gl::TEXTURE2),
         renderer.gbuffers->TEX_baseDpSt.bind(gl::TEXTURE3);

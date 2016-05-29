@@ -4,5 +4,6 @@
 material
 wrap clamp
 diff Test/Dice
+norm Test/Dice
 spec FFFFFF
 }

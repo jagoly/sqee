@@ -24,6 +24,8 @@ if(SQEE_DEBUG)
     add_definitions(-DSQEE_DEBUG)
 endif()
 
+add_definitions(-DRP3D_ENABLE_SWITCH_YZ)
+
 if(SQEE_LINUX)
     add_definitions(-DSQEE_LINUX)
 elseif(SQEE_WINDOWS)
@@ -101,9 +103,10 @@ set(SOURCES
     "${INCDIR}/render/Mesh.hpp"             "${SRCDIR}/render/Mesh.cpp"
     "${INCDIR}/render/Skin.hpp"             "${SRCDIR}/render/Skin.cpp"
     "${INCDIR}/physics/VecTypes.hpp"
-    "${INCDIR}/physics/PhysObject.hpp"      "${SRCDIR}/physics/PhysObject.cpp"
+    "${INCDIR}/physics/Bodies.hpp"          "${SRCDIR}/physics/Bodies.cpp"
     "${INCDIR}/misc/StringCast.hpp"         "${SRCDIR}/misc/StringCast.cpp"
     "${INCDIR}/misc/OrderedMap.hpp"         "${INCDIR}/misc/ResHolder.hpp"
+    "${INCDIR}/misc/Algorithms.hpp"
     "${INCDIR}/misc/Files.hpp"              "${SRCDIR}/misc/Files.cpp"
     "${INCDIR}/scenes/Scene.hpp"            "${SRCDIR}/scenes/Scene.cpp"
     "${INCDIR}/scenes/Basics.hpp"           "${SRCDIR}/scenes/Basics.cpp"

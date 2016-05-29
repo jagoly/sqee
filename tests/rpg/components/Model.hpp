@@ -1,22 +1,22 @@
 #pragma once
 
-#include <sqee/forward.hpp>
+#include <sqee/gl/UniformBuffer.hpp>
 
 #include <sqee/maths/Vectors.hpp>
 #include <sqee/maths/Matrices.hpp>
 #include <sqee/maths/Volumes.hpp>
 
-#include <sqee/gl/UniformBuffer.hpp>
-
-#include <sqee/ecs/Component.hpp>
+#include "Helpers.hpp"
 
 namespace sqt {
 
-class ModelComponent : public sq::Component
-                     , public sq::ecs::TagConfigure
-                     , public sq::ecs::TagRefresh
-                     , public sq::ecs::TagUpdate {
+class ModelComponent : public ComponentRPG
+                     , public ecs::TagCleanUp
+                     , public ecs::TagConfigure
+                     , public ecs::TagRefresh
+                     , public ecs::TagUpdate {
 public:
+    ModelComponent(EntityRPG&, World&) {}
     static string type() { return "Model"; }
 
     // User Properties /////

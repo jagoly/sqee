@@ -14,7 +14,6 @@ RpgApp::RpgApp() {
 
     cs_setup_world(*cs);
     cs_setup_renderer(*cs);
-    cs_setup_components(*cs);
 }
 
 void RpgApp::eval_test_init() {

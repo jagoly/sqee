@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sqee/gl/UniformBuffer.hpp>
+
 #include <sqee/maths/Vectors.hpp>
 
 namespace sqt {
@@ -12,9 +13,10 @@ public:
     void configure();
     void update();
 
-    bool  PROP_enabled = false;
-    Vec3F PROP_colour  = {0.5f, 0.5f, 0.5f};
+    // User Properties /////
+    Vec3F PROP_colour = {0.5f, 0.5f, 0.5f};
 
+    // System Properties /////
     sq::UniformBuffer ubo;
 };
 

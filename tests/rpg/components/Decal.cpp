@@ -9,7 +9,7 @@
 namespace sqt {
 namespace maths = sq::maths;
 
-DecalComponent::DecalComponent() {
+DecalComponent::DecalComponent(EntityRPG&, World&) {
     ubo.reserve("matrix", 16u);
     ubo.reserve("invMat", 16u);
     ubo.reserve("d_n_s", 3u);
@@ -17,7 +17,11 @@ DecalComponent::DecalComponent() {
     ubo.create_and_allocate();
 }
 
-template<> void World::configure_component(DecalComponent* _c, sq::Entity*) {
+template<> void World::clean_up_component(DecalComponent* _c, EntityRPG* _e) {
+
+}
+
+template<> void World::configure_component(DecalComponent* _c, EntityRPG* _e) {
     if (_c->PROP_diff.empty() == false) {
         const string path = "decals/" + _c->PROP_diff + "_d";
         if ((_c->texDiff = sq::static_Texture2D().get(path)) == nullptr) {
@@ -38,7 +42,7 @@ template<> void World::configure_component(DecalComponent* _c, sq::Entity*) {
     _c->ubo.update("d_n_s", &d_n_s);
 }
 
-template<> void World::refresh_component(DecalComponent* _c, sq::Entity* _e) {
+template<> void World::refresh_component(DecalComponent* _c, EntityRPG* _e) {
     const auto transform = _e->get_component<TransformComponent>();
 
     _c->matrix = maths::scale(transform->matrix, _c->PROP_scale);

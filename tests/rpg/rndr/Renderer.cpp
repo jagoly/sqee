@@ -6,28 +6,20 @@
 #include <sqee/debug/Logging.hpp>
 #include <sqee/app/MessageBus.hpp>
 
-#include <sqee/misc/StringCast.hpp>
-
 #include <sqee/redist/gl_ext_4_2.hpp>
 #include <sqee/app/PreProcessor.hpp>
 #include <sqee/app/Settings.hpp>
-#include <sqee/app/Resources.hpp>
-#include <sqee/gl/UniformBuffer.hpp>
-#include <sqee/gl/FrameBuffer.hpp>
-#include <sqee/gl/Textures.hpp>
 #include <sqee/gl/Shaders.hpp>
-#include <sqee/gl/Drawing.hpp>
 #include <sqee/render/Armature.hpp>
-#include <sqee/render/Camera.hpp>
-#include <sqee/render/Mesh.hpp>
 #include <sqee/render/Skin.hpp>
-#include <sqee/maths/General.hpp>
 #include <sqee/maths/Volumes.hpp>
+#include <sqee/misc/StringCast.hpp>
 
-#include "../wcoe/World.hpp"
+#include "../wcoe/Camera.hpp"
 #include "../wcoe/SkyBox.hpp"
 #include "../wcoe/Ambient.hpp"
 #include "../wcoe/SkyLight.hpp"
+#include "../wcoe/World.hpp"
 
 #include "../components/Animator.hpp"
 #include "../components/Transform.hpp"
@@ -52,9 +44,9 @@ Renderer::~Renderer() = default;
 struct Renderer::Impl {
     Impl(Renderer& _renderer) : renderer(_renderer) {}
 
-    void update_render_lists(const sq::Entity* _e);
-    void update_reflect_lists(const sq::Entity* _e);
-    void update_light_lists(const sq::Entity* _e);
+    void update_render_lists(const EntityRPG* _e);
+    void update_reflect_lists(const EntityRPG* _e);
+    void update_light_lists(const EntityRPG* _e);
 
     void sort_render_lists();
 
@@ -65,23 +57,24 @@ struct Renderer::Impl {
 };
 
 
-void Renderer::Impl::update_render_lists(const sq::Entity* _e) {
-    auto model = _e->get_component<ModelComponent>();
-    auto decal = _e->get_component<DecalComponent>();
-    auto spotLight = _e->get_component<SpotLightComponent>();
-    auto pointLight = _e->get_component<PointLightComponent>();
-    auto reflect = _e->get_component<ReflectComponent>();
+void Renderer::Impl::update_render_lists(const EntityRPG* _e) {
+    auto model      = _e->try_get_component<ModelComponent>();
+    auto decal      = _e->try_get_component<DecalComponent>();
+    auto spotLight  = _e->try_get_component<SpotLightComponent>();
+    auto pointLight = _e->try_get_component<PointLightComponent>();
+    auto reflect    = _e->try_get_component<ReflectComponent>();
+
+    const Camera& camera = *renderer.world.camera;
 
     if (model != nullptr && reflect == nullptr && model->PROP_render == true)
-        if (sq::bbox_in_frus(model->bbox, renderer.camera.frus)) {
+        if (sq::bbox_in_frus(model->bbox, camera.frus)) {
             if (model->arma) renderer.cameraData.modelSkellyVec.push_back(model);
             else renderer.cameraData.modelSimpleVec.push_back(model); }
 
     if (model != nullptr && reflect != nullptr && model->PROP_render == true) {
-        float camOffset = maths::dot(renderer.camera.pos, reflect->normal);
-        float offset = maths::dot(-reflect->normal, reflect->trans);
-        if (camOffset + offset > 0.f && sq::bbox_in_frus(model->bbox, renderer.camera.frus)) {
-            renderer.reflectDataVec.emplace_back(reflect, model, sq::reflect_Frustum(renderer.camera.frus, reflect->normal, reflect->trans));
+        float camOffset = maths::dot(camera.PROP_position, reflect->normal);
+        if (camOffset + maths::dot(-reflect->normal, reflect->trans) > 0.f && sq::bbox_in_frus(model->bbox, camera.frus)) {
+            renderer.reflectDataVec.emplace_back(reflect, model, sq::reflect_Frustum(camera.frus, reflect->normal, reflect->trans));
             renderer.cameraData.modelSimpleVec.push_back(model); } }
 
     if (model != nullptr && model->PROP_shadow == true) {
@@ -101,33 +94,33 @@ void Renderer::Impl::update_render_lists(const sq::Entity* _e) {
     }
 
     if (decal != nullptr && decal->PROP_alpha > 0.001f)
-        if (sq::bbox_in_frus(decal->bbox, renderer.camera.frus)) {
+        if (sq::bbox_in_frus(decal->bbox, camera.frus)) {
             if (decal->texDiff && decal->texNorm && decal->texSpec)
                 renderer.cameraData.decalCompleteVec.push_back(decal);
             else renderer.cameraData.decalPartialVec.push_back(decal); }
 
     if (spotLight != nullptr && spotLight->PROP_texsize != 0u)
-        if (sq::frus_in_frus(spotLight->frus, renderer.camera.frus))
+        if (sq::frus_in_frus(spotLight->frus, camera.frus))
             renderer.cameraData.spotLightShadowVec.push_back(spotLight),
             visibleSpotLightSet.emplace(spotLight);
 
     if (spotLight != nullptr && spotLight->PROP_texsize == 0u)
-        if (sq::frus_in_frus(spotLight->frus, renderer.camera.frus))
+        if (sq::frus_in_frus(spotLight->frus, camera.frus))
             renderer.cameraData.spotLightNoShadowVec.push_back(spotLight);
 
     if (pointLight != nullptr && pointLight->PROP_texsize != 0u)
-        if (sq::sphr_in_frus(pointLight->sphere, renderer.camera.frus)) {
+        if (sq::sphr_in_frus(pointLight->sphere, camera.frus)) {
             auto& visible = visiblePointLightMap[pointLight];
-            visible[0] = sq::frus_in_frus(pointLight->frusArr[0], renderer.camera.frus);
-            visible[1] = sq::frus_in_frus(pointLight->frusArr[1], renderer.camera.frus);
-            visible[2] = sq::frus_in_frus(pointLight->frusArr[2], renderer.camera.frus);
-            visible[3] = sq::frus_in_frus(pointLight->frusArr[3], renderer.camera.frus);
-            visible[4] = sq::frus_in_frus(pointLight->frusArr[4], renderer.camera.frus);
-            visible[5] = sq::frus_in_frus(pointLight->frusArr[5], renderer.camera.frus);
+            visible[0] = sq::frus_in_frus(pointLight->frusArr[0], camera.frus);
+            visible[1] = sq::frus_in_frus(pointLight->frusArr[1], camera.frus);
+            visible[2] = sq::frus_in_frus(pointLight->frusArr[2], camera.frus);
+            visible[3] = sq::frus_in_frus(pointLight->frusArr[3], camera.frus);
+            visible[4] = sq::frus_in_frus(pointLight->frusArr[4], camera.frus);
+            visible[5] = sq::frus_in_frus(pointLight->frusArr[5], camera.frus);
             renderer.cameraData.pointLightShadowVec.push_back(pointLight); }
 
     if (pointLight != nullptr && pointLight->PROP_texsize == 0u)
-        if (sq::sphr_in_frus(pointLight->sphere, renderer.camera.frus))
+        if (sq::sphr_in_frus(pointLight->sphere, camera.frus))
             renderer.cameraData.pointLightNoShadowVec.push_back(pointLight);
 
     for (auto& child : _e->get_children())
@@ -135,11 +128,11 @@ void Renderer::Impl::update_render_lists(const sq::Entity* _e) {
 }
 
 
-void Renderer::Impl::update_reflect_lists(const sq::Entity* _e) {
-    auto model = _e->get_component<ModelComponent>();
-    auto decal = _e->get_component<DecalComponent>();
-    auto spotLight = _e->get_component<SpotLightComponent>();
-    auto pointLight = _e->get_component<PointLightComponent>();
+void Renderer::Impl::update_reflect_lists(const EntityRPG* _e) {
+    auto model      = _e->try_get_component<ModelComponent>();
+    auto decal      = _e->try_get_component<DecalComponent>();
+    auto spotLight  = _e->try_get_component<SpotLightComponent>();
+    auto pointLight = _e->try_get_component<PointLightComponent>();
 
     if (model != nullptr && model->PROP_render == true)
         for (auto& data : renderer.reflectDataVec)
@@ -185,8 +178,8 @@ void Renderer::Impl::update_reflect_lists(const sq::Entity* _e) {
 }
 
 
-void Renderer::Impl::update_light_lists(const sq::Entity* _e) {
-    auto model = _e->get_component<ModelComponent>();
+void Renderer::Impl::update_light_lists(const EntityRPG* _e) {
+    auto model = _e->try_get_component<ModelComponent>();
 
     if (model != nullptr && model->PROP_shadow == true)
         for (auto& data : renderer.spotLightDataVec)
@@ -215,8 +208,8 @@ void Renderer::Impl::sort_render_lists() {
         std::sort(_container.begin(), _container.end(), _compare); };
 
     auto cameraCompareFunc = [this](const ModelComponent* a, const ModelComponent* b) {
-        return maths::distance(renderer.camera.pos, a->bbox.origin) <
-               maths::distance(renderer.camera.pos, b->bbox.origin); };
+        return maths::distance(renderer.world.camera->PROP_position, a->bbox.origin) <
+               maths::distance(renderer.world.camera->PROP_position, b->bbox.origin); };
 
     sort_container_by(renderer.cameraData.modelSimpleVec, cameraCompareFunc);
     sort_container_by(renderer.cameraData.modelSkellyVec, cameraCompareFunc);
@@ -265,8 +258,8 @@ void Renderer::Impl::sort_render_lists() {
 
     for (auto& data : renderer.reflectDataVec) {
         auto reflectCompareFunc = [&](const ModelComponent* a, const ModelComponent* b) {
-            return maths::distance(renderer.camera.pos, maths::reflect(a->bbox.origin, data.reflect->normal, data.reflect->trans)) <
-                   maths::distance(renderer.camera.pos, maths::reflect(a->bbox.origin, data.reflect->normal, data.reflect->trans)); };
+            return maths::distance(renderer.world.camera->PROP_position, maths::reflect(a->bbox.origin, data.reflect->normal, data.reflect->trans)) <
+                   maths::distance(renderer.world.camera->PROP_position, maths::reflect(a->bbox.origin, data.reflect->normal, data.reflect->trans)); };
 
         sort_container_by(data.modelSimpleVec, reflectCompareFunc);
         sort_container_by(data.modelSkellyVec, reflectCompareFunc);
@@ -293,6 +286,10 @@ void Renderer::render_scene() {
         pointLightDataVec.emplace_back(light.first, light.second);
     impl->update_light_lists(&world.root);
     impl->sort_render_lists();
+
+    // setup some state
+    gl::DepthFunc(gl::LEQUAL);
+    world.camera->ubo.bind(0u);
 
     // render to shadow maps
     shadows->setup_render_state();
@@ -324,9 +321,9 @@ void Renderer::render_scene() {
 
 Renderer::Renderer(sq::MessageBus& _messageBus, const sq::Settings& _settings,
                    const sq::PreProcessor& _preprocs, const sq::Pipeline& _pipeline,
-                   const sq::Camera& _camera, const World& _world)
+                   const World& _world)
     : messageBus(_messageBus), settings(_settings), preprocs(_preprocs),
-      pipeline(_pipeline), camera(_camera), world(_world), impl(new Impl(*this)) {
+      pipeline(_pipeline), world(_world), impl(new Impl(*this)) {
 
     shadows.reset(new Shadows(*this));
     gbuffers.reset(new Gbuffers(*this));
@@ -361,10 +358,10 @@ Renderer::Renderer(sq::MessageBus& _messageBus, const sq::Settings& _settings,
     string defHPixSize = "#define PIXSIZE " + sq::glsl_string(hPixSize);
     preprocs.load(FS_fill_space, "generic/fill_space_fs", defHPixSize);
 
-    preprocs.load(VS_part_soft_vertex, "particles/soft/vertex_vs");
+    /*preprocs.load(VS_part_soft_vertex, "particles/soft/vertex_vs");
     preprocs.load(GS_part_soft_geometry, "particles/soft/geometry_gs");
     preprocs.load(FS_part_soft_ambient, "particles/soft/ambient_fs");
-    preprocs.load(FS_part_soft_write, "particles/soft/write_fs");
+    preprocs.load(FS_part_soft_write, "particles/soft/write_fs");*/
 }
 
 
@@ -391,37 +388,37 @@ void Renderer::configure() {
 
 
 void Renderer::draw_debug_bounds() {
-    static sq::VertexArray vertArr;
-    static sq::FixedBuffer vertBuf(gl::ARRAY_BUFFER);
-    static sq::FixedBuffer elemBufBox(gl::ELEMENT_ARRAY_BUFFER);
-    static sq::FixedBuffer elemBufFrus(gl::ELEMENT_ARRAY_BUFFER);
+//    static sq::VertexArray vertArr;
+//    static sq::FixedBuffer vertBuf(gl::ARRAY_BUFFER);
+//    static sq::FixedBuffer elemBufBox(gl::ELEMENT_ARRAY_BUFFER);
+//    static sq::FixedBuffer elemBufFrus(gl::ELEMENT_ARRAY_BUFFER);
 
-    static bool first = true;
-    if (first) { first = false;
-        vertArr.add_attribute(vertBuf, 0u, 0u, 12u, 3u, gl::FLOAT, false);
-        const uchar linesBox[24] { 0,1, 1,3, 3,2, 2,0, 4,5, 5,7, 7,6, 6,4, 0,4, 1,5, 3,7, 2,6 };
-        const uchar linesFrus[16] { 0,1, 0,2, 0,3, 0,4, 1,2, 1,3, 2,4, 3,4 };
-        elemBufBox.allocate_constant(24u, linesBox);
-        elemBufFrus.allocate_constant(24u, linesFrus);
-        vertBuf.allocate_editable(96u, nullptr);
-    }
+//    static bool first = true;
+//    if (first) { first = false;
+//        vertArr.add_attribute(vertBuf, 0u, 0u, 12u, 3u, gl::FLOAT, false);
+//        const uchar linesBox[24] { 0,1, 1,3, 3,2, 2,0, 4,5, 5,7, 7,6, 6,4, 0,4, 1,5, 3,7, 2,6 };
+//        const uchar linesFrus[16] { 0,1, 0,2, 0,3, 0,4, 1,2, 1,3, 2,4, 3,4 };
+//        elemBufBox.allocate_constant(24u, linesBox);
+//        elemBufFrus.allocate_constant(24u, linesFrus);
+//        vertBuf.allocate_editable(96u, nullptr);
+//    }
 
-    pipeline.use_shader(VS_stencil_base);
-    pipeline.disable_stages(0, 1, 1);
-    vertArr.bind();
+//    pipeline.use_shader(VS_stencil_base);
+//    pipeline.disable_stages(0, 1, 1);
+//    vertArr.bind();
 
-    //gl::ClearColor(1, 1, 1, 0);
-    //sq::CLEAR_COLOR_DEPTH_STENC();
+//    //gl::ClearColor(1, 1, 1, 0);
+//    //sq::CLEAR_COLOR_DEPTH_STENC();
 
-    sq::DEPTH_OFF();
-    sq::STENCIL_OFF();
+//    sq::DEPTH_OFF();
+//    sq::STENCIL_OFF();
 
-    gl::LineWidth(2.f);
-    VS_stencil_base.set_mat<Mat4F>("matrix", Mat4F());
+//    gl::LineWidth(2.f);
+//    VS_stencil_base.set_mat<Mat4F>("matrix", Mat4F());
 
-    vertBuf.bind(); // should not be neeeded, possible bug in nvidia driver?
+//    vertBuf.bind(); // should not be neeeded, possible bug in nvidia driver?
 
-    vertArr.set_element_buffer(elemBufBox);
+//    vertArr.set_element_buffer(elemBufBox);
 
 //    for (const ModelComponent* mc : cameraData.XmodelSimpleVec) {
 //        const Vec3F offs[3] {

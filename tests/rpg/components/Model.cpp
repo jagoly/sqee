@@ -1,9 +1,9 @@
 #include <sqee/app/Resources.hpp>
-#include <sqee/render/Camera.hpp>
 #include <sqee/render/Armature.hpp>
 #include <sqee/render/Mesh.hpp>
 #include <sqee/render/Skin.hpp>
 
+#include "../wcoe/Camera.hpp"
 #include "../wcoe/World.hpp"
 #include "Transform.hpp"
 #include "Model.hpp"
@@ -11,7 +11,11 @@
 namespace sqt {
 namespace maths = sq::maths;
 
-template<> void World::configure_component(ModelComponent* _c, sq::Entity* _e) {
+template<> void World::clean_up_component(ModelComponent* _c, EntityRPG* _e) {
+
+}
+
+template<> void World::configure_component(ModelComponent* _c, EntityRPG* _e) {
     if ((_c->mesh = sq::static_Mesh().get(_c->PROP_mesh)) == nullptr)
         _c->mesh = sq::static_Mesh().add(_c->PROP_mesh, _c->PROP_mesh);
     if ((_c->skin = sq::static_Skin().get(_c->PROP_skin)) == nullptr)
@@ -37,7 +41,7 @@ template<> void World::configure_component(ModelComponent* _c, sq::Entity* _e) {
     }
 }
 
-template<> void World::refresh_component(ModelComponent* _c, sq::Entity* _e) {
+template<> void World::refresh_component(ModelComponent* _c, EntityRPG* _e) {
     const auto transform = _e->get_component<TransformComponent>();
 
     _c->matrix = maths::scale(transform->matrix, _c->PROP_scale);
@@ -52,8 +56,8 @@ template<> void World::refresh_component(ModelComponent* _c, sq::Entity* _e) {
     }
 }
 
-template<> void World::update_component(ModelComponent* _c, sq::Entity* _e) {
-    _c->normMat = Mat4F(maths::transpose(maths::inverse(Mat3F(camera.viewMat * _c->matrix))));
+template<> void World::update_component(ModelComponent* _c, EntityRPG* _e) {
+    _c->normMat = Mat4F(maths::transpose(maths::inverse(Mat3F(camera->viewMat * _c->matrix))));
 
     _c->ubo.update("normMat", &_c->normMat);
 }

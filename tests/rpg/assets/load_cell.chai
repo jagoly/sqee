@@ -25,6 +25,45 @@ def load_cell() {
   } }
 }
 
+{ var eDicePhys = world.root.add_child("DicePhys");
+  { var cTransform = eDicePhys.add_TransformComponent();
+    cTransform.position.y = 2.0f;
+    var cDynamicBody = eDicePhys.add_DynamicBodyComponent();
+    var cModel = eDicePhys.add_ModelComponent();
+    cModel.mesh = "Test/Dice";
+    cModel.skin = "Test/Dice";
+    cModel.decals = false;
+} }
+
+{ var eBallPhys = world.root.add_child("BallPhys");
+  { var cTransform = eBallPhys.add_TransformComponent();
+    cTransform.position.y = -2.0f;
+    var cDynamicBody = eBallPhys.add_DynamicBodyComponent();
+    var cModel = eBallPhys.add_ModelComponent();
+    cModel.mesh = "Test/Ball";
+    cModel.skin = "Test/Ball";
+    cModel.decals = false;
+} }
+
+{ var eCheesePhys = world.root.add_child("CheesePhys");
+  { var cTransform = eCheesePhys.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 2.0f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.0f);
+//    cTransform.scale = 3.0f;
+    var cDynamicBody = eCheesePhys.add_DynamicBodyComponent();
+    var cModel = eCheesePhys.add_ModelComponent();
+    cModel.mesh = "Test/Cheese";
+    cModel.skin = "Test/Cheese";
+    cModel.decals = false;
+//    var cPointLight = eCheesePhys.add_PointLightComponent();
+//    cPointLight.texsize = 128u;
+} }
+
+{ var eFloorPhys = world.root.add_child("FloorPhys");
+  { var cTransform = eFloorPhys.add_TransformComponent();
+    var cStaticBody = eFloorPhys.add_StaticBodyComponent();
+} }
+
 { var eSqeenDead = world.root.add_child("SqeenDead");
   { var cTransform = eSqeenDead.add_TransformComponent();
     cTransform.position = Vec3F(-0.8f, 0.0f, 0.05f);
@@ -1255,7 +1294,7 @@ def load_cell() {
 { var eHoleA_C = world.root.add_child("HoleA_C");
   { var cTransform = eHoleA_C.add_TransformComponent();
     cTransform.position = Vec3F(-11.25f, 0.0f, 11.6f);
-    cTransform.rotation = QuatF(0.0f, 0.0f, 0.25f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.75f);
     var cModel = eHoleA_C.add_ModelComponent();
     cModel.mesh = "Sponza/HoleA";
     cModel.skin = "Sponza/Arch";
@@ -1323,7 +1362,7 @@ def load_cell() {
 { var eHoleB_C = world.root.add_child("HoleB_C");
   { var cTransform = eHoleB_C.add_TransformComponent();
     cTransform.position = Vec3F(-11.14f, 0.0f, 14.9f);
-    cTransform.rotation = QuatF(0.0f, 0.0f, -0.25f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.75f);
     var cModel = eHoleB_C.add_ModelComponent();
     cModel.mesh = "Sponza/HoleB";
     cModel.skin = "Sponza/HoleB";

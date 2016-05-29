@@ -131,7 +131,7 @@ void Renderer::Reflects::update_settings() {
 }
 
 
-void Renderer::Renderer::render_particles() {
+//void Renderer::Renderer::render_particles() {
 //    using PartData = wcoe::Emitter::PartData;
 
 //    vector<PartData> partDataVec;
@@ -233,4 +233,4 @@ void Renderer::Renderer::render_particles() {
 //    pipeline.disable_stages(0, 1, 0);
 //    TX.hdrPart->bind(gl::TEXTURE0);
 //    sq::draw_screen_quad();
-}
+//}

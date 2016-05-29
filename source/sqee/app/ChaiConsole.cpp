@@ -52,7 +52,6 @@ void ChaiConsole::handle_input(sf::Event _event) {
             catch (chai::exception::eval_error& err) {
                 output.emplace_front(err.what()); }
             input.clear(); cursorPos = 0u;
-            std::cout << std::endl;
 
         } else if (_event.key.code == sf::Keyboard::Up) {
             if (history.empty() == false) {

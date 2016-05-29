@@ -16,11 +16,11 @@ SkyBox::SkyBox() :
 }
 
 void SkyBox::configure() {
-    if (PROP_enabled == false) return;
-
-    string texPath = "skybox/" + PROP_texture;
-    tex.allocate_storage(1024u, false);
-    tex.buffer_full(texPath);
+    if (currentTex != PROP_texture) {
+        tex.allocate_storage(1024u, false);
+        tex.buffer_full("skybox/" + PROP_texture);
+        currentTex = PROP_texture;
+    }
 }
 
 void SkyBox::update() {

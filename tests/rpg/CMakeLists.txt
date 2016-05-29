@@ -12,22 +12,26 @@ set(SOURCES
     "rndr/Pretties.hpp"             "rndr/Pretties.cpp"
     "rndr/Reflects.hpp"             "rndr/Reflects.cpp"
     "rndr/Particles.hpp"            "rndr/Particles.cpp"
-    "wcoe/World.hpp"                "wcoe/World.cpp"
+    "wcoe/Camera.hpp"               "wcoe/Camera.cpp"
     "wcoe/SkyBox.hpp"               "wcoe/SkyBox.cpp"
     "wcoe/Ambient.hpp"              "wcoe/Ambient.cpp"
     "wcoe/SkyLight.hpp"             "wcoe/SkyLight.cpp"
+    "wcoe/World.hpp"                "wcoe/World.cpp"
 
     "wcoe/objects/ModelSkelly.hpp"  "wcoe/objects/ModelSkelly.cpp"
     "wcoe/objects/RigBodyBasic.hpp" "wcoe/objects/RigBodyBasic.cpp"
     "wcoe/objects/Emitter.hpp"      "wcoe/objects/Emitter.cpp"
 
+    "components/Helpers.hpp"        "components/Helpers.cpp"
     "components/Animator.hpp"       "components/Animator.cpp"
+    "components/DynamicBody.hpp"    "components/DynamicBody.cpp"
     "components/Transform.hpp"      "components/Transform.cpp"
+    "components/StaticBody.hpp"     "components/StaticBody.cpp"
     "components/Model.hpp"          "components/Model.cpp"
+    "components/Decal.hpp"          "components/Decal.cpp"
     "components/SpotLight.hpp"      "components/SpotLight.cpp"
     "components/PointLight.hpp"     "components/PointLight.cpp"
     "components/Reflect.hpp"        "components/Reflect.cpp"
-    "components/Decal.hpp"          "components/Decal.cpp"
 )
 
 add_executable(sqee_rpg ${SOURCES})
