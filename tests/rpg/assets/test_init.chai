@@ -1,9 +1,8 @@
 use("assets/load_cell.chai");
 
 def main() {
-    app.settings.mod("app_width", 1280); 
-    app.settings.mod("app_height", 720);
-    app.settings.mod("app_title", "SQEE RPG (test_init.chai)");
+    app.OPTION_WindowTitle = "SQEE RPG (test_init.chai)";
+    app.OPTION_WindowSize = Vec2U(1280u, 720u);
 
 //    app.settings.mod("rpg_shadfilter", false);
 //    app.settings.mod("rpg_shadlarge", false);
@@ -12,36 +11,16 @@ def main() {
 //    app.settings.mod("rpg_ssao", 0);
 //    app.settings.mod("rpg_fsaa", 0);
 
-    app.configure();
+    app.update_options();
 
     load_cell();
 
-    world.mark_configure_all_components(world.root, true);
-    world.mark_refresh_all_components(world.root, true);
+    world.mark_configure_all_components(world.get_RootEntity(), true);
+    world.mark_refresh_all_components(world.get_RootEntity(), true);
 
-    world.root.get_child("DiceGroup").add_AnimatorComponent();
+    world.get_RootEntity().get_child("DiceGroup").add_AnimatorComponent();
 
-//    world.skybox.saturation = 1.75;
-//    world.skybox.brightness = -0.2;
-//    world.skybox.contrast = 0.5f;
-    world.skybox.texture = "Miramar";
-    world.skybox.saturation = 1.0f;
-    world.skybox.brightness = 0.0f;
-    world.skybox.contrast = 1.0f;
-    world.skybox.alpha = 1.0f;
-    world.skybox.configure();
-
-//    world.ambient.colour = Vec3F(0.3, 0.3, 0.4);
-    world.ambient.colour = Vec3F(0.4, 0.4, 0.4);
-    world.ambient.configure();
-
-//    world.skylight.direction = Vec3F(0.0, 0.0, -1.0);
-//    world.skylight.colour = Vec3F(0.6, 0.6, 0.7);
-    world.skylight.direction = Vec3F(-0.355, -0.465, -0.815);
-    world.skylight.colour = Vec3F(0.9, 0.9, 0.9);
-    world.skylight.configure();
-
-    app.console.print("Welcome to SQEE!");
+    //app.console.print("Welcome to SQEE!");
 }
 
 
@@ -231,4 +210,4 @@ main();
 //add_some_balls();
 //add_lotsa_dudes();
 
-var d = world.root.get_child("DicePhys");
+var d = world.get_RootEntity().get_child("DicePhys");

@@ -4,11 +4,9 @@
 
 #include <sqee/assert.hpp>
 #include <sqee/debug/Logging.hpp>
-#include <sqee/app/MessageBus.hpp>
 
 #include <sqee/redist/gl_ext_4_2.hpp>
 #include <sqee/app/PreProcessor.hpp>
-#include <sqee/app/Settings.hpp>
 #include <sqee/gl/Shaders.hpp>
 #include <sqee/render/Armature.hpp>
 #include <sqee/render/Skin.hpp>
@@ -16,8 +14,8 @@
 #include <sqee/misc/StringCast.hpp>
 
 #include "../wcoe/Camera.hpp"
-#include "../wcoe/SkyBox.hpp"
 #include "../wcoe/Ambient.hpp"
+#include "../wcoe/SkyBox.hpp"
 #include "../wcoe/SkyLight.hpp"
 #include "../wcoe/World.hpp"
 
@@ -58,13 +56,13 @@ struct Renderer::Impl {
 
 
 void Renderer::Impl::update_render_lists(const EntityRPG* _e) {
-    auto model      = _e->try_get_component<ModelComponent>();
-    auto decal      = _e->try_get_component<DecalComponent>();
-    auto spotLight  = _e->try_get_component<SpotLightComponent>();
-    auto pointLight = _e->try_get_component<PointLightComponent>();
-    auto reflect    = _e->try_get_component<ReflectComponent>();
+    const auto* model      = _e->try_get_component<ModelComponent>();
+    const auto* decal      = _e->try_get_component<DecalComponent>();
+    const auto* spotLight  = _e->try_get_component<SpotLightComponent>();
+    const auto* pointLight = _e->try_get_component<PointLightComponent>();
+    const auto* reflect    = _e->try_get_component<ReflectComponent>();
 
-    const Camera& camera = *renderer.world.camera;
+    const Camera& camera = renderer.world.get_Camera();
 
     if (model != nullptr && reflect == nullptr && model->PROP_render == true)
         if (sq::bbox_in_frus(model->bbox, camera.frus)) {
@@ -77,20 +75,22 @@ void Renderer::Impl::update_render_lists(const EntityRPG* _e) {
             renderer.reflectDataVec.emplace_back(reflect, model, sq::reflect_Frustum(camera.frus, reflect->normal, reflect->trans));
             renderer.cameraData.modelSimpleVec.push_back(model); } }
 
-    if (model != nullptr && model->PROP_shadow == true) {
-        for (uint csm = 0u; csm < 4u; ++csm)
-            if (sq::bbox_in_orth(model->bbox, renderer.world.skylight->orthArrA[csm])) {
-                if (model->arma && model->skin->hasPunchThru) renderer.skyLightData.modelSkellyPunchVecArrA[csm].push_back(model);
-                else if (model->skin->hasPunchThru) renderer.skyLightData.modelSimplePunchVecArrA[csm].push_back(model);
-                else if (model->arma) renderer.skyLightData.modelSkellyVecArrA[csm].push_back(model);
-                else renderer.skyLightData.modelSimpleVecArrA[csm].push_back(model); }
+    if (renderer.world.check_SkyLight() == true) {
+        if (model != nullptr && model->PROP_shadow == true) {
+            for (uint csm = 0u; csm < 4u; ++csm)
+                if (sq::bbox_in_orth(model->bbox, renderer.world.get_SkyLight().orthArrA[csm])) {
+                    if (model->arma && model->skin->hasPunchThru) renderer.skyLightData.modelSkellyPunchVecArrA[csm].push_back(model);
+                    else if (model->skin->hasPunchThru) renderer.skyLightData.modelSimplePunchVecArrA[csm].push_back(model);
+                    else if (model->arma) renderer.skyLightData.modelSkellyVecArrA[csm].push_back(model);
+                    else renderer.skyLightData.modelSimpleVecArrA[csm].push_back(model); }
 
-        for (uint csm = 0u; csm < 2u; ++csm)
-            if (sq::bbox_in_orth(model->bbox, renderer.world.skylight->orthArrB[csm])) {
-                if (model->arma && model->skin->hasPunchThru) renderer.skyLightData.modelSkellyPunchVecArrB[csm].push_back(model);
-                else if (model->skin->hasPunchThru) renderer.skyLightData.modelSimplePunchVecArrB[csm].push_back(model);
-                else if (model->arma) renderer.skyLightData.modelSkellyVecArrB[csm].push_back(model);
-                else renderer.skyLightData.modelSimpleVecArrB[csm].push_back(model); }
+            for (uint csm = 0u; csm < 2u; ++csm)
+                if (sq::bbox_in_orth(model->bbox, renderer.world.get_SkyLight().orthArrB[csm])) {
+                    if (model->arma && model->skin->hasPunchThru) renderer.skyLightData.modelSkellyPunchVecArrB[csm].push_back(model);
+                    else if (model->skin->hasPunchThru) renderer.skyLightData.modelSimplePunchVecArrB[csm].push_back(model);
+                    else if (model->arma) renderer.skyLightData.modelSkellyVecArrB[csm].push_back(model);
+                    else renderer.skyLightData.modelSimpleVecArrB[csm].push_back(model); }
+        }
     }
 
     if (decal != nullptr && decal->PROP_alpha > 0.001f)
@@ -208,15 +208,15 @@ void Renderer::Impl::sort_render_lists() {
         std::sort(_container.begin(), _container.end(), _compare); };
 
     auto cameraCompareFunc = [this](const ModelComponent* a, const ModelComponent* b) {
-        return maths::distance(renderer.world.camera->PROP_position, a->bbox.origin) <
-               maths::distance(renderer.world.camera->PROP_position, b->bbox.origin); };
+        return maths::distance(renderer.world.get_Camera().PROP_position, a->bbox.origin) <
+               maths::distance(renderer.world.get_Camera().PROP_position, b->bbox.origin); };
 
     sort_container_by(renderer.cameraData.modelSimpleVec, cameraCompareFunc);
     sort_container_by(renderer.cameraData.modelSkellyVec, cameraCompareFunc);
 
     auto skyLightCompareFunc = [this](const ModelComponent* a, const ModelComponent* b) {
-        return maths::dot(renderer.world.skylight->PROP_direction, a->bbox.origin) <
-               maths::dot(renderer.world.skylight->PROP_direction, b->bbox.origin); };
+        return maths::dot(renderer.world.get_SkyLight().PROP_direction, a->bbox.origin) <
+               maths::dot(renderer.world.get_SkyLight().PROP_direction, b->bbox.origin); };
 
     for (uint csm = 0u; csm < 4u; ++csm) {
         sort_container_by(renderer.skyLightData.modelSimpleVecArrA[csm], skyLightCompareFunc);
@@ -258,8 +258,10 @@ void Renderer::Impl::sort_render_lists() {
 
     for (auto& data : renderer.reflectDataVec) {
         auto reflectCompareFunc = [&](const ModelComponent* a, const ModelComponent* b) {
-            return maths::distance(renderer.world.camera->PROP_position, maths::reflect(a->bbox.origin, data.reflect->normal, data.reflect->trans)) <
-                   maths::distance(renderer.world.camera->PROP_position, maths::reflect(a->bbox.origin, data.reflect->normal, data.reflect->trans)); };
+            return maths::distance(renderer.world.get_Camera().PROP_position, maths::reflect(
+                                       a->bbox.origin, data.reflect->normal, data.reflect->trans)) <
+                   maths::distance(renderer.world.get_Camera().PROP_position, maths::reflect(
+                                       b->bbox.origin, data.reflect->normal, data.reflect->trans)); };
 
         sort_container_by(data.modelSimpleVec, reflectCompareFunc);
         sort_container_by(data.modelSkellyVec, reflectCompareFunc);
@@ -278,18 +280,19 @@ void Renderer::render_scene() {
     reflectDataVec.clear();
 
     // fill and sort new render lists
-    impl->update_render_lists(&world.root);
-    impl->update_reflect_lists(&world.root);
-    for (auto light : impl->visibleSpotLightSet)
+    impl->update_render_lists(&world.get_RootEntity());
+    impl->update_reflect_lists(&world.get_RootEntity());
+    for (const auto* light : impl->visibleSpotLightSet)
         spotLightDataVec.emplace_back(light);
     for (const auto& light : impl->visiblePointLightMap)
         pointLightDataVec.emplace_back(light.first, light.second);
-    impl->update_light_lists(&world.root);
+    impl->update_light_lists(&world.get_RootEntity());
     impl->sort_render_lists();
 
     // setup some state
     gl::DepthFunc(gl::LEQUAL);
-    world.camera->ubo.bind(0u);
+    world.get_Camera().ubo.bind(0u);
+    pipeline.bind();
 
     // render to shadow maps
     shadows->setup_render_state();
@@ -319,11 +322,22 @@ void Renderer::render_scene() {
 }
 
 
-Renderer::Renderer(sq::MessageBus& _messageBus, const sq::Settings& _settings,
-                   const sq::PreProcessor& _preprocs, const sq::Pipeline& _pipeline,
-                   const World& _world)
-    : messageBus(_messageBus), settings(_settings), preprocs(_preprocs),
-      pipeline(_pipeline), world(_world), impl(new Impl(*this)) {
+Renderer::Renderer(const RpgOptions& _options, const World& _world)
+    : options(_options), world(_world), impl(new Impl(*this)) {
+
+    // Import GLSL Headers
+    preprocs.import_header("headers/blocks/msimple");
+    preprocs.import_header("headers/blocks/mskelly");
+    preprocs.import_header("headers/blocks/ambient");
+    preprocs.import_header("headers/blocks/skylight");
+    preprocs.import_header("headers/blocks/spotlight");
+    preprocs.import_header("headers/blocks/pointlight");
+    preprocs.import_header("headers/blocks/reflect");
+    preprocs.import_header("headers/blocks/skybox");
+    preprocs.import_header("headers/blocks/decal");
+    preprocs.import_header("headers/shadow/sample_sky");
+    preprocs.import_header("headers/shadow/sample_spot");
+    preprocs.import_header("headers/shadow/sample_point");
 
     shadows.reset(new Shadows(*this));
     gbuffers.reset(new Gbuffers(*this));
@@ -345,8 +359,7 @@ Renderer::Renderer(sq::MessageBus& _messageBus, const sq::Settings& _settings,
     VS_stencil_base.add_uniform("matrix"); // mat4
     VS_stencil_refl.add_uniform("matrix"); // mat4
 
-    Vec2U fullSize = Vec2U(settings.get<int>("app_width"),
-                           settings.get<int>("app_height"));
+    Vec2U fullSize = options.WindowSize;
     Vec2U halfSize = fullSize / 2u;
 
     preprocs.load(VS_fullscreen, "generic/fullscreen_vs");
@@ -365,7 +378,7 @@ Renderer::Renderer(sq::MessageBus& _messageBus, const sq::Settings& _settings,
 }
 
 
-void Renderer::configure() {
+void Renderer::update_options() {
     //string defLightBase = "";
     //if (INFO.shadlarge) defLightBase += "#define LARGE\n";
     //if (INFO.shadfilter) defLightBase += "#define FILTER";
@@ -378,84 +391,9 @@ void Renderer::configure() {
     //preprocs.load(FS_part_soft_point_none, "particles/soft/pointlight_fs", defLightBase);
     //preprocs.load(FS_part_soft_point_shad, "particles/soft/pointlight_fs", defLightShad);
 
-    shadows->update_settings();
-    gbuffers->update_settings();
-    lighting->update_settings();
-    pretties->update_settings();
-    reflects->update_settings();
-}
-
-
-
-void Renderer::draw_debug_bounds() {
-//    static sq::VertexArray vertArr;
-//    static sq::FixedBuffer vertBuf(gl::ARRAY_BUFFER);
-//    static sq::FixedBuffer elemBufBox(gl::ELEMENT_ARRAY_BUFFER);
-//    static sq::FixedBuffer elemBufFrus(gl::ELEMENT_ARRAY_BUFFER);
-
-//    static bool first = true;
-//    if (first) { first = false;
-//        vertArr.add_attribute(vertBuf, 0u, 0u, 12u, 3u, gl::FLOAT, false);
-//        const uchar linesBox[24] { 0,1, 1,3, 3,2, 2,0, 4,5, 5,7, 7,6, 6,4, 0,4, 1,5, 3,7, 2,6 };
-//        const uchar linesFrus[16] { 0,1, 0,2, 0,3, 0,4, 1,2, 1,3, 2,4, 3,4 };
-//        elemBufBox.allocate_constant(24u, linesBox);
-//        elemBufFrus.allocate_constant(24u, linesFrus);
-//        vertBuf.allocate_editable(96u, nullptr);
-//    }
-
-//    pipeline.use_shader(VS_stencil_base);
-//    pipeline.disable_stages(0, 1, 1);
-//    vertArr.bind();
-
-//    //gl::ClearColor(1, 1, 1, 0);
-//    //sq::CLEAR_COLOR_DEPTH_STENC();
-
-//    sq::DEPTH_OFF();
-//    sq::STENCIL_OFF();
-
-//    gl::LineWidth(2.f);
-//    VS_stencil_base.set_mat<Mat4F>("matrix", Mat4F());
-
-//    vertBuf.bind(); // should not be neeeded, possible bug in nvidia driver?
-
-//    vertArr.set_element_buffer(elemBufBox);
-
-//    for (const ModelComponent* mc : cameraData.XmodelSimpleVec) {
-//        const Vec3F offs[3] {
-//            Vec3F{mc->bbox.normX * mc->bbox.sizeX},
-//            Vec3F{mc->bbox.normY * mc->bbox.sizeY},
-//            Vec3F{mc->bbox.normZ * mc->bbox.sizeZ} };
-
-//        const Vec3F points[8] {
-//            Vec3F{mc->bbox.origin -offs[0] -offs[1] -offs[2]},
-//            Vec3F{mc->bbox.origin -offs[0] -offs[1] +offs[2]},
-//            Vec3F{mc->bbox.origin -offs[0] +offs[1] -offs[2]},
-//            Vec3F{mc->bbox.origin -offs[0] +offs[1] +offs[2]},
-//            Vec3F{mc->bbox.origin +offs[0] -offs[1] -offs[2]},
-//            Vec3F{mc->bbox.origin +offs[0] -offs[1] +offs[2]},
-//            Vec3F{mc->bbox.origin +offs[0] +offs[1] -offs[2]},
-//            Vec3F{mc->bbox.origin +offs[0] +offs[1] +offs[2]} };
-
-//        vertBuf.update(0u, 96u, points);
-
-//        gl::DrawElements(gl::LINES, 24, gl::UNSIGNED_BYTE, nullptr);
-//    }
-
-//    vertArr.set_element_buffer(elemBufFrus);
-
-//    for (const SpotLightComponent* lc : cameraData.XspotLightShadowVec) {
-//        vertBuf.update(0u, 96u, &lc->frus.points);
-
-//        gl::DrawElements(gl::LINES, 16, gl::UNSIGNED_BYTE, nullptr);
-//    }
-
-//    for (const PointLightComponent* lc : cameraData.XpointLightShadowVec) {
-//        for (uint ind = 0u; ind < 6; ++ind) {
-//            vertBuf.update(0u, 96u, &lc->frusArr[ind].points);
-//            gl::DrawElements(gl::LINES, 16, gl::UNSIGNED_BYTE, nullptr);
-//        }
-//    }
-
-
-//    gl::BindBuffer(gl::ARRAY_BUFFER, 0u);
+    shadows->update_options();
+    gbuffers->update_options();
+    lighting->update_options();
+    pretties->update_options();
+    reflects->update_options();
 }

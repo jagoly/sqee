@@ -179,6 +179,12 @@ template<class T> inline Vector4<T> operator*(Matrix44<T> _m, Vector4<T> _v) {
 
 namespace maths {
 
+// Transpose Matrix22 /////
+template<class T> inline Matrix22<T> transpose(Matrix22<T> _m) {
+    return Matrix22<T>({_m[0][0], _m[1][0]},
+                       {_m[0][1], _m[1][1]});
+}
+
 // Transpose Matrix33 /////
 template<class T> inline Matrix33<T> transpose(Matrix33<T> _m) {
     return Matrix33<T>({_m[0][0], _m[1][0], _m[2][0]},

@@ -8,8 +8,8 @@
 namespace sqt {
 namespace maths = sq::maths;
 
-DynamicBodyComponent::DynamicBodyComponent(EntityRPG& _e, World& _w) : body(*_w.physWorld) {
-    const auto transform = _e.get_component<TransformComponent>();
+DynamicBodyComponent::DynamicBodyComponent(EntityRPG& _e, World& _w) : body(_w.get_PhysicsWorld()) {
+    const auto* transform = _e.get_component<TransformComponent>();
     body.set_transform(transform->PROP_position, transform->PROP_rotation);
 
     if (_e.name == "DicePhys") {
@@ -49,7 +49,7 @@ template<> void World::tick_component(DynamicBodyComponent* _c, EntityRPG* _e) {
     _c->prevRotation = _c->body.get_rotation();
 
     if (_e->name == "CheesePhys") {
-        Vec3F difference = (camera->PROP_position + camera->PROP_direction*2.f) - _c->prevPosition;
+        Vec3F difference = get_Camera().PROP_position + get_Camera().PROP_direction*2.f - _c->prevPosition;
         _c->body.apply_force_centre(Vec3F(0.f, 0.f, _c->body.get_mass()) + difference*200.f);
         _c->body.set_linearDamp(0.9f);
     }

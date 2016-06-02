@@ -4,29 +4,28 @@
 #include <sqee/scripts/ChaiScript.hpp>
 #include <sqee/app/Application.hpp>
 #include <sqee/app/ChaiConsole.hpp>
-#include <sqee/app/Settings.hpp>
 #include <sqee/gl/Drawing.hpp>
 #include <sqee/text/Text.hpp>
 
 using namespace sq;
 
-ChaiConsole::ChaiConsole(Application* _app) : app(_app) {}
+ChaiConsole::ChaiConsole(Application& _app) : app(_app) {}
 
-void ChaiConsole::update() {
+void ChaiConsole::tick() {
     if (cvisDelay == false)
         cursorVis = !cursorVis;
     else cvisDelay = false;
 }
 
 void ChaiConsole::render() {
-    sq::VIEWPORT(app->get_size());
+    sq::VIEWPORT(app.OPTION_WindowSize);
     string outStr = input; size_t pos = 0u; outStr.insert(0, ">>> ");
     outStr.insert(outStr.begin()+cursorPos+4, cursorVis ? char(5) : ' ');
     while ((pos = outStr.find("\n", pos)) != string::npos)
         outStr.replace(pos, 1u, "\n--> "), pos += 4u;
     for (const auto& str : output) outStr.append('\n' + str);
 
-    render_text_basic(outStr, app->get_size(),
+    render_text_basic(outStr, app.OPTION_WindowSize,
                       TextBasicFlow::Positive, TextBasicFlow::Negative,
                       TextBasicAlign::Negative, TextBasicAlign::Positive,
                       Vec2F(24.f, 30.f), Vec3F(1.f, 1.f, 1.f), 1.f, true);
@@ -48,7 +47,7 @@ void ChaiConsole::handle_input(sf::Event _event) {
             if (!input.empty() && (history.empty() || history.back() != input))
                 history.emplace_back(input), histInd = -1;
 
-            try { app->cs->eval(input); }
+            try { app.chaiEngine->eval(input); }
             catch (chai::exception::eval_error& err) {
                 output.emplace_front(err.what()); }
             input.clear(); cursorPos = 0u;
@@ -94,13 +93,13 @@ void ChaiConsole::handle_input(sf::Event _event) {
 
 void ChaiConsole::toggle_active() {
     if ((active = !active)) {
-        app->settings.mod<bool>("app_keyrepeat", true);
-        for (auto func : onShowFuncs) func();
-        app->configure();
+        app.OPTION_KeyRepeat = true;
+        for (auto& func : onShowFuncs) func();
+        app.update_options();
     } else {
-        app->settings.mod<bool>("app_keyrepeat", false);
-        for (auto func : onHideFuncs) func();
-        app->configure();
+        app.OPTION_KeyRepeat = false;
+        for (auto& func : onHideFuncs) func();
+        app.update_options();
     }
 }
 

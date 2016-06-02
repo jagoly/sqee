@@ -1,8 +1,5 @@
 #include <rp3d/engine/DynamicsWorld.hpp>
 
-#include <sqee/redist/gl_ext_4_2.hpp>
-#include <sqee/app/Settings.hpp>
-
 #include "../components/Animator.hpp"
 #include "../components/DynamicBody.hpp"
 #include "../components/Transform.hpp"
@@ -25,107 +22,115 @@
 using namespace sqt;
 namespace maths = sq::maths;
 
-World::~World() = default;
-
 struct World::Impl {
+    Camera camera;
+    Ambient ambient;
+    unique_ptr<SkyBox> skybox;
+    unique_ptr<SkyLight> skylight;
+    rp3d::DynamicsWorld physicsWorld {{0, 0, -1}};
+    sq::Entity<World> rootEntity {"root"};
     std::set<const ecs::TagConfigure*> configureSet;
     std::set<const ecs::TagRefresh*> refreshSet;
 };
 
-World::World(sq::MessageBus& _messageBus, const sq::Settings& _settings)
-    : root("root"), messageBus(_messageBus), settings(_settings), impl(new Impl()) {
-
-    camera.reset(new Camera());
-    skybox.reset(new SkyBox());
-    ambient.reset(new Ambient());
-    skylight.reset(new SkyLight(*this));
-    physWorld.reset(new rp3d::DynamicsWorld({0.f, 0.f, -1.f}));
-    physWorld->setNbIterationsVelocitySolver(18u);
-    physWorld->setNbIterationsPositionSolver(12u);
+World::World(RpgOptions& _options) : options(_options), impl(new Impl()) {
+    impl->physicsWorld.setNbIterationsVelocitySolver(18u);
+    impl->physicsWorld.setNbIterationsPositionSolver(12u);
 }
+
+World::~World() = default;
+
+
+sq::Entity<World>& World::get_RootEntity() { return impl->rootEntity; }
+rp3d::DynamicsWorld& World::get_PhysicsWorld() { return impl->physicsWorld; }
+const sq::Entity<World>& World::get_RootEntity() const { return impl->rootEntity; }
+const rp3d::DynamicsWorld& World::get_PhysicsWorld() const { return impl->physicsWorld; }
+
+Camera& World::get_Camera() { return impl->camera; }
+Ambient& World::get_Ambient() { return impl->ambient; }
+const Camera& World::get_Camera() const { return impl->camera; }
+const Ambient& World::get_Ambient() const { return impl->ambient; }
+
+SkyBox& World::get_SkyBox() { SQASSERT(bool(impl->skybox), ""); return *impl->skybox; }
+SkyLight& World::get_SkyLight() { SQASSERT(bool(impl->skylight), ""); return *impl->skylight; }
+const SkyBox& World::get_SkyBox() const { SQASSERT(bool(impl->skybox), ""); return *impl->skybox; }
+const SkyLight& World::get_SkyLight() const { SQASSERT(bool(impl->skylight), ""); return *impl->skylight; }
+
+bool World::check_SkyBox() const { return impl->skybox.get() != nullptr; }
+bool World::check_SkyLight() const { return impl->skylight.get() != nullptr; }
+void World::enable_SkyBox(bool _enable) { if (check_SkyBox() != _enable) impl->skybox.reset(_enable ? new SkyBox() : nullptr); }
+void World::enable_SkyLight(bool _enable) { if (check_SkyLight() != _enable) impl->skylight.reset(_enable ? new SkyLight() : nullptr); }
+
 
 template<class T> void World::mark_configure_component(const EntityRPG* _e, bool _recursive) {
     static_assert(std::is_base_of<ecs::TagConfigure, T>::value, "");
-    if (auto c = _e->try_get_component<T>()) impl->configureSet.insert(c);
+    if (auto* c = _e->try_get_component<T>()) impl->configureSet.insert(c);
     if (_recursive == true) for (const auto& child : _e->get_children())
         mark_configure_component<T>(child.get(), true);
 }
 
 template<class T> void World::mark_refresh_component(const EntityRPG* _e, bool _recursive) {
     static_assert(std::is_base_of<ecs::TagRefresh, T>::value, "");
-    if (auto c = _e->try_get_component<T>()) impl->refreshSet.insert(c);
+    if (auto* c = _e->try_get_component<T>()) impl->refreshSet.insert(c);
     if (_recursive == true) for (const auto& child : _e->get_children())
         mark_refresh_component<T>(child.get(), true);
 }
 
 void World::mark_configure_all_components(const EntityRPG* _e, bool _recursive) {
-    if (auto c = _e->try_get_component<ModelComponent>())      impl->configureSet.insert(c);
-    if (auto c = _e->try_get_component<DecalComponent>())      impl->configureSet.insert(c);
-    if (auto c = _e->try_get_component<SpotLightComponent>())  impl->configureSet.insert(c);
-    if (auto c = _e->try_get_component<PointLightComponent>()) impl->configureSet.insert(c);
-    if (_recursive == true) for (const auto& child : _e->get_children())
-        mark_configure_all_components(child.get(), true);
+    mark_configure_component<ModelComponent>      (&impl->rootEntity, _recursive);
+    mark_configure_component<DecalComponent>      (&impl->rootEntity, _recursive);
+    mark_configure_component<SpotLightComponent>  (&impl->rootEntity, _recursive);
+    mark_configure_component<PointLightComponent> (&impl->rootEntity, _recursive);
 }
 
 void World::mark_refresh_all_components(const EntityRPG* _e, bool _recursive) {
-    if (auto c = _e->try_get_component<TransformComponent>())  impl->refreshSet.insert(c);
-    if (auto c = _e->try_get_component<StaticBodyComponent>()) impl->refreshSet.insert(c);
-    if (auto c = _e->try_get_component<ModelComponent>())      impl->refreshSet.insert(c);
-    if (auto c = _e->try_get_component<DecalComponent>())      impl->refreshSet.insert(c);
-    if (auto c = _e->try_get_component<SpotLightComponent>())  impl->refreshSet.insert(c);
-    if (auto c = _e->try_get_component<PointLightComponent>()) impl->refreshSet.insert(c);
-    if (auto c = _e->try_get_component<ReflectComponent>())    impl->refreshSet.insert(c);
-    if (_recursive == true) for (const auto& child : _e->get_children())
-        mark_refresh_all_components(child.get(), true);
+    mark_refresh_component<TransformComponent>  (&impl->rootEntity, _recursive);
+    mark_refresh_component<StaticBodyComponent> (&impl->rootEntity, _recursive);
+    mark_refresh_component<ModelComponent>      (&impl->rootEntity, _recursive);
+    mark_refresh_component<DecalComponent>      (&impl->rootEntity, _recursive);
+    mark_refresh_component<SpotLightComponent>  (&impl->rootEntity, _recursive);
+    mark_refresh_component<PointLightComponent> (&impl->rootEntity, _recursive);
+    mark_refresh_component<ReflectComponent>    (&impl->rootEntity, _recursive);
 }
 
 void World::clean_up_entity(EntityRPG* _e) {
-    if (auto c = _e->try_get_component<ModelComponent>()) clean_up_component(c, _e);
-    if (auto c = _e->try_get_component<DecalComponent>()) clean_up_component(c, _e);
+    if (auto* c = _e->try_get_component<ModelComponent>()) clean_up_component(c, _e);
+    if (auto* c = _e->try_get_component<DecalComponent>()) clean_up_component(c, _e);
+    for (const auto& child : _e->get_children()) clean_up_entity(child.get());
 }
 
-void World::configure() {
-    camera->configure(); skybox->configure();
-    ambient->configure(); skylight->configure();
-
-    this->mark_configure_component<ModelComponent>      (&root, true);
-    this->mark_configure_component<DecalComponent>      (&root, true);
-    this->mark_configure_component<SpotLightComponent>  (&root, true);
-    this->mark_configure_component<PointLightComponent> (&root, true);
-
-    this->mark_refresh_component<TransformComponent>  (&root, true);
-    this->mark_refresh_component<StaticBodyComponent> (&root, true);
-    this->mark_refresh_component<ModelComponent>      (&root, true);
-    this->mark_refresh_component<DecalComponent>      (&root, true);
-    this->mark_refresh_component<SpotLightComponent>  (&root, true);
-    this->mark_refresh_component<PointLightComponent> (&root, true);
-    this->mark_refresh_component<ReflectComponent>    (&root, true);
-}
-
-void World::update() {
-    camera->update(); skybox->update();
-    ambient->update(); skylight->update();
-
-    auto configure_wrapper = [this](auto* _c, EntityRPG* _e) { if (impl->configureSet.count(_c)) this->configure_component(_c, _e); };
-    auto refresh_wrapper   = [this](auto* _c, EntityRPG* _e) { if (impl->refreshSet.count(_c)) this->refresh_component(_c, _e); };
-    auto update_wrapper    = [this](auto* _c, EntityRPG* _e) { this->update_component(_c, _e); };
-
-    root.propogate_forward<AnimatorComponent>    (                                     update_wrapper );
-    root.propogate_forward<DynamicBodyComponent> (                                     update_wrapper );
-    root.propogate_forward<TransformComponent>   (                    refresh_wrapper                 );
-    root.propogate_forward<StaticBodyComponent>  (                    refresh_wrapper                 );
-    root.propogate_forward<ModelComponent>       ( configure_wrapper, refresh_wrapper, update_wrapper );
-    root.propogate_forward<DecalComponent>       ( configure_wrapper, refresh_wrapper                 );
-    root.propogate_forward<SpotLightComponent>   ( configure_wrapper, refresh_wrapper                 );
-    root.propogate_forward<PointLightComponent>  ( configure_wrapper, refresh_wrapper                 );
-    root.propogate_forward<ReflectComponent>     (                    refresh_wrapper                 );
+void World::update_options() {
+    if (bool(impl->skybox)) impl->skybox->configure(*this);
+    if (bool(impl->skylight)) impl->skylight->configure(*this);
+    mark_configure_all_components(&impl->rootEntity, true);
+    mark_refresh_all_components(&impl->rootEntity, true);
 }
 
 void World::tick() {
     auto tick_wrapper = [this](auto* _c, EntityRPG* _e) { this->tick_component(_c, _e); };
 
-    root.propogate_forward<AnimatorComponent>    ( tick_wrapper );
-    root.propogate_forward<DynamicBodyComponent> ( tick_wrapper );
+    impl->rootEntity.propogate_forward<AnimatorComponent>    ( tick_wrapper );
+    impl->rootEntity.propogate_forward<DynamicBodyComponent> ( tick_wrapper );
 
-    physWorld->update(1.f / 24.f);
+    impl->physicsWorld.update(1.f / 24.f);
+}
+
+void World::update() {
+    impl->camera.update(); impl->ambient.update();
+    if (bool(impl->skybox)) impl->skybox->update(*this);
+    if (bool(impl->skylight)) impl->skylight->update(*this);
+
+    auto configure_wrapper = [this](auto* _c, EntityRPG* _e) { if (impl->configureSet.count(_c)) this->configure_component(_c, _e); };
+    auto refresh_wrapper   = [this](auto* _c, EntityRPG* _e) { if (impl->refreshSet.count(_c)) this->refresh_component(_c, _e); };
+    auto update_wrapper    = [this](auto* _c, EntityRPG* _e) { this->update_component(_c, _e); };
+
+    impl->rootEntity.propogate_forward<AnimatorComponent>    (                                     update_wrapper );
+    impl->rootEntity.propogate_forward<DynamicBodyComponent> (                                     update_wrapper );
+    impl->rootEntity.propogate_forward<TransformComponent>   (                    refresh_wrapper                 );
+    impl->rootEntity.propogate_forward<StaticBodyComponent>  (                    refresh_wrapper                 );
+    impl->rootEntity.propogate_forward<ModelComponent>       ( configure_wrapper, refresh_wrapper, update_wrapper );
+    impl->rootEntity.propogate_forward<DecalComponent>       ( configure_wrapper, refresh_wrapper                 );
+    impl->rootEntity.propogate_forward<SpotLightComponent>   ( configure_wrapper, refresh_wrapper                 );
+    impl->rootEntity.propogate_forward<PointLightComponent>  ( configure_wrapper, refresh_wrapper                 );
+    impl->rootEntity.propogate_forward<ReflectComponent>     (                    refresh_wrapper                 );
 }

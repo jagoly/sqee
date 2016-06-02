@@ -3,7 +3,6 @@
 #include <sqee/gl/FrameBuffer.hpp>
 #include <sqee/gl/Textures.hpp>
 #include <sqee/gl/Shaders.hpp>
-#include <sqee/maths/Vectors.hpp>
 
 #include "Renderer.hpp"
 
@@ -13,13 +12,14 @@ class Renderer::Lighting : sq::NonCopyable {
 public:
     Lighting(const Renderer& _renderer);
 
-    void update_settings();
+    void update_options();
 
     void render_lighting_base();
     void render_lighting_refl(const ReflectData& _data);
 
 private:
     const Renderer& renderer;
+    const RpgOptions& options;
 
     sq::FrameBuffer FB_baseHdr;
 
@@ -48,7 +48,6 @@ private:
     sq::Shader FS_defr_skybox {gl::FRAGMENT_SHADER};
 
     Vec2U INFO_fullSize, INFO_halfSize;
-    int INFO_ssao;
 
     friend class Renderer::Pretties;
     friend class Renderer::Reflects;

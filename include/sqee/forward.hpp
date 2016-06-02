@@ -3,13 +3,10 @@
 namespace sq {
 
 class Application;
-class PreProcessor;
-class SoundManager;
-class Settings;
-class Scene;
-
 class ChaiConsole;
 class DebugOverlay;
+class SoundManager;
+class PreProcessor;
 
 class Armature;
 class ArmatureBone;

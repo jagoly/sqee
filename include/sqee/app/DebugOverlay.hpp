@@ -11,12 +11,12 @@ namespace sq { class Application; }
 
 namespace sq {
 
-/// The SQEE Debug Overlay
+/// The SQEE Debugging Overlay
 class DebugOverlay final : NonCopyable {
 public:
-    DebugOverlay(const Application* _app);
+    DebugOverlay(Application& _app);
 
-    void update();
+    void tick();
     void render(float _ft);
 
     void toggle_active();
@@ -25,15 +25,15 @@ public:
 
     void notify(const string& _message, uint _time);
 
-    double accum = 0.0;
+    double accumulation = 0.0;
     bool active = true;
 
 private:
-    const Application* const app;
+    Application& app;
 
     std::deque<pair<string, uint>> notifyDeq;
+    float frameTime = 1.f / 60.f;
     uint notifyTimeLeft = 0u;
-    float ft = 1.f / 60.f;
 };
 
 }

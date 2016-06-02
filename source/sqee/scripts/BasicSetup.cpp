@@ -5,7 +5,6 @@
 #include <sqee/app/Application.hpp>
 #include <sqee/app/DebugOverlay.hpp>
 #include <sqee/app/ChaiConsole.hpp>
-#include <sqee/app/Settings.hpp>
 #include <sqee/render/Camera.hpp>
 #include <sqee/misc/StringCast.hpp>
 #include <sqee/scripts/ChaiScript.hpp>
@@ -14,37 +13,32 @@
 #include <sqee/maths/Vectors.hpp>
 #include <sqee/maths/Matrices.hpp>
 #include <sqee/maths/Quaternion.hpp>
-//#include <sqee/ecs/Component.hpp>
-//#include <sqee/ecs/Entity.hpp>
 
 using chai::fun;
 using chai::user_type;
 using chai::base_class;
 using chai::constructor;
 using chai::type_conversion;
+using chai::vector_conversion;
 using chai::utility::add_class;
-using chai::Boxed_Value;
-using chai::boxed_cast;
+
 using namespace sq;
 
 
-void sq::cs_setup_app(chai::ChaiScript& _cs) {
+void sq::chaiscript_setup_app(ChaiEngine& _engine) {
     chai::ModulePtr m(new chai::Module());
 
     add_class<Application>(*m, "Application", {}, {
-        {fun(&Application::configure), "configure"},
-        {fun(&Application::settings), "settings"},
-        {fun(&Application::overlay), "overlay"},
-        {fun(&Application::console), "console"},
-        {fun(&Application::quit), "quit"}
-    });
-
-    add_class<Settings>(*m, "Settings", {}, {
-        {fun(&Settings::cs_mod), "mod"},
-        {fun(&Settings::cs_get), "get"}
+        {fun(&Application::OPTION_WindowTitle), "OPTION_WindowTitle"},
+        {fun(&Application::OPTION_WindowSize),  "OPTION_WindowSize"},
+        {fun(&Application::update_options),     "update_options"},
+        {fun(&Application::overlay),            "overlay"},
+        {fun(&Application::console),            "console"},
+        {fun(&Application::quit),               "quit"}
     });
 
     add_class<DebugOverlay>(*m, "DebugOverlay", {}, {
+        {fun(&DebugOverlay::notify), "notify"}
     });
 
     add_class<ChaiConsole>(*m, "ChaiConsole", {}, {
@@ -53,11 +47,11 @@ void sq::cs_setup_app(chai::ChaiScript& _cs) {
         {fun(&ChaiConsole::cs_history), "history"}
     });
 
-    _cs.add(m);
+    _engine.add(m);
 }
 
 
-void sq::cs_setup_physics(chai::ChaiScript& _cs) {
+void sq::chaiscript_setup_physics(ChaiEngine& _engine) {
     chai::ModulePtr m(new chai::Module());
 
     m->add(fun(&BaseBody::set_transform),  "set_transform");
@@ -73,31 +67,31 @@ void sq::cs_setup_physics(chai::ChaiScript& _cs) {
     m->add(fun(&BaseBody::get_bounciness), "get_bounciness");
 
     add_class<StaticBody>(*m, "StaticBody", {}, {
-        {fun<void(StaticBody::*)(uint, Vec3F, Vec3F, QuatF)>        (&StaticBody::add_BoxShape),      "add_BoxShape"},
-        {fun<void(StaticBody::*)(uint, float, Vec3F, QuatF)>        (&StaticBody::add_SphereShape),   "add_SphereShape"},
-        {fun<void(StaticBody::*)(uint, float, float, Vec3F, QuatF)> (&StaticBody::add_ConeShape),     "add_ConeShape"},
-        {fun<void(StaticBody::*)(uint, float, float, Vec3F, QuatF)> (&StaticBody::add_CylinderShape), "add_CylinderShape"},
-        {fun<void(StaticBody::*)(uint, float, float, Vec3F, QuatF)> (&StaticBody::add_CapsuleShape),  "add_CapsuleShape"},
+        {fun<void, StaticBody, uint, Vec3F, Vec3F, QuatF>        (&StaticBody::add_BoxShape),      "add_BoxShape"},
+        {fun<void, StaticBody, uint, float, Vec3F, QuatF>        (&StaticBody::add_SphereShape),   "add_SphereShape"},
+        {fun<void, StaticBody, uint, float, float, Vec3F, QuatF> (&StaticBody::add_ConeShape),     "add_ConeShape"},
+        {fun<void, StaticBody, uint, float, float, Vec3F, QuatF> (&StaticBody::add_CylinderShape), "add_CylinderShape"},
+        {fun<void, StaticBody, uint, float, float, Vec3F, QuatF> (&StaticBody::add_CapsuleShape),  "add_CapsuleShape"},
 
-        {fun<void(StaticBody::*)(uint, Vec3F)>        (&StaticBody::add_BoxShape),      "add_BoxShape"},
-        {fun<void(StaticBody::*)(uint, float)>        (&StaticBody::add_SphereShape),   "add_SphereShape"},
-        {fun<void(StaticBody::*)(uint, float, float)> (&StaticBody::add_ConeShape),     "add_ConeShape"},
-        {fun<void(StaticBody::*)(uint, float, float)> (&StaticBody::add_CylinderShape), "add_CylinderShape"},
-        {fun<void(StaticBody::*)(uint, float, float)> (&StaticBody::add_CapsuleShape),  "add_CapsuleShape"}
+        {fun<void, StaticBody, uint, Vec3F>        (&StaticBody::add_BoxShape),      "add_BoxShape"},
+        {fun<void, StaticBody, uint, float>        (&StaticBody::add_SphereShape),   "add_SphereShape"},
+        {fun<void, StaticBody, uint, float, float> (&StaticBody::add_ConeShape),     "add_ConeShape"},
+        {fun<void, StaticBody, uint, float, float> (&StaticBody::add_CylinderShape), "add_CylinderShape"},
+        {fun<void, StaticBody, uint, float, float> (&StaticBody::add_CapsuleShape),  "add_CapsuleShape"}
     });
 
     add_class<DynamicBody>(*m, "DynamicBody", {}, {
-        {fun<void(DynamicBody::*)(uint, Vec3F, Vec3F, QuatF, float)>        (&DynamicBody::add_BoxShape),      "add_BoxShape"},
-        {fun<void(DynamicBody::*)(uint, float, Vec3F, QuatF, float)>        (&DynamicBody::add_SphereShape),   "add_SphereShape"},
-        {fun<void(DynamicBody::*)(uint, float, float, Vec3F, QuatF, float)> (&DynamicBody::add_ConeShape),     "add_ConeShape"},
-        {fun<void(DynamicBody::*)(uint, float, float, Vec3F, QuatF, float)> (&DynamicBody::add_CylinderShape), "add_CylinderShape"},
-        {fun<void(DynamicBody::*)(uint, float, float, Vec3F, QuatF, float)> (&DynamicBody::add_CapsuleShape),  "add_CapsuleShape"},
+        {fun<void, DynamicBody, uint, Vec3F, Vec3F, QuatF, float>        (&DynamicBody::add_BoxShape),      "add_BoxShape"},
+        {fun<void, DynamicBody, uint, float, Vec3F, QuatF, float>        (&DynamicBody::add_SphereShape),   "add_SphereShape"},
+        {fun<void, DynamicBody, uint, float, float, Vec3F, QuatF, float> (&DynamicBody::add_ConeShape),     "add_ConeShape"},
+        {fun<void, DynamicBody, uint, float, float, Vec3F, QuatF, float> (&DynamicBody::add_CylinderShape), "add_CylinderShape"},
+        {fun<void, DynamicBody, uint, float, float, Vec3F, QuatF, float> (&DynamicBody::add_CapsuleShape),  "add_CapsuleShape"},
 
-        {fun<void(DynamicBody::*)(uint, Vec3F, float)>        (&DynamicBody::add_BoxShape),      "add_BoxShape"},
-        {fun<void(DynamicBody::*)(uint, float, float)>        (&DynamicBody::add_SphereShape),   "add_SphereShape"},
-        {fun<void(DynamicBody::*)(uint, float, float, float)> (&DynamicBody::add_ConeShape),     "add_ConeShape"},
-        {fun<void(DynamicBody::*)(uint, float, float, float)> (&DynamicBody::add_CylinderShape), "add_CylinderShape"},
-        {fun<void(DynamicBody::*)(uint, float, float, float)> (&DynamicBody::add_CapsuleShape),  "add_CapsuleShape"},
+        {fun<void, DynamicBody, uint, Vec3F, float>        (&DynamicBody::add_BoxShape),      "add_BoxShape"},
+        {fun<void, DynamicBody, uint, float, float>        (&DynamicBody::add_SphereShape),   "add_SphereShape"},
+        {fun<void, DynamicBody, uint, float, float, float> (&DynamicBody::add_ConeShape),     "add_ConeShape"},
+        {fun<void, DynamicBody, uint, float, float, float> (&DynamicBody::add_CylinderShape), "add_CylinderShape"},
+        {fun<void, DynamicBody, uint, float, float, float> (&DynamicBody::add_CapsuleShape),  "add_CapsuleShape"},
 
         {fun(&DynamicBody::set_linearDamp),      "set_linearDamp"},
         {fun(&DynamicBody::set_angularDamp),     "set_angularDamp"},
@@ -113,32 +107,9 @@ void sq::cs_setup_physics(chai::ChaiScript& _cs) {
         {fun(&DynamicBody::get_mass),            "get_mass"},
     });
 
-    _cs.add(m);
+    _engine.add(m);
 }
 
-
-void sq::cs_setup_render(chai::ChaiScript& _cs) {
-    chai::ModulePtr m(new chai::Module());
-
-    add_class<Camera>(*m, "Camera", {}, {
-        {fun(&Camera::pos), "position"},
-        {fun(&Camera::dir), "direction"}
-    });
-
-    _cs.add(m);
-}
-
-
-void sq::cs_setup_ecs(chai::ChaiScript& _cs) {
-    chai::ModulePtr m(new chai::Module());
-
-    _cs.add(m);
-}
-
-
-template<class T> vector<T> convert_vector(const vector<Boxed_Value>& vec) {
-    vector<T> rv; for (const auto& bv : vec) rv.emplace_back(boxed_cast<T>(bv)); return rv;
-}
 
 template<int S, class T, class VecST, std::enable_if_t<S == 2>...>
 inline void setup_VecST_sized(chai::Module& _m, const string& _name) {
@@ -164,22 +135,20 @@ inline void setup_VecST(chai::Module& _m, const string& _name) {
     _m.add(constructor<VecST(const VecST&)>(), _name);
     _m.add(fun(&VecST::operator=), "=");
 
-    _m.add(user_type<vector<VecST>>(), "Vector<"+_name+">");
-    _m.add(type_conversion<vector<Boxed_Value>, vector<VecST>>(&convert_vector<VecST>));
-    _m.add(fun<vector<VecST>&(vector<VecST>::*)(const vector<VecST>&)>(&vector<VecST>::operator=), "=");
+    _m.add(vector_conversion<vector<VecST>>());
     _m.add(type_conversion<VecST, string>(&chai_string<VecST>));
 
-    _m.add(fun<VecST(VecST,VecST)>(operator+), "+");
-    _m.add(fun<VecST(VecST,VecST)>(operator-), "-");
-    _m.add(fun<VecST(VecST,VecST)>(operator*), "*");
-    _m.add(fun<VecST(VecST,VecST)>(operator/), "/");
-    _m.add(fun<VecST(VecST,T)>(operator+), "+");
-    _m.add(fun<VecST(VecST,T)>(operator-), "-");
-    _m.add(fun<VecST(VecST,T)>(operator*), "*");
-    _m.add(fun<VecST(VecST,T)>(operator/), "/");
+    _m.add(fun<VecST, VecST, VecST>(operator+), "+");
+    _m.add(fun<VecST, VecST, VecST>(operator-), "-");
+    _m.add(fun<VecST, VecST, VecST>(operator*), "*");
+    _m.add(fun<VecST, VecST, VecST>(operator/), "/");
+    _m.add(fun<VecST, VecST, T>(operator+), "+");
+    _m.add(fun<VecST, VecST, T>(operator-), "-");
+    _m.add(fun<VecST, VecST, T>(operator*), "*");
+    _m.add(fun<VecST, VecST, T>(operator/), "/");
 }
 
-void sq::cs_setup_maths(chai::ChaiScript& _cs) {
+void sq::chaiscript_setup_maths(ChaiEngine& _engine) {
     chai::ModulePtr m(new chai::Module());
 
     setup_VecST<2, int>(*m, "Vec2I");
@@ -197,27 +166,19 @@ void sq::cs_setup_maths(chai::ChaiScript& _cs) {
         {fun(&QuatF::operator=), "="}, {fun(&QuatF::x), "x"}, {fun(&QuatF::y), "y"}, {fun(&QuatF::z), "z"}, {fun(&QuatF::w), "w"}
     });
 
-    m->add(user_type<vector<int>>(), "Vector<int>");
-    m->add(user_type<vector<uint>>(), "Vector<uint>");
-    m->add(user_type<vector<float>>(), "Vector<float>");
-    m->add(user_type<vector<QuatF>>(), "Vector<QuatF>");
+    m->add(vector_conversion<vector<int>>());
+    m->add(vector_conversion<vector<uint>>());
+    m->add(vector_conversion<vector<float>>());
+    m->add(vector_conversion<vector<QuatF>>());
     m->add(type_conversion<int, string>(&chai_string<int>));
     m->add(type_conversion<uint, string>(&chai_string<uint>));
     m->add(type_conversion<float, string>(&chai_string<float>));
     m->add(type_conversion<QuatF, string>(&chai_string<QuatF>));
-    m->add(type_conversion<vector<Boxed_Value>, vector<int>>(&convert_vector<int>));
-    m->add(type_conversion<vector<Boxed_Value>, vector<uint>>(&convert_vector<uint>));
-    m->add(type_conversion<vector<Boxed_Value>, vector<float>>(&convert_vector<float>));
-    m->add(type_conversion<vector<Boxed_Value>, vector<QuatF>>(&convert_vector<QuatF>));
-    m->add(fun<vector<int>&(vector<int>::*)(const vector<int>&)>(&vector<int>::operator=), "=");
-    m->add(fun<vector<uint>&(vector<uint>::*)(const vector<uint>&)>(&vector<uint>::operator=), "=");
-    m->add(fun<vector<float>&(vector<float>::*)(const vector<float>&)>(&vector<float>::operator=), "=");
-    m->add(fun<vector<QuatF>&(vector<QuatF>::*)(const vector<QuatF>&)>(&vector<QuatF>::operator=), "=");
 
-    m->add(fun<Vec2F (*)(Vec2F)>(&maths::normalize), "normalize");
-    m->add(fun<Vec3F (*)(Vec3F)>(&maths::normalize), "normalize");
-    m->add(fun<Vec4F (*)(Vec4F)>(&maths::normalize), "normalize");
-    m->add(fun<QuatF (*)(QuatF)>(&maths::normalize), "normalize");
+    m->add(fun<Vec2F, Vec2F>(&maths::normalize), "normalize");
+    m->add(fun<Vec3F, Vec3F>(&maths::normalize), "normalize");
+    m->add(fun<Vec4F, Vec4F>(&maths::normalize), "normalize");
+    m->add(fun<QuatF, QuatF>(&maths::normalize), "normalize");
 
-    _cs.add(m);
+    _engine.add(m);
 }

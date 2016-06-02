@@ -7,7 +7,7 @@
 namespace sqt {
 namespace maths = sq::maths;
 
-StaticBodyComponent::StaticBodyComponent(EntityRPG& _e, World& _w) : body(*_w.physWorld) {
+StaticBodyComponent::StaticBodyComponent(EntityRPG& _e, World& _w) : body(_w.get_PhysicsWorld()) {
     if (_e.name == "FloorPhys") {
         body.add_BoxShape(0u, Vec3F(16.35f, 7.25f, 1.f), Vec3F(0.f, 0.f, -1.f), {});
         body.set_bounciness(0.f); body.set_friction(0.3f);

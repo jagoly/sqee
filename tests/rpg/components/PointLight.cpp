@@ -1,5 +1,6 @@
 #include <sqee/redist/gl_ext_4_2.hpp>
 
+#include "../RpgApp.hpp"
 #include "../wcoe/World.hpp"
 #include "Transform.hpp"
 #include "PointLight.hpp"
@@ -19,7 +20,7 @@ PointLightComponent::PointLightComponent(EntityRPG&, World&) :
 
 template<> void World::configure_component(PointLightComponent* _c, EntityRPG* _e) {
     if (_c->PROP_texsize == 0u) _c->tex.delete_object();
-    else { uint newSize = _c->PROP_texsize * (settings.get<bool>("rpg_shadlarge") + 1u);
+    else { uint newSize = _c->PROP_texsize * (options.ShadowLarge + 1u);
         if (newSize != _c->tex.get_size().x) _c->tex.allocate_storage(newSize, false); }
 }
 

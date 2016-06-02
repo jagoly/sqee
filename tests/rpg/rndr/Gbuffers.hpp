@@ -3,7 +3,6 @@
 #include <sqee/gl/FrameBuffer.hpp>
 #include <sqee/gl/Textures.hpp>
 #include <sqee/gl/Shaders.hpp>
-#include <sqee/maths/Vectors.hpp>
 
 #include "Renderer.hpp"
 
@@ -13,7 +12,7 @@ class Renderer::Gbuffers : sq::NonCopyable {
 public:
     Gbuffers(const Renderer& _renderer);
 
-    void update_settings();
+    void update_options();
 
     void render_gbuffers_base();
 
@@ -21,6 +20,7 @@ public:
 
 private:
     const Renderer& renderer;
+    const RpgOptions& options;
 
     sq::FrameBuffer FB_baseGbuf;
     sq::FrameBuffer FB_depth;

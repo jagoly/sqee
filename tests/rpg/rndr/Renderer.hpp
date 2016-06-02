@@ -1,13 +1,12 @@
 #pragma once
 
-#include <sqee/forward.hpp>
 #include <sqee/builtins.hpp>
-#include <sqee/maths/Volumes.hpp>
 #include <sqee/redist/gl_ext_4_2.hpp>
-#include <sqee/app/MessageBus.hpp>
-#include <sqee/ecs/Entity.hpp>
+#include <sqee/app/PreProcessor.hpp>
+#include <sqee/maths/Volumes.hpp>
 #include <sqee/gl/Shaders.hpp>
 
+#include "../RpgOptions.hpp"
 #include "../components/Helpers.hpp"
 
 namespace sqt {
@@ -83,17 +82,12 @@ struct ReflectData {
 
 class Renderer final : sq::NonCopyable {
 public:
-    Renderer(sq::MessageBus& _messageBus,
-             const sq::Settings& _settings,
-             const sq::PreProcessor& _preprocs,
-             const sq::Pipeline& _pipeline,
-             const World& _world);
+    Renderer(const RpgOptions& _options, const World& _world);
 
     ~Renderer();
 
-    void configure();
+    void update_options();
     void render_scene();
-    void draw_debug_bounds();
 
     CameraData cameraData;
     SkyLightData skyLightData;
@@ -129,6 +123,9 @@ private:
     sq::Shader FS_part_soft_point_shad {gl::FRAGMENT_SHADER};
     sq::Shader FS_part_soft_write {gl::FRAGMENT_SHADER};*/
 
+    sq::PreProcessor preprocs;
+    sq::Pipeline pipeline;
+
     sq::Shader VS_fullscreen {gl::VERTEX_SHADER};
     sq::Shader VS_stencil_base {gl::VERTEX_SHADER};
     sq::Shader VS_stencil_refl {gl::VERTEX_SHADER};
@@ -141,10 +138,7 @@ private:
     class Pretties; unique_ptr<Pretties> pretties;
     class Reflects; unique_ptr<Reflects> reflects;
 
-    sq::MessageBus& messageBus;
-    const sq::Settings& settings;
-    const sq::PreProcessor& preprocs;
-    const sq::Pipeline& pipeline;
+    const RpgOptions& options;
     const World& world;
 
     struct Impl;

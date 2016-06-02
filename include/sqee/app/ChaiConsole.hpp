@@ -15,11 +15,9 @@ namespace sq {
 /// The SQEE Chaiscript Console
 class ChaiConsole final : NonCopyable {
 public:
-    ChaiConsole(Application* _app);
+    ChaiConsole(Application& _app);
 
-    void update();
-    void render();
-
+    void tick(); void render();
     void handle_input(sf::Event _event);
 
     void toggle_active();
@@ -29,11 +27,11 @@ public:
     void cs_print(const string& _value);
     void cs_history(); void cs_clear();
 
-    double accum = 0.0;
+    double accumulation = 0.0;
     bool active = false;
 
 private:
-    Application* const app;
+    Application& app;
 
     string input;
     vector<string> history;

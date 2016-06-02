@@ -4,13 +4,12 @@
 
 // Forward Declarations /////
 namespace chaiscript { class ChaiScript; }
+namespace sq { using ChaiEngine = chai::ChaiScript; }
 
 namespace sq {
 
-void cs_setup_app(chai::ChaiScript& _cs);
-void cs_setup_physics(chai::ChaiScript& _cs);
-void cs_setup_render(chai::ChaiScript& _cs);
-void cs_setup_maths(chai::ChaiScript& _cs);
-void cs_setup_ecs(chai::ChaiScript& _cs);
+void chaiscript_setup_app(ChaiEngine& _engine);
+void chaiscript_setup_physics(ChaiEngine& _engine);
+void chaiscript_setup_maths(ChaiEngine& _engine);
 
 }

@@ -7,18 +7,18 @@
 
 namespace sqt {
 
-class Level;
+class SokoApp; class Level;
 
 class GameScene : public sq::Scene {
 public:
-    GameScene(sq::Application* _app);
+    GameScene(SokoApp& _app);
 
-    void configure();
-    void tick(), render();
-
+    void update_options();
+    void tick(); void render();
     bool handle(sf::Event event);
 
 private:
+    unique_ptr<sq::PreProcessor> preprocs;
     unique_ptr<sq::Pipeline> pipeline;
     unique_ptr<sq::UniformBuffer> ubo;
     unique_ptr<sq::Camera> camera;
@@ -45,6 +45,8 @@ private:
     Vec2F posCrnt, posNext;
     bool animate = false;
     bool pushing = false;
+
+    SokoApp& app;
 };
 
 }

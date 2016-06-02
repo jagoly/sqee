@@ -1,6 +1,5 @@
 #include <sqee/redist/gl_ext_4_2.hpp>
 #include <sqee/maths/General.hpp>
-#include <sqee/app/Settings.hpp>
 
 #include "World.hpp"
 #include "Camera.hpp"
@@ -9,10 +8,9 @@
 using namespace sqt;
 namespace maths = sq::maths;
 
-SkyLight::SkyLight(const World& _world) :
+SkyLight::SkyLight() :
     texA(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT16, sq::Texture::ShadowMap()),
-    texB(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT16, sq::Texture::ShadowMap()),
-    world(_world) {
+    texB(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT16, sq::Texture::ShadowMap()) {
 
     ubo.reserve("direction", 4u);
     ubo.reserve("colour", 3u);
@@ -23,24 +21,25 @@ SkyLight::SkyLight(const World& _world) :
     ubo.create_and_allocate();
 }
 
-void SkyLight::configure() {
-    uint newSize = 1024u * (world.settings.get<bool>("rpg_shadlarge") + 1u);
-    if (newSize != texA.get_size().x) texA.allocate_storage(Vec3U(newSize, newSize, 4u), false);
-    if (newSize != texB.get_size().x) texB.allocate_storage(Vec3U(newSize, newSize, 2u), false);
+void SkyLight::configure(const World& _world) {
+    uint newSize = 1024u * (_world.options.ShadowLarge + 1u);
+    if (newSize != texA.get_size().x) texA.allocate_storage({newSize, newSize, 4u}, false);
+    if (newSize != texB.get_size().x) texB.allocate_storage({newSize, newSize, 2u}, false);
 
-    const float rmin = world.camera->rmin, rmax = world.camera->rmax;
+    const float rmin = _world.get_Camera().rmin, rmax = _world.get_Camera().rmax;
     splits.x = maths::mix(rmin+(rmax-rmin)*0.25f, rmin*std::pow(rmax/rmin, 0.25f), 0.6f);
     splits.y = maths::mix(rmin+(rmax-rmin)*0.50f, rmin*std::pow(rmax/rmin, 0.50f), 0.6f);
     splits.z = maths::mix(rmin+(rmax-rmin)*0.75f, rmin*std::pow(rmax/rmin, 0.75f), 0.6f);
     splits.w = rmax * 0.4f; ubo.update("splits", &splits);
 }
 
-void SkyLight::update() {
+void SkyLight::update(const World& _world) {
     const Vec4F sp = splits; array<Vec3F, 4> centres;
     const Vec3F tangent = sq::make_tangent(PROP_direction);
-    const float rmin = world.camera->rmin, rmax = world.camera->rmax;
-    const Vec3F cameraPos = world.camera->PROP_position;
-    const Vec3F cameraDir = world.camera->PROP_direction;
+    const float rmin = _world.get_Camera().rmin;
+    const float rmax = _world.get_Camera().rmax;
+    const Vec3F cameraPos = _world.get_Camera().PROP_position;
+    const Vec3F cameraDir = _world.get_Camera().PROP_direction;
     centres[0] = cameraPos + cameraDir * (rmin + sp.x) / 2.f;
     centres[1] = cameraPos + cameraDir * (sp.x + sp.y) / 2.f;
     centres[2] = cameraPos + cameraDir * (sp.y + sp.z) / 2.f;

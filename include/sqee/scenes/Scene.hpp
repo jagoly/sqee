@@ -3,28 +3,21 @@
 #include <sqee/setup.hpp>
 
 // Forward Declarations /////
-namespace sq { class Application; }
 namespace sf { class Event; }
 
 namespace sq {
 
-/// The basic SQEE Scene class
-class Scene : NonCopyable {
+class Scene : sq::NonCopyable {
 public:
-    Scene(Application* _app);
+    Scene(double _tickTime);
     virtual ~Scene() = default;
 
-    virtual void tick() = 0;
-    virtual void render() = 0;
-    virtual void configure() {}
+    virtual void update_options() = 0;
+    virtual void tick() = 0, render() = 0;
+    virtual bool handle(sf::Event _event) = 0;
 
-    virtual bool handle(sf::Event _event);
-
-    double accum = 0.0;
-    uint tickRate = 24u;
-
-protected:
-    Application* const app;
+    double accumulation = 0.0;
+    const double tickTime;
 };
 
 }

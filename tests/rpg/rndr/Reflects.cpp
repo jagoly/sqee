@@ -1,27 +1,26 @@
-#include <sqee/app/Settings.hpp>
-#include <sqee/app/PreProcessor.hpp>
+#include <sqee/misc/StringCast.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
 #include <sqee/gl/Drawing.hpp>
 #include <sqee/render/Mesh.hpp>
 #include <sqee/render/Skin.hpp>
-#include <sqee/misc/StringCast.hpp>
-
-#include "Gbuffers.hpp"
-#include "Lighting.hpp"
-#include "Reflects.hpp"
 
 #include "../components/Transform.hpp"
 #include "../components/Model.hpp"
 #include "../components/Reflect.hpp"
 
+#include "Gbuffers.hpp"
+#include "Lighting.hpp"
+#include "Reflects.hpp"
+
 using namespace sqt;
 
-
-Renderer::Reflects::Reflects(const Renderer& _renderer) : renderer(_renderer) {
-    renderer.preprocs(VS_defr_reflector, "deferred/reflector_vs");
+Renderer::Reflects::Reflects(const Renderer& _renderer)
+    : renderer(_renderer), options(renderer.options) {
 
     FB_reflGbuf.draw_buffers({gl::COLOR_ATTACHMENT0, gl::COLOR_ATTACHMENT1});
     FB_reflHdr.draw_buffers({gl::COLOR_ATTACHMENT0});
+
+    renderer.preprocs(VS_defr_reflector, "deferred/reflector_vs");
 }
 
 
@@ -104,9 +103,8 @@ void Renderer::Reflects::render_reflections() {
 }
 
 
-void Renderer::Reflects::update_settings() {
-    INFO_fullSize = Vec2U(renderer.settings.get<int>("app_width"),
-                          renderer.settings.get<int>("app_height"));
+void Renderer::Reflects::update_options() {
+    INFO_fullSize = options.WindowSize;
     INFO_halfSize = INFO_fullSize / 2u;
 
     TEX_reflDiff.allocate_storage(INFO_halfSize, false);

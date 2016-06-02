@@ -57,7 +57,7 @@ template<> void World::refresh_component(ModelComponent* _c, EntityRPG* _e) {
 }
 
 template<> void World::update_component(ModelComponent* _c, EntityRPG* _e) {
-    _c->normMat = Mat4F(maths::transpose(maths::inverse(Mat3F(camera->viewMat * _c->matrix))));
+    _c->normMat = Mat4F(maths::transpose(maths::inverse(Mat3F(get_Camera().viewMat * _c->matrix))));
 
     _c->ubo.update("normMat", &_c->normMat);
 }

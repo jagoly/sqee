@@ -1,5 +1,3 @@
-#include <sqee/app/Settings.hpp>
-#include <sqee/app/PreProcessor.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
 #include <sqee/gl/Drawing.hpp>
 #include <sqee/render/Mesh.hpp>
@@ -13,7 +11,9 @@
 
 using namespace sqt;
 
-Renderer::Gbuffers::Gbuffers(const Renderer& _renderer) : renderer(_renderer) {
+Renderer::Gbuffers::Gbuffers(const Renderer& _renderer)
+    : renderer(_renderer), options(renderer.options) {
+
     FB_baseGbuf.draw_buffers({gl::COLOR_ATTACHMENT0, gl::COLOR_ATTACHMENT1,
                               gl::COLOR_ATTACHMENT2, gl::COLOR_ATTACHMENT3});
 
@@ -173,9 +173,8 @@ void Renderer::Gbuffers::draw_mskellys_refl(const ReflectData& _data, bool _deca
 }
 
 
-void Renderer::Gbuffers::update_settings() {
-    INFO_fullSize = Vec2U(renderer.settings.get<int>("app_width"),
-                          renderer.settings.get<int>("app_height"));
+void Renderer::Gbuffers::update_options() {
+    INFO_fullSize = options.WindowSize;
     INFO_halfSize = INFO_fullSize / 2u;
     INFO_qterSize = INFO_fullSize / 4u;
 

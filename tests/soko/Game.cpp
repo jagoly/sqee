@@ -2,8 +2,6 @@
 
 #include <sqee/redist/gl_ext_4_2.hpp>
 #include <sqee/debug/Logging.hpp>
-#include <sqee/app/Application.hpp>
-#include <sqee/app/Settings.hpp>
 #include <sqee/app/PreProcessor.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
 #include <sqee/gl/Textures.hpp>
@@ -13,14 +11,14 @@
 #include <sqee/render/Mesh.hpp>
 #include <sqee/maths/General.hpp>
 
+#include "SokoApp.hpp"
 #include "Level.hpp"
 #include "Game.hpp"
 
 using namespace sqt;
 namespace maths = sq::maths;
 
-GameScene::GameScene(sq::Application* _app) : sq::Scene(_app) {
-    tickRate = 10u;
+GameScene::GameScene(SokoApp& _app) : sq::Scene(1.0 / 10.0), app(_app) {
 
     camera.reset(new sq::Camera());
     camera->pos = {3.f, -2.f, 10.f};
@@ -45,8 +43,10 @@ GameScene::GameScene(sq::Application* _app) : sq::Scene(_app) {
     ubo->update("slColour", &slColour);
     ubo->update("aColour", &aColour);
 
+    preprocs.reset(new sq::PreProcessor());
     pipeline.reset(new sq::Pipeline());
-    app->preprocs.import_header("uniform_block");
+
+    preprocs->import_header("uniform_block");
 
     /// Create Shaders
     VS_object.reset(new sq::Shader(gl::VERTEX_SHADER));
@@ -57,8 +57,8 @@ GameScene::GameScene(sq::Application* _app) : sq::Scene(_app) {
     VS_object->add_uniform("normMat");  // mat4
 
     /// Load Shaders
-    app->preprocs.load(*VS_object, "object_vs");
-    app->preprocs.load(*FS_object, "object_fs");
+    preprocs->load(*VS_object, "object_vs");
+    preprocs->load(*FS_object, "object_fs");
 
     /// Create and Load Meshes
     MESH_Ball.reset(new sq::Mesh("Ball"));
@@ -103,8 +103,8 @@ GameScene::GameScene(sq::Application* _app) : sq::Scene(_app) {
 }
 
 
-void GameScene::configure() {
-    camera->size = Vec2F(app->get_size());
+void GameScene::update_options() {
+    camera->size = Vec2F(app.OPTION_WindowSize);
 }
 
 
@@ -191,7 +191,7 @@ void GameScene::tick() {
 
 
 void GameScene::render() {
-    sq::VIEWPORT(app->get_size());
+    sq::VIEWPORT(app.OPTION_WindowSize);
     gl::ClearColor(0.15f, 0.1f, 0.2f, 0.f);
     sq::CULLFACE_ON(); sq::DEPTH_ON();
     sq::CLEAR_COLOR_DEPTH_STENC();
@@ -202,6 +202,8 @@ void GameScene::render() {
     pipeline->use_shader(*FS_object);
     camera->ubo.bind(0u);
     ubo->bind(1u);
+
+    float tickPercent = accumulation * 10.0;
 
     for (int x = level->minPos.x; x < level->maxPos.x; x++) {
         for (int y = level->minPos.x; y < level->maxPos.y; y++) {
@@ -216,8 +218,8 @@ void GameScene::render() {
     }
 
     for (const Ball::Ptr& ball : level->ballList) {
-        float zTrans = -float(ball->inhole) * float(accum*tickRate);
-        Vec2F translation = maths::mix(ball->posCrnt, ball->posNext, float(accum*tickRate));
+        float zTrans = -float(ball->inhole) * tickPercent;
+        Vec2F translation = maths::mix(ball->posCrnt, ball->posNext, tickPercent);
         Mat4F modelMat = maths::translate(Mat4F(), Vec3F(translation, zTrans));
         Mat3F normMat = sq::make_normMat(camera->viewMat * modelMat);
         VS_object->set_mat<Mat4F>("modelMat", modelMat);
@@ -258,8 +260,8 @@ void GameScene::render() {
     }
 
     { // Player
-        float rotation = maths::mix(rotCrnt, rotNext, float(accum*tickRate));
-        Vec2F translation = maths::mix(posCrnt, posNext, float(accum*tickRate));
+        float rotation = maths::mix(rotCrnt, rotNext, tickPercent);
+        Vec2F translation = maths::mix(posCrnt, posNext, tickPercent);
         Mat4F modelMat = maths::translate(Mat4F(), Vec3F(translation, 0.f));
         modelMat = maths::rotate(modelMat, Vec3F(0.f, 0.f, -1.f), rotation);
         Mat3F normMat = sq::make_normMat(camera->viewMat * modelMat);
@@ -267,7 +269,6 @@ void GameScene::render() {
         VS_object->set_mat<Mat3F>("normMat", normMat);
         MESH_Player->bind_vao(); MESH_Player->draw_complete();
     }
-
 
     gl::BindProgramPipeline(0u);
     gl::BindVertexArray(0u);

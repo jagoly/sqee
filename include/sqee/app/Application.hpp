@@ -1,23 +1,16 @@
 #pragma once
 
-#include <unordered_set>
-
 #include <sqee/builtins.hpp>
-#include <sqee/app/Settings.hpp>
-#include <sqee/app/MessageBus.hpp>
-#include <sqee/app/ChaiConsole.hpp>
-#include <sqee/app/DebugOverlay.hpp>
-#include <sqee/app/PreProcessor.hpp>
-#include <sqee/misc/OrderedMap.hpp>
 #include <sqee/maths/Vectors.hpp>
 
-
 // Forward Declarations /////
-namespace sq { class Scene; }
 namespace sf { class Window; class Event; }
 namespace chaiscript { class ChaiScript; }
 
 namespace sq {
+
+class DebugOverlay; class ChaiConsole; class Scene;
+using ChaiEngine = chai::ChaiScript;
 
 /// The basic SQEE Application class
 class Application : NonCopyable {
@@ -25,53 +18,28 @@ public:
     Application();
     virtual ~Application();
 
-    virtual int run();
-    virtual void quit(int _code);
-    virtual void configure();
+    int run();
+    void quit(int _code);
+
+    virtual void update_options();
+    virtual bool handle(sf::Event _event);
+
+    unique_ptr<ChaiEngine> chaiEngine;
+    unique_ptr<DebugOverlay> overlay;
+    unique_ptr<ChaiConsole> console;
+
+    string OPTION_WindowTitle  = "SQEE Application";
+    Vec2U  OPTION_WindowSize   = {800u, 600u};
+    bool   OPTION_VerticalSync = false;
+    bool   OPTION_HideCursor   = false;
+    bool   OPTION_KeyRepeat    = false;
 
     Vec2F mouse_centre();
-    Vec2U get_size() const;
-
-    template<class T> T& append_scene(const string& _key);
-    template<class T> T& prepend_scene(const string& _key);
-    template<class T> T& get_scene(const string& _key);
-
-    void sweep_scene(const string& _key);
-
-    unique_ptr<chai::ChaiScript> cs;
-
-    MessageBus messageBus;
-
-    Settings settings;
-    PreProcessor preprocs;
-    DebugOverlay overlay;
-    ChaiConsole console;
 
 protected:
+    vector<unique_ptr<Scene>> activeScenes;
     unique_ptr<sf::Window> window;
-    int retCode = -1;
-
-    OrderedMap<string, unique_ptr<Scene>> sceneMap;
-
-    std::unordered_set<string> sceneSweep;
-
-    virtual bool handle_default(sf::Event _event);
+    int returnCode = -1;
 };
-
-
-template<class T>
-T& Application::append_scene(const string& _key) {
-    sceneMap.append(_key, new T(this));
-    return static_cast<T&>(*sceneMap.back());
-}
-template<class T>
-T& Application::prepend_scene(const string& _key) {
-    sceneMap.prepend(_key, new T(this));
-    return static_cast<T&>(*sceneMap.front());
-}
-template<class T>
-T& Application::get_scene(const string& _key) {
-    return static_cast<T&>(*sceneMap.get(_key));
-}
 
 }

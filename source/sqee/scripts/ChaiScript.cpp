@@ -4,6 +4,6 @@
 
 using namespace sq;
 
-chai::ChaiScript* sq::make_ChaiScript() {
-    return new chai::ChaiScript(chai::Std_Lib::library());
+std::unique_ptr<ChaiEngine> sq::create_ChaiEngine() {
+    return std::make_unique<ChaiEngine>(chai::Std_Lib::library());
 }

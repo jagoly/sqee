@@ -2,10 +2,9 @@
 #include <chaiscript/utility/utility.hpp>
 
 #include "../wcoe/Camera.hpp"
-#include "../wcoe/SkyBox.hpp"
 #include "../wcoe/Ambient.hpp"
+#include "../wcoe/SkyBox.hpp"
 #include "../wcoe/SkyLight.hpp"
-#include "../rndr/Renderer.hpp"
 #include "../wcoe/World.hpp"
 
 #include "../components/Animator.hpp"
@@ -20,43 +19,64 @@
 
 #include "Scripting.hpp"
 
-using std::bind; using std::ref;
-using namespace std::placeholders;
-using namespace sqt;
-
 using chai::fun;
 using chai::user_type;
 using chai::base_class;
 using chai::constructor;
 using chai::type_conversion;
+using chai::vector_conversion;
 using chai::utility::add_class;
-using chai::Boxed_Value;
-using chai::boxed_cast;
+
+using namespace sqt;
 
 
-void sqt::cs_setup_world(chai::ChaiScript& _cs) {
+void sqt::chaiscript_setup_world(sq::ChaiEngine& _engine, World& _world) {
     chai::ModulePtr m(new chai::Module());
 
     add_class<World>(*m, "World", {}, {
-        {fun(&World::root),      "root"},
-        {fun(&World::camera),    "camera"},
-        {fun(&World::skybox),    "skybox"},
-        {fun(&World::ambient),   "ambient"},
-        {fun(&World::skylight),  "skylight"},
-        {fun(&World::configure), "configure"},
+        {fun<EntityRPG&, World>(&World::get_RootEntity), "get_RootEntity"},
+        {fun<Camera&,    World>(&World::get_Camera),     "get_Camera"},
+        {fun<Ambient&,   World>(&World::get_Ambient),    "get_Ambient"},
+        {fun<SkyBox&,    World>(&World::get_SkyBox),     "get_SkyBox"},
+        {fun<SkyLight&,  World>(&World::get_SkyLight),   "get_SkyLight"},
+        {fun(&World::check_SkyBox),    "check_SkyBox"},
+        {fun(&World::check_SkyLight),  "check_SkyLight"},
+        {fun(&World::enable_SkyBox),   "enable_SkyBox"},
+        {fun(&World::enable_SkyLight), "enable_SkyLight"},
+        {fun(&World::update_options),  "update_options"},
         {fun(&World::mark_configure_all_components), "mark_configure_all_components"},
         {fun(&World::mark_refresh_all_components), "mark_refresh_all_components"}
     });
 
-    _cs.add(m);
-}
+    add_class<Camera>(*m, "Camera", {}, {
+        {fun(&Camera::PROP_position), "position"},
+        {fun(&Camera::PROP_direction), "direction"},
+        {fun(&Camera::PROP_fov), "fov"}
+    });
 
-void sqt::cs_setup_renderer(chai::ChaiScript& _cs) {
-    chai::ModulePtr m(new chai::Module());
+    add_class<Ambient>(*m, "Ambient", {}, {
+        {fun(&Ambient::PROP_colour),  "colour"}
+    });
 
-    add_class<Renderer>(*m, "Renderer", {}, {});
+    add_class<SkyBox>(*m, "SkyBox", {}, {
+        {fun(&SkyBox::PROP_saturation), "saturation"},
+        {fun(&SkyBox::PROP_brightness), "brightness"},
+        {fun(&SkyBox::PROP_contrast),   "contrast"},
+        {fun(&SkyBox::PROP_alpha),      "alpha"},
+        {fun(&SkyBox::PROP_texture),    "texture"}
 
-    _cs.add(m);
+    });
+
+    add_class<SkyLight>(*m, "SkyLight", {}, {
+        {fun(&SkyLight::PROP_direction), "direction"},
+        {fun(&SkyLight::PROP_colour),    "colour"},
+        {fun(&SkyLight::PROP_density),   "density"}
+    });
+
+    m->add(fun([&](SkyBox* p){ p->SkyBox::configure(_world); }), "configure");
+    m->add(fun([&](SkyLight* p){ p->SkyLight::configure(_world); }), "configure");
+
+    _engine.add(m);
 }
 
 
@@ -69,9 +89,9 @@ template<class T, ecs::if_Refresh<T>...> inline void setup_mark_refresh(chai::Mo
     _m.add(fun(&World::mark_refresh_component<T>), "mark_refresh_" + T::type() + "Component"); }
 
 template<class T> inline void setup_component(chai::Module& _m, World& _world, const vector<pair<chai::Proxy_Function, string>>& _funcs) {
-    _m.add(fun<void(EntityRPG*)>(bind(&EntityRPG::remove_component<T>, _1, ref(_world))), "remove_" + T::type() + "Component");
-    _m.add(fun<T*(EntityRPG*)>(bind(&EntityRPG::add_component<T>, _1, ref(_world))), "add_" + T::type() + "Component");
-    _m.add(fun<T*(EntityRPG::*)()>(&EntityRPG::get_component<T>), "get_" + T::type() + "Component");
+    _m.add(fun([&](EntityRPG* p){ return p->EntityRPG::add_component<T>(_world); }), "add_" + T::type() + "Component");
+    _m.add(fun([&](EntityRPG* p){ p->EntityRPG::remove_component<T>(_world); }), "remove_" + T::type() + "Component");
+    _m.add(fun<T*, EntityRPG>(&EntityRPG::get_component<T>), "get_" + T::type() + "Component");
     _m.add(user_type<T>(), T::type() + "Component"); _m.add(base_class<ComponentRPG, T>());
     for (const auto& func : _funcs) _m.add(func.first, func.second);
     setup_mark_configure<T>(_m); setup_mark_refresh<T>(_m);
@@ -87,56 +107,18 @@ void setup_PropAnim(chai::Module& _m, const string& _name) {
 }
 
 
-void sqt::cs_setup_components(chai::ChaiScript& _cs, World& _world) {
+void sqt::chaiscript_setup_components(sq::ChaiEngine& _engine, World& _world) {
     chai::ModulePtr m(new chai::Module());
 
     add_class<EntityRPG>(*m, "Entity", {}, {
-        {fun<EntityRPG* (EntityRPG::*)()>(&EntityRPG::get_parent), "get_parent"},
-        {fun<vector<unique_ptr<EntityRPG>>& (EntityRPG::*)()>(&EntityRPG::get_children), "get_children"},
+        {fun<EntityRPG*, EntityRPG>(&EntityRPG::get_parent), "get_parent"},
+        {fun<vector<unique_ptr<EntityRPG>>&, EntityRPG>(&EntityRPG::get_children), "get_children"},
         {fun(&EntityRPG::add_child), "add_child"}, {fun(&EntityRPG::remove_child), "remove_child"},
-        {fun<EntityRPG* (EntityRPG::*)(const string&)>(&EntityRPG::get_child), "get_child"},
-
-        //{fun(&EntityRPG::mark_configure_all), "mark_configure_all"},
-        //{fun(&EntityRPG::mark_refresh_all), "mark_refresh_all"},
-        //{fun(&EntityRPG::mark_configure_recursive_all), "mark_configure_recursive_all"},
-        //{fun(&EntityRPG::mark_refresh_recursive_all), "mark_refresh_recursive_all"},
+        {fun<EntityRPG*, EntityRPG, const string&>(&EntityRPG::get_child), "get_child"},
 
         {fun(&sq::EntityBase::get_attr), "get"}, {fun(&sq::EntityBase::del_attr), "del"},
-        {fun<decltype(&sq::EntityBase::operator[])>(&sq::EntityBase::operator[]), "[]"}
+        {fun(&sq::EntityBase::operator[]), "[]"}
     });
-
-    add_class<Camera>(*m, "Camera", {}, {
-        {fun(&Camera::PROP_position), "position"},
-        {fun(&Camera::PROP_direction), "direction"}
-    });
-
-    add_class<SkyBox>(*m, "SkyBox", {}, {
-        {fun(&SkyBox::PROP_saturation), "saturation"},
-        {fun(&SkyBox::PROP_brightness), "brightness"},
-        {fun(&SkyBox::PROP_contrast),   "contrast"},
-        {fun(&SkyBox::PROP_alpha),      "alpha"},
-        {fun(&SkyBox::PROP_texture),    "texture"},
-        {fun(&SkyBox::configure),       "configure"}
-    });
-
-    add_class<Ambient>(*m, "Ambient", {}, {
-        {fun(&Ambient::PROP_colour),  "colour"},
-        {fun(&Ambient::configure),    "configure"}
-    });
-
-    add_class<SkyLight>(*m, "SkyLight", {}, {
-        {fun(&SkyLight::PROP_direction), "direction"},
-        {fun(&SkyLight::PROP_colour),    "colour"},
-        {fun(&SkyLight::PROP_density),   "density"},
-        {fun(&SkyLight::configure),      "configure"}
-    });
-
-    m->add(type_conversion<unique_ptr<SkyBox>&, SkyBox*>([]
-          (unique_ptr<SkyBox>& uptr) { return uptr.get(); }));
-    m->add(type_conversion<unique_ptr<Ambient>&, Ambient*>([]
-          (unique_ptr<Ambient>& uptr) { return uptr.get(); }));
-    m->add(type_conversion<unique_ptr<SkyLight>&, SkyLight*>([]
-          (unique_ptr<SkyLight>& uptr) { return uptr.get(); }));
 
     setup_PropAnim<float, false>(*m, "PropAnimFloat");
     setup_PropAnim<Vec2F, false>(*m, "PropAnimVec2F");
@@ -219,12 +201,12 @@ void sqt::cs_setup_components(chai::ChaiScript& _cs, World& _world) {
         {fun(&ReflectComponent::PROP_factor), "factor"}
     });
 
-    _cs.add(m);
+    _engine.add(m);
 }
 
 
-void sqt::cs_setup_functions(chai::ChaiScript& _cs, World& _world) {
+void sqt::chaiscript_setup_functions(sq::ChaiEngine& _engine, World& _world) {
     chai::ModulePtr m(new chai::Module());
 
-    _cs.add(m);
+    _engine.add(m);
 }

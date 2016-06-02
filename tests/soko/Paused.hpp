@@ -4,14 +4,18 @@
 
 namespace sqt {
 
+class SokoApp;
+
 class PausedScene : public sq::Scene {
 public:
-    PausedScene(sq::Application* _app);
+    PausedScene(SokoApp& _app);
 
-    void configure();
-    void tick(), render();
-
+    void update_options();
+    void tick(); void render();
     bool handle(sf::Event _event);
+
+private:
+    SokoApp& app;
 };
 
 }

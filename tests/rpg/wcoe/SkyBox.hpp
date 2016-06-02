@@ -5,12 +5,14 @@
 
 namespace sqt {
 
+class World;
+
 class SkyBox final : sq::NonCopyable {
 public:
     SkyBox();
 
-    void configure();
-    void update();
+    void configure(const World& _world);
+    void update(const World& _world);
 
     // User Properties /////
     float  PROP_saturation = 1.f;

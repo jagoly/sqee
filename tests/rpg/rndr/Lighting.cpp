@@ -1,26 +1,23 @@
-#include <sqee/app/Settings.hpp>
-#include <sqee/app/PreProcessor.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
 #include <sqee/gl/Drawing.hpp>
 
 #include "../wcoe/World.hpp"
-#include "../wcoe/SkyBox.hpp"
 #include "../wcoe/Ambient.hpp"
+#include "../wcoe/SkyBox.hpp"
 #include "../wcoe/SkyLight.hpp"
-
-#include "Gbuffers.hpp"
-#include "Pretties.hpp"
-#include "Lighting.hpp"
 
 #include "../components/Transform.hpp"
 #include "../components/SpotLight.hpp"
 #include "../components/PointLight.hpp"
 
-#include <sqee/misc/StringCast.hpp>
+#include "Gbuffers.hpp"
+#include "Pretties.hpp"
+#include "Lighting.hpp"
 
 using namespace sqt;
 
-Renderer::Lighting::Lighting(const Renderer& _renderer) : renderer(_renderer) {
+Renderer::Lighting::Lighting(const Renderer& _renderer)
+    : renderer(_renderer), options(renderer.options) {
 
     FB_baseHdr.draw_buffers({gl::COLOR_ATTACHMENT0});
 
@@ -38,42 +35,42 @@ void Renderer::Lighting::render_lighting_base() {
     sq::VIEWPORT(INFO_fullSize);
     gl::StencilMask(0b0010);
 
-    if (bool(renderer.world.skybox) == true) {
-        renderer.world.skybox->tex.bind(gl::TEXTURE0);
+    // render skybox if enabled
+    if (renderer.world.check_SkyBox() == true) {
         renderer.pipeline.use_shader(VS_defr_base_skybox);
         renderer.pipeline.use_shader(FS_defr_skybox);
-        renderer.world.skybox->ubo.bind(1u);
+        renderer.world.get_SkyBox().tex.bind(gl::TEXTURE0);
+        renderer.world.get_SkyBox().ubo.bind(1u);
 
         sq::DEPTH_OFF(); sq::STENCIL_KEEP();
         gl::StencilFunc(gl::EQUAL, 0b0001, 0b0000);
         sq::BLEND_OFF(); sq::draw_screen_quad();
     }
 
-    if (bool(renderer.world.ambient) == true) {
-        if (INFO_ssao > 0)
-            renderer.pretties->TEX_ssao.bind(gl::TEXTURE0),
-            renderer.gbuffers->TEX_depHalf.bind(gl::TEXTURE1);
-        renderer.pipeline.use_shader(renderer.VS_fullscreen);
-        renderer.pipeline.use_shader(FS_defr_base_ambient);
-        renderer.world.ambient->ubo.bind(1u);
+    // render ambient lighting
+    renderer.pipeline.use_shader(renderer.VS_fullscreen);
+    renderer.pipeline.use_shader(FS_defr_base_ambient);
+    if (options.SSAO) renderer.pretties->TEX_ssao.bind(gl::TEXTURE0),
+                      renderer.gbuffers->TEX_depHalf.bind(gl::TEXTURE1);
+    renderer.world.get_Ambient().ubo.bind(1u);
 
-        sq::DEPTH_OFF(); sq::STENCIL_KEEP();
-        gl::StencilFunc(gl::EQUAL, 0b0001, 0b0001);
-        sq::BLEND_OFF(); sq::draw_screen_quad();
-    }
+    sq::DEPTH_OFF(); sq::STENCIL_KEEP();
+    gl::StencilFunc(gl::EQUAL, 0b0001, 0b0001);
+    sq::BLEND_OFF(); sq::draw_screen_quad();
 
-    if (bool(renderer.world.skylight) == true) {
-        renderer.world.skylight->texA.bind(gl::TEXTURE8);
+    // render skylight if enabled
+    if (renderer.world.check_SkyLight() == true) {
         renderer.pipeline.use_shader(renderer.VS_fullscreen);
         renderer.pipeline.use_shader(FS_defr_base_skylight);
-        renderer.world.skylight->ubo.bind(1u);
+        renderer.world.get_SkyLight().texA.bind(gl::TEXTURE8);
+        renderer.world.get_SkyLight().ubo.bind(1u);
 
         sq::DEPTH_OFF(); sq::STENCIL_KEEP();
         gl::StencilFunc(gl::EQUAL, 0b0001, 0b0001);
         sq::BLEND_ON(); sq::draw_screen_quad();
     }
 
-    for (const auto light : renderer.cameraData.spotLightShadowVec) {
+    for (const auto* light : renderer.cameraData.spotLightShadowVec) {
         renderer.pipeline.disable_stages(0, 0, 1);
         renderer.pipeline.use_shader(renderer.VS_stencil_base);
         renderer.VS_stencil_base.set_mat("matrix", light->modelMat);
@@ -90,7 +87,7 @@ void Renderer::Lighting::render_lighting_base() {
         sq::draw_screen_quad();
     }
 
-    for (const auto light : renderer.cameraData.spotLightNoShadowVec) {
+    for (const auto* light : renderer.cameraData.spotLightNoShadowVec) {
         renderer.pipeline.disable_stages(0, 0, 1);
         renderer.pipeline.use_shader(renderer.VS_stencil_base);
         renderer.VS_stencil_base.set_mat("matrix", light->modelMat);
@@ -106,7 +103,7 @@ void Renderer::Lighting::render_lighting_base() {
         sq::draw_screen_quad();
     }
 
-    for (const auto light : renderer.cameraData.pointLightShadowVec) {
+    for (const auto* light : renderer.cameraData.pointLightShadowVec) {
         renderer.pipeline.disable_stages(0, 0, 1);
         renderer.pipeline.use_shader(renderer.VS_stencil_base);
         renderer.VS_stencil_base.set_mat("matrix", light->modelMat);
@@ -123,7 +120,7 @@ void Renderer::Lighting::render_lighting_base() {
         sq::draw_screen_quad();
     }
 
-    for (const auto light : renderer.cameraData.pointLightNoShadowVec) {
+    for (const auto* light : renderer.cameraData.pointLightNoShadowVec) {
         renderer.pipeline.disable_stages(0, 0, 1);
         renderer.pipeline.use_shader(renderer.VS_stencil_base);
         renderer.VS_stencil_base.set_mat("matrix", light->modelMat);
@@ -137,49 +134,48 @@ void Renderer::Lighting::render_lighting_base() {
         gl::StencilFunc(gl::EQUAL, 0b0011, 0b0011);
         light->ubo.bind(1u); sq::STENCIL_KEEP();
         sq::draw_screen_quad();
-
-        std::cout << sq::chai_string(light->modelMat) << std::endl;
     }
 }
 
 
 void Renderer::Lighting::render_lighting_refl(const ReflectData& _data) {
-    if (bool(renderer.world.skybox) == true) {
-        renderer.world.skybox->tex.bind(gl::TEXTURE0);
+    // render skybox if enabled
+    if (renderer.world.check_SkyBox() == true) {
         renderer.pipeline.use_shader(VS_defr_refl_skybox);
         renderer.pipeline.use_shader(FS_defr_skybox);
-        renderer.world.skybox->ubo.bind(1u);
+        renderer.world.get_SkyBox().tex.bind(gl::TEXTURE0);
+        renderer.world.get_SkyBox().ubo.bind(1u);
 
         sq::DEPTH_OFF(); sq::STENCIL_KEEP();
         gl::StencilFunc(gl::EQUAL, 0b0100, 0b0101);
         sq::BLEND_OFF(); sq::draw_screen_quad();
     }
 
-    if (bool(renderer.world.ambient) == true) {
-        renderer.pipeline.use_shader(renderer.VS_fullscreen);
-        renderer.pipeline.use_shader(FS_defr_refl_ambient);
-        renderer.world.ambient->ubo.bind(1u);
+    // render ambient lighting
+    renderer.pipeline.use_shader(renderer.VS_fullscreen);
+    renderer.pipeline.use_shader(FS_defr_refl_ambient);
+    renderer.world.get_Ambient().ubo.bind(1u);
 
-        sq::DEPTH_OFF(); sq::STENCIL_KEEP();
-        gl::StencilFunc(gl::EQUAL, 0b0101, 0b0101);
-        sq::BLEND_OFF(); sq::draw_screen_quad();
-    }
+    sq::DEPTH_OFF(); sq::STENCIL_KEEP();
+    gl::StencilFunc(gl::EQUAL, 0b0101, 0b0101);
+    sq::BLEND_OFF(); sq::draw_screen_quad();
 
-    if (bool(renderer.world.skylight) == true) {
-        renderer.world.skylight->texB.bind(gl::TEXTURE8);
+    // render skylight if enabled
+    if (renderer.world.check_SkyLight() == true) {
         renderer.pipeline.use_shader(renderer.VS_fullscreen);
         renderer.pipeline.use_shader(FS_defr_refl_skylight);
-        renderer.world.skylight->ubo.bind(1u);
+        renderer.world.get_SkyLight().texB.bind(gl::TEXTURE8);
+        renderer.world.get_SkyLight().ubo.bind(1u);
 
         sq::DEPTH_OFF(); sq::STENCIL_KEEP();
         gl::StencilFunc(gl::EQUAL, 0b0101, 0b0101);
         sq::BLEND_ON(); sq::draw_screen_quad();
     }
 
-    for (const auto lightC : _data.spotLightShadowVec) {
+    for (const auto* light : _data.spotLightShadowVec) {
         renderer.pipeline.disable_stages(0, 0, 1);
         renderer.pipeline.use_shader(renderer.VS_stencil_refl);
-        renderer.VS_stencil_refl.set_mat("matrix", lightC->modelMat);
+        renderer.VS_stencil_refl.set_mat("matrix", light->modelMat);
         sq::DEPTH_ON(); sq::BLEND_ON(); sq::CLEAR_STENC();
         gl::StencilOp(gl::KEEP, gl::INVERT, gl::KEEP);
         gl::StencilFunc(gl::EQUAL, 0b0111, 0b0101);
@@ -188,15 +184,15 @@ void Renderer::Lighting::render_lighting_refl(const ReflectData& _data) {
         renderer.pipeline.use_shader(renderer.VS_fullscreen);
         renderer.pipeline.use_shader(FS_defr_refl_spot_shad);
         gl::StencilFunc(gl::EQUAL, 0b0111, 0b0111);
-        sq::STENCIL_KEEP(); lightC->ubo.bind(1u);
-        lightC->tex.bind(gl::TEXTURE8);
+        sq::STENCIL_KEEP(); light->ubo.bind(1u);
+        light->tex.bind(gl::TEXTURE8);
         sq::draw_screen_quad();
     }
 
-    for (const auto lightC : _data.spotLightNoShadowVec) {
+    for (const auto* light : _data.spotLightNoShadowVec) {
         renderer.pipeline.disable_stages(0, 0, 1);
         renderer.pipeline.use_shader(renderer.VS_stencil_refl);
-        renderer.VS_stencil_refl.set_mat("matrix", lightC->modelMat);
+        renderer.VS_stencil_refl.set_mat("matrix", light->modelMat);
         sq::DEPTH_ON(); sq::BLEND_ON(); sq::CLEAR_STENC();
         gl::StencilOp(gl::KEEP, gl::INVERT, gl::KEEP);
         gl::StencilFunc(gl::EQUAL, 0b0111, 0b0101);
@@ -205,14 +201,14 @@ void Renderer::Lighting::render_lighting_refl(const ReflectData& _data) {
         renderer.pipeline.use_shader(renderer.VS_fullscreen);
         renderer.pipeline.use_shader(FS_defr_refl_spot_none);
         gl::StencilFunc(gl::EQUAL, 0b0111, 0b0111);
-        sq::STENCIL_KEEP(); lightC->ubo.bind(1u);
+        sq::STENCIL_KEEP(); light->ubo.bind(1u);
         sq::draw_screen_quad();
     }
 
-    for (const auto lightC : _data.pointLightShadowVec) {
+    for (const auto* light : _data.pointLightShadowVec) {
         renderer.pipeline.disable_stages(0, 0, 1);
         renderer.pipeline.use_shader(renderer.VS_stencil_refl);
-        renderer.VS_stencil_refl.set_mat("matrix", lightC->modelMat);
+        renderer.VS_stencil_refl.set_mat("matrix", light->modelMat);
         sq::DEPTH_ON(); sq::BLEND_ON(); sq::CLEAR_STENC();
         gl::StencilOp(gl::KEEP, gl::INVERT, gl::KEEP);
         gl::StencilFunc(gl::EQUAL, 0b0111, 0b0101);
@@ -221,15 +217,15 @@ void Renderer::Lighting::render_lighting_refl(const ReflectData& _data) {
         renderer.pipeline.use_shader(renderer.VS_fullscreen);
         renderer.pipeline.use_shader(FS_defr_refl_point_shad);
         gl::StencilFunc(gl::EQUAL, 0b0111, 0b0111);
-        sq::STENCIL_KEEP(); lightC->ubo.bind(1u);
-        lightC->tex.bind(gl::TEXTURE8);
+        sq::STENCIL_KEEP(); light->ubo.bind(1u);
+        light->tex.bind(gl::TEXTURE8);
         sq::draw_screen_quad();
     }
 
-    for (const auto lightC : _data.pointLightNoShadowVec) {
+    for (const auto* light : _data.pointLightNoShadowVec) {
         renderer.pipeline.disable_stages(0, 0, 1);
         renderer.pipeline.use_shader(renderer.VS_stencil_refl);
-        renderer.VS_stencil_refl.set_mat("matrix", lightC->modelMat);
+        renderer.VS_stencil_refl.set_mat("matrix", light->modelMat);
         sq::DEPTH_ON(); sq::BLEND_ON(); sq::CLEAR_STENC();
         gl::StencilOp(gl::KEEP, gl::INVERT, gl::KEEP);
         gl::StencilFunc(gl::EQUAL, 0b0111, 0b0101);
@@ -238,25 +234,19 @@ void Renderer::Lighting::render_lighting_refl(const ReflectData& _data) {
         renderer.pipeline.use_shader(renderer.VS_fullscreen);
         renderer.pipeline.use_shader(FS_defr_refl_point_none);
         gl::StencilFunc(gl::EQUAL, 0b0111, 0b0111);
-        sq::STENCIL_KEEP(); lightC->ubo.bind(1u);
+        sq::STENCIL_KEEP(); light->ubo.bind(1u);
         sq::draw_screen_quad();
     }
 }
 
 
-void Renderer::Lighting::update_settings() {
-    INFO_fullSize = Vec2U(renderer.settings.get<int>("app_width"),
-                          renderer.settings.get<int>("app_height"));
+void Renderer::Lighting::update_options() {
+    INFO_fullSize = options.WindowSize;
     INFO_halfSize = INFO_fullSize / 2u;
 
-    INFO_ssao = renderer.settings.get<int>("rpg_ssao");
-
-    bool shadLarge = renderer.settings.get<bool>("rpg_shadlarge");
-    bool shadFilter = renderer.settings.get<bool>("rpg_shadfilter");
-
     string defLightBase = "";
-    if (shadLarge) defLightBase += "#define LARGE\n";
-    if (shadFilter) defLightBase += "#define FILTER";
+    if (options.ShadowLarge) defLightBase += "#define LARGE\n";
+    if (options.ShadowFilter) defLightBase += "#define FILTER";
     string defLightShad = defLightBase + "\n#define SHADOW";
     string defLightSpec = defLightBase + "\n#define SPECULAR";
     string defLightBoth = defLightShad + "\n#define SPECULAR";
@@ -276,7 +266,7 @@ void Renderer::Lighting::update_settings() {
     renderer.preprocs(FS_defr_refl_point_none, "deferred/refl/pointlight_fs", defLightBase);
     renderer.preprocs(FS_defr_refl_point_shad, "deferred/refl/pointlight_fs", defLightShad);
 
-    if (INFO_ssao == false) renderer.preprocs(FS_defr_base_ambient, "deferred/base/ambient_fs");
+    if (options.SSAO == 0) renderer.preprocs(FS_defr_base_ambient, "deferred/base/ambient_fs");
     else renderer.preprocs(FS_defr_base_ambient, "deferred/base/ambient_fs", "#define SSAO");
 
     TEX_baseHdr.allocate_storage(INFO_fullSize, false);

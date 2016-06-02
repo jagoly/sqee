@@ -4,14 +4,18 @@
 
 namespace sqt {
 
+class SokoApp;
+
 class TitleScene : public sq::Scene {
 public:
-    TitleScene(sq::Application* _app);
+    TitleScene(SokoApp& _app);
 
-    void configure();
-    void tick(), render();
-
+    void update_options();
+    void tick(); void render();
     bool handle(sf::Event _event);
+
+private:
+    SokoApp& app;
 };
 
 }

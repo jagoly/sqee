@@ -1,38 +1,45 @@
 #pragma once
 
 #include <sqee/builtins.hpp>
-#include <sqee/app/MessageBus.hpp>
-#include <sqee/app/Settings.hpp>
 #include <sqee/ecs/Entity.hpp>
 
+#include "../RpgOptions.hpp"
 #include "../components/Helpers.hpp"
 
+// Forward Declarations /////
+namespace sqt { class Camera; class Ambient; class SkyBox; class SkyLight; }
 namespace reactphysics3d { class DynamicsWorld; }
 
 namespace sqt {
 
-class Camera; class SkyBox;
-class Ambient; class SkyLight;
-
 class World final : sq::NonCopyable {
 public:
-    World(sq::MessageBus& _messageBus,
-          const sq::Settings& _settings);
+    World(RpgOptions& _options);
 
     ~World();
 
-    void configure();
-    void update();
-    void tick();
+    void update_options();
+    void tick(); void update();
 
-    unique_ptr<rp3d::DynamicsWorld> physWorld;
+    sq::Entity<World>& get_RootEntity();
+    rp3d::DynamicsWorld& get_PhysicsWorld();
+    const sq::Entity<World>& get_RootEntity() const;
+    const rp3d::DynamicsWorld& get_PhysicsWorld() const;
 
-    unique_ptr<Camera> camera;
-    unique_ptr<SkyBox> skybox;
-    unique_ptr<Ambient> ambient;
-    unique_ptr<SkyLight> skylight;
+    Camera& get_Camera();
+    Ambient& get_Ambient();
+    const Camera& get_Camera() const;
+    const Ambient& get_Ambient() const;
 
-    sq::Entity<World> root;
+    SkyBox& get_SkyBox();
+    SkyLight& get_SkyLight();
+    const SkyBox& get_SkyBox() const;
+    const SkyLight& get_SkyLight() const;
+
+    bool check_SkyBox() const;
+    bool check_SkyLight() const;
+    void enable_SkyBox(bool _enable);
+    void enable_SkyLight(bool _enable);
 
     float tickPercent = 0.f;
 
@@ -51,10 +58,9 @@ private:
     template<class T, ecs::if_Update<T>...> void update_component(T* _c, EntityRPG* _e);
     template<class T, ecs::if_Tick<T>...> void tick_component(T* _c, EntityRPG* _e);
 
-    sq::MessageBus& messageBus;
-    const sq::Settings& settings;
-
     friend class SkyLight;
+
+    const RpgOptions& options;
 
     struct Impl;
     friend struct Impl;

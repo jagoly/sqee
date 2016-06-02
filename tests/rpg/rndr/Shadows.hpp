@@ -2,8 +2,6 @@
 
 #include <sqee/gl/FrameBuffer.hpp>
 #include <sqee/gl/Shaders.hpp>
-#include <sqee/maths/Vectors.hpp>
-#include <sqee/maths/Matrices.hpp>
 
 #include "Renderer.hpp"
 
@@ -13,7 +11,7 @@ class Renderer::Shadows : sq::NonCopyable {
 public:
     Shadows(const Renderer& _renderer);
 
-    void update_settings();
+    void update_options();
 
     void setup_render_state();
 
@@ -23,6 +21,7 @@ public:
 
 private:
     const Renderer& renderer;
+    const RpgOptions& options;
 
     sq::FrameBuffer FB_shadows;
 

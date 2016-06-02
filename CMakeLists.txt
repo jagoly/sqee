@@ -84,7 +84,6 @@ set(SOURCES
     "${INCDIR}/scripts/BasicSetup.hpp"      "${SRCDIR}/scripts/BasicSetup.cpp"
     "${INCDIR}/ecs/Component.hpp"           "${SRCDIR}/ecs/Component.cpp"
     "${INCDIR}/ecs/Entity.hpp"              "${SRCDIR}/ecs/Entity.cpp"
-    "${INCDIR}/app/Settings.hpp"            "${SRCDIR}/app/Settings.cpp"
     "${INCDIR}/app/Resources.hpp"           "${SRCDIR}/app/Resources.cpp"
     "${INCDIR}/app/Application.hpp"         "${SRCDIR}/app/Application.cpp"
     "${INCDIR}/app/PreProcessor.hpp"        "${SRCDIR}/app/PreProcessor.cpp"

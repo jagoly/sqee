@@ -6,7 +6,7 @@
 namespace sq {
 
 /// Get the system time in a tidy format
-string get_time_str();
+string get_time_string();
 
 template<typename... Args>
 /// Log a formatted string without any extra text
@@ -18,21 +18,21 @@ void log_only(const string& _fmt, const Args&... _args) {
 template<typename... Args>
 /// Log a formatted string preceded with "{TIME} INFO: "
 void log_info(const string& _fmt, const Args&... _args) {
-    std::cout << get_time_str() << " INFO: ";
+    std::cout << get_time_string() << " INFO: ";
     log_only(_fmt, _args...);
 }
 
 template<typename... Args>
 /// Log a formatted string preceded with "{TIME} WARNING: "
 void log_warning(const string& _fmt, const Args&... _args) {
-    std::cout << get_time_str() << " WARNING: ";
+    std::cout << get_time_string() << " WARNING: ";
     log_only(_fmt, _args...);
 }
 
 template<typename... Args>
 /// Log a formatted string preceded with "{TIME} ERROR: "
 void log_error(const string& _fmt, const Args&... _args) {
-    std::cout << get_time_str() << " ERROR: ";
+    std::cout << get_time_string() << " ERROR: ";
     log_only(_fmt, _args...);
 }
 

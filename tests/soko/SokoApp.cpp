@@ -1,5 +1,3 @@
-#include <sqee/app/Settings.hpp>
-
 #include "Game.hpp"
 #include "Title.hpp"
 #include "Paused.hpp"
@@ -8,10 +6,7 @@
 using namespace sqt;
 
 SokoApp::SokoApp() {
-    append_scene<GameScene>("game");
-    append_scene<TitleScene>("title");
-    append_scene<PausedScene>("paused");
-
-    settings.mod<int>("app_fpslimit", 2);
-    settings.mod<bool>("app_resizable", true);
+    activeScenes.emplace_back(new GameScene(*this));
+    activeScenes.emplace_back(new TitleScene(*this));
+    activeScenes.emplace_back(new PausedScene(*this));
 }

@@ -20,9 +20,9 @@ SQEE Sokoban is, along with SQEE RPG, an example application for LibSQEE. It is 
 
 ### Building SQEE
 
-To build SQEE, you will need SFML ([>= 2.3.1](http://www.sfml-dev.org/download.php)), ChaiScript ([>= 5.7.1](https://github.com/ChaiScript/ChaiScript/releases)) and ReactPhysics3D ([my fork](https://github.com/jagoly/reactphysics3d/)). On linux, you may be able to grab one or more of them from your distro's repos, if available and up to date. Otherwise, you can build and/or install them manually from the links above. 
+To build SQEE, you will need SFML ([>= 2.3.1](http://www.sfml-dev.org/download.php)), ChaiScript ([>= 5.8.1](https://github.com/ChaiScript/ChaiScript/releases)) and ReactPhysics3D ([my fork](https://github.com/jagoly/reactphysics3d/)). On linux, you may be able to grab one or more of them from your distro's repos, if available and up to date. Otherwise, you can build and/or install them manually from the links above. 
 
-Alternatively, you may instead grab the library bundle linked below, if it supports your target platform and compiler. It currently provides libraries for Linux with GCC 4.8.4 and Windows with MinGW 5.2.0. Note that it is often out of date, unfortunately.
+Alternatively, you may instead grab the library bundle linked below, if it supports your target platform and compiler. It currently provides libraries for Linux with GCC 4.8.4 and Windows with MinGW 5.2.0. Note that it is often out of date, unfortunately. (currently way out of date, in fact link is probably broken)
 
 ##### SQEE CMake options:
  * `SQEE_[OS]` - Specify the target to build for. Rather than trying to automatically detect it, you must specify one option manually: `LINUX`, `WINDOWS`, `ANDROID` or `MACOSX`. All default to `False`.

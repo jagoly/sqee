@@ -16,9 +16,6 @@ Camera::Camera() {
     ubo.create_and_allocate();
 }
 
-void Camera::configure() {
-}
-
 void Camera::update() {
     projMat = maths::perspective(PROP_fov, size.x / size.y, rmin, rmax);
     viewMat = maths::look_at(PROP_position, PROP_position + PROP_direction, {0.f, 0.f, 1.f});

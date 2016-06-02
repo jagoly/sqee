@@ -7,9 +7,6 @@ Ambient::Ambient() {
     ubo.create_and_allocate();
 }
 
-void Ambient::configure() {
-}
-
 void Ambient::update() {
     ubo.update("colour", &PROP_colour);
 }

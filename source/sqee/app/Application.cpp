@@ -4,18 +4,22 @@
 #include <sqee/redist/gl_ext_4_2.hpp>
 #include <sqee/debug/Logging.hpp>
 #include <sqee/debug/OpenGL.hpp>
-#include <sqee/sounds/SoundManager.hpp>
 #include <sqee/scripts/ChaiScript.hpp>
 #include <sqee/scripts/BasicSetup.hpp>
 #include <sqee/scenes/Scene.hpp>
+#include <sqee/app/DebugOverlay.hpp>
+#include <sqee/app/ChaiConsole.hpp>
 #include <sqee/app/Application.hpp>
 
 using namespace sq;
 
-
 Application::~Application() = default;
 
-Application::Application() : overlay(this), console(this) {
+Application::Application() {
+    chaiEngine = create_ChaiEngine();
+    overlay.reset(new DebugOverlay(*this));
+    console.reset(new ChaiConsole(*this));
+
     sf::Uint32 wStyle = sf::Style::Titlebar | sf::Style::Close | sf::Style::Resize;
     sf::ContextSettings context(24u, 8u, 0u, 4u, 2u, sf::ContextSettings::Core);
     window.reset(new sf::Window({800u, 600u}, "", wStyle, context));
@@ -29,168 +33,120 @@ Application::Application() : overlay(this), console(this) {
     log_info("Version: %s", (char*)version);
     gl::Enable(gl::DEBUG_OUTPUT);
     gl::Enable(gl::DEBUG_OUTPUT_SYNCHRONOUS);
-    gl::DebugMessageControl(gl::DEBUG_SOURCE_API, gl::DEBUG_TYPE_OTHER,
-                            gl::DEBUG_SEVERITY_NOTIFICATION, 0, 0, false);
+    gl::DebugMessageControl(gl::DEBUG_SOURCE_API, gl::DEBUG_TYPE_OTHER, gl::DEBUG_SEVERITY_NOTIFICATION, 0, 0, false);
     gl::DebugMessageCallback(debug_callback, nullptr);
     #endif
 
-    cs.reset(make_ChaiScript());
+    chaiscript_setup_app(*chaiEngine);
+    chaiscript_setup_physics(*chaiEngine);
+    chaiscript_setup_maths(*chaiEngine);
 
-    cs_setup_app(*cs);
-    cs_setup_render(*cs);
-    cs_setup_maths(*cs);
-    cs_setup_ecs(*cs);
-
-    settings.add<int>("app_fpslimit", 0);
-    settings.add<bool>("app_keyrepeat", false);
-    settings.add<bool>("app_resizable", false);
-    settings.add<bool>("app_fullscreen", false);
-    settings.add<bool>("app_hidecursor", false);
-    settings.add<int>("app_width", 800u);
-    settings.add<int>("app_height", 600u);
-    settings.add<string>("app_title", "SQEE Application");
-
-    cs->add_global(chai::var(this), "app");
-
-    configure();
+    chaiEngine->add_global(chai::var(this), "app");
 }
 
 int Application::run() {
-    sf::Clock clockFT;
+    update_options();
 
-    while (retCode == -1) {
-        for (auto& key : sceneSweep)
-            sceneMap.remove(key);
-        sceneSweep.clear();
+    sf::Clock clock;
+    sf::Event event;
 
-        //soundman->clean();
+    while (returnCode == -1) {
 
-        sf::Event event;
+        // poll and handle events
         while (window->pollEvent(event))
-            if (handle_default(event) == false)
-                for (auto& scene : sceneMap)
-                    if (scene->handle(event)) break;
+            if (this->handle(event) == false)
+                for (auto& scene : activeScenes)
+                    if (scene->handle(event) == true)
+                        break;
 
-        float ft = clockFT.restart().asSeconds();
+        float frameTime = clock.restart().asSeconds();
 
-        for (auto& scene : sceneMap) {
-            scene->accum += ft;
-            double dt = 1.0 / double(scene->tickRate);
-            while (scene->accum >= dt) {
-                scene->accum -= dt;
-                scene->tick();
-            }
+        // tick scenes
+        for (auto& scene : activeScenes) {
+            scene->accumulation += frameTime;
+            while (scene->accumulation >= scene->tickTime) {
+                scene->accumulation -= scene->tickTime;
+                scene->tick(); }
         }
 
-        for (auto& scene : sceneMap) {
+        // render scenes
+        for (auto& scene : activeScenes)
             scene->render();
+
+        // tick and render console
+        if (console->active == true) {
+            console->accumulation += frameTime;
+            while (console->accumulation >= 0.5) {
+                console->accumulation -= 0.5;
+                console->tick(); }
+            console->render();
         }
 
-        // Console
-        if (console.active) {
-            console.accum += ft;
-            while (console.accum >= 0.5) {
-                console.accum -= 0.5;
-                console.update();
-            } console.render();
-        }
-
-        // Overlay
-        if (overlay.active) {
-            overlay.accum += ft;
-            while (overlay.accum >= 0.125) {
-                overlay.accum -= 0.125;
-                overlay.update();
-            } overlay.render(ft);
+        // tick and render overlay
+        if (overlay->active == true) {
+            overlay->accumulation += frameTime;
+            while (overlay->accumulation >= 0.125) {
+                overlay->accumulation -= 0.125;
+                overlay->tick(); }
+            overlay->render(frameTime);
         }
 
         window->display();
     }
 
-    return retCode;
+    return returnCode;
 }
 
 void Application::quit(int _code) {
-    retCode = _code;
+    returnCode = _code;
 }
 
-void Application::configure() {
-    int fpslimit = settings.get<int>("app_fpslimit");
-    bool resizable = settings.get<bool>("app_resizable");
-    bool keyrepeat = settings.get<bool>("app_keyrepeat");
-    bool fullscreen = settings.get<bool>("app_fullscreen");
-    bool hidecursor = settings.get<bool>("app_hidecursor");
-    uint width = settings.get<int>("app_width");
-    uint height = settings.get<int>("app_height");
-    string title = settings.get<string>("app_title");
+void Application::update_options() {
+    if (window->getSize() != sf::Vector2u(OPTION_WindowSize.x, OPTION_WindowSize.y))
+        window->setSize(sf::Vector2u(OPTION_WindowSize.x, OPTION_WindowSize.y));
 
-//    if (fullscreen == true) {
-//        sf::Uint32 wStyle = sf::Style::Fullscreen;
-//        window.create(){fullwidth, fullheight}, apptitle, wStyle, context);
-//    } else {
-//        sf::Uint32 wStyle = resizable ? sf::Style::Resize : sf::Style::Titlebar;
-//        window.create({winwidth, winheight}, apptitle, wStyle, context);
-//    }
+    window->setVerticalSyncEnabled(OPTION_VerticalSync);
+    window->setMouseCursorVisible(!OPTION_HideCursor);
+    window->setKeyRepeatEnabled(OPTION_KeyRepeat);
+    window->setTitle(OPTION_WindowTitle);
 
-    window->setTitle(title);
-
-    window->setVerticalSyncEnabled(fpslimit == 2);
-    window->setFramerateLimit(fpslimit == 1 ? 75u : 0u);
-    window->setMouseCursorVisible(!hidecursor);
-    window->setKeyRepeatEnabled(keyrepeat);
-
-    if (window->getSize() != sf::Vector2u(get_size().x, get_size().y))
-        window->setSize({get_size().x, get_size().y});
-
-    for (auto& scene : sceneMap) scene->configure();
+    for (auto& scene : activeScenes) scene->update_options();
 }
 
-
-bool Application::handle_default(sf::Event _event) {
+bool Application::handle(sf::Event _event) {
     if (_event.type == sf::Event::Closed) {
         quit(0); return true;
     }
 
     if (_event.type == sf::Event::Resized) {
-        settings.mod<int>("app_width", _event.size.width);
-        settings.mod<int>("app_height", _event.size.height);
-        configure(); return true;
+        OPTION_WindowSize.x = _event.size.width;
+        OPTION_WindowSize.y = _event.size.height;
+        update_options(); return true;
     }
 
     if (_event.type == sf::Event::KeyPressed) {
         if (_event.key.code == sf::Keyboard::Menu) {
-            if (_event.key.control) console.toggle_active();
-            else overlay.toggle_active(); return true;
+            if (_event.key.control) console->toggle_active();
+            else overlay->toggle_active(); return true;
         }
     }
 
-    if (console.active == true && (
+    if (console->active == true && (
           _event.type == sf::Event::KeyPressed ||
           _event.type == sf::Event::KeyReleased ||
           _event.type == sf::Event::TextEntered ||
           _event.type == sf::Event::MouseButtonPressed ||
           _event.type == sf::Event::MouseButtonReleased ||
           _event.type == sf::Event::MouseWheelScrolled )) {
-        console.handle_input(_event); return true;
+        console->handle_input(_event); return true;
     }
 
     return false;
 }
-
 
 Vec2F Application::mouse_centre() {
     sf::Vector2i winCentre(window->getSize() / 2u);
     sf::Vector2i mouseMove = winCentre - sf::Mouse::getPosition(*window);
     sf::Mouse::setPosition(winCentre, *window);
     return Vec2F(mouseMove.x, mouseMove.y);
-}
-
-Vec2U Application::get_size() const {
-    uint width = settings.get<int>("app_width");
-    uint height = settings.get<int>("app_height");
-    return Vec2U(width, height);
-}
-
-void Application::sweep_scene(const string& _id) {
-    sceneSweep.emplace(_id);
 }

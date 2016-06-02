@@ -12,7 +12,6 @@ class Camera final : sq::NonCopyable {
 public:
     Camera();
 
-    void configure();
     void update();
 
     // User Properties /////

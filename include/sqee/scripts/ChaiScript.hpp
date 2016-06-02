@@ -7,7 +7,10 @@
 
 namespace sq {
 
-/// Create a ChaiScript instance
-chai::ChaiScript* make_ChaiScript();
+/// Alias for chai::ChaiScript
+using ChaiEngine = chai::ChaiScript;
+
+/// Create a ChaiScript engine instance
+std::unique_ptr<ChaiEngine> create_ChaiEngine();
 
 }

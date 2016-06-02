@@ -62,6 +62,20 @@ template<> std::string glsl_string<Vec4U>(const Vec4U& _val) {
 template<> std::string glsl_string<Vec4F>(const Vec4F& _val) {
     return tfm::format("vec4(%f, %f, %f, %f)", _val.x, _val.y, _val.z, _val.w); }
 
+// Chai Float Matrix2x2 /////
+template<> std::string chai_string<Mat2F>(const Mat2F& _val) {
+    return tfm::format("Mat2F((%f, %f), (%f, %f))",
+                       _val[0][0], _val[0][1],
+                       _val[1][0], _val[1][1]);
+}
+
+// GLSL Float Matrix2x2 /////
+template<> std::string glsl_string<Mat2F>(const Mat2F& _val) {
+    return tfm::format("fmat2(%f, %f, %f, %f)",
+                       _val[0][0], _val[0][1],
+                       _val[1][0], _val[1][1]);
+}
+
 // Chai Float Matrix3x3 /////
 template<> std::string chai_string<Mat3F>(const Mat3F& _val) {
     return tfm::format("Mat3F((%f, %f, %f), (%f, %f, %f), (%f, %f, %f))",

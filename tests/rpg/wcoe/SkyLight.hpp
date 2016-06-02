@@ -13,10 +13,10 @@ class World;
 
 class SkyLight final : sq::NonCopyable {
 public:
-    SkyLight(const World& _world);
+    SkyLight();
 
-    void configure();
-    void update();
+    void configure(const World& _world);
+    void update(const World& _world);
 
     // User Properties /////
     Vec3F PROP_direction = {0.f, 0.f, -1.f};
@@ -32,9 +32,6 @@ public:
     array<Mat4F, 4> matArrA;
     array<Mat4F, 2> matArrB;
     Vec4F splits;
-
-private:
-    const World& world;
 };
 
 }

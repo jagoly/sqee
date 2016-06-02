@@ -10,7 +10,6 @@ class Ambient final : sq::NonCopyable {
 public:
     Ambient();
 
-    void configure();
     void update();
 
     // User Properties /////

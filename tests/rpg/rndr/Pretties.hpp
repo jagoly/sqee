@@ -3,7 +3,6 @@
 #include <sqee/gl/FrameBuffer.hpp>
 #include <sqee/gl/Textures.hpp>
 #include <sqee/gl/Shaders.hpp>
-#include <sqee/maths/Vectors.hpp>
 
 #include "Renderer.hpp"
 
@@ -13,7 +12,7 @@ class Renderer::Pretties : sq::NonCopyable {
 public:
     Pretties(const Renderer& _renderer);
 
-    void update_settings();
+    void update_options();
 
     void setup_render_state();
 
@@ -23,6 +22,7 @@ public:
 
 private:
     const Renderer& renderer;
+    const RpgOptions& options;
 
     sq::FrameBuffer FB_simple;
 
@@ -49,8 +49,6 @@ private:
     sq::Shader FS_prty_vignette {gl::FRAGMENT_SHADER};
 
     Vec2U INFO_fullSize, INFO_halfSize, INFO_qterSize;
-    int INFO_ssao, INFO_shafts, INFO_fsaa;
-    bool INFO_bloom, INFO_vignette;
 
     friend class Lighting;
 };

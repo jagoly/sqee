@@ -7,10 +7,9 @@
 
 using namespace sq;
 
-DebugOverlay::DebugOverlay(const Application* _app) : app(_app) {}
+DebugOverlay::DebugOverlay(Application& _app) : app(_app) {}
 
-void DebugOverlay::update() {
-
+void DebugOverlay::tick() {
     if (notifyDeq.empty() == false) {
         notifyTimeLeft -= 1u;
 
@@ -24,20 +23,20 @@ void DebugOverlay::update() {
 }
 
 void DebugOverlay::render(float _ft) {
-    sq::VIEWPORT(app->get_size());
+    sq::VIEWPORT(app.OPTION_WindowSize);
 
-    char rounded[10];
-    ft = _ft * 0.2f + ft * 0.8f;
-    std::sprintf(rounded, "%.2f", 1.f / ft);
+    char roundedFPS[10];
+    frameTime = _ft * 0.2f + frameTime * 0.8f;
+    std::sprintf(roundedFPS, "%.2f", 1.f / frameTime);
 
-    render_text_basic(rounded, app->get_size(),
+    render_text_basic(roundedFPS, app.OPTION_WindowSize,
                       TextBasicFlow::Positive, TextBasicFlow::Negative,
                       TextBasicAlign::Negative, TextBasicAlign::Negative,
                       Vec2F(40.f, 50.f), Vec3F(1.f, 1.f, 1.f), 1.f, true);
 
     if (notifyDeq.empty() == false && notifyTimeLeft != notifyDeq.front().second) {
-        float a = notifyTimeLeft == 1u ? 1.f - accum * 8.f : 1.f;
-        render_text_basic(notifyDeq.front().first, app->get_size(),
+        float a = notifyTimeLeft == 1u ? 1.f - accumulation * 8.f : 1.f;
+        render_text_basic(notifyDeq.front().first, app.OPTION_WindowSize,
                           TextBasicFlow::Positive, TextBasicFlow::Negative,
                           TextBasicAlign::Positive, TextBasicAlign::Negative,
                           Vec2F(25.f, 30.f), Vec3F(1.f, 1.f, 1.f), a, true);
@@ -45,7 +44,11 @@ void DebugOverlay::render(float _ft) {
 }
 
 void DebugOverlay::toggle_active() {
-    for (auto func : (active = !active) ? onShowFuncs : onHideFuncs) func();
+    if ((active = !active)) {
+        for (auto& func : onShowFuncs) func();
+    } else {
+        for (auto& func : onHideFuncs) func();
+    }
 }
 
 void DebugOverlay::notify(const string& _message, uint _time) {

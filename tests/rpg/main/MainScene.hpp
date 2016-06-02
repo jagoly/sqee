@@ -1,33 +1,30 @@
 #pragma once
 
-#include <sqee/forward.hpp>
 #include <sqee/builtins.hpp>
 #include <sqee/scenes/Scene.hpp>
 #include <sqee/maths/Vectors.hpp>
 
-
 namespace sqt {
 
-class World;
-class Renderer;
+// Forward Declarations /////
+class RpgApp; class World; class Renderer;
 
 class MainScene : public sq::Scene {
 public:
-    MainScene(sq::Application* _app);
+    MainScene(RpgApp& _app);
 
-    void tick();
-    void render();
-    void configure();
-
+    void update_options();
+    void tick(); void render();
     bool handle(sf::Event _event);
 
 private:
-    unique_ptr<sq::Pipeline> pipeline;
     unique_ptr<World> world;
     unique_ptr<Renderer> renderer;
 
     Vec3F posCrnt, posNext;
     float rotX =0, rotZ =0;
+
+    RpgApp& app;
 
     /*struct {
         unique_ptr<sq::Texture2D> pshadA;
@@ -43,11 +40,6 @@ private:
         unique_ptr<sq::FrameBuffer> defrPart;
         unique_ptr<sq::FrameBuffer> hdrPart;
     } FB;*/
-
-    struct {
-        bool vignette, bloom;
-        int shafts, ssao, fsaa;
-    } INFO;
 };
 
 }

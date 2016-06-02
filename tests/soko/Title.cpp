@@ -1,32 +1,25 @@
 #include <SFML/Window/Event.hpp>
 
-#include <sqee/debug/Logging.hpp>
-#include <sqee/app/Application.hpp>
-#include <sqee/app/Settings.hpp>
-
+#include "SokoApp.hpp"
 #include "Title.hpp"
 
 using namespace sqt;
 
-TitleScene::TitleScene(sq::Application* _app) : sq::Scene(_app) {
+TitleScene::TitleScene(SokoApp& _app) : sq::Scene(1.0 / 30.0), app(_app) {
 
 }
 
-
-void TitleScene::configure() {
+void TitleScene::update_options() {
 
 }
-
 
 void TitleScene::tick() {
 
 }
 
-
 void TitleScene::render() {
 
 }
-
 
 bool TitleScene::handle(sf::Event _event) {
     return false;
