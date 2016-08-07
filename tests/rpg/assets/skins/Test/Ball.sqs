@@ -1,8 +1,0 @@
-# SQEE Skin Format
-
-{ materials
-material
-wrap clamp
-diff Test/Ball
-spec FFFFFF
-}

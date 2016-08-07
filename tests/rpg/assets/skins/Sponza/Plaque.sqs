@@ -1,8 +1,0 @@
-# SQEE Skin Format
-
-{ materials
-material
-wrap repeat
-diff Sponza/Plaque
-norm Sponza/Plaque
-}

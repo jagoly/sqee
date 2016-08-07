@@ -1,7 +1,0 @@
-# SQEE Skin Format
-
-{ materials
-material
-wrap repeat
-diff Sponza/Roof
-}

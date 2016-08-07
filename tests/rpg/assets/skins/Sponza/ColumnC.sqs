@@ -1,9 +1,0 @@
-# SQEE Skin Format
-
-{ materials
-material
-wrap repeat
-diff Sponza/ColumnC
-norm Sponza/ColumnC
-spec Sponza/ColumnC
-}
