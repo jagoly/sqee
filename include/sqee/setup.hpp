@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <iterator>
 
 typedef unsigned char uchar;
 typedef unsigned short ushort;
@@ -26,6 +27,11 @@ struct NonCopyable {
 struct expand {
     template<class... Args> expand(Args&&...) {}
 };
+
+template<class T> struct reversion_wrapper { T& iterable; };
+template<class T> reversion_wrapper<T> reverse(T&& iterable) { return {iterable}; }
+template<class T> auto begin(reversion_wrapper<T> _wrapper) { return std::rbegin(_wrapper.iterable); }
+template<class T> auto end(reversion_wrapper<T> _wrapper) { return std::rend(_wrapper.iterable); }
 
 }
 

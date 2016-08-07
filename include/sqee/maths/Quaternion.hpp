@@ -4,8 +4,6 @@
 #include <sqee/maths/Vectors.hpp>
 #include <sqee/maths/Matrices.hpp>
 
-#include <glm/gtc/quaternion.hpp>
-
 namespace sq {
 
 template<class T, if_float<T>...> struct Quaternion {
@@ -49,7 +47,6 @@ template<class T, if_float<T>...> struct Quaternion {
 
 // Multiply Scalar /////
 template<class T> inline Quaternion<T> operator*(Quaternion<T> _q, T _s) {
-    glm::fquat q;
     return Quaternion<T>(_q.x*_s, _q.y*_s, _q.z*_s, _q.w*_s);
 }
 

@@ -1,37 +1,27 @@
 #pragma once
 
-#include <sqee/gl/Textures.hpp>
-#include <sqee/gl/UniformBuffer.hpp>
-
+#include <sqee/builtins.hpp>
 #include <sqee/maths/Vectors.hpp>
-#include <sqee/maths/Matrices.hpp>
-#include <sqee/maths/Volumes.hpp>
+#include <sqee/maths/Quaternion.hpp>
 
-namespace sqt {
+namespace sqt { namespace world {
 
-class World;
+struct SkyLightObject : sq::NonCopyable {
 
-class SkyLight final : sq::NonCopyable {
-public:
-    SkyLight();
+    /// rotation of the light
+    QuatF PROP_rotation = {0.f, 0.f, 0.f, 1.f};
 
-    void configure(const World& _world);
-    void update(const World& _world);
+    /// maximum colour of light
+    Vec3F PROP_colour = {1.f, 1.f, 1.f};
 
-    // User Properties /////
-    Vec3F PROP_direction = {0.f, 0.f, -1.f};
-    Vec3F PROP_colour    = {1.f, 1.f, 1.f};
-    float PROP_density   = 0.25f;
+    /// light shafts density
+    float PROP_density = 0.f;
 
-    // System Properties /////
-    sq::UniformBuffer ubo;
-    sq::Texture2DArray texA;
-    sq::Texture2DArray texB;
-    array<sq::OrthoFrus, 4> orthArrA;
-    array<sq::OrthoFrus, 2> orthArrB;
-    array<Mat4F, 4> matArrA;
-    array<Mat4F, 2> matArrB;
-    Vec4F splits;
+    /// shadow map resolution
+    uint PROP_resolution = 1024u;
+
+    /// number of cascades
+    uint PROP_cascades = 4u;
 };
 
-}
+}}

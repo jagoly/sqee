@@ -14,14 +14,17 @@ template<class T> using Vector4 = Vector<4, T>;
 template<class T> struct Vector<2, T> {
     Vector() : x(T(0)), y(T(0)) {}
     Vector(T _x, T _y) : x(_x), y(_y) {}
-    Vector(const Vector2<T>& _v) : x(_v.x), y(_v.y) {}
 
-    template<class U> explicit Vector(Vector2<U> _v) : x(_v.x), y(_v.y) {}
+    // Copy Constructors
+    Vector(const Vector2<T>& _v) : Vector(_v.x, _v.y) {}
+    template<class U> explicit Vector(Vector2<U> _v) : Vector(_v.x, _v.y) {}
 
-    explicit Vector(T _s) : x(_s), y(_s) {}
-    explicit Vector(Vector3<T> _v) : x(_v.x), y(_v.y) {}
-    explicit Vector(Vector4<T> _v) : x(_v.x), y(_v.y) {}
+    // Swizzle Constructors
+    explicit Vector(T _s) : Vector(_s, _s) {}
+    explicit Vector(Vector3<T> _v) : Vector(_v.x, _v.y) {}
+    explicit Vector(Vector4<T> _v) : Vector(_v.x, _v.y) {}
 
+    // Array Access Operators
     T& operator[](int _index) { return (&x)[_index]; }
     const T& operator[](int _index) const { return (&x)[_index]; }
     const T* ptr() const { return &x; }
@@ -33,16 +36,17 @@ template<class T> struct Vector<2, T> {
 template<class T> struct Vector<3, T> {
     Vector() : x(T(0)), y(T(0)), z(T(0)) {}
     Vector(T _x, T _y, T _z) : x(_x), y(_y), z(_z) {}
-    Vector(const Vector3<T>& _v) : x(_v.x), y(_v.y), z(_v.z) {}
 
-    template<class U> explicit Vector(Vector3<U> _v) : x(_v.x), y(_v.y), z(_v.z) {}
+    // Copy Constructors
+    Vector(const Vector3<T>& _v) : Vector(_v.x, _v.y, _v.z) {}
+    template<class U> explicit Vector(Vector3<U> _v) : Vector(_v.x, _v.y, _v.z) {}
 
-    explicit Vector(T _s) : x(_s), y(_s), z(_s) {}
-    explicit Vector(Vector4<T> _v) : x(_v.x), y(_v.y), z(_v.z) {}
+    // Swizzle Constructors
+    explicit Vector(T _s) : Vector(_s, _s, _s) {}
+    explicit Vector(Vector4<T> _v) : Vector(_v.x, _v.y, _v.z) {}
+    explicit Vector(Vector2<T> _xy, T _z) : Vector(_xy.x, _xy.y, _z) {}
 
-    explicit Vector(Vector2<T> ab, T c) : x(ab.x), y(ab.y), z(c) {}
-    explicit Vector(T a, Vector2<T> bc) : x(a), y(bc.x), z(bc.y) {}
-
+    // Array Access Operators
     T& operator[](int _index) { return (&x)[_index]; }
     const T& operator[](int _index) const { return (&x)[_index]; }
     const T* ptr() const { return &x; }
@@ -54,19 +58,17 @@ template<class T> struct Vector<3, T> {
 template<class T> struct Vector<4, T> {
     Vector() : x(T(0)), y(T(0)), z(T(0)), w(T(0)) {}
     Vector(T _x, T _y, T _z, T _w) : x(_x), y(_y), z(_z), w(_w) {}
-    Vector(const Vector4<T>& _v) : x(_v.x), y(_v.y), z(_v.z), w(_v.w) {}
 
-    template<class U> explicit Vector(Vector4<U> _v) : x(_v.x), y(_v.y), z(_v.z), w(_v.w) {}
+    // Copy Constructors
+    Vector(const Vector4<T>& _v) : Vector(_v.x, _v.y, _v.z, _v.w) {}
+    template<class U> explicit Vector(Vector4<U> _v) : Vector(_v.x, _v.y, _v.z, _v.w) {}
 
-    explicit Vector(T _s) : x(_s), y(_s), z(_s), w(_s) {}
+    // Swizzle Constructors
+    explicit Vector(T _s) : Vector(_s, _s, _s, _s) {}
+    explicit Vector(Vector2<T> _xy, T _z, T _w) : Vector(_xy.x, _xy.y, _z, _w) {}
+    explicit Vector(Vector3<T> _xyz, T _w) : Vector(_xyz.x, _xyz.y, _xyz.z, _w) {}
 
-    explicit Vector(Vector2<T> ab, T c, T d) : x(ab.x), y(ab.y), z(c), w(d) {}
-    explicit Vector(T a, Vector2<T> bc, T d) : x(a), y(bc.x), z(bc.y), w(d) {}
-    explicit Vector(T a, T b, Vector2<T> cd) : x(a), y(b), z(cd.x), w(cd.y) {}
-    explicit Vector(Vector3<T> abc, T d) : x(abc.x), y(abc.y), z(abc.z), w(d) {}
-    explicit Vector(T a, Vector3<T> bcd) : x(a), y(bcd.x), z(bcd.y), w(bcd.z) {}
-    explicit Vector(Vector2<T> ab, Vector2<T> cd) : x(ab.x), y(ab.y), z(cd.x), w(cd.y)  {}
-
+    // Array Access Operators
     T& operator[](int _index) { return (&x)[_index]; }
     const T& operator[](int _index) const { return (&x)[_index]; }
     const T* ptr() const { return &x; }
@@ -77,55 +79,60 @@ template<class T> struct Vector<4, T> {
 
 // Vector Operators +, += /////
 template<int S, class T> inline Vector<S, T> operator+(Vector<S, T> _a, Vector<S, T> _b) {
-    Vector<S, T> ret; for (int i=0; i<S; ++i) ret[i] = _a[i]+_b[i]; return ret; }
+    Vector<S, T> ret; for (int i=0; i<S; ++i) ret[i] = _a[i] + _b[i]; return ret; }
 template<int S, class T> inline Vector<S, T>& operator+=(Vector<S, T>& _a, Vector<S, T> _b) {
-    for (int i=0; i<S; ++i) _a[i] = _a[i]+_b[i]; return _a; }
+    for (int i=0; i<S; ++i) _a[i] = _a[i] + _b[i]; return _a; }
 
 // Vector Operators -, -= /////
 template<int S, class T> inline Vector<S, T> operator-(Vector<S, T> _a, Vector<S, T> _b) {
-    Vector<S, T> ret; for (int i=0; i<S; ++i) ret[i] = _a[i]-_b[i]; return ret; }
+    Vector<S, T> ret; for (int i=0; i<S; ++i) ret[i] = _a[i] - _b[i]; return ret; }
 template<int S, class T> inline Vector<S, T>& operator-=(Vector<S, T>& _a, Vector<S, T> _b) {
-    for (int i=0; i<S; ++i) _a[i] = _a[i]-_b[i]; return _a; }
+    for (int i=0; i<S; ++i) _a[i] = _a[i] - _b[i]; return _a; }
 
 // Vector Operators *, *= /////
 template<int S, class T> inline Vector<S, T> operator*(Vector<S, T> _a, Vector<S, T> _b) {
-    Vector<S, T> ret; for (int i=0; i<S; ++i) ret[i] = _a[i]*_b[i]; return ret; }
+    Vector<S, T> ret; for (int i=0; i<S; ++i) ret[i] = _a[i] * _b[i]; return ret; }
 template<int S, class T> inline Vector<S, T>& operator*=(Vector<S, T>& _a, Vector<S, T> _b) {
-    for (int i=0; i<S; ++i) _a[i] = _a[i]*_b[i]; return _a; }
+    for (int i=0; i<S; ++i) _a[i] = _a[i] * _b[i]; return _a; }
 
 // Vector Operators /, /= /////
 template<int S, class T> inline Vector<S, T> operator/(Vector<S, T> _a, Vector<S, T> _b) {
-    Vector<S, T> ret; for (int i=0; i<S; ++i) ret[i] = _a[i]/_b[i]; return ret; }
+    Vector<S, T> ret; for (int i=0; i<S; ++i) ret[i] = _a[i] / _b[i]; return ret; }
 template<int S, class T> inline Vector<S, T>& operator/=(Vector<S, T>& _a, Vector<S, T> _b) {
-    for (int i=0; i<S; ++i) _a[i] = _a[i]/_b[i]; return _a; }
+    for (int i=0; i<S; ++i) _a[i] = _a[i] / _b[i]; return _a; }
 
 // Scalar Operators +, += /////
 template<int S, class T> inline Vector<S, T> operator+(Vector<S, T> _v, T _s) {
-    Vector<S, T> ret; for (int i=0; i<S; ++i) ret[i] = _v[i]+_s; return ret; }
+    Vector<S, T> ret; for (int i=0; i<S; ++i) ret[i] = _v[i] + _s; return ret; }
 template<int S, class T> inline Vector<S, T>& operator+=(Vector<S, T>& _v, T _s) {
     for (int i=0; i<S; ++i) _v[i] = _v[i]+_s; return _v; }
 
 // Scalar Operators -, -= /////
 template<int S, class T> inline Vector<S, T> operator-(Vector<S, T> _v, T _s) {
-    Vector<S, T> ret; for (int i=0; i<S; ++i) ret[i] = _v[i]-_s; return ret; }
+    Vector<S, T> ret; for (int i=0; i<S; ++i) ret[i] = _v[i] - _s; return ret; }
 template<int S, class T> inline Vector<S, T>& operator-=(Vector<S, T>& _v, T _s) {
-    for (int i=0; i<S; ++i) _v[i] = _v[i]-_s; return _v; }
+    for (int i=0; i<S; ++i) _v[i] = _v[i] - _s; return _v; }
 
 // Scalar Operators *, *= /////
 template<int S, class T> inline Vector<S, T> operator*(Vector<S, T> _v, T _s) {
-    Vector<S, T> ret; for (int i=0; i<S; ++i) ret[i] = _v[i]*_s; return ret; }
+    Vector<S, T> ret; for (int i=0; i<S; ++i) ret[i] = _v[i] * _s; return ret; }
 template<int S, class T> inline Vector<S, T>& operator*=(Vector<S, T>& _v, T _s) {
-    for (int i=0; i<S; ++i) _v[i] = _v[i]*_s; return _v; }
+    for (int i=0; i<S; ++i) _v[i] = _v[i] * _s; return _v; }
 
 // Scalar Operators /, /= /////
 template<int S, class T> inline Vector<S, T> operator/(Vector<S, T> _v, T _s) {
-    Vector<S, T> ret; for (int i=0; i<S; ++i) ret[i] = _v[i]/_s; return ret; }
+    Vector<S, T> ret; for (int i=0; i<S; ++i) ret[i] = _v[i] / _s; return ret; }
 template<int S, class T> inline Vector<S, T>& operator/=(Vector<S, T>& _v, T _s) {
-    for (int i=0; i<S; ++i) _v[i] = _v[i]/_s; return _v; }
+    for (int i=0; i<S; ++i) _v[i] = _v[i] / _s; return _v; }
 
 // Negative Operator /////
 template<int S, class T> inline Vector<S, T> operator-(Vector<S, T> _v) {
     Vector<S, T> ret; for (int i=0; i<S; ++i) ret[i] = -_v[i]; return ret;
+}
+
+// Positive Operator /////
+template<int S, class T> inline Vector<S, T> operator+(Vector<S, T> _v) {
+    return _v;
 }
 
 // Equality Operator /////

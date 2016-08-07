@@ -27,18 +27,18 @@ vec3 get_view_pos(vec2 _texcrd, mat4 _invProj, sampler2D _depthTex) {
 }
 
 float nearest_depth_sca(vec2 _texcrd, sampler2D _sampler,
-                        sampler2D _depTexFull, sampler2D _depTexHalf,
+                        sampler2D _depthFull, sampler2D _depthSmall,
                         float _thres, float _rmin, float _rmax) {
-    vec4 txHalf = textureGather(_depTexHalf, _texcrd);
-    float txFull = texture(_depTexFull, _texcrd).r;
+    vec4 txSmall = textureGather(_depthSmall, _texcrd);
+    float txFull = texture(_depthFull, _texcrd).r;
     txFull = linearise(txFull, _rmin, _rmax);
 
-    float distA = distance(txFull, linearise(txHalf.r, _rmin, _rmax));
-    float distB = distance(txFull, linearise(txHalf.g, _rmin, _rmax));
-    float distC = distance(txFull, linearise(txHalf.b, _rmin, _rmax));
-    float distD = distance(txFull, linearise(txHalf.a, _rmin, _rmax));
+    float distA = distance(txFull, linearise(txSmall.r, _rmin, _rmax));
+    float distB = distance(txFull, linearise(txSmall.g, _rmin, _rmax));
+    float distC = distance(txFull, linearise(txSmall.b, _rmin, _rmax));
+    float distD = distance(txFull, linearise(txSmall.a, _rmin, _rmax));
 
-    if (max(max(distA, distB), max(distC, distD)) > _thres) {
+    if (max(max(max(distA, distB), distC), distD) > _thres) {
         vec4 texel = textureGather(_sampler, _texcrd);
         float minDiff = distA, value = texel.r;
         if (distB < minDiff) { minDiff = distB; value = texel.g; }
@@ -46,6 +46,30 @@ float nearest_depth_sca(vec2 _texcrd, sampler2D _sampler,
         if (distD < minDiff) { minDiff = distD; value = texel.a; }
         return value;
     } else return texture(_sampler, _texcrd).r;
+}
+
+vec3 nearest_depth_vec3(vec2 _texcrd, sampler2D _sampler,
+                        sampler2D _depthFull, sampler2D _depthSmall,
+                        float _thres, float _rmin, float _rmax) {
+    vec4 txSmall = textureGather(_depthSmall, _texcrd);
+    float txFull = texture(_depthFull, _texcrd).r;
+    txFull = linearise(txFull, _rmin, _rmax);
+
+    float distA = distance(txFull, linearise(txSmall.r, _rmin, _rmax));
+    float distB = distance(txFull, linearise(txSmall.g, _rmin, _rmax));
+    float distC = distance(txFull, linearise(txSmall.b, _rmin, _rmax));
+    float distD = distance(txFull, linearise(txSmall.a, _rmin, _rmax));
+
+    if (max(max(max(distA, distB), distC), distD) > _thres) {
+        vec4 texelR = textureGather(_sampler, _texcrd, 0);
+        vec4 texelG = textureGather(_sampler, _texcrd, 1);
+        vec4 texelB = textureGather(_sampler, _texcrd, 2);
+        float minDiff = distA; vec3 value = vec3(texelR.r, texelG.r, texelB.r);
+        if (distB < minDiff) { minDiff = distB; value = vec3(texelR.g, texelG.g, texelB.g); }
+        if (distC < minDiff) { minDiff = distC; value = vec3(texelR.b, texelG.b, texelB.b); }
+        if (distD < minDiff) { minDiff = distD; value = vec3(texelR.a, texelG.a, texelB.a); }
+        return value;
+    } else return texture(_sampler, _texcrd).rgb;
 }
 
 )glsl";
@@ -147,26 +171,6 @@ vec3 hsl_to_rgb(vec3 _c) {
 float rgb_to_luma(vec3 _c) {
     return dot(vec3(0.22f, 0.69f, 0.09f), _c);
 }
-
-)glsl";
-
-
-
-/// Standard SQEE Camera Block
-extern const char data_blocks_camera[] = R"glsl(
-
-struct CameraBlock {
-    mat4 proj;    // 16
-    mat4 view;    // 16
-    mat4 invProj; // 16
-    mat4 invView; // 16
-    mat4 trnView; // 16
-    vec3 pos;     // 3
-    float rmin;   // 1
-    vec3 dir;     // 3
-    float rmax;   // 1
-    // Size: 88
-};
 
 )glsl";
 

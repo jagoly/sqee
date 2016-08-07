@@ -1,18 +1,44 @@
 #pragma once
 
+#include <sqee/assert.hpp>
 #include <sqee/builtins.hpp>
-#include <sqee/misc/ResHolder.hpp>
-
-// Forward Declarations /////
-namespace sq { class Texture2D; class Armature; class Mesh; class Skin; }
 
 namespace sq {
 
-string& static_path();
+template <class T> struct Resource {
+    void decrement() { if (--count == 0u) uptr.reset(); }
+    bool loaded() const { return uptr != nullptr; }
+    ushort count = 0u; unique_ptr<T> uptr;
+};
 
-ResHolder<Texture2D>& static_Texture2D();
-ResHolder<Armature>& static_Armature();
-ResHolder<Mesh>& static_Mesh();
-ResHolder<Skin>& static_Skin();
+template <class T> struct Handle {
+    Handle() : resource(nullptr) {} ~Handle() { if (resource) resource->decrement(); }
+    Handle(const Handle& _other) { if ((resource = _other.resource)) ++resource->count; }
+    Handle& operator=(Handle _other) { std::swap(resource, _other.resource); return *this; }
+    Handle(Resource<T>& _resource) { resource = &_resource; ++resource->count; }
+
+    void set_null() { this->~Handle(); resource = nullptr; }
+    bool check() const { return resource != nullptr; }
+
+    bool operator==(const Handle& _other) const { return resource == _other.resource; }
+    bool operator!=(const Handle& _other) const { return resource != _other.resource; }
+    bool operator<(const Handle& _other) const { return resource < _other.resource; }
+
+    const T* operator->() const {
+        SQASSERT(resource != nullptr, "");
+        SQASSERT(resource->loaded(), "");
+        return resource->uptr.get();
+    }
+
+    const T& get() const {
+        SQASSERT(resource != nullptr, "");
+        SQASSERT(resource->loaded(), "");
+        return *resource->uptr;
+    }
+
+    private: Resource<T>* resource;
+};
+
+string& static_path();
 
 }

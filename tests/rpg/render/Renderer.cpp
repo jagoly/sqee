@@ -1,40 +1,45 @@
-﻿#include <algorithm>
-#include <map>
+﻿#include <map>
 #include <set>
 
 #include <sqee/assert.hpp>
+#include <sqee/gl/Context.hpp>
 #include <sqee/debug/Logging.hpp>
-
-#include <sqee/redist/gl_ext_4_2.hpp>
-#include <sqee/app/PreProcessor.hpp>
-#include <sqee/gl/Shaders.hpp>
-#include <sqee/render/Armature.hpp>
-#include <sqee/render/Skin.hpp>
-#include <sqee/maths/Volumes.hpp>
 #include <sqee/misc/StringCast.hpp>
 
-#include "../wcoe/Camera.hpp"
-#include "../wcoe/Ambient.hpp"
-#include "../wcoe/SkyBox.hpp"
-#include "../wcoe/SkyLight.hpp"
-#include "../wcoe/World.hpp"
+#include "../world/World.hpp"
 
-#include "../components/Animator.hpp"
-#include "../components/Transform.hpp"
+#include "../world/objects/Camera.hpp"
+#include "../world/objects/SkyBox.hpp"
+#include "../world/objects/Ambient.hpp"
+#include "../world/objects/SkyLight.hpp"
+
+//#include "../components/Animator.hpp"
 #include "../components/Model.hpp"
+#include "../components/Skeleton.hpp"
 #include "../components/Decal.hpp"
-#include "../components/SpotLight.hpp"
-#include "../components/PointLight.hpp"
-#include "../components/Reflect.hpp"
+#include "../components/LightOrtho.hpp"
+#include "../components/LightPoint.hpp"
+#include "../components/LightSpot.hpp"
+//#include "../components/Reflect.hpp"
 
-#include "Shadows.hpp"
-#include "Gbuffers.hpp"
-#include "Lighting.hpp"
-#include "Pretties.hpp"
-#include "Reflects.hpp"
+#include "ObjectsData.hpp"
+#include "PassesData.hpp"
+#include "SharedStuff.hpp"
+
+#include "passes/DepthDraw.hpp"
+#include "passes/GbufferDraw.hpp"
+#include "passes/ShadowsDraw.hpp"
+#include "passes/LightBaseDraw.hpp"
+#include "passes/LightAccumDraw.hpp"
+#include "passes/VolumetricDraw.hpp"
+#include "passes/CompositeDraw.hpp"
+#include "passes/EffectsDraw.hpp"
+
+#include "../Options.hpp"
 #include "Renderer.hpp"
 
 using namespace sqt;
+using Context = sq::Context;
 namespace maths = sq::maths;
 
 Renderer::~Renderer() = default;
@@ -42,358 +47,259 @@ Renderer::~Renderer() = default;
 struct Renderer::Impl {
     Impl(Renderer& _renderer) : renderer(_renderer) {}
 
-    void update_render_lists(const EntityRPG* _e);
-    void update_reflect_lists(const EntityRPG* _e);
-    void update_light_lists(const EntityRPG* _e);
+    void refresh_static_data(const SceneData& _scene);
+    void refresh_entity_data(const SceneData& _scene);
+    void refresh_world_data(const SceneData& _scene);
 
-    void sort_render_lists();
+    void create_entity(const sq::Entity* _entity);
+    void configure_entity(const sq::Entity* _entity);
+    void destroy_entity(const sq::Entity* _entity);
 
     Renderer& renderer;
 
-    std::set<const SpotLightComponent*> visibleSpotLightSet;
-    std::map<const PointLightComponent*, array<bool, 6>> visiblePointLightMap;
+    render::ObjectsData objectsData;
+    render::PassesData passesData;
 };
 
+void Renderer::Impl::refresh_static_data(const SceneData& _scene) {
+    auto& od = objectsData;
 
-void Renderer::Impl::update_render_lists(const EntityRPG* _e) {
-    const auto* model      = _e->try_get_component<ModelComponent>();
-    const auto* decal      = _e->try_get_component<DecalComponent>();
-    const auto* spotLight  = _e->try_get_component<SpotLightComponent>();
-    const auto* pointLight = _e->try_get_component<PointLightComponent>();
-    const auto* reflect    = _e->try_get_component<ReflectComponent>();
+    std::set<HandleMaterial> keepAliveMtrl;
+    std::set<HandleMesh> keepAliveMesh;
 
-    const Camera& camera = renderer.world.get_Camera();
-
-    if (model != nullptr && reflect == nullptr && model->PROP_render == true)
-        if (sq::bbox_in_frus(model->bbox, camera.frus)) {
-            if (model->arma) renderer.cameraData.modelSkellyVec.push_back(model);
-            else renderer.cameraData.modelSimpleVec.push_back(model); }
-
-    if (model != nullptr && reflect != nullptr && model->PROP_render == true) {
-        float camOffset = maths::dot(camera.PROP_position, reflect->normal);
-        if (camOffset + maths::dot(-reflect->normal, reflect->trans) > 0.f && sq::bbox_in_frus(model->bbox, camera.frus)) {
-            renderer.reflectDataVec.emplace_back(reflect, model, sq::reflect_Frustum(camera.frus, reflect->normal, reflect->trans));
-            renderer.cameraData.modelSimpleVec.push_back(model); } }
-
-    if (renderer.world.check_SkyLight() == true) {
-        if (model != nullptr && model->PROP_shadow == true) {
-            for (uint csm = 0u; csm < 4u; ++csm)
-                if (sq::bbox_in_orth(model->bbox, renderer.world.get_SkyLight().orthArrA[csm])) {
-                    if (model->arma && model->skin->hasPunchThru) renderer.skyLightData.modelSkellyPunchVecArrA[csm].push_back(model);
-                    else if (model->skin->hasPunchThru) renderer.skyLightData.modelSimplePunchVecArrA[csm].push_back(model);
-                    else if (model->arma) renderer.skyLightData.modelSkellyVecArrA[csm].push_back(model);
-                    else renderer.skyLightData.modelSimpleVecArrA[csm].push_back(model); }
-
-            for (uint csm = 0u; csm < 2u; ++csm)
-                if (sq::bbox_in_orth(model->bbox, renderer.world.get_SkyLight().orthArrB[csm])) {
-                    if (model->arma && model->skin->hasPunchThru) renderer.skyLightData.modelSkellyPunchVecArrB[csm].push_back(model);
-                    else if (model->skin->hasPunchThru) renderer.skyLightData.modelSimplePunchVecArrB[csm].push_back(model);
-                    else if (model->arma) renderer.skyLightData.modelSkellyVecArrB[csm].push_back(model);
-                    else renderer.skyLightData.modelSimpleVecArrB[csm].push_back(model); }
-        }
+    for (const auto& model : od.staticModelVec) {
+        for (const auto& mtrl : model.mtrls)
+            keepAliveMtrl.emplace(mtrl);
+        keepAliveMesh.emplace(model.mesh);
     }
 
-    if (decal != nullptr && decal->PROP_alpha > 0.001f)
-        if (sq::bbox_in_frus(decal->bbox, camera.frus)) {
-            if (decal->texDiff && decal->texNorm && decal->texSpec)
-                renderer.cameraData.decalCompleteVec.push_back(decal);
-            else renderer.cameraData.decalPartialVec.push_back(decal); }
+    for (const auto& decal : od.staticDecalVec) {
+        keepAliveMtrl.emplace(decal.material);
+    }
 
-    if (spotLight != nullptr && spotLight->PROP_texsize != 0u)
-        if (sq::frus_in_frus(spotLight->frus, camera.frus))
-            renderer.cameraData.spotLightShadowVec.push_back(spotLight),
-            visibleSpotLightSet.emplace(spotLight);
+    od.staticModelVec.clear();
+    od.staticDecalVec.clear();
 
-    if (spotLight != nullptr && spotLight->PROP_texsize == 0u)
-        if (sq::frus_in_frus(spotLight->frus, camera.frus))
-            renderer.cameraData.spotLightNoShadowVec.push_back(spotLight);
+    const auto& staticCellMap = *_scene.staticCellMap;
 
-    if (pointLight != nullptr && pointLight->PROP_texsize != 0u)
-        if (sq::sphr_in_frus(pointLight->sphere, camera.frus)) {
-            auto& visible = visiblePointLightMap[pointLight];
-            visible[0] = sq::frus_in_frus(pointLight->frusArr[0], camera.frus);
-            visible[1] = sq::frus_in_frus(pointLight->frusArr[1], camera.frus);
-            visible[2] = sq::frus_in_frus(pointLight->frusArr[2], camera.frus);
-            visible[3] = sq::frus_in_frus(pointLight->frusArr[3], camera.frus);
-            visible[4] = sq::frus_in_frus(pointLight->frusArr[4], camera.frus);
-            visible[5] = sq::frus_in_frus(pointLight->frusArr[5], camera.frus);
-            renderer.cameraData.pointLightShadowVec.push_back(pointLight); }
+    for (const auto& cellPair : staticCellMap) {
+        for (const auto& modelPair : cellPair.second.get_ModelMap())
+            od.staticModelVec.emplace_back(modelPair.second);
+        for (const auto& decalPair : cellPair.second.get_DecalMap())
+            od.staticDecalVec.emplace_back(decalPair.second);
+    }
 
-    if (pointLight != nullptr && pointLight->PROP_texsize == 0u)
-        if (sq::sphr_in_frus(pointLight->sphere, camera.frus))
-            renderer.cameraData.pointLightNoShadowVec.push_back(pointLight);
-
-    for (auto& child : _e->get_children())
-        update_render_lists(child.get());
+    // TODO: find a proper solution for this
+    passesData.gbufferData.modelPasses.simplePass.baseVec.reserve(od.staticModelVec.size() + 10u);
+    passesData.gbufferData.modelPasses.skellyPass.baseVec.reserve(10u);
 }
 
-
-void Renderer::Impl::update_reflect_lists(const EntityRPG* _e) {
-    auto model      = _e->try_get_component<ModelComponent>();
-    auto decal      = _e->try_get_component<DecalComponent>();
-    auto spotLight  = _e->try_get_component<SpotLightComponent>();
-    auto pointLight = _e->try_get_component<PointLightComponent>();
-
-    if (model != nullptr && model->PROP_render == true)
-        for (auto& data : renderer.reflectDataVec)
-            if (sq::bbox_in_frus(model->bbox, data.frus)) {
-                if (model->arma) data.modelSkellyVec.push_back(model);
-                else data.modelSimpleVec.push_back(model); }
-
-    if (decal != nullptr && decal->PROP_alpha > 0.001f)
-        for (auto& data : renderer.reflectDataVec)
-            if (sq::bbox_in_frus(decal->bbox, data.frus))
-                if (decal->texDiff) data.decalDiffVec.push_back(decal);
-
-    if (spotLight != nullptr && spotLight->PROP_texsize != 0u)
-        for (auto& data : renderer.reflectDataVec)
-            if (sq::frus_in_frus(spotLight->frus, data.frus))
-                data.spotLightShadowVec.push_back(spotLight),
-                visibleSpotLightSet.emplace(spotLight);
-
-    if (spotLight != nullptr && spotLight->PROP_texsize == 0u)
-        for (auto& data : renderer.reflectDataVec)
-        if (sq::frus_in_frus(spotLight->frus, data.frus))
-            data.spotLightNoShadowVec.push_back(spotLight);
-
-    if (pointLight != nullptr && pointLight->PROP_texsize != 0u)
-        for (auto& data : renderer.reflectDataVec)
-            if (sq::sphr_in_frus(pointLight->sphere, data.frus)) {
-                auto& visible = visiblePointLightMap[pointLight];
-                visible[0] |= sq::frus_in_frus(pointLight->frusArr[0], data.frus);
-                visible[1] |= sq::frus_in_frus(pointLight->frusArr[1], data.frus);
-                visible[2] |= sq::frus_in_frus(pointLight->frusArr[2], data.frus);
-                visible[3] |= sq::frus_in_frus(pointLight->frusArr[3], data.frus);
-                visible[4] |= sq::frus_in_frus(pointLight->frusArr[4], data.frus);
-                visible[5] |= sq::frus_in_frus(pointLight->frusArr[5], data.frus);
-                data.pointLightShadowVec.push_back(pointLight); }
-
-    if (pointLight != nullptr && pointLight->PROP_texsize == 0u)
-        for (auto& data : renderer.reflectDataVec)
-            if (sq::sphr_in_frus(pointLight->sphere, data.frus))
-                data.pointLightNoShadowVec.push_back(pointLight);
-
-    for (auto& child : _e->get_children())
-        update_reflect_lists(child.get());
-}
-
-
-void Renderer::Impl::update_light_lists(const EntityRPG* _e) {
-    auto model = _e->try_get_component<ModelComponent>();
-
-    if (model != nullptr && model->PROP_shadow == true)
-        for (auto& data : renderer.spotLightDataVec)
-            if (sq::bbox_in_frus(model->bbox, data.light->frus)) {
-                if (model->arma && model->skin->hasPunchThru) data.modelSkellyPunchVec.push_back(model);
-                else if (model->skin->hasPunchThru) data.modelSimplePunchVec.push_back(model);
-                else if (model->arma) data.modelSkellyVec.push_back(model);
-                else data.modelSimpleVec.push_back(model); }
-
-    if (model != nullptr && model->PROP_shadow == true)
-        for (auto& data : renderer.pointLightDataVec)
-            for (uint face = 0u; face < 6u; ++face)
-                if (data.visibleFaceArr[face] && sq::bbox_in_frus(model->bbox, data.light->frusArr[face])) {
-                    if (model->arma && model->skin->hasPunchThru) data.modelSkellyPunchVecArr[face].push_back(model);
-                    else if (model->skin->hasPunchThru) data.modelSimplePunchVecArr[face].push_back(model);
-                    else if (model->arma) data.modelSkellyVecArr[face].push_back(model);
-                    else data.modelSimpleVecArr[face].push_back(model); }
-
-    for (auto& child : _e->get_children())
-        update_light_lists(child.get());
-}
-
-
-void Renderer::Impl::sort_render_lists() {
-    auto sort_container_by = [](auto& _container, const auto _compare) {
-        std::sort(_container.begin(), _container.end(), _compare); };
-
-    auto cameraCompareFunc = [this](const ModelComponent* a, const ModelComponent* b) {
-        return maths::distance(renderer.world.get_Camera().PROP_position, a->bbox.origin) <
-               maths::distance(renderer.world.get_Camera().PROP_position, b->bbox.origin); };
-
-    sort_container_by(renderer.cameraData.modelSimpleVec, cameraCompareFunc);
-    sort_container_by(renderer.cameraData.modelSkellyVec, cameraCompareFunc);
-
-    auto skyLightCompareFunc = [this](const ModelComponent* a, const ModelComponent* b) {
-        return maths::dot(renderer.world.get_SkyLight().PROP_direction, a->bbox.origin) <
-               maths::dot(renderer.world.get_SkyLight().PROP_direction, b->bbox.origin); };
-
-    for (uint csm = 0u; csm < 4u; ++csm) {
-        sort_container_by(renderer.skyLightData.modelSimpleVecArrA[csm], skyLightCompareFunc);
-        sort_container_by(renderer.skyLightData.modelSimplePunchVecArrA[csm], skyLightCompareFunc);
-        sort_container_by(renderer.skyLightData.modelSkellyVecArrA[csm], skyLightCompareFunc);
-        sort_container_by(renderer.skyLightData.modelSkellyPunchVecArrA[csm], skyLightCompareFunc);
-    }
-
-    for (uint csm = 0u; csm < 2u; ++csm) {
-        sort_container_by(renderer.skyLightData.modelSimpleVecArrB[csm], skyLightCompareFunc);
-        sort_container_by(renderer.skyLightData.modelSimplePunchVecArrB[csm], skyLightCompareFunc);
-        sort_container_by(renderer.skyLightData.modelSkellyVecArrB[csm], skyLightCompareFunc);
-        sort_container_by(renderer.skyLightData.modelSkellyPunchVecArrB[csm], skyLightCompareFunc);
-    }
-
-    for (auto& data : renderer.spotLightDataVec) {
-        auto spotLightCompareFunc = [&](const ModelComponent* a, const ModelComponent* b) {
-            return maths::distance(data.light->frus.points[0], a->bbox.origin) <
-                   maths::distance(data.light->frus.points[0], b->bbox.origin); };
-
-        sort_container_by(data.modelSimpleVec, spotLightCompareFunc);
-        sort_container_by(data.modelSimplePunchVec, spotLightCompareFunc);
-        sort_container_by(data.modelSkellyVec, spotLightCompareFunc);
-        sort_container_by(data.modelSkellyPunchVec, spotLightCompareFunc);
-    }
-
-    for (auto& data : renderer.pointLightDataVec) {
-        for (uint face = 0u; face < 6u; ++face) {
-            auto pointLightCompareFunc = [&](const ModelComponent* a, const ModelComponent* b) {
-                return maths::distance(data.light->sphere.origin, a->bbox.origin) <
-                       maths::distance(data.light->sphere.origin, b->bbox.origin); };
-
-            sort_container_by(data.modelSimpleVecArr[face], pointLightCompareFunc);
-            sort_container_by(data.modelSimplePunchVecArr[face], pointLightCompareFunc);
-            sort_container_by(data.modelSkellyVecArr[face], pointLightCompareFunc);
-            sort_container_by(data.modelSkellyPunchVecArr[face], pointLightCompareFunc);
-        }
-    }
-
-    for (auto& data : renderer.reflectDataVec) {
-        auto reflectCompareFunc = [&](const ModelComponent* a, const ModelComponent* b) {
-            return maths::distance(renderer.world.get_Camera().PROP_position, maths::reflect(
-                                       a->bbox.origin, data.reflect->normal, data.reflect->trans)) <
-                   maths::distance(renderer.world.get_Camera().PROP_position, maths::reflect(
-                                       b->bbox.origin, data.reflect->normal, data.reflect->trans)); };
-
-        sort_container_by(data.modelSimpleVec, reflectCompareFunc);
-        sort_container_by(data.modelSkellyVec, reflectCompareFunc);
+void Renderer::Impl::refresh_entity_data(const SceneData& _scene) {
+    for (auto& ent : objectsData.entityMap) {
+        if (ent.first->check_dirty() == false) continue;
+        if (ent.second.modelSimple) ent.second.modelSimple->refresh();
+        if (ent.second.modelSkelly) ent.second.modelSkelly->refresh();
+        if (ent.second.decalBasic) ent.second.decalBasic->refresh();
+        if (ent.second.lightOrtho) ent.second.lightOrtho->refresh();
+        if (ent.second.lightPoint) ent.second.lightPoint->refresh();
+        if (ent.second.lightSpot) ent.second.lightSpot->refresh();
     }
 }
 
+void Renderer::Impl::refresh_world_data(const SceneData& _scene) {
+    objectsData.cameraData->refresh(_scene);
+    if (objectsData.skyboxData) objectsData.skyboxData->refresh(*_scene.skybox);
+    if (objectsData.ambientData) objectsData.ambientData->refresh(*_scene.ambient);
+    if (objectsData.skylightData) objectsData.skylightData->refresh(_scene);
+}
 
-void Renderer::render_scene() {
-    // clear old render lists
-    cameraData = CameraData();
-    skyLightData = SkyLightData();
-    impl->visibleSpotLightSet.clear();
-    impl->visiblePointLightMap.clear();
-    spotLightDataVec.clear();
-    pointLightDataVec.clear();
-    reflectDataVec.clear();
 
-    // fill and sort new render lists
-    impl->update_render_lists(&world.get_RootEntity());
-    impl->update_reflect_lists(&world.get_RootEntity());
-    for (const auto* light : impl->visibleSpotLightSet)
-        spotLightDataVec.emplace_back(light);
-    for (const auto& light : impl->visiblePointLightMap)
-        pointLightDataVec.emplace_back(light.first, light.second);
-    impl->update_light_lists(&world.get_RootEntity());
-    impl->sort_render_lists();
+
+void Renderer::Impl::create_entity(const sq::Entity* _entity) {
+    SQASSERT(!objectsData.entityMap.count(_entity), "entity already created");
+    objectsData.entityMap.emplace(_entity, render::EntityData());
+}
+
+void Renderer::Impl::configure_entity(const sq::Entity* _entity) {
+    render::EntityData& data = objectsData.entityMap.at(_entity);
+
+    bool hasModel = _entity->try_get_component<ModelComponent>();
+    bool hasSkeleton = _entity->try_get_component<SkeletonComponent>();
+    bool hasDecal = _entity->try_get_component<DecalComponent>();
+
+    bool hasLightOrtho = _entity->try_get_component<LightOrthoComponent>();
+    bool hasLightPoint = _entity->try_get_component<LightPointComponent>();
+    bool hasLightSpot = _entity->try_get_component<LightSpotComponent>();
+
+    bool hasModelSimple = hasModel && !hasSkeleton;
+    bool hasModelSkelly = hasModel && hasSkeleton;
+    bool hasDecalBasic = hasDecal;
+
+    data.modelSimple.reset(hasModelSimple ? new render::ModelSimpleData(*_entity) : nullptr);
+    data.modelSkelly.reset(hasModelSkelly ? new render::ModelSkellyData(*_entity) : nullptr);
+    data.decalBasic.reset(hasDecalBasic ? new render::DecalBasicData(*_entity) : nullptr);
+    data.lightOrtho.reset(hasLightOrtho ? new render::LightOrthoData(*_entity) : nullptr);
+    data.lightPoint.reset(hasLightPoint ? new render::LightPointData(*_entity) : nullptr);
+    data.lightSpot.reset(hasLightSpot ? new render::LightSpotData(*_entity) : nullptr);
+}
+
+void Renderer::Impl::destroy_entity(const sq::Entity* _entity) {
+    SQASSERT(objectsData.entityMap.count(_entity), "entity not created");
+    objectsData.entityMap.erase(_entity);
+}
+
+
+void Renderer::render_scene(const SceneData& _scene) {
+
+    static auto& context = Context::get();
+
+    impl->refresh_static_data(_scene);
+    impl->refresh_entity_data(_scene);
+    impl->refresh_world_data(_scene);
+
+    impl->passesData.prepare(impl->objectsData);
+
 
     // setup some state
-    gl::DepthFunc(gl::LEQUAL);
-    world.get_Camera().ubo.bind(0u);
-    pipeline.bind();
+    context.bind_UniformBuffer(impl->objectsData.cameraData->ubo, 0u);
+    context.set_state(Context::Depth_Compare::LessEqual);
+    shaders->pipeline.bind();
 
-    // render to shadow maps
-    shadows->setup_render_state();
-    shadows->render_shadows_sky();
-    shadows->render_shadows_spot();
-    shadows->render_shadows_point();
+    shadowsDraw->render(impl->passesData.shadowsData);
 
-    // write gbuffers for main view
-    gbuffers->render_gbuffers_base();
+    depthDraw->render(impl->passesData.depthData);
+    gbufferDraw->render(impl->passesData.gbufferData);
 
-    // render ssao texture for main view
-    pretties->render_post_gbuffers();
+    effectsDraw->render_effect_SSAO();
 
-    // render lighting for main view
-    lighting->render_lighting_base();
+    lightBaseDraw->render(impl->passesData.lightBaseData);
+    lightAccumDraw->render(impl->passesData.lightAccumData);
 
-    // render reflections to main view
-    reflects->render_reflections();
+    effectsDraw->render_effect_Bloom();
 
-    //renderer->render_particles();
+    volumetricDraw->render(impl->passesData.volumetricData);
 
-    // render light shafts and bloom
-    pretties->render_post_lighting();
+    effectsDraw->render_effect_Shafts();
 
-    // composite final image to screen
-    pretties->render_final_screen();
+//    reflects->render_reflections();
+//    renderer->render_particles();
+
+    compositeDraw->render_to_screen();
+
+    effectsDraw->render_effect_Overlay();
 }
 
 
-Renderer::Renderer(const RpgOptions& _options, const World& _world)
-    : options(_options), world(_world), impl(new Impl(*this)) {
 
-    // Import GLSL Headers
-    preprocs.import_header("headers/blocks/msimple");
-    preprocs.import_header("headers/blocks/mskelly");
-    preprocs.import_header("headers/blocks/ambient");
-    preprocs.import_header("headers/blocks/skylight");
-    preprocs.import_header("headers/blocks/spotlight");
-    preprocs.import_header("headers/blocks/pointlight");
-    preprocs.import_header("headers/blocks/reflect");
-    preprocs.import_header("headers/blocks/skybox");
-    preprocs.import_header("headers/blocks/decal");
-    preprocs.import_header("headers/shadow/sample_sky");
-    preprocs.import_header("headers/shadow/sample_spot");
-    preprocs.import_header("headers/shadow/sample_point");
+Renderer::Renderer(sq::MessageBus& _messageBus) : messageBus(_messageBus), impl(new Impl(*this)) {
 
-    shadows.reset(new Shadows(*this));
-    gbuffers.reset(new Gbuffers(*this));
-    lighting.reset(new Lighting(*this));
-    pretties.reset(new Pretties(*this));
-    reflects.reset(new Reflects(*this));
+    //recConfigureEntity.func = [this](EntityRPG& _e) { this->configure_entity(_e); };
+    //recRefreshEntity.func = [this](EntityRPG& _e) { this->refresh_entity(_e); };
 
-    /*// Particles /////
-    gl::GenVertexArrays(1, &partVAO);
-    gl::GenBuffers(1, &partVBO);
-    gl::GenBuffers(1, &partIBO);
+    //QuatF quat(0.0767f, 0.0654f, 0.f);
+    //Vec3F vec = quat * Vec3F(0.f, 0.f, -1.f);
+    //std::cout << sq::chai_string(vec) << std::endl;
 
-    gl::BindVertexArray(partVAO);
-    gl::BindBuffer(gl::ARRAY_BUFFER, partVBO);
-    gl::VertexAttribPointer(0, 4, gl::FLOAT, false, 32, (void*)(0));
-    gl::VertexAttribPointer(1, 4, gl::FLOAT, false, 32, (void*)(16));
-    gl::EnableVertexAttribArray(0); gl::EnableVertexAttribArray(1);*/
+    impl->objectsData.cameraData = std::make_unique<render::CameraData>();
 
-    VS_stencil_base.add_uniform("matrix"); // mat4
-    VS_stencil_refl.add_uniform("matrix"); // mat4
+    on_Enable_SkyBox.func = [this](auto) { impl->objectsData.skyboxData = std::make_unique<render::SkyBoxData>(); };
+    on_Enable_Ambient.func = [this](auto) { impl->objectsData.ambientData = std::make_unique<render::AmbientData>(); };
+    on_Enable_SkyLight.func = [this](auto) { impl->objectsData.skylightData = std::make_unique<render::SkyLightData>(); };
 
-    Vec2U fullSize = options.WindowSize;
-    Vec2U halfSize = fullSize / 2u;
+    on_Disable_SkyBox.func = [this](auto) { impl->objectsData.skyboxData.reset(nullptr); };
+    on_Disable_Ambient.func = [this](auto) { impl->objectsData.ambientData.reset(nullptr); };
+    on_Disable_SkyLight.func = [this](auto) { impl->objectsData.skylightData.reset(nullptr); };
 
-    preprocs.load(VS_fullscreen, "generic/fullscreen_vs");
-    preprocs.load(VS_stencil_base, "generic/stencil_base_vs");
-    preprocs.load(VS_stencil_refl, "generic/stencil_refl_vs");
-    preprocs.load(FS_passthrough, "generic/passthrough_fs");
+    on_Create_Entity.func = [this](auto _msg) { this->impl->create_entity(_msg.entity); };
+    on_Configure_Entity.func = [this](auto _msg) { this->impl->configure_entity(_msg.entity); };
+    on_Destroy_Entity.func = [this](auto _msg) { this->impl->destroy_entity(_msg.entity); };
 
-    Vec2F hPixSize = Vec2F(1.f, 1.f) / Vec2F(halfSize);
-    string defHPixSize = "#define PIXSIZE " + sq::glsl_string(hPixSize);
-    preprocs.load(FS_fill_space, "generic/fill_space_fs", defHPixSize);
+    messageBus.subscribe_back(on_Enable_SkyBox);
+    messageBus.subscribe_back(on_Enable_Ambient);
+    messageBus.subscribe_back(on_Enable_SkyLight);
 
-    /*preprocs.load(VS_part_soft_vertex, "particles/soft/vertex_vs");
-    preprocs.load(GS_part_soft_geometry, "particles/soft/geometry_gs");
-    preprocs.load(FS_part_soft_ambient, "particles/soft/ambient_fs");
-    preprocs.load(FS_part_soft_write, "particles/soft/write_fs");*/
+    messageBus.subscribe_back(on_Disable_SkyBox);
+    messageBus.subscribe_back(on_Disable_Ambient);
+    messageBus.subscribe_back(on_Disable_SkyLight);
+
+    messageBus.subscribe_back(on_Create_Entity);
+    messageBus.subscribe_back(on_Configure_Entity);
+    messageBus.subscribe_back(on_Destroy_Entity);
+
+    // Allocate Shared Resource Structs /////
+    volumes = std::make_unique<render::StencilVolumes>();
+    textures = std::make_unique<render::TargetTextures>();
+    shaders = std::make_unique<render::GenericShaders>();
+
+    // Import GLSL Headers /////
+    shaders->preprocs.import_header("headers/blocks/Camera");
+    shaders->preprocs.import_header("headers/blocks/SkyBox");
+    shaders->preprocs.import_header("headers/blocks/Ambient");
+    shaders->preprocs.import_header("headers/blocks/Skeleton");
+    shaders->preprocs.import_header("headers/blocks/LightCasc");
+    shaders->preprocs.import_header("headers/blocks/LightOrtho");
+    shaders->preprocs.import_header("headers/blocks/LightPoint");
+    shaders->preprocs.import_header("headers/blocks/LightSpot");
+    shaders->preprocs.import_header("headers/blocks/reflect");
+    shaders->preprocs.import_header("headers/shadow/sample_casc");
+    shaders->preprocs.import_header("headers/shadow/sample_ortho");
+    shaders->preprocs.import_header("headers/shadow/sample_point");
+    shaders->preprocs.import_header("headers/shadow/sample_spot");
+
+    // Allocate Passes Drawing Objects /////
+    render::SharedStuff stuff {*volumes, *textures, *shaders};
+    depthDraw = std::make_unique<render::DepthPasses>(stuff);
+    gbufferDraw = std::make_unique<render::GbufferPasses>(stuff);
+    shadowsDraw = std::make_unique<render::ShadowsPasses>(stuff);
+    lightBaseDraw = std::make_unique<render::LightBasePasses>(stuff);
+    lightAccumDraw = std::make_unique<render::LightAccumPasses>(stuff);
+    volumetricDraw = std::make_unique<render::VolumetricPasses>(stuff);
+    compositeDraw = std::make_unique<render::CompositePasses>(stuff);
+    effectsDraw = std::make_unique<render::EffectsPasses>(stuff);
 }
 
 
 void Renderer::update_options() {
-    //string defLightBase = "";
-    //if (INFO.shadlarge) defLightBase += "#define LARGE\n";
-    //if (INFO.shadfilter) defLightBase += "#define FILTER";
-    //string defLightShad = defLightBase + "\n#define SHADOW";
 
-    /// Lighting
-    //preprocs.load(FS_part_soft_skylight, "particles/soft/skylight_fs", defLightBase);
-    //preprocs.load(FS_part_soft_spot_none, "particles/soft/spotlight_fs", defLightBase);
-    //preprocs.load(FS_part_soft_spot_shad, "particles/soft/spotlight_fs", defLightShad);
-    //preprocs.load(FS_part_soft_point_none, "particles/soft/pointlight_fs", defLightBase);
-    //preprocs.load(FS_part_soft_point_shad, "particles/soft/pointlight_fs", defLightShad);
+    static const auto& options = Options::get();
 
-    shadows->update_options();
-    gbuffers->update_options();
-    lighting->update_options();
-    pretties->update_options();
-    reflects->update_options();
+    string headerStr = "// set of constants and defines added at runtime\n";
+
+    headerStr += "const uint  OPTION_WinWidth  = " + std::to_string(options.Window_Size.x) + ";\n";
+    headerStr += "const uint  OPTION_WinHeight = " + std::to_string(options.Window_Size.y) + ";\n";
+    headerStr += "const float OPTION_ViewNear  = " + std::to_string(                 0.1f) + ";\n";
+    headerStr += "const float OPTION_ViewFar   = " + std::to_string(options.View_Distance) + ";\n";
+
+    if (options.Shadows_Large  == true) headerStr += "#define OPTION_SHADOWS_LARGE\n";
+    if (options.Shadows_Filter == true) headerStr += "#define OPTION_SHADOWS_FILTER\n";
+    if (options.Bloom_Enable   == true) headerStr += "#define OPTION_BLOOM_ENABLE\n";
+    if (options.Shafts_Quality != 0u)   headerStr += "#define OPTION_SHAFTS_ENABLE\n";
+    if (options.SSAO_Quality   != 0u)   headerStr += "#define OPTION_SSAO_ENABLE\n";
+    if (options.FSAA_Quality   != 0u)   headerStr += "#define OPTION_FSAA_ENABLE\n";
+    if (options.Shafts_Quality >= 2u)   headerStr += "#define OPTION_SHAFTS_HIGH\n";
+    if (options.SSAO_Quality   >= 2u)   headerStr += "#define OPTION_SSAO_HIGH\n";
+    if (options.FSAA_Quality   >= 2u)   headerStr += "#define OPTION_FSAA_HIGH\n";
+
+    headerStr += "// some handy shortcuts for comman use of this data\n"
+                 "const float OPTION_Aspect = float(OPTION_WinWidth) / float(OPTION_WinHeight);\n"
+                 "const vec2 OPTION_WinSizeFull = vec2(OPTION_WinWidth, OPTION_WinHeight);\n"
+                 "const vec2 OPTION_WinSizeHalf = round(OPTION_WinSizeFull / 2.f);\n"
+                 "const vec2 OPTION_WinSizeQter = round(OPTION_WinSizeFull / 4.f);\n"
+                 "const vec2 OPTION_PixSizeFull = 1.0f / OPTION_WinSizeFull;\n"
+                 "const vec2 OPTION_PixSizeHalf = 1.0f / OPTION_WinSizeHalf;\n"
+                 "const vec2 OPTION_PixSizeQter = 1.0f / OPTION_WinSizeQter;\n";
+
+    shaders->preprocs.update_header("runtime/Options", headerStr);
+
+    textures->update_options();
+    shaders->update_options();
+
+    depthDraw->update_options();
+    gbufferDraw->update_options();
+    shadowsDraw->update_options();
+    lightBaseDraw->update_options();
+    lightAccumDraw->update_options();
+    volumetricDraw->update_options();
+    compositeDraw->update_options();
+    effectsDraw->update_options();
 }

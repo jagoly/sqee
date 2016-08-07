@@ -6,6 +6,7 @@
 #include <sqee/gl/UniformBuffer.hpp>
 #include <sqee/gl/Textures.hpp>
 #include <sqee/gl/Shaders.hpp>
+#include <sqee/gl/Context.hpp>
 #include <sqee/gl/Drawing.hpp>
 #include <sqee/render/Camera.hpp>
 #include <sqee/render/Mesh.hpp>
@@ -46,6 +47,7 @@ GameScene::GameScene(SokoApp& _app) : sq::Scene(1.0 / 10.0), app(_app) {
     preprocs.reset(new sq::PreProcessor());
     pipeline.reset(new sq::Pipeline());
 
+    preprocs->import_header("camera_block");
     preprocs->import_header("uniform_block");
 
     /// Create Shaders
@@ -191,17 +193,24 @@ void GameScene::tick() {
 
 
 void GameScene::render() {
-    sq::VIEWPORT(app.OPTION_WindowSize);
-    gl::ClearColor(0.15f, 0.1f, 0.2f, 0.f);
-    sq::CULLFACE_ON(); sq::DEPTH_ON();
-    sq::CLEAR_COLOR_DEPTH_STENC();
-    sq::BLEND_OFF();
+
+    using Context = sq::Context;
+    static auto& context = Context::get();
+
+    context.set_ViewPort(app.OPTION_WindowSize);
+
+    context.set_state(Context::Cull_Face::Back);
+    context.set_state(Context::Depth_Test::Replace);
+    context.set_state(Context::Blend_Mode::Disable);
+
+    context.clear_Colour({0.15f, 0.1f, 0.2f, 0.f});
+    context.clear_Depth_Stencil();
 
     pipeline->bind();
     pipeline->use_shader(*VS_object);
     pipeline->use_shader(*FS_object);
-    camera->ubo.bind(0u);
-    ubo->bind(1u);
+    context.bind_UniformBuffer(camera->ubo, 0u);
+    context.bind_UniformBuffer(*ubo, 1u);
 
     float tickPercent = accumulation * 10.0;
 
@@ -209,9 +218,10 @@ void GameScene::render() {
         for (int y = level->minPos.x; y < level->maxPos.y; y++) {
             if (!level->get_Hole({x, y}) && !level->get_Wall({x, y})) {
                 Mat4F modelMat = maths::translate(Mat4F(), Vec3F(x, y, 0.f));
-                Mat3F normMat = sq::make_normMat(camera->viewMat * modelMat);
-                VS_object->set_mat<Mat4F>("modelMat", modelMat);
-                VS_object->set_mat<Mat3F>("normMat", normMat);
+                Mat3F normMat = maths::inverse(maths::transpose(Mat3F(camera->viewMat * modelMat)));
+                VS_object->update<Mat4F>("modelMat", modelMat);
+                VS_object->update<Mat4F>("modelMat", modelMat);
+                VS_object->update<Mat3F>("normMat", normMat);
                 MESH_Floor->bind_vao(); MESH_Floor->draw_complete();
             }
         }
@@ -221,18 +231,18 @@ void GameScene::render() {
         float zTrans = -float(ball->inhole) * tickPercent;
         Vec2F translation = maths::mix(ball->posCrnt, ball->posNext, tickPercent);
         Mat4F modelMat = maths::translate(Mat4F(), Vec3F(translation, zTrans));
-        Mat3F normMat = sq::make_normMat(camera->viewMat * modelMat);
-        VS_object->set_mat<Mat4F>("modelMat", modelMat);
-        VS_object->set_mat<Mat3F>("normMat", normMat);
+        Mat3F normMat = maths::inverse(maths::transpose(Mat3F(camera->viewMat * modelMat)));
+        VS_object->update<Mat4F>("modelMat", modelMat);
+        VS_object->update<Mat3F>("normMat", normMat);
         MESH_Ball->bind_vao(); MESH_Ball->draw_complete();
     }
 
     for (const Hole::Ptr& hole : level->holeList) {
         const auto& mesh = hole->filled ? MESH_HoleB : MESH_HoleA;
         Mat4F modelMat = maths::translate(Mat4F(), Vec3F(Vec2F(hole->position), 0.f));
-        Mat3F normMat = sq::make_normMat(camera->viewMat * modelMat);
-        VS_object->set_mat<Mat4F>("modelMat", modelMat);
-        VS_object->set_mat<Mat3F>("normMat", normMat);
+        Mat3F normMat = maths::inverse(maths::transpose(Mat3F(camera->viewMat * modelMat)));
+        VS_object->update<Mat4F>("modelMat", modelMat);
+        VS_object->update<Mat3F>("normMat", normMat);
         mesh->bind_vao(); mesh->draw_complete();
     }
 
@@ -253,9 +263,9 @@ void GameScene::render() {
 
         Mat4F modelMat = maths::translate(Mat4F(), Vec3F(Vec2F(wall->position), 0.f));
         modelMat = maths::rotate(modelMat, Vec3F(0.f, 0.f, -1.f), rotation);
-        Mat3F normMat = sq::make_normMat(camera->viewMat * modelMat);
-        VS_object->set_mat<Mat4F>("modelMat", modelMat);
-        VS_object->set_mat<Mat3F>("normMat", normMat);
+        Mat3F normMat = maths::inverse(maths::transpose(Mat3F(camera->viewMat * modelMat)));
+        VS_object->update<Mat4F>("modelMat", modelMat);
+        VS_object->update<Mat3F>("normMat", normMat);
         mesh->bind_vao(); mesh->draw_complete();
     }
 
@@ -264,9 +274,9 @@ void GameScene::render() {
         Vec2F translation = maths::mix(posCrnt, posNext, tickPercent);
         Mat4F modelMat = maths::translate(Mat4F(), Vec3F(translation, 0.f));
         modelMat = maths::rotate(modelMat, Vec3F(0.f, 0.f, -1.f), rotation);
-        Mat3F normMat = sq::make_normMat(camera->viewMat * modelMat);
-        VS_object->set_mat<Mat4F>("modelMat", modelMat);
-        VS_object->set_mat<Mat3F>("normMat", normMat);
+        Mat3F normMat = maths::inverse(maths::transpose(Mat3F(camera->viewMat * modelMat)));
+        VS_object->update<Mat4F>("modelMat", modelMat);
+        VS_object->update<Mat3F>("normMat", normMat);
         MESH_Player->bind_vao(); MESH_Player->draw_complete();
     }
 

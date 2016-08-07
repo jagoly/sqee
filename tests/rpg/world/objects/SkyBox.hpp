@@ -1,30 +1,25 @@
 #pragma once
 
-#include <sqee/gl/Textures.hpp>
-#include <sqee/gl/UniformBuffer.hpp>
+#include <sqee/builtins.hpp>
 
-namespace sqt {
+namespace sqt { namespace world {
 
-class World;
+struct SkyBoxObject : sq::NonCopyable {
 
-class SkyBox final : sq::NonCopyable {
-public:
-    SkyBox();
+    /// shader saturation paramater
+    float PROP_saturation = 1.f;
 
-    void configure(const World& _world);
-    void update(const World& _world);
+    /// shader brightness paramater
+    float PROP_brightness = 0.f;
 
-    // User Properties /////
-    float  PROP_saturation = 1.f;
-    float  PROP_brightness = 0.f;
-    float  PROP_contrast   = 1.f;
-    float  PROP_alpha      = 1.f;
-    string PROP_texture    = "";
+    /// shader contrast paramater
+    float PROP_contrast = 1.f;
 
-    // System Properties /////
-    string currentTex = "";
-    sq::UniformBuffer ubo;
-    sq::TextureCube tex;
+    /// name of the texture used
+    string PROP_texture = "";
+
+    /// texture blending amount
+    float PROP_opacity = 1.f;
 };
 
-}
+}}

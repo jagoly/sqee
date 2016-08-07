@@ -11,6 +11,9 @@ class UniformBuffer final : NonCopyable {
 public:
     ~UniformBuffer();
 
+    /// Constructor
+    UniformBuffer() = default;
+
     /// Delete the GL object and clear layout
     void delete_object();
 
@@ -29,19 +32,16 @@ public:
     /// Update an arbitary section of the buffer
     void update(uint _offset, uint _size, const void* _data);
 
-    /// Bind the buffer to the specified index
-    void bind(GLuint _index) const;
-
-    /// Bind a range of the buffer to the specified index
-    void bind(GLuint _index, uint _offset, uint _size) const;
-
     /// Get the current size of the reserve list
     uint get_size() const { return currentSize; }
 
+    /// Get the OpenGL handle
+    const GLuint& get_handle() const { return ubo; }
+
+private:
     /// The OpenGL handle
     GLuint ubo = 0u;
 
-private:
     struct Item { const uint offset, size; };
     std::unordered_map<string, Item> itemMap;
     uint currentSize = 0u;

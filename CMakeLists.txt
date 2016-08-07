@@ -67,8 +67,12 @@ set(SOURCES
     "${INCDIR}/redist/stb_image.hpp"        "${SRCDIR}/redist/stb_image.cpp"
 
 # SQEE Source
-    "${INCDIR}/setup.hpp"                   "${INCDIR}/assert.hpp"
-    "${INCDIR}/forward.hpp"                 "${INCDIR}/builtins.hpp"
+    "${INCDIR}/setup.hpp"
+    "${INCDIR}/forward.hpp"
+    "${INCDIR}/builtins.hpp"
+    "${INCDIR}/messages.hpp"
+    "${INCDIR}/assert.hpp"
+
     "${INCDIR}/debug/Misc.hpp"              "${SRCDIR}/debug/Misc.cpp"
     "${INCDIR}/debug/Logging.hpp"           "${SRCDIR}/debug/Logging.cpp"
     "${INCDIR}/debug/OpenGL.hpp"            "${SRCDIR}/debug/OpenGL.cpp"
@@ -80,10 +84,13 @@ set(SOURCES
     "${INCDIR}/gl/FixedBuffer.hpp"          "${SRCDIR}/gl/FixedBuffer.cpp"
     "${INCDIR}/gl/DynamicBuffer.hpp"        "${SRCDIR}/gl/DynamicBuffer.cpp"
     "${INCDIR}/gl/UniformBuffer.hpp"        "${SRCDIR}/gl/UniformBuffer.cpp"
+    "${INCDIR}/gl/Context.hpp"              "${SRCDIR}/gl/Context.cpp"
     "${INCDIR}/scripts/ChaiScript.hpp"      "${SRCDIR}/scripts/ChaiScript.cpp"
     "${INCDIR}/scripts/BasicSetup.hpp"      "${SRCDIR}/scripts/BasicSetup.cpp"
+    "${INCDIR}/scripts/Helpers.hpp"         "${SRCDIR}/scripts/Helpers.cpp"
     "${INCDIR}/ecs/Component.hpp"           "${SRCDIR}/ecs/Component.cpp"
     "${INCDIR}/ecs/Entity.hpp"              "${SRCDIR}/ecs/Entity.cpp"
+    "${INCDIR}/ecs/Manager.hpp"             "${SRCDIR}/ecs/Manager.cpp"
     "${INCDIR}/app/Resources.hpp"           "${SRCDIR}/app/Resources.cpp"
     "${INCDIR}/app/Application.hpp"         "${SRCDIR}/app/Application.cpp"
     "${INCDIR}/app/PreProcessor.hpp"        "${SRCDIR}/app/PreProcessor.cpp"
@@ -96,16 +103,14 @@ set(SOURCES
     "${INCDIR}/maths/Matrices.hpp"          "${INCDIR}/maths/Quaternion.hpp"
     "${INCDIR}/maths/Volumes.hpp"           "${SRCDIR}/maths/Volumes.cpp"
     "${INCDIR}/maths/General.hpp"           "${SRCDIR}/maths/General.cpp"
-    "${INCDIR}/menus/BasicMenu.hpp"         "${SRCDIR}/menus/BasicMenu.cpp"
     "${INCDIR}/render/Armature.hpp"         "${SRCDIR}/render/Armature.cpp"
     "${INCDIR}/render/Camera.hpp"           "${SRCDIR}/render/Camera.cpp"
     "${INCDIR}/render/Mesh.hpp"             "${SRCDIR}/render/Mesh.cpp"
-    "${INCDIR}/render/Skin.hpp"             "${SRCDIR}/render/Skin.cpp"
+    "${INCDIR}/render/Volume.hpp"           "${SRCDIR}/render/Volume.cpp"
     "${INCDIR}/physics/VecTypes.hpp"
     "${INCDIR}/physics/Bodies.hpp"          "${SRCDIR}/physics/Bodies.cpp"
+    "${INCDIR}/misc/Algorithms.hpp"         "${INCDIR}/misc/OrderedMap.hpp"
     "${INCDIR}/misc/StringCast.hpp"         "${SRCDIR}/misc/StringCast.cpp"
-    "${INCDIR}/misc/OrderedMap.hpp"         "${INCDIR}/misc/ResHolder.hpp"
-    "${INCDIR}/misc/Algorithms.hpp"
     "${INCDIR}/misc/Files.hpp"              "${SRCDIR}/misc/Files.cpp"
     "${INCDIR}/scenes/Scene.hpp"            "${SRCDIR}/scenes/Scene.cpp"
     "${INCDIR}/scenes/Basics.hpp"           "${SRCDIR}/scenes/Basics.cpp"
@@ -210,6 +215,7 @@ if(SQEE_STATIC_LINK)
     endif()
 endif()
 
+add_subdirectory("testing")
 
 add_subdirectory("tests/test")
 add_subdirectory("tests/soko")

@@ -25,10 +25,13 @@ public:
     /// Bind the buffer
     void bind() const;
 
+    /// Get the OpenGL handle
+    const GLuint& get_handle() const { return buf; }
+
+private:
     /// The OpenGL handle
     GLuint buf = 0u;
 
-private:
     const GLenum target;
 };
 

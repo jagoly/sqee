@@ -1,28 +1,14 @@
-#include <rp3d/engine/DynamicsWorld.hpp>
 #include <SFML/Window/Keyboard.hpp>
 #include <SFML/Window/Event.hpp>
 
 #include <sqee/redist/gl_ext_4_2.hpp>
-#include <sqee/app/Application.hpp>
-#include <sqee/app/ChaiConsole.hpp>
 #include <sqee/scripts/ChaiScript.hpp>
-#include <sqee/gl/UniformBuffer.hpp>
-#include <sqee/gl/FrameBuffer.hpp>
-#include <sqee/gl/Textures.hpp>
-#include <sqee/gl/Shaders.hpp>
-#include <sqee/gl/Drawing.hpp>
-
+#include <sqee/app/ChaiConsole.hpp>
 #include <sqee/debug/Misc.hpp>
 
 #include "../RpgApp.hpp"
-#include "../rndr/Shadows.hpp"
-#include "../rndr/Gbuffers.hpp"
-#include "../rndr/Lighting.hpp"
-#include "../rndr/Pretties.hpp"
-#include "../rndr/Reflects.hpp"
-#include "../rndr/Renderer.hpp"
-#include "../wcoe/Camera.hpp"
-#include "../wcoe/World.hpp"
+#include "../world/World.hpp"
+#include "../render/Renderer.hpp"
 #include "Scripting.hpp"
 #include "MainScene.hpp"
 
@@ -32,15 +18,31 @@ namespace maths = sq::maths;
 
 MainScene::MainScene(RpgApp& _app) : sq::Scene(1.0 / 24.0), app(_app) {
 
-    world.reset(new World(app.options));
-    renderer.reset(new Renderer(app.options, *world));
+    mbus = std::make_unique<sq::MessageBus>();
 
-    posCrnt = posNext = world->get_Camera().PROP_position;
+    mbus->register_type<msg::Create_Entity>();
+    mbus->register_type<msg::Configure_Entity>();
+    mbus->register_type<msg::Destroy_Entity>();
 
-    chaiscript_setup_world(*app.chaiEngine, *world);
-    chaiscript_setup_components(*app.chaiEngine, *world);
-    chaiscript_setup_functions(*app.chaiEngine, *world);
+    mbus->register_type<msg::Enable_SkyBox>();
+    mbus->register_type<msg::Enable_Ambient>();
+    mbus->register_type<msg::Enable_SkyLight>();
 
+    mbus->register_type<msg::Disable_SkyBox>();
+    mbus->register_type<msg::Disable_Ambient>();
+    mbus->register_type<msg::Disable_SkyLight>();
+
+    world = std::make_unique<World>(*mbus);
+    renderer = std::make_unique<Renderer>(*mbus);
+
+    posCrnt = posNext = world->camera->PROP_position;
+
+    chaiscript_setup_world(*app.chaiEngine);
+    chaiscript_setup_components(*app.chaiEngine);
+    chaiscript_setup_functions(*app.chaiEngine);
+    chaiscript_setup_messages(*app.chaiEngine);
+
+    app.chaiEngine->add_global(chai::var(mbus.get()), "mbus");
     app.chaiEngine->add_global(chai::var(world.get()), "world");
 
     app.console->onHideFuncs.append("MainScene_reset_mouse",
@@ -100,8 +102,6 @@ void MainScene::update_options() {
 //    TX.partDpSt->allocate_storage(INFO.halfSize, false);
 //    TX.hdrPart->allocate_storage(INFO.halfSize, false);
 
-    world->get_Camera().size = Vec2F(app.options.WindowSize);
-
     world->update_options();
     renderer->update_options();
 }
@@ -111,8 +111,8 @@ void MainScene::tick() {
     posCrnt = posNext;
 
     if (app.console->active == false) {
-        if (KB::isKeyPressed(KB::PageUp)) posNext.z += 0.05f;
-        if (KB::isKeyPressed(KB::PageDown)) posNext.z -= 0.05f;
+        if (KB::isKeyPressed(KB::PageUp)) posNext.z += 0.06f;
+        if (KB::isKeyPressed(KB::PageDown)) posNext.z -= 0.06f;
 
         if (KB::isKeyPressed(KB::Right) && !KB::isKeyPressed(KB::Left))
             posNext += maths::rotate_z(Vec3F(+0.08f, 0.f, 0.f), rotZ);
@@ -138,13 +138,15 @@ void MainScene::render() {
         Vec2F mMove = app.mouse_centre();
         rotZ = rotZ + mMove.x / 1600.f;
         rotX = maths::clamp(rotX + mMove.y / 2400.f, -0.23f, 0.23f);
-        world->get_Camera().PROP_direction = maths::rotate_z(maths::rotate_x(Vec3F(0.f, 1.f, 0.f), rotX), rotZ);
-        world->get_Camera().PROP_position = maths::mix(posCrnt, posNext, tickPercent);
+        world->camera->PROP_direction = maths::rotate_z(maths::rotate_x(Vec3F(0.f, 1.f, 0.f), rotX), rotZ);
+        world->camera->PROP_position = maths::mix(posCrnt, posNext, tickPercent);
     }
 
     world->update();
 
-    renderer->render_scene();
+    renderer->render_scene(world->sceneData);
+
+    world->get_EntityManager().clear_dirty_flags();
 
     gl::BindProgramPipeline(0u);
     gl::BindVertexArray(0u);

@@ -9,7 +9,9 @@ namespace sq { using ChaiEngine = chai::ChaiScript; }
 namespace sq {
 
 void chaiscript_setup_app(ChaiEngine& _engine);
+void chaiscript_setup_entity(ChaiEngine& _engine);
 void chaiscript_setup_physics(ChaiEngine& _engine);
 void chaiscript_setup_maths(ChaiEngine& _engine);
+void chaiscript_setup_messages(ChaiEngine& _engine);
 
 }

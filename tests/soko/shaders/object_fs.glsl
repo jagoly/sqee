@@ -4,7 +4,7 @@ in vec3 v_pos;
 in vec3 v_norm;
 in vec3 colour;
 
-#include builtin/blocks/camera
+#include camera_block
 #include uniform_block
 
 layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };

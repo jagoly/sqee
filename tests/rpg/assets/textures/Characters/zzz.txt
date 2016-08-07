@@ -1,0 +1,3 @@
+SqeenHead_diff   CC RGB1
+SqeenTorso_diff  CC RGB1
+SqeenLegs_diff   CC RGB1

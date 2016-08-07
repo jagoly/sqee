@@ -122,7 +122,7 @@ var eRoot := world.get_RootEntity();
     var cSpotLight = eSpotA.add_SpotLightComponent();
     cSpotLight.angle = 0.07f;
     cSpotLight.softness = 0.2f;
-    cSpotLight.texsize = 128u;
+    cSpotLight.texsize = 256u;
 } }
 
 { var ePointCentre = eRoot.add_child("ePointCentre");
@@ -130,7 +130,7 @@ var eRoot := world.get_RootEntity();
     cTransform.position = Vec3F(0.0f, 0.0f, 3.0f);
     cTransform.scale = 6.0f;
     var cPointLight = ePointCentre.add_PointLightComponent();
-    cPointLight.texsize = 128u;
+    cPointLight.texsize = 256u;
 } }
 
 { var eDecalCurtain = eRoot.add_child("eDecalCurtain");
@@ -173,28 +173,28 @@ var eRoot := world.get_RootEntity();
     cTransform.position = Vec3F(14.0f, 5.0f, 2.0f);
     cTransform.scale = 7.0f;
     var cPointLight = ePointNE.add_PointLightComponent();
-    cPointLight.texsize = 128u;
+    cPointLight.texsize = 256u;
 } }
 { var ePointSE = eRoot.add_child("ePointSE");
   { var cTransform = ePointSE.add_TransformComponent();
     cTransform.position = Vec3F(14.0f, -5.0f, 2.0f);
     cTransform.scale = 7.0f;
     var cPointLight = ePointSE.add_PointLightComponent();
-    cPointLight.texsize = 128u;
+    cPointLight.texsize = 256u;
 } }
 { var ePointNW = eRoot.add_child("ePointNW");
   { var cTransform = ePointNW.add_TransformComponent();
     cTransform.position = Vec3F(-14.0f, 5.0f, 2.0f);
     cTransform.scale = 7.0f;
     var cPointLight = ePointNW.add_PointLightComponent();
-    cPointLight.texsize = 128u;
+    cPointLight.texsize = 256u;
 } }
 { var ePointSW = eRoot.add_child("ePointSW");
   { var cTransform = ePointSW.add_TransformComponent();
     cTransform.position = Vec3F(-14.0f, -5.0f, 2.0f);
     cTransform.scale = 7.0f;
     var cPointLight = ePointSW.add_PointLightComponent();
-    cPointLight.texsize = 128u;
+    cPointLight.texsize = 256u;
 } }
 { var eArchAA_A1 = eRoot.add_child("ArchAA_A1");
   { var cTransform = eArchAA_A1.add_TransformComponent();

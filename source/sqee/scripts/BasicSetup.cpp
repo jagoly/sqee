@@ -1,26 +1,30 @@
-﻿#include <chaiscript/dispatchkit/dispatchkit.hpp>
-#include <chaiscript/utility/utility.hpp>
+﻿#include <algorithm>
+
+#include <chaiscript/dispatchkit/bootstrap.hpp>
+#include <chaiscript/dispatchkit/bootstrap_stl.hpp>
 
 #include <sqee/redist/tinyformat.hpp>
+#include <sqee/misc/StringCast.hpp>
+
 #include <sqee/app/Application.hpp>
 #include <sqee/app/DebugOverlay.hpp>
 #include <sqee/app/ChaiConsole.hpp>
-#include <sqee/render/Camera.hpp>
-#include <sqee/misc/StringCast.hpp>
-#include <sqee/scripts/ChaiScript.hpp>
-#include <sqee/scripts/BasicSetup.hpp>
+#include <sqee/app/MessageBus.hpp>
+
 #include <sqee/physics/Bodies.hpp>
+
 #include <sqee/maths/Vectors.hpp>
 #include <sqee/maths/Matrices.hpp>
 #include <sqee/maths/Quaternion.hpp>
 
-using chai::fun;
-using chai::user_type;
-using chai::base_class;
-using chai::constructor;
-using chai::type_conversion;
-using chai::vector_conversion;
-using chai::utility::add_class;
+#include <sqee/ecs/Entity.hpp>
+#include <sqee/ecs/Manager.hpp>
+
+#include <sqee/scripts/ChaiScript.hpp>
+#include <sqee/scripts/BasicSetup.hpp>
+#include <sqee/scripts/Helpers.hpp>
+
+#include <sqee/messages.hpp>
 
 using namespace sq;
 
@@ -28,13 +32,16 @@ using namespace sq;
 void sq::chaiscript_setup_app(ChaiEngine& _engine) {
     chai::ModulePtr m(new chai::Module());
 
+    auto get_overlay = [](Application* app) -> DebugOverlay& { return *app->overlay; };
+    auto get_console = [](Application* app) -> ChaiConsole& { return *app->console; };
+
     add_class<Application>(*m, "Application", {}, {
         {fun(&Application::OPTION_WindowTitle), "OPTION_WindowTitle"},
         {fun(&Application::OPTION_WindowSize),  "OPTION_WindowSize"},
         {fun(&Application::update_options),     "update_options"},
-        {fun(&Application::overlay),            "overlay"},
-        {fun(&Application::console),            "console"},
-        {fun(&Application::quit),               "quit"}
+        {fun(&Application::quit),               "quit"},
+        {fun(get_overlay), "overlay"},
+        {fun(get_console), "console"},
     });
 
     add_class<DebugOverlay>(*m, "DebugOverlay", {}, {
@@ -46,6 +53,48 @@ void sq::chaiscript_setup_app(ChaiEngine& _engine) {
         {fun(&ChaiConsole::cs_clear), "clear"},
         {fun(&ChaiConsole::cs_history), "history"}
     });
+
+    add_class<MessageBus>(*m, "MessageBus", {}, {
+    });
+
+    _engine.add(m);
+}
+
+template<class T> inline
+vector<T*> uptr_to_ptr_vec(vector<unique_ptr<T>>& _uptrVec) {
+    vector<Entity*> vec; vec.reserve(_uptrVec.size());
+    for (auto& c : _uptrVec) vec.push_back(c.get());
+    return std::move(vec);
+}
+
+void sq::chaiscript_setup_entity(ChaiEngine& _engine) {
+    chai::ModulePtr m(new chai::Module());
+
+    auto get_children = [](Entity* entity) -> vector<Entity*> {
+        return uptr_to_ptr_vec(entity->get_children()); };
+
+    auto get_parent = [](Entity* entity) -> Entity* {
+        return entity->get_parent(); };
+
+    add_class<Entity>(*m, "Entity", {}, {
+        {fun(get_parent), "parent"}, {fun(get_children), "children"},
+        {fun(&Entity::get_attr), "get"}, {fun(&Entity::del_attr), "del"},
+        {fun(&Entity::operator[]), "[]"}
+    });
+
+    add_class<EntityManager>(*m, "EntityManager", {}, {
+        {fun(&EntityManager::create_root), "create_root"},
+        {fun(&EntityManager::create), "create"},
+        {fun(&EntityManager::configure), "configure"},
+        {fun(&EntityManager::destroy), "destroy"},
+        {fun(&EntityManager::set_name), "set_name"},
+        {fun(&EntityManager::find), "find"}
+    });
+
+    chai_add_read_only_vector<Entity*>(*m, "EntityVector");
+
+    m->add(vector_conversion<vector<string>>());
+    chai::bootstrap::operators::assign<vector<string>>(m);
 
     _engine.add(m);
 }
@@ -170,6 +219,7 @@ void sq::chaiscript_setup_maths(ChaiEngine& _engine) {
     m->add(vector_conversion<vector<uint>>());
     m->add(vector_conversion<vector<float>>());
     m->add(vector_conversion<vector<QuatF>>());
+
     m->add(type_conversion<int, string>(&chai_string<int>));
     m->add(type_conversion<uint, string>(&chai_string<uint>));
     m->add(type_conversion<float, string>(&chai_string<float>));
@@ -179,6 +229,15 @@ void sq::chaiscript_setup_maths(ChaiEngine& _engine) {
     m->add(fun<Vec3F, Vec3F>(&maths::normalize), "normalize");
     m->add(fun<Vec4F, Vec4F>(&maths::normalize), "normalize");
     m->add(fun<QuatF, QuatF>(&maths::normalize), "normalize");
+
+    _engine.add(m);
+}
+
+
+void sq::chaiscript_setup_messages(ChaiEngine& _engine) {
+    chai::ModulePtr m(new chai::Module());
+
+    chai_add_message_type<msg::Configure_Entity>(*m, "Configure_Entity");
 
     _engine.add(m);
 }

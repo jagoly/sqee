@@ -103,7 +103,7 @@ void Armature::load_library(const string& _path) {
 }
 
 
-Armature::UboData Armature::make_UboData(Pose& _pose) {
+Armature::UboData Armature::make_UboData(const Pose& _pose) {
     vector<pair<QuatF, Vec3F>> cacheVector(_pose.size());
     UboData retUboData; Vec3F translation;
 
@@ -148,4 +148,9 @@ Armature::Pose Armature::mix_Poses(const Pose& _a, const Pose& _b, float _factor
             maths::slerp(_a[tfInd].rotation, _b[tfInd].rotation, _factor),
             maths::mix(_a[tfInd].offset, _b[tfInd].offset, _factor));
     } return retPose;
+}
+
+
+unique_ptr<Armature> sq::load_Armature(const string& _path) {
+    return std::make_unique<Armature>(_path);
 }

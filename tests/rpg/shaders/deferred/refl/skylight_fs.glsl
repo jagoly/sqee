@@ -5,7 +5,7 @@
 
 in vec2 texcrd;
 
-#include builtin/blocks/camera
+#include headers/blocks/Camera
 #include headers/blocks/skylight
 #include headers/blocks/reflect
 

@@ -1,43 +1,32 @@
 #pragma once
 
-#include <sqee/gl/UniformBuffer.hpp>
-
+#include <sqee/ecs/Component.hpp>
 #include <sqee/maths/Vectors.hpp>
-#include <sqee/maths/Matrices.hpp>
-#include <sqee/maths/Volumes.hpp>
-
-#include "Helpers.hpp"
 
 namespace sqt {
 
-class ModelComponent : public ComponentRPG
-                     , public ecs::TagCleanUp
-                     , public ecs::TagConfigure
-                     , public ecs::TagRefresh
-                     , public ecs::TagUpdate {
+class ModelComponent : public sq::Component {
 public:
-    ModelComponent(EntityRPG&, World&) {}
+    ModelComponent(sq::Entity&) {}
     static string type() { return "Model"; }
 
-    // User Properties /////
-    Vec3F  PROP_scale  = {1.f, 1.f, 1.f};
-    bool   PROP_render = true;
-    bool   PROP_shadow = true;
-    bool   PROP_decals = true;
-    string PROP_mesh   = "";
-    string PROP_skin   = "";
-    string PROP_arma   = "";
-    string PROP_pose   = "";
+    /// non-uniform scaling factor
+    Vec3F PROP_stretch = {1.f, 1.f, 1.f};
 
-    // System Properties /////
-    sq::UniformBuffer ubo;
-    sq::Armature* arma;
-    sq::BoundBox bbox;
-    sq::Mesh* mesh;
-    sq::Skin* skin;
-    Mat4F matrix;
-    Mat4F normMat;
-    bool negScale;
+    /// list of materials used
+    vector<string> PROP_mtrls = {};
+
+    /// name of the mesh used
+    string PROP_mesh = "";
+
+    /// is this model drawn normally
+    bool PROP_render = true;
+
+    /// does this model cast shadows
+    bool PROP_shadow = true;
+
+    /// does this model receive decals
+    bool PROP_decals = true;
 };
 
 }

@@ -4,7 +4,7 @@
 #include <sqee/scripts/ChaiScript.hpp>
 #include <sqee/app/Application.hpp>
 #include <sqee/app/ChaiConsole.hpp>
-#include <sqee/gl/Drawing.hpp>
+#include <sqee/gl/Context.hpp>
 #include <sqee/text/Text.hpp>
 
 using namespace sq;
@@ -18,7 +18,12 @@ void ChaiConsole::tick() {
 }
 
 void ChaiConsole::render() {
-    sq::VIEWPORT(app.OPTION_WindowSize);
+
+    using Context = sq::Context;
+    static auto& context = Context::get();
+
+    context.set_ViewPort(app.OPTION_WindowSize);
+
     string outStr = input; size_t pos = 0u; outStr.insert(0, ">>> ");
     outStr.insert(outStr.begin()+cursorPos+4, cursorVis ? char(5) : ' ');
     while ((pos = outStr.find("\n", pos)) != string::npos)

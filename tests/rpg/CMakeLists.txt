@@ -2,37 +2,69 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build/tests/rpg")
 
 set(SOURCES
     "main.cpp"
-    "RpgApp.hpp"                    "RpgApp.cpp"
-    "RpgOptions.hpp"                "RpgOptions.cpp"
+    "messages.hpp"
+
+    "RpgApp.hpp"  "RpgApp.cpp"
+    "Options.hpp" "Options.cpp"
+
     "main/MainScene.hpp"            "main/MainScene.cpp"
     "main/Scripting.hpp"            "main/Scripting.cpp"
-    "rndr/Renderer.hpp"             "rndr/Renderer.cpp"
-    "rndr/Shadows.hpp"              "rndr/Shadows.cpp"
-    "rndr/Gbuffers.hpp"             "rndr/Gbuffers.cpp"
-    "rndr/Lighting.hpp"             "rndr/Lighting.cpp"
-    "rndr/Pretties.hpp"             "rndr/Pretties.cpp"
-    "rndr/Reflects.hpp"             "rndr/Reflects.cpp"
-    "rndr/Particles.hpp"            "rndr/Particles.cpp"
-    "wcoe/Camera.hpp"               "wcoe/Camera.cpp"
-    "wcoe/SkyBox.hpp"               "wcoe/SkyBox.cpp"
-    "wcoe/Ambient.hpp"              "wcoe/Ambient.cpp"
-    "wcoe/SkyLight.hpp"             "wcoe/SkyLight.cpp"
-    "wcoe/World.hpp"                "wcoe/World.cpp"
 
-    "wcoe/objects/ModelSkelly.hpp"  "wcoe/objects/ModelSkelly.cpp"
-    "wcoe/objects/RigBodyBasic.hpp" "wcoe/objects/RigBodyBasic.cpp"
-    "wcoe/objects/Emitter.hpp"      "wcoe/objects/Emitter.cpp"
-
-    "components/Helpers.hpp"        "components/Helpers.cpp"
+    "components/BodyStatic.hpp"     "components/BodyStatic.cpp"
+    "components/BodyDynamic.hpp"    "components/BodyDynamic.cpp"
     "components/Animator.hpp"       "components/Animator.cpp"
-    "components/DynamicBody.hpp"    "components/DynamicBody.cpp"
-    "components/Transform.hpp"      "components/Transform.cpp"
-    "components/StaticBody.hpp"     "components/StaticBody.cpp"
-    "components/Model.hpp"          "components/Model.cpp"
-    "components/Decal.hpp"          "components/Decal.cpp"
-    "components/SpotLight.hpp"      "components/SpotLight.cpp"
-    "components/PointLight.hpp"     "components/PointLight.cpp"
-    "components/Reflect.hpp"        "components/Reflect.cpp"
+    "components/Transform.hpp"
+    "components/Model.hpp"
+    "components/Skeleton.hpp"
+    "components/Decal.hpp"         
+    "components/LightOrtho.hpp"
+    "components/LightPoint.hpp"
+    "components/LightSpot.hpp"
+
+    "resources/Material.hpp"        "resources/Material.cpp"
+    "resources/Manager.hpp"         "resources/Manager.cpp"
+
+    "world/static/StaticCell.hpp"   "world/static/StaticCell.cpp"
+    "world/static/StaticStuff.hpp"  "world/static/StaticStuff.cpp"
+
+    "systems/Animation.hpp" "systems/Animation.cpp"
+    "systems/Transform.hpp" "systems/Transform.cpp"
+
+    "world/World.hpp" "world/World.cpp"
+
+    "world/objects/Camera.hpp"
+    "world/objects/SkyBox.hpp"
+    "world/objects/Ambient.hpp"
+    "world/objects/SkyLight.hpp"
+
+    "render/ObjectsData.hpp" "render/ObjectsData.cpp"
+    "render/SharedStuff.hpp" "render/SharedStuff.cpp"
+    "render/PassesData.hpp"  "render/PassesData.cpp"
+    "render/Renderer.hpp"    "render/Renderer.cpp"
+
+    "render/static/StaticModel.hpp" "render/static/StaticModel.cpp"
+    "render/static/StaticDecal.hpp" "render/static/StaticDecal.cpp"
+
+    "render/entity/ModelSimple.hpp" "render/entity/ModelSimple.cpp"
+    "render/entity/ModelSkelly.hpp" "render/entity/ModelSkelly.cpp"
+    "render/entity/DecalBasic.hpp"  "render/entity/DecalBasic.cpp"
+    "render/entity/LightOrtho.hpp"  "render/entity/LightOrtho.cpp"
+    "render/entity/LightPoint.hpp"  "render/entity/LightPoint.cpp"
+    "render/entity/LightSpot.hpp"   "render/entity/LightSpot.cpp"
+
+    "render/world/Camera.hpp"   "render/world/Camera.cpp"
+    "render/world/SkyBox.hpp"   "render/world/SkyBox.cpp"
+    "render/world/Ambient.hpp"  "render/world/Ambient.cpp"
+    "render/world/SkyLight.hpp" "render/world/SkyLight.cpp"
+
+    "render/passes/DepthDraw.hpp"      "render/passes/DepthDraw.cpp"
+    "render/passes/GbufferDraw.hpp"    "render/passes/GbufferDraw.cpp"
+    "render/passes/ShadowsDraw.hpp"    "render/passes/ShadowsDraw.cpp"
+    "render/passes/LightBaseDraw.hpp"  "render/passes/LightBaseDraw.cpp"
+    "render/passes/LightAccumDraw.hpp" "render/passes/LightAccumDraw.cpp"
+    "render/passes/VolumetricDraw.hpp" "render/passes/VolumetricDraw.cpp"
+    "render/passes/CompositeDraw.hpp"  "render/passes/CompositeDraw.cpp"
+    "render/passes/EffectsDraw.hpp"    "render/passes/EffectsDraw.cpp"
 )
 
 add_executable(sqee_rpg ${SOURCES})

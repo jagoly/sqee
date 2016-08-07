@@ -1,6 +1,7 @@
 #include <algorithm>
 
 #include <sqee/redist/gl_ext_4_2.hpp>
+#include <sqee/gl/Context.hpp>
 #include <sqee/gl/Drawing.hpp>
 #include <sqee/text/Text.hpp>
 
@@ -28,6 +29,9 @@ void sq::render_text_basic(const string& _text, Vec2U _view,
                            TextBasicFlow _hFlow, TextBasicFlow _vFlow,
                            TextBasicAlign _hAlign, TextBasicAlign _vAlign,
                            Vec2F _scale, Vec3F _colour, float _alpha, bool _shadow) {
+
+    static auto& context = Context::get();
+
     static GLuint vbo = 0u;
     static GLuint vao = 0u;
     static GLuint texG = 0u;
@@ -137,10 +141,13 @@ void sq::render_text_basic(const string& _text, Vec2U _view,
 
     gl::BindVertexArray(vao); gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
     gl::BufferData(gl::ARRAY_BUFFER, ptcVec.size()*120, ptcVec.data(), gl::DYNAMIC_DRAW);
-    gl::Enable(gl::BLEND); gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
-    gl::Disable(gl::CULL_FACE); gl::ActiveTexture(gl::TEXTURE0);
+    gl::ActiveTexture(gl::TEXTURE0);
     gl::UseProgram(prog); gl::Uniform1f(0, _alpha);
-    DEPTH_OFF(); STENCIL_OFF(); CULLFACE_OFF();
+
+    context.set_state(Context::Cull_Face::Disable);
+    context.set_state(Context::Depth_Test::Disable);
+    context.set_state(Context::Stencil_Test::Disable);
+    context.set_state(Context::Blend_Mode::Alpha);
 
     if (_shadow == true) {
         float colour = maths::dot(Vec3F(0.33f, 0.33f, 0.33f), _colour) < 0.5f;

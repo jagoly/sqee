@@ -23,28 +23,8 @@ public:
     void load(const string& _source, const string& _path);
 
     template <class T>
-    /// Set a scalar uniform from a reference
-    void set_sca(const string& _name, const T& _value) const;
-
-    template <class T>
-    /// Set a scalar uniform from a pointer
-    void set_scaptr(const string& _name, const T* _value) const;
-
-    template <class T>
-    /// Set a vector uniform from a reference
-    void set_vec(const string& _name, const T& _value) const;
-
-    template <class T, class D>
-    /// Set a vector uniform from a pointer
-    void set_vecptr(const string& _name, const D* _value) const;
-
-    template <class T>
-    /// Set a matrix uniform from a reference
-    void set_mat(const string& _name, const T& _value) const;
-
-    template <class T, class D>
-    /// Set a matrix uniform from a pointer
-    void set_matptr(const string& _name, const D* _value) const;
+    /// Update a shader uniform from a reference
+    void update(const string& _name, const T& _value) const;
 
     /// The OpenGL handle
     GLuint program = 0u;

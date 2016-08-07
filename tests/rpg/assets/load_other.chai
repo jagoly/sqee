@@ -1,0 +1,330 @@
+def load_other() {
+
+//////////////////////////////////////////////////
+
+mbus.send_Enable_SkyBox();
+world.skybox.texture = "SkyBox/Miramar";
+world.skybox.saturation = 1.0f;
+world.skybox.brightness = 0.0f;
+world.skybox.contrast = 1.0f;
+world.skybox.opacity = 1.0f;
+
+mbus.send_Enable_Ambient();
+world.ambient.colour = Vec3F(0.4, 0.4, 0.4);
+
+mbus.send_Enable_SkyLight();
+world.skylight.rotation = QuatF(0.0767, 0.0654, 0.0);
+world.skylight.colour = Vec3F(1.0, 0.8, 0.8);
+world.skylight.density = 0.25f;
+world.skylight.resolution = 1024u;
+world.skylight.cascades = 4u;
+
+//////////////////////////////////////////////////
+
+var eman := world.get_EntityManager();
+var cell := eman.create_root("CellSponza");
+
+var leaf; var group;
+
+//////////////////////////////////////////////////
+
+// DiceGroup
+group := eman.create(cell, "");
+group.enable_component_Transform();
+group.cTransform.position = Vec3F(0.0, 0.0, 5.0);
+group.cTransform.rotation = QuatF(0.1, 0.4, 0.0);
+group.cTransform.scale = 0.8f;
+
+  // DiceGroup.DiceA
+  leaf := eman.create(group, "");
+  leaf.enable_component_Transform();
+  leaf.cTransform.position = Vec3F(-0.2, 1.3, 0.6);
+  leaf.cTransform.rotation = QuatF(0.0, 0.0, 0.125);
+  leaf.enable_component_Model();
+  leaf.cModel.stretch = Vec3F(1.0, 1.0, 2.0);
+  leaf.cModel.mtrls = ["Test/Dice"];
+  leaf.cModel.mesh = "Test/Dice";
+
+  // DiceGroup.DiceB
+  leaf := eman.create(group, "");
+  leaf.enable_component_Transform();
+  leaf.cTransform.position = Vec3F(-1.2, 0.6, 0.6);
+  leaf.enable_component_Model();
+  leaf.cModel.mtrls = ["Test/Dice"];
+  leaf.cModel.mesh = "Test/Dice";
+  leaf.cModel.shadow = false;
+
+// SpotNorth
+leaf := eman.create(cell, "");
+leaf.enable_component_Transform();
+leaf.cTransform.position = Vec3F(0.0, 7.0, 3.3);
+leaf.cTransform.rotation = QuatF(0.23, 0.0, 0.0);
+leaf.cTransform.scale = 20.0f;
+leaf.enable_component_LightSpot();
+leaf.cLightSpot.colour = Vec3F(1.0, 1.0, 0.5);
+leaf.cLightSpot.angle = 0.07f;
+leaf.cLightSpot.softness = 0.2f;
+leaf.cLightSpot.resolution = 256u;
+
+// PointCentre
+leaf := eman.create(cell, "");
+leaf.enable_component_Transform();
+leaf.cTransform.position = Vec3F(0.0, 0.0, 3.0);
+leaf.cTransform.scale = 6.0f;
+leaf.enable_component_LightPoint();
+leaf.cLightPoint.colour = Vec3F(0.5, 0.5, 1.0);
+leaf.cLightPoint.resolution = 256u;
+
+// SplatBlood
+leaf := eman.create(cell, "");
+leaf.enable_component_Transform();
+leaf.cTransform.position = Vec3F(5.0, 0.0, 0.0);
+leaf.cTransform.rotation = QuatF(0.0, 0.0, 0.2);
+leaf.enable_component_Decal();
+leaf.cDecal.stretch = Vec3F(1.0, 1.0, 0.1);
+leaf.cDecal.material = "Decals/Blood";
+leaf.cDecal.alpha = 1.0f;
+
+// SqeenDead
+leaf := eman.create(cell, "");
+leaf.enable_component_Transform();
+leaf.cTransform.position = Vec3F(-0.8, 0.0, 0.05);
+leaf.cTransform.rotation = QuatF(0.25, 0.0, 0.25);
+leaf.enable_component_Model();
+leaf.cModel.mtrls = ["Characters/SqeenHead", "Characters/SqeenTorso", "Characters/SqeenLegs"];
+leaf.cModel.mesh = "Characters/Sqeen";
+leaf.enable_component_Skeleton();
+leaf.cSkeleton.armature = "Characters/Sqeen";
+leaf.cSkeleton.pose = "Dead";
+
+// SqeenEast
+leaf := eman.create(cell, "");
+leaf.enable_component_Transform();
+leaf.cTransform.position = Vec3F(1.5, 0.0, 0.0);
+leaf.cTransform.rotation = QuatF(0.0, 0.0, 0.25);
+leaf.enable_component_Model();
+leaf.cModel.mtrls = ["Characters/SqeenHead", "Characters/SqeenTorso", "Characters/SqeenLegs"];
+leaf.cModel.mesh = "Characters/Sqeen";
+leaf.enable_component_Skeleton();
+leaf.cSkeleton.armature = "Characters/Sqeen";
+leaf.cSkeleton.pose = "Squatting";
+
+// SqeenWest
+leaf := eman.create(cell, "");
+leaf.enable_component_Transform();
+leaf.cTransform.position = Vec3F(-1.5, 0.0, 0.0);
+leaf.cTransform.rotation = QuatF(0.0, 0.0, 0.75);
+leaf.enable_component_Model();
+leaf.cModel.mtrls = ["Characters/SqeenHead", "Characters/SqeenTorso", "Characters/SqeenLegs"];
+leaf.cModel.mesh = "Characters/Sqeen";
+leaf.enable_component_Skeleton();
+leaf.cSkeleton.armature = "Characters/Sqeen";
+leaf.cSkeleton.pose = "Standing";
+
+/*for (var x = -1; x < 2; x += 1) {
+    for (var y = -1; y < 2; y += 1) {
+        for (var z = -1; z < 2; z += 1) {
+            node := root.add_child("Point"+to_string(x)+to_string(y)+to_string(z));
+            transform := node.add_TransformComponent();
+            var offset = Vec3F(0.1f*float(x), 0.1f*float(y), 0.1f*float(z));
+            transform.position = Vec3F(0.0, 0.0, 3.0) + offset;
+            transform.scale = 6.0f;
+            lightPoint := node.add_LightPointComponent();
+            lightPoint.colour = Vec3F(1.0f/27.0f, 1.0f/27.0f, 1.0f/27.0f);
+            lightPoint.resolution = 64u;
+}}}*/
+
+
+/*for (var x = -2; x < 3; x += 1) {
+    for (var y = -2; y < 3; y += 1) {
+        node := root.add_child("Point"+to_string(x)+to_string(y));
+        transform := node.add_TransformComponent();
+        var offset = Vec3F(0.1f*float(x), 0.1f*float(y), 0.0f);
+        transform.position = Vec3F(0.0, 0.0, 3.0) + offset;
+        transform.scale = 8.0f;
+        lightPoint := node.add_LightPointComponent();
+        lightPoint.colour = Vec3F(1.0f/25.0f, 1.0f/25.0f, 1.0f/25.0f);
+        lightPoint.resolution = 128u;
+}}*/
+
+/*for (var x = -1; x < 2; x += 1) {
+    for (var y = -1; y < 2; y += 1) {
+        node := root.add_child("Point"+to_string(x)+to_string(y));
+        transform := node.add_TransformComponent();
+        var offset = Vec3F(0.1f*float(x), 0.1f*float(y), 0.0f);
+        transform.position = Vec3F(0.0, 0.0, 3.0) + offset;
+        transform.scale = 8.0f;
+        lightPoint := node.add_LightPointComponent();
+        lightPoint.colour = Vec3F(1.0f/9.0f, 1.0f/9.0f, 1.0f/9.0f);
+        lightPoint.resolution = 128u;
+}}*/
+/*
+node := root.add_child("OrthoFull");
+transform := node.add_TransformComponent();
+transform.position = Vec3F(16.5, 7.4, 17.01);
+transform.rotation = QuatF(0.0767, 0.0654, 0.0);
+lightOrtho = node.add_LightOrthoComponent();
+lightOrtho.minimum = Vec3F(-31.0, -14.0, 0.0);
+lightOrtho.maximum = Vec3F(7.0, 14.0, 33.0);
+lightOrtho.density = 0.5f;
+lightOrtho.resolution = 2048u;*/
+
+
+
+/*
+{ var eDicePhys = eRoot.add_child("DicePhys");
+  { var cTransform = eDicePhys.add_TransformComponent();
+    cTransform.position = Vec3F(0.0, 2.0, 0.0);
+    var cDynamicBody = eDicePhys.add_DynamicBodyComponent();
+    var cModel = eDicePhys.add_ModelComponent();
+    cModel.mtrls = ["Test/Dice"];
+    cModel.mesh = "Test/Dice";
+    cModel.decals = false;
+} }
+
+{ var eBallPhys = eRoot.add_child("BallPhys");
+  { var cTransform = eBallPhys.add_TransformComponent();
+    cTransform.position.y = -2.0f;
+    var cDynamicBody = eBallPhys.add_DynamicBodyComponent();
+    var cModel = eBallPhys.add_ModelComponent();
+    cModel.mtrls = ["Test/Ball"];
+    cModel.mesh = "Test/Ball";
+    cModel.decals = false;
+} }
+
+{ var eCheesePhys = eRoot.add_child("CheesePhys");
+  { var cTransform = eCheesePhys.add_TransformComponent();
+    cTransform.position = Vec3F(0.0, 0.0, 2.0);
+    cTransform.rotation = QuatF(0.0, 0.0, 0.0);
+//    cTransform.scale = 3.0f;
+    var cDynamicBody = eCheesePhys.add_DynamicBodyComponent();
+    var cModel = eCheesePhys.add_ModelComponent();
+    cModel.mtrls = ["Test/Cheese"];
+    cModel.mesh = "Test/Cheese";
+    cModel.decals = false;
+//    var cPointLight = eCheesePhys.add_PointLightComponent();
+//    cPointLight.texsize = 128u;
+} }
+
+{ var eFloorPhys = eRoot.add_child("FloorPhys");
+  { var cTransform = eFloorPhys.add_TransformComponent();
+    var cStaticBody = eFloorPhys.add_StaticBodyComponent();
+} }
+
+
+
+{ var eSqeenDead = eRoot.add_child("SqeenDead");
+  { var cTransform = eSqeenDead.add_TransformComponent();
+    cTransform.position = Vec3F(-0.8f, 0.0f, 0.05f);
+    cTransform.rotation = QuatF(0.25f, 0.0f, 0.25f);
+    var cModel = eSqeenDead.add_ModelComponent();
+    cModel.mesh = "Characters/Sqeen";
+    cModel.skin = "Characters/Sqeen";
+    cModel.arma = "Characters/Sqeen";
+    cModel.pose = "Dead";
+} }
+
+{ var eSqeenEast = eRoot.add_child("SqeenEast");
+  { var cTransform = eSqeenEast.add_TransformComponent();
+    cTransform.position = Vec3F(1.5f, 0.0f, 0.0f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, 0.25f);
+    var cModel = eSqeenEast.add_ModelComponent();
+    cModel.mesh = "Characters/Sqeen";
+    cModel.skin = "Characters/Sqeen";
+    cModel.arma = "Characters/Sqeen";
+    cModel.pose = "Squatting";
+} }
+
+{ var eSqeenWest = eRoot.add_child("SqeenWest");
+  { var cTransform = eSqeenWest.add_TransformComponent();
+    cTransform.position = Vec3F(-1.5f, 0.0f, 0.0f);
+    cTransform.rotation = QuatF(0.0f, 0.0f, -0.25f);
+    var cModel = eSqeenWest.add_ModelComponent();
+    cModel.mesh = "Characters/Sqeen";
+    cModel.skin = "Characters/Sqeen";
+    cModel.arma = "Characters/Sqeen";
+    cModel.pose = "Standing";
+} }
+
+{ var eSpotA = eRoot.add_child("SpotA");
+  { var cTransform = eSpotA.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 7.0f, 3.3f);
+    cTransform.rotation = QuatF(0.23f, 0.0f, 0.0f);
+    cTransform.scale = 20.0f;
+    var cSpotLight = eSpotA.add_SpotLightComponent();
+    cSpotLight.angle = 0.07f;
+    cSpotLight.softness = 0.2f;
+    cSpotLight.texsize = 256u;
+} }
+
+{ var ePointCentre = eRoot.add_child("ePointCentre");
+  { var cTransform = ePointCentre.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 3.0f);
+    cTransform.scale = 6.0f;
+    var cPointLight = ePointCentre.add_PointLightComponent();
+    cPointLight.texsize = 256u;
+} }
+
+{ var eDecalCurtain = eRoot.add_child("eDecalCurtain");
+  { var cTransform = eDecalCurtain.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 2.87f, 2.0f);
+    cTransform.rotation = QuatF(-0.25f, 0.0f, 0.0f);
+    var cDecal = eDecalCurtain.add_DecalComponent();
+    cDecal.diff = cDecal.norm = cDecal.spec = "Blood";
+    cDecal.scale = Vec3F(2.0f, 2.0f, 0.22f);
+} }
+
+
+{ var eFloorA = eRoot.add_child("FloorA");
+  { var cTransform = eFloorA.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 0.0f);
+    var cModel = eFloorA.add_ModelComponent();
+    cModel.mesh = "Sponza/FloorA";
+    cModel.skin = "Sponza/Floor";
+    var cReflect = eFloorA.add_ReflectComponent();
+    cReflect.factor = 0.5f;
+} }
+{ var eFloorB = eRoot.add_child("FloorB");
+  { var cTransform = eFloorB.add_TransformComponent();
+    cTransform.position = Vec3F(0.0f, 0.0f, 5.0f);
+    var cModel = eFloorB.add_ModelComponent();
+    cModel.mesh = "Sponza/FloorB";
+    cModel.skin = "Sponza/Floor";
+    var cReflect = eFloorB.add_ReflectComponent();
+    cReflect.factor = 0.5f;
+} }
+{ var ePointNE = eRoot.add_child("ePointNE");
+  { var cTransform = ePointNE.add_TransformComponent();
+    cTransform.position = Vec3F(14.0f, 5.0f, 2.0f);
+    cTransform.scale = 7.0f;
+    var cPointLight = ePointNE.add_PointLightComponent();
+    cPointLight.texsize = 256u;
+} }
+{ var ePointSE = eRoot.add_child("ePointSE");
+  { var cTransform = ePointSE.add_TransformComponent();
+    cTransform.position = Vec3F(14.0f, -5.0f, 2.0f);
+    cTransform.scale = 7.0f;
+    var cPointLight = ePointSE.add_PointLightComponent();
+    cPointLight.texsize = 256u;
+} }
+{ var ePointNW = eRoot.add_child("ePointNW");
+  { var cTransform = ePointNW.add_TransformComponent();
+    cTransform.position = Vec3F(-14.0f, 5.0f, 2.0f);
+    cTransform.scale = 7.0f;
+    var cPointLight = ePointNW.add_PointLightComponent();
+    cPointLight.texsize = 256u;
+} }
+{ var ePointSW = eRoot.add_child("ePointSW");
+  { var cTransform = ePointSW.add_TransformComponent();
+    cTransform.position = Vec3F(-14.0f, -5.0f, 2.0f);
+    cTransform.scale = 7.0f;
+    var cPointLight = ePointSW.add_PointLightComponent();
+    cPointLight.texsize = 256u;
+} }
+*/
+
+//////////////////////////////////////////////////
+
+eman.configure(cell, true);
+
+}

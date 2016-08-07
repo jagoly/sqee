@@ -1,8 +1,8 @@
 // GLSL Vertex Shader
 
 #include builtin/data/screen
-#include builtin/blocks/camera
-#include headers/blocks/skybox
+#include headers/blocks/Camera
+#include headers/blocks/SkyBox
 #include headers/blocks/reflect
 
 layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };

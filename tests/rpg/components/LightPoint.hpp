@@ -1,34 +1,20 @@
 #pragma once
 
-#include <sqee/gl/Textures.hpp>
-#include <sqee/gl/UniformBuffer.hpp>
-
+#include <sqee/ecs/Component.hpp>
 #include <sqee/maths/Vectors.hpp>
-#include <sqee/maths/Matrices.hpp>
-#include <sqee/maths/Volumes.hpp>
-
-#include "Helpers.hpp"
 
 namespace sqt {
 
-class PointLightComponent : public ComponentRPG
-                          , public ecs::TagConfigure
-                          , public ecs::TagRefresh {
+class LightPointComponent : public sq::Component {
 public:
-    PointLightComponent(EntityRPG&, World&);
-    static string type() { return "PointLight"; }
+    LightPointComponent(sq::Entity&) {}
+    static string type() { return "LightPoint"; }
 
-    // User Properties /////
-    Vec3F PROP_colour  = {1.f, 1.f, 1.f};
-    uint  PROP_texsize = 0u;
+    /// maximum colour of light
+    Vec3F PROP_colour = {1.f, 1.f, 1.f};
 
-    // System Properties /////
-    sq::TextureCube tex;
-    sq::UniformBuffer ubo;
-    array<sq::Frustum, 6> frusArr;
-    array<Mat4F, 6> matArr;
-    sq::Sphere sphere;
-    Mat4F modelMat;
+    /// shadow map resolution
+    uint PROP_resolution = 0u;
 };
 
 }

@@ -1,145 +1,71 @@
 #pragma once
 
 #include <sqee/builtins.hpp>
-#include <sqee/redist/gl_ext_4_2.hpp>
-#include <sqee/app/PreProcessor.hpp>
-#include <sqee/maths/Volumes.hpp>
-#include <sqee/gl/Shaders.hpp>
+#include <sqee/app/MessageBus.hpp>
 
-#include "../RpgOptions.hpp"
-#include "../components/Helpers.hpp"
+#include "../messages.hpp"
 
 namespace sqt {
 
-struct CameraData {
-    vector<const ModelComponent*> modelSimpleVec;
-    vector<const ModelComponent*> modelSkellyVec;
-    vector<const SpotLightComponent*> spotLightShadowVec;
-    vector<const SpotLightComponent*> spotLightNoShadowVec;
-    vector<const PointLightComponent*> pointLightShadowVec;
-    vector<const PointLightComponent*> pointLightNoShadowVec;
-    vector<const DecalComponent*> decalCompleteVec;
-    vector<const DecalComponent*> decalPartialVec;
-};
+class SceneData;
 
-struct SkyLightData {
-    array<vector<const ModelComponent*>, 4> modelSimpleVecArrA;
-    array<vector<const ModelComponent*>, 4> modelSimplePunchVecArrA;
-    array<vector<const ModelComponent*>, 4> modelSkellyVecArrA;
-    array<vector<const ModelComponent*>, 4> modelSkellyPunchVecArrA;
-    array<vector<const ModelComponent*>, 2> modelSimpleVecArrB;
-    array<vector<const ModelComponent*>, 2> modelSimplePunchVecArrB;
-    array<vector<const ModelComponent*>, 2> modelSkellyVecArrB;
-    array<vector<const ModelComponent*>, 2> modelSkellyPunchVecArrB;
-};
+namespace render {
 
-struct SpotLightData {
-    SpotLightData(const SpotLightComponent* _light)
-        : light(_light) {}
+class StencilVolumes;
+class TargetTextures;
+class GenericShaders;
 
-    vector<const ModelComponent*> modelSimpleVec;
-    vector<const ModelComponent*> modelSimplePunchVec;
-    vector<const ModelComponent*> modelSkellyVec;
-    vector<const ModelComponent*> modelSkellyPunchVec;
-    const SpotLightComponent* const light;
-};
+class DepthPasses;
+class GbufferPasses;
+class ShadowsPasses;
+class LightBasePasses;
+class LightAccumPasses;
+class VolumetricPasses;
+class CompositePasses;
+class EffectsPasses;
 
-struct PointLightData {
-    PointLightData(const PointLightComponent* _light, array<bool, 6> _visible)
-        : light(_light), visibleFaceArr(_visible) {}
+}
 
-    array<vector<const ModelComponent*>, 6> modelSimpleVecArr;
-    array<vector<const ModelComponent*>, 6> modelSimplePunchVecArr;
-    array<vector<const ModelComponent*>, 6> modelSkellyVecArr;
-    array<vector<const ModelComponent*>, 6> modelSkellyPunchVecArr;
-    const PointLightComponent* const light;
-    const array<bool, 6> visibleFaceArr;
-};
+class Renderer final {
 
-struct ReflectData {
-    ReflectData(const ReflectComponent* _reflect, const ModelComponent* _model, sq::Frustum _frus)
-        : reflect(_reflect), model(_model), frus(_frus) {}
-
-    vector<const ModelComponent*> modelSimpleVec;
-    vector<const ModelComponent*> modelSkellyVec;
-    vector<const SpotLightComponent*> spotLightShadowVec;
-    vector<const SpotLightComponent*> spotLightNoShadowVec;
-    vector<const PointLightComponent*> pointLightShadowVec;
-    vector<const PointLightComponent*> pointLightNoShadowVec;
-    vector<const DecalComponent*> decalDiffVec;
-    const ReflectComponent* const reflect;
-    const ModelComponent* const model;
-    const sq::Frustum frus;
-};
-
-//struct EmitterData {
-//    EmitterData(const wcoe::Emitter* _emitr) : emitr(*_emitr) {}
-//    vector<const wcoe::PointLight*> pointLightVec;
-//    vector<const wcoe::SpotLight*> spotLightVec;
-//    const wcoe::Emitter& emitr;
-//};
-
-
-class Renderer final : sq::NonCopyable {
 public:
-    Renderer(const RpgOptions& _options, const World& _world);
+    Renderer(sq::MessageBus& _messageBus);
 
     ~Renderer();
 
     void update_options();
-    void render_scene();
-
-    CameraData cameraData;
-    SkyLightData skyLightData;
-    vector<SpotLightData> spotLightDataVec;
-    vector<PointLightData> pointLightDataVec;
-    vector<ReflectData> reflectDataVec;
+    void render_scene(const SceneData& _scene);
 
     float tickPercent = 0.f;
 
-    /*struct {
-        sq::Texture2D* pshadA = nullptr;
-        sq::Texture2D* pshadB = nullptr;
-        sq::Texture2D* partDpSt = nullptr;
-        sq::Texture2D* partMain = nullptr;
-        sq::Texture2D* hdrPart = nullptr;
-    } TX;
-
-    struct {
-        sq::FrameBuffer* pshadA = nullptr;
-        sq::FrameBuffer* pshadB = nullptr;
-        sq::FrameBuffer* defrPart = nullptr;
-        sq::FrameBuffer* hdrPart = nullptr;
-    } FB;*/
-
 private:
-    /*sq::Shader VS_part_soft_vertex {gl::VERTEX_SHADER};
-    sq::Shader GS_part_soft_geometry {gl::GEOMETRY_SHADER};
-    sq::Shader FS_part_soft_ambient {gl::FRAGMENT_SHADER};
-    sq::Shader FS_part_soft_skylight {gl::FRAGMENT_SHADER};
-    sq::Shader FS_part_soft_spot_none {gl::FRAGMENT_SHADER};
-    sq::Shader FS_part_soft_spot_shad {gl::FRAGMENT_SHADER};
-    sq::Shader FS_part_soft_point_none {gl::FRAGMENT_SHADER};
-    sq::Shader FS_part_soft_point_shad {gl::FRAGMENT_SHADER};
-    sq::Shader FS_part_soft_write {gl::FRAGMENT_SHADER};*/
 
-    sq::PreProcessor preprocs;
-    sq::Pipeline pipeline;
+    sq::MessageBus& messageBus;
 
-    sq::Shader VS_fullscreen {gl::VERTEX_SHADER};
-    sq::Shader VS_stencil_base {gl::VERTEX_SHADER};
-    sq::Shader VS_stencil_refl {gl::VERTEX_SHADER};
-    sq::Shader FS_passthrough {gl::FRAGMENT_SHADER};
-    sq::Shader FS_fill_space {gl::FRAGMENT_SHADER};
+    sq::Receiver<msg::Enable_SkyBox> on_Enable_SkyBox;
+    sq::Receiver<msg::Enable_Ambient> on_Enable_Ambient;
+    sq::Receiver<msg::Enable_SkyLight> on_Enable_SkyLight;
 
-    class Shadows; unique_ptr<Shadows> shadows;
-    class Gbuffers; unique_ptr<Gbuffers> gbuffers;
-    class Lighting; unique_ptr<Lighting> lighting;
-    class Pretties; unique_ptr<Pretties> pretties;
-    class Reflects; unique_ptr<Reflects> reflects;
+    sq::Receiver<msg::Disable_SkyBox> on_Disable_SkyBox;
+    sq::Receiver<msg::Disable_Ambient> on_Disable_Ambient;
+    sq::Receiver<msg::Disable_SkyLight> on_Disable_SkyLight;
 
-    const RpgOptions& options;
-    const World& world;
+    sq::Receiver<msg::Create_Entity> on_Create_Entity;
+    sq::Receiver<msg::Configure_Entity> on_Configure_Entity;
+    sq::Receiver<msg::Destroy_Entity> on_Destroy_Entity;
+
+    unique_ptr<render::StencilVolumes> volumes;
+    unique_ptr<render::TargetTextures> textures;
+    unique_ptr<render::GenericShaders> shaders;
+
+    unique_ptr<render::DepthPasses> depthDraw;
+    unique_ptr<render::GbufferPasses> gbufferDraw;
+    unique_ptr<render::ShadowsPasses> shadowsDraw;
+    unique_ptr<render::LightBasePasses> lightBaseDraw;
+    unique_ptr<render::LightAccumPasses> lightAccumDraw;
+    unique_ptr<render::VolumetricPasses> volumetricDraw;
+    unique_ptr<render::CompositePasses> compositeDraw;
+    unique_ptr<render::EffectsPasses> effectsDraw;
 
     struct Impl;
     friend struct Impl;

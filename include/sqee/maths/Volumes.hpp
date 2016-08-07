@@ -1,49 +1,55 @@
 #pragma once
 
-#include <array>
-
 #include <sqee/maths/Vectors.hpp>
 #include <sqee/maths/Matrices.hpp>
 
 namespace sq {
 
-struct Plane { Vec3F normal; float offset; };
-
-struct Sphere { Vec3F origin; float radius; };
-
-struct BoundBox {
-    Vec3F origin, normX, normY, normZ;
-    float radius, sizeX, sizeY, sizeZ;
+struct Plane {        /// 3D Plane
+    Vec3F normal;     // normal of the plane
+    float offset;     // distance from origin
 };
 
-struct Frustum {
-    std::array<Vec3F, 5> points; // origin, LB, RB, LT, RT
-    std::array<Plane, 5> planes; // N, L, R, B, T
-    float radius;
+struct Sphere {       /// Bounding Sphere
+    Vec3F origin;     // centre of the sphere
+    float radius;     // size of the sphere
 };
 
-struct OrthoFrus {
-    std::array<Plane, 4> planes; // L, R, B, T
+struct BoundBox {     /// Oriented Bounding Box
+    Vec3F origin;     // centre of the shapes
+    float radius;     // size of the sphere
+    Vec3F points[8];  // corners of the box
 };
 
-Sphere make_Sphere(const Mat4F& _matrix, Vec3F _origin, float _radius);
-Frustum make_Frustum(const Mat4F& _matrix, Vec3F _pos, Vec3F _dir, float _rmin, float _rmax);
-BoundBox make_BoundBox(const Mat4F& _matrix, Vec3F _origin, float _radius, Vec3F _size);
-OrthoFrus make_OrthoFrus(const Mat4F& _matrix, Vec3F _centre);
+struct Frustum {      /// Perspective Frustum
+    Vec3F points[5];  // origin, LB, RB, LT, RT
+    Plane planes[5];  // near, L, R, B, T
+    float radius;     // = far - near
+};
+
+struct Ortho {        /// Orthogonal Frustum
+    Plane planes[4];  // L, R, B, T
+};
+
+Sphere   make_Sphere   (const Mat4F& _matrix, Vec3F _origin, float _radius);
+BoundBox make_BoundBox (const Mat4F& _matrix, Vec3F _origin, float _radius, Vec3F _extents);
+Frustum  make_Frustum  (const Mat4F& _matrix, Vec3F _origin, Vec3F _dir, float _near, float _far);
+Ortho    make_Ortho    (const Mat4F& _matrix);
 
 Frustum reflect_Frustum(const Frustum& _frus, Vec3F _normal, Vec3F _trans);
 Vec3F calc_frusCentre(const Frustum& _frus);
 
-bool sphr_in_sphr(const Sphere& _a, const Sphere& _bS);
-bool bbox_in_sphr(const BoundBox& _aB, const Sphere& _bS);
-bool frus_in_sphr(const Frustum& _aF, const Sphere& _bS);
+bool intersects(const Sphere& a, const Sphere& b);
+bool intersects(const Sphere& a, const Frustum& b);
+bool intersects(const Sphere& a, const Ortho& b);
 
-bool sphr_in_frus(const Sphere& _a, const Frustum& _bF);
-bool bbox_in_frus(const BoundBox& _aB, const Frustum& _bF);
-bool frus_in_frus(const Frustum& _aF, const Frustum& _bF);
+bool intersects(const BoundBox& a, const Sphere& b);
+bool intersects(const BoundBox& a, const Frustum& b);
+bool intersects(const BoundBox& a, const Ortho& b);
 
-bool sphr_in_orth(const Sphere& _a, const OrthoFrus& _bO);
-bool bbox_in_orth(const BoundBox& _aB, const OrthoFrus& _bO);
-bool frus_in_orth(const Frustum& _aF, const OrthoFrus& _bO);
+bool intersects(const Frustum& a, const Frustum& b);
+
+bool point_in_sphere_volume(Vec3F _point, const Sphere& _sphere);
+bool point_in_cone_volume(Vec3F _point, const Frustum& _frustum);
 
 }

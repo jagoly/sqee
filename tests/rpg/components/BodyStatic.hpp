@@ -1,17 +1,17 @@
-#include <sqee/physics/Bodies.hpp>
+//#include <sqee/physics/Bodies.hpp>
 
-#include "Helpers.hpp"
+//#include "Helpers.hpp"
 
-namespace sqt {
+//namespace sqt {
 
-class StaticBodyComponent : public ComponentRPG
-                          , public ecs::TagRefresh {
-public:
-    StaticBodyComponent(EntityRPG&, World&);
-    static string type() { return "StaticBody"; }
+//class StaticBodyComponent : public ComponentRPG
+//                          , public ecs::TagRefresh {
+//public:
+//    StaticBodyComponent(EntityRPG&, World&);
+//    static string type() { return "StaticBody"; }
 
-    // System Properties /////
-    sq::StaticBody body;
-};
+//    // System Properties /////
+//    sq::StaticBody body;
+//};
 
-}
+//}

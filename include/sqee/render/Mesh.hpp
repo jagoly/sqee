@@ -3,50 +3,54 @@
 #include <sqee/builtins.hpp>
 #include <sqee/gl/FixedBuffer.hpp>
 #include <sqee/gl/VertexArray.hpp>
-#include <sqee/maths/Vectors.hpp>
+#include <sqee/maths/Volumes.hpp>
 
 namespace sq {
 
 /// The SQEE Mesh class
 class Mesh final : NonCopyable {
 public:
-    Mesh();
     Mesh(const string& _path);
-    void create(const string& _path);
 
-    float radius = 0.f;
-    Vec3F bbsize = {0.f, 0.f, 0.f};
-    Vec3F origin = {0.f, 0.f, 0.f};
-    bool hasBBox = false;
-    bool hasNorm = false;
-    bool hasTang = false;
-    bool hasTcrd = false;
-    bool hasColr = false;
-    bool hasBone = false;
-    bool hasMtrl = false;
-    uint vertCount = 0u;
-    uint faceCount = 0u;
-    uint mtrlCount = 0u;
+    uint get_vertCount() const { return vertCount; }
+    uint get_faceCount() const { return faceCount; }
+    uint get_mtrlCount() const { return mtrlCount; }
 
-    void bind_vao() const;
+    bool has_NORM() const { return optionsBits & 0b10000; }
+    bool has_TANG() const { return optionsBits & 0b01000; }
+    bool has_TCRD() const { return optionsBits & 0b00100; }
+    bool has_COLR() const { return optionsBits & 0b00010; }
+    bool has_BONE() const { return optionsBits & 0b00001; }
+
+    BoundBox create_BoundBox(const Mat4F& _modelMat) const;
+
     void draw_complete() const;
-    void draw_material(uint _mtrl) const;
+    void draw_material(uint _index) const;
+    void bind_vao() const { vertArr.bind(); }
 
 private:
-    FixedBuffer vertBuf;
-    FixedBuffer elemBuf;
+    float radius = 0.f;
+    Vec3F origin; Vec3F bbsize;
+    uint vertCount, faceCount, mtrlCount;
+    uchar optionsBits = 0b00000;
+
+    FixedBuffer vertBuf, elemBuf;
     VertexArray vertArr;
+
     vector<pair<uint, uint>> mtrlVec;
     uint elementTotal = 0u;
 
     void load_ascii(const string& _path);
-    void load_binary(const string& _path);
+    //void load_binary(const string& _path);
 
     struct VertData {
+        vector<Vec3F> points;
+        vector<Vec3F> normals;
+        vector<Vec4F> tangents;
         vector<Vec2F> texcrds;
-        vector<Vec3F> points, normals, colours;
-        vector<Vec4F> tangents, weightsA, weightsB;
-        vector<Vec4I> bonesA, bonesB;
+        vector<Vec3F> colours;
+        vector<Vec4I> bones;
+        vector<Vec4F> weights;
     };
 
     using FaceData = vector<vector<Vec3U>>;

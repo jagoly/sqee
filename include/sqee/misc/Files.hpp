@@ -54,4 +54,10 @@ vector<pair<vector<string>, uint>> tokenise_file(const string& _path);
 /// Get a list of files in a directory
 vector<string> get_files_from_dir(const string& _path);
 
+/// Extract file name portion from a path
+string file_name_from_path(const string& _path);
+
+/// Extract directory portion from a path
+string directory_from_path(const string& _path);
+
 }

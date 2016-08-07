@@ -1,4 +1,5 @@
-use("assets/load_cell.chai");
+use("assets/load_static.chai");
+use("assets/load_other.chai");
 
 def main() {
     app.OPTION_WindowTitle = "SQEE RPG (test_init.chai)";
@@ -11,16 +12,14 @@ def main() {
 //    app.settings.mod("rpg_ssao", 0);
 //    app.settings.mod("rpg_fsaa", 0);
 
+    load_static();
+    load_other();
+
     app.update_options();
 
-    load_cell();
+//    world.get_RootEntity().get_child("DiceGroup").add_AnimatorComponent();
 
-    world.mark_configure_all_components(world.get_RootEntity(), true);
-    world.mark_refresh_all_components(world.get_RootEntity(), true);
-
-    world.get_RootEntity().get_child("DiceGroup").add_AnimatorComponent();
-
-    //app.console.print("Welcome to SQEE!");
+    app.console.print("Welcome to SQEE!");
 }
 
 
@@ -210,4 +209,4 @@ main();
 //add_some_balls();
 //add_lotsa_dudes();
 
-var d = world.get_RootEntity().get_child("DicePhys");
+//var d = world.get_RootEntity().get_child("DiceGroup");

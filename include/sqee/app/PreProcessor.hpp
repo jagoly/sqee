@@ -15,6 +15,7 @@ public:
     PreProcessor();
 
     void import_header(const string& _path);
+    void update_header(const string& _key, const string& _string);
     void load(Shader& _shader, const string& _path, const string& _extra = "") const;
     void operator()(Shader& _shader, const string& _path, const string& _extra = "") const;
 

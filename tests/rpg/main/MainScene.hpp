@@ -3,6 +3,7 @@
 #include <sqee/builtins.hpp>
 #include <sqee/scenes/Scene.hpp>
 #include <sqee/maths/Vectors.hpp>
+#include <sqee/app/MessageBus.hpp>
 
 namespace sqt {
 
@@ -18,13 +19,15 @@ public:
     bool handle(sf::Event _event);
 
 private:
-    unique_ptr<World> world;
-    unique_ptr<Renderer> renderer;
-
     Vec3F posCrnt, posNext;
     float rotX =0, rotZ =0;
 
     RpgApp& app;
+
+    unique_ptr<sq::MessageBus> mbus;
+
+    unique_ptr<World> world;
+    unique_ptr<Renderer> renderer;
 
     /*struct {
         unique_ptr<sq::Texture2D> pshadA;

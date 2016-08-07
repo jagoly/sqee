@@ -1,0 +1,3 @@
+Blood_diff  CC RGBA
+Blood_norm  CC RGBA
+Blood_spec  CC RRRG

@@ -23,7 +23,7 @@ bool sq::check_file_exists(const string& _path) {
 
 char sq::get_file_first_char(const string& _path) {
     ifstream src(_path);
-    if (!src.is_open()) {
+    if (src.is_open() == false) {
         log_error("Couldn't open file %s", _path);
         return char(-1);
     } return src.get();
@@ -32,8 +32,8 @@ char sq::get_file_first_char(const string& _path) {
 
 string sq::get_string_from_file(const string& _path) {
     ifstream src(_path);
-    if (!src.is_open()) {
-        log_error("Couldn't open file %s", _path);
+    if (src.is_open() == false) {
+        log_warning("Couldn't open file %s", _path);
         return string();
     }
 
@@ -45,8 +45,8 @@ string sq::get_string_from_file(const string& _path) {
 
 vector<uchar> sq::get_bytes_from_file(const string& _path) {
     ifstream src(_path, std::ios::binary | std::ios::ate);
-    if (!src.is_open()) {
-        log_error("Couldn't open file %s", _path);
+    if (src.is_open() == false) {
+        log_warning("Couldn't open file %s", _path);
         return vector<uchar>();
     }
 
@@ -61,15 +61,16 @@ vector<string> sq::tokenise_string(const string& _str, char _dlm) {
     stringstream sstr(_str);
     vector<string> retVec; string item;
     while (std::getline(sstr, item, _dlm))
-        retVec.emplace_back(item);
+        if (item.empty() == false)
+            retVec.emplace_back(item);
     return retVec;
 }
 
 
 vector<pair<vector<string>, uint>> sq::tokenise_file(const string& _path) {
     ifstream src(_path);
-    if (!src.is_open()) {
-        log_error("Couldn't open file %s", _path);
+    if (src.is_open() == false) {
+        log_warning("Couldn't open file %s", _path);
         return vector<pair<vector<string>, uint>>();
     }
 
@@ -107,6 +108,18 @@ vector<string> sq::get_files_from_dir(const string& _path) {
     }
     #endif
 
-    else log_error("Couldn't open directory %s", _path);
+    else log_warning("Couldn't open directory %s", _path);
     return retVec;
+}
+
+
+string sq::file_name_from_path(const string& _path) {
+    auto iter = std::find(_path.rbegin(), _path.rend(), '/');
+    return string(iter.base(), _path.end());
+}
+
+
+string sq::directory_from_path(const string& _path) {
+    auto iter = std::find(_path.rbegin(), _path.rend(), '/');
+    return string(_path.begin(), iter.base());
 }

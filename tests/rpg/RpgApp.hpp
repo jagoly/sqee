@@ -2,8 +2,6 @@
 
 #include <sqee/app/Application.hpp>
 
-#include "RpgOptions.hpp"
-
 namespace sqt {
 
 class RpgApp final : public sq::Application {
@@ -14,8 +12,6 @@ public:
 
     void update_options();
     bool handle(sf::Event _event);
-
-    RpgOptions options;
 };
 
 }

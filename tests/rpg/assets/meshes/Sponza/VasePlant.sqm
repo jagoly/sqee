@@ -9,7 +9,6 @@ mtrlCount 2
 hasNorm
 hasTang
 hasTcrd
-hasMtrl
 }
 
 { vertices

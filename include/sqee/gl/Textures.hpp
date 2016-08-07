@@ -19,17 +19,20 @@ public:
     /// Generate mipmaps for the texture
     void generate_mipmaps() const;
 
-    /// Activate a texture slot and bind the texture to it
-    void bind(GLenum _slot) const;
-
-    /// Bind the texture to the already active texture slot
-    void bind() const;
-
-    /// Return the size of the of texture
+    /// Return the size of the texture
     Vec3U get_size() const { return size; }
 
-    /// The OpenGL handle
-    GLuint tex = 0u;
+    /// Return the texture target
+    GLenum get_target() const { return target; }
+
+    /// Return the format of texture
+    GLenum get_format() const { return format; }
+
+    /// Return the internal format of texture
+    GLenum get_internal_format() const { return iFormat; }
+
+    /// Get the OpenGL handle
+    const GLuint& get_handle() const { return tex; }
 
     static Preset NearestClamp();
     static Preset NearestRepeat();
@@ -46,6 +49,9 @@ protected:
     Texture(GLenum _target, GLenum _format, GLenum _iFormat, Preset _preset) :
         target(_target), format(_format), iFormat(_iFormat), preset(_preset) {};
     const GLenum target, format, iFormat; const Preset preset; Vec3U size;
+
+    /// The OpenGL handle
+    GLuint tex = 0u;
 
     void create_and_setup_texture();
 };
@@ -69,6 +75,9 @@ public:
     /// Allocate immutable storage for the texture
     void allocate_storage(Vec2U _size, bool _mipmaps);
 };
+
+/// Create, setup and load a texture automatically
+unique_ptr<Texture2D> load_Texture2D(const string& _path);
 
 
 /// A class for immutable GL_TEXTURE_CUBE_MAP textures

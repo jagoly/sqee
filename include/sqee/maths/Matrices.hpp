@@ -5,7 +5,7 @@
 
 namespace sq {
 
-template<int W, int H, class T, if_float<T>...> struct Matrix {};
+template<int H, int W, class T, if_float<T>...> struct Matrix {};
 
 template<class T> using Matrix22 = Matrix<2, 2, T>;
 template<class T> using Matrix23 = Matrix<2, 3, T>;
@@ -15,23 +15,29 @@ template<class T> using Matrix44 = Matrix<4, 4, T>;
 
 
 template<class T> struct Matrix<2, 2, T> {
+    // Column and Row Types
+    using ColT = Vector<2, T>;
+    using RowT = Vector<2, T>;
+
+    // Default and Copy Constructors
     Matrix() : cols{{1, 0}, {0, 1}} {}
     Matrix(const Matrix& _m) : cols{_m[0], _m[1]} {}
-    using ColumnT = Vector<2, T>;
 
+    // Scalar and Vector Constructors
     explicit Matrix(T _s) : cols{{_s, 0}, {0, _s}} {}
-    explicit Matrix(ColumnT _x, ColumnT _y) : cols{_x, _y} {}
+    explicit Matrix(ColT _a, ColT _b) : cols{_a, _b} {}
 
-    explicit Matrix(Matrix23<T> _m) : cols{ColumnT(_m[0]), ColumnT(_m[1])} {}
-    explicit Matrix(Matrix33<T> _m) : cols{ColumnT(_m[0]), ColumnT(_m[1])} {}
-    explicit Matrix(Matrix34<T> _m) : cols{ColumnT(_m[0]), ColumnT(_m[1])} {}
-    explicit Matrix(Matrix44<T> _m) : cols{ColumnT(_m[0]), ColumnT(_m[1])} {}
+    // Matrix Resize Constructors
+    explicit Matrix(Matrix23<T> _m) : cols{ColT(_m[0]), ColT(_m[1])} {}
+    explicit Matrix(Matrix33<T> _m) : cols{ColT(_m[0]), ColT(_m[1])} {}
 
-    template<class U> explicit Matrix(Matrix22<U> _m) : cols{ColumnT(_m[0]), ColumnT(_m[1])} {}
+    // Array Access Operators
+    ColT& operator[](int _index) { return cols[_index]; }
+    const ColT& operator[](int _index) const { return cols[_index]; }
 
-    ColumnT& operator[](int _index) { return cols[_index]; }
-    const ColumnT& operator[](int _index) const { return cols[_index]; }
     Matrix& operator*=(Matrix _m) { return *this = (*this * _m); }
+
+    // Get Data Pointer
     const T* ptr() const { return &cols[0].x; }
 
     private: Vector<2, T> cols[2];
@@ -39,23 +45,29 @@ template<class T> struct Matrix<2, 2, T> {
 
 
 template<class T> struct Matrix<2, 3, T> {
+    // Column and Row Types
+    using ColT = Vector<3, T>;
+    using RowT = Vector<2, T>;
+
+    // Default and Copy Constructors
     Matrix() : cols{{1, 0, 0}, {0, 1, 0}} {}
-    Matrix(const Matrix& _m) : cols{_m[0], _m[1], _m[2]} {}
-    using ColumnT = Vector<3, T>;
+    Matrix(const Matrix& _m) : cols{_m[0], _m[1]} {}
 
+    // Scalar and Vector Constructors
     explicit Matrix(T _s) : cols{{_s, 0, 0}, {0, _s, 0}} {}
-    explicit Matrix(ColumnT _x, ColumnT _y) : cols{_x, _y} {}
+    explicit Matrix(ColT _a, ColT _b) : cols{_a, _b} {}
 
-    explicit Matrix(Matrix22<T> _m) : cols{ColumnT(_m[0], 0), ColumnT(_m[1], 0)} {}
-    explicit Matrix(Matrix33<T> _m) : cols{ColumnT(_m[0]), ColumnT(_m[1])} {}
-    explicit Matrix(Matrix34<T> _m) : cols{ColumnT(_m[0]), ColumnT(_m[1])} {}
-    explicit Matrix(Matrix44<T> _m) : cols{ColumnT(_m[0]), ColumnT(_m[1])} {}
+    // Matrix Resize Constructors
+    explicit Matrix(Matrix22<T> _m) : cols{ColT(_m[0], 0), ColT(_m[1], 0)} {}
+    explicit Matrix(Matrix33<T> _m) : cols{ColT(_m[0]), ColT(_m[1])} {}
 
-    template<class U> explicit Matrix(Matrix23<U> _m) : cols{ColumnT(_m[0]), ColumnT(_m[1])} {}
+    // Array Access Operators
+    ColT& operator[](int _index) { return cols[_index]; }
+    const ColT& operator[](int _index) const { return cols[_index]; }
 
-    ColumnT& operator[](int _index) { return cols[_index]; }
-    const ColumnT& operator[](int _index) const { return cols[_index]; }
     //Matrix& operator*=(Matrix _m) { return *this = (*this * _m); }
+
+    // Get Data Pointer
     const T* ptr() const { return &cols[0].x; }
 
     private: Vector<3, T> cols[2];
@@ -63,23 +75,31 @@ template<class T> struct Matrix<2, 3, T> {
 
 
 template<class T> struct Matrix<3, 3, T> {
+    // Column and Row Types
+    using ColT = Vector<3, T>;
+    using RowT = Vector<3, T>;
+
+    // Default and Copy Constructors
     Matrix() : cols{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}} {}
     Matrix(const Matrix& _m) : cols{_m[0], _m[1], _m[2]} {}
-    using ColumnT = Vector<3, T>;
 
+    // Scalar and Vector Constructors
     explicit Matrix(T _s) : cols{{_s, 0, 0}, {0, _s, 0}, {0, 0, _s}} {}
-    explicit Matrix(ColumnT _x, ColumnT _y, ColumnT _z) : cols{_x, _y, _z} {}
+    explicit Matrix(ColT _a, ColT _b, ColT _c) : cols{_a, _b, _c} {}
 
-    explicit Matrix(Matrix22<T> _m) : cols{ColumnT(_m[0], 0), ColumnT(_m[1], 0), ColumnT(0, 0, 1)} {}
-    explicit Matrix(Matrix23<T> _m) : cols{ColumnT(_m[0]), ColumnT(_m[1]), ColumnT(0, 0, 1)} {}
-    explicit Matrix(Matrix34<T> _m) : cols{ColumnT(_m[0]), ColumnT(_m[1]), ColumnT(_m[2])} {}
-    explicit Matrix(Matrix44<T> _m) : cols{ColumnT(_m[0]), ColumnT(_m[1]), ColumnT(_m[2])} {}
+    // Matrix Resize Constructors
+    explicit Matrix(Matrix22<T> _m) : cols{ColT(_m[0], 0), ColT(_m[1], 0), ColT(0, 0, 1)} {}
+    explicit Matrix(Matrix23<T> _m) : cols{ColT(_m[0]), ColT(_m[1]), ColT(0, 0, 1)} {}
+    explicit Matrix(Matrix34<T> _m) : cols{ColT(_m[0]), ColT(_m[1]), ColT(_m[2])} {}
+    explicit Matrix(Matrix44<T> _m) : cols{ColT(_m[0]), ColT(_m[1]), ColT(_m[2])} {}
 
-    template<class U> explicit Matrix(Matrix33<U> _m) : cols{ColumnT(_m[0]), ColumnT(_m[1]), ColumnT(_m[2])} {}
+    // Array Access Operators
+    ColT& operator[](int _index) { return cols[_index]; }
+    const ColT& operator[](int _index) const { return cols[_index]; }
 
-    ColumnT& operator[](int _index) { return cols[_index]; }
-    const ColumnT& operator[](int _index) const { return cols[_index]; }
     Matrix& operator*=(Matrix _m) { return *this = (*this * _m); }
+
+    // Get Data Pointer
     const T* ptr() const { return &cols[0].x; }
 
     private: Vector<3, T> cols[3];
@@ -87,23 +107,29 @@ template<class T> struct Matrix<3, 3, T> {
 
 
 template<class T> struct Matrix<3, 4, T> {
+    // Column and Row Types
+    using ColT = Vector<4, T>;
+    using RowT = Vector<3, T>;
+
+    // Default and Copy Constructors
     Matrix() : cols{{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}} {}
     Matrix(const Matrix& _m) : cols{_m[0], _m[1], _m[2]} {}
-    using ColumnT = Vector<4, T>;
 
+    // Scalar and Vector Constructors
     explicit Matrix(T _s) : cols{{_s, 0, 0, 0}, {0, _s, 0, 0}, {0, 0, _s, 0}} {}
-    explicit Matrix(ColumnT _x, ColumnT _y, ColumnT _z) : cols{_x, _y, _z} {}
+    explicit Matrix(ColT _a, ColT _b, ColT _c) : cols{_a, _b, _c} {}
 
-    explicit Matrix(Matrix22<T> _m) : cols{ColumnT(_m[0], 0, 0), ColumnT(_m[1], 0, 0), ColumnT(0, 0, 1, 0)} {}
-    explicit Matrix(Matrix23<T> _m) : cols{ColumnT(_m[0], 0), ColumnT(_m[1], 0), ColumnT(0, 0, 1, 0)} {}
-    explicit Matrix(Matrix33<T> _m) : cols{ColumnT(_m[0], 0), ColumnT(_m[1], 0), ColumnT(_m[2], 0)} {}
-    explicit Matrix(Matrix44<T> _m) : cols{ColumnT(_m[0]), ColumnT(_m[1]), ColumnT(_m[2])} {}
+    // Matrix Resize Constructors
+    explicit Matrix(Matrix33<T> _m) : cols{ColT(_m[0], 0), ColT(_m[1], 0), ColT(_m[2], 0)} {}
+    explicit Matrix(Matrix44<T> _m) : cols{ColT(_m[0]), ColT(_m[1]), ColT(_m[2])} {}
 
-    template<class U> explicit Matrix(Matrix34<U> _m) : cols{ColumnT(_m[0]), ColumnT(_m[1]), ColumnT(_m[2])} {}
+    // Array Access Operators
+    ColT& operator[](int _index) { return cols[_index]; }
+    const ColT& operator[](int _index) const { return cols[_index]; }
 
-    ColumnT& operator[](int _index) { return cols[_index]; }
-    const ColumnT& operator[](int _index) const { return cols[_index]; }
     //Matrix& operator*=(Matrix _m) { return *this = (*this * _m); }
+
+    // Get Data Pointer
     const T* ptr() const { return &cols[0].x; }
 
     private: Vector<4, T> cols[3];
@@ -111,69 +137,88 @@ template<class T> struct Matrix<3, 4, T> {
 
 
 template<class T> struct Matrix<4, 4, T> {
+    // Column and Row Types
+    using ColT = Vector<4, T>;
+    using RowT = Vector<4, T>;
+
+    // Default and Copy Constructors
     Matrix() : cols{{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}} {};
     Matrix(const Matrix& _m) : cols{_m[0], _m[1], _m[2], _m[3]} {}
-    using ColumnT = Vector<4, T>;
 
+    // Scalar and Vector Constructors
     explicit Matrix(T _s) : cols{{_s, 0, 0, 0}, {0, _s, 0, 0}, {0, 0, _s, 0}, {0, 0, 0, _s}} {}
-    explicit Matrix(ColumnT _x, ColumnT _y, ColumnT _z, ColumnT _w) : cols{_x, _y, _z, _w} {}
+    explicit Matrix(ColT _a, ColT _b, ColT _c, ColT _d) : cols{_a, _b, _c, _d} {}
 
-    explicit Matrix(Matrix22<T> _m) : cols{ColumnT(_m[0], 0, 0), ColumnT(_m[1], 0, 0), ColumnT(0, 0, 1, 0), ColumnT(0, 0, 0, 1)} {}
-    explicit Matrix(Matrix23<T> _m) : cols{ColumnT(_m[0], 0), ColumnT(_m[1], 0), ColumnT(0, 0, 1, 0), ColumnT(0, 0, 0, 1)} {}
-    explicit Matrix(Matrix33<T> _m) : cols{ColumnT(_m[0], 0), ColumnT(_m[1], 0), ColumnT(_m[2], 0), ColumnT(0, 0, 0, 1)} {}
-    explicit Matrix(Matrix34<T> _m) : cols{ColumnT(_m[0]), ColumnT(_m[1]), ColumnT(_m[2]), ColumnT(0, 0, 0, 1)} {}
+    // Matrix Resize Constructors
+    explicit Matrix(Matrix33<T> _m) : cols{ColT(_m[0], 0), ColT(_m[1], 0), ColT(_m[2], 0), ColT(0, 0, 0, 1)} {}
+    explicit Matrix(Matrix34<T> _m) : cols{ColT(_m[0]), ColT(_m[1]), ColT(_m[2]), ColT(0, 0, 0, 1)} {}
 
-    template<class U> explicit Matrix(Matrix44<U> _m) : cols{ColumnT(_m[0]), ColumnT(_m[1]), ColumnT(_m[2]), ColumnT(_m[3])} {}
+    // Array Access Operators
+    ColT& operator[](int _index) { return cols[_index]; }
+    const ColT& operator[](int _index) const { return cols[_index]; }
 
-    ColumnT& operator[](int _index) { return cols[_index]; }
-    const ColumnT& operator[](int _index) const { return cols[_index]; }
     Matrix& operator*=(Matrix _m) { return *this = (*this * _m); }
+
+    // Get Data Pointer
     const T* ptr() const { return &cols[0].x; }
 
     private: Vector<4, T> cols[4];
 };
 
 
+
 // Multiply Matrix Matrix22 /////
 template<class T> inline Matrix22<T> operator*(Matrix22<T> _a, Matrix22<T> _b) {
-    return Matrix33<T>({_a[0]*_b[0][0] + _a[1]*_b[0][1]},
-                       {_a[0]*_b[1][0] + _a[1]*_b[1][1]});
+    return Matrix22<T> (
+        {_a[0]*_b[0][0] + _a[1]*_b[0][1]},
+        {_a[0]*_b[1][0] + _a[1]*_b[1][1]}
+    );
 }
 
 // Multiply Matrix Matrix33 /////
 template<class T> inline Matrix33<T> operator*(Matrix33<T> _a, Matrix33<T> _b) {
-    return Matrix33<T>({_a[0]*_b[0][0] + _a[1]*_b[0][1] + _a[2]*_b[0][2]},
-                       {_a[0]*_b[1][0] + _a[1]*_b[1][1] + _a[2]*_b[1][2]},
-                       {_a[0]*_b[2][0] + _a[1]*_b[2][1] + _a[2]*_b[2][2]});
+    return Matrix33<T> (
+        {_a[0]*_b[0][0] + _a[1]*_b[0][1] + _a[2]*_b[0][2]},
+        {_a[0]*_b[1][0] + _a[1]*_b[1][1] + _a[2]*_b[1][2]},
+        {_a[0]*_b[2][0] + _a[1]*_b[2][1] + _a[2]*_b[2][2]}
+    );
 }
 
 // Multiply Matrix Matrix44 /////
 template<class T> inline Matrix44<T> operator*(Matrix44<T> _a, Matrix44<T> _b) {
-    return Matrix44<T>({_a[0]*_b[0][0] + _a[1]*_b[0][1] + _a[2]*_b[0][2] + _a[3]*_b[0][3]},
-                       {_a[0]*_b[1][0] + _a[1]*_b[1][1] + _a[2]*_b[1][2] + _a[3]*_b[1][3]},
-                       {_a[0]*_b[2][0] + _a[1]*_b[2][1] + _a[2]*_b[2][2] + _a[3]*_b[2][3]},
-                       {_a[0]*_b[3][0] + _a[1]*_b[3][1] + _a[2]*_b[3][2] + _a[3]*_b[3][3]});
+    return Matrix44<T> (
+        {_a[0]*_b[0][0] + _a[1]*_b[0][1] + _a[2]*_b[0][2] + _a[3]*_b[0][3]},
+        {_a[0]*_b[1][0] + _a[1]*_b[1][1] + _a[2]*_b[1][2] + _a[3]*_b[1][3]},
+        {_a[0]*_b[2][0] + _a[1]*_b[2][1] + _a[2]*_b[2][2] + _a[3]*_b[2][3]},
+        {_a[0]*_b[3][0] + _a[1]*_b[3][1] + _a[2]*_b[3][2] + _a[3]*_b[3][3]}
+    );
 }
 
 // Multiply Vector Matrix22 /////
 template<class T> inline Vector3<T> operator*(Matrix22<T> _m, Vector2<T> _v) {
-    return Vector2<T>(_m[0][0]*_v[0] + _m[1][0]*_v[1],
-                      _m[0][1]*_v[0] + _m[1][1]*_v[1]);
+    return {
+        _m[0][0]*_v[0] + _m[1][0]*_v[1],
+        _m[0][1]*_v[0] + _m[1][1]*_v[1]
+    };
 }
 
 // Multiply Vector Matrix33 /////
 template<class T> inline Vector3<T> operator*(Matrix33<T> _m, Vector3<T> _v) {
-    return Vector3<T>(_m[0][0]*_v[0] + _m[1][0]*_v[1] + _m[2][0]*_v[2],
-                      _m[0][1]*_v[0] + _m[1][1]*_v[1] + _m[2][1]*_v[2],
-                      _m[0][2]*_v[0] + _m[1][2]*_v[1] + _m[2][2]*_v[2]);
+    return {
+        _m[0][0]*_v[0] + _m[1][0]*_v[1] + _m[2][0]*_v[2],
+        _m[0][1]*_v[0] + _m[1][1]*_v[1] + _m[2][1]*_v[2],
+        _m[0][2]*_v[0] + _m[1][2]*_v[1] + _m[2][2]*_v[2]
+    };
 }
 
 // Multiply Vector Matrix44 /////
 template<class T> inline Vector4<T> operator*(Matrix44<T> _m, Vector4<T> _v) {
-    return Vector4<T>(_m[0][0]*_v[0] + _m[1][0]*_v[1] + _m[2][0]*_v[2] + _m[3][0]*_v[3],
-                      _m[0][1]*_v[0] + _m[1][1]*_v[1] + _m[2][1]*_v[2] + _m[3][1]*_v[3],
-                      _m[0][2]*_v[0] + _m[1][2]*_v[1] + _m[2][2]*_v[2] + _m[3][2]*_v[3],
-                      _m[0][3]*_v[0] + _m[1][3]*_v[1] + _m[2][3]*_v[2] + _m[3][3]*_v[3]);
+    return {
+        _m[0][0]*_v[0] + _m[1][0]*_v[1] + _m[2][0]*_v[2] + _m[3][0]*_v[3],
+        _m[0][1]*_v[0] + _m[1][1]*_v[1] + _m[2][1]*_v[2] + _m[3][1]*_v[3],
+        _m[0][2]*_v[0] + _m[1][2]*_v[1] + _m[2][2]*_v[2] + _m[3][2]*_v[3],
+        _m[0][3]*_v[0] + _m[1][3]*_v[1] + _m[2][3]*_v[2] + _m[3][3]*_v[3]
+    };
 }
 
 
@@ -181,23 +226,34 @@ namespace maths {
 
 // Transpose Matrix22 /////
 template<class T> inline Matrix22<T> transpose(Matrix22<T> _m) {
-    return Matrix22<T>({_m[0][0], _m[1][0]},
-                       {_m[0][1], _m[1][1]});
+    return Matrix22<T> (
+        {_m[0][0], _m[1][0]},
+        {_m[0][1], _m[1][1]}
+    );
 }
 
 // Transpose Matrix33 /////
 template<class T> inline Matrix33<T> transpose(Matrix33<T> _m) {
-    return Matrix33<T>({_m[0][0], _m[1][0], _m[2][0]},
-                       {_m[0][1], _m[1][1], _m[2][1]},
-                       {_m[0][2], _m[1][2], _m[2][2]});
+    return Matrix33<T> (
+        {_m[0][0], _m[1][0], _m[2][0]},
+        {_m[0][1], _m[1][1], _m[2][1]},
+        {_m[0][2], _m[1][2], _m[2][2]}
+    );
 }
 
 // Transpose Matrix44 /////
 template<class T> inline Matrix44<T> transpose(Matrix44<T> _m) {
-    return Matrix44<T>({_m[0][0], _m[1][0], _m[2][0], _m[3][0]},
-                       {_m[0][1], _m[1][1], _m[2][1], _m[3][1]},
-                       {_m[0][2], _m[1][2], _m[2][2], _m[3][2]},
-                       {_m[0][3], _m[1][3], _m[2][3], _m[3][3]});
+    return Matrix44<T> (
+        {_m[0][0], _m[1][0], _m[2][0], _m[3][0]},
+        {_m[0][1], _m[1][1], _m[2][1], _m[3][1]},
+        {_m[0][2], _m[1][2], _m[2][2], _m[3][2]},
+        {_m[0][3], _m[1][3], _m[2][3], _m[3][3]}
+    );
+}
+
+// Determinant Matrix22 /////
+template<class T> inline T determinant(Matrix22<T> _m) {
+    return _m[0][0]*_m[1][1] - _m[1][0]*_m[0][1];
 }
 
 // Determinant Matrix33 /////
@@ -216,27 +272,39 @@ template<class T> inline T determinant(Matrix44<T> _m) {
     T fac4 = _m[2][0] * _m[3][2] - _m[3][0] * _m[2][2];
     T fac5 = _m[2][0] * _m[3][1] - _m[3][0] * _m[2][1];
 
-    T coef0 = +(_m[1][1] * fac0 - _m[1][2] * fac1 + _m[1][3] * fac2);
-    T coef1 = -(_m[1][0] * fac0 - _m[1][2] * fac3 + _m[1][3] * fac4);
-    T coef2 = +(_m[1][0] * fac1 - _m[1][1] * fac3 + _m[1][3] * fac5);
-    T coef3 = -(_m[1][0] * fac2 - _m[1][1] * fac4 + _m[1][2] * fac5);
+    T ce0 = +(_m[1][1] * fac0 - _m[1][2] * fac1 + _m[1][3] * fac2);
+    T ce1 = -(_m[1][0] * fac0 - _m[1][2] * fac3 + _m[1][3] * fac4);
+    T ce2 = +(_m[1][0] * fac1 - _m[1][1] * fac3 + _m[1][3] * fac5);
+    T ce3 = -(_m[1][0] * fac2 - _m[1][1] * fac4 + _m[1][2] * fac5);
 
-    return _m[0][0]*coef0 + _m[0][1]*coef1 + _m[0][2]*coef2 + _m[0][3]*coef3;
+    return _m[0][0]*ce0 + _m[0][1]*ce1 + _m[0][2]*ce2 + _m[0][3]*ce3;
+}
+
+// Inverse Matrix22 /////
+template<class T> inline Matrix22<T> inverse(Matrix22<T> _m) {
+    T oneOverDet = T(1.0) / determinant(_m);
+
+    return Matrix22<T> (
+        {+_m[1][1] * oneOverDet, -_m[0][1] * oneOverDet},
+        {-_m[1][0] * oneOverDet, +_m[0][0] * oneOverDet}
+    );
 }
 
 // Inverse Matrix33 /////
 template<class T> inline Matrix33<T> inverse(Matrix33<T> _m) {
     T oneOverDet = T(1.0) / determinant(_m);
 
-    return Matrix33<T>({+(_m[1][1] * _m[2][2] - _m[2][1] * _m[1][2]) * oneOverDet,
-                        -(_m[0][1] * _m[2][2] - _m[2][1] * _m[0][2]) * oneOverDet,
-                        +(_m[0][1] * _m[1][2] - _m[1][1] * _m[0][2]) * oneOverDet},
-                       {-(_m[1][0] * _m[2][2] - _m[2][0] * _m[1][2]) * oneOverDet,
-                        +(_m[0][0] * _m[2][2] - _m[2][0] * _m[0][2]) * oneOverDet,
-                        -(_m[0][0] * _m[1][2] - _m[1][0] * _m[0][2]) * oneOverDet},
-                       {+(_m[1][0] * _m[2][1] - _m[2][0] * _m[1][1]) * oneOverDet,
-                        -(_m[0][0] * _m[2][1] - _m[2][0] * _m[0][1]) * oneOverDet,
-                        +(_m[0][0] * _m[1][1] - _m[1][0] * _m[0][1]) * oneOverDet});
+    return Matrix33<T>(
+        {+(_m[1][1] * _m[2][2] - _m[2][1] * _m[1][2]) * oneOverDet,
+         -(_m[0][1] * _m[2][2] - _m[2][1] * _m[0][2]) * oneOverDet,
+         +(_m[0][1] * _m[1][2] - _m[1][1] * _m[0][2]) * oneOverDet},
+        {-(_m[1][0] * _m[2][2] - _m[2][0] * _m[1][2]) * oneOverDet,
+         +(_m[0][0] * _m[2][2] - _m[2][0] * _m[0][2]) * oneOverDet,
+         -(_m[0][0] * _m[1][2] - _m[1][0] * _m[0][2]) * oneOverDet},
+        {+(_m[1][0] * _m[2][1] - _m[2][0] * _m[1][1]) * oneOverDet,
+         -(_m[0][0] * _m[2][1] - _m[2][0] * _m[0][1]) * oneOverDet,
+         +(_m[0][0] * _m[1][1] - _m[1][0] * _m[0][1]) * oneOverDet}
+    );
 }
 
 // Inverse Matrix44 /////
@@ -286,12 +354,13 @@ template<class T> inline Matrix44<T> inverse(Matrix44<T> _m) {
     T rep = T(1.0) / (_m[0][0]*invMat[0][0] + _m[0][1]*invMat[1][0]
                     + _m[0][2]*invMat[2][0] + _m[0][3]*invMat[3][0]);
 
-    return Matrix44<T>(invMat[0]*rep, invMat[1]*rep, invMat[2]*rep, invMat[3]*rep);
+    return Matrix44<T>(
+        invMat[0]*rep, invMat[1]*rep, invMat[2]*rep, invMat[3]*rep
+    );
 }
 
 // Scale /////
 template<class T> inline Matrix44<T> scale(Matrix44<T> _m, Vector3<T> _v) {
-    //return Matrix44<T>(_m[0]*_v.x, _m[1]*_v.y, _m[2]*_v.z, _m[3]);
     return Matrix44<T>(_m[0]*_v.x, _m[1]*_v.y, _m[2]*_v.z, _m[3]);
 }
 
@@ -331,6 +400,27 @@ template<class T> inline Matrix44<T> ortho(T _l, T _r, T _b, T _t, T _n, T _f) {
     T m00 = T(2.0) / (_r-_l);   T m11 = T(2.0) / (_t-_b);   T m22 = -T(2.0) / (_f-_n);
     T m30 = -(_r+_l) / (_r-_l); T m31 = -(_t+_b) / (_t-_b); T m32 = -(_f+_n) / (_f-_n);
     return Matrix44<T>({m00, 0, 0, 0}, {0, m11, 0, 0}, {0, 0, m22, 0}, {m30, m31, m32, 1});
+}
+
+// Reflection /////
+template<class T> inline Matrix44<T> reflection(Matrix44<T> _transform) {
+    constexpr Matrix44<T> scaleMat = scale(Matrix44<T>(), Vec3F(1.f, 1.f, -1.f));
+    return _transform * scaleMat * inverse(_transform);
+}
+
+// Perspective (alternate) /////
+template<class T> inline Matrix44<T> perspective(T _fov, T _aspect, Vector2<T> _range) {
+    return perspective(_fov, _aspect, _range.x, _range.y);
+}
+
+// Orthographic (alternate) /////
+template<class T> inline Matrix44<T> ortho(Vector3<T> _min, Vector3<T> _max) {
+    return ortho(_min.x, _max.x, _min.y, _max.y, _min.z, _max.z);
+}
+
+// Extract Scale /////
+template<class T> inline Vector3<T> extract_scale(Matrix33<T> _m) {
+    return {length(_m[0]), length(_m[1]), length(_m[2])};
 }
 
 }}

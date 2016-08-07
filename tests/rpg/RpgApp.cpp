@@ -2,11 +2,14 @@
 
 #include <sqee/scripts/ChaiScript.hpp>
 #include <sqee/app/DebugOverlay.hpp>
-#include <sqee/debug/Logging.hpp>
 #include <sqee/app/Resources.hpp>
+#include <sqee/debug/Logging.hpp>
 
 #include "main/MainScene.hpp"
+
+#include "Options.hpp"
 #include "RpgApp.hpp"
+
 
 using namespace sqt;
 namespace maths = sq::maths;
@@ -24,7 +27,7 @@ void RpgApp::eval_test_init() {
 }
 
 void RpgApp::update_options() {
-    options.WindowSize = OPTION_WindowSize;
+    Options::get().Window_Size = OPTION_WindowSize;
     sq::Application::update_options();
 }
 
@@ -34,6 +37,8 @@ bool RpgApp::handle(sf::Event _event) {
     auto notify = [this](int _value, const string& _message, vector<string> _options) {
         this->overlay->notify(_message + _options[_value], 6u); };
 
+    static Options& options = Options::get();
+
     if (_event.type == sf::Event::KeyPressed) {
 
         if (_event.key.code == sf::Keyboard::V) {
@@ -42,38 +47,38 @@ bool RpgApp::handle(sf::Event _event) {
             update_options(); return true; }
 
         if (_event.key.code == sf::Keyboard::F) {
-            options.ShadowFilter = !options.ShadowFilter;
-            notify(options.ShadowFilter, "shadow filtering set to ", {"LOW", "HIGH"});
+            options.Shadows_Filter = !options.Shadows_Filter;
+            notify(options.Shadows_Filter, "shadow filtering set to ", {"LOW", "HIGH"});
             update_options(); return true; }
 
         if (_event.key.code == sf::Keyboard::S) {
-            options.ShadowLarge = !options.ShadowLarge;
-            notify(options.ShadowLarge, "shadow resolution set to ", {"LOW", "HIGH"});
+            options.Shadows_Large = !options.Shadows_Large;
+            notify(options.Shadows_Large, "shadow resolution set to ", {"LOW", "HIGH"});
             update_options(); return true; }
 
         if (_event.key.code == sf::Keyboard::C) {
-            options.Vignette = !options.Vignette;
-            notify(options.Vignette, "vignette set to ", {"OFF", "ON"});
+            options.Vignette_Enable = !options.Vignette_Enable;
+            notify(options.Vignette_Enable, "vignette set to ", {"OFF", "ON"});
             update_options(); return true; }
 
         if (_event.key.code == sf::Keyboard::B) {
-            options.Bloom = !options.Bloom;
-            notify(options.Bloom, "bloom set to ", {"OFF", "ON"});
+            options.Bloom_Enable = !options.Bloom_Enable;
+            notify(options.Bloom_Enable, "bloom set to ", {"OFF", "ON"});
             update_options(); return true; }
 
         if (_event.key.code == sf::Keyboard::L) {
-            options.Shafts = ++options.Shafts == 3 ? 0 : options.Shafts;
-            notify(options.Shafts, "shafts set to ", {"OFF", "LOW", "HIGH"});
+            options.Shafts_Quality = ++options.Shafts_Quality == 3 ? 0 : options.Shafts_Quality;
+            notify(options.Shafts_Quality, "shafts set to ", {"OFF", "LOW", "HIGH"});
             update_options(); return true; }
 
         if (_event.key.code == sf::Keyboard::O) {
-            options.SSAO = ++options.SSAO == 3 ? 0 : options.SSAO;
-            notify(options.Shafts, "ssao set to ", {"OFF", "LOW", "HIGH"});
+            options.SSAO_Quality = ++options.SSAO_Quality == 3 ? 0 : options.SSAO_Quality;
+            notify(options.SSAO_Quality, "ssao set to ", {"OFF", "LOW", "HIGH"});
             update_options(); return true; }
 
         if (_event.key.code == sf::Keyboard::A) {
-            options.FSAA = ++options.FSAA == 3 ? 0 : options.FSAA;
-            notify(options.Shafts, "fsaa set to ", {"OFF", "FXAA", "SMAA"});
+            options.FSAA_Quality = ++options.FSAA_Quality == 3 ? 0 : options.FSAA_Quality;
+            notify(options.FSAA_Quality, "fsaa set to ", {"OFF", "FXAA", "SMAA"});
             update_options(); return true; }
     }
 

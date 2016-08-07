@@ -2,8 +2,8 @@
 
 in vec2 texcrd;
 
-#include builtin/blocks/camera
-#include headers/blocks/ambient
+#include headers/blocks/Camera
+#include headers/blocks/Ambient
 
 layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
 layout(std140, binding=1) uniform AMBIENTBLOCK { AmbientBlock LB; };

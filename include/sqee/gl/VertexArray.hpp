@@ -37,6 +37,10 @@ public:
     /// Bind the vertex array
     void bind() const;
 
+    /// Get the OpenGL handle
+    const GLuint& get_handle() const { return vao; }
+
+private:
     /// The OpenGL handle
     GLuint vao = 0u;
 };

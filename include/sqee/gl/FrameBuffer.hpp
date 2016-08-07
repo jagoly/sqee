@@ -12,36 +12,33 @@ namespace sq {
 /// A class for an OpenGL framebuffer
 class FrameBuffer final : NonCopyable {
 public:
-    FrameBuffer();
-    ~FrameBuffer();
+    FrameBuffer(); ~FrameBuffer();
 
     /// Attach an immutable 2D texture
-    void attach(GLenum _attach, const Texture2D& _tex) const;
+    void attach(GLenum _attach, const Texture2D& _tex);
 
     /// Attach an immutable cubemap texture
-    void attach(GLenum _attach, const TextureCube& _tex, uint _face) const;
+    void attach(GLenum _attach, const TextureCube& _tex, uint _face);
 
     /// Attach an immutable 2D array texture
-    void attach(GLenum _attach, const Texture2DArray& _tex, uint _index) const;
+    void attach(GLenum _attach, const Texture2DArray& _tex, uint _index);
 
     /// Attach an immutable cubemap array texture
-    void attach(GLenum _attach, const TextureCubeArray& _tex, uint _index, uint _face) const;
+    void attach(GLenum _attach, const TextureCubeArray& _tex, uint _index, uint _face);
 
     /// Set which buffers to draw to when using the framebuffer
-    void draw_buffers(std::initializer_list<GLenum> _drawBufs) const;
-
-    /// Bind the fbo to gl::FRAMEBUFFER
-    void bind() const;
-
-    /// Bind the fbo to gl::READ_FRAMEBUFFER
-    void bind_read_only() const;
-
-    /// Bind the fbo to gl::DRAW_FRAMEBUFFER
-    void bind_draw_only() const;
+    void draw_buffers(std::initializer_list<GLenum> _drawBufs);
 
     /// Blit this framebuffer directly to another
+    void blit(const FrameBuffer& _other, Vec2U _size, GLenum _mask) const;
+
+    /// Blit this framebuffer directly to another of a different size
     void blit(const FrameBuffer& _other, Vec2U _sizeA, Vec2U _sizeB, GLenum _mask, GLenum _filter) const;
 
+    /// Get the OpenGL handle
+    const GLuint& get_handle() const { return fbo; }
+
+private:
     /// The OpenGL handle
     GLuint fbo = 0u;
 };

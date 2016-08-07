@@ -2,7 +2,7 @@
 #include <sqee/app/DebugOverlay.hpp>
 #include <sqee/app/Application.hpp>
 #include <sqee/debug/Misc.hpp>
-#include <sqee/gl/Drawing.hpp>
+#include <sqee/gl/Context.hpp>
 #include <sqee/text/Text.hpp>
 
 using namespace sq;
@@ -23,7 +23,11 @@ void DebugOverlay::tick() {
 }
 
 void DebugOverlay::render(float _ft) {
-    sq::VIEWPORT(app.OPTION_WindowSize);
+
+    using Context = sq::Context;
+    static auto& context = Context::get();
+
+    context.set_ViewPort(app.OPTION_WindowSize);
 
     char roundedFPS[10];
     frameTime = _ft * 0.2f + frameTime * 0.8f;

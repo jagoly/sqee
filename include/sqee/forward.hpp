@@ -14,7 +14,6 @@ class ArmaTransform;
 class PhysObject;
 class Camera;
 class Mesh;
-class Skin;
 
 class Shader;
 class Pipeline;

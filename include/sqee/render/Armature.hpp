@@ -37,8 +37,10 @@ public:
     std::unordered_map<string, Anim> animMap;
 
     using UboData = vector<Mat34F>;
-    static UboData make_UboData(Pose& _pose);
+    static UboData make_UboData(const Pose& _pose);
     static Pose mix_Poses(const Pose& _a, const Pose& _b, float _factor);
 };
+
+unique_ptr<Armature> load_Armature(const string& _path);
 
 }

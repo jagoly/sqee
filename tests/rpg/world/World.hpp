@@ -2,65 +2,84 @@
 
 #include <sqee/builtins.hpp>
 #include <sqee/ecs/Entity.hpp>
+#include <sqee/ecs/Manager.hpp>
 
-#include "../RpgOptions.hpp"
-#include "../components/Helpers.hpp"
+#include "static/StaticCell.hpp"
+
+#include "../systems/Animation.hpp"
+#include "../systems/Transform.hpp"
+
+#include "objects/Camera.hpp"
+#include "objects/SkyBox.hpp"
+#include "objects/Ambient.hpp"
+#include "objects/SkyLight.hpp"
+
+#include "../messages.hpp"
 
 // Forward Declarations /////
-namespace sqt { class Camera; class Ambient; class SkyBox; class SkyLight; }
 namespace reactphysics3d { class DynamicsWorld; }
 
 namespace sqt {
 
-class World final : sq::NonCopyable {
+struct SceneData {
+
+    const world::StaticCellMap* staticCellMap = nullptr;
+
+    const world::CameraObject* camera = nullptr;
+    const world::SkyBoxObject* skybox = nullptr;
+    const world::AmbientObject* ambient = nullptr;
+    const world::SkyLightObject* skylight = nullptr;
+
+    //vector<const sq::Entity*> entities;
+};
+
+class World final {
 public:
-    World(RpgOptions& _options);
+    World(sq::MessageBus& _messageBus);
 
     ~World();
 
     void update_options();
     void tick(); void update();
 
-    sq::Entity<World>& get_RootEntity();
+    world::StaticCell* add_StaticCell(const string& _name);
+    const world::StaticCell& get_StaticCell(const string& _name) const;
+    //const world::StaticCellMap& get_StaticCellMap() const { return staticCellMap; }
+
+    sq::EntityManager& get_EntityManager();
     rp3d::DynamicsWorld& get_PhysicsWorld();
-    const sq::Entity<World>& get_RootEntity() const;
+
+    const sq::EntityManager& get_EntityManager() const;
     const rp3d::DynamicsWorld& get_PhysicsWorld() const;
 
-    Camera& get_Camera();
-    Ambient& get_Ambient();
-    const Camera& get_Camera() const;
-    const Ambient& get_Ambient() const;
+    SceneData sceneData;
 
-    SkyBox& get_SkyBox();
-    SkyLight& get_SkyLight();
-    const SkyBox& get_SkyBox() const;
-    const SkyLight& get_SkyLight() const;
-
-    bool check_SkyBox() const;
-    bool check_SkyLight() const;
-    void enable_SkyBox(bool _enable);
-    void enable_SkyLight(bool _enable);
+    unique_ptr<world::CameraObject> camera;
+    unique_ptr<world::SkyBoxObject> skybox;
+    unique_ptr<world::AmbientObject> ambient;
+    unique_ptr<world::SkyLightObject> skylight;
 
     float tickPercent = 0.f;
 
-    template<class T> void mark_configure_component(const EntityRPG* _e, bool _recursive);
-    template<class T> void mark_refresh_component(const EntityRPG* _e, bool _recursive);
-    void mark_configure_all_components(const EntityRPG* _e, bool _recursive);
-    void mark_refresh_all_components(const EntityRPG* _e, bool _recursive);
-
-    template<class T, ecs::if_not_CleanUp<T>...> void clean_up_component(T* _c, EntityRPG* _e) {}
-    template<class T, ecs::if_CleanUp<T>...> void clean_up_component(T* _c, EntityRPG* _e);
-    void clean_up_entity(EntityRPG* _e);
-
 private:
-    template<class T, ecs::if_Configure<T>...> void configure_component(T* _c, EntityRPG* _e);
-    template<class T, ecs::if_Refresh<T>...> void refresh_component(T* _c, EntityRPG* _e);
-    template<class T, ecs::if_Update<T>...> void update_component(T* _c, EntityRPG* _e);
-    template<class T, ecs::if_Tick<T>...> void tick_component(T* _c, EntityRPG* _e);
+    sq::MessageBus& messageBus;
 
-    friend class SkyLight;
+    world::StaticCellMap staticCellMap;
 
-    const RpgOptions& options;
+    sq::Receiver<msg::Configure_Entity> on_Configure_Entity;
+
+    sq::Receiver<msg::Enable_SkyBox> on_Enable_SkyBox;
+    sq::Receiver<msg::Enable_Ambient> on_Enable_Ambient;
+    sq::Receiver<msg::Enable_SkyLight> on_Enable_SkyLight;
+
+    sq::Receiver<msg::Disable_SkyBox> on_Disable_SkyBox;
+    sq::Receiver<msg::Disable_Ambient> on_Disable_Ambient;
+    sq::Receiver<msg::Disable_SkyLight> on_Disable_SkyLight;
+
+    sq::EntityManager entityManager;
+
+    AnimationSystem animationSystem;
+    TransformSystem transformSystem;
 
     struct Impl;
     friend struct Impl;

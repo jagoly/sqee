@@ -4,20 +4,22 @@
 
 using namespace sq;
 
-EntityBase::~EntityBase() = default;
 
-EntityBase::EntityBase(const string& _name) : name(_name),
+Entity::Entity( sq::Entity* _parent) : parent(_parent),
     attributes(new std::unordered_map<string, chai::Boxed_Value>()) {
 }
 
-chai::Boxed_Value& EntityBase::operator[](const string& _key) {
+Entity::~Entity() {
+}
+
+chai::Boxed_Value& Entity::operator[](const string& _key) {
     return attributes->operator[](_key);
 }
 
-chai::Boxed_Value& EntityBase::get_attr(const string& _key) {
+chai::Boxed_Value& Entity::get_attr(const string& _key) {
     return attributes->at(_key);
 }
 
-void EntityBase::del_attr(const string& _key) {
+void Entity::del_attr(const string& _key) {
     attributes->erase(_key);
 }

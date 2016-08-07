@@ -38,8 +38,10 @@ Application::Application() {
     #endif
 
     chaiscript_setup_app(*chaiEngine);
+    chaiscript_setup_entity(*chaiEngine);
     chaiscript_setup_physics(*chaiEngine);
     chaiscript_setup_maths(*chaiEngine);
+    chaiscript_setup_messages(*chaiEngine);
 
     chaiEngine->add_global(chai::var(this), "app");
 }

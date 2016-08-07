@@ -1,22 +1,14 @@
 #pragma once
 
-#include <sqee/gl/UniformBuffer.hpp>
-
+#include <sqee/builtins.hpp>
 #include <sqee/maths/Vectors.hpp>
 
-namespace sqt {
+namespace sqt { namespace world {
 
-class Ambient final : sq::NonCopyable {
-public:
-    Ambient();
+struct AmbientObject : sq::NonCopyable {
 
-    void update();
-
-    // User Properties /////
-    Vec3F PROP_colour = {0.5f, 0.5f, 0.5f};
-
-    // System Properties /////
-    sq::UniformBuffer ubo;
+    /// global ambient light colour
+    Vec3F PROP_colour = {1.f, 1.f, 1.f};
 };
 
-}
+}}
