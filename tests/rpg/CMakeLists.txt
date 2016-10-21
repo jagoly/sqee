@@ -16,7 +16,7 @@ set(SOURCES
     "components/Transform.hpp"
     "components/Model.hpp"
     "components/Skeleton.hpp"
-    "components/Decal.hpp"         
+    "components/Decal.hpp"
     "components/LightOrtho.hpp"
     "components/LightPoint.hpp"
     "components/LightSpot.hpp"
@@ -27,8 +27,10 @@ set(SOURCES
     "world/static/StaticCell.hpp"   "world/static/StaticCell.cpp"
     "world/static/StaticStuff.hpp"  "world/static/StaticStuff.cpp"
 
+    "systems/Common.hpp"
     "systems/Animation.hpp" "systems/Animation.cpp"
     "systems/Transform.hpp" "systems/Transform.cpp"
+    "systems/Sound.hpp"     "systems/Sound.cpp"
 
     "world/World.hpp" "world/World.cpp"
 

@@ -209,4 +209,11 @@ main();
 //add_some_balls();
 //add_lotsa_dudes();
 
-//var d = world.get_RootEntity().get_child("DiceGroup");
+def play_sound()
+{
+    var eman := world.get_EntityManager();
+    var sys_sound := world.get_SoundSystem();
+
+    sys_sound.play("effects/Whack", 0u, eman.find("DiceGroup"));
+}
+

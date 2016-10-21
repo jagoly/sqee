@@ -8,6 +8,7 @@
 
 #include "../systems/Animation.hpp"
 #include "../systems/Transform.hpp"
+#include "../systems/Sound.hpp"
 
 #include "objects/Camera.hpp"
 #include "objects/SkyBox.hpp"
@@ -52,6 +53,8 @@ public:
     const sq::EntityManager& get_EntityManager() const;
     const rp3d::DynamicsWorld& get_PhysicsWorld() const;
 
+    SoundSystem& get_SoundSystem() { return soundSystem; }
+
     SceneData sceneData;
 
     unique_ptr<world::CameraObject> camera;
@@ -76,10 +79,16 @@ private:
     sq::Receiver<msg::Disable_Ambient> on_Disable_Ambient;
     sq::Receiver<msg::Disable_SkyLight> on_Disable_SkyLight;
 
+    sq::Receiver<msg::Debug_1> on_Debug_1;
+    sq::Receiver<msg::Debug_2> on_Debug_2;
+    sq::Receiver<msg::Debug_3> on_Debug_3;
+    sq::Receiver<msg::Debug_4> on_Debug_4;
+
     sq::EntityManager entityManager;
 
     AnimationSystem animationSystem;
     TransformSystem transformSystem;
+    SoundSystem soundSystem;
 
     struct Impl;
     friend struct Impl;

@@ -13,4 +13,6 @@ void chaiscript_setup_components(sq::ChaiEngine& _engine);
 void chaiscript_setup_functions(sq::ChaiEngine& _engine);
 void chaiscript_setup_messages(sq::ChaiEngine& _engine);
 
+void chaiscript_setup_systems(sq::ChaiEngine& engine);
+
 }

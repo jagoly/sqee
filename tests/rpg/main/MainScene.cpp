@@ -4,6 +4,7 @@
 #include <sqee/redist/gl_ext_4_2.hpp>
 #include <sqee/scripts/ChaiScript.hpp>
 #include <sqee/app/ChaiConsole.hpp>
+#include <sqee/sound/Sound.hpp>
 #include <sqee/debug/Misc.hpp>
 
 #include "../RpgApp.hpp"
@@ -11,7 +12,6 @@
 #include "../render/Renderer.hpp"
 #include "Scripting.hpp"
 #include "MainScene.hpp"
-
 
 using namespace sqt;
 namespace maths = sq::maths;
@@ -32,6 +32,11 @@ MainScene::MainScene(RpgApp& _app) : sq::Scene(1.0 / 24.0), app(_app) {
     mbus->register_type<msg::Disable_Ambient>();
     mbus->register_type<msg::Disable_SkyLight>();
 
+    mbus->register_type<msg::Debug_1>();
+    mbus->register_type<msg::Debug_2>();
+    mbus->register_type<msg::Debug_3>();
+    mbus->register_type<msg::Debug_4>();
+
     world = std::make_unique<World>(*mbus);
     renderer = std::make_unique<Renderer>(*mbus);
 
@@ -40,6 +45,7 @@ MainScene::MainScene(RpgApp& _app) : sq::Scene(1.0 / 24.0), app(_app) {
     chaiscript_setup_world(*app.chaiEngine);
     chaiscript_setup_components(*app.chaiEngine);
     chaiscript_setup_functions(*app.chaiEngine);
+    chaiscript_setup_systems(*app.chaiEngine);
     chaiscript_setup_messages(*app.chaiEngine);
 
     app.chaiEngine->add_global(chai::var(mbus.get()), "mbus");
@@ -140,6 +146,11 @@ void MainScene::render() {
         rotX = maths::clamp(rotX + mMove.y / 2400.f, -0.23f, 0.23f);
         world->camera->PROP_direction = maths::rotate_z(maths::rotate_x(Vec3F(0.f, 1.f, 0.f), rotX), rotZ);
         world->camera->PROP_position = maths::mix(posCrnt, posNext, tickPercent);
+
+        sq::Listener::set_position(world->camera->PROP_position);
+        sq::Listener::set_rotation(QuatF(rotX, 0.f, rotZ)); // wrong
+//        sf::Listener::setDirection(dir.x, dir.y, dir.z);
+//        sf::Listener::setUpVector(0.f, 0.f, 1.f);
     }
 
     world->update();

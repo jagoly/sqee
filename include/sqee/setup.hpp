@@ -18,11 +18,28 @@ typedef char          GLchar;
 
 namespace sq {
 
-struct NonCopyable {
+struct NonCopyable
+{
     NonCopyable() = default;
+
     NonCopyable(const NonCopyable&) = delete;
     NonCopyable& operator=(const NonCopyable&) = delete;
+
+    NonCopyable(NonCopyable&&) = delete;
+    NonCopyable& operator=(NonCopyable&&) = delete;
 };
+
+struct MoveOnly
+{
+    MoveOnly() = default;
+
+    MoveOnly(const MoveOnly&) = delete;
+    MoveOnly& operator=(const MoveOnly&) = delete;
+
+    MoveOnly(MoveOnly&&) = default;
+    MoveOnly& operator=(MoveOnly&&) = default;
+};
+
 
 struct expand {
     template<class... Args> expand(Args&&...) {}

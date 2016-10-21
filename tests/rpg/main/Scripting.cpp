@@ -19,6 +19,8 @@
 #include "../components/LightSpot.hpp"
 //#include "../components/Reflect.hpp"
 
+#include "../systems/Sound.hpp"
+
 #include "../messages.hpp"
 
 #include "Scripting.hpp"
@@ -40,6 +42,7 @@ void sqt::chaiscript_setup_world(sq::ChaiEngine& _engine) {
 
     add_class<World>(*m, "World", {}, {
         {fun<sq::EntityManager&, World>(&World::get_EntityManager), "get_EntityManager"},
+        {fun<SoundSystem&, World>(&World::get_SoundSystem), "get_SoundSystem"},
         //{fun<Camera&,     World>(&World::get_Camera),     "get_Camera"},
         {fun(&World::update_options),  "update_options"},
         {fun(&World::add_StaticCell), "add_StaticCell"},
@@ -49,7 +52,7 @@ void sqt::chaiscript_setup_world(sq::ChaiEngine& _engine) {
         {fun(get_ambient), "ambient"},
         {fun(get_skylight), "skylight"}
     });
-    
+
     add_class<world::StaticCell>(*m, "StaticCell", {}, {
         {fun(&world::StaticCell::add_Model), "add_Model"},
         {fun(&world::StaticCell::add_Decal), "add_Decal"},
@@ -225,6 +228,22 @@ void sqt::chaiscript_setup_functions(sq::ChaiEngine& _engine) {
     chai::ModulePtr m(new chai::Module());
 
     _engine.add(m);
+}
+
+
+void sqt::chaiscript_setup_systems(sq::ChaiEngine& engine)
+{
+    auto m = std::make_shared<chai::Module>();
+
+    add_class<SoundSystem>(*m, "SoundSystem", {}, {
+        {fun<int32_t, SoundSystem, const string&, uint8_t>(&SoundSystem::play), "play"},
+        {fun<int32_t, SoundSystem, const string&, uint8_t, Vec3F>(&SoundSystem::play), "play"},
+        {fun<int32_t, SoundSystem, const string&, uint8_t, const sq::Entity*>(&SoundSystem::play), "play"},
+        {fun(&SoundSystem::set_sound_volume), "set_sound_volume"},
+        {fun(&SoundSystem::set_sound_loop), "set_sound_loop"}
+    });
+
+    engine.add(m);
 }
 
 

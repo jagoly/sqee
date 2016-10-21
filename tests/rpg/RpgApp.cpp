@@ -10,6 +10,8 @@
 #include "Options.hpp"
 #include "RpgApp.hpp"
 
+#include "messages.hpp"
+
 
 using namespace sqt;
 namespace maths = sq::maths;
@@ -38,6 +40,9 @@ bool RpgApp::handle(sf::Event _event) {
         this->overlay->notify(_message + _options[_value], 6u); };
 
     static Options& options = Options::get();
+
+    // need to move mbus into sq::Application...
+    auto& mbus = static_cast<MainScene&>(*activeScenes.back()).get_mbus();
 
     if (_event.type == sf::Event::KeyPressed) {
 
@@ -80,6 +85,11 @@ bool RpgApp::handle(sf::Event _event) {
             options.FSAA_Quality = ++options.FSAA_Quality == 3 ? 0 : options.FSAA_Quality;
             notify(options.FSAA_Quality, "fsaa set to ", {"OFF", "FXAA", "SMAA"});
             update_options(); return true; }
+
+        if (_event.key.code == sf::Keyboard::Num1) { mbus.send_message(msg::Debug_1()); return true; }
+        if (_event.key.code == sf::Keyboard::Num2) { mbus.send_message(msg::Debug_2()); return true; }
+        if (_event.key.code == sf::Keyboard::Num3) { mbus.send_message(msg::Debug_3()); return true; }
+        if (_event.key.code == sf::Keyboard::Num4) { mbus.send_message(msg::Debug_4()); return true; }
     }
 
     return false;

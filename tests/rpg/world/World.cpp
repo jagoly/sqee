@@ -44,6 +44,13 @@ World::World(sq::MessageBus& _messageBus)
     messageBus.subscribe_back(on_Disable_SkyBox);
     messageBus.subscribe_back(on_Disable_Ambient);
     messageBus.subscribe_back(on_Disable_SkyLight);
+
+    // temp debug stuff
+
+    on_Debug_1.func = [=](auto) { soundSystem.play("effects/Whack", 1u); };
+    on_Debug_2.func = [=](auto) { soundSystem.play("effects/Whack", 1u, Vec3F(0,0,5)); };
+    messageBus.subscribe_back(on_Debug_1);
+    messageBus.subscribe_back(on_Debug_2);
 }
 
 World::~World() = default;
@@ -86,6 +93,8 @@ void World::update() {
     };
 
     entityManager.propogate(refresh_wrapper);
+
+    soundSystem.system_refresh();
 
     sceneData.staticCellMap = &staticCellMap;
     sceneData.camera = camera.get();

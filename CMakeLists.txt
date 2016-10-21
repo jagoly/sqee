@@ -110,11 +110,12 @@ set(SOURCES
     "${INCDIR}/physics/VecTypes.hpp"
     "${INCDIR}/physics/Bodies.hpp"          "${SRCDIR}/physics/Bodies.cpp"
     "${INCDIR}/misc/Algorithms.hpp"         "${INCDIR}/misc/OrderedMap.hpp"
+    "${INCDIR}/misc/FixedVector.hpp"
     "${INCDIR}/misc/StringCast.hpp"         "${SRCDIR}/misc/StringCast.cpp"
     "${INCDIR}/misc/Files.hpp"              "${SRCDIR}/misc/Files.cpp"
     "${INCDIR}/scenes/Scene.hpp"            "${SRCDIR}/scenes/Scene.cpp"
     "${INCDIR}/scenes/Basics.hpp"           "${SRCDIR}/scenes/Basics.cpp"
-    "${INCDIR}/sounds/SoundManager.hpp"     "${SRCDIR}/sounds/SoundManager.cpp"
+    "${INCDIR}/sound/Sound.hpp"             "${SRCDIR}/sound/Sound.cpp"
 
 # Compiled-In Data
     "${SRCDIR}/data/GLSLHeaders.cpp"

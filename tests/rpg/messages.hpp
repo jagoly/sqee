@@ -12,4 +12,9 @@ struct Disable_SkyBox {};
 struct Disable_Ambient {};
 struct Disable_SkyLight {};
 
+struct Debug_1 {};
+struct Debug_2 {};
+struct Debug_3 {};
+struct Debug_4 {};
+
 }

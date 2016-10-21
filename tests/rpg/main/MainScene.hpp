@@ -18,6 +18,9 @@ public:
     void tick(); void render();
     bool handle(sf::Event _event);
 
+    // why isn't mbus in Application?
+    sq::MessageBus& get_mbus() { return *mbus; }
+
 private:
     Vec3F posCrnt, posNext;
     float rotX =0, rotZ =0;
