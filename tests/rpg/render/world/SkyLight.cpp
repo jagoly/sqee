@@ -1,5 +1,4 @@
 #include <sqee/redist/gl_ext_4_2.hpp>
-#include <sqee/maths/General.hpp>
 
 #include "../../world/World.hpp"
 
@@ -10,7 +9,10 @@ using namespace sqt::render;
 namespace maths = sq::maths;
 
 SkyLightData::SkyLightData()
-    : tex(gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT16, sq::Texture::ShadowMap()) {
+    : tex(sq::Texture::Format::DEPTH16)
+{
+    tex.set_filter_mode(true);
+    tex.set_shadow_mode(true);
 
     ubo.reserve("direction", 3u);
     ubo.reserve("cascadeCount", 1u);
@@ -35,7 +37,7 @@ void SkyLightData::refresh(const SceneData& _scene) {
     resolution *= (options.Shadows_Large + 1u);
 
     Vec3U newSize {resolution, resolution, cascadeCount};
-    if (newSize != tex.get_size()) tex.allocate_storage(newSize, false);
+    if (newSize != tex.get_size()) tex.allocate_storage(newSize);
 
     for (uint i = 0u; i < cascadeCount; i += 1u)
         cascades[i].fbo.attach(gl::DEPTH_ATTACHMENT, tex, i);
@@ -66,8 +68,8 @@ void SkyLightData::refresh(const SceneData& _scene) {
         viewMat[3][2] -= std::fmod(viewMat[3][2], splitB / halfRes);
 
         cascades[i].matrix = maths::ortho(Vec3F(-splitB), Vec3F(splitB)) * viewMat;
-        cascades[i].ortho = sq::make_Ortho(cascades[i].matrix);
+        cascades[i].planes = maths::make_ortho_xy(cascades[i].matrix);
 
-        ubo.update("matrices", i*16u, 16u, &cascades[i].matrix);
+        ubo.update("matrices", i*16u, 16u, cascades[i].matrix.data());
     }
 }

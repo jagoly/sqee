@@ -6,7 +6,7 @@
 using namespace sqt;
 
 SokoApp::SokoApp() {
-    activeScenes.emplace_back(new GameScene(*this));
-    activeScenes.emplace_back(new TitleScene(*this));
-    activeScenes.emplace_back(new PausedScene(*this));
+    mScenes.emplace_back(new GameScene(*this));
+    mScenes.emplace_back(new TitleScene(*this));
+    mScenes.emplace_back(new PausedScene(*this));
 }

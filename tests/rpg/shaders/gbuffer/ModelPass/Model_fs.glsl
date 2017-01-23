@@ -3,7 +3,9 @@
 in vec2 texcrd;
 in vec3 N, T, B;
 
-uniform ivec3 d_n_s;
+uniform ivec3 mtrlMode;
+uniform vec3 colourDiff;
+uniform vec3 colourSpec;
 
 layout(binding=0) uniform sampler2D texDiff;
 layout(binding=1) uniform sampler2D texNorm;
@@ -15,23 +17,23 @@ layout(location=2) out vec3 fragNorm;
 layout(location=3) out vec3 fragSpec;
 
 
-void main() {
-    fragDiff = vec3(1.f, 1.f, 1.f);
-    fragSurf = normalize(N) * 0.5f + 0.5f;
-    fragNorm = normalize(N) * 0.5f + 0.5f;
-    fragSpec = vec3(0.f, 0.f, 0.f);
+void main() 
+{
+    // use constant colours by default
+    fragDiff = colourDiff; fragSpec = colourSpec;
 
-    if (bool(d_n_s.x) == true) {
-        fragDiff = texture(texDiff, texcrd).rgb;
-    }
+    // if enabled, use diffuse and/or specular textures
+    if (bool(mtrlMode.x)) fragDiff = texture(texDiff, texcrd).rgb;
+    if (bool(mtrlMode.z)) fragSpec = texture(texSpec, texcrd).rgb;
 
-    if (bool(d_n_s.y) == true) {
-        vec3 t_norm = normalize(texture(texNorm, texcrd).rgb * 2.f - 1.f);
+    // write the fragment surface normal
+    fragSurf = fragNorm = normalize(N);
+
+    if (bool(mtrlMode.y)) // if enabled, perform normal mapping
+    {
+        vec3 t_norm = normalize(texture(texNorm, texcrd).rgb);
         fragNorm = T * t_norm.x + B * t_norm.y + N * t_norm.z;
-        fragNorm = normalize(fragNorm) * 0.5f + 0.5f;
+        fragNorm = normalize(fragNorm);
     }
 
-    if (bool(d_n_s.z) == true) {
-        fragSpec = texture(texSpec, texcrd).rgb;
-    }
 }

@@ -2,13 +2,13 @@
 
 #include <sqee/gl/Textures.hpp>
 #include <sqee/render/Mesh.hpp>
+#include <sqee/render/Material.hpp>
 #include <sqee/render/Armature.hpp>
 #include <sqee/sound/Sound.hpp>
 
-#include "Material.hpp"
 #include "Manager.hpp"
 
-namespace {
+namespace { // anonymous
 
 using MapTexture = std::unordered_map<string, sq::Resource<sq::Texture2D>>;
 MapTexture& static_MapTexture() { static MapTexture resMap; return resMap; }
@@ -22,51 +22,66 @@ MapArmature& static_MapArmature() { static MapArmature resMap; return resMap; }
 using MapSoundWave = std::unordered_map<string, sq::Resource<sq::SoundWave>>;
 MapSoundWave& static_MapSoundWave() { static MapSoundWave resMap; return resMap; }
 
-using MapMaterial = std::unordered_map<string, sq::Resource<sqt::Material>>;
+using MapMaterial = std::unordered_map<string, sq::Resource<sq::Material>>;
 MapMaterial& static_MapMaterial() { static MapMaterial resMap; return resMap; }
 
-} // anonymous
+} // anonymous namespace
 
 namespace sqt {
 
-HandleTexture acquire_Texture(const string& _path)
+//========================================================//
+
+HandleTexture acquire_Texture(const string& path)
 {
-    auto& resource = static_MapTexture()[_path];
+    auto& resource = static_MapTexture()[path];
     if (resource.loaded() == true) return resource;
-    resource.uptr = sq::load_Texture2D(_path);
+
+    auto texture = sq::Texture2D::make_from_package(path);
+    resource.uptr = std::make_unique<sq::Texture2D>(std::move(texture));
+
     return resource;
 }
 
-HandleMesh acquire_Mesh(const string& _path)
+//========================================================//
+
+HandleMesh acquire_Mesh(const string& path)
 {
-    auto& resource = static_MapMesh()[_path];
-    if (resource.loaded() == true) return resource;
-    resource.uptr.reset(new sq::Mesh(_path));
+    auto& resource = static_MapMesh()[path];
+    if (resource.loaded()) return resource;
+    resource.uptr = sq::Mesh::make_from_package(path);
     return resource;
 }
 
-HandleArmature acquire_Armature(const string& _path)
+//========================================================//
+
+HandleArmature acquire_Armature(const string& path)
 {
-    auto& resource = static_MapArmature()[_path];
+    auto& resource = static_MapArmature()[path];
     if (resource.loaded() == true) return resource;
-    resource.uptr.reset(new sq::Armature(_path));
+    resource.uptr.reset(new sq::Armature(path));
     return resource;
 }
 
-HandleSoundWave acquire_SoundWave(const string& _path)
+//========================================================//
+
+HandleSoundWave acquire_SoundWave(const string& path)
 {
-    auto& resource = static_MapSoundWave()[_path];
+    auto& resource = static_MapSoundWave()[path];
     if (resource.loaded() == true) return resource;
-    resource.uptr.reset(new sq::SoundWave(_path));
+    resource.uptr.reset(new sq::SoundWave(path));
     return resource;
 }
 
-HandleMaterial acquire_Material(const string& _path)
+//========================================================//
+
+HandleMaterial acquire_Material(const string& path)
 {
-    auto& resource = static_MapMaterial()[_path];
+    auto& resource = static_MapMaterial()[path];
     if (resource.loaded() == true) return resource;
-    resource.uptr.reset(new Material(_path));
+    resource.uptr.reset(new sq::Material(path, &acquire_Texture));
     return resource;
 }
+
+//========================================================//
 
 } // namespace sqt

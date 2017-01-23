@@ -3,33 +3,66 @@
 #include <sqee/builtins.hpp>
 #include <sqee/maths/Vectors.hpp>
 
-// Forward Declarations /////
+#include <sqee/app/Scene.hpp>
+
+//============================================================================//
+
+// Non-SQEE Forward Declarations /////
+
 namespace sf { class Window; class Event; }
 namespace chaiscript { class ChaiScript; }
 
+//============================================================================//
+
 namespace sq {
 
-class DebugOverlay; class ChaiConsole; class Scene;
+//============================================================================//
+
+// Aliases and Forward Declarations /////
+
 using ChaiEngine = chai::ChaiScript;
 
-/// The basic SQEE Application class
-class Application : NonCopyable {
+class ChaiConsole;
+class DebugOverlay;
+class MessageBus;
+
+//============================================================================//
+
+/// The SQEE Application class
+class Application : NonCopyable
+{
 public:
+
+    //========================================================//
+
+    /// Constructor
     Application();
+
+    /// Virtual Destructor
     virtual ~Application();
 
+    //========================================================//
+
     int run();
-    void quit(int _code);
+
+    void quit(int code);
+
+    //========================================================//
 
     virtual void update_options();
-    virtual bool handle(sf::Event _event);
+    virtual bool handle(sf::Event event);
 
-    unique_ptr<ChaiEngine> chaiEngine;
-    unique_ptr<DebugOverlay> overlay;
-    unique_ptr<ChaiConsole> console;
+    //========================================================//
+
+    ChaiConsole& get_chai_console() { return *mChaiConsole; }
+    ChaiEngine& get_chai_engine() { return *mChaiEngine; }
+    DebugOverlay& get_debug_overlay() { return *mDebugOverlay; }
+    MessageBus& get_message_bus() { return *mMessageBus; }
+
+    //========================================================//
 
     string OPTION_WindowTitle  = "SQEE Application";
-    Vec2U  OPTION_WindowSize   = {800u, 600u};
+    Vec2U  OPTION_WindowSize   = { 800u, 600u };
     bool   OPTION_VerticalSync = false;
     bool   OPTION_HideCursor   = false;
     bool   OPTION_KeyRepeat    = false;
@@ -37,9 +70,22 @@ public:
     Vec2F mouse_centre();
 
 protected:
-    vector<unique_ptr<Scene>> activeScenes;
-    unique_ptr<sf::Window> window;
-    int returnCode = -1;
+
+    //========================================================//
+
+    unique_ptr<ChaiConsole> mChaiConsole;
+    unique_ptr<ChaiEngine> mChaiEngine;
+    unique_ptr<DebugOverlay> mDebugOverlay;
+    unique_ptr<MessageBus> mMessageBus;
+
+    //========================================================//
+
+    vector<unique_ptr<Scene>> mScenes;
+    unique_ptr<sf::Window> mWindow;
+
+    int mReturnCode = -1;
 };
 
-}
+//============================================================================//
+
+} // namespace sq

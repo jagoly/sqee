@@ -1,11 +1,17 @@
 #pragma once
 
+#include <cstddef>
+#include <cstdint>
 #include <cmath>
-#include <iterator>
 
-typedef unsigned char uchar;
+#include <type_traits>
+#include <utility>
+
+//============================================================================//
+
+typedef unsigned char  uchar;
 typedef unsigned short ushort;
-typedef unsigned int uint;
+typedef unsigned int   uint;
 
 typedef signed int    GLint;
 typedef unsigned int  GLuint;
@@ -16,7 +22,11 @@ typedef signed int    GLsizei;
 typedef unsigned int  GLenum;
 typedef char          GLchar;
 
+//============================================================================//
+
 namespace sq {
+
+//============================================================================//
 
 struct NonCopyable
 {
@@ -40,19 +50,22 @@ struct MoveOnly
     MoveOnly& operator=(MoveOnly&&) = default;
 };
 
+//============================================================================//
 
-struct expand {
-    template<class... Args> expand(Args&&...) {}
-};
+/// variadic function call expansion helper
+struct expand { template <class... Args> expand(Args&&...) {} };
 
-template<class T> struct reversion_wrapper { T& iterable; };
-template<class T> reversion_wrapper<T> reverse(T&& iterable) { return {iterable}; }
-template<class T> auto begin(reversion_wrapper<T> _wrapper) { return std::rbegin(_wrapper.iterable); }
-template<class T> auto end(reversion_wrapper<T> _wrapper) { return std::rend(_wrapper.iterable); }
+/// returns its argument as a const reference
+template <class Type> constexpr std::add_const_t<Type>& as_const(Type& arg) { return arg; }
 
-}
+//============================================================================//
+
+} // namespace sq
+
+//============================================================================//
 
 namespace chaiscript {}
 namespace reactphysics3d {}
+
 namespace chai = chaiscript;
 namespace rp3d = reactphysics3d;

@@ -1,5 +1,4 @@
 #include <sqee/redist/gl_ext_4_2.hpp>
-#include <sqee/maths/General.hpp>
 
 #include "Ambient.hpp"
 

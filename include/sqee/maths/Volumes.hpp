@@ -1,55 +1,100 @@
 #pragma once
 
+#include <array>
+
 #include <sqee/maths/Vectors.hpp>
-#include <sqee/maths/Matrices.hpp>
+#include <sqee/maths/Quaternion.hpp>
 
-namespace sq {
+namespace sq { namespace maths {
 
-struct Plane {        /// 3D Plane
-    Vec3F normal;     // normal of the plane
-    float offset;     // distance from origin
+//============================================================================//
+
+struct Sphere
+{
+    Vec3F origin; // centre of the sphere
+    float radius; // size of the sphere
 };
 
-struct Sphere {       /// Bounding Sphere
-    Vec3F origin;     // centre of the sphere
-    float radius;     // size of the sphere
+struct Box
+{
+    Vec3F origin;  // centre of the shapes
+    float radius;  // size of the sphere
+    Vec3F extents; // size of the box
+    QuatF basis;   // rotation of the box
 };
 
-struct BoundBox {     /// Oriented Bounding Box
-    Vec3F origin;     // centre of the shapes
-    float radius;     // size of the sphere
-    Vec3F points[8];  // corners of the box
+struct Plane
+{
+    Vec3F normal; // normal of the plane
+    float offset; // distance from origin
 };
 
-struct Frustum {      /// Perspective Frustum
-    Vec3F points[5];  // origin, LB, RB, LT, RT
-    Plane planes[5];  // near, L, R, B, T
-    float radius;     // = far - near
+//============================================================================//
+
+template <size_t N> using Planes = std::array<Plane, N>;
+
+//============================================================================//
+
+struct Frustum
+{
+    Sphere sphere;    // origin, radius
+    Planes<5> planes; // near, L, R, B, T
 };
 
-struct Ortho {        /// Orthogonal Frustum
-    Plane planes[4];  // L, R, B, T
-};
+//============================================================================//
 
-Sphere   make_Sphere   (const Mat4F& _matrix, Vec3F _origin, float _radius);
-BoundBox make_BoundBox (const Mat4F& _matrix, Vec3F _origin, float _radius, Vec3F _extents);
-Frustum  make_Frustum  (const Mat4F& _matrix, Vec3F _origin, Vec3F _dir, float _near, float _far);
-Ortho    make_Ortho    (const Mat4F& _matrix);
+inline Frustum make_frustum(Mat4F matrix, Vec3F origin, Vec3F direction, float radius)
+{
+    Frustum result;
 
-Frustum reflect_Frustum(const Frustum& _frus, Vec3F _normal, Vec3F _trans);
-Vec3F calc_frusCentre(const Frustum& _frus);
+    const Mat4F invMatrix = maths::inverse(matrix);
+    const auto divide_by_w = [](Vec4F v) { return Vec3F(v) / v.w; };
 
-bool intersects(const Sphere& a, const Sphere& b);
-bool intersects(const Sphere& a, const Frustum& b);
-bool intersects(const Sphere& a, const Ortho& b);
+    const Vec3F pointA = divide_by_w(invMatrix * Vec4F(-1.f, -1.f, 1.f, 1.f)); // LB
+    const Vec3F pointB = divide_by_w(invMatrix * Vec4F(-1.f, +1.f, 1.f, 1.f)); // LT
+    const Vec3F pointC = divide_by_w(invMatrix * Vec4F(+1.f, -1.f, 1.f, 1.f)); // RB
+    const Vec3F pointD = divide_by_w(invMatrix * Vec4F(+1.f, +1.f, 1.f, 1.f)); // RT
 
-bool intersects(const BoundBox& a, const Sphere& b);
-bool intersects(const BoundBox& a, const Frustum& b);
-bool intersects(const BoundBox& a, const Ortho& b);
+    const Vec3F normalA = maths::normalize(maths::cross(origin - pointB, origin - pointA));
+    const Vec3F normalB = maths::normalize(maths::cross(origin - pointC, origin - pointD));
+    const Vec3F normalC = maths::normalize(maths::cross(origin - pointA, origin - pointC));
+    const Vec3F normalD = maths::normalize(maths::cross(origin - pointD, origin - pointB));
 
-bool intersects(const Frustum& a, const Frustum& b);
+    result.planes[1] = Plane { normalA, maths::dot(-normalA, origin) }; // L
+    result.planes[2] = Plane { normalB, maths::dot(-normalB, origin) }; // R
+    result.planes[3] = Plane { normalC, maths::dot(-normalC, origin) }; // B
+    result.planes[4] = Plane { normalD, maths::dot(-normalD, origin) }; // T
 
-bool point_in_sphere_volume(Vec3F _point, const Sphere& _sphere);
-bool point_in_cone_volume(Vec3F _point, const Frustum& _frustum);
+    result.planes[0] = Plane { -direction, maths::dot(direction, origin) };
 
+    result.sphere = Sphere { origin, radius };
+
+    return result;
 }
+
+//============================================================================//
+
+inline Planes<4> make_ortho_xy(Mat4F matrix)
+{
+    Planes<4> result;
+
+    const Mat4F invMatrix = maths::inverse(matrix);
+    const auto divide_by_w = [](Vec4F v) { return Vec3F(v) / v.w; };
+
+    const Vec3F pointA = divide_by_w(invMatrix * Vec4F(-1.f,  0.f, 0.f, 1.f));
+    const Vec3F pointB = divide_by_w(invMatrix * Vec4F(+1.f,  0.f, 0.f, 1.f));
+    const Vec3F pointC = divide_by_w(invMatrix * Vec4F( 0.f, -1.f, 0.f, 1.f));
+    const Vec3F pointD = divide_by_w(invMatrix * Vec4F( 0.f, +1.f, 0.f, 1.f));
+
+    const Vec3F normalX = maths::normalize(Mat3F(invMatrix) * Vec3F(1.f, 0.f, 0.f));
+    const Vec3F normalY = maths::normalize(Mat3F(invMatrix) * Vec3F(0.f, 1.f, 0.f));
+
+    result[0] = Plane { -normalX, maths::dot(+normalX, pointA) }; // L
+    result[1] = Plane { +normalX, maths::dot(-normalX, pointB) }; // R
+    result[2] = Plane { -normalY, maths::dot(+normalY, pointC) }; // B
+    result[3] = Plane { +normalY, maths::dot(-normalY, pointD) }; // T
+
+    return result;
+}
+
+}} // namespace sq::maths

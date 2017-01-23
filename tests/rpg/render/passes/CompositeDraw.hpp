@@ -6,9 +6,15 @@
 
 namespace sqt { namespace render {
 
-class CompositePasses final : public SharedStuff {
+//============================================================================//
+
+class CompositePasses : public SharedStuff
+{
 public:
-    CompositePasses(const SharedStuff& _stuff);
+
+    //========================================================//
+
+    CompositePasses(const SharedStuff& stuff);
 
     void update_options();
 
@@ -16,10 +22,14 @@ public:
 
 private:
 
+    //========================================================//
+
     sq::FrameBuffer FB_Composite;
 
-    sq::Shader FS_Composite {gl::FRAGMENT_SHADER};
-    sq::Shader FS_FSAA_Screen {gl::FRAGMENT_SHADER};
+    sq::Shader FS_Composite {sq::Shader::Stage::Fragment};
+    sq::Shader FS_FSAA_Screen {sq::Shader::Stage::Fragment};
 };
 
-}}
+//============================================================================//
+
+}} // namespace sqt::render

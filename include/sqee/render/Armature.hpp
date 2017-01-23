@@ -23,7 +23,8 @@ struct ArmaTransform {
 };
 
 /// The SQEE Armature class
-class Armature : NonCopyable {
+class Armature : NonCopyable
+{
 public:
     Armature() = default;
     Armature(const string& _path);
@@ -36,11 +37,17 @@ public:
     std::unordered_map<string, Pose> poseMap;
     std::unordered_map<string, Anim> animMap;
 
+
     using UboData = vector<Mat34F>;
     static UboData make_UboData(const Pose& _pose);
     static Pose mix_Poses(const Pose& _a, const Pose& _b, float _factor);
+
+private:
+
+    vector<string> mBoneNames;
+    vector<int8_t> mBoneParents;
 };
 
 unique_ptr<Armature> load_Armature(const string& _path);
 
-}
+} // namespace sq

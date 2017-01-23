@@ -1,10 +1,20 @@
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build/testing")
 
 set(SOURCES
-    "main.cpp" 
+    "main.cpp"
     "catch.hpp"
 
-    "tests/maths.hpp"
+    "Common.hpp"
+    "Common.cpp"
+
+    "tests/maths/scalars.cpp"
+    "tests/maths/vectors.cpp"
+    "tests/maths/matrices.cpp"
+    "tests/maths/quaternion.cpp"
+
+    "tests/dop/entries.cpp"
+    "tests/dop/joined.cpp"
+    "tests/dop/reduce.cpp"
 )
 
 add_executable(sqee_testing ${SOURCES})

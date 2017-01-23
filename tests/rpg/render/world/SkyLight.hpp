@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sqee/app/Resources.hpp>
+#include <sqee/misc/Resource.hpp>
 #include <sqee/maths/Volumes.hpp>
 
 #include <sqee/gl/UniformBuffer.hpp>
@@ -18,8 +18,8 @@ struct SkyLightData {
     void refresh(const SceneData& _scene);
 
     // data required for rendering
-    struct Cascade { sq::FrameBuffer fbo; sq::Ortho ortho; Mat4F matrix; };
-    sq::UniformBuffer ubo; sq::Texture2DArray tex; Cascade cascades[6];
+    struct Cascade { sq::FrameBuffer fbo; sq::maths::Planes<4> planes; Mat4F matrix; };
+    sq::UniformBuffer ubo; sq::TextureArray2D tex; Cascade cascades[6];
     uint cascadeCount; float cascadeSize;
 };
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sqee/scenes/Scene.hpp>
+#include <sqee/app/Scene.hpp>
 
 namespace sqt {
 

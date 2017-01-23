@@ -13,6 +13,5 @@ add_executable(sqee_soko ${SOURCES})
 target_link_libraries(sqee_soko sqee)
 include_directories("${PROJECT_SOURCE_DIR}/include")
 
-file(COPY "meshes" DESTINATION "${CMAKE_BINARY_DIR}/build/tests/soko/")
-file(COPY "textures" DESTINATION "${CMAKE_BINARY_DIR}/build/tests/soko/")
+file(COPY "assets" DESTINATION "${CMAKE_BINARY_DIR}/build/tests/soko/")
 file(COPY "shaders" DESTINATION "${CMAKE_BINARY_DIR}/build/tests/soko/")

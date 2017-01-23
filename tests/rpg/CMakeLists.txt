@@ -3,6 +3,12 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build/tests/rpg")
 set(SOURCES
     "main.cpp"
     "messages.hpp"
+    "helpers.hpp"
+    "helpers.cpp"
+
+    "api/editors.hpp"   "api/editors.cpp"
+    "api/functions.hpp" "api/functions.cpp"
+    "api/other.hpp"     "api/other.cpp"
 
     "RpgApp.hpp"  "RpgApp.cpp"
     "Options.hpp" "Options.cpp"
@@ -12,25 +18,24 @@ set(SOURCES
 
     "components/BodyStatic.hpp"     "components/BodyStatic.cpp"
     "components/BodyDynamic.hpp"    "components/BodyDynamic.cpp"
-    "components/Animator.hpp"       "components/Animator.cpp"
-    "components/Transform.hpp"
-    "components/Model.hpp"
-    "components/Skeleton.hpp"
     "components/Decal.hpp"
     "components/LightOrtho.hpp"
     "components/LightPoint.hpp"
     "components/LightSpot.hpp"
 
-    "resources/Material.hpp"        "resources/Material.cpp"
     "resources/Manager.hpp"         "resources/Manager.cpp"
 
-    "world/static/StaticCell.hpp"   "world/static/StaticCell.cpp"
-    "world/static/StaticStuff.hpp"  "world/static/StaticStuff.cpp"
+    "systems/WorldStuff.hpp" "systems/WorldStuff.cpp"
 
-    "systems/Common.hpp"
+    "systems/Entity.hpp"     "systems/Entity.cpp"
+    "systems/Transform.hpp"  "systems/Transform.cpp"
+    "systems/Lighting.hpp"   "systems/Lighting.cpp"
+    "systems/Render.hpp"     "systems/Render.cpp"
+    "systems/Culling.hpp"    "systems/Culling.cpp"
+    "systems/Sound.hpp"      "systems/Sound.cpp"
+
     "systems/Animation.hpp" "systems/Animation.cpp"
-    "systems/Transform.hpp" "systems/Transform.cpp"
-    "systems/Sound.hpp"     "systems/Sound.cpp"
+    "systems/Physics.hpp"   "systems/Physics.cpp"
 
     "world/World.hpp" "world/World.cpp"
 
@@ -44,11 +49,6 @@ set(SOURCES
     "render/PassesData.hpp"  "render/PassesData.cpp"
     "render/Renderer.hpp"    "render/Renderer.cpp"
 
-    "render/static/StaticModel.hpp" "render/static/StaticModel.cpp"
-    "render/static/StaticDecal.hpp" "render/static/StaticDecal.cpp"
-
-    "render/entity/ModelSimple.hpp" "render/entity/ModelSimple.cpp"
-    "render/entity/ModelSkelly.hpp" "render/entity/ModelSkelly.cpp"
     "render/entity/DecalBasic.hpp"  "render/entity/DecalBasic.cpp"
     "render/entity/LightOrtho.hpp"  "render/entity/LightOrtho.cpp"
     "render/entity/LightPoint.hpp"  "render/entity/LightPoint.cpp"

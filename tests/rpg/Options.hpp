@@ -6,7 +6,14 @@
 
 namespace sqt {
 
-struct Options final {
+//============================================================================//
+
+/// SQEE RPG Global Options
+class Options : sq::NonCopyable
+{
+public:
+
+    //========================================================//
 
     /// The Size of the Viewport
     Vec2U Window_Size = {800u, 600u};
@@ -38,15 +45,20 @@ struct Options final {
     /// Debug Texture to Draw to Screen
     string Debug_Texture = "";
 
+    //========================================================//
+
     /// Assert that options are valid
     void validate() const;
 
     /// Get the Static Instance
     static Options& get();
 
-    /// Private Constructors
+    //========================================================//
+
+    /// Private Constructor
     private: Options() = default;
-    Options(const Options&) = delete;
 };
 
-}
+//============================================================================//
+
+} // namespace sqt

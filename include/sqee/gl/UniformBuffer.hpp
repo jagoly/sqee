@@ -6,45 +6,67 @@
 
 namespace sq {
 
-/// A class for OpenGL uniform buffer objects
-class UniformBuffer final : NonCopyable {
+//============================================================================//
+
+class Context; // Forward Declaration
+
+//============================================================================//
+
+/// OpenGL Uniform Buffer Object
+class UniformBuffer final : public MoveOnly
+{
 public:
-    ~UniformBuffer();
+
+    //========================================================//
 
     /// Constructor
-    UniformBuffer() = default;
+    UniformBuffer();
 
-    /// Delete the GL object and clear layout
-    void delete_object();
+    /// Move Constructor
+    UniformBuffer(UniformBuffer&& other);
 
-    /// Add and reserve space for a uniform of a specified size
-    void reserve(const string& _name, uint _size);
+    /// Destructor
+    ~UniformBuffer();
 
-    /// Create object and allocate storage. Call after reserve().
+    //========================================================//
+
+    /// Reserve space for a uniform of size
+    void reserve(const string& name, uint size);
+
+    /// Create object and allocate storage
     void create_and_allocate();
 
+    //========================================================//
+
     /// Update a single uniform with a pointer
-    void update(const string& _name, const void* _data);
+    void update(const string& name, const void* data);
 
     /// Update part of the buffer relative to a uniform
-    void update(const string& _name, uint _offset, uint _size, const void* _data);
+    void update(const string& name, uint offset, uint size, const void* data);
 
     /// Update an arbitary section of the buffer
-    void update(uint _offset, uint _size, const void* _data);
+    void update(uint offset, uint size, const void* data);
 
     /// Get the current size of the reserve list
-    uint get_size() const { return currentSize; }
+    uint get_size() const { return mCurrentSize; }
 
-    /// Get the OpenGL handle
-    const GLuint& get_handle() const { return ubo; }
+    //========================================================//
+
+    /// Get the OpenGL object handle
+    GLuint get_handle() const { return mHandle; }
 
 private:
-    /// The OpenGL handle
-    GLuint ubo = 0u;
+
+    //========================================================//
 
     struct Item { const uint offset, size; };
-    std::unordered_map<string, Item> itemMap;
-    uint currentSize = 0u;
+    std::unordered_map<string, Item> mItemMap;
+    uint mCurrentSize = 0u;
+
+    GLuint mHandle = 0u;
+    Context& mContext;
 };
 
-}
+//============================================================================//
+
+} // namespace sq

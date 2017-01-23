@@ -16,24 +16,33 @@ using std::ifstream;
 using std::stringstream;
 
 
-bool sq::check_file_exists(const string& _path) {
-    return ifstream(_path).good();
+bool sq::check_file_exists(const string& path)
+{
+    return std::ifstream(path).good();
 }
 
 
-char sq::get_file_first_char(const string& _path) {
-    ifstream src(_path);
-    if (src.is_open() == false) {
-        log_error("Couldn't open file %s", _path);
+char sq::get_file_first_char(const string& path)
+{
+    std::ifstream src(path);
+
+    if (src.is_open() == false)
+    {
+        log_warning("Couldn't open file '%s'", path);
         return char(-1);
-    } return src.get();
+    }
+
+    return char(src.get());
 }
 
 
-string sq::get_string_from_file(const string& _path) {
-    ifstream src(_path);
-    if (src.is_open() == false) {
-        log_warning("Couldn't open file %s", _path);
+string sq::get_string_from_file(const string& path)
+{
+    std::ifstream src(path);
+
+    if (src.is_open() == false)
+    {
+        log_warning("Couldn't open file '%s'", path);
         return string();
     }
 
@@ -43,17 +52,27 @@ string sq::get_string_from_file(const string& _path) {
 }
 
 
-vector<uchar> sq::get_bytes_from_file(const string& _path) {
-    ifstream src(_path, std::ios::binary | std::ios::ate);
-    if (src.is_open() == false) {
-        log_warning("Couldn't open file %s", _path);
+vector<uchar> sq::get_bytes_from_file(const string& path)
+{
+    using unsigned_ifstream = std::basic_ifstream<uchar>;
+    unsigned_ifstream src(path, std::ios::binary | std::ios::ate);
+    //std::ifstream src(path, std::ios::binary | std::ios::ate);
+
+    if (src.is_open() == false)
+    {
+        log_warning("Couldn't open file '%s'", path);
         return vector<uchar>();
     }
 
-    vector<uchar> retVec(src.tellg());
+    const auto fileSize = src.tellg();
+
+    vector<uchar> result;
+    result.resize(uint(fileSize));
+
     src.seekg(0, src.beg);
-    src.read((char*)&retVec[0], retVec.size());
-    return retVec;
+    src.read(result.data(), fileSize);
+
+    return result;
 }
 
 

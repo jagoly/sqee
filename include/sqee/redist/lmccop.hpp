@@ -35,7 +35,7 @@
  * @brief This is the only file required to use The Lean Mean C++ Option Parser.
  *        Just \#include it and you're set.
  *
- * The Lean Mean C++ Option Parser handles the program's command line arguments 
+ * The Lean Mean C++ Option Parser handles the mhandle's command line arguments 
  * (argc, argv).
  * It supports the short and long option formats of getopt(), getopt_long() 
  * and getopt_long_only() but has a more convenient interface.
@@ -80,7 +80,7 @@
  * (This does not include the usage formatter, of course. But you don't have to use that.)
  *
  * @par Download:
- * Tarball with examples and test programs:
+ * Tarball with examples and test mhandles:
  * <a style="font-size:larger;font-weight:bold" href="http://sourceforge.net/projects/optionparser/files/optionparser-1.3.tar.gz/download">optionparser-1.3.tar.gz</a> @n
  * Just the header (this is all you really need):
  * <a style="font-size:larger;font-weight:bold" href="http://optionparser.sourceforge.net/optionparser.h">optionparser.h</a>
@@ -101,7 +101,7 @@
  * @htmlonly <script type="text/javascript">document.getElementById("antispam").innerHTML="@"</script> @endhtmlonly
  *
  *
- * @par Example program:
+ * @par Example mhandle:
  * (Note: @c option::* identifiers are links that take you to their documentation.)
  * @code
  * #include <iostream>
@@ -122,7 +122,7 @@
  *
  * int main(int argc, char* argv[])
  * {
- *   argc-=(argc>0); argv+=(argc>0); // skip program name argv[0] if present
+ *   argc-=(argc>0); argv+=(argc>0); // skip mhandle name argv[0] if present
  *   option::Stats  stats(usage, argc, argv);
  *   option::Option options[stats.options_max], buffer[stats.buffer_max];
  *   option::Parser parse(usage, argc, argv, options, buffer);
@@ -195,7 +195,7 @@
  *     argument beginning with the minus character it is required to use the
  *     @c -- special option, e.g.
  *     @code
- *     program -x -- --strange-filename
+ *     mhandle -x -- --strange-filename
  *     @endcode
  *     In this example, @c --strange-filename is a non-option argument. If the @c --
  *     were omitted, it would be treated as an unknown option. @n
@@ -288,7 +288,7 @@ typedef ArgStatus (*CheckArg)(const Option& option, bool msg);
  *     "c",                                               // shortopt
  *     "create",                                          // longopt
  *     Arg::None,                                         // check_arg
- *     "--create  Tells the program to create something." // help
+ *     "--create  Tells the mhandle to create something." // help
  *   }
  *   , ...
  * };
@@ -580,7 +580,7 @@ public:
    * @brief Returns a pointer to the first element of the linked list.
    *
    * Use this when you want the first occurrence of an option on the command line to
-   * take precedence. Note that this is not the way most programs handle options.
+   * take precedence. Note that this is not the way most mhandles handle options.
    * You should probably be using last() instead.
    *
    * @note
@@ -1015,7 +1015,7 @@ private:
  * @code
  * int main(int argc, char* argv[])
  * {
- *   argc-=(argc>0); argv+=(argc>0); // skip program name argv[0] if present
+ *   argc-=(argc>0); argv+=(argc>0); // skip mhandle name argv[0] if present
  *   option::Stats  stats(usage, argc, argv);
  *   option::Option options[stats.options_max], buffer[stats.buffer_max];
  *   option::Parser parse(usage, argc, argv, options, buffer);
@@ -1221,7 +1221,7 @@ public:
    * An illegal argument to an option (i.e. CheckArg returns @ref ARG_ILLEGAL) is an
    * unrecoverable error that aborts the parse. Unknown options are only an error if
    * their CheckArg function returns @ref ARG_ILLEGAL. Otherwise they are collected.
-   * In that case if you want to exit the program if either an illegal argument
+   * In that case if you want to exit the mhandle if either an illegal argument
    * or an unknown option has been passed, use code like this
    *
    * @code
@@ -2482,7 +2482,7 @@ struct PrintUsageImplementation
 
       // If lastcolumn == 0 we must disable print_last_column_on_own_line because
       // otherwise 2 copies of the last (and only) column would be output.
-      // Actually this is just defensive programming. It is currently not
+      // Actually this is just defensive mhandleming. It is currently not
       // possible that lastcolumn==0 and print_last_column_on_own_line==true
       // at the same time, because lastcolumn==0 => tabstop[lastcolumn] == 0 =>
       // rightwidth==width => rightwidth>=last_column_min_width  (unless someone passes
@@ -2714,7 +2714,7 @@ struct PrintUsageImplementation
  * @li a functor like @c MyWriteFunctor in the example must be passed as a pointer.
  *     This differs from the way functors are passed to e.g. the STL algorithms.
  * @li All printUsage() templates are tiny wrappers around a shared non-template implementation.
- *     So there's no penalty for using different versions in the same program.
+ *     So there's no penalty for using different versions in the same mhandle.
  * @li printUsage() always interprets Descriptor::help as UTF-8 and always produces UTF-8-encoded
  *     output. If your system uses a different charset, you must do your own conversion. You
  *     may also need to change the font of the console to see non-ASCII characters properly.

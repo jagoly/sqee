@@ -1,159 +1,305 @@
-#include <cstring>
-#include <stdexcept>
-
 #include <sqee/redist/gl_ext_4_2.hpp>
-#include <sqee/redist/tinyformat.hpp>
-#include <sqee/app/Resources.hpp>
-#include <sqee/maths/General.hpp>
+#include <sqee/debug/Logging.hpp>
+
+#include <sqee/misc/Resource.hpp>
 #include <sqee/misc/Files.hpp>
+
 #include <sqee/render/Mesh.hpp>
 
 using namespace sq;
 
-template<typename... Args>
-void throw_error(const string& _path, int _lnum, const string& _msg, const Args&... _args) {
-    string message = tfm::format("Parsing SQM \"%s\"\nline %d: ", _path, _lnum);
-    throw std::runtime_error(message + tfm::format(_msg.c_str(), _args...));
+//============================================================================//
+
+namespace { // anonymous
+
+using GL_Float32 = GLfloat;
+using GL_SNorm16 = GLshort;
+using GL_UNorm8 = GLubyte;
+using GL_SInt8 = GLbyte;
+
+inline void impl_ascii_append_Float32(uchar*& ptr, const string& str)
+{
+    const auto value = GL_Float32(stof(str));
+    reinterpret_cast<GL_Float32&>(*ptr) = value;
+    std::advance(ptr, sizeof(GL_Float32));
 }
 
-
-Mesh::Mesh(const string& _path) :
-    vertBuf(gl::ARRAY_BUFFER), elemBuf(gl::ELEMENT_ARRAY_BUFFER) {
-    vertArr.set_element_buffer(elemBuf);
-
-    string path = static_path() + "meshes/" + _path + ".sqm";
-    if (get_file_first_char(path) == '#') load_ascii(path);
-    //else load_binary(path);
+inline void impl_ascii_append_SNorm16(uchar*& ptr, const string& str)
+{
+    const auto value = GL_SNorm16(stof(str) * 32767.f);
+    reinterpret_cast<GL_SNorm16&>(*ptr) = value;
+    std::advance(ptr, sizeof(GL_SNorm16));
 }
 
-void Mesh::draw_complete() const {
-    gl::DrawElements(gl::TRIANGLES, elementTotal, gl::UNSIGNED_INT, nullptr);
+inline void impl_ascii_append_UNorm8(uchar*& ptr, const string& str)
+{
+    const auto value = GL_UNorm8(stof(str) * 255.f);
+    reinterpret_cast<GL_UNorm8&>(*ptr) = value;
+    std::advance(ptr, sizeof(GL_UNorm8));
 }
 
-void Mesh::draw_material(uint _index) const {
-    size_t start = mtrlVec[_index].first; uint count = mtrlVec[_index].second;
-    gl::DrawElements(gl::TRIANGLES, count, gl::UNSIGNED_INT, (void*)start);
+inline void impl_ascii_append_SInt8(uchar*& ptr, const string& str)
+{
+    const auto value = GL_SInt8(stoi(str));
+    reinterpret_cast<GL_SInt8&>(*ptr) = value;
+    std::advance(ptr, sizeof(GL_SInt8));
 }
 
-BoundBox Mesh::create_BoundBox(const Mat4F& _modelMat) const {
-    return make_BoundBox(_modelMat, origin, radius, bbsize);
+} // anonymous namespace
+
+//============================================================================//
+
+Mesh::Mesh() : mVertexBuffer(gl::ARRAY_BUFFER), mIndexBuffer(gl::ELEMENT_ARRAY_BUFFER) {}
+
+//============================================================================//
+
+void Mesh::load_from_file(const string& path)
+{
+    impl_load_ascii("assets/" + path + ".sqm");
 }
 
-void Mesh::load_ascii(const string& _path) {
-    const auto fileVec = tokenise_file(_path);
-    const string& path = _path;
+//============================================================================//
 
-    VertData vData;
-    FaceData fData;
+void Mesh::draw_complete() const
+{
+    gl::DrawElements(gl::TRIANGLES, int(mIndexTotal), gl::UNSIGNED_INT, nullptr);
+}
 
+void Mesh::draw_partial(uint index) const
+{
+    const auto& subMesh = mSubMeshVec[index];
+    const auto startLong = long(subMesh.firstIndex * 4u);
+    const auto start = reinterpret_cast<void*>(startLong);
+    const auto count = GLsizei(subMesh.indexCount);
+
+    gl::DrawElements(gl::TRIANGLES, count, gl::UNSIGNED_INT, start);
+}
+
+//============================================================================//
+
+void Mesh::impl_load_ascii(const string& path)
+{
     string section = "";
-    for (const auto& linePair : fileVec) {
-        const vector<string>& line = linePair.first;
-        const uint lnum = linePair.second;
-        const string& key = line.front();
+
+    vector<uchar> vertexData;
+    vector<uint> indexData;
+
+    bool allocatedVertices = false;
+    bool allocatedIndices = false;
+
+    uchar* vertexPtr = nullptr;
+    uint* indexPtr = nullptr;
+
+    //========================================================//
+
+    //for (const auto& [line, num] : tokenise_file(path))
+    for (const auto& linePair : tokenise_file(path))
+    {
+        const auto& line = linePair.first;
+        //const auto& num = linePair.second;
+        const auto& key = line.front();
+
+        //========================================================//
 
         if (key.front() == '#') continue;
-        if (key == "{") { if (section.empty()) section = line[1];
-            else throw_error(path, lnum, "Misplaced {"); continue; }
-        if (key == "}") { if (!section.empty()) section.clear();
-            else throw_error(path, lnum, "Misplaced }"); continue; }
 
-        if (section == "header") {
-            if      (key == "radius") { radius = stof(line[1]); }
-            else if (key == "origin") { origin = svtofv3(line, 1); }
-            else if (key == "sphere") origin = svtofv3(line, 1), radius = stof(line[4]);
-            else if (key == "bbsize") { bbsize = svtofv3(line, 1); }
-            else if (key == "vertCount") { vertCount = stou(line[1]); }
-            else if (key == "faceCount") { faceCount = stou(line[1]); }
-            else if (key == "mtrlCount") { mtrlCount = stou(line[1]); fData.resize(mtrlCount); }
-            else if (key == "hasNorm") { optionsBits = optionsBits | 0b10000; }
-            else if (key == "hasTang") { optionsBits = optionsBits | 0b01000; }
-            else if (key == "hasTcrd") { optionsBits = optionsBits | 0b00100; }
-            else if (key == "hasColr") { optionsBits = optionsBits | 0b00010; }
-            else if (key == "hasBone") { optionsBits = optionsBits | 0b00001; }
-            else throw_error(path, lnum, "Invalid property \"%s\"", key);
+        else if (key == "{")
+        {
+            if (section.empty()) section = line[1];
+            else log_warning("stray { in mesh '%s'", path);
         }
 
-        else if (section == "vertices") {
-            uint n = 0u;
-            vData.points.emplace_back(svtofv3(line, n)); n+=3u;
-            if (has_NORM() == true) {
-                vData.normals.emplace_back(svtofv3(line, n)); n+=3u;
+        else if (key == "}")
+        {
+            if (!section.empty()) section.clear();
+            else log_warning("stray } in mesh '%s'", path);
+        }
+
+        //========================================================//
+
+        else if (section == "header")
+        {
+            if (key == "Attrs")
+            {
+                for (uint i = 1u; i < line.size(); ++i)
+                {
+                    if (line[i] == "TCRD") mOptionsBits |= 0b10000;
+                    if (line[i] == "NORM") mOptionsBits |= 0b01000;
+                    if (line[i] == "TANG") mOptionsBits |= 0b00100;
+                    if (line[i] == "COLR") mOptionsBits |= 0b00010;
+                    if (line[i] == "BONE") mOptionsBits |= 0b00001;
+                }
             }
-            if (has_TANG() == true) {
-                vData.tangents.emplace_back(svtofv4(line, n)); n+=4u;
+
+            else if (key == "Origin") mOrigin = { stof(line[1]), stof(line[2]), stof(line[3]) };
+
+            else if (key == "Extents") mExtents = { stof(line[1]), stof(line[2]), stof(line[3]) };
+
+            else if (key == "Radius") mRadius = stof(line[1]);
+
+            else if (key == "SubMesh")
+            {
+                const uint firstVertex = mVertexTotal;
+                const uint firstIndex = mIndexTotal;
+
+                const uint vertexCount = stou(line[1]);
+                const uint indexCount = stou(line[2]);
+
+                mSubMeshVec.push_back({firstVertex, vertexCount, firstIndex, indexCount});
+
+                mVertexTotal += vertexCount;
+                mIndexTotal += indexCount;
             }
-            if (has_TCRD() == true) {
-                vData.texcrds.emplace_back(svtofv2(line, n)); n+=2u;
+
+            else log_warning("invalid header key '%s' in mesh '%s'", key, path);
+        }
+
+        //========================================================//
+
+        else if (section == "vertices")
+        {
+            if (allocatedVertices == false)
+            {
+                mVertexSize = sizeof(GL_Float32[3]);
+                if (has_TCRD()) mVertexSize += sizeof(GL_Float32[2]);
+                if (has_NORM()) mVertexSize += sizeof(GL_SNorm16[3]);
+                if (has_TANG()) mVertexSize += sizeof(GL_SNorm16[4]);
+                if (has_COLR()) mVertexSize += sizeof(GL_Float32[3]);
+                if (has_BONE()) mVertexSize += sizeof(GL_SInt8[4]);
+                if (has_BONE()) mVertexSize += sizeof(GL_UNorm8[4]);
+
+                vertexData.resize(mVertexTotal * mVertexSize);
+                vertexPtr = vertexData.data();
+                allocatedVertices = true;
             }
-            if (has_COLR() == true) {
-                vData.colours.emplace_back(svtofv3(line, n)); n+=3u;
+
+            uint ind = 0u;
+
+            impl_ascii_append_Float32(vertexPtr, line[ind++]);
+            impl_ascii_append_Float32(vertexPtr, line[ind++]);
+            impl_ascii_append_Float32(vertexPtr, line[ind++]);
+
+            if (has_TCRD() == true)
+            {
+                impl_ascii_append_Float32(vertexPtr, line[ind++]);
+                impl_ascii_append_Float32(vertexPtr, line[ind++]);
             }
-            if (has_BONE() == true) {
-                vData.bones.emplace_back(svtoiv4(line, n)); n+=4u;
-                vData.weights.emplace_back(svtofv4(line, n)); n+=4u;
+
+            if (has_NORM() == true)
+            {
+                impl_ascii_append_SNorm16(vertexPtr, line[ind++]);
+                impl_ascii_append_SNorm16(vertexPtr, line[ind++]);
+                impl_ascii_append_SNorm16(vertexPtr, line[ind++]);
+            }
+
+            if (has_TANG() == true)
+            {
+                impl_ascii_append_SNorm16(vertexPtr, line[ind++]);
+                impl_ascii_append_SNorm16(vertexPtr, line[ind++]);
+                impl_ascii_append_SNorm16(vertexPtr, line[ind++]);
+                impl_ascii_append_SNorm16(vertexPtr, line[ind++]);
+            }
+
+            if (has_COLR() == true)
+            {
+                impl_ascii_append_Float32(vertexPtr, line[ind++]);
+                impl_ascii_append_Float32(vertexPtr, line[ind++]);
+                impl_ascii_append_Float32(vertexPtr, line[ind++]);
+            }
+
+            if (has_BONE() == true)
+            {
+                impl_ascii_append_SInt8(vertexPtr, line[ind++]);
+                impl_ascii_append_SInt8(vertexPtr, line[ind++]);
+                impl_ascii_append_SInt8(vertexPtr, line[ind++]);
+                impl_ascii_append_SInt8(vertexPtr, line[ind++]);
+            }
+
+            if (has_BONE() == true)
+            {
+                impl_ascii_append_UNorm8(vertexPtr, line[ind++]);
+                impl_ascii_append_UNorm8(vertexPtr, line[ind++]);
+                impl_ascii_append_UNorm8(vertexPtr, line[ind++]);
+                impl_ascii_append_UNorm8(vertexPtr, line[ind++]);
             }
         }
 
-        else if (section == "faces") {
-            if (mtrlCount > 1u) {
-                fData[stou(line[0])].emplace_back(svtouv3(line, 1));
-            } else fData.front().emplace_back(svtouv3(line, 0));
+        //========================================================//
+
+        else if (section == "indices")
+        {
+            if (allocatedIndices == false)
+            {
+                indexData.resize(mIndexTotal);
+                indexPtr = indexData.data();
+                allocatedIndices = true;
+            }
+
+            *(indexPtr++) = stou(line[0]);
+            *(indexPtr++) = stou(line[1]);
+            *(indexPtr++) = stou(line[2]);
         }
 
-        else throw_error(path, lnum, "Invalid section \"%s\"", section);
+        //========================================================//
+
+        else log_error("invalid section '%s' in mesh '%s'", section, path);
     }
 
-    load_final(vData, fData);
+    //========================================================//
+
+    SQASSERT(vertexPtr == vertexData.end().base(), "");
+    SQASSERT(indexPtr == indexData.end().base(), "");
+
+    impl_load_final(vertexData, indexData);
 }
 
+//============================================================================//
 
-void Mesh::load_final(const VertData& _v, const FaceData& _f) {
-    size_t ptOffs = 0u;
-    size_t nmOffs = vertCount * 12u;
-    size_t tnOffs = vertCount * 24u;
-    size_t tcOffs = ptOffs + has_NORM() * vertCount * 40u;
-    size_t clOffs = tcOffs + has_TCRD() * vertCount * 8u;
-    size_t bwOffs = clOffs + has_COLR() * vertCount * 12u;
+void Mesh::impl_load_final(const vector<uchar>& vertexData, const vector<uint>& indexData)
+{
+    mVertexBuffer.allocate_constant(vertexData.size(), vertexData.data());
+    mIndexBuffer.allocate_constant(indexData.size() * 4u, indexData.data());
 
-    size_t vSize = 12 + has_NORM()*28 + has_TCRD()*8 + has_COLR()*12 + has_BONE()*32;
+    mVAO.set_vertex_buffer(mVertexBuffer, 0u, mVertexSize);
+    mVAO.set_index_buffer(mIndexBuffer);
 
-    vertBuf.allocate_editable(vertCount*vSize, nullptr);
-    vertBuf.update(ptOffs, vertCount * 12u, _v.points.data());
-    vertArr.add_attribute(vertBuf, 0u, ptOffs, 12u, 3u, gl::FLOAT, false);
+    const uint sizeTCRD = sizeof(GL_Float32[2]) * has_TCRD();
+    const uint sizeNORM = sizeof(GL_SNorm16[3]) * has_NORM();
+    const uint sizeTANG = sizeof(GL_SNorm16[4]) * has_TANG();
+    const uint sizeCOLR = sizeof(GL_Float32[3]) * has_COLR();
+    const uint sizeBONE = sizeof(GL_SInt8[4]) * has_BONE();
 
-    if (has_NORM() == true) {
-        vertBuf.update(nmOffs, vertCount * 12u, _v.normals.data());
-        vertBuf.update(tnOffs, vertCount * 16u, _v.tangents.data());
-        vertArr.add_attribute(vertBuf, 1u, nmOffs, 12u, 3u, gl::FLOAT, false);
-        vertArr.add_attribute(vertBuf, 2u, tnOffs, 16u, 4u, gl::FLOAT, false);
-    }
+    const uint offsetTCRD = sizeof(GL_Float32[3]);
+    const uint offsetNORM = offsetTCRD + sizeTCRD;
+    const uint offsetTANG = offsetNORM + sizeNORM;
+    const uint offsetCOLR = offsetTANG + sizeTANG;
 
-    if (has_TCRD() == true) {
-        vertBuf.update(tcOffs, vertCount * 8u, _v.texcrds.data());
-        vertArr.add_attribute(vertBuf, 3u, tcOffs, 8u, 2u, gl::FLOAT, false);
-    }
+    const uint offsetBoneI = offsetCOLR + sizeCOLR;
+    const uint offsetBoneW = offsetBoneI + sizeBONE;
 
-    if (has_COLR() == true) {
-        vertBuf.update(clOffs, vertCount * 12u, _v.colours.data());
-        vertArr.add_attribute(vertBuf, 4u, clOffs, 12u, 3u, gl::FLOAT, false);
-    }
+    mVAO.add_float_attribute(0u, 3u, gl::FLOAT, false, 0u);
 
-    if (has_BONE() == true) {
-        uchar* data = new uchar[vertCount*32];
-        for (uint i = 0u; i < vertCount; ++i) {
-            std::memcpy(data + i * 32 + 00, &_v.bones.at(i), 16u);
-            std::memcpy(data + i * 32 + 16, &_v.weights.at(i), 16u);
-        } vertBuf.update(bwOffs, vertCount * 32u, data); delete[] data;
-        vertArr.add_attribute_I(vertBuf, 5u, bwOffs + 00u, 32u, 4u, gl::INT);
-        vertArr.add_attribute(vertBuf, 6u, bwOffs + 16u, 32u, 4u, gl::FLOAT, false);
-    }
+    if (has_TCRD()) mVAO.add_float_attribute(1u, 2u, gl::FLOAT, false, offsetTCRD);
+    if (has_NORM()) mVAO.add_float_attribute(2u, 3u, gl::SHORT, true, offsetNORM);
+    if (has_TANG()) mVAO.add_float_attribute(3u, 4u, gl::SHORT, true, offsetTANG);
+    if (has_COLR()) mVAO.add_float_attribute(4u, 3u, gl::FLOAT, false, offsetCOLR);
 
-    vector<Vec3U> faceData; uint start = 0u;
-    for (uint i = 0u; i < mtrlCount; ++i) {
-        mtrlVec.emplace_back(start, _f[i].size() * 3u);
-        start += mtrlVec.back().second * 4u;
-        faceData.insert(faceData.end(), _f[i].begin(), _f[i].end());
-    } elemBuf.allocate_constant(faceData.size() * 12u, faceData.data());
-    elementTotal = faceData.size() * 3u;
+    if (has_BONE()) mVAO.add_integer_attribute(5u, 4u, gl::BYTE, offsetBoneI);
+    if (has_BONE()) mVAO.add_float_attribute(6u, 4u, gl::UNSIGNED_BYTE, true, offsetBoneW);
+}
+
+//============================================================================//
+
+unique_ptr<Mesh> Mesh::make_from_package(const string& path)
+{
+    const string::size_type splitPos = path.find(':');
+    log_assert(splitPos != string::npos, "bad path '%s'", path);
+
+    const string package = path.substr(0u, splitPos);
+    const string name = path.substr(splitPos + 1u);
+
+    unique_ptr<Mesh> mesh = std::make_unique<Mesh>();
+    mesh->load_from_file("packages/" + package + "/meshes/" + name);
+
+    return mesh;
 }

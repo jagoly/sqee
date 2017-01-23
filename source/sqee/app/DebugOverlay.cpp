@@ -1,63 +1,71 @@
-#include <sqee/redist/gl_ext_4_2.hpp>
-#include <sqee/app/DebugOverlay.hpp>
-#include <sqee/app/Application.hpp>
-#include <sqee/debug/Misc.hpp>
+#include <sqee/messages.hpp>
 #include <sqee/gl/Context.hpp>
-#include <sqee/text/Text.hpp>
+#include <sqee/debug/Text.hpp>
+
+#include <sqee/app/MessageBus.hpp>
+#include <sqee/app/DebugOverlay.hpp>
 
 using namespace sq;
 
-DebugOverlay::DebugOverlay(Application& _app) : app(_app) {}
+//============================================================================//
 
-void DebugOverlay::tick() {
-    if (notifyDeq.empty() == false) {
-        notifyTimeLeft -= 1u;
+DebugOverlay::DebugOverlay(Application& app) : mApplication(app) {}
 
-        if (notifyTimeLeft == 0u) {
-            notifyDeq.pop_front();
-            if (notifyDeq.empty() == false) {
-                notifyTimeLeft = notifyDeq.front().second;
-            }
-        }
+//============================================================================//
+
+void DebugOverlay::tick()
+{
+    if (mNotifications.empty() == false && --mTicksLeft == 0u)
+    {
+        mNotifications.pop_front();
+
+        if (mNotifications.empty() == false)
+            mTicksLeft = mNotifications.front().second;
     }
 }
 
-void DebugOverlay::render(float _ft) {
+//============================================================================//
 
-    using Context = sq::Context;
+void DebugOverlay::render(float frameTime)
+{
     static auto& context = Context::get();
 
-    context.set_ViewPort(app.OPTION_WindowSize);
+    context.set_ViewPort(mApplication.OPTION_WindowSize);
+
+    mFrameTime = maths::mix(frameTime, mFrameTime, 0.8f);
+    const double fps = 1.0 / double(mFrameTime);
 
     char roundedFPS[10];
-    frameTime = _ft * 0.2f + frameTime * 0.8f;
-    std::sprintf(roundedFPS, "%.2f", 1.f / frameTime);
+    std::sprintf(roundedFPS, "%.2f", fps);
 
-    render_text_basic(roundedFPS, app.OPTION_WindowSize,
-                      TextBasicFlow::Positive, TextBasicFlow::Negative,
-                      TextBasicAlign::Negative, TextBasicAlign::Negative,
-                      Vec2F(40.f, 50.f), Vec3F(1.f, 1.f, 1.f), 1.f, true);
+    render_text_basic(roundedFPS, Vec2I(+1, -1), Vec2I(-1, -1), Vec2F(40, 50), Vec4F(1, 1, 1, 1), true);
 
-    if (notifyDeq.empty() == false && notifyTimeLeft != notifyDeq.front().second) {
-        float a = notifyTimeLeft == 1u ? 1.f - accumulation * 8.f : 1.f;
-        render_text_basic(notifyDeq.front().first, app.OPTION_WindowSize,
-                          TextBasicFlow::Positive, TextBasicFlow::Negative,
-                          TextBasicAlign::Positive, TextBasicAlign::Negative,
-                          Vec2F(25.f, 30.f), Vec3F(1.f, 1.f, 1.f), a, true);
+    if (mNotifications.empty() == false && mTicksLeft != mNotifications.front().second)
+    {
+        const string& message = mNotifications.front().first;
+        const float alpha = mTicksLeft == 1u ? 1.f - accumulation * 8.f : 1.f;
+
+        render_text_basic(message, Vec2I(+1, -1), Vec2I(-1, -1), Vec2F(25, 30), Vec4F(1, 1, 1, alpha), true);
     }
 }
 
-void DebugOverlay::toggle_active() {
-    if ((active = !active)) {
-        for (auto& func : onShowFuncs) func();
-    } else {
-        for (auto& func : onHideFuncs) func();
-    }
+//============================================================================//
+
+void DebugOverlay::toggle_active()
+{
+    mActive = !mActive;
+
+    const msg::Toggle_Debug_Overlay message { mActive };
+    mApplication.get_message_bus().send_message(message);
 }
 
-void DebugOverlay::notify(const string& _message, uint _time) {
-    if (active == true) {
-        notifyDeq.emplace_back(_message, _time);
-        if (notifyDeq.size() == 1u) notifyTimeLeft = _time;
+//============================================================================//
+
+void DebugOverlay::notify(const string& message, uint ticks)
+{
+    if (mActive == true)
+    {
+        mNotifications.emplace_back(message, ticks);
+        if (mNotifications.size() == 1u) mTicksLeft = ticks;
     }
 }

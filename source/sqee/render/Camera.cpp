@@ -20,7 +20,7 @@ Camera::Camera() {
 void Camera::update() {
     viewMat = maths::look_at(pos, pos + dir, Vec3F(0.f, 0.f, 1.f));
     projMat = maths::perspective(fov, size.x / size.y, rmin, rmax);
-    frus = make_Frustum(projMat * viewMat, pos, dir, rmin, rmax);
+    //frus = make_Frustum(projMat * viewMat, pos, dir, rmin, rmax);
 
     struct {
         Mat4F proj, view;

@@ -1,99 +1,53 @@
-#include <sqee/debug/Logging.hpp>
 #include <sqee/sound/Sound.hpp>
-
-#include "../components/Transform.hpp"
-
-#include "../resources/Manager.hpp"
 
 #include "Sound.hpp"
 
-using namespace sqt;
-namespace maths = sq::maths;
+using namespace sqt::sys;
 
-SoundSystem::SoundSystem()
+//============================================================================//
+
+
+// TODO: get rid of this crap
+
+template<class VectorA, class VectorB, class Predicate> inline
+void multi_erase_if(VectorA& vecA, VectorB& vecB, const Predicate& pred)
 {
-}
+    SQASSERT(vecA.size() == vecB.size(), "sizes do not match");
 
-void SoundSystem::impl_play(const string& path, uint8_t group)
-{
-    SoundData data {sq::Sound(), group, nullptr, 100.f};
-    data.sound.set_volume(100.f * mGroupVolumes[group]);
-    data.sound.set_wave(acquire_SoundWave(path));
+    const auto iter = sq::algo::find_if(vecA, pred);
+    auto first = size_t(iter - vecA.begin());
 
-    dop::insert(mSoundTable, std::move(data));
-    mSoundTable.data.back().sound.play();
-}
+    const size_t vectorSize = vecA.size();
+    if (first == vectorSize) return;
 
-
-SoundSystem::SoundID SoundSystem::play(const string& path, uint8_t group)
-{
-    sq::log_info("playing global sound %s", path);
-
-    impl_play(path, group);
-
-    mSoundTable.data.back().sound.set_relative(true);
-
-    return mSoundTable.counter.previous;
-}
-
-SoundSystem::SoundID SoundSystem::play(const string& path, uint8_t group, Vec3F position)
-{
-    sq::log_info("playing local sound %s", path);
-
-    impl_play(path, group);
-
-    mSoundTable.data.back().sound.set_relative(false);
-    mSoundTable.data.back().sound.set_position(position);
-
-    return mSoundTable.counter.previous;
-}
-
-SoundSystem::SoundID SoundSystem::play(const string& path, uint8_t group, EntityID entity)
-{
-    sq::log_info("playing entity sound %s", path);
-
-    impl_play(path, group);
-
-    mSoundTable.data.back().sound.set_relative(false);
-    auto position = entity->get_component<TransformComponent>()->matrix[3];
-    mSoundTable.data.back().sound.set_position(Vec3F(position));
-
-    return mSoundTable.counter.previous;
-}
-
-void SoundSystem::set_sound_volume(SoundID id, float volume)
-{
-    SoundData& item = dop::get(mSoundTable, id);
-    item.volume = volume * mGroupVolumes[item.group];
-    item.sound.set_volume(item.volume);
-}
-
-void SoundSystem::set_sound_loop(SoundID id, bool loop)
-{
-    dop::get(mSoundTable, id).sound.set_loop(loop);
-}
-
-void SoundSystem::set_group_volume(uchar group, float volume)
-{
-    mGroupVolumes[group] = volume;
-
-    for (auto& item : mSoundTable.data)
-        if (item.group == group)
-            item.sound.set_volume(item.volume * volume);
-}
-
-void SoundSystem::system_refresh()
-{
-    auto predicate = [](const auto& s) { return s.sound.check_stopped(); };
-    sq::algo::multi_erase_if(mSoundTable.data, mSoundTable.ids, predicate);
-
-    for (auto& item : mSoundTable.data)
+    for (size_t i = first; ++i != vectorSize;)
     {
-        if (item.entity != nullptr)
+        if (pred(vecA[i])) continue;
+
+        vecA[first] = std::move(vecA[i]);
+        vecB[first] = std::move(vecB[i]);
+
+        first += 1u;
+    }
+
+    vecA.erase(vecA.begin() + first, vecA.end());
+    vecB.erase(vecB.begin() + first, vecB.end());
+}
+
+
+void sqt::sys::system_refresh_sounds(WorldStuff& stuff)
+{
+    auto& table = stuff.sound.table;
+
+    auto predicate = [](const auto& s) { return s.sound.check_stopped(); };
+    multi_erase_if(table.mData, table.mIds, predicate);
+
+    for (auto& item : table.mData)
+    {
+        if (item.entity != -1)
         {
-            // still using old transform system
-            auto transform = item.entity->get_component<TransformComponent>();
-            item.sound.set_position(Vec3F(transform->matrix[3]));
+            auto& transform = stuff.tables.transform.get(item.entity);
+            item.sound.set_position(transform.worldPosition);
         }
     }
 }

@@ -4,32 +4,52 @@
 
 namespace sq {
 
-/// A class for fixed size OpenGL buffer objects
-class FixedBuffer final : NonCopyable {
+//============================================================================//
+
+/// Fixed-Size OpenGL Buffer Object
+class FixedBuffer final : public MoveOnly
+{
 public:
-    FixedBuffer(GLenum _target);
+
+    //========================================================//
+
+    /// Constructor
+    FixedBuffer(GLenum target);
+
+    /// Move Constructor
+    FixedBuffer(FixedBuffer&& other);
+
+    /// Destructor
     ~FixedBuffer();
 
+    //========================================================//
+
     /// Allocate the buffer with constant data
-    void allocate_constant(uint _size, const void* _data) const;
+    void allocate_constant(uint size, const void* data);
 
     /// Allocate the buffer with editable data
-    void allocate_editable(uint _size, const void* _data) const;
+    void allocate_editable(uint size, const void* data);
 
     /// Update a section of the buffer with a pointer
-    void update(uint _offset, uint _size, const void* _data) const;
+    void update(uint offset, uint size, const void* data);
 
     /// Bind the buffer
     void bind() const;
 
-    /// Get the OpenGL handle
-    const GLuint& get_handle() const { return buf; }
+    //========================================================//
+
+    /// Get the OpenGL object handle
+    GLuint get_handle() const { return mHandle; }
 
 private:
-    /// The OpenGL handle
-    GLuint buf = 0u;
 
-    const GLenum target;
+    //========================================================//
+
+    const GLenum mTarget;
+
+    GLuint mHandle = 0u;
 };
 
-}
+//============================================================================//
+
+} // namespace sq

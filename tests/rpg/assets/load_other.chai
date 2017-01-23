@@ -2,15 +2,15 @@ class CellSponzaStuff
 {
     def CellSponzaStuff()
     {
-        this.musicID = -1;
+        this.musicId = -1;
     }
 
     def on_load_finish()
     {
-        var sys_sound := world.get_SoundSystem();
+//        var music = sq_play_sound("music/MusicA", 2u);
+//        music.enable_looping(true);
 
-        this.musicID = sys_sound.play("music/MusicA", 2u);
-        sys_sound.set_sound_loop(this.musicID, true);
+//        this.musicId = music.get_id();
     }
 };
 
@@ -29,7 +29,7 @@ mbus.send_Enable_Ambient();
 world.ambient.colour = Vec3F(0.4, 0.4, 0.4);
 
 mbus.send_Enable_SkyLight();
-world.skylight.rotation = QuatF(0.0767, 0.0654, 0.0);
+world.skylight.rotation = QuatF(0.9233, 0.0654, 0.0);
 world.skylight.colour = Vec3F(1.0, 0.8, 0.8);
 world.skylight.density = 0.25f;
 world.skylight.resolution = 1024u;
@@ -37,38 +37,165 @@ world.skylight.cascades = 4u;
 
 //////////////////////////////////////////////////
 
-var eman := world.get_EntityManager();
-var cell := eman.create_root("CellSponza");
+var cell = sq_create_root_entity([]);
+{
+  var editEntity = sq_edit_Entity(cell);
+  editEntity.set_unique_name("CellSponza");
+}
 
-var leaf; var group;
+var group; var leaf;
 
 //////////////////////////////////////////////////
 
+//var obj_TransformGroup = EntitySpec();
+//obj_TransformGroup.add_component("Transform");
+
+//var obj_SimpleStaticModel = EntitySpec();
+//obj_SimpleStaticMesh.add_component("Transform");
+//obj_SimpleStaticMesh.add_component("Model");
+//obj_SimpleStaticMesh.add_component("Bounds");
+
+//var obj_SimplePhysicsModel = EntitySpec();
+//obj_SimplePhysicsModel.add_component("Transform");
+//obj_SimplePhysicsModel.add_component("Physics");
+//obj_SimplePhysicsModel.add_component("Model");
+//obj_SimplePhysicsModel.add_component("Culling");
+
+//var obj_YellowDice = clone(obj_SimplePhysicsModel);
+//obj_YellowDice.physics["preset"] = "Test/Dice";
+//obj_YellowDice.model["materials"] = ["Test/Dice"];
+//obj_YellowDice.model["mesh"] = "Test/Dice";
+
+//////////////////////////////////////////////////
+
+var timeline = AnimationTimeline();
+timeline.set_times([6u, 8u, 10u, 12u, 14u, 16u, 18u, 20u]);
+timeline.add_Transform(Vec3F(0.0, 0.0, 0.0), QuatF(0.0, 0.0, 0.0), 0.4f);
+timeline.add_Transform(Vec3F(0.0, 0.0, 1.0), QuatF(0.0, 0.2, 0.0), 0.6f);
+timeline.add_Transform(Vec3F(0.0, 0.0, 2.0), QuatF(0.0, 0.8, 0.0), 0.8f);
+timeline.add_Transform(Vec3F(0.0, 0.0, 3.0), QuatF(0.0, 0.2, 0.0), 1.0f);
+timeline.add_Transform(Vec3F(0.0, 0.0, 4.0), QuatF(0.0, 0.8, 0.0), 1.2f);
+timeline.add_Transform(Vec3F(0.0, 0.0, 5.0), QuatF(0.0, 0.2, 0.0), 1.4f);
+timeline.add_Transform(Vec3F(0.0, 0.0, 6.0), QuatF(0.0, 0.8, 0.0), 1.6f);
+timeline.add_Transform(Vec3F(0.0, 0.0, 7.0), QuatF(0.0, 0.2, 0.0), 1.8f);
+timeline.add_Transform(Vec3F(0.0, 0.0, 8.0), QuatF(0.0, 0.0, 0.0), 2.0f);
+timeline.debug_assert_sanity();
+
 // DiceGroup
-group := eman.create(cell, "DiceGroup");
-group.enable_component_Transform();
-group.cTransform.position = Vec3F(0.0, 0.0, 5.0);
-group.cTransform.rotation = QuatF(0.1, 0.4, 0.0);
-group.cTransform.scale = 0.8f;
+group = sq_create_entity(cell, ["Transform"]);
+{
+  var editEntity = sq_edit_Entity(group);
+  editEntity.set_unique_name("DiceGroup");
+
+  var editTransform = sq_edit_Transform(group);
+  editTransform.set_position(Vec3F(0.0, 2.0, 6.0));
+  editTransform.set_rotation(QuatF(0.0, 0.0, 0.125));
+  editTransform.set_scale(0.5f);
+
+  def print_foo(id)
+  {
+      print("foo");
+      print(id);
+  }
+
+  var anim = sq_begin_animation(group, timeline);
+  anim.set_callback_on_end(print_foo);
+}
 
   // DiceGroup.DiceA
-  leaf := eman.create(group, "");
-  leaf.enable_component_Transform();
-  leaf.cTransform.position = Vec3F(-0.2, 1.3, 0.6);
-  leaf.cTransform.rotation = QuatF(0.0, 0.0, 0.125);
-  leaf.enable_component_Model();
-  leaf.cModel.stretch = Vec3F(1.0, 1.0, 2.0);
-  leaf.cModel.mtrls = ["Test/Dice"];
-  leaf.cModel.mesh = "Test/Dice";
+  leaf = sq_create_entity(group, ["Transform", "Model"]);
+//  leaf = create_entity(group, ["Transform", "Physics", "Render", "Culling"]);
+  {
+    var editTransform = sq_edit_Transform(leaf);
+    editTransform.set_position(Vec3F(0.0, -0.5, 0.0));
+    editTransform.set_rotation(QuatF(0.0, 0.0, 0.125));
+    
+//    var editPhysics = sys_Physics.edit(leaf);
+//    editPhysics.set_preset_path("Test/Dice");
+//    editPhysics.set_dynamic(true);
+    
+    var editModel = sq_edit_Model(leaf);
+    editModel.set_stretch(Vec3F(1.0, 1.0, 2.0));
+    editModel.add_material("Test:Dice");
+    editModel.set_mesh("Test:Dice");
+  }
 
   // DiceGroup.DiceB
-  leaf := eman.create(group, "");
-  leaf.enable_component_Transform();
-  leaf.cTransform.position = Vec3F(-1.2, 0.6, 0.6);
-  leaf.enable_component_Model();
-  leaf.cModel.mtrls = ["Test/Dice"];
-  leaf.cModel.mesh = "Test/Dice";
-  leaf.cModel.shadow = false;
+  leaf = sq_create_entity(group, ["Transform", "Model"]);
+  {
+    var editTransform = sq_edit_Transform(leaf);
+    editTransform.set_position(Vec3F(-0.5, 0.5, 0.0));
+
+    var editModel = sq_edit_Model(leaf);
+    editModel.add_material("Test:Dice");
+    editModel.set_mesh("Test:Dice");
+    editModel.enable_shadow(false);
+  }
+/*
+// SqeenDead
+leaf = sq_create_entity(cell, ["Transform", "Model", "Skeleton"]);
+{
+  var editTransform = sq_edit_Transform(leaf);
+  editTransform.set_position(Vec3F(-0.8, 0.0, 0.05));
+  editTransform.set_rotation(QuatF(0.75, 0.0, 0.25));
+
+  var editModel = sq_edit_Model(leaf);
+  editModel.add_material("Characters/SqeenHead");
+  editModel.add_material("Characters/SqeenTorso");
+  editModel.add_material("Characters/SqeenLegs");
+  editModel.set_mesh("Characters/Sqeen");
+
+  var editSkeleton = sq_edit_Skeleton(leaf);
+  editSkeleton.set_armature("Characters/Sqeen");
+  //editSkeleton.set_pose("Dead");
+}
+*/
+// SpotNorth
+/*leaf = create_entity(cell, ["Transform", "LightSpot"]);
+{
+  var editTransform = data_edit_Transform(leaf);
+  editTransform.set_position(Vec3F(0.0, 7.0, 3.3));
+  editTransform.set_rotation(QuatF(0.23, 0.0, 0.0));
+  editTransform.set_scale(20.0f);
+
+  var editLightSpot = data_edit_LightSpot(leaf);
+  editLightSpot.set_colour(Vec3F(1.0, 1.0, 0.5));
+  editLightSpot.set_softness(0.2f);
+  editLightSpot.set_angle(0.07f);
+  editLightSpot.set_resolution(256u);
+}*/
+
+/*
+  // DiceGroup.DiceA
+  leaf = create_entity(group, ["Transform", "Physics", "Model", "Bounds"]);
+  sys_Transform[leaf].position = Vec3F(-0.2, 1.3, 0.6);
+  sys_Transform[leaf].rotation = QuatF(0.0, 0.0, 0.125);
+  sys_Physics[leaf].preset = "Test/Dice";
+  sys_Physics[leaf].dynamic = true;
+  sys_Model[leaf].stretch = Vec3F(1.0, 1.0, 2.0);
+  sys_Model[leaf].materials = ["Test/Dice"];
+  sys_Model[leaf].mesh = "Test/Dice";
+
+  // DiceGroup.DiceB
+  leaf = create_entity(group, ["Transform", "Physics", "Model"]);
+  sys_Transform[leaf].position = Vec3F(-1.2, 0.6, 0.6);
+  sys_Physics[leaf].preset = "Test/Dice";
+  sys_Physics[leaf].dynamic = true;
+  sys_Model[leaf].materials = ["Test/Dice"];
+  sys_Model[leaf].mesh = "Test/Dice";
+  sys_Model[leaf].enableShadow = false;
+*/
+
+/*
+// SpotNorth
+leaf = create_entity(cell, ["Transform", "SpotLight"]);
+sys_Transform[leaf].position = Vec3F(0.0, 7.0, 3.3);
+sys_Transform[leaf].rotation = QuatF(0.23, 0.0, 0.0);
+sys_Transform[leaf].scale = 20.0f;
+sys_SpotLight[leaf].colour = Vec3F(1.0, 1.0, 0.5);
+sys_SpotLight[leaf].angle = 0.07f;
+sys_SpotLight[leaf].softness = 0.2f;
+sys_SpotLight[leaf].resolution = 256u;
 
 // SpotNorth
 leaf := eman.create(cell, "");
@@ -81,6 +208,7 @@ leaf.cLightSpot.colour = Vec3F(1.0, 1.0, 0.5);
 leaf.cLightSpot.angle = 0.07f;
 leaf.cLightSpot.softness = 0.2f;
 leaf.cLightSpot.resolution = 256u;
+sys_Transform.add_entity(leaf);
 
 // PointCentre
 leaf := eman.create(cell, "");
@@ -90,6 +218,7 @@ leaf.cTransform.scale = 6.0f;
 leaf.enable_component_LightPoint();
 leaf.cLightPoint.colour = Vec3F(0.5, 0.5, 1.0);
 leaf.cLightPoint.resolution = 256u;
+sys_Transform.add_entity(leaf);
 
 // SplatBlood
 leaf := eman.create(cell, "");
@@ -100,6 +229,7 @@ leaf.enable_component_Decal();
 leaf.cDecal.stretch = Vec3F(1.0, 1.0, 0.1);
 leaf.cDecal.material = "Decals/Blood";
 leaf.cDecal.alpha = 1.0f;
+sys_Transform.add_entity(leaf);
 
 // SqeenDead
 leaf := eman.create(cell, "");
@@ -112,6 +242,7 @@ leaf.cModel.mesh = "Characters/Sqeen";
 leaf.enable_component_Skeleton();
 leaf.cSkeleton.armature = "Characters/Sqeen";
 leaf.cSkeleton.pose = "Dead";
+sys_Transform.add_entity(leaf);
 
 // SqeenEast
 leaf := eman.create(cell, "");
@@ -124,6 +255,7 @@ leaf.cModel.mesh = "Characters/Sqeen";
 leaf.enable_component_Skeleton();
 leaf.cSkeleton.armature = "Characters/Sqeen";
 leaf.cSkeleton.pose = "Squatting";
+sys_Transform.add_entity(leaf);
 
 // SqeenWest
 leaf := eman.create(cell, "");
@@ -136,7 +268,8 @@ leaf.cModel.mesh = "Characters/Sqeen";
 leaf.enable_component_Skeleton();
 leaf.cSkeleton.armature = "Characters/Sqeen";
 leaf.cSkeleton.pose = "Standing";
-
+sys_Transform.add_entity(leaf);
+*/
 /*for (var x = -1; x < 2; x += 1) {
     for (var y = -1; y < 2; y += 1) {
         for (var z = -1; z < 2; z += 1) {
@@ -341,7 +474,7 @@ lightOrtho.resolution = 2048u;*/
 
 //////////////////////////////////////////////////
 
-eman.configure(cell, true);
+//eman.configure(cell, true);
 
 var cellStuff = CellSponzaStuff();
 cellStuff.on_load_finish();

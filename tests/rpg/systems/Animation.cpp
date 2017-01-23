@@ -1,50 +1,70 @@
-#include <map>
+#include <sqee/dop/Functions.hpp>
 
 #include "Animation.hpp"
 
-#include "../components/Transform.hpp"
-#include "../components/Model.hpp"
-#include "../components/Skeleton.hpp"
-#include "../components/LightSpot.hpp"
-#include "../components/LightPoint.hpp"
-#include "../components/LightOrtho.hpp"
-
-using namespace sqt;
+namespace dop = sq::dop;
 namespace maths = sq::maths;
+using namespace sqt::sys;
 
-struct AnimationSystem::Impl {
+//============================================================================//
 
-    struct EntityData {
-        TransformComponent* transform = nullptr;
-        ModelComponent* model = nullptr;
-        SkeletonComponent* skeleton = nullptr;
-        LightSpotComponent* lightSpot = nullptr;
-        LightPointComponent* lightPoint = nullptr;
-    };
+void sqt::sys::system_tick_animations(WorldStuff& stuff)
+{
+    for (auto& entry : dop::entries(stuff.tables.animation))
+    {
+        if (++entry->progress == entry->times[entry->index])
+        {
+            entry->progress = 0u;
 
-    std::map<const sq::Entity*, EntityData> entityDataMap;
-};
+            if (++entry->index == entry->times.size())
+            {
+                entry->callback_on_end(entry.id);
+                entry->index = 0u;
+            }
+        }
+    }
 
-AnimationSystem::AnimationSystem() {
-    impl = std::make_unique<Impl>();
+//    for (auto& entry : dop::joined(metaTable, timelines.transform))
+//    {
+//        //auto& [id, meta, timeline] = joinEntry;
+
+//        const auto& id = std::get<0>(entry);
+//        const auto& meta = std::get<1>(entry);
+//        const auto& timeline = std::get<2>(entry);
+
+//        const auto& state = timeline[meta.index];
+//        auto& transform = stuff.tables.transform.get(id);
+
+//        transform.localPosition = state.position;
+//        transform.localRotation = state.rotation;
+//        transform.localScale = state.scale;
+//    }
 }
 
-AnimationSystem::~AnimationSystem() = default;
+//============================================================================//
 
-void AnimationSystem::configure_entity(sq::Entity* _entity) {
-    Impl::EntityData& data = impl->entityDataMap[_entity];
+void sqt::sys::system_blend_animations(WorldStuff& stuff, float factor)
+{
+    const auto& table = stuff.tables.animation;
+    const auto& timelines = stuff.animation;
+    auto& tables = stuff.tables;
 
-    data.transform = _entity->try_get_component<TransformComponent>();
-    data.model = _entity->try_get_component<ModelComponent>();
-    data.skeleton = _entity->try_get_component<SkeletonComponent>();
-    data.lightSpot = _entity->try_get_component<LightSpotComponent>();
-    data.lightPoint = _entity->try_get_component<LightPointComponent>();
-}
+    for (auto& entry : dop::joined(table, timelines.transform, tables.transform))
+    {
+        //auto& [id, meta, timeline, transform] = entry;
 
-void AnimationSystem::refresh_entity(sq::Entity* _entity) {
-    Impl::EntityData& data = impl->entityDataMap.at(_entity);
+        const auto& meta = std::get<1>(entry);
+        const auto& timeline = std::get<2>(entry);
+        auto& transform = std::get<3>(entry);
 
-    if (data.transform != nullptr) {}
+        factor += float(meta.progress);
+        factor /= float(meta.times[meta.index]);
 
-    if (data.model != nullptr) {}
+        const auto& crnt = timeline[meta.index];
+        const auto& next = timeline[meta.index + 1u];
+
+        transform.localPosition = maths::mix(crnt.position, next.position, factor);
+        transform.localRotation = maths::mix(crnt.rotation, next.rotation, factor);
+        transform.localScale = maths::mix(crnt.scale, next.scale, factor);
+    }
 }

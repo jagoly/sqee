@@ -1,6 +1,0 @@
-Ball_diff    CC RGB1
-Cheese_diff  CC RGB1
-Dice_diff    CC RGB1
-
-Cheese_norm  CC RGB1
-Dice_norm    CC RGB1

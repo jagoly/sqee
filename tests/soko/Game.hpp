@@ -1,9 +1,15 @@
 #pragma once
 
-#include <sqee/forward.hpp>
 #include <sqee/builtins.hpp>
-#include <sqee/scenes/Scene.hpp>
+#include <sqee/app/Scene.hpp>
 #include <sqee/maths/Vectors.hpp>
+
+#include <sqee/app/PreProcessor.hpp>
+#include <sqee/gl/UniformBuffer.hpp>
+#include <sqee/gl/Shaders.hpp>
+
+#include <sqee/render/Camera.hpp>
+#include <sqee/render/Mesh.hpp>
 
 namespace sqt {
 
@@ -19,7 +25,6 @@ public:
 
 private:
     unique_ptr<sq::PreProcessor> preprocs;
-    unique_ptr<sq::Pipeline> pipeline;
     unique_ptr<sq::UniformBuffer> ubo;
     unique_ptr<sq::Camera> camera;
     unique_ptr<Level> level;

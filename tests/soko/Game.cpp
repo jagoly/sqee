@@ -10,7 +10,6 @@
 #include <sqee/gl/Drawing.hpp>
 #include <sqee/render/Camera.hpp>
 #include <sqee/render/Mesh.hpp>
-#include <sqee/maths/General.hpp>
 
 #include "SokoApp.hpp"
 #include "Level.hpp"
@@ -45,14 +44,13 @@ GameScene::GameScene(SokoApp& _app) : sq::Scene(1.0 / 10.0), app(_app) {
     ubo->update("aColour", &aColour);
 
     preprocs.reset(new sq::PreProcessor());
-    pipeline.reset(new sq::Pipeline());
 
     preprocs->import_header("camera_block");
     preprocs->import_header("uniform_block");
 
     /// Create Shaders
-    VS_object.reset(new sq::Shader(gl::VERTEX_SHADER));
-    FS_object.reset(new sq::Shader(gl::FRAGMENT_SHADER));
+    VS_object.reset(new sq::Shader(sq::Shader::Stage::Vertex));
+    FS_object.reset(new sq::Shader(sq::Shader::Stage::Fragment));
 
     /// Add Uniforms to Shaders
     VS_object->add_uniform("modelMat"); // mat4
@@ -63,17 +61,29 @@ GameScene::GameScene(SokoApp& _app) : sq::Scene(1.0 / 10.0), app(_app) {
     preprocs->load(*FS_object, "object_fs");
 
     /// Create and Load Meshes
-    MESH_Ball.reset(new sq::Mesh("Ball"));
-    MESH_Floor.reset(new sq::Mesh("Floor"));
-    MESH_HoleA.reset(new sq::Mesh("HoleA"));
-    MESH_HoleB.reset(new sq::Mesh("HoleB"));
-    MESH_WallA.reset(new sq::Mesh("WallA"));
-    MESH_WallB.reset(new sq::Mesh("WallB"));
-    MESH_WallC.reset(new sq::Mesh("WallC"));
-    MESH_WallD.reset(new sq::Mesh("WallD"));
-    MESH_WallE.reset(new sq::Mesh("WallE"));
-    MESH_WallF.reset(new sq::Mesh("WallF"));
-    MESH_Player.reset(new sq::Mesh("Player"));
+    MESH_Ball = std::make_unique<sq::Mesh>();
+    MESH_Floor = std::make_unique<sq::Mesh>();
+    MESH_HoleA = std::make_unique<sq::Mesh>();
+    MESH_HoleB = std::make_unique<sq::Mesh>();
+    MESH_WallA = std::make_unique<sq::Mesh>();
+    MESH_WallB = std::make_unique<sq::Mesh>();
+    MESH_WallC = std::make_unique<sq::Mesh>();
+    MESH_WallD = std::make_unique<sq::Mesh>();
+    MESH_WallE = std::make_unique<sq::Mesh>();
+    MESH_WallF = std::make_unique<sq::Mesh>();
+    MESH_Player = std::make_unique<sq::Mesh>();
+
+    MESH_Ball->load_from_file("meshes/Ball");
+    MESH_Floor->load_from_file("meshes/Floor");
+    MESH_HoleA->load_from_file("meshes/HoleA");
+    MESH_HoleB->load_from_file("meshes/HoleB");
+    MESH_WallA->load_from_file("meshes/WallA");
+    MESH_WallB->load_from_file("meshes/WallB");
+    MESH_WallC->load_from_file("meshes/WallC");
+    MESH_WallD->load_from_file("meshes/WallD");
+    MESH_WallE->load_from_file("meshes/WallE");
+    MESH_WallF->load_from_file("meshes/WallF");
+    MESH_Player->load_from_file("meshes/Player");
 
     /// Setup Level
     Level::Spec spec;
@@ -206,9 +216,10 @@ void GameScene::render() {
     context.clear_Colour({0.15f, 0.1f, 0.2f, 0.f});
     context.clear_Depth_Stencil();
 
-    pipeline->bind();
-    pipeline->use_shader(*VS_object);
-    pipeline->use_shader(*FS_object);
+    context.bind_shader_pipeline();
+
+    context.use_Shader_Vert(*VS_object);
+    context.use_Shader_Frag(*FS_object);
     context.bind_UniformBuffer(camera->ubo, 0u);
     context.bind_UniformBuffer(*ubo, 1u);
 
@@ -222,7 +233,8 @@ void GameScene::render() {
                 VS_object->update<Mat4F>("modelMat", modelMat);
                 VS_object->update<Mat4F>("modelMat", modelMat);
                 VS_object->update<Mat3F>("normMat", normMat);
-                MESH_Floor->bind_vao(); MESH_Floor->draw_complete();
+                context.bind_VertexArray(MESH_Floor->get_vao());
+                MESH_Floor->draw_complete();
             }
         }
     }
@@ -234,7 +246,8 @@ void GameScene::render() {
         Mat3F normMat = maths::inverse(maths::transpose(Mat3F(camera->viewMat * modelMat)));
         VS_object->update<Mat4F>("modelMat", modelMat);
         VS_object->update<Mat3F>("normMat", normMat);
-        MESH_Ball->bind_vao(); MESH_Ball->draw_complete();
+        context.bind_VertexArray(MESH_Ball->get_vao());
+        MESH_Ball->draw_complete();
     }
 
     for (const Hole::Ptr& hole : level->holeList) {
@@ -243,7 +256,8 @@ void GameScene::render() {
         Mat3F normMat = maths::inverse(maths::transpose(Mat3F(camera->viewMat * modelMat)));
         VS_object->update<Mat4F>("modelMat", modelMat);
         VS_object->update<Mat3F>("normMat", normMat);
-        mesh->bind_vao(); mesh->draw_complete();
+        context.bind_VertexArray(mesh->get_vao());
+        mesh->draw_complete();
     }
 
     for (const Wall::Ptr& wall : level->wallList) {
@@ -266,7 +280,8 @@ void GameScene::render() {
         Mat3F normMat = maths::inverse(maths::transpose(Mat3F(camera->viewMat * modelMat)));
         VS_object->update<Mat4F>("modelMat", modelMat);
         VS_object->update<Mat3F>("normMat", normMat);
-        mesh->bind_vao(); mesh->draw_complete();
+        context.bind_VertexArray(mesh->get_vao());
+        mesh->draw_complete();
     }
 
     { // Player
@@ -277,7 +292,8 @@ void GameScene::render() {
         Mat3F normMat = maths::inverse(maths::transpose(Mat3F(camera->viewMat * modelMat)));
         VS_object->update<Mat4F>("modelMat", modelMat);
         VS_object->update<Mat3F>("normMat", normMat);
-        MESH_Player->bind_vao(); MESH_Player->draw_complete();
+        context.bind_VertexArray(MESH_Player->get_vao());
+        MESH_Player->draw_complete();
     }
 
     gl::BindProgramPipeline(0u);

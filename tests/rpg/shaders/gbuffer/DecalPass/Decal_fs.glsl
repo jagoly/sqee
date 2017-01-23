@@ -60,13 +60,12 @@ void main() {
         vec3 tangent = normalize(cross(surface, decalTan));
         vec3 binormal = normalize(cross(surface, tangent));
         vec3 T = tangent, B = binormal, N = surface;
-        crntNorm = crntNorm * 2.f - 1.f;
 
         vec4 texel = texture(texNorm, texcrd);
-        texel.rgb = normalize(texel.rgb * 2.f - 1.f);
+        texel.rgb = normalize(texel.rgb);
         texel.rgb = T * texel.x + B * texel.y + N * texel.z;
         fragNorm = mix(crntNorm, texel.rgb, texel.a * factor);
-        fragNorm = normalize(fragNorm) * 0.5f + 0.5f;
+        fragNorm = normalize(fragNorm);
     }
 
     if (bool(d_n_s.z) == true) {

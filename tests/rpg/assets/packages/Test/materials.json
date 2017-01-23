@@ -1,0 +1,23 @@
+{
+
+"Ball":
+{
+  "diffuse":  "Test:diff/Ball",
+  "specular": "0.6 0.6 0.6"
+},
+
+"Cheese":
+{
+  "diffuse":  "Test:diff/Cheese",
+  "normal":   "Test:norm/Cheese",
+  "specular": "0.25 0.25 0.25"
+},
+
+"Dice":
+{
+  "diffuse":  "Test:diff/Dice",
+  "normal":   "Test:norm/Dice",
+  "specular": "0.8 0.8 0.8"
+}
+
+}

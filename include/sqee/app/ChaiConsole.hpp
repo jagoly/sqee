@@ -1,45 +1,70 @@
 #pragma once
 
 #include <forward_list>
-#include <functional>
 
-#include <sqee/builtins.hpp>
-#include <sqee/misc/OrderedMap.hpp>
-
-// Forward Declarations /////
-namespace sq { class Application; }
-namespace sf { class Event; }
+#include <sqee/app/Application.hpp>
 
 namespace sq {
 
+//============================================================================//
+
 /// The SQEE Chaiscript Console
-class ChaiConsole final : NonCopyable {
+class ChaiConsole final : NonCopyable
+{
 public:
-    ChaiConsole(Application& _app);
 
-    void tick(); void render();
-    void handle_input(sf::Event _event);
+    //========================================================//
 
+    /// Constructor
+    ChaiConsole(Application& app);
+
+    //========================================================//
+
+    /// called to handle text input
+    void handle(sf::Event event);
+
+    /// called two times per second
+    void tick();
+
+    /// called once every frame
+    void render();
+
+    //========================================================//
+
+    /// enable or disable the console
     void toggle_active();
-    OrderedMap<string, std::function<void()>> onShowFuncs;
-    OrderedMap<string, std::function<void()>> onHideFuncs;
 
-    void cs_print(const string& _value);
-    void cs_history(); void cs_clear();
+    /// check if the console is active
+    bool is_active() const { return mActive; }
 
-    double accumulation = 0.0;
-    bool active = false;
+    //========================================================//
+
+    void cs_print(const string& str);
+    void cs_history();
+    void cs_clear();
+
+    //========================================================//
+
+    float accumulation = 0.0f;
 
 private:
-    Application& app;
 
-    string input;
-    vector<string> history;
-    std::forward_list<string> output;
-    bool cursorVis = false;
-    bool cvisDelay = false;
-    uint cursorPos = 0u;
-    int histInd = -1;
+    //========================================================//
+
+    Application& mApplication;
+
+    string mInput;
+
+    std::forward_list<string> mOutput;
+    std::vector<string> mHistory;
+
+    int mHistoryIndex = -1;
+    uint mCursorPos = 0u;
+
+    bool mCursorVisible = false;
+    bool mCursorDelay = false;
+
+    bool mActive = false;
 };
 
 }

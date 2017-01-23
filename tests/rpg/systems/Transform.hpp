@@ -1,14 +1,13 @@
 #pragma once
 
-#include <sqee/builtins.hpp>
-#include <sqee/ecs/Entity.hpp>
+#include "WorldStuff.hpp"
 
-namespace sqt {
+namespace sqt { namespace sys {
 
-class TransformSystem {
-public:
+//============================================================================//
 
-    void refresh_entity(sq::Entity* _entity);
-};
+void system_refresh_transforms(WorldStuff& stuff);
 
-}
+//============================================================================//
+
+}} // namespace sqt::sys

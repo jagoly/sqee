@@ -1,4 +1,4 @@
-#pragma once
+/*#pragma once
 
 #include <sqee/ecs/Component.hpp>
 #include <sqee/maths/Vectors.hpp>
@@ -21,3 +21,4 @@ public:
 };
 
 }
+*/

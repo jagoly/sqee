@@ -22,7 +22,7 @@ void Listener::set_rotation(QuatF rotation)
 
 SoundWave::SoundWave(const string& path)
 {
-    string fullPath = static_path() + "sounds/" + path;
+    string fullPath = "assets/sounds/" + path;
     if (check_file_exists(fullPath + ".flac")) fullPath += ".flac";
     else if (check_file_exists(fullPath + ".ogg")) fullPath += ".ogg";
     else log_error("Failed to find sound file %s", fullPath);

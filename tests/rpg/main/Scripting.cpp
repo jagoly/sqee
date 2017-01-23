@@ -7,72 +7,48 @@
 #include "../world/objects/Ambient.hpp"
 #include "../world/objects/SkyLight.hpp"
 
-//#include "../components/Animator.hpp"
-#include "../components/Transform.hpp"
-//#include "../components/DynamicBody.hpp"
-//#include "../components/StaticBody.hpp"
-#include "../components/Model.hpp"
-#include "../components/Skeleton.hpp"
-#include "../components/Decal.hpp"
-#include "../components/LightOrtho.hpp"
-#include "../components/LightPoint.hpp"
-#include "../components/LightSpot.hpp"
-//#include "../components/Reflect.hpp"
-
+#include "../systems/Entity.hpp"
+#include "../systems/Animation.hpp"
+#include "../systems/Transform.hpp"
+#include "../systems/Lighting.hpp"
+#include "../systems/Culling.hpp"
 #include "../systems/Sound.hpp"
 
 #include "../messages.hpp"
 
+#include "../api/editors.hpp"
+#include "../api/functions.hpp"
+#include "../api/other.hpp"
+
 #include "Scripting.hpp"
 
-using namespace sqt;
+//============================================================================//
 
-
-void sqt::chaiscript_setup_world(sq::ChaiEngine& _engine) {
-    chai::ModulePtr m(new chai::Module());
-
+void sqt::chaiscript_setup_world(sq::ChaiEngine& engine)
+{
+    using namespace sqt;
     using namespace sqt::world;
 
-    const auto get_skybox = [](World* _world) -> SkyBoxObject& {
-        SQASSERT(_world->skybox, "skybox not enabled"); return *_world->skybox; };
-    const auto get_ambient = [](World* _world) -> AmbientObject& {
-        SQASSERT(_world->ambient, "ambient not enabled"); return *_world->ambient; };
-    const auto get_skylight = [](World* _world) -> SkyLightObject& {
-        SQASSERT(_world->skylight, "skylight not enabled"); return *_world->skylight; };
+    auto m = std::make_shared<chai::Module>();
+
+    const auto get_skybox = [](World* world) -> SkyBoxObject& {
+        SQASSERT(world->skybox, "skybox not enabled");
+        return *world->skybox; };
+
+    const auto get_ambient = [](World* world) -> AmbientObject& {
+        SQASSERT(world->ambient, "ambient not enabled");
+        return *world->ambient; };
+
+    const auto get_skylight = [](World* world) -> SkyLightObject& {
+        SQASSERT(world->skylight, "skylight not enabled");
+        return *world->skylight; };
 
     add_class<World>(*m, "World", {}, {
-        {fun<sq::EntityManager&, World>(&World::get_EntityManager), "get_EntityManager"},
-        {fun<SoundSystem&, World>(&World::get_SoundSystem), "get_SoundSystem"},
         //{fun<Camera&,     World>(&World::get_Camera),     "get_Camera"},
         {fun(&World::update_options),  "update_options"},
-        {fun(&World::add_StaticCell), "add_StaticCell"},
-        {fun(&World::get_StaticCell), "get_StaticCell"},
-        //{fun(&World::get_StaticCellMap), "get_StaticCellMap"},
         {fun(get_skybox), "skybox"},
         {fun(get_ambient), "ambient"},
         {fun(get_skylight), "skylight"}
-    });
-
-    add_class<world::StaticCell>(*m, "StaticCell", {}, {
-        {fun(&world::StaticCell::add_Model), "add_Model"},
-        {fun(&world::StaticCell::add_Decal), "add_Decal"},
-        {fun(&world::StaticCell::add_Body),  "add_Body"},
-    });
-
-    add_class<world::StaticModel>(*m, "StaticModel", {}, {
-        {fun(&world::StaticModel::PROP_position), "position"},
-        {fun(&world::StaticModel::PROP_rotation), "rotation"},
-        {fun(&world::StaticModel::PROP_scale),    "scale"},
-        {fun(&world::StaticModel::PROP_mtrls),    "mtrls"},
-        {fun(&world::StaticModel::PROP_mesh),     "mesh"}
-    });
-
-    add_class<world::StaticDecal>(*m, "StaticDecal", {}, {
-        {fun(&world::StaticDecal::PROP_position), "position"},
-        {fun(&world::StaticDecal::PROP_rotation), "rotation"},
-        {fun(&world::StaticDecal::PROP_scale),    "scale"},
-        {fun(&world::StaticDecal::PROP_material), "material"},
-        {fun(&world::StaticDecal::PROP_alpha),    "alpha"}
     });
 
     add_class<CameraObject>(*m, "CameraObject", {}, {
@@ -101,133 +77,88 @@ void sqt::chaiscript_setup_world(sq::ChaiEngine& _engine) {
         {fun(&SkyLightObject::PROP_cascades),   "cascades"}
     });
 
-    _engine.add(m);
+    engine.add(m);
 }
 
 
-template<class T> inline void setup_component(chai::Module& _m, const vector<pair<chai::Proxy_Function, string>>& _funcs) {
-    using Entity = sq::Entity;
+void sqt::chaiscript_setup_api(sq::ChaiEngine& engine)
+{
+    auto m = std::make_shared<chai::Module>();
 
-    _m.add(fun(&Entity::enable_component<T>), "enable_component_" + T::type());
-    _m.add(fun(&Entity::disable_component<T>), "disable_component_" + T::type());
-    _m.add(fun<T*, Entity>(&Entity::get_component<T>), "c" + T::type());
-    _m.add(user_type<T>(), T::type() + "Component");
-    _m.add(base_class<sq::Component, T>());
+    {
+        api::Stuff& stuff = sys::static_WorldStuff();
 
-    for (const auto& func : _funcs) _m.add(func.first, func.second);
-}
+        //========================================================//
 
-template<class Type, bool Norm> inline
-void setup_PropAnim(chai::Module& _m, const string& _name) {
-//    add_class<PropAnim<Type, Norm>>(_m, _name, {}, {
-//        {fun(&PropAnim<Type, Norm>::repeat), "repeat"},
-//        {fun(&PropAnim<Type, Norm>::values), "values"},
-//        {fun(&PropAnim<Type, Norm>::times),  "times"}
-//    });
-}
+        m->add(user_type<api::EntityEdit>(),    "EntityEdit");
+        m->add(user_type<api::AnimationEdit>(), "AnimationEdit");
+        m->add(user_type<api::TransformEdit>(), "TransformEdit");
+        m->add(user_type<api::ModelEdit>(),     "ModelEdit");
+        m->add(user_type<api::SkeletonEdit>(),  "SkeletonEdit");
+        m->add(user_type<api::SoundEdit>(),     "SoundEdit");
 
+        //========================================================//
 
-void sqt::chaiscript_setup_components(sq::ChaiEngine& _engine) {
-    chai::ModulePtr m(new chai::Module());
+        m->add(fun([&stuff](int32_t id) { return api::EntityEdit(stuff, id);    }), "sq_edit_Entity");
+        m->add(fun([&stuff](int32_t id) { return api::AnimationEdit(stuff, id); }), "sq_edit_Animation");
+        m->add(fun([&stuff](int32_t id) { return api::TransformEdit(stuff, id); }), "sq_edit_Transform");
+        m->add(fun([&stuff](int32_t id) { return api::ModelEdit(stuff, id);     }), "sq_edit_Model");
+        m->add(fun([&stuff](int32_t id) { return api::SkeletonEdit(stuff, id);  }), "sq_edit_Skeleton");
+        m->add(fun([&stuff](int32_t id) { return api::SoundEdit(stuff, id);     }), "sq_edit_Sound");
 
-//    setup_PropAnim<float, false>(*m, "PropAnimFloat");
-//    setup_PropAnim<Vec2F, false>(*m, "PropAnimVec2F");
-//    setup_PropAnim<Vec3F, false>(*m, "PropAnimVec3F");
-//    setup_PropAnim<Vec4F, false>(*m, "PropAnimVec4F");
-//    setup_PropAnim<Vec2F, true>(*m, "PropAnimNorm2");
-//    setup_PropAnim<Vec3F, true>(*m, "PropAnimNorm3");
-//    setup_PropAnim<Vec4F, true>(*m, "PropAnimNorm4");
-//    setup_PropAnim<QuatF, true>(*m, "PropAnimQuatF");
+        //========================================================//
 
-//    setup_component<AnimatorComponent>(*m, _world, {
-//        {fun(&AnimatorComponent::FUNC_add_Float), "add_Float"},
-//        {fun(&AnimatorComponent::FUNC_add_Vec2F), "add_Vec2F"},
-//        {fun(&AnimatorComponent::FUNC_add_Vec3F), "add_Vec3F"},
-//        {fun(&AnimatorComponent::FUNC_add_Vec4F), "add_Vec4F"},
-//        {fun(&AnimatorComponent::FUNC_add_Norm2), "add_Norm2"},
-//        {fun(&AnimatorComponent::FUNC_add_Norm3), "add_Norm3"},
-//        {fun(&AnimatorComponent::FUNC_add_Norm4), "add_Norm4"},
-//        {fun(&AnimatorComponent::FUNC_add_QuatF), "add_QuatF"},
-//        {fun(&AnimatorComponent::FUNC_get_Float), "get_Float"},
-//        {fun(&AnimatorComponent::FUNC_get_Vec2F), "get_Vec2F"},
-//        {fun(&AnimatorComponent::FUNC_get_Vec3F), "get_Vec3F"},
-//        {fun(&AnimatorComponent::FUNC_get_Vec4F), "get_Vec4F"},
-//        {fun(&AnimatorComponent::FUNC_get_Norm2), "get_Norm2"},
-//        {fun(&AnimatorComponent::FUNC_get_Norm3), "get_Norm3"},
-//        {fun(&AnimatorComponent::FUNC_get_Norm4), "get_Norm4"},
-//        {fun(&AnimatorComponent::FUNC_get_QuatF), "get_QuatF"},
-//        {fun(&AnimatorComponent::FUNC_del_Float), "del_Float"},
-//        {fun(&AnimatorComponent::FUNC_del_Vec2F), "del_Vec2F"},
-//        {fun(&AnimatorComponent::FUNC_del_Vec3F), "del_Vec3F"},
-//        {fun(&AnimatorComponent::FUNC_del_Vec4F), "del_Vec4F"},
-//        {fun(&AnimatorComponent::FUNC_del_Norm2), "del_Norm2"},
-//        {fun(&AnimatorComponent::FUNC_del_Norm3), "del_Norm3"},
-//        {fun(&AnimatorComponent::FUNC_del_Norm4), "del_Norm4"},
-//        {fun(&AnimatorComponent::FUNC_del_QuatF), "del_QuatF"},
-//    });
+        m->add(fun([](api::EntityEdit& edit)    { return edit.entry.id; }), "get_id");
+        m->add(fun([](api::AnimationEdit& edit) { return edit.entry.id; }), "get_id");
+        m->add(fun([](api::TransformEdit& edit) { return edit.entry.id; }), "get_id");
+        m->add(fun([](api::ModelEdit& edit)     { return edit.entry.id; }), "get_id");
+        m->add(fun([](api::SkeletonEdit& edit)  { return edit.entry.id; }), "get_id");
+        m->add(fun([](api::SoundEdit& edit)     { return edit.entry.id; }), "get_id");
 
-//    setup_component<DynamicBodyComponent>(*m, _world, {});
+        //========================================================//
 
-//    setup_component<StaticBodyComponent>(*m, _world, {});
+        m->add(fun(&api::EntityEdit::set_unique_name), "set_unique_name");
+        m->add(fun(&api::EntityEdit::adopt_child),     "adopt_child");
 
-    setup_component<TransformComponent>(*m, {
-        {fun(&TransformComponent::PROP_position), "position"},
-        {fun(&TransformComponent::PROP_rotation), "rotation"},
-        {fun(&TransformComponent::PROP_scale),    "scale"}
-    });
+        m->add(fun(&api::AnimationEdit::set_callback_on_end), "set_callback_on_end");
 
-    setup_component<SkeletonComponent>(*m, {
-        {fun(&SkeletonComponent::PROP_armature), "armature"},
-        {fun(&SkeletonComponent::PROP_pose),     "pose"}
-    });
+        m->add(fun(&api::TransformEdit::set_position), "set_position");
+        m->add(fun(&api::TransformEdit::set_rotation), "set_rotation");
+        m->add(fun(&api::TransformEdit::set_scale),    "set_scale");
 
-    setup_component<ModelComponent>(*m, {
-        {fun(&ModelComponent::PROP_stretch), "stretch"},
-        {fun(&ModelComponent::PROP_render),  "render"},
-        {fun(&ModelComponent::PROP_shadow),  "shadow"},
-        {fun(&ModelComponent::PROP_decals),  "decals"},
-        {fun(&ModelComponent::PROP_mtrls),   "mtrls"},
-        {fun(&ModelComponent::PROP_mesh),    "mesh"}
-    });
+        m->add(fun(&api::ModelEdit::set_stretch),   "set_stretch");
+        m->add(fun(&api::ModelEdit::add_material),  "add_material");
+        m->add(fun(&api::ModelEdit::set_mesh),      "set_mesh");
+        m->add(fun(&api::ModelEdit::enable_render), "enable_render");
+        m->add(fun(&api::ModelEdit::enable_shadow), "enable_shadow");
+        m->add(fun(&api::ModelEdit::enable_decals), "enable_decals");
 
-    setup_component<DecalComponent>(*m, {
-        {fun(&DecalComponent::PROP_stretch),  "stretch"},
-        {fun(&DecalComponent::PROP_alpha),    "alpha"},
-        {fun(&DecalComponent::PROP_material), "material"}
-    });
+        m->add(fun(&api::SkeletonEdit::set_armature), "set_armature");
 
-    setup_component<LightOrthoComponent>(*m, {
-        {fun(&LightOrthoComponent::PROP_colour),     "colour"},
-        {fun(&LightOrthoComponent::PROP_minimum),    "minimum"},
-        {fun(&LightOrthoComponent::PROP_maximum),    "maximum"},
-        {fun(&LightOrthoComponent::PROP_density),    "density"},
-        {fun(&LightOrthoComponent::PROP_resolution), "resolution"}
-    });
+        m->add(fun(&api::SoundEdit::set_volume),     "set_volume");
+        m->add(fun(&api::SoundEdit::enable_looping), "enable_looping");
 
-    setup_component<LightPointComponent>(*m, {
-        {fun(&LightPointComponent::PROP_colour),     "colour"},
-        {fun(&LightPointComponent::PROP_resolution), "resolution"}
-    });
+        //========================================================//
 
-    setup_component<LightSpotComponent>(*m, {
-        {fun(&LightSpotComponent::PROP_colour),     "colour"},
-        {fun(&LightSpotComponent::PROP_softness),   "softness"},
-        {fun(&LightSpotComponent::PROP_angle),      "angle"},
-        {fun(&LightSpotComponent::PROP_resolution), "resolution"}
-    });
+        m->add(fun(&api::create_root_entity, std::ref(stuff)), "sq_create_root_entity");
+        m->add(fun(&api::create_entity,      std::ref(stuff)), "sq_create_entity");
 
-//    setup_component<ReflectComponent>(*m, _world, {
-//        {fun(&ReflectComponent::PROP_factor), "factor"}
-//    });
+        m->add(fun(&api::begin_animation, std::ref(stuff)), "sq_begin_animation");
 
-    _engine.add(m);
-}
+        m->add(fun(&api::play_sound_global,   std::ref(stuff)), "sq_play_sound");
+        m->add(fun(&api::play_sound_position, std::ref(stuff)), "sq_play_sound");
+        m->add(fun(&api::play_sound_entity,   std::ref(stuff)), "sq_play_sound");
 
+        //========================================================//
 
-void sqt::chaiscript_setup_functions(sq::ChaiEngine& _engine) {
-    chai::ModulePtr m(new chai::Module());
+        m->add(constructor<api::AnimationTimeline()>(), "AnimationTimeline");
 
-    _engine.add(m);
+        m->add(fun(&api::AnimationTimeline::set_times),           "set_times");
+        m->add(fun(&api::AnimationTimeline::add_Transform),       "add_Transform");
+        m->add(fun(&api::AnimationTimeline::debug_assert_sanity), "debug_assert_sanity");
+    }
+
+    engine.add(m);
 }
 
 
@@ -235,20 +166,13 @@ void sqt::chaiscript_setup_systems(sq::ChaiEngine& engine)
 {
     auto m = std::make_shared<chai::Module>();
 
-    add_class<SoundSystem>(*m, "SoundSystem", {}, {
-        {fun<int32_t, SoundSystem, const string&, uint8_t>(&SoundSystem::play), "play"},
-        {fun<int32_t, SoundSystem, const string&, uint8_t, Vec3F>(&SoundSystem::play), "play"},
-        {fun<int32_t, SoundSystem, const string&, uint8_t, const sq::Entity*>(&SoundSystem::play), "play"},
-        {fun(&SoundSystem::set_sound_volume), "set_sound_volume"},
-        {fun(&SoundSystem::set_sound_loop), "set_sound_loop"}
-    });
-
     engine.add(m);
 }
 
 
-void sqt::chaiscript_setup_messages(sq::ChaiEngine& _engine) {
-    chai::ModulePtr m(new chai::Module());
+void sqt::chaiscript_setup_messages(sq::ChaiEngine& engine)
+{
+    auto m = std::make_shared<chai::Module>();
 
     sq::chai_add_message_type<msg::Enable_SkyBox>(*m, "Enable_SkyBox");
     sq::chai_add_message_type<msg::Enable_Ambient>(*m, "Enable_Ambient");
@@ -258,5 +182,5 @@ void sqt::chaiscript_setup_messages(sq::ChaiEngine& _engine) {
     sq::chai_add_message_type<msg::Disable_Ambient>(*m, "Disable_Ambient");
     sq::chai_add_message_type<msg::Disable_SkyLight>(*m, "Disable_SkyLight");
 
-    _engine.add(m);
+    engine.add(m);
 }

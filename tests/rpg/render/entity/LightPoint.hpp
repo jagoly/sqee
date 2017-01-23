@@ -1,4 +1,4 @@
-#pragma once
+/*#pragma once
 
 #include <sqee/app/Resources.hpp>
 #include <sqee/maths/Volumes.hpp>
@@ -22,6 +22,7 @@ struct LightPointData {
     // references to component data
     const TransformComponent& cTransform;
     const LightPointComponent& cLightPoint;
+    const sq::Entity* const entityID;
 
     // data required for rendering
     struct Face { sq::FrameBuffer fbo; sq::Frustum frus; Mat4F matrix; };
@@ -30,3 +31,4 @@ struct LightPointData {
 };
 
 }}
+*/

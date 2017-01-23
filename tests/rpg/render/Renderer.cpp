@@ -13,14 +13,7 @@
 #include "../world/objects/Ambient.hpp"
 #include "../world/objects/SkyLight.hpp"
 
-//#include "../components/Animator.hpp"
-#include "../components/Model.hpp"
-#include "../components/Skeleton.hpp"
-#include "../components/Decal.hpp"
-#include "../components/LightOrtho.hpp"
-#include "../components/LightPoint.hpp"
-#include "../components/LightSpot.hpp"
-//#include "../components/Reflect.hpp"
+#include "../systems/Entity.hpp"
 
 #include "ObjectsData.hpp"
 #include "PassesData.hpp"
@@ -47,13 +40,8 @@ Renderer::~Renderer() = default;
 struct Renderer::Impl {
     Impl(Renderer& _renderer) : renderer(_renderer) {}
 
-    void refresh_static_data(const SceneData& _scene);
     void refresh_entity_data(const SceneData& _scene);
     void refresh_world_data(const SceneData& _scene);
-
-    void create_entity(const sq::Entity* _entity);
-    void configure_entity(const sq::Entity* _entity);
-    void destroy_entity(const sq::Entity* _entity);
 
     Renderer& renderer;
 
@@ -61,48 +49,24 @@ struct Renderer::Impl {
     render::PassesData passesData;
 };
 
-void Renderer::Impl::refresh_static_data(const SceneData& _scene) {
-    auto& od = objectsData;
+void Renderer::Impl::refresh_entity_data(const SceneData& _scene)
+{
+    //auto& entitySys = sys::static_EntitySystem();
 
-    std::set<HandleMaterial> keepAliveMtrl;
-    std::set<HandleMesh> keepAliveMesh;
-
-    for (const auto& model : od.staticModelVec) {
-        for (const auto& mtrl : model.mtrls)
-            keepAliveMtrl.emplace(mtrl);
-        keepAliveMesh.emplace(model.mesh);
+    //for (auto& entry : dop::entries(objectsData.mModelSimpleTable))
+    {
+        //if (entitySys.check_dirty(entry.id)) configure_entity(entry.id);
     }
 
-    for (const auto& decal : od.staticDecalVec) {
-        keepAliveMtrl.emplace(decal.material);
-    }
-
-    od.staticModelVec.clear();
-    od.staticDecalVec.clear();
-
-    const auto& staticCellMap = *_scene.staticCellMap;
-
-    for (const auto& cellPair : staticCellMap) {
-        for (const auto& modelPair : cellPair.second.get_ModelMap())
-            od.staticModelVec.emplace_back(modelPair.second);
-        for (const auto& decalPair : cellPair.second.get_DecalMap())
-            od.staticDecalVec.emplace_back(decalPair.second);
-    }
-
-    // TODO: find a proper solution for this
-    passesData.gbufferData.modelPasses.simplePass.baseVec.reserve(od.staticModelVec.size() + 10u);
-    passesData.gbufferData.modelPasses.skellyPass.baseVec.reserve(10u);
-}
-
-void Renderer::Impl::refresh_entity_data(const SceneData& _scene) {
-    for (auto& ent : objectsData.entityMap) {
-        if (ent.first->check_dirty() == false) continue;
-        if (ent.second.modelSimple) ent.second.modelSimple->refresh();
-        if (ent.second.modelSkelly) ent.second.modelSkelly->refresh();
-        if (ent.second.decalBasic) ent.second.decalBasic->refresh();
-        if (ent.second.lightOrtho) ent.second.lightOrtho->refresh();
-        if (ent.second.lightPoint) ent.second.lightPoint->refresh();
-        if (ent.second.lightSpot) ent.second.lightSpot->refresh();
+    //for (auto& entry : dop::entries(objectsData.mModelSimpleTable))
+    {
+        //if (ent.first->check_dirty() == false) continue;
+        //entry->refresh(entry.id);
+        //if (ent.second.modelSkelly) ent.second.modelSkelly->refresh();
+        //if (ent.second.decalBasic) ent.second.decalBasic->refresh();
+        //if (ent.second.lightOrtho) ent.second.lightOrtho->refresh();
+        //if (ent.second.lightPoint) ent.second.lightPoint->refresh();
+        //if (ent.second.lightSpot) ent.second.lightSpot->refresh();
     }
 }
 
@@ -115,47 +79,19 @@ void Renderer::Impl::refresh_world_data(const SceneData& _scene) {
 
 
 
-void Renderer::Impl::create_entity(const sq::Entity* _entity) {
-    SQASSERT(!objectsData.entityMap.count(_entity), "entity already created");
-    objectsData.entityMap.emplace(_entity, render::EntityData());
-}
 
-void Renderer::Impl::configure_entity(const sq::Entity* _entity) {
-    render::EntityData& data = objectsData.entityMap.at(_entity);
-
-    bool hasModel = _entity->try_get_component<ModelComponent>();
-    bool hasSkeleton = _entity->try_get_component<SkeletonComponent>();
-    bool hasDecal = _entity->try_get_component<DecalComponent>();
-
-    bool hasLightOrtho = _entity->try_get_component<LightOrthoComponent>();
-    bool hasLightPoint = _entity->try_get_component<LightPointComponent>();
-    bool hasLightSpot = _entity->try_get_component<LightSpotComponent>();
-
-    bool hasModelSimple = hasModel && !hasSkeleton;
-    bool hasModelSkelly = hasModel && hasSkeleton;
-    bool hasDecalBasic = hasDecal;
-
-    data.modelSimple.reset(hasModelSimple ? new render::ModelSimpleData(*_entity) : nullptr);
-    data.modelSkelly.reset(hasModelSkelly ? new render::ModelSkellyData(*_entity) : nullptr);
-    data.decalBasic.reset(hasDecalBasic ? new render::DecalBasicData(*_entity) : nullptr);
-    data.lightOrtho.reset(hasLightOrtho ? new render::LightOrthoData(*_entity) : nullptr);
-    data.lightPoint.reset(hasLightPoint ? new render::LightPointData(*_entity) : nullptr);
-    data.lightSpot.reset(hasLightSpot ? new render::LightSpotData(*_entity) : nullptr);
-}
-
-void Renderer::Impl::destroy_entity(const sq::Entity* _entity) {
-    SQASSERT(objectsData.entityMap.count(_entity), "entity not created");
-    objectsData.entityMap.erase(_entity);
-}
-
-
-void Renderer::render_scene(const SceneData& _scene) {
-
+void Renderer::render_scene(const SceneData& scene)
+{
     static auto& context = Context::get();
 
-    impl->refresh_static_data(_scene);
-    impl->refresh_entity_data(_scene);
-    impl->refresh_world_data(_scene);
+    // TODO: find a proper solution for this
+    impl->passesData.gbufferData.modelPasses.simplePass.baseVec.reserve(256u);
+    impl->passesData.gbufferData.modelPasses.skellyPass.baseVec.reserve(32u);
+
+    impl->refresh_entity_data(scene);
+    impl->refresh_world_data(scene);
+
+    render::refresh_render_tables(impl->objectsData);
 
     impl->passesData.prepare(impl->objectsData);
 
@@ -163,7 +99,8 @@ void Renderer::render_scene(const SceneData& _scene) {
     // setup some state
     context.bind_UniformBuffer(impl->objectsData.cameraData->ubo, 0u);
     context.set_state(Context::Depth_Compare::LessEqual);
-    shaders->pipeline.bind();
+
+    context.bind_shader_pipeline();
 
     shadowsDraw->render(impl->passesData.shadowsData);
 
@@ -210,10 +147,6 @@ Renderer::Renderer(sq::MessageBus& _messageBus) : messageBus(_messageBus), impl(
     on_Disable_Ambient.func = [this](auto) { impl->objectsData.ambientData.reset(nullptr); };
     on_Disable_SkyLight.func = [this](auto) { impl->objectsData.skylightData.reset(nullptr); };
 
-    on_Create_Entity.func = [this](auto _msg) { this->impl->create_entity(_msg.entity); };
-    on_Configure_Entity.func = [this](auto _msg) { this->impl->configure_entity(_msg.entity); };
-    on_Destroy_Entity.func = [this](auto _msg) { this->impl->destroy_entity(_msg.entity); };
-
     messageBus.subscribe_back(on_Enable_SkyBox);
     messageBus.subscribe_back(on_Enable_Ambient);
     messageBus.subscribe_back(on_Enable_SkyLight);
@@ -221,10 +154,6 @@ Renderer::Renderer(sq::MessageBus& _messageBus) : messageBus(_messageBus), impl(
     messageBus.subscribe_back(on_Disable_SkyBox);
     messageBus.subscribe_back(on_Disable_Ambient);
     messageBus.subscribe_back(on_Disable_SkyLight);
-
-    messageBus.subscribe_back(on_Create_Entity);
-    messageBus.subscribe_back(on_Configure_Entity);
-    messageBus.subscribe_back(on_Destroy_Entity);
 
     // Allocate Shared Resource Structs /////
     volumes = std::make_unique<render::StencilVolumes>();
@@ -247,7 +176,8 @@ Renderer::Renderer(sq::MessageBus& _messageBus) : messageBus(_messageBus), impl(
     shaders->preprocs.import_header("headers/shadow/sample_spot");
 
     // Allocate Passes Drawing Objects /////
-    render::SharedStuff stuff {*volumes, *textures, *shaders};
+    render::SharedStuff stuff { *volumes, *textures, *shaders, Options::get(), Context::get() };
+
     depthDraw = std::make_unique<render::DepthPasses>(stuff);
     gbufferDraw = std::make_unique<render::GbufferPasses>(stuff);
     shadowsDraw = std::make_unique<render::ShadowsPasses>(stuff);
@@ -259,8 +189,8 @@ Renderer::Renderer(sq::MessageBus& _messageBus) : messageBus(_messageBus), impl(
 }
 
 
-void Renderer::update_options() {
-
+void Renderer::update_options()
+{
     static const auto& options = Options::get();
 
     string headerStr = "// set of constants and defines added at runtime\n";
@@ -291,8 +221,8 @@ void Renderer::update_options() {
 
     shaders->preprocs.update_header("runtime/Options", headerStr);
 
-    textures->update_options();
-    shaders->update_options();
+    textures->update_options(options);
+    shaders->update_options(options);
 
     depthDraw->update_options();
     gbufferDraw->update_options();

@@ -29,7 +29,8 @@ void CameraData::refresh(const SceneData& _scene) {
 
     viewMat = maths::look_at(position, position + direction, {0.f, 0.f, 1.f});
     projMat = maths::perspective(camera.PROP_fov, size.x / size.y, rmin, rmax);
-    frus = sq::make_Frustum(projMat * viewMat, position, direction, rmin, rmax);
+
+    frustum = maths::make_frustum(projMat * viewMat, position, direction, rmax);
 
     struct {
         Mat4F view, proj, invView, invProj, trnView;

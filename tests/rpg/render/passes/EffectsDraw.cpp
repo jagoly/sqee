@@ -7,22 +7,26 @@
 using Context = sq::Context;
 using namespace sqt::render;
 
+//============================================================================//
 
-EffectsPasses::EffectsPasses(const SharedStuff& _stuff) : SharedStuff(_stuff) {
-
+EffectsPasses::EffectsPasses(const SharedStuff& stuff) : SharedStuff(stuff)
+{
     FB_SSAO_Main.draw_buffers({gl::COLOR_ATTACHMENT0});
     FB_SSAO_Blur.draw_buffers({gl::COLOR_ATTACHMENT0});
     FB_Bloom_Main.draw_buffers({gl::COLOR_ATTACHMENT0});
     FB_Bloom_Blur.draw_buffers({gl::COLOR_ATTACHMENT0});
     FB_Shafts_Main.draw_buffers({gl::COLOR_ATTACHMENT0});
     FB_Shafts_Blur.draw_buffers({gl::COLOR_ATTACHMENT0});
+
+    TEX_SSAO_Blur.set_filter_mode(true);
+    TEX_Bloom_Blur.set_filter_mode(true);
+    TEX_Shafts_Blur.set_filter_mode(true);
 }
 
+//============================================================================//
 
-void EffectsPasses::update_options() {
-
-    static const auto& options = Options::get();
-
+void EffectsPasses::update_options()
+{
     if (options.SSAO_Quality) shaders.preprocs(FS_SSAO_Main, "effects/SSAO/Main_fs");
     if (options.SSAO_Quality) shaders.preprocs(FS_SSAO_Blur, "effects/SSAO/Blur_fs");
 
@@ -37,15 +41,15 @@ void EffectsPasses::update_options() {
 
     // delete or allocate ssao blur texture
     if (options.SSAO_Quality == 0u) TEX_SSAO_Blur.delete_object();
-    else TEX_SSAO_Blur.allocate_storage(options.Window_Size / 2u, false);
+    else TEX_SSAO_Blur.allocate_storage(options.Window_Size / 2u);
 
     // delete or allocate bloom blur texture
     if (options.Bloom_Enable == false) TEX_Bloom_Blur.delete_object();
-    else TEX_Bloom_Blur.allocate_storage(options.Window_Size / 4u, false);
+    else TEX_Bloom_Blur.allocate_storage(options.Window_Size / 4u);
 
     // delete or allocate shafts blur texture
     if (options.Shafts_Quality == 0u) TEX_Shafts_Blur.delete_object();
-    else TEX_Shafts_Blur.allocate_storage(options.Window_Size / 2u, false);
+    else TEX_Shafts_Blur.allocate_storage(options.Window_Size / 2u);
 
     // re-attach textures to ssao main and blur framebuffers
     if (options.SSAO_Quality) FB_SSAO_Main.attach(gl::COLOR_ATTACHMENT0, textures.Effects_SSAO);
@@ -60,125 +64,120 @@ void EffectsPasses::update_options() {
     if (options.Shafts_Quality) FB_Shafts_Blur.attach(gl::COLOR_ATTACHMENT0, TEX_Shafts_Blur);
 }
 
+//============================================================================//
 
-void EffectsPasses::render_effect_SSAO() {
-
-    static auto& context = Context::get();
-    static const auto& options = Options::get();
-
+void EffectsPasses::render_effect_SSAO()
+{
     context.set_state(Context::Cull_Face::Disable);
     context.set_state(Context::Depth_Test::Disable);
     context.set_state(Context::Stencil_Test::Disable);
     context.set_state(Context::Blend_Mode::Disable);
 
-    if (options.SSAO_Quality != 0) {
+    if (options.SSAO_Quality != 0)
+    {
         context.set_ViewPort(options.Window_Size / 2u);
-        shaders.pipeline.use_shader(shaders.VS_FullScreen);
+        context.use_Shader_Vert(shaders.VS_FullScreen);
 
         context.bind_FrameBuffer(FB_SSAO_Main);
         context.bind_Texture(textures.Depth_HalfSize, 1u);
-        shaders.pipeline.use_shader(FS_SSAO_Main);
+        context.use_Shader_Frag(FS_SSAO_Main);
         sq::draw_screen_quad();
 
         context.bind_FrameBuffer(FB_SSAO_Blur);
         context.bind_Texture(textures.Effects_SSAO, 0u);
-        shaders.pipeline.use_shader(FS_SSAO_Blur);
+        context.use_Shader_Frag(FS_SSAO_Blur);
         sq::draw_screen_quad();
 
         context.bind_FrameBuffer(FB_SSAO_Main);
         context.bind_Texture(TEX_SSAO_Blur, 0u);
-        shaders.pipeline.use_shader(FS_SSAO_Blur);
+        context.use_Shader_Frag(FS_SSAO_Blur);
         sq::draw_screen_quad();
     }
 }
 
+//============================================================================//
 
-void EffectsPasses::render_effect_Bloom() {
-
-    static auto& context = Context::get();
-    static const auto& options = Options::get();
-
+void EffectsPasses::render_effect_Bloom()
+{
     context.set_state(Context::Cull_Face::Disable);
     context.set_state(Context::Depth_Test::Disable);
     context.set_state(Context::Stencil_Test::Disable);
     context.set_state(Context::Blend_Mode::Disable);
 
-    if (options.Bloom_Enable == true) {
+    if (options.Bloom_Enable == true)
+    {
         context.set_ViewPort(options.Window_Size / 4u);
-        shaders.pipeline.use_shader(shaders.VS_FullScreen);
+        context.use_Shader_Vert(shaders.VS_FullScreen);
 
         context.bind_FrameBuffer(FB_Bloom_Main);
         context.bind_Texture(textures.Lighting_Main, 0u);
-        shaders.pipeline.use_shader(FS_Bloom_Main);
+        context.use_Shader_Frag(FS_Bloom_Main);
         sq::draw_screen_quad();
 
         context.bind_FrameBuffer(FB_Bloom_Blur);
         context.bind_Texture(textures.Effects_Bloom, 0u);
-        shaders.pipeline.use_shader(FS_Bloom_BlurH);
+        context.use_Shader_Frag(FS_Bloom_BlurH);
         sq::draw_screen_quad();
 
         context.bind_FrameBuffer(FB_Bloom_Main);
         context.bind_Texture(TEX_Bloom_Blur, 0u);
-        shaders.pipeline.use_shader(FS_Bloom_BlurV);
+        context.use_Shader_Frag(FS_Bloom_BlurV);
         sq::draw_screen_quad();
 
         context.bind_FrameBuffer(FB_Bloom_Blur);
         context.bind_Texture(textures.Effects_Bloom, 0u);
-        shaders.pipeline.use_shader(FS_Bloom_BlurH);
+        context.use_Shader_Frag(FS_Bloom_BlurH);
         sq::draw_screen_quad();
 
         context.bind_FrameBuffer(FB_Bloom_Main);
         context.bind_Texture(TEX_Bloom_Blur, 0u);
-        shaders.pipeline.use_shader(FS_Bloom_BlurV);
+        context.use_Shader_Frag(FS_Bloom_BlurV);
         sq::draw_screen_quad();
     }
 }
 
+//============================================================================//
 
-void EffectsPasses::render_effect_Shafts() {
-
-    static auto& context = Context::get();
-    static const auto& options = Options::get();
-
+void EffectsPasses::render_effect_Shafts()
+{
     context.set_state(Context::Cull_Face::Disable);
     context.set_state(Context::Depth_Test::Disable);
     context.set_state(Context::Stencil_Test::Disable);
     context.set_state(Context::Blend_Mode::Disable);
 
-    if (options.Shafts_Quality != 0u) {
+    if (options.Shafts_Quality != 0u)
+    {
         context.set_ViewPort(options.Window_Size / 2u);
-        shaders.pipeline.use_shader(shaders.VS_FullScreen);
+        context.use_Shader_Vert(shaders.VS_FullScreen);
         context.bind_Texture(textures.Depth_HalfSize, 1u);
 
         context.bind_FrameBuffer(FB_Shafts_Blur);
         context.bind_Texture(textures.Volumetric_Shafts, 0u);
-        shaders.pipeline.use_shader(FS_Shafts_BlurH);
+        context.use_Shader_Frag(FS_Shafts_BlurH);
         sq::draw_screen_quad();
 
         context.bind_FrameBuffer(FB_Shafts_Main);
         context.bind_Texture(TEX_Shafts_Blur, 0u);
-        shaders.pipeline.use_shader(FS_Shafts_BlurV);
+        context.use_Shader_Frag(FS_Shafts_BlurV);
         sq::draw_screen_quad();
 
         context.bind_FrameBuffer(FB_Shafts_Blur);
         context.bind_Texture(textures.Volumetric_Shafts, 0u);
-        shaders.pipeline.use_shader(FS_Shafts_BlurH);
+        context.use_Shader_Frag(FS_Shafts_BlurH);
         sq::draw_screen_quad();
 
         context.bind_FrameBuffer(FB_Shafts_Main);
         context.bind_Texture(TEX_Shafts_Blur, 0u);
-        shaders.pipeline.use_shader(FS_Shafts_BlurV);
+        context.use_Shader_Frag(FS_Shafts_BlurV);
         sq::draw_screen_quad();
     }
 }
 
+//============================================================================//
 
-void EffectsPasses::render_effect_Overlay() {
-
-    static auto& context = Context::get();
-    static const auto& options = Options::get();
-
-    gl::BindFramebuffer(gl::FRAMEBUFFER, 0u);
+void EffectsPasses::render_effect_Overlay()
+{
+    context.bind_FrameBuffer_default();
 
     context.set_state(Context::Cull_Face::Disable);
     context.set_state(Context::Depth_Test::Disable);
@@ -186,8 +185,11 @@ void EffectsPasses::render_effect_Overlay() {
     context.set_state(Context::Blend_Mode::Alpha);
 
     // apply vignette effect if enabled
-    if (options.Vignette_Enable == true) {
-        shaders.pipeline.use_shader(FS_Overlay);
+    if (options.Vignette_Enable == true)
+    {
+        context.use_Shader_Frag(FS_Overlay);
         sq::draw_screen_quad();
     }
 }
+
+//============================================================================//

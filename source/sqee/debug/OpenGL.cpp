@@ -1,10 +1,11 @@
 #include <sqee/redist/gl_ext_4_2.hpp>
+
 #include <sqee/debug/Logging.hpp>
 #include <sqee/debug/OpenGL.hpp>
 
-void sq::debug_callback(GLenum _source, GLenum _type, GLuint _id, GLenum _severity,
-                        GLsizei _length, const GLchar* _message, const void* _param) {
-
+void sq::debug_callback(GLenum _source, GLenum _type, GLuint id, GLenum _severity,
+                        GLsizei /*length*/, const GLchar* message, const void* /*param*/)
+{
     string source, type, severity;
 
     if (_source == gl::DEBUG_SOURCE_API)             source = "API";
@@ -30,12 +31,13 @@ void sq::debug_callback(GLenum _source, GLenum _type, GLuint _id, GLenum _severi
     if (_severity == gl::DEBUG_SEVERITY_LOW)          severity = "LOW";
 
     sq::log_only("%s OpenGL: Source %s | Severity %s | Type %s | ID %s\n%s",
-                 get_time_string(), source, severity, type, _id, _message);
+                 get_time_string(), source, severity, type, id, message);
 
     return;
 }
 
-void sq::debug_message(const string& _message) {
-    gl::DebugMessageInsert(gl::DEBUG_SOURCE_APPLICATION, gl::DEBUG_TYPE_MARKER, 0,
-                           gl::DEBUG_SEVERITY_NOTIFICATION, _message.size(), _message.c_str());
+void sq::debug_message(const string& message)
+{
+    gl::DebugMessageInsert(gl::DEBUG_SOURCE_APPLICATION, gl::DEBUG_TYPE_MARKER, 0u,
+                           gl::DEBUG_SEVERITY_NOTIFICATION, message.size(), message.c_str());
 }

@@ -2,7 +2,7 @@
 
 #include <sqee/redist/tinyformat.hpp>
 #include <sqee/render/Armature.hpp>
-#include <sqee/app/Resources.hpp>
+#include <sqee/misc/Resource.hpp>
 #include <sqee/misc/Files.hpp>
 
 using namespace sq;
@@ -16,7 +16,7 @@ void throw_error(const string& _path, int _lnum, const string& _msg, const Args&
 Armature::Armature(const string& _path) { create(_path); }
 
 void Armature::create(const string& _path) {
-    string path = static_path() + "armatures/" + _path + ".sqa";
+    string path = "assets/armatures/" + _path + ".sqa";
     const auto fileVec = tokenise_file(path);
 
     struct BoneSpec {
@@ -42,9 +42,9 @@ void Armature::create(const string& _path) {
                 specVec.back().name = line[1];
                 specVec.back().parentIndex = stoi(line[2]);
             }
-            else if (key == "head") specVec.back().head = svtofv3(line, 1);
-            else if (key == "tail") specVec.back().tail = svtofv3(line, 1);
-            else if (key == "quat") specVec.back().quat = svtofqt(line, 1);
+            //else if (key == "head") specVec.back().head = svtofv3(line, 1);
+            //else if (key == "tail") specVec.back().tail = svtofv3(line, 1);
+            //else if (key == "quat") specVec.back().quat = svtofqt(line, 1);
             else throw_error(path, lnum, "Invalid bone property \"%s\"", key);
         }
 
@@ -55,14 +55,14 @@ void Armature::create(const string& _path) {
          boneVector.emplace_back(spec.name, spec.parentIndex, spec.head, spec.tail, spec.quat);
     }
 
-    for (const string& libName : get_files_from_dir(static_path() + "armatures/" + _path + ".lib")) {
+    for (const string& libName : get_files_from_dir("assets/armatures/" + _path + ".lib")) {
         load_library(_path + ".lib/" + libName.substr(0u, libName.size() - 8u));
     }
 }
 
 
 void Armature::load_library(const string& _path) {
-    string path = static_path() + "armatures/" + _path + ".sqa_lib";
+    string path = "assets/armatures/" + _path + ".sqa_lib";
     const auto fileVec = tokenise_file(path);
 
     Pose* pose = nullptr; Anim* anim = nullptr;
@@ -87,7 +87,7 @@ void Armature::load_library(const string& _path) {
                 pose->reserve(boneVector.size());
                 bIter = boneVector.begin();
             }
-            else pose->emplace_back(&*(bIter++), svtofqt(line, 0), svtofv3(line, 4));
+            //else pose->emplace_back(&*(bIter++), svtofqt(line, 0), svtofv3(line, 4));
         }
 
         else if (section == "anims") {

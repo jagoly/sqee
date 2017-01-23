@@ -17,7 +17,11 @@ struct CameraData : sq::NonCopyable {
     sq::UniformBuffer ubo;
     Vec3F position, direction;
     Mat4F projMat, viewMat;
-    sq::Frustum frus;
+
+    sq::maths::Frustum frustum;
+
+//    sys::CullSphere sphere;
+//    sys::CullFrustum frustum;
 };
 
 }}

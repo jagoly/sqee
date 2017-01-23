@@ -1,5 +1,4 @@
 #include <sqee/gl/Context.hpp>
-#include <sqee/gl/Drawing.hpp>
 
 #include "../../Options.hpp"
 #include "GbufferDraw.hpp"
@@ -7,10 +6,35 @@
 using Context = sq::Context;
 using namespace sqt::render;
 
+//============================================================================//
 
-GbufferPasses::GbufferPasses(const SharedStuff& _stuff) : SharedStuff(_stuff) {
+namespace { // anonymous
 
-    FB_MainGbuffer.draw_buffers({
+void impl_activate_material(Context& context, const sq::Shader& shader, const sq::Material& material)
+{
+    const bool hasDiff = material.has_diffuse_texture();
+    const bool hasNorm = material.has_normal_texture();
+    const bool hasSpec = material.has_specular_texture();
+
+    const Vec3I mtrlMode { hasDiff, hasNorm, hasSpec };
+    shader.update<Vec3I>("mtrlMode", mtrlMode);
+
+    if (hasDiff == false) shader.update<Vec3F>("colourDiff", material.get_diffuse_colour());
+    if (hasSpec == false) shader.update<Vec3F>("colourSpec", material.get_specular_colour());
+
+    if (hasDiff == true) context.bind_Texture(material.get_diffuse_texture(),  0u);
+    if (hasNorm == true) context.bind_Texture(material.get_normal_texture(),   1u);
+    if (hasSpec == true) context.bind_Texture(material.get_specular_texture(), 2u);
+}
+
+} // anonymous namespace
+
+//============================================================================//
+
+GbufferPasses::GbufferPasses(const SharedStuff& stuff) : SharedStuff(stuff)
+{
+    FB_MainGbuffer.draw_buffers
+    ({
         gl::COLOR_ATTACHMENT0, gl::COLOR_ATTACHMENT1,
         gl::COLOR_ATTACHMENT2, gl::COLOR_ATTACHMENT3
     });
@@ -19,7 +43,10 @@ GbufferPasses::GbufferPasses(const SharedStuff& _stuff) : SharedStuff(_stuff) {
     VS_ModelPass_Simple.add_uniform("normMat"); // Mat3F
     VS_ModelPass_Skelly.add_uniform("matrix"); // Mat4F
     VS_ModelPass_Skelly.add_uniform("normMat"); // Mat3F
-    FS_ModelPass_Model.add_uniform("d_n_s"); // Vec3I
+
+    FS_ModelPass_Model.add_uniform("mtrlMode"); // Vec3I
+    FS_ModelPass_Model.add_uniform("colourDiff"); // Vec3F
+    FS_ModelPass_Model.add_uniform("colourSpec"); // Vec3F
 
     shaders.preprocs(VS_ModelPass_Simple, "gbuffer/ModelPass/Simple_vs");
     shaders.preprocs(VS_ModelPass_Skelly, "gbuffer/ModelPass/Skelly_vs");
@@ -34,10 +61,10 @@ GbufferPasses::GbufferPasses(const SharedStuff& _stuff) : SharedStuff(_stuff) {
     shaders.preprocs(FS_DecalPass_Decal, "gbuffer/DecalPass/Decal_fs");
 }
 
+//============================================================================//
 
-void GbufferPasses::update_options() {
-    //static const auto& options = Options::get();
-
+void GbufferPasses::update_options()
+{
     FB_MainGbuffer.attach(gl::COLOR_ATTACHMENT0, textures.Gbuffer_MainDiff);
     FB_MainGbuffer.attach(gl::COLOR_ATTACHMENT1, textures.Gbuffer_MainSurf);
     FB_MainGbuffer.attach(gl::COLOR_ATTACHMENT2, textures.Gbuffer_MainNorm);
@@ -45,27 +72,24 @@ void GbufferPasses::update_options() {
     FB_MainGbuffer.attach(gl::DEPTH_STENCIL_ATTACHMENT, textures.Depth_FullSize);
 }
 
+//============================================================================//
 
-void GbufferPasses::render(const data::GbufferPasses& _data) {
-
-    static auto& context = Context::get();
-    static const auto& options = Options::get();
-
+void GbufferPasses::render(const data::GbufferPasses& data)
+{
     // bind and clear framebuffer
     context.set_ViewPort(options.Window_Size);
     context.bind_FrameBuffer(FB_MainGbuffer);
     context.clear_Colour(Vec4F(0.f));
 
     ////// sub passes //////
-    impl_render_ModelPasses(_data.modelPasses);
-    impl_render_DecalPasses(_data.decalPasses);
+    impl_render_ModelPasses(data.modelPasses);
+    impl_render_DecalPasses(data.decalPasses);
 }
 
+//============================================================================//
 
-void GbufferPasses::impl_render_ModelPasses(const data::GbufferModelPasses& _data) {
-
-    static auto& context = Context::get();
-
+void GbufferPasses::impl_render_ModelPasses(const data::GbufferModelPasses& data)
+{
     // use back face culling for all models
     context.set_state(Context::Cull_Face::Back);
 
@@ -78,62 +102,74 @@ void GbufferPasses::impl_render_ModelPasses(const data::GbufferModelPasses& _dat
     context.set_state(Context::Blend_Mode::Disable);
 
     ////// sub passes //////
-    impl_render_ModelSimplePass(_data.simplePass);
-    impl_render_ModelSkellyPass(_data.skellyPass);
+    impl_render_ModelSimplePass(data.simplePass);
+    impl_render_ModelSkellyPass(data.skellyPass);
 
     // revert to standard depth comparison
     context.set_state(Context::Depth_Compare::LessEqual);
-
-    // revert modified state
-    sq::FRONTFACE(false);
 }
 
-void GbufferPasses::impl_render_ModelSimplePass(const data::GbufferModelSimplePass& _data) {
+//============================================================================//
 
-    shaders.pipeline.use_shader(VS_ModelPass_Simple);
-    shaders.pipeline.use_shader(FS_ModelPass_Model);
+void GbufferPasses::impl_render_ModelSimplePass(const data::GbufferModelSimplePass& data)
+{
+    context.use_Shader_Vert(VS_ModelPass_Simple);
+    context.use_Shader_Frag(FS_ModelPass_Model);
 
-    for (const auto& materialVecPair : _data.partMap) {
+    for (const auto& materialVecPair : data.partMap)
+    {
+        const auto& mtrl = materialVecPair.first;
+        const auto& models = materialVecPair.second;
 
-        const Material& mtrl = *(materialVecPair.first);
-        Vec3I d_n_s{mtrl.diff.check(), mtrl.norm.check(), mtrl.spec.check()};
-        FS_ModelPass_Model.update<Vec3I>("d_n_s", d_n_s); mtrl.bind_dns();
+        impl_activate_material(context, FS_ModelPass_Model, *mtrl);
 
-        for (const auto& model : materialVecPair.second) {
+        for (const auto& model : models)
+        {
             VS_ModelPass_Simple.update<Mat4F>("matrix", model->matrix);
             VS_ModelPass_Simple.update<Mat3F>("normMat", model->normMat);
-            sq::FRONTFACE(model->mirror); model->mesh.bind_vao();
-            model->mesh.draw_material(model.index);
-    }}
+
+            if (model->mirror) context.set_state(Context::Cull_Face::Front);
+            else context.set_state(Context::Cull_Face::Back);
+
+            context.bind_VertexArray(model->mesh.get_vao());
+            model->mesh.draw_partial(model.index);
+        }
+    }
 }
 
-void GbufferPasses::impl_render_ModelSkellyPass(const data::GbufferModelSkellyPass& _data) {
+//============================================================================//
 
-    static auto& context = Context::get();
+void GbufferPasses::impl_render_ModelSkellyPass(const data::GbufferModelSkellyPass& data)
+{
+    context.use_Shader_Vert(VS_ModelPass_Skelly);
+    context.use_Shader_Frag(FS_ModelPass_Model);
 
-    shaders.pipeline.use_shader(VS_ModelPass_Skelly);
-    shaders.pipeline.use_shader(FS_ModelPass_Model);
+    for (const auto& materialVecPair : data.partMap)
+    {
+        const auto& mtrl = materialVecPair.first;
+        const auto& models = materialVecPair.second;
 
-    for (const auto& materialVecPair : _data.partMap) {
+        impl_activate_material(context, FS_ModelPass_Model, *mtrl);
 
-        const Material& mtrl = *(materialVecPair.first);
-        Vec3I d_n_s{mtrl.diff.check(), mtrl.norm.check(), mtrl.spec.check()};
-        FS_ModelPass_Model.update<Vec3I>("d_n_s", d_n_s); mtrl.bind_dns();
-
-        for (const auto& model : materialVecPair.second) {
+        for (const auto& model : models)
+        {
             VS_ModelPass_Skelly.update<Mat4F>("matrix", model->matrix);
             VS_ModelPass_Skelly.update<Mat3F>("normMat", model->normMat);
-            sq::FRONTFACE(model->mirror); model->mesh.bind_vao();
+
+            if (model->mirror) context.set_state(Context::Cull_Face::Front);
+            else context.set_state(Context::Cull_Face::Back);
+
+            context.bind_VertexArray(model->mesh.get_vao());
             context.bind_UniformBuffer(model->ubo, 1u);
-            model->mesh.draw_material(model.index);
-    }}
+            model->mesh.draw_partial(model.index);
+        }
+    }
 }
 
+//============================================================================//
 
-void GbufferPasses::impl_render_DecalPasses(const data::GbufferDecalPasses& _data) {
-
-    static auto& context = Context::get();
-
+void GbufferPasses::impl_render_DecalPasses(const data::GbufferDecalPasses& data)
+{
     // decal boxes require front face culling
     context.set_state(Context::Cull_Face::Front);
 
@@ -150,24 +186,31 @@ void GbufferPasses::impl_render_DecalPasses(const data::GbufferDecalPasses& _dat
     context.bind_Texture(textures.Depth_FullSize, 7u);
 
     ////// sub passes //////
-    impl_render_DecalBasicPass(_data.basicPass);
+    impl_render_DecalBasicPass(data.basicPass);
 }
 
-void GbufferPasses::impl_render_DecalBasicPass(const data::GbufferDecalBasicPass& _data) {
+//============================================================================//
 
-    shaders.pipeline.use_shader(VS_DecalPass_Decal);
-    shaders.pipeline.use_shader(FS_DecalPass_Decal);
+void GbufferPasses::impl_render_DecalBasicPass(const data::GbufferDecalBasicPass& data)
+{
+    context.use_Shader_Vert(VS_DecalPass_Decal);
+    context.use_Shader_Frag(FS_DecalPass_Decal);
 
-    for (const auto& materialVecPair : _data.decalMap) {
+    for (const auto& materialVecPair : data.decalMap)
+    {
+        const auto& mtrl = materialVecPair.first;
+        const auto& decals = materialVecPair.second;
 
-        const Material& mtrl = *(materialVecPair.first);
-        Vec3I d_n_s{mtrl.diff.check(), mtrl.norm.check(), mtrl.spec.check()};
-        FS_DecalPass_Decal.update<Vec3I>("d_n_s", d_n_s); mtrl.bind_dns();
+        impl_activate_material(context, FS_DecalPass_Decal, *mtrl);
 
-        for (const auto& decal : materialVecPair.second) {
+        for (const auto& decal : decals)
+        {
             VS_DecalPass_Decal.update<Mat4F>("modelView", decal.matrix);
             FS_DecalPass_Decal.update<Mat4F>("invModelView", decal.invMatrix);
             FS_DecalPass_Decal.update<float>("alpha", decal.alpha);
-            volumes.Unit_Cube.bind_and_draw();
-    }}
+            volumes.Unit_Cube.bind_and_draw(context);
+        }
+    }
 }
+
+//============================================================================//

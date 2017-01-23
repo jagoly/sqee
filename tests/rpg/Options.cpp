@@ -6,8 +6,8 @@
 
 using namespace sqt;
 
-void Options::validate() const {
-
+void Options::validate() const
+{
     sq::log_assert(Window_Size.x  >= 640u,  "horizontal resolution too low");
     sq::log_assert(Window_Size.y  >= 360u,  "vertical resolution too low");
     sq::log_assert(Window_Size.x  <= 2560u, "horizontal resolution too high");
@@ -25,7 +25,8 @@ void Options::validate() const {
     sq::log_assert(validDebugTextures.count(Debug_Texture), "Debug_Texture not recognised");
 }
 
-Options& Options::get() {
+Options& Options::get()
+{
     static Options instance;
     return instance;
 }

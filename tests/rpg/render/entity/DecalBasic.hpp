@@ -1,4 +1,4 @@
-#pragma once
+/*#pragma once
 
 #include <sqee/app/Resources.hpp>
 #include <sqee/maths/Volumes.hpp>
@@ -23,6 +23,7 @@ struct DecalBasicData {
     // references to component data
     const TransformComponent& cTransform;
     const DecalComponent& cDecal;
+    const sq::Entity* const entityID;
 
     // data required for rendering
     HandleMaterial material; float alpha;
@@ -30,3 +31,4 @@ struct DecalBasicData {
 };
 
 }}
+*/

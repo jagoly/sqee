@@ -1,26 +1,15 @@
 #pragma once
 
-#include <sqee/builtins.hpp>
-#include <sqee/ecs/Entity.hpp>
+#include "WorldStuff.hpp"
 
-namespace sqt {
+namespace sqt { namespace sys {
 
-class AnimationSystem {
-public:
+//============================================================================//
 
-    AnimationSystem();
-    ~AnimationSystem();
+void system_tick_animations(WorldStuff& stuff);
 
-    float tickPercent = 0.f;
+void system_blend_animations(WorldStuff& stuff, float factor);
 
-    void configure_entity(sq::Entity* _entity);
-    void refresh_entity(sq::Entity* _entity);
-    void remove_entity(sq::Entity* _entity);
+//============================================================================//
 
-private:
-    struct Impl;
-    friend struct Impl;
-    unique_ptr<Impl> impl;
-};
-
-}
+}} // namespace sqt::sys

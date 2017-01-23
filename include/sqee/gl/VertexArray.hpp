@@ -1,48 +1,53 @@
 #pragma once
 
-#include <sqee/setup.hpp>
-
-// Forward Declarations /////
-namespace sq { class FixedBuffer; class DynamicBuffer; }
+#include <sqee/gl/FixedBuffer.hpp>
 
 namespace sq {
 
-/// A class for OpenGL vertex array objects
-class VertexArray final : NonCopyable {
+//============================================================================//
+
+/// OpenGL Vertex Array Object
+class VertexArray final : public MoveOnly
+{
 public:
-    VertexArray(); ~VertexArray();
 
-    /// Add a float attribute from a fixed size buffer
-    void add_attribute(const FixedBuffer& _buffer, uint _index, uint _offs,
-                       uint _stride, uint _size, GLenum _type, bool _normalize) const;
+    //========================================================//
 
-    /// Add a float attribute from a resizable buffer
-    void add_attribute(const DynamicBuffer& _buffer, uint _index, uint _offs,
-                       uint _stride, uint _size, GLenum _type, bool _normalize) const;
+    /// Constructor
+    VertexArray();
 
-    /// Add an integer attribute from a fixed size buffer
-    void add_attribute_I(const FixedBuffer& _buffer, uint _index, uint _offs,
-                         uint _stride, uint _size, GLenum _type) const;
+    /// Move Constructor
+    VertexArray(VertexArray&& other);
 
-    /// Add an integer attribute from a resizable buffer
-    void add_attribute_I(const DynamicBuffer& _buffer, uint _index, uint _offs,
-                         uint _stride, uint _size, GLenum _type) const;
+    /// Destructor
+    ~VertexArray();
 
-    /// Set a fixed-size buffer to use for indexed rendering
-    void set_element_buffer(const FixedBuffer& _buffer) const;
+    //========================================================//
 
-    /// Set a resizable buffer to use for indexed rendering
-    void set_element_buffer(const DynamicBuffer& _buffer) const;
+    /// specify a floating point vertex attribute
+    void add_float_attribute(uint index, uint size, GLenum type, bool normalize, uint offset);
 
-    /// Bind the vertex array
-    void bind() const;
+    /// specify an integral vertex attribute
+    void add_integer_attribute(uint index, uint size, GLenum type, uint offset);
+
+    /// set a fixed-size buffer to use for vertices
+    void set_vertex_buffer(const FixedBuffer& buffer, uint offset, uint stride);
+
+    /// set a fixed-size buffer to use for indices
+    void set_index_buffer(const FixedBuffer& buffer);
+
+    //========================================================//
 
     /// Get the OpenGL handle
-    const GLuint& get_handle() const { return vao; }
+    GLuint get_handle() const { return mHandle; }
 
 private:
-    /// The OpenGL handle
-    GLuint vao = 0u;
+
+    //========================================================//
+
+    GLuint mHandle = 0u;
 };
 
-}
+//============================================================================//
+
+} // namespace sq

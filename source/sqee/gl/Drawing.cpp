@@ -1,27 +1,26 @@
+#include <sqee/gl/Context.hpp>
 #include <sqee/gl/Drawing.hpp>
 
 using namespace sq;
 
-void sq::draw_nothing() {
-    static GLuint vao;
+//============================================================================//
 
-    static bool first = true;
-    if (first) { first = false;
-        gl::CreateVertexArrays(1, &vao);
-    }
+void sq::draw_nothing()
+{
+    static auto& context = Context::get();
 
-    gl::BindVertexArray(vao);
+    context.bind_VertexArray_dummy();
+
     gl::DrawArrays(gl::POINTS, 0, 1);
 }
 
-void sq::draw_screen_quad() {
-    static GLuint vao;
+//============================================================================//
 
-    static bool first = true;
-    if (first) { first = false;
-        gl::CreateVertexArrays(1, &vao);
-    }
+void sq::draw_screen_quad()
+{
+    static auto& context = Context::get();
 
-    gl::BindVertexArray(vao);
+    context.bind_VertexArray_dummy();
+
     gl::DrawArrays(gl::TRIANGLE_STRIP, 0, 4);
 }

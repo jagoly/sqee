@@ -1,51 +1,51 @@
 #pragma once
 
 #include <sqee/builtins.hpp>
-#include <sqee/scenes/Scene.hpp>
+#include <sqee/messages.hpp>
+
 #include <sqee/maths/Vectors.hpp>
+
+#include <sqee/app/Scene.hpp>
 #include <sqee/app/MessageBus.hpp>
 
 namespace sqt {
 
+//============================================================================//
+
 // Forward Declarations /////
 class RpgApp; class World; class Renderer;
 
-class MainScene : public sq::Scene {
+//============================================================================//
+
+class MainScene : public sq::Scene
+{
 public:
-    MainScene(RpgApp& _app);
+
+    //========================================================//
+
+    MainScene(RpgApp& app);
 
     void update_options();
+    bool handle(sf::Event event);
     void tick(); void render();
-    bool handle(sf::Event _event);
-
-    // why isn't mbus in Application?
-    sq::MessageBus& get_mbus() { return *mbus; }
 
 private:
-    Vec3F posCrnt, posNext;
-    float rotX =0, rotZ =0;
 
-    RpgApp& app;
+    //========================================================//
 
-    unique_ptr<sq::MessageBus> mbus;
+    RpgApp& mRpgApp;
 
     unique_ptr<World> world;
     unique_ptr<Renderer> renderer;
 
-    /*struct {
-        unique_ptr<sq::Texture2D> pshadA;
-        unique_ptr<sq::Texture2D> pshadB;
-        unique_ptr<sq::Texture2D> partMain;
-        unique_ptr<sq::Texture2D> partDpSt;
-        unique_ptr<sq::Texture2D> hdrPart;
-    } TX;
+    Vec3F mPosCrnt, mPosNext;
 
-    struct {
-        unique_ptr<sq::FrameBuffer> pshadA;
-        unique_ptr<sq::FrameBuffer> pshadB;
-        unique_ptr<sq::FrameBuffer> defrPart;
-        unique_ptr<sq::FrameBuffer> hdrPart;
-    } FB;*/
+    float mRotateX = 0.f;
+    float mRotateZ = 0.f;
+
+    sq::Receiver<msg::Toggle_Chai_Console> on_Toggle_Chai_Console;
 };
 
-}
+//============================================================================//
+
+} // namespace sqt

@@ -18,17 +18,11 @@ using chai::utility::add_class;
 
 namespace sq {
 
-template<class ValueT> inline
-void chai_add_read_only_vector(chai::Module& _m, const string& _name) {
-    const auto access_func = [](vector<ValueT>* vec, int index) -> ValueT { return vec->at(index); };
-    _m.add(user_type<vector<ValueT*>>(), _name);
-    _m.add(fun(access_func), "[]");
+template <class Message, class... Args> inline
+void chai_add_message_type(chai::Module& m, const string& name)
+{
+    const auto send_func = [](MessageBus* mbus, Args... args) { mbus->send_message(Message{args...}); };
+    m.add(fun(send_func), "send_" + name);
 }
 
-template<class MType, class... Args> inline
-void chai_add_message_type(chai::Module& _m, const string& _name) {
-    const auto send_func = [](sq::MessageBus* mbus, Args... args) { mbus->send_message(MType{args...}); };
-    _m.add(fun(send_func), "send_" + _name);
-}
-
-}
+} // namespace sq

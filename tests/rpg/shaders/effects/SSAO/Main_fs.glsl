@@ -95,7 +95,7 @@ float rand(vec2 _crd){
 void main() {
     vec3 pos = get_view_pos(texcrd);
     vec2 fsvspz = filterSize * vec2(1.f / OPTION_Aspect, 1.f) / pos.z;
-    vec3 v_surf = normalize(texture(defrSurf, texcrd - vec2(0.00001)).rgb * 2.f - 1.f);
+    vec3 v_surf = normalize(texture(defrSurf, texcrd - vec2(0.00001)).rgb);
 
 //    vec2 interleavedPos = mod(texcrd * OPTION_WinSizeHalf, 4.f);
 //    float angle = (4.f * interleavedPos.y + interleavedPos.x) / 16.f;

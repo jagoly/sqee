@@ -1,14 +1,9 @@
 #pragma once
 
 #include <sqee/builtins.hpp>
-#include <sqee/ecs/Entity.hpp>
-#include <sqee/ecs/Manager.hpp>
-
-#include "static/StaticCell.hpp"
+#include <sqee/app/MessageBus.hpp>
 
 #include "../systems/Animation.hpp"
-#include "../systems/Transform.hpp"
-#include "../systems/Sound.hpp"
 
 #include "objects/Camera.hpp"
 #include "objects/SkyBox.hpp"
@@ -18,20 +13,16 @@
 #include "../messages.hpp"
 
 // Forward Declarations /////
-namespace reactphysics3d { class DynamicsWorld; }
+//namespace reactphysics3d { class DynamicsWorld; }
 
 namespace sqt {
 
-struct SceneData {
-
-    const world::StaticCellMap* staticCellMap = nullptr;
-
+struct SceneData
+{
     const world::CameraObject* camera = nullptr;
     const world::SkyBoxObject* skybox = nullptr;
     const world::AmbientObject* ambient = nullptr;
     const world::SkyLightObject* skylight = nullptr;
-
-    //vector<const sq::Entity*> entities;
 };
 
 class World final {
@@ -43,17 +34,14 @@ public:
     void update_options();
     void tick(); void update();
 
-    world::StaticCell* add_StaticCell(const string& _name);
-    const world::StaticCell& get_StaticCell(const string& _name) const;
-    //const world::StaticCellMap& get_StaticCellMap() const { return staticCellMap; }
+    //sq::EntityManager& get_EntityManager();
+    //rp3d::DynamicsWorld& get_PhysicsWorld();
 
-    sq::EntityManager& get_EntityManager();
-    rp3d::DynamicsWorld& get_PhysicsWorld();
+    //const sq::EntityManager& get_EntityManager() const;
+    //const rp3d::DynamicsWorld& get_PhysicsWorld() const;
 
-    const sq::EntityManager& get_EntityManager() const;
-    const rp3d::DynamicsWorld& get_PhysicsWorld() const;
-
-    SoundSystem& get_SoundSystem() { return soundSystem; }
+//    TransformSystem& get_TransformSystem() { return transformSystem; }
+//    SoundSystem& get_SoundSystem() { return soundSystem; }
 
     SceneData sceneData;
 
@@ -66,10 +54,6 @@ public:
 
 private:
     sq::MessageBus& messageBus;
-
-    world::StaticCellMap staticCellMap;
-
-    sq::Receiver<msg::Configure_Entity> on_Configure_Entity;
 
     sq::Receiver<msg::Enable_SkyBox> on_Enable_SkyBox;
     sq::Receiver<msg::Enable_Ambient> on_Enable_Ambient;
@@ -84,11 +68,9 @@ private:
     sq::Receiver<msg::Debug_3> on_Debug_3;
     sq::Receiver<msg::Debug_4> on_Debug_4;
 
-    sq::EntityManager entityManager;
-
-    AnimationSystem animationSystem;
-    TransformSystem transformSystem;
-    SoundSystem soundSystem;
+//    AnimationSystem animationSystem;
+//    TransformSystem transformSystem;
+//    SoundSystem soundSystem;
 
     struct Impl;
     friend struct Impl;

@@ -7,23 +7,35 @@
 
 namespace sqt { namespace render {
 
-class ShadowsPasses final : public SharedStuff {
+//============================================================================//
+
+class ShadowsPasses : public SharedStuff
+{
 public:
-    ShadowsPasses(const SharedStuff& _stuff);
+
+    //========================================================//
+
+    ShadowsPasses(const SharedStuff& stuff);
 
     void update_options();
 
-    void render(const data::ShadowsPasses& _data);
+    void render(const data::ShadowsPasses& data);
 
 private:
 
-    sq::Shader VS_SimpleSolid {gl::VERTEX_SHADER};
-    sq::Shader VS_SkellySolid {gl::VERTEX_SHADER};
-    sq::Shader VS_SimplePunch {gl::VERTEX_SHADER};
-    sq::Shader VS_SkellyPunch {gl::VERTEX_SHADER};
-    sq::Shader FS_ModelPunch {gl::FRAGMENT_SHADER};
+    //========================================================//
 
-    void impl_render_ShadowsPass(const data::ShadowsPass& _data);
+    sq::Shader VS_SimpleSolid { sq::Shader::Stage::Vertex };
+    sq::Shader VS_SkellySolid { sq::Shader::Stage::Vertex };
+    sq::Shader VS_SimplePunch { sq::Shader::Stage::Vertex };
+    sq::Shader VS_SkellyPunch { sq::Shader::Stage::Vertex };
+    sq::Shader FS_ModelPunch { sq::Shader::Stage::Fragment };
+
+    //========================================================//
+
+    void impl_render_ShadowsPass(const data::ShadowsPass& data);
 };
 
-}}
+//============================================================================//
+
+}} // namespace sqt::render

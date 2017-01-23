@@ -1,4 +1,3 @@
-#pragma once
 // tinyformat.h
 // Copyright (C) 2011, Chris Foster [chris42f (at) gmail (d0t) com]
 // Formatting changes by James Gangur
@@ -114,6 +113,9 @@
 // Overload formatValue() for more control.
 
 
+#ifndef TINYFORMAT_H_INCLUDED
+#define TINYFORMAT_H_INCLUDED
+
 namespace tinyformat {}
 //------------------------------------------------------------------------------
 // Config section.  Customize to your liking!
@@ -128,6 +130,7 @@ namespace tfm = tinyformat;
 // general.  If you don't define this, C++11 support is autodetected below.
 #define TINYFORMAT_USE_VARIADIC_TEMPLATES
 
+
 //------------------------------------------------------------------------------
 // Implementation details.
 #include <algorithm>
@@ -137,27 +140,6 @@ namespace tfm = tinyformat;
 
 #ifndef TINYFORMAT_ERROR
 #   define TINYFORMAT_ERROR(reason) assert(0 && reason)
-#endif
-
-#if !defined(TINYFORMAT_USE_VARIADIC_TEMPLATES) && !defined(TINYFORMAT_NO_VARIADIC_TEMPLATES)
-#   ifdef __GXX_EXPERIMENTAL_CXX0X__
-#       define TINYFORMAT_USE_VARIADIC_TEMPLATES
-#   endif
-#endif
-
-#ifdef TINYFORMAT_USE_VARIADIC_TEMPLATES
-#   include <array>
-#   if defined(_MSC_VER) && _MSC_VER <= 1800 // VS2013
-#       define TINYFORMAT_BRACED_INIT_WORKAROUND(x) (x)
-#   else
-#       define TINYFORMAT_BRACED_INIT_WORKAROUND(x) {x}
-#   endif
-#endif
-
-#if defined(__GLIBCXX__) && __GLIBCXX__ < 20080201
-//  std::showpos is broken on old libstdc++ as provided with OSX.  See
-//  http://gcc.gnu.org/ml/libstdc++/2007-11/msg00075.html
-#   define TINYFORMAT_OLD_LIBSTDCPLUSPLUS_WORKAROUND
 #endif
 
 #ifdef __APPLE__
@@ -228,27 +210,6 @@ struct formatValueAsType<T,fmtT,true>
         { out << static_cast<fmtT>(value); }
 };
 
-#ifdef TINYFORMAT_OLD_LIBSTDCPLUSPLUS_WORKAROUND
-template<typename T, bool convertible = is_convertible<T, int>::value>
-struct formatZeroIntegerWorkaround
-{
-    static bool invoke(std::ostream& /**/, const T& /**/) { return false; }
-};
-template<typename T>
-struct formatZeroIntegerWorkaround<T,true>
-{
-    static bool invoke(std::ostream& out, const T& value)
-    {
-        if (static_cast<int>(value) == 0 && out.flags() & std::ios::showpos)
-        {
-            out << "+0";
-            return true;
-        }
-        return false;
-    }
-};
-#endif // TINYFORMAT_OLD_LIBSTDCPLUSPLUS_WORKAROUND
-
 // Convert an arbitrary type to integer.  The version with convertible=false
 // throws an error.
 template<typename T, bool convertible = is_convertible<T,int>::value>
@@ -275,7 +236,7 @@ inline void formatTruncated(std::ostream& out, const T& value, int ntrunc)
     std::ostringstream tmp;
     tmp << value;
     std::string result = tmp.str();
-    out.write(result.c_str(), std::min(ntrunc, static_cast<int>(result.size())));
+    out.write(result.c_str(), (std::min)(ntrunc, static_cast<int>(result.size())));
 }
 #define TINYFORMAT_DEFINE_FORMAT_TRUNCATED_CSTR(type)       \
 inline void formatTruncated(std::ostream& out, type* value, int ntrunc) \
@@ -325,15 +286,12 @@ inline void formatValue(std::ostream& out, const char* /*fmtBegin*/,
     // void* respectively and format that instead of the value itself.  For the
     // %p conversion it's important to avoid dereferencing the pointer, which
     // could otherwise lead to a crash when printing a dangling (const char*).
-    bool canConvertToChar = detail::is_convertible<T,char>::value;
-    bool canConvertToVoidPtr = detail::is_convertible<T, const void*>::value;
+    const bool canConvertToChar = detail::is_convertible<T,char>::value;
+    const bool canConvertToVoidPtr = detail::is_convertible<T, const void*>::value;
     if(canConvertToChar && *(fmtEnd-1) == 'c')
         detail::formatValueAsType<T, char>::invoke(out, value);
     else if(canConvertToVoidPtr && *(fmtEnd-1) == 'p')
         detail::formatValueAsType<T, const void*>::invoke(out, value);
-#ifdef TINYFORMAT_OLD_LIBSTDCPLUSPLUS_WORKAROUND
-    else if(detail::formatZeroIntegerWorkaround<T>::invoke(out, value)) /**/;
-#endif
     else if(ntrunc >= 0)
     {
         // Take care not to overread C strings in truncating conversions like
@@ -559,14 +517,16 @@ inline const char* printFormatStringLiteral(std::ostream& out, const char* fmt)
         switch(*c)
         {
             case '\0':
-                out.write(fmt, static_cast<std::streamsize>(c - fmt));
+                out.write(fmt, c - fmt);
                 return c;
             case '%':
-                out.write(fmt, static_cast<std::streamsize>(c - fmt));
+                out.write(fmt, c - fmt);
                 if(*(c+1) != '%')
                     return c;
                 // for "%%", tack trailing % onto next literal section.
                 fmt = ++c;
+                break;
+            default:
                 break;
         }
     }
@@ -637,6 +597,8 @@ inline const char* streamStateFromFormat(std::ostream& out, bool& spacePadPositi
                 spacePadPositive = false;
                 widthExtra = 1;
                 continue;
+            default:
+                break;
         }
         break;
     }
@@ -750,6 +712,8 @@ inline const char* streamStateFromFormat(std::ostream& out, bool& spacePadPositi
             TINYFORMAT_ERROR("tinyformat: Conversion spec incorrectly "
                              "terminated by end of string");
             return c;
+        default:
+            break;
     }
     if(intConversion && precisionSet && !widthSet)
     {
@@ -862,7 +826,7 @@ class FormatListN : public FormatList
         template<typename... Args>
         FormatListN(const Args&... args)
             : FormatList(&m_formatterStore[0], N),
-            m_formatterStore TINYFORMAT_BRACED_INIT_WORKAROUND({ FormatArg(args)... })
+            m_formatterStore { FormatArg(args)... }
         { static_assert(sizeof...(args) == N, "Number of args must be N"); }
 #else // C++98 version
         void init(int) {}
@@ -885,11 +849,7 @@ class FormatListN : public FormatList
 #endif
 
     private:
-#ifdef TINYFORMAT_USE_VARIADIC_TEMPLATES
-        std::array<FormatArg, N> m_formatterStore;
-#else // C++98 version
         FormatArg m_formatterStore[N];
-#endif
 };
 
 // Special 0-arg version - MSVC says zero-sized C array in struct is nonstandard
@@ -1040,3 +1000,5 @@ TINYFORMAT_FOREACH_ARGNUM(TINYFORMAT_MAKE_FORMAT_FUNCS)
 
 
 } // namespace tinyformat
+
+#endif // TINYFORMAT_H_INCLUDED

@@ -1,1003 +1,320 @@
-def load_static() {
+def add_static_model(root, position, rotation, stretch, materials, mesh)
+{
+    var leaf = sq_create_entity(root, ["Transform", "Model"]);
 
+    var editTransform = sq_edit_Transform(leaf);
+    editTransform.set_position(position);
+    editTransform.set_rotation(rotation);
+
+    var editModel = sq_edit_Model(leaf);
+    editModel.set_stretch(stretch);
+    editModel.set_mesh(mesh);
+
+    materials.for_each(fun[editModel](mtrl) 
+    { editModel.add_material(mtrl); });
+}
+
+def load_static()
+{
+
+var cell = sq_create_root_entity([]);
+{
+  var editEntity = sq_edit_Entity(cell);
+  editEntity.set_unique_name("StaticCellSponza");
+}
+
+// ShadowBox
+//add_static_model(cell, Vec3F(0.0, 0.0, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), [], "Sponza:ShadowBox");
+
+// FloorA | FloorB
+add_static_model(cell, Vec3F(0.0, 0.0, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Floor"], "Sponza:FloorA");
+add_static_model(cell, Vec3F(0.0, 0.0, 5.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Floor"], "Sponza:FloorB");
+
+// ArchAA_00 | ArchAA_01 | ArchAA_02 | ArchAA_03 | ArchAA_04
+add_static_model(cell, Vec3F(-8.887, -2.86, 3.8), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:ArchAA");
+add_static_model(cell, Vec3F(-4.439, -2.86, 3.8), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:ArchAA");
+add_static_model(cell, Vec3F(0.0, -2.86, 3.8), QuatF(0.0, 0.0, 0.5), Vec3F(0.996, 1.0, 1.0), ["Sponza:Arch"], "Sponza:ArchAA");
+add_static_model(cell, Vec3F(4.439, -2.86, 3.8), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:ArchAA");
+add_static_model(cell, Vec3F(8.887, -2.86, 3.8), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:ArchAA");
+
+// ArchAA_10 | ArchAA_11 | ArchAA_12 | ArchAA_13 | ArchAA_14
+add_static_model(cell, Vec3F(-8.887, 2.86, 3.8), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:ArchAA");
+add_static_model(cell, Vec3F(-4.439, 2.86, 3.8), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:ArchAA");
+add_static_model(cell, Vec3F(0.0, 2.86, 3.8), QuatF(0.0, 0.0, 0.0), Vec3F(0.996, 1.0, 1.0), ["Sponza:Arch"], "Sponza:ArchAA");
+add_static_model(cell, Vec3F(4.439, 2.86, 3.8), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:ArchAA");
+add_static_model(cell, Vec3F(8.887, 2.86, 3.8), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:ArchAA");
+
+// ArchAB_0 | ArchAB_1
+add_static_model(cell, Vec3F(-11.38, 0.0, 3.8), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:ArchAB");
+add_static_model(cell, Vec3F(11.38, 0.0, 3.8), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:ArchAB");
+
+// ArchBA_00 | ArchBA_01 | ArchBA_02 | ArchBA_03 | ArchBA_04
+add_static_model(cell, Vec3F(-8.887, -2.86, 9.09), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:ArchBA");
+add_static_model(cell, Vec3F(-4.439, -2.86, 9.09), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:ArchBA");
+add_static_model(cell, Vec3F(0.0, -2.86, 9.09), QuatF(0.0, 0.0, 0.5), Vec3F(0.996, 1.0, 1.0), ["Sponza:Arch"], "Sponza:ArchBA");
+add_static_model(cell, Vec3F(4.439, -2.86, 9.09), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:ArchBA");
+add_static_model(cell, Vec3F(8.887, -2.86, 9.09), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:ArchBA");
+
+// ArchBA_10 | ArchBA_11 | ArchBA_12 | ArchBA_13 | ArchBA_14
+add_static_model(cell, Vec3F(-8.887, 2.86, 9.09), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:ArchBA");
+add_static_model(cell, Vec3F(-4.439, 2.86, 9.09), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:ArchBA");
+add_static_model(cell, Vec3F(0.0, 2.86, 9.09), QuatF(0.0, 0.0, 0.0), Vec3F(0.996, 1.0, 1.0), ["Sponza:Arch"], "Sponza:ArchBA");
+add_static_model(cell, Vec3F(4.439, 2.86, 9.09), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:ArchBA");
+add_static_model(cell, Vec3F(8.887, 2.86, 9.09), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:ArchBA");
+
+// ArchBB_0 | ArchBB_1
+add_static_model(cell, Vec3F(-11.34, 0.0, 9.08), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:ArchBB");
+add_static_model(cell, Vec3F(11.34, 0.0, 9.08), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:ArchBB");
+
+// CeilingRoof_00 | CeilingRoof_01 | CeilingRoof_02 | CeilingRoof_03
+add_static_model(cell, Vec3F(0.0, 0.0, 3.63), QuatF(0.0, 0.0, 0.0), Vec3F(-1.0, -1.0, 1.0), ["Sponza:Ceiling", "Sponza:ColumnC"], "Sponza:CeilingRoof");
+add_static_model(cell, Vec3F(0.0, 0.0, 3.63), QuatF(0.0, 0.0, 0.0), Vec3F(-1.0, 1.0, 1.0), ["Sponza:Ceiling", "Sponza:ColumnC"], "Sponza:CeilingRoof");
+add_static_model(cell, Vec3F(0.0, 0.0, 3.63), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, -1.0, 1.0), ["Sponza:Ceiling", "Sponza:ColumnC"], "Sponza:CeilingRoof");
+add_static_model(cell, Vec3F(0.0, 0.0, 3.63), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Ceiling", "Sponza:ColumnC"], "Sponza:CeilingRoof");
+
+// CeilingRoof_10 | CeilingRoof_11 | CeilingRoof_12 | CeilingRoof_13
+add_static_model(cell, Vec3F(0.0, 0.0, 9.343), QuatF(0.0, 0.0, 0.0), Vec3F(-1.0, -1.0, 1.0), ["Sponza:Ceiling", "Sponza:ColumnC"], "Sponza:CeilingRoof");
+add_static_model(cell, Vec3F(0.0, 0.0, 9.343), QuatF(0.0, 0.0, 0.0), Vec3F(-1.0, 1.0, 1.0), ["Sponza:Ceiling", "Sponza:ColumnC"], "Sponza:CeilingRoof");
+add_static_model(cell, Vec3F(0.0, 0.0, 9.343), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, -1.0, 1.0), ["Sponza:Ceiling", "Sponza:ColumnC"], "Sponza:CeilingRoof");
+add_static_model(cell, Vec3F(0.0, 0.0, 9.343), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Ceiling", "Sponza:ColumnC"], "Sponza:CeilingRoof");
+
+// CeilingSide_0 | CeilingSide_1 | CeilingSide_2 | CeilingSide_3
+add_static_model(cell, Vec3F(0.0, 0.0, 9.7), QuatF(0.0, 0.0, 0.0), Vec3F(-1.0, -1.0, 1.0), ["Sponza:Ceiling"], "Sponza:CeilingSide");
+add_static_model(cell, Vec3F(0.0, 0.0, 9.7), QuatF(0.0, 0.0, 0.0), Vec3F(-1.0, 1.0, 1.0), ["Sponza:Ceiling"], "Sponza:CeilingSide");
+add_static_model(cell, Vec3F(0.0, 0.0, 9.7), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, -1.0, 1.0), ["Sponza:Ceiling"], "Sponza:CeilingSide");
+add_static_model(cell, Vec3F(0.0, 0.0, 9.7), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Ceiling"], "Sponza:CeilingSide");
+
+// ColumnA_00 | ColumnA_01 | ColumnA_02 | ColumnA_03
+add_static_model(cell, Vec3F(-6.663, -2.9, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:ColumnA"], "Sponza:ColumnA");
+add_static_model(cell, Vec3F(-2.21, -2.9, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:ColumnA"], "Sponza:ColumnA");
+add_static_model(cell, Vec3F(2.21, -2.9, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:ColumnA"], "Sponza:ColumnA");
+add_static_model(cell, Vec3F(6.663, -2.9, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:ColumnA"], "Sponza:ColumnA");
+
+// ColumnA_10 | ColumnA_11 | ColumnA_12 | ColumnA_13
+add_static_model(cell, Vec3F(-6.663, 2.9, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:ColumnA"], "Sponza:ColumnA");
+add_static_model(cell, Vec3F(-2.21, 2.9, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:ColumnA"], "Sponza:ColumnA");
+add_static_model(cell, Vec3F(2.21, 2.9, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:ColumnA"], "Sponza:ColumnA");
+add_static_model(cell, Vec3F(6.663, 2.9, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:ColumnA"], "Sponza:ColumnA");
+
+// CornerA_0 | CornerA_1 | CornerA_2 | CornerA_3
+add_static_model(cell, Vec3F(-11.49, -2.94, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:ColumnA"], "Sponza:CornerA");
+add_static_model(cell, Vec3F(-11.49, 2.94, 0.0), QuatF(0.0, 0.0, 0.75), Vec3F(1.0, 1.0, 1.0), ["Sponza:ColumnA"], "Sponza:CornerA");
+add_static_model(cell, Vec3F(11.49, -2.94, 0.0), QuatF(0.0, 0.0, 0.25), Vec3F(1.0, 1.0, 1.0), ["Sponza:ColumnA"], "Sponza:CornerA");
+add_static_model(cell, Vec3F(11.49, 2.94, 0.0), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:ColumnA"], "Sponza:CornerA");
+
+// ColumnB_00 | ColumnB_01 | ColumnB_02 | ColumnB_03 | ColumnB_04
+add_static_model(cell, Vec3F(-8.887, -2.89, 6.1), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:ColumnB"], "Sponza:ColumnB");
+add_static_model(cell, Vec3F(-4.439, -2.89, 6.1), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:ColumnB"], "Sponza:ColumnB");
+add_static_model(cell, Vec3F(0.0, -2.89, 6.1), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:ColumnB"], "Sponza:ColumnB");
+add_static_model(cell, Vec3F(4.439, -2.89, 6.1), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:ColumnB"], "Sponza:ColumnB");
+add_static_model(cell, Vec3F(8.887, -2.89, 6.1), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:ColumnB"], "Sponza:ColumnB");
+
+// ColumnB_10 | ColumnB_11 | ColumnB_12 | ColumnB_13 | ColumnB_14
+add_static_model(cell, Vec3F(-8.887, 2.89, 6.1), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:ColumnB"], "Sponza:ColumnB");
+add_static_model(cell, Vec3F(-4.439, 2.89, 6.1), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:ColumnB"], "Sponza:ColumnB");
+add_static_model(cell, Vec3F(0.0, 2.89, 6.1), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:ColumnB"], "Sponza:ColumnB");
+add_static_model(cell, Vec3F(4.439, 2.89, 6.1), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:ColumnB"], "Sponza:ColumnB");
+add_static_model(cell, Vec3F(8.887, 2.89, 6.1), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:ColumnB"], "Sponza:ColumnB");
+
+// ColumnB_20 | ColumnB_21
+add_static_model(cell, Vec3F(-11.38, 0.0, 6.1), QuatF(0.0, 0.0, 0.0), Vec3F(0.865, 0.865, 1.018), ["Sponza:ColumnB"], "Sponza:ColumnB");
+add_static_model(cell, Vec3F(11.38, 0.0, 6.1), QuatF(0.0, 0.0, 0.0), Vec3F(0.865, 0.865, 1.018), ["Sponza:ColumnB"], "Sponza:ColumnB");
+
+// ColumnC_00 | ColumnC_01 | ColumnC_02 | ColumnC_03
+add_static_model(cell, Vec3F(-6.663, -2.89, 6.1), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:ColumnC"], "Sponza:ColumnC");
+add_static_model(cell, Vec3F(-2.21, -2.89, 6.1), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:ColumnC"], "Sponza:ColumnC");
+add_static_model(cell, Vec3F(2.21, -2.89, 6.1), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:ColumnC"], "Sponza:ColumnC");
+add_static_model(cell, Vec3F(6.663, -2.89, 6.1), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:ColumnC"], "Sponza:ColumnC");
+
+// ColumnC_10 | ColumnC_11 | ColumnC_12 | ColumnC_13
+add_static_model(cell, Vec3F(-6.663, 2.89, 6.1), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:ColumnC"], "Sponza:ColumnC");
+add_static_model(cell, Vec3F(-2.21, 2.89, 6.1), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:ColumnC"], "Sponza:ColumnC");
+add_static_model(cell, Vec3F(2.21, 2.89, 6.1), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:ColumnC"], "Sponza:ColumnC");
+add_static_model(cell, Vec3F(6.663, 2.89, 6.1), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:ColumnC"], "Sponza:ColumnC");
+
+// CornerC_0 | CornerC_1 | CornerC_2 | CornerC_3
+add_static_model(cell, Vec3F(-11.42, -2.89, 6.1), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:ColumnC"], "Sponza:CornerC");
+add_static_model(cell, Vec3F(-11.42, 2.89, 6.1), QuatF(0.0, 0.0, 0.75), Vec3F(1.0, 1.0, 1.0), ["Sponza:ColumnC"], "Sponza:CornerC");
+add_static_model(cell, Vec3F(11.42, -2.89, 6.1), QuatF(0.0, 0.0, 0.25), Vec3F(1.0, 1.0, 1.0), ["Sponza:ColumnC"], "Sponza:CornerC");
+add_static_model(cell, Vec3F(11.42, 2.89, 6.1), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:ColumnC"], "Sponza:CornerC");
+
+// CurtainPole_00 | CurtainPole_01 | CurtainPole_02 | CurtainPole_03 | CurtainPole_04
+add_static_model(cell, Vec3F(-8.887, -2.9, 3.4), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Pole"], "Sponza:CurtainPole");
+add_static_model(cell, Vec3F(-4.439, -2.9, 3.4), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Pole"], "Sponza:CurtainPole");
+add_static_model(cell, Vec3F(0.0, -2.9, 3.4), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Pole"], "Sponza:CurtainPole");
+add_static_model(cell, Vec3F(4.439, -2.9, 3.4), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Pole"], "Sponza:CurtainPole");
+add_static_model(cell, Vec3F(8.887, -2.9, 3.4), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Pole"], "Sponza:CurtainPole");
+
+// CurtainPole_10 | CurtainPole_11 | CurtainPole_12 | CurtainPole_13 | CurtainPole_14
+add_static_model(cell, Vec3F(-8.887, 2.9, 3.4), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Pole"], "Sponza:CurtainPole");
+add_static_model(cell, Vec3F(-4.439, 2.9, 3.4), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Pole"], "Sponza:CurtainPole");
+add_static_model(cell, Vec3F(0.0, 2.9, 3.4), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Pole"], "Sponza:CurtainPole");
+add_static_model(cell, Vec3F(4.439, 2.9, 3.4), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Pole"], "Sponza:CurtainPole");
+add_static_model(cell, Vec3F(8.887, 2.9, 3.4), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Pole"], "Sponza:CurtainPole");
+
+// Curtain_00 | Curtain_01 | Curtain_02 | Curtain_03 | Curtain_04
+add_static_model(cell, Vec3F(-8.887, -2.9, 3.4), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:CurtainRed"], "Sponza:Curtain");
+add_static_model(cell, Vec3F(-4.439, -2.9, 3.4), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:CurtainBlue"], "Sponza:Curtain");
+add_static_model(cell, Vec3F(0.0, -2.9, 3.4), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:CurtainGreen"], "Sponza:Curtain");
+add_static_model(cell, Vec3F(4.439, -2.9, 3.4), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:CurtainRed"], "Sponza:Curtain");
+add_static_model(cell, Vec3F(8.887, -2.9, 3.4), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:CurtainBlue"], "Sponza:Curtain");
+
+// Curtain_10 | Curtain_11 | Curtain_12 | Curtain_13 | Curtain_14
+add_static_model(cell, Vec3F(-8.887, 2.9, 3.4), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:CurtainGreen"], "Sponza:Curtain");
+add_static_model(cell, Vec3F(-4.439, 2.9, 3.4), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:CurtainRed"], "Sponza:Curtain");
+add_static_model(cell, Vec3F(0.0, 2.9, 3.4), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:CurtainBlue"], "Sponza:Curtain");
+add_static_model(cell, Vec3F(4.439, 2.9, 3.4), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:CurtainGreen"], "Sponza:Curtain");
+add_static_model(cell, Vec3F(8.887, 2.9, 3.4), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:CurtainRed"], "Sponza:Curtain");
+
+// DoorRound_0 | DoorRound_1 | DoorSquare | Window_0 | Window_1
+add_static_model(cell, Vec3F(0.0, 7.28, 0.0), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:Details"], "Sponza:DoorRound");
+add_static_model(cell, Vec3F(16.38, 0.0, 5.0), QuatF(0.0, 0.0, 0.25), Vec3F(1.0, 1.0, 1.0), ["Sponza:Details"], "Sponza:DoorRound");
+add_static_model(cell, Vec3F(0.0, -7.28, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Details"], "Sponza:DoorSquare");
+add_static_model(cell, Vec3F(-4.45, -7.28, 2.4), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Details"], "Sponza:Window");
+add_static_model(cell, Vec3F(4.45, -7.28, 2.4), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Details"], "Sponza:Window");
+
+// Drape_00 | Drape_01 | Drape_02 | Drape_03
+add_static_model(cell, Vec3F(-6.65, -2.88, 6.1), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:FabricGreen"], "Sponza:Drape");
+add_static_model(cell, Vec3F(-2.197, -2.88, 6.1), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:FabricBlue"], "Sponza:Drape");
+add_static_model(cell, Vec3F(2.223, -2.88, 6.1), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:FabricRed"], "Sponza:Drape");
+add_static_model(cell, Vec3F(6.676, -2.88, 6.1), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:FabricGreen"], "Sponza:Drape");
+
+// Drape_10 | Drape_11 | Drape_12 | Drape_13
+add_static_model(cell, Vec3F(-6.676, 2.88, 6.1), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:FabricBlue"], "Sponza:Drape");
+add_static_model(cell, Vec3F(-2.223, 2.88, 6.1), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:FabricRed"], "Sponza:Drape");
+add_static_model(cell, Vec3F(2.197, 2.88, 6.1), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:FabricGreen"], "Sponza:Drape");
+add_static_model(cell, Vec3F(6.65, 2.88, 6.1), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:FabricBlue"], "Sponza:Drape");
+
+// EdgeCover_00 | EdgeCover_01 | EdgeCover_02 | EdgeCover_03
+add_static_model(cell, Vec3F(0.0, 0.0, 6.0), QuatF(0.0, 0.0, 0.0), Vec3F(-1.0, -1.0, 1.0), ["Sponza:Arch"], "Sponza:EdgeCover");
+add_static_model(cell, Vec3F(0.0, 0.0, 6.0), QuatF(0.0, 0.0, 0.0), Vec3F(-1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:EdgeCover");
+add_static_model(cell, Vec3F(0.0, 0.0, 6.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, -1.0, 1.0), ["Sponza:Arch"], "Sponza:EdgeCover");
+add_static_model(cell, Vec3F(0.0, 0.0, 6.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:EdgeCover");
+
+// EdgeCover_10 | EdgeCover_11 | EdgeCover_12 | EdgeCover_13
+add_static_model(cell, Vec3F(0.0, 0.0, 11.0), QuatF(0.0, 0.0, 0.0), Vec3F(-1.0, -1.0, 1.0), ["Sponza:Arch"], "Sponza:EdgeCover");
+add_static_model(cell, Vec3F(0.0, 0.0, 11.0), QuatF(0.0, 0.0, 0.0), Vec3F(-1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:EdgeCover");
+add_static_model(cell, Vec3F(0.0, 0.0, 11.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, -1.0, 1.0), ["Sponza:Arch"], "Sponza:EdgeCover");
+add_static_model(cell, Vec3F(0.0, 0.0, 11.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:EdgeCover");
+/*
+// FlagPole_00 | FlagPole_01 | FlagPole_02 | FlagPole_03
+add_static_model(cell, Vec3F(-6.663, -1.61, 10.29), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:FlagPole"], "Sponza:FlagPole");
+add_static_model(cell, Vec3F(-2.21, -1.61, 10.29), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:FlagPole"], "Sponza:FlagPole");
+add_static_model(cell, Vec3F(2.21, -1.61, 10.29), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:FlagPole"], "Sponza:FlagPole");
+add_static_model(cell, Vec3F(6.663, -1.61, 10.29), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:FlagPole"], "Sponza:FlagPole");
+
+// FlagPole_10 | FlagPole_11 | FlagPole_12 | FlagPole_13
+add_static_model(cell, Vec3F(-6.663, 1.61, 10.29), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:FlagPole"], "Sponza:FlagPole");
+add_static_model(cell, Vec3F(-2.21, 1.61, 10.29), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:FlagPole"], "Sponza:FlagPole");
+add_static_model(cell, Vec3F(2.21, 1.61, 10.29), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:FlagPole"], "Sponza:FlagPole");
+add_static_model(cell, Vec3F(6.663, 1.61, 10.29), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:FlagPole"], "Sponza:FlagPole");
+
+// VaseHanging_0 | VaseHanging_1 | VaseHanging_2 | VaseHanging_3
+add_static_model(cell, Vec3F(-6.663, -2.2, 1.89), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:Chain", "Sponza:VaseB"], "Sponza:VaseHanging");
+add_static_model(cell, Vec3F(-6.663, 2.2, 1.89), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Chain", "Sponza:VaseB"], "Sponza:VaseHanging");
+add_static_model(cell, Vec3F(6.663, -2.2, 1.89), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:Chain", "Sponza:VaseB"], "Sponza:VaseHanging");
+add_static_model(cell, Vec3F(6.663, 2.2, 1.89), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Chain", "Sponza:VaseB"], "Sponza:VaseHanging");
+
+// VasePlant_00 | VasePlant_01 | VasePlant_02 | VasePlant_03
+add_static_model(cell, Vec3F(-10.7, -2.27, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Plant", "Sponza:VaseA"], "Sponza:VasePlant");
+add_static_model(cell, Vec3F(-2.21, -2.27, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Plant", "Sponza:VaseA"], "Sponza:VasePlant");
+add_static_model(cell, Vec3F(2.21, -2.27, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Plant", "Sponza:VaseA"], "Sponza:VasePlant");
+add_static_model(cell, Vec3F(10.7, -2.27, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Plant", "Sponza:VaseA"], "Sponza:VasePlant");
+
+// VasePlant_10 | VasePlant_11 | VasePlant_12 | VasePlant_13
+add_static_model(cell, Vec3F(-10.7, 2.27, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Plant", "Sponza:VaseA"], "Sponza:VasePlant");
+add_static_model(cell, Vec3F(-2.21, 2.27, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Plant", "Sponza:VaseA"], "Sponza:VasePlant");
+add_static_model(cell, Vec3F(2.21, 2.27, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Plant", "Sponza:VaseA"], "Sponza:VasePlant");
+add_static_model(cell, Vec3F(10.7, 2.27, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Plant", "Sponza:VaseA"], "Sponza:VasePlant");
+*/
+// Lion_0 | Lion_1
+add_static_model(cell, Vec3F(-16.425, 0.0, 2.225), QuatF(0.0, 0.0, 0.75), Vec3F(1.0, 1.0, 1.0), ["Sponza:Lion"], "Sponza:Lion");
+add_static_model(cell, Vec3F(16.425, 0.0, 2.225), QuatF(0.0, 0.0, 0.25), Vec3F(1.0, 1.0, 1.0), ["Sponza:Lion"], "Sponza:Lion");
+
+// Mount_0 | Mount_1 | Mount_2
+add_static_model(cell, Vec3F(-16.425, 0.0, 2.225), QuatF(0.0, 0.0, 0.75), Vec3F(1.0, 1.0, 1.0), ["Sponza:Mount"], "Sponza:Mount");
+add_static_model(cell, Vec3F(16.425, 0.0, 2.225), QuatF(0.0, 0.0, 0.25), Vec3F(1.0, 1.0, 1.0), ["Sponza:Mount"], "Sponza:Mount");
+add_static_model(cell, Vec3F(-16.425, 0.0, 8.0), QuatF(0.0, 0.0, 0.75), Vec3F(1.0, 1.0, 1.0), ["Sponza:Mount"], "Sponza:Mount");
+
+// MouldingA_00 | MouldingA_01 | MouldingA_02 | MouldingA_03
+add_static_model(cell, Vec3F(0.0, 0.0, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(-1.0, -1.0, 1.0), ["Sponza:Arch"], "Sponza:MouldingA");
+add_static_model(cell, Vec3F(0.0, 0.0, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(-1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:MouldingA");
+add_static_model(cell, Vec3F(0.0, 0.0, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, -1.0, 1.0), ["Sponza:Arch"], "Sponza:MouldingA");
+add_static_model(cell, Vec3F(0.0, 0.0, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:MouldingA");
+
+// MouldingA_10 | MouldingA_11 | MouldingA_12 | MouldingA_13
+add_static_model(cell, Vec3F(0.0, 0.0, 5.0), QuatF(0.0, 0.0, 0.0), Vec3F(-1.0, -1.0, 1.0), ["Sponza:Arch"], "Sponza:MouldingA");
+add_static_model(cell, Vec3F(0.0, 0.0, 5.0), QuatF(0.0, 0.0, 0.0), Vec3F(-1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:MouldingA");
+add_static_model(cell, Vec3F(0.0, 0.0, 5.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, -1.0, 1.0), ["Sponza:Arch"], "Sponza:MouldingA");
+add_static_model(cell, Vec3F(0.0, 0.0, 5.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:MouldingA");
+
+// MouldingB_0 | MouldingB_1 | MouldingB_2 | MouldingB_3
+add_static_model(cell, Vec3F(0.0, 0.0, 5.0), QuatF(0.0, 0.0, 0.0), Vec3F(-1.0, -1.0, 1.0), ["Sponza:Arch"], "Sponza:MouldingB");
+add_static_model(cell, Vec3F(0.0, 0.0, 5.0), QuatF(0.0, 0.0, 0.0), Vec3F(-1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:MouldingB");
+add_static_model(cell, Vec3F(0.0, 0.0, 5.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, -1.0, 1.0), ["Sponza:Arch"], "Sponza:MouldingB");
+add_static_model(cell, Vec3F(0.0, 0.0, 5.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:MouldingB");
+/*
+// HoleA_00 | HoleA_01 | HoleA_02 | HoleA_03 | HoleA_04
+add_static_model(cell, Vec3F(-8.887, -2.69, 11.6), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:HoleA");
+add_static_model(cell, Vec3F(-4.439, -2.69, 11.6), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:HoleA");
+add_static_model(cell, Vec3F(0.0, -2.69, 11.6), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:HoleA");
+add_static_model(cell, Vec3F(4.439, -2.69, 11.6), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:HoleA");
+add_static_model(cell, Vec3F(8.887, -2.69, 11.6), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:HoleA");
+
+// HoleA_10 | HoleA_11 | HoleA_12 | HoleA_13 | HoleA_14
+add_static_model(cell, Vec3F(-8.887, 2.69, 11.6), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:HoleA");
+add_static_model(cell, Vec3F(-4.439, 2.69, 11.6), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:HoleA");
+add_static_model(cell, Vec3F(0.0, 2.69, 11.6), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:HoleA");
+add_static_model(cell, Vec3F(4.439, 2.69, 11.6), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:HoleA");
+add_static_model(cell, Vec3F(8.887, 2.69, 11.6), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:HoleA");
+
+// HoleB_00 | HoleB_01 | HoleB_02 | HoleB_03
+add_static_model(cell, Vec3F(-6.85, -2.64, 14.9), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch", "Sponza:Ceiling"], "Sponza:HoleB");
+add_static_model(cell, Vec3F(-2.41, -2.64, 14.9), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch", "Sponza:Ceiling"], "Sponza:HoleB");
+add_static_model(cell, Vec3F(2.41, -2.64, 14.9), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch", "Sponza:Ceiling"], "Sponza:HoleB");
+add_static_model(cell, Vec3F(6.85, -2.64, 14.9), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch", "Sponza:Ceiling"], "Sponza:HoleB");
+
+// HoleB_10 | HoleB_11 | HoleB_12 | HoleB_13
+add_static_model(cell, Vec3F(-6.85, 2.64, 14.9), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch", "Sponza:Ceiling"], "Sponza:HoleB");
+add_static_model(cell, Vec3F(-2.41, 2.64, 14.9), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch", "Sponza:Ceiling"], "Sponza:HoleB");
+add_static_model(cell, Vec3F(2.41, 2.64, 14.9), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch", "Sponza:Ceiling"], "Sponza:HoleB");
+add_static_model(cell, Vec3F(6.85, 2.64, 14.9), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch", "Sponza:Ceiling"], "Sponza:HoleB");
+
+// HoleA_20 | HoleB_20
+add_static_model(cell, Vec3F(-11.25, 0.0, 11.6), QuatF(0.0, 0.0, 0.25), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:HoleA");
+add_static_model(cell, Vec3F(-11.14, 0.0, 14.9), QuatF(0.0, 0.0, 0.25), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch", "Sponza:Ceiling"], "Sponza:HoleB");
+*/
+// Roof_0 | Roof_1 | Roof_2 | Roof_3
+add_static_model(cell, Vec3F(0.0, 0.0, 16.25), QuatF(0.0, 0.0, 0.0), Vec3F(-1.0, -1.0, 1.0), ["Sponza:Roof"], "Sponza:Roof");
+add_static_model(cell, Vec3F(0.0, 0.0, 16.25), QuatF(0.0, 0.0, 0.0), Vec3F(-1.0, 1.0, 1.0), ["Sponza:Roof"], "Sponza:Roof");
+add_static_model(cell, Vec3F(0.0, 0.0, 16.25), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, -1.0, 1.0), ["Sponza:Roof"], "Sponza:Roof");
+add_static_model(cell, Vec3F(0.0, 0.0, 16.25), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Roof"], "Sponza:Roof");
+
+// WallA_0 | WallA_1 | WallB_0 | WallB_1 | WallC_0 | WallC_1
+add_static_model(cell, Vec3F(0.0, 0.0, 4.37), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Bricks"], "Sponza:WallA");
+add_static_model(cell, Vec3F(0.0, 0.0, 4.37), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:Bricks"], "Sponza:WallA");
+add_static_model(cell, Vec3F(0.0, 0.0, 5.45), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Bricks"], "Sponza:WallB");
+add_static_model(cell, Vec3F(0.0, 0.0, 5.45), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:Bricks"], "Sponza:WallB");
+add_static_model(cell, Vec3F(0.0, 0.0, 9.7), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Bricks"], "Sponza:WallC");
+add_static_model(cell, Vec3F(0.0, 0.0, 9.7), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:Bricks"], "Sponza:WallC");
+
+// WallD_00 | WallD_01 | WallD_10 | WallD_11 | WallD_20 | WallD_21
+add_static_model(cell, Vec3F(0.0, 0.0, 2.34), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 0.92), ["Sponza:Bricks"], "Sponza:WallD");
+add_static_model(cell, Vec3F(0.0, 0.0, 2.34), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 0.92), ["Sponza:Bricks"], "Sponza:WallD");
+add_static_model(cell, Vec3F(0.0, 0.0, 7.7), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.06), ["Sponza:Bricks"], "Sponza:WallD");
+add_static_model(cell, Vec3F(0.0, 0.0, 7.7), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.06), ["Sponza:Bricks"], "Sponza:WallD");
+add_static_model(cell, Vec3F(0.0, 0.0, 13.35), QuatF(0.0, 0.0, 0.0), Vec3F(0.72, 0.462, 0.92), ["Sponza:Bricks"], "Sponza:WallD");
+add_static_model(cell, Vec3F(0.0, 0.0, 13.35), QuatF(0.0, 0.0, 0.5), Vec3F(0.72, 0.462, 0.92), ["Sponza:Bricks"], "Sponza:WallD");
+
+// WallE
+add_static_model(cell, Vec3F(0.0, 0.0, 11.1), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Bricks"], "Sponza:WallE");
+
+/*
 var cell = world.add_StaticCell("Sponza");
 
 var m; // Reference to Static Model
 var d; // Reference to Static Decal
 var b; // Reference to Static Body
-
-m := cell.add_Model("ShadowBox");
-m.position = Vec3F(0.0, 0.0, 0.0);
-m.mesh = "Sponza/ShadowBox";
-
-m := cell.add_Model("FloorA");
-m.position = Vec3F(0.0, 0.0, 0.0);
-m.mtrls = ["Sponza/Floor"];
-m.mesh = "Sponza/FloorA";
-
-m := cell.add_Model("FloorB");
-m.position = Vec3F(0.0, 0.0, 5.0);
-m.mtrls = ["Sponza/Floor"];
-m.mesh = "Sponza/FloorB";
-
-m := cell.add_Model("ArchAA_A1");
-m.position = Vec3F(-8.887, 2.86, 3.8);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/ArchAA";
-
-m := cell.add_Model("ArchAA_A2");
-m.position = Vec3F(-4.439, 2.86, 3.8);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/ArchAA";
-
-m := cell.add_Model("ArchAA_A3");
-m.position = Vec3F(0.0, 2.86, 3.8);
-m.scale = Vec3F(0.996, 1.0, 1.0);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/ArchAA";
-
-m := cell.add_Model("ArchAA_A4");
-m.position = Vec3F(4.439, 2.86, 3.8);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/ArchAA";
-
-m := cell.add_Model("ArchAA_A5");
-m.position = Vec3F(8.887, 2.86, 3.8);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/ArchAA";
-
-m := cell.add_Model("ArchAA_B1");
-m.position = Vec3F(-8.887, -2.86, 3.8);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/ArchAA";
-
-m := cell.add_Model("ArchAA_B2");
-m.position = Vec3F(-4.439, -2.86, 3.8);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/ArchAA";
-
-m := cell.add_Model("ArchAA_B3");
-m.position = Vec3F(0.0, -2.86, 3.8);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.scale = Vec3F(0.996, 1.0, 1.0);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/ArchAA";
-
-m := cell.add_Model("ArchAA_B4");
-m.position = Vec3F(4.439, -2.86, 3.8);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/ArchAA";
-
-m := cell.add_Model("ArchAA_B5");
-m.position = Vec3F(8.887, -2.86, 3.8);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/ArchAA";
-
-m := cell.add_Model("ArchAB_1");
-m.position = Vec3F(-11.38, 0.0, 3.8);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/ArchAB";
-
-m := cell.add_Model("ArchAB_2");
-m.position = Vec3F(11.38, 0.0, 3.8);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/ArchAB";
-
-m := cell.add_Model("ArchBA_A1");
-m.position = Vec3F(-8.887, 2.86, 9.09);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/ArchBA";
-
-m := cell.add_Model("ArchBA_A2");
-m.position = Vec3F(-4.439, 2.86, 9.09);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/ArchBA";
-
-m := cell.add_Model("ArchBA_A3");
-m.position = Vec3F(0.0, 2.86, 9.09);
-m.scale = Vec3F(0.996, 1.0, 1.0);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/ArchBA";
-
-m := cell.add_Model("ArchBA_A4");
-m.position = Vec3F(4.439, 2.86, 9.09);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/ArchBA";
-
-m := cell.add_Model("ArchBA_A5");
-m.position = Vec3F(8.887, 2.86, 9.09);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/ArchBA";
-
-m := cell.add_Model("ArchBA_B1");
-m.position = Vec3F(-8.887, -2.86, 9.09);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/ArchBA";
-
-m := cell.add_Model("ArchBA_B2");
-m.position = Vec3F(-4.439, -2.86, 9.09);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/ArchBA";
-
-m := cell.add_Model("ArchBA_B3");
-m.position = Vec3F(0.0, -2.86, 9.09);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.scale = Vec3F(0.996, 1.0, 1.0);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/ArchBA";
-
-m := cell.add_Model("ArchBA_B4");
-m.position = Vec3F(4.439, -2.86, 9.09);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/ArchBA";
-
-m := cell.add_Model("ArchBA_B5");
-m.position = Vec3F(8.887, -2.86, 9.09);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/ArchBA";
-
-m := cell.add_Model("ArchBB_1");
-m.position = Vec3F(-11.3, 0.0, 9.08);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/ArchBB";
-
-m := cell.add_Model("ArchBB_2");
-m.position = Vec3F(11.3, 0.0, 9.08);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/ArchBB";
-
-m := cell.add_Model("CeilingRoof_A1");
-m.position = Vec3F(0.0, 0.0, 3.63);
-m.mtrls = ["Sponza/Ceiling", "Sponza/ColumnC"];
-m.mesh = "Sponza/CeilingRoof";
-
-m := cell.add_Model("CeilingRoof_A2");
-m.position = Vec3F(0.0, 0.0, 3.63);
-m.scale = Vec3F(1.0, -1.0, 1.0);
-m.mtrls = ["Sponza/Ceiling", "Sponza/ColumnC"];
-m.mesh = "Sponza/CeilingRoof";
-
-m := cell.add_Model("CeilingRoof_A3");
-m.position = Vec3F(0.0, 0.0, 3.63);
-m.scale = Vec3F(-1.0, -1.0, 1.0);
-m.mtrls = ["Sponza/Ceiling", "Sponza/ColumnC"];
-m.mesh = "Sponza/CeilingRoof";
-
-m := cell.add_Model("CeilingRoof_A4");
-m.position = Vec3F(0.0, 0.0, 3.63);
-m.scale = Vec3F(-1.0, 1.0, 1.0);
-m.mtrls = ["Sponza/Ceiling", "Sponza/ColumnC"];
-m.mesh = "Sponza/CeilingRoof";
-
-m := cell.add_Model("CeilingRoof_B1");
-m.position = Vec3F(0.0, 0.0, 9.343);
-m.mtrls = ["Sponza/Ceiling", "Sponza/ColumnC"];
-m.mesh = "Sponza/CeilingRoof";
-
-m := cell.add_Model("CeilingRoof_B2");
-m.position = Vec3F(0.0, 0.0, 9.343);
-m.scale = Vec3F(1.0, -1.0, 1.0);
-m.mtrls = ["Sponza/Ceiling", "Sponza/ColumnC"];
-m.mesh = "Sponza/CeilingRoof";
-
-m := cell.add_Model("CeilingRoof_B3");
-m.position = Vec3F(0.0, 0.0, 9.343);
-m.scale = Vec3F(-1.0, -1.0, 1.0);
-m.mtrls = ["Sponza/Ceiling", "Sponza/ColumnC"];
-m.mesh = "Sponza/CeilingRoof";
-
-m := cell.add_Model("CeilingRoof_B4");
-m.position = Vec3F(0.0, 0.0, 9.343);
-m.scale = Vec3F(-1.0, 1.0, 1.0);
-m.mtrls = ["Sponza/Ceiling", "Sponza/ColumnC"];
-m.mesh = "Sponza/CeilingRoof";
-
-m := cell.add_Model("CeilingSide_1");
-m.position = Vec3F(0.0, 0.0, 9.7);
-m.mtrls = ["Sponza/Ceiling"];
-m.mesh = "Sponza/CeilingSide";
-
-m := cell.add_Model("CeilingSide_2");
-m.position = Vec3F(0.0, 0.0, 9.7);
-m.scale = Vec3F(1.0, -1.0, 1.0);
-m.mtrls = ["Sponza/Ceiling"];
-m.mesh = "Sponza/CeilingSide";
-
-m := cell.add_Model("CeilingSide_3");
-m.position = Vec3F(0.0, 0.0, 9.7);
-m.scale = Vec3F(-1.0, -1.0, 1.0);
-m.mtrls = ["Sponza/Ceiling"];
-m.mesh = "Sponza/CeilingSide";
-
-m := cell.add_Model("CeilingSide_4");
-m.position = Vec3F(0.0, 0.0, 9.7);
-m.scale = Vec3F(-1.0, 1.0, 1.0);
-m.mtrls = ["Sponza/Ceiling"];
-m.mesh = "Sponza/CeilingSide";
-
-m := cell.add_Model("ColumnA_A1");
-m.position = Vec3F(-6.663, 2.9, 1.32);
-m.mtrls = ["Sponza/ColumnA"];
-m.mesh = "Sponza/ColumnA";
-
-m := cell.add_Model("ColumnA_A2");
-m.position = Vec3F(-2.21, 2.9, 1.32);
-m.mtrls = ["Sponza/ColumnA"];
-m.mesh = "Sponza/ColumnA";
-
-m := cell.add_Model("ColumnA_A3");
-m.position = Vec3F(2.21, 2.9, 1.32);
-m.mtrls = ["Sponza/ColumnA"];
-m.mesh = "Sponza/ColumnA";
-
-m := cell.add_Model("ColumnA_A4");
-m.position = Vec3F(6.663, 2.9, 1.32);
-m.mtrls = ["Sponza/ColumnA"];
-m.mesh = "Sponza/ColumnA";
-
-m := cell.add_Model("ColumnA_B1");
-m.position = Vec3F(-6.663, -2.9, 1.32);
-m.mtrls = ["Sponza/ColumnA"];
-m.mesh = "Sponza/ColumnA";
-
-m := cell.add_Model("ColumnA_B2");
-m.position = Vec3F(-2.21, -2.9, 1.32);
-m.mtrls = ["Sponza/ColumnA"];
-m.mesh = "Sponza/ColumnA";
-
-m := cell.add_Model("ColumnA_B3");
-m.position = Vec3F(2.21, -2.9, 1.32);
-m.mtrls = ["Sponza/ColumnA"];
-m.mesh = "Sponza/ColumnA";
-
-m := cell.add_Model("ColumnA_B4");
-m.position = Vec3F(6.663, -2.9, 1.32);
-m.mtrls = ["Sponza/ColumnA"];
-m.mesh = "Sponza/ColumnA";
-
-m := cell.add_Model("ColumnACnr_1");
-m.position = Vec3F(-11.25, 2.77, 1.32);
-m.mtrls = ["Sponza/ColumnA"];
-m.mesh = "Sponza/ColumnACorner";
-
-m := cell.add_Model("ColumnACnr_2");
-m.position = Vec3F(11.25, 2.77, 1.32);
-m.rotation = QuatF(0.0, 0.0, 0.25);
-m.mtrls = ["Sponza/ColumnA"];
-m.mesh = "Sponza/ColumnACorner";
-
-m := cell.add_Model("ColumnACnr_3");
-m.position = Vec3F(11.25, -2.77, 1.32);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.mtrls = ["Sponza/ColumnA"];
-m.mesh = "Sponza/ColumnACorner";
-
-m := cell.add_Model("ColumnACnr_4");
-m.position = Vec3F(-11.25, -2.77, 1.32);
-m.rotation = QuatF(0.0, 0.0, 0.75);
-m.mtrls = ["Sponza/ColumnA"];
-m.mesh = "Sponza/ColumnACorner";
-
-m := cell.add_Model("ColumnB_A1");
-m.position = Vec3F(-8.887, 2.89, 7.22);
-m.mtrls = ["Sponza/ColumnB"];
-m.mesh = "Sponza/ColumnB";
-
-m := cell.add_Model("ColumnB_A2");
-m.position = Vec3F(-4.439, 2.89, 7.22);
-m.mtrls = ["Sponza/ColumnB"];
-m.mesh = "Sponza/ColumnB";
-
-m := cell.add_Model("ColumnB_A3");
-m.position = Vec3F(0.0, 2.89, 7.22);
-m.mtrls = ["Sponza/ColumnB"];
-m.mesh = "Sponza/ColumnB";
-
-m := cell.add_Model("ColumnB_A4");
-m.position = Vec3F(4.439, 2.89, 7.22);
-m.mtrls = ["Sponza/ColumnB"];
-m.mesh = "Sponza/ColumnB";
-
-m := cell.add_Model("ColumnB_A5");
-m.position = Vec3F(8.887, 2.89, 7.22);
-m.mtrls = ["Sponza/ColumnB"];
-m.mesh = "Sponza/ColumnB";
-
-m := cell.add_Model("ColumnB_B1");
-m.position = Vec3F(-8.887, -2.89, 7.22);
-m.mtrls = ["Sponza/ColumnB"];
-m.mesh = "Sponza/ColumnB";
-
-m := cell.add_Model("ColumnB_B2");
-m.position = Vec3F(-4.439, -2.89, 7.22);
-m.mtrls = ["Sponza/ColumnB"];
-m.mesh = "Sponza/ColumnB";
-
-m := cell.add_Model("ColumnB_B3");
-m.position = Vec3F(0.0, -2.89, 7.22);
-m.mtrls = ["Sponza/ColumnB"];
-m.mesh = "Sponza/ColumnB";
-
-m := cell.add_Model("ColumnB_B4");
-m.position = Vec3F(4.439, -2.89, 7.22);
-m.mtrls = ["Sponza/ColumnB"];
-m.mesh = "Sponza/ColumnB";
-
-m := cell.add_Model("ColumnB_B5");
-m.position = Vec3F(8.887, -2.89, 7.22);
-m.mtrls = ["Sponza/ColumnB"];
-m.mesh = "Sponza/ColumnB";
-
-m := cell.add_Model("ColumnB_C1");
-m.position = Vec3F(-11.33, 0.0, 7.24);
-m.scale = Vec3F(0.865, 0.865, 1.018);
-m.mtrls = ["Sponza/ColumnB"];
-m.mesh = "Sponza/ColumnB";
-
-m := cell.add_Model("ColumnB_C2");
-m.position = Vec3F(11.33, 0.0, 7.24);
-m.scale = Vec3F(0.865, 0.865, 1.018);
-m.mtrls = ["Sponza/ColumnB"];
-m.mesh = "Sponza/ColumnB";
-
-m := cell.add_Model("ColumnC_A1");
-m.position = Vec3F(-6.663, 2.89, 7.22);
-m.mtrls = ["Sponza/ColumnC"];
-m.mesh = "Sponza/ColumnC";
-
-m := cell.add_Model("ColumnC_A2");
-m.position = Vec3F(-2.21, 2.89, 7.22);
-m.mtrls = ["Sponza/ColumnC"];
-m.mesh = "Sponza/ColumnC";
-
-m := cell.add_Model("ColumnC_A3");
-m.position = Vec3F(2.21, 2.89, 7.22);
-m.mtrls = ["Sponza/ColumnC"];
-m.mesh = "Sponza/ColumnC";
-
-m := cell.add_Model("ColumnC_A4");
-m.position = Vec3F(6.663, 2.89, 7.22);
-m.mtrls = ["Sponza/ColumnC"];
-m.mesh = "Sponza/ColumnC";
-
-m := cell.add_Model("ColumnC_B1");
-m.position = Vec3F(-6.663, -2.89, 7.22);
-m.mtrls = ["Sponza/ColumnC"];
-m.mesh = "Sponza/ColumnC";
-
-m := cell.add_Model("ColumnC_B2");
-m.position = Vec3F(-2.21, -2.89, 7.22);
-m.mtrls = ["Sponza/ColumnC"];
-m.mesh = "Sponza/ColumnC";
-
-m := cell.add_Model("ColumnC_B3");
-m.position = Vec3F(2.21, -2.89, 7.22);
-m.mtrls = ["Sponza/ColumnC"];
-m.mesh = "Sponza/ColumnC";
-
-m := cell.add_Model("ColumnC_B4");
-m.position = Vec3F(6.663, -2.89, 7.22);
-m.mtrls = ["Sponza/ColumnC"];
-m.mesh = "Sponza/ColumnC";
-
-m := cell.add_Model("ColumnCCnr_1");
-m.position = Vec3F(-11.21, 2.77, 7.22);
-m.mtrls = ["Sponza/ColumnC"];
-m.mesh = "Sponza/ColumnCCorner";
-
-m := cell.add_Model("ColumnCCnr_2");
-m.position = Vec3F(11.21, 2.77, 7.22);
-m.rotation = QuatF(0.0, 0.0, 0.25);
-m.mtrls = ["Sponza/ColumnC"];
-m.mesh = "Sponza/ColumnCCorner";
-
-m := cell.add_Model("ColumnCCnr_3");
-m.position = Vec3F(11.21, -2.77, 7.22);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.mtrls = ["Sponza/ColumnC"];
-m.mesh = "Sponza/ColumnCCorner";
-
-m := cell.add_Model("ColumnCCnr_4");
-m.position = Vec3F(-11.21, -2.77, 7.22);
-m.rotation = QuatF(0.0, 0.0, 0.75);
-m.mtrls = ["Sponza/ColumnC"];
-m.mesh = "Sponza/ColumnCCorner";
-
-m := cell.add_Model("CurtainA_A1");
-m.position = Vec3F(-8.887, 2.9, 1.762);
-m.mtrls = ["Sponza/CurtainRed", "Sponza/FlagPole"];
-m.mesh = "Sponza/CurtainA";
-
-m := cell.add_Model("CurtainB_A2");
-m.position = Vec3F(-4.439, 2.96, 1.762);
-m.mtrls = ["Sponza/CurtainBlue", "Sponza/FlagPole"];
-m.mesh = "Sponza/CurtainB";
-
-m := cell.add_Model("CurtainA_A3");
-m.position = Vec3F(0.0, 2.9, 1.762);
-m.mtrls = ["Sponza/CurtainGreen", "Sponza/FlagPole"];
-m.mesh = "Sponza/CurtainA";
-
-m := cell.add_Model("CurtainB_A4");
-m.position = Vec3F(4.439, 2.96, 1.762);
-m.mtrls = ["Sponza/CurtainRed", "Sponza/FlagPole"];
-m.mesh = "Sponza/CurtainB";
-
-m := cell.add_Model("CurtainA_A5");
-m.position = Vec3F(8.887, 2.9, 1.762);
-m.mtrls = ["Sponza/CurtainBlue", "Sponza/FlagPole"];
-m.mesh = "Sponza/CurtainA";
-
-m := cell.add_Model("CurtainA_B1");
-m.position = Vec3F(-8.887, -2.96, 1.762);
-m.mtrls = ["Sponza/CurtainGreen", "Sponza/FlagPole"];
-m.mesh = "Sponza/CurtainA";
-
-m := cell.add_Model("CurtainB_B2");
-m.position = Vec3F(-4.439, -2.9, 1.762);
-m.mtrls = ["Sponza/CurtainRed", "Sponza/FlagPole"];
-m.mesh = "Sponza/CurtainB";
-
-m := cell.add_Model("CurtainA_B3");
-m.position = Vec3F(0.0, -2.96, 1.762);
-m.mtrls = ["Sponza/CurtainBlue", "Sponza/FlagPole"];
-m.mesh = "Sponza/CurtainA";
-
-m := cell.add_Model("CurtainB_B4");
-m.position = Vec3F(4.439, -2.9, 1.762);
-m.mtrls = ["Sponza/CurtainGreen", "Sponza/FlagPole"];
-m.mesh = "Sponza/CurtainB";
-
-m := cell.add_Model("CurtainA_B5");
-m.position = Vec3F(8.887, -2.96, 1.762);
-m.mtrls = ["Sponza/CurtainRed", "Sponza/FlagPole"];
-m.mesh = "Sponza/CurtainA";
-
-m := cell.add_Model("DoorRound_1");
-m.position = Vec3F(0.0, 7.31, 1.8);
-m.mtrls = ["Sponza/Details"];
-m.mesh = "Sponza/DoorRound";
-
-m := cell.add_Model("DoorRound_2");
-m.position = Vec3F(16.41, 0.0, 6.8);
-m.rotation = QuatF(0.0, 0.0, 0.25);
-m.mtrls = ["Sponza/Details"];
-m.mesh = "Sponza/DoorRound";
-
-m := cell.add_Model("DoorSquare");
-m.position = Vec3F(0.0, -7.325, 1.46);
-m.mtrls = ["Sponza/Details"];
-m.mesh = "Sponza/DoorSquare";
-
-m := cell.add_Model("Drape_A1");
-m.position = Vec3F(-6.676, 2.88, 5.16);
-m.mtrls = ["Sponza/FabricBlue"];
-m.mesh = "Sponza/Drape";
-
-m := cell.add_Model("Drape_A2");
-m.position = Vec3F(-2.223, 2.88, 5.16);
-m.mtrls = ["Sponza/FabricRed"];
-m.mesh = "Sponza/Drape";
-
-m := cell.add_Model("Drape_A3");
-m.position = Vec3F(2.197, 2.88, 5.16);
-m.mtrls = ["Sponza/FabricGreen"];
-m.mesh = "Sponza/Drape";
-
-m := cell.add_Model("Drape_A4");
-m.position = Vec3F(6.65, 2.88, 5.16);
-m.mtrls = ["Sponza/FabricBlue"];
-m.mesh = "Sponza/Drape";
-
-m := cell.add_Model("Drape_B1");
-m.position = Vec3F(-6.65, -2.88, 5.16);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.mtrls = ["Sponza/FabricGreen"];
-m.mesh = "Sponza/Drape";
-
-m := cell.add_Model("Drape_B2");
-m.position = Vec3F(-2.197, -2.88, 5.16);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.mtrls = ["Sponza/FabricBlue"];
-m.mesh = "Sponza/Drape";
-
-m := cell.add_Model("Drape_B3");
-m.position = Vec3F(2.223, -2.88, 5.16);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.mtrls = ["Sponza/FabricRed"];
-m.mesh = "Sponza/Drape";
-
-m := cell.add_Model("Drape_B4");
-m.position = Vec3F(6.676, -2.88, 5.16);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.mtrls = ["Sponza/FabricGreen"];
-m.mesh = "Sponza/Drape";
-
-m := cell.add_Model("EdgeCover_A1");
-m.position = Vec3F(0.0, 0.0, 6.01);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/EdgeCover";
-
-m := cell.add_Model("EdgeCover_A2");
-m.position = Vec3F(0.0, 0.0, 6.01);
-m.scale = Vec3F(1.0, -1.0, 1.0);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/EdgeCover";
-
-m := cell.add_Model("EdgeCover_A3");
-m.position = Vec3F(0.0, 0.0, 6.01);
-m.scale = Vec3F(-1.0, -1.0, 1.0);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/EdgeCover";
-
-m := cell.add_Model("EdgeCover_A4");
-m.position = Vec3F(0.0, 0.0, 6.01);
-m.scale = Vec3F(-1.0, 1.0, 1.0);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/EdgeCover";
-
-m := cell.add_Model("EdgeCover_B1");
-m.position = Vec3F(0.0, 0.0, 11.0);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/EdgeCover";
-
-m := cell.add_Model("EdgeCover_B2");
-m.position = Vec3F(0.0, 0.0, 11.0);
-m.scale = Vec3F(1.0, -1.0, 1.0);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/EdgeCover";
-
-m := cell.add_Model("EdgeCover_B3");
-m.position = Vec3F(0.0, 0.0, 11.0);
-m.scale = Vec3F(-1.0, -1.0, 1.0);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/EdgeCover";
-
-m := cell.add_Model("EdgeCover_B4");
-m.position = Vec3F(0.0, 0.0, 11.0);
-m.scale = Vec3F(-1.0, 1.0, 1.0);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/EdgeCover";
-
-m := cell.add_Model("FlagPole_A1");
-m.position = Vec3F(-6.663, 1.61, 10.29);
-m.mtrls = ["Sponza/FlagPole"];
-m.mesh = "Sponza/FlagPole";
-
-m := cell.add_Model("FlagPole_A2");
-m.position = Vec3F(-2.21, 1.61, 10.29);
-m.mtrls = ["Sponza/FlagPole"];
-m.mesh = "Sponza/FlagPole";
-
-m := cell.add_Model("FlagPole_A3");
-m.position = Vec3F(2.21, 1.61, 10.29);
-m.mtrls = ["Sponza/FlagPole"];
-m.mesh = "Sponza/FlagPole";
-
-m := cell.add_Model("FlagPole_A4");
-m.position = Vec3F(6.663, 1.61, 10.29);
-m.mtrls = ["Sponza/FlagPole"];
-m.mesh = "Sponza/FlagPole";
-
-m := cell.add_Model("FlagPole_B1");
-m.position = Vec3F(-6.663, -1.61, 10.29);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.mtrls = ["Sponza/FlagPole"];
-m.mesh = "Sponza/FlagPole";
-
-m := cell.add_Model("FlagPole_B2");
-m.position = Vec3F(-2.21, -1.61, 10.29);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.mtrls = ["Sponza/FlagPole"];
-m.mesh = "Sponza/FlagPole";
-
-m := cell.add_Model("FlagPole_B3");
-m.position = Vec3F(2.21, -1.61, 10.29);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.mtrls = ["Sponza/FlagPole"];
-m.mesh = "Sponza/FlagPole";
-
-m := cell.add_Model("FlagPole_B4");
-m.position = Vec3F(6.663, -1.61, 10.29);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.mtrls = ["Sponza/FlagPole"];
-m.mesh = "Sponza/FlagPole";
-
-m := cell.add_Model("VaseHanging_A1");
-m.position = Vec3F(-6.663, 2.2, 1.89);
-m.mtrls = ["Sponza/Chain", "Sponza/VaseB"];
-m.mesh = "Sponza/VaseHanging";
-
-m := cell.add_Model("VaseHanging_A2");
-m.position = Vec3F(6.663, 2.2, 1.89);
-m.mtrls = ["Sponza/Chain", "Sponza/VaseB"];
-m.mesh = "Sponza/VaseHanging";
-
-m := cell.add_Model("VaseHanging_B1");
-m.position = Vec3F(-6.663, -2.2, 1.89);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.mtrls = ["Sponza/Chain", "Sponza/VaseB"];
-m.mesh = "Sponza/VaseHanging";
-
-m := cell.add_Model("VaseHanging_B2");
-m.position = Vec3F(6.663, -2.2, 1.89);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.mtrls = ["Sponza/Chain", "Sponza/VaseB"];
-m.mesh = "Sponza/VaseHanging";
-
-m := cell.add_Model("Lion_1");
-m.position = Vec3F(-16.425, 0.0, 2.225);
-m.mtrls = ["Sponza/Lion"];
-m.mesh = "Sponza/Lion";
-
-m := cell.add_Model("Lion_2");
-m.position = Vec3F(16.425, 0.0, 2.225);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.mtrls = ["Sponza/Lion"];
-m.mesh = "Sponza/Lion";
-
-m := cell.add_Model("Plaque_1");
-m.position = Vec3F(-16.425, 0.0, 2.25);
-m.mtrls = ["Sponza/Plaque"];
-m.mesh = "Sponza/Plaque";
-
-m := cell.add_Model("Plaque_2");
-m.position = Vec3F(16.425, 0.0, 2.25);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.mtrls = ["Sponza/Plaque"];
-m.mesh = "Sponza/Plaque";
-
-m := cell.add_Model("Plaque_3");
-m.position = Vec3F(-16.425, 0.0, 8.0);
-m.mtrls = ["Sponza/Plaque"];
-m.mesh = "Sponza/Plaque";
-
-m := cell.add_Model("VasePlant_A1");
-m.position = Vec3F(-10.7, 2.27, 0.0);
-m.mtrls = ["Sponza/Plant", "Sponza/VaseA"];
-m.mesh = "Sponza/VasePlant";
-
-m := cell.add_Model("VasePlant_A2");
-m.position = Vec3F(-2.21, 2.27, 0.0);
-m.mtrls = ["Sponza/Plant", "Sponza/VaseA"];
-m.mesh = "Sponza/VasePlant";
-
-m := cell.add_Model("VasePlant_A3");
-m.position = Vec3F(2.21, 2.27, 0.0);
-m.mtrls = ["Sponza/Plant", "Sponza/VaseA"];
-m.mesh = "Sponza/VasePlant";
-
-m := cell.add_Model("VasePlant_A4");
-m.position = Vec3F(10.7, 2.27, 0.0);
-m.mtrls = ["Sponza/Plant", "Sponza/VaseA"];
-m.mesh = "Sponza/VasePlant";
-
-m := cell.add_Model("VasePlant_B1");
-m.position = Vec3F(-10.7, -2.27, 0.0);
-m.mtrls = ["Sponza/Plant", "Sponza/VaseA"];
-m.mesh = "Sponza/VasePlant";
-
-m := cell.add_Model("VasePlant_B2");
-m.position = Vec3F(-2.21, -2.27, 0.0);
-m.mtrls = ["Sponza/Plant", "Sponza/VaseA"];
-m.mesh = "Sponza/VasePlant";
-
-m := cell.add_Model("VasePlant_B3");
-m.position = Vec3F(2.21, -2.27, 0.0);
-m.mtrls = ["Sponza/Plant", "Sponza/VaseA"];
-m.mesh = "Sponza/VasePlant";
-
-m := cell.add_Model("VasePlant_B4");
-m.position = Vec3F(10.7, -2.27, 0.0);
-m.mtrls = ["Sponza/Plant", "Sponza/VaseA"];
-m.mesh = "Sponza/VasePlant";
-
-m := cell.add_Model("Window_1");
-m.position = Vec3F(4.454, -7.325, 2.439);
-m.mtrls = ["Sponza/Details"];
-m.mesh = "Sponza/Window";
-
-m := cell.add_Model("Window_2");
-m.position = Vec3F(-4.454, -7.325, 2.439);
-m.mtrls = ["Sponza/Details"];
-m.mesh = "Sponza/Window";
-
-m := cell.add_Model("MouldingA_1");
-m.position = Vec3F(0.0, 0.0, 5.02);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/MouldingA";
-
-m := cell.add_Model("MouldingA_2");
-m.position = Vec3F(0.0, 0.0, 5.02);
-m.scale = Vec3F(1.0, -1.0, 1.0);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/MouldingA";
-
-m := cell.add_Model("MouldingA_3");
-m.position = Vec3F(0.0, 0.0, 5.02);
-m.scale = Vec3F(-1.0, -1.0, 1.0);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/MouldingA";
-
-m := cell.add_Model("MouldingA_4");
-m.position = Vec3F(0.0, 0.0, 5.02);
-m.scale = Vec3F(-1.0, 1.0, 1.0);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/MouldingA";
-
-m := cell.add_Model("MouldingB_A1");
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/MouldingB";
-
-m := cell.add_Model("MouldingB_A2");
-m.scale = Vec3F(1.0, -1.0, 1.0);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/MouldingB";
-
-m := cell.add_Model("MouldingB_A3");
-m.scale = Vec3F(-1.0, -1.0, 1.0);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/MouldingB";
-
-m := cell.add_Model("MouldingB_A4");
-m.scale = Vec3F(-1.0, 1.0, 1.0);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/MouldingB";
-
-m := cell.add_Model("MouldingB_B1");
-m.position = Vec3F(0.0, 0.0, 5.0);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/MouldingB";
-
-m := cell.add_Model("MouldingB_B2");
-m.position = Vec3F(0.0, 0.0, 5.0);
-m.scale = Vec3F(1.0, -1.0, 1.0);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/MouldingB";
-
-m := cell.add_Model("MouldingB_B3");
-m.position = Vec3F(0.0, 0.0, 5.0);
-m.scale = Vec3F(-1.0, -1.0, 1.0);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/MouldingB";
-
-m := cell.add_Model("MouldingB_B4");
-m.position = Vec3F(0.0, 0.0, 5.0);
-m.scale = Vec3F(-1.0, 1.0, 1.0);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/MouldingB";
-
-m := cell.add_Model("HoleA_A1");
-m.position = Vec3F(-8.887, 2.69, 11.6);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/HoleA";
-
-m := cell.add_Model("HoleA_A2");
-m.position = Vec3F(-4.439, 2.69, 11.6);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/HoleA";
-
-m := cell.add_Model("HoleA_A3");
-m.position = Vec3F(0.0, 2.69, 11.6);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/HoleA";
-
-m := cell.add_Model("HoleA_A4");
-m.position = Vec3F(4.439, 2.69, 11.6);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/HoleA";
-
-m := cell.add_Model("HoleA_A5");
-m.position = Vec3F(8.887, 2.69, 11.6);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/HoleA";
-
-m := cell.add_Model("HoleA_B1");
-m.position = Vec3F(-8.887, -2.69, 11.6);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/HoleA";
-
-m := cell.add_Model("HoleA_B2");
-m.position = Vec3F(-4.439, -2.69, 11.6);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/HoleA";
-
-m := cell.add_Model("HoleA_B3");
-m.position = Vec3F(0.0, -2.69, 11.6);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/HoleA";
-
-m := cell.add_Model("HoleA_B4");
-m.position = Vec3F(4.439, -2.69, 11.6);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/HoleA";
-
-m := cell.add_Model("HoleA_B5");
-m.position = Vec3F(8.887, -2.69, 11.6);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/HoleA";
-
-m := cell.add_Model("HoleA_C");
-m.position = Vec3F(-11.25, 0.0, 11.6);
-m.rotation = QuatF(0.0, 0.0, 0.75);
-m.mtrls = ["Sponza/Arch"];
-m.mesh = "Sponza/HoleA";
-
-m := cell.add_Model("HoleB_A1");
-m.position = Vec3F(-6.85, 2.64, 14.9);
-m.mtrls = ["Sponza/Arch", "Sponza/Ceiling"];
-m.mesh = "Sponza/HoleB";
-
-m := cell.add_Model("HoleB_A2");
-m.position = Vec3F(-2.41, 2.64, 14.9);
-m.mtrls = ["Sponza/Arch", "Sponza/Ceiling"];
-m.mesh = "Sponza/HoleB";
-
-m := cell.add_Model("HoleB_A3");
-m.position = Vec3F(2.41, 2.64, 14.9);
-m.mtrls = ["Sponza/Arch", "Sponza/Ceiling"];
-m.mesh = "Sponza/HoleB";
-
-m := cell.add_Model("HoleB_A4");
-m.position = Vec3F(6.85, 2.64, 14.9);
-m.mtrls = ["Sponza/Arch", "Sponza/Ceiling"];
-m.mesh = "Sponza/HoleB";
-
-m := cell.add_Model("HoleB_B1");
-m.position = Vec3F(-6.85, -2.64, 14.9);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.mtrls = ["Sponza/Arch", "Sponza/Ceiling"];
-m.mesh = "Sponza/HoleB";
-
-m := cell.add_Model("HoleB_B2");
-m.position = Vec3F(-2.41, -2.64, 14.9);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.mtrls = ["Sponza/Arch", "Sponza/Ceiling"];
-m.mesh = "Sponza/HoleB";
-
-m := cell.add_Model("HoleB_B3");
-m.position = Vec3F(2.41, -2.64, 14.9);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.mtrls = ["Sponza/Arch", "Sponza/Ceiling"];
-m.mesh = "Sponza/HoleB";
-
-m := cell.add_Model("HoleB_B4");
-m.position = Vec3F(6.85, -2.64, 14.9);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.mtrls = ["Sponza/Arch", "Sponza/Ceiling"];
-m.mesh = "Sponza/HoleB";
-
-m := cell.add_Model("HoleB_C");
-m.position = Vec3F(-11.14, 0.0, 14.9);
-m.rotation = QuatF(0.0, 0.0, 0.75);
-m.mtrls = ["Sponza/Arch", "Sponza/Ceiling"];
-m.mesh = "Sponza/HoleB";
-
-m := cell.add_Model("Roof_1");
-m.position = Vec3F(0.0, 0.0, 16.25);
-m.mtrls = ["Sponza/Roof"];
-m.mesh = "Sponza/Roof";
-
-m := cell.add_Model("Roof_2");
-m.position = Vec3F(0.0, 0.0, 16.25);
-m.scale = Vec3F(1.0, -1.0, 1.0);
-m.mtrls = ["Sponza/Roof"];
-m.mesh = "Sponza/Roof";
-
-m := cell.add_Model("Roof_3");
-m.position = Vec3F(0.0, 0.0, 16.25);
-m.scale = Vec3F(-1.0, -1.0, 1.0);
-m.mtrls = ["Sponza/Roof"];
-m.mesh = "Sponza/Roof";
-
-m := cell.add_Model("Roof_4");
-m.position = Vec3F(0.0, 0.0, 16.25);
-m.scale = Vec3F(-1.0, 1.0, 1.0);
-m.mtrls = ["Sponza/Roof"];
-m.mesh = "Sponza/Roof";
-
-m := cell.add_Model("WallA_1");
-m.position = Vec3F(0.0, 0.0, 4.37);
-m.mtrls = ["Sponza/Bricks"];
-m.mesh = "Sponza/WallA";
-
-m := cell.add_Model("WallA_2");
-m.position = Vec3F(0.0, 0.0, 4.37);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.mtrls = ["Sponza/Bricks"];
-m.mesh = "Sponza/WallA";
-
-m := cell.add_Model("WallB_1");
-m.position = Vec3F(0.0, 0.0, 5.45);
-m.mtrls = ["Sponza/Bricks"];
-m.mesh = "Sponza/WallB";
-
-m := cell.add_Model("WallB_2");
-m.position = Vec3F(0.0, 0.0, 5.45);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.mtrls = ["Sponza/Bricks"];
-m.mesh = "Sponza/WallB";
-
-m := cell.add_Model("WallC_1");
-m.position = Vec3F(0.0, 0.0, 9.7);
-m.mtrls = ["Sponza/Bricks"];
-m.mesh = "Sponza/WallC";
-
-m := cell.add_Model("WallC_2");
-m.position = Vec3F(0.0, 0.0, 9.7);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.mtrls = ["Sponza/Bricks"];
-m.mesh = "Sponza/WallC";
-
-m := cell.add_Model("WallD_A1");
-m.position = Vec3F(0.0, 0.0, 2.34);
-m.scale = Vec3F(1.0, 1.0, 0.92);
-m.mtrls = ["Sponza/Bricks"];
-m.mesh = "Sponza/WallD";
-
-m := cell.add_Model("WallD_A2");
-m.position = Vec3F(0.0, 0.0, 2.34);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.scale = Vec3F(1.0, 1.0, 0.92);
-m.mtrls = ["Sponza/Bricks"];
-m.mesh = "Sponza/WallD";
-
-m := cell.add_Model("WallD_B1");
-m.position = Vec3F(0.0, 0.0, 7.7);
-m.scale = Vec3F(1.0, 1.0, 1.06);
-m.mtrls = ["Sponza/Bricks"];
-m.mesh = "Sponza/WallD";
-
-m := cell.add_Model("WallD_B2");
-m.position = Vec3F(0.0, 0.0, 7.7);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.scale = Vec3F(1.0, 1.0, 1.06);
-m.mtrls = ["Sponza/Bricks"];
-m.mesh = "Sponza/WallD";
-
-m := cell.add_Model("WallD_C1");
-m.position = Vec3F(0.0, 0.0, 13.35);
-m.scale = Vec3F(0.72, 0.462, 0.92);
-m.mtrls = ["Sponza/Bricks"];
-m.mesh = "Sponza/WallD";
-
-m := cell.add_Model("WallD_C2");
-m.position = Vec3F(0.0, 0.0, 13.35);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.scale = Vec3F(0.72, 0.462, 0.92);
-m.mtrls = ["Sponza/Bricks"];
-m.mesh = "Sponza/WallD";
-
-m := cell.add_Model("WallE_1");
-m.position = Vec3F(0.0, 0.0, 13.3);
-m.mtrls = ["Sponza/Bricks"];
-m.mesh = "Sponza/WallE";
-
-m := cell.add_Model("WallE_2");
-m.position = Vec3F(0.0, 0.0, 13.3);
-m.rotation = QuatF(0.0, 0.0, 0.5);
-m.mtrls = ["Sponza/Bricks"];
-m.mesh = "Sponza/WallE";
-
-m := cell.add_Model("WallEFill");
-m.position = Vec3F(11.11, 0.0, 13.3);
-m.mtrls = ["Sponza/Bricks"];
-m.mesh = "Sponza/WallEFill";
 
 d := cell.add_Decal("BloodNorth");
 d.position = Vec3F(0.0, 2.9, 2.0);
@@ -1040,5 +357,5 @@ d.position = Vec3F(3.0, 1.0, 0.0);
 d.rotation = QuatF(0.0, 0.0, 0.8);
 d.scale = Vec3F(1.0, 1.0, 0.1);
 d.material = "Decals/Blood";
-
+*/
 }

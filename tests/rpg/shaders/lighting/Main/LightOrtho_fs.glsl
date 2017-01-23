@@ -69,9 +69,9 @@ void main() {
     vec4 wp = CB.invView * vec4(v_pos, 1.f);
     vec3 w_pos = wp.xyz / wp.w;
 
-    vec3 v_surf = normalize(texture(defrSurf, texcrd).rgb * 2.f - 1.f);
+    vec3 v_surf = normalize(texture(defrSurf, texcrd).rgb);
     vec3 w_surf = normalize(vec3(CB.trnView * vec4(v_surf, 0.f)));
-    vec3 v_norm = normalize(texture(defrNorm, texcrd).rgb * 2.f - 1.f);
+    vec3 v_norm = normalize(texture(defrNorm, texcrd).rgb);
     vec3 w_norm = normalize(vec3(CB.trnView * vec4(v_norm, 0.f)));
 
     vec3 v_ldir = mat3(CB.view) * normalize(LB.direction);

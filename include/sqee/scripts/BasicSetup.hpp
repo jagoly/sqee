@@ -1,17 +1,16 @@
 #pragma once
 
-#include <sqee/setup.hpp>
-
-// Forward Declarations /////
-namespace chaiscript { class ChaiScript; }
-namespace sq { using ChaiEngine = chai::ChaiScript; }
+#include <sqee/scripts/ChaiEngine.hpp>
 
 namespace sq {
 
-void chaiscript_setup_app(ChaiEngine& _engine);
-void chaiscript_setup_entity(ChaiEngine& _engine);
-void chaiscript_setup_physics(ChaiEngine& _engine);
-void chaiscript_setup_maths(ChaiEngine& _engine);
-void chaiscript_setup_messages(ChaiEngine& _engine);
+//============================================================================//
 
-}
+void chaiscript_setup_app(ChaiEngine& engine);
+void chaiscript_setup_physics(ChaiEngine& engine);
+void chaiscript_setup_maths(ChaiEngine& engine);
+void chaiscript_setup_messages(ChaiEngine& engine);
+
+//============================================================================//
+
+} // namespace sq

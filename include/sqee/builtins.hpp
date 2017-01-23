@@ -1,19 +1,20 @@
 #pragma once
 
 #include <array>
-#include <vector>
-#include <string>
 #include <memory>
-#include <utility>
+#include <string>
 #include <typeindex>
+#include <utility>
+#include <vector>
 
-using std::pair;
 using std::array;
-using std::vector;
-using std::string;
-using std::weak_ptr;
+using std::pair;
 using std::shared_ptr;
-using std::unique_ptr;
+using std::string;
+using std::tuple;
 using std::type_index;
+using std::unique_ptr;
+using std::vector;
+using std::weak_ptr;
 
 #include <sqee/setup.hpp>

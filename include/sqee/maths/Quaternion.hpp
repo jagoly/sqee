@@ -6,134 +6,283 @@
 
 namespace sq {
 
-template<class T, if_float<T>...> struct Quaternion {
-    Quaternion() : x(T(0.0)), y(T(0.0)), z(T(0.0)), w(T(1.0)) {}
-    Quaternion(T _x, T _y, T _z, T _w) : x(_x), y(_y), z(_z), w(_w) {}
-    Quaternion(const Quaternion& _q) : x(_q.x), y(_q.y), z(_q.z), w(_q.w) {}
+//============================================================================//
 
-    explicit Quaternion(T _rx, T _ry, T _rz) {
-        Vector3<T> halfRads = maths::radians(Vector3<T>(_rx, _ry, _rz)) * T(0.5);
-        Vector3<T> c = maths::sin(halfRads); Vector3<T> s = maths::cos(halfRads);
-        x = s.x*c.y*c.z - c.x*s.y*s.z; y = c.x*s.y*c.z + s.x*c.y*s.z;
-        z = c.x*c.y*s.z - s.x*s.y*c.z; w = c.x*c.y*c.z + s.x*s.y*s.z;
+template <class T, if_float<T>...> struct Quaternion
+{
+    constexpr Quaternion() : data { T(0.0), T(0.0), T(0.0), T(1.0) } {}
+    constexpr Quaternion(T x, T y, T z, T w) : data { x, y, z, w } {}
+    constexpr Quaternion(const Quaternion& q) : data { q.x, q.y, q.z, q.w } {}
+
+    //========================================================//
+
+    inline explicit Quaternion(T rx, T ry, T rz)
+    {
+        Vector3<T> halfrads = Vector3<T>(rx, ry, rz);
+        halfrads = maths::radians(halfrads) * T(0.5);
+
+        Vector3<T> s = maths::sin(halfrads);
+        Vector3<T> c = maths::cos(halfrads);
+
+        x = (s.x * c.y * c.z) - (c.x * s.y * s.z);
+        y = (c.x * s.y * c.z) + (s.x * c.y * s.z);
+        z = (c.x * c.y * s.z) - (s.x * s.y * c.z);
+        w = (c.x * c.y * c.z) + (s.x * s.y * s.z);
+
+//        double t0 = std::cos(yaw * 0.5f);
+//        double t1 = std::sin(yaw * 0.5f);
+//        double t2 = std::cos(roll * 0.5f);
+//        double t3 = std::sin(roll * 0.5f);
+//        double t4 = std::cos(pitch * 0.5f);
+//        double t5 = std::sin(pitch * 0.5f);
+
+//        q.w() = t0 * t2 * t4 + t1 * t3 * t5;
+//        q.x() = t0 * t3 * t4 - t1 * t2 * t5;
+//        q.y() = t0 * t2 * t5 + t1 * t3 * t4;
+//        q.z() = t1 * t2 * t4 - t0 * t3 * t5;
+
+//        float ls = x*x + y*y + z*z + w*w;
+//        *this = *this / std::sqrt(ls);
     }
 
-    explicit Quaternion(Matrix33<T> _m) {
-        T biggest = _m[0][0]+_m[1][1]+_m[2][2]; int index = 0;
-        if (T xValue = _m[0][0]-_m[1][1]-_m[2][2] > biggest) { biggest = xValue; index = 1; }
-        if (T yValue = _m[1][1]-_m[0][0]-_m[2][2] > biggest) { biggest = yValue; index = 2; }
-        if (T zValue = _m[2][2]-_m[0][0]-_m[1][1] > biggest) { biggest = zValue; index = 3; }
-        biggest = std::sqrt(biggest + T(1.0)) * T(0.5); T mult = T(0.25) / biggest;
+    //========================================================//
 
-        if (index == 0) { x = mult*(_m[1][2]-_m[2][1]); y = mult*(_m[2][0]-_m[0][2]); z = mult*(_m[0][1]-_m[1][0]); w = biggest; }
-        else if (index == 1) { x = biggest; y = mult*(_m[0][1]-_m[1][0]); z = mult*(_m[2][0]-_m[0][2]); w = mult*(_m[1][2]-_m[2][1]); }
-        else if (index == 2) { x = mult*(_m[0][1]-_m[1][0]); y = biggest; z = mult*(_m[1][2]-_m[2][1]); w = mult*(_m[2][0]-_m[0][2]); }
-        else if (index == 3) { x = mult*(_m[2][0]-_m[0][2]); y = mult*(_m[1][2]-_m[2][1]); z = biggest; w = mult*(_m[0][1]-_m[1][0]); }
+    inline explicit Quaternion(const Matrix33<T>& m)
+    {
+        T biggest = m[0][0] + m[1][1] + m[2][2]; int index = 0;
+        if (T x = m[0][0] - m[1][1] - m[2][2] > biggest) { biggest = x; index = 1; }
+        if (T y = m[1][1] - m[0][0] - m[2][2] > biggest) { biggest = y; index = 2; }
+        if (T z = m[2][2] - m[0][0] - m[1][1] > biggest) { biggest = z; index = 3; }
+        biggest = std::sqrt(biggest + T(1.0)) * T(0.5);
+
+        T valueA = (T(0.25) / biggest) * (m[0][1] - m[1][0]);
+        T valueB = (T(0.25) / biggest) * (m[1][2] - m[2][1]);
+        T valueC = (T(0.25) / biggest) * (m[2][0] - m[0][2]);
+
+        if (index == 0) { x = valueB;  y = valueC;  z = valueA;  w = biggest; }
+        if (index == 1) { x = biggest; y = valueA;  z = valueC;  w = valueB;  }
+        if (index == 2) { x = valueA;  y = biggest; z = valueB;  w = valueC;  }
+        if (index == 3) { x = valueC;  y = valueB;  z = biggest; w = valueA;  }
     }
 
-    explicit operator Matrix33<T>() const {
-        return Matrix33<T>({T(1.0) - T(2.0) * (y*y + z*z), T(2.0) * (x*y + w*z), T(2.0) * (x*z - w*y)},
-                           {T(2.0) * (x*y - w*z), T(1.0) - T(2.0) * (x*x + z*z), T(2.0) * (y*z + w*x)},
-                           {T(2.0) * (x*z + w*y), T(2.0) * (y*z - w*x), T(1.0) - T(2.0) * (x*x + y*y)});
+    //========================================================//
+
+    constexpr explicit operator Matrix33<T>() const
+    {
+        Vector3<T> colA { T(1.0) - T(2.0) * (y*y + z*z), T(2.0) * (x*y + w*z), T(2.0) * (x*z - w*y) };
+        Vector3<T> colB { T(2.0) * (x*y - w*z), T(1.0) - T(2.0) * (x*x + z*z), T(2.0) * (y*z + w*x) };
+        Vector3<T> colC { T(2.0) * (x*z + w*y), T(2.0) * (y*z - w*x), T(1.0) - T(2.0) * (x*x + y*y) };
+        return Matrix33<T> ( colA, colB, colC );
     }
 
-    explicit operator Matrix44<T>() const { return Matrix44<T>(Matrix33<T>(*this)); }
+    //========================================================//
 
-    const T* ptr() const { return &x; }
+    inline explicit Quaternion(const Matrix44<T>& m) : Quaternion(Matrix33<T>(m)) {}
 
-    T x, y, z, w;
+    constexpr explicit operator Matrix44<T>() const { return Matrix44<T> ( Matrix33<T>(*this) ); }
+
+    //========================================================//
+
+    union { T data[4]; struct { T x, y, z, w; }; };
 };
 
+//============================================================================//
 
-// Multiply Scalar /////
-template<class T> inline Quaternion<T> operator*(Quaternion<T> _q, T _s) {
-    return Quaternion<T>(_q.x*_s, _q.y*_s, _q.z*_s, _q.w*_s);
+// multiplication & division (Quaternion, Scalar) /////
+
+template <class T> constexpr
+Quaternion<T> operator*(Quaternion<T> q, T s)
+{ return { q.x*s, q.y*s, q.z*s, q.w*s }; }
+
+template <class T> constexpr
+Quaternion<T> operator/(Quaternion<T> q, T s)
+{ return { q.x/s, q.y/s, q.z/s, q.w/s }; }
+
+//============================================================================//
+
+// multiplication (Quaternion, Quaternion) /////
+
+template <class T> constexpr
+Quaternion<T> operator*(Quaternion<T> a, Quaternion<T> b)
+{
+    T x = (a.w * b.x) + (a.x * b.w) + (a.y * b.z) - (a.z * b.y);
+    T y = (a.w * b.y) - (a.x * b.z) + (a.y * b.w) + (a.z * b.x);
+    T z = (a.w * b.z) + (a.x * b.y) - (a.y * b.x) + (a.z * b.w);
+    T w = (a.w * b.w) - (a.x * b.x) - (a.y * b.y) - (a.z * b.z);
+    return Quaternion<T> { x, y, z, w };
 }
 
-// Divide Scalar /////
-template<class T> inline Quaternion<T> operator/(Quaternion<T> _q, T _s) {
-    return Quaternion<T>(_q.x/_s, _q.y/_s, _q.z/_s, _q.w/_s);
+//============================================================================//
+
+// multiplication (Quaternion, Vector3) /////
+
+template <class T> constexpr
+Vector3<T> operator*(Quaternion<T> q, Vector3<T> v)
+{
+    auto qv = maths::cross(Vector3<T>(q.x, q.y, q.z), v);
+    auto qqv = maths::cross(Vector3<T>(q.x, q.y, q.z), qv);
+    return v + (qv * q.w + qqv) * T(2.0);
 }
 
-// Multiply Quaternion /////
-template<class T> inline Quaternion<T> operator*(Quaternion<T> _a, Quaternion<T> _b) {
-    return Quaternion<T>(_a.w*_b.x + _a.x*_b.w + _a.y*_b.z - _a.z*_b.y,
-                         _a.w*_b.y - _a.x*_b.z + _a.y*_b.w + _a.z*_b.x,
-                         _a.w*_b.z + _a.x*_b.y - _a.y*_b.x + _a.z*_b.w,
-                         _a.w*_b.w - _a.x*_b.x - _a.y*_b.y - _a.z*_b.z);
-}
+//============================================================================//
 
-// Multiply Vector3 /////
-template<class T> inline Vector3<T> operator*(Quaternion<T> _q, Vector3<T> _v) {
-    Vector3<T> uv = maths::cross(Vector3<T>(_q.x, _q.y, _q.z), _v);
-    Vector3<T> uuv = maths::cross(Vector3<T>(_q.x, _q.y, _q.z), uv);
-    return _v + (uv * _q.w + uuv) * T(2.0);
-}
+// unary operators (Quaternion) /////
 
-// Negative Operator /////
-template<class T> inline Quaternion<T> operator-(Quaternion<T> _q) {
-    return Quaternion<T>(-_q.x, -_q.y, -_q.z, -_q.w);
-}
+template <class T> constexpr
+Quaternion<T> operator+(Quaternion<T> q)
+{ return { +q.x, +q.y, +q.z, +q.w }; }
 
+template <class T> constexpr
+Quaternion<T> operator-(Quaternion<T> q)
+{ return { -q.x, -q.y, -q.z, -q.w }; }
+
+//============================================================================//
 
 namespace maths {
 
-// Dot Product /////
-template<class T> inline T dot(Quaternion<T> _a, Quaternion<T> _b) {
-    return _a.x*_b.x + _a.y*_b.y + _a.z*_b.z + _a.w*_b.w;
+//============================================================================//
+
+// dot product (Quaternion, Quaternion) /////
+
+template <class T> constexpr
+T dot(Quaternion<T> a, Quaternion<T> b)
+{
+    Vector4<T> vecA { a.x, a.y, a.z, a.w };
+    Vector4<T> vecB { b.x, b.y, b.z, b.w };
+    return maths::dot(vecA, vecB);
 }
 
-// Length /////
-template<class T> inline T length(Quaternion<T> _q) {
-    return std::sqrt(dot(_q, _q));
+//============================================================================//
+
+// conjugate (Quaternion) /////
+
+template <class T> constexpr
+Quaternion<T> conjugate(Quaternion<T> quat)
+{
+    return Quaternion<T> { -quat.x, -quat.y, -quat.z, quat.w };
 }
 
-// Normalize /////
-template<class T> inline Quaternion<T> normalize(Quaternion<T> _q) {
-    return _q * (T(1.0) / length(_q));
+//============================================================================//
+
+// inverse (Quaternion) /////
+
+template <class T> constexpr
+Quaternion<T> inverse(Quaternion<T> quat)
+{
+    return maths::conjugate(quat) / maths::dot(quat, quat);
 }
 
-// Conjugate /////
-template<class T> inline Quaternion<T> conjugate(Quaternion<T> _q) {
-    return Quaternion<T>(-_q.x, -_q.y, -_q.z, _q.w);
+//============================================================================//
+
+// length (Quaternion) /////
+
+template <class T> inline
+T length(Quaternion<T> quat)
+{
+    return std::sqrt(maths::dot(quat, quat));
 }
 
-// Inverse /////
-template<class T> inline Quaternion<T> inverse(Quaternion<T> _q) {
-    return conjugate(_q) / dot(_q, _q);
+//============================================================================//
+
+// normalize (Quaternion) /////
+
+template <class T> inline
+Quaternion<T> normalize(Quaternion<T> quat)
+{
+    return quat * (T(1.0) / maths::length(quat));
 }
 
-// Linear Interpolate /////
-template<class T> inline Quaternion<T> lerp(Quaternion<T> _a, Quaternion<T> _b, T _factor) {
-    return Quaternion<T>(maths::mix(_a.x, _b.x, _factor), maths::mix(_a.y, _b.y, _factor),
-                         maths::mix(_a.z, _b.z, _factor), maths::mix(_a.w, _b.w, _factor));
+//============================================================================//
+
+// linear interpolation (Quaternions, Scalar) /////
+
+template <class T> inline
+Quaternion<T> lerp(Quaternion<T> a, Quaternion<T> b, T factor)
+{
+    T invFactor = T(1.0) - factor;
+    T x = (a.x * invFactor) + (b.x * factor);
+    T y = (a.y * invFactor) + (b.y * factor);
+    T z = (a.z * invFactor) + (b.z * factor);
+    T w = (a.w * invFactor) + (b.w * factor);
+    return Quaternion<T> { x, y, z, w };
 }
 
-// Spherical Interpolate /////
-template<class T> inline Quaternion<T> slerp(Quaternion<T> _a, Quaternion<T> _b, T _factor) {
-    T cosTheta = _a.x*_b.x + _a.y*_b.y + _a.z*_b.z + _a.w*_b.w;
+//============================================================================//
 
-    Quaternion<T> b = _b;
+// spherical interpolation (Quaternions, Scalar) /////
 
-    // Prevent going the long way around
-    if (cosTheta < T(0.0)) { cosTheta = -cosTheta; b = -_b; }
+template <class T> inline
+Quaternion<T> slerp(Quaternion<T> a, Quaternion<T> b, T factor)
+{
+    T cosine = maths::dot(a, b);
+    T absCosine = std::abs(cosine);
 
-    // Lerp to prevent division by zero
-    if (cosTheta > T(1.0) - std::numeric_limits<T>::epsilon()) {
-        return lerp(_a, _b, _factor);
-    } else {
-        T angle = std::acos(cosTheta);
-        Vector4<T> va(_a.x, _a.y, _a.z, _a.w), vb(b.x, b.y, b.z, b.w);
-        Vector4<T> vc(va * std::sin((T(1.0) - _factor) * angle) + vb * std::sin(_factor * angle));
-        vc /= std::sin(angle); return Quaternion<T>(vc.x, vc.y, vc.z, vc.w);
-    }
+    // lerp to prevent division by zero
+    if (absCosine > T(1.0) - std::numeric_limits<T>::epsilon())
+        return maths::lerp(a, b, factor);
+
+    // don't go the long way around
+    if (cosine < T(0.0)) b = -b;
+
+    T angle = std::acos(absCosine), sine = std::sin(angle);
+    T factorA = std::sin(angle * (T(1.0) - factor)) / sine;
+    T factorB = std::sin(angle * factor) / sine;
+
+    T x = (a.x * factorA) + (b.x * factorB);
+    T y = (a.y * factorA) + (b.y * factorB);
+    T z = (a.z * factorA) + (b.z * factorB);
+    T w = (a.w * factorA) + (b.w * factorB);
+    return Quaternion<T> { x, y, z, w };
 }
 
-// Mix Alias for Slerp /////
-template<class T> inline Quaternion<T> mix(Quaternion<T> _a, Quaternion<T> _b, T _factor) {
-    return slerp(_a, _b, _factor);
+//============================================================================//
+
+// mix alias for slerp /////
+
+template <class T> inline
+Quaternion<T> mix(Quaternion<T> a, Quaternion<T> b, T factor)
+{
+    return maths::slerp(a, b, factor);
 }
 
-}}
+//============================================================================//
+
+// quaternion from eular (Scalars) /////
+
+//template <class T> inline
+//Quaternion<T> from_eular_xyz(T x, T y, T z)
+//{
+//    Vector3<T> halfrads = Vector3<T>(x, y, z);
+//    halfrads = maths::radians(halfrads) * T(0.5);
+
+//    Vector3<T> s = maths::sin(halfrads);
+//    Vector3<T> c = maths::cos(halfrads);
+
+//    T qx = (s.x * c.y * c.z) - (c.x * s.y * s.z);
+//    T qy = (c.x * s.y * c.z) + (s.x * c.y * s.z);
+//    T qz = (c.x * c.y * s.z) - (s.x * s.y * c.z);
+//    T qw = (c.x * c.y * c.z) + (s.x * s.y * s.z);
+//    return Quaternion<T> { qx, qy, qz, qw };
+//}
+
+//template <class T> inline
+//Quaternion<T> from_eular_zyx(T z, T y, T x)
+//{
+//    Vector3<T> halfrads = Vector3<T>(x, y, z);
+//    halfrads = maths::radians(halfrads) * T(0.5);
+
+//    Vector3<T> s = maths::sin(halfrads);
+//    Vector3<T> c = maths::cos(halfrads);
+
+//    T qx = (s.x * c.y * c.z) - (c.x * s.y * s.z);
+//    T qy = (c.x * s.y * c.z) + (s.x * c.y * s.z);
+//    T qz = (c.x * c.y * s.z) - (s.x * s.y * c.z);
+//    T qw = (c.x * c.y * c.z) + (s.x * s.y * s.z);
+//    return Quaternion<T> { qx, qy, qz, qw };
+//}
+
+//============================================================================//
+
+}} // namespace sq::maths
 
 using QuatF = sq::Quaternion<float>;

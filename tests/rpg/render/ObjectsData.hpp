@@ -1,40 +1,98 @@
 #pragma once
 
-#include <map>
+#include <sqee/dop/Classes.hpp>
 
-#include <sqee/ecs/Entity.hpp>
+#include <sqee/misc/Resource.hpp>
 
-#include "static/StaticModel.hpp"
-#include "static/StaticDecal.hpp"
+#include <sqee/gl/UniformBuffer.hpp>
+#include <sqee/gl/FrameBuffer.hpp>
+#include <sqee/gl/Textures.hpp>
 
-#include "entity/ModelSimple.hpp"
-#include "entity/ModelSkelly.hpp"
-#include "entity/DecalBasic.hpp"
-#include "entity/LightOrtho.hpp"
-#include "entity/LightPoint.hpp"
-#include "entity/LightSpot.hpp"
+#include <sqee/render/Armature.hpp>
+#include <sqee/render/Material.hpp>
+#include <sqee/render/Mesh.hpp>
 
 #include "world/Camera.hpp"
 #include "world/SkyBox.hpp"
 #include "world/Ambient.hpp"
 #include "world/SkyLight.hpp"
 
+#include "../helpers.hpp"
+
 namespace sqt { namespace render {
 
-struct EntityData {
-    unique_ptr<render::ModelSimpleData> modelSimple;
-    unique_ptr<render::ModelSkellyData> modelSkelly;
-    unique_ptr<render::DecalBasicData> decalBasic;
-    unique_ptr<render::LightOrthoData> lightOrtho;
-    unique_ptr<render::LightPointData> lightPoint;
-    unique_ptr<render::LightSpotData> lightSpot;
-};
+//============================================================================//
 
-struct ObjectsData {
-    vector<render::StaticModelData> staticModelVec;
-    vector<render::StaticDecalData> staticDecalVec;
+struct ObjectsData : sq::NonCopyable
+{
+    //========================================================//
 
-    std::map<const sq::Entity*, EntityData> entityMap;
+    struct RenderModelData
+    {
+        vector<sq::Handle<sq::Material>> materials;
+        sq::Handle<sq::Mesh> mesh;
+
+        Mat4F modelMatrix;
+        bool hasMaskTexture;
+        bool isMirrored;
+    };
+
+    //========================================================//
+
+    struct RenderSkeletonData
+    {
+        sq::Handle<sq::Armature> armature;
+
+        sq::UniformBuffer ubo;
+    };
+
+    //========================================================//
+
+    struct RenderLightCascData
+    {
+        array<int32_t, 6> cullFrusIds;
+
+        array<sq::FrameBuffer, 6> fbos;
+        array<Mat4F, 6> lightMatArr;
+
+        sq::UniformBuffer ubo;
+        sq::TextureArray2D tex;
+
+        uint cascadeCount;
+        float cascadeSize;
+    };
+
+    //========================================================//
+
+    struct RenderLightPointData
+    {
+        array<sq::FrameBuffer, 6> fbos;
+        array<Mat4F, 6> lightMatArr;
+
+        sq::UniformBuffer ubo;
+        sq::TextureCube tex;
+
+        Mat4F modelMatrix;
+    };
+
+    //========================================================//
+
+    struct RenderLightSpotData
+    {
+        sq::FrameBuffer fbo;
+        Mat4F lightMatrix;
+
+        sq::UniformBuffer ubo;
+        sq::Texture2D tex;
+
+        Mat4F modelMatrix;
+    };
+
+    //========================================================//
+
+    sq::dop::Table<RenderModelData> mModelTable;
+    sq::dop::Table<RenderSkeletonData> mSkeletonTable;
+    sq::dop::Table<RenderLightSpotData> mLightSpotTable;
 
     unique_ptr<render::CameraData> cameraData;
     unique_ptr<render::SkyBoxData> skyboxData;
@@ -42,4 +100,10 @@ struct ObjectsData {
     unique_ptr<render::SkyLightData> skylightData;
 };
 
-}}
+//============================================================================//
+
+void refresh_render_tables(ObjectsData& tables);
+
+//============================================================================//
+
+}} // namespace sqt::render

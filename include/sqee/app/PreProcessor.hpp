@@ -2,25 +2,37 @@
 
 #include <unordered_map>
 
-#include <sqee/builtins.hpp>
-
-// Forward Declarations /////
-namespace sq { class Shader; }
+#include <sqee/gl/Shaders.hpp>
 
 namespace sq {
 
+//============================================================================//
+
 /// The SQEE GLSL PreProcessor
-class PreProcessor final : NonCopyable {
+class PreProcessor final : NonCopyable
+{
 public:
+
+    //========================================================//
+
+    /// Constructor
     PreProcessor();
 
-    void import_header(const string& _path);
-    void update_header(const string& _key, const string& _string);
-    void load(Shader& _shader, const string& _path, const string& _extra = "") const;
-    void operator()(Shader& _shader, const string& _path, const string& _extra = "") const;
+    //========================================================//
+
+    void import_header(const string& path);
+    void update_header(const string& key, const string& string);
+
+    void load(Shader& shader, const string& path, const string& extra = "") const;
+    void operator()(Shader& shader, const string& path, const string& extra = "") const;
 
 private:
-    std::unordered_map<string, vector<string>> headerMap;
+
+    //========================================================//
+
+    std::unordered_map<string, vector<string>> mHeaders;
 };
 
-}
+//============================================================================//
+
+} // namespace sq

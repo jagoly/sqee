@@ -6,56 +6,65 @@
 
 namespace sq {
 
-/// A class for single stage OpenGL shader program
-class Shader final : NonCopyable {
-friend class Pipeline;
+//============================================================================//
+
+class Context; // Forward Declaration
+
+//============================================================================//
+
+/// OpenGL Single Stage Shader
+class Shader final : public MoveOnly
+{
 public:
-    Shader(GLenum _stage);
+
+    //========================================================//
+
+    enum class Stage { Vertex, Geometry, Fragment };
+
+    //========================================================//
+
+    /// Constructor
+    Shader(Stage stage);
+
+    /// Move Constructor
+    Shader(Shader&& other);
+
+    /// Destructor
     ~Shader();
 
-    /// Add a uniform to the shader. Call before load().
-    void add_uniform(const string& _name, uint _count = 1u);
+    //========================================================//
+
+    /// Add a named shader uniform. Call before load().
+    void add_uniform(const string& name, uint count = 1u);
 
     /// Load a shader from a string
-    void load(const string& _source);
+    void load(const string& source);
 
     /// Load a shader from a string and set a path for debug
-    void load(const string& _source, const string& _path);
+    void load(const string& source, const string& path);
 
+    /// Update a uniform with a previously added name
     template <class T>
-    /// Update a shader uniform from a reference
-    void update(const string& _name, const T& _value) const;
+    void update(const string& name, const T& value) const;
 
-    /// The OpenGL handle
-    GLuint program = 0u;
+    //========================================================//
+
+    /// Get the OpenGL object handle
+    GLuint get_handle() const { return mHandle; }
 
 private:
-    const GLenum stage;
-    GLbitfield stageBit;
+
+    //========================================================//
+
+    GLenum mShaderType = 0u;
 
     struct Uniform { uint count; GLint id; };
+    std::unordered_map<string, Uniform> mUniforms;
 
-    std::unordered_map<string, Uniform> uniforms;
+    GLuint mHandle = 0u;
+    Context& mContext;
 };
 
+//============================================================================//
 
-/// A class for OpenGL Program Pipeline Objects
-class Pipeline final : NonCopyable {
-public:
-    Pipeline();
-    ~Pipeline();
-
-    /// Attach a shader stage to the pipeline
-    void use_shader(const Shader& _shader) const;
-
-    /// Disable one or more shader stages
-    void disable_stages(bool _vert, bool _geom, bool _frag) const;
-
-    /// Bind the pipeline object
-    void bind() const;
-
-    /// The OpenGL handle
-    GLuint pipeline = 0u;
-};
-
-}
+} // namespace sq

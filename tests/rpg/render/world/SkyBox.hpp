@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sqee/app/Resources.hpp>
+#include <sqee/misc/Resource.hpp>
 #include <sqee/maths/Vectors.hpp>
 
 #include <sqee/gl/Textures.hpp>

@@ -1,0 +1,10 @@
+{
+
+"diff/Ball":   { "format": "RGB8_UN", "wrap": "CC", "swizzle": "RGB1" },
+"diff/Cheese": { "format": "RGB8_UN", "wrap": "CC", "swizzle": "RGB1" },
+"diff/Dice":   { "format": "RGB8_UN", "wrap": "CC", "swizzle": "RGB1" },
+
+"norm/Cheese": { "format": "RGB8_SN", "wrap": "CC", "swizzle": "RGB1" },
+"norm/Dice":   { "format": "RGB8_SN", "wrap": "CC", "swizzle": "RGB1" }
+
+}

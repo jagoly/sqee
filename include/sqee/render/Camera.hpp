@@ -24,7 +24,7 @@ public:
 
     Mat4F projMat;
     Mat4F viewMat;
-    Frustum frus;
+    //Frustum frus;
 
     UniformBuffer ubo;
 };

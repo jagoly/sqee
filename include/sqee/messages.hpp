@@ -1,11 +1,14 @@
 #pragma once
 
-namespace sq { class Entity; }
+#include <cstdint>
 
 namespace msg {
 
-struct Create_Entity { sq::Entity* const entity; };
-struct Configure_Entity { sq::Entity* const entity; };
-struct Destroy_Entity { sq::Entity* const entity; };
+struct Toggle_Debug_Overlay { const bool active; };
+struct Toggle_Chai_Console { const bool active; };
+
+//struct Create_Entity { const int32_t entity; };
+//struct Configure_Entity { const int32_t entity; };
+//struct Destroy_Entity { const int32_t entity; };
 
 }

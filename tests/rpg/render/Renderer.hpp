@@ -7,13 +7,13 @@
 
 namespace sqt {
 
-class SceneData;
+struct SceneData;
 
 namespace render {
 
-class StencilVolumes;
-class TargetTextures;
-class GenericShaders;
+struct StencilVolumes;
+struct TargetTextures;
+struct GenericShaders;
 
 class DepthPasses;
 class GbufferPasses;
@@ -24,11 +24,12 @@ class VolumetricPasses;
 class CompositePasses;
 class EffectsPasses;
 
-}
+} // namespace render
 
-class Renderer final {
-
+class Renderer final : sq::NonCopyable
+{
 public:
+
     Renderer(sq::MessageBus& _messageBus);
 
     ~Renderer();
@@ -50,10 +51,6 @@ private:
     sq::Receiver<msg::Disable_Ambient> on_Disable_Ambient;
     sq::Receiver<msg::Disable_SkyLight> on_Disable_SkyLight;
 
-    sq::Receiver<msg::Create_Entity> on_Create_Entity;
-    sq::Receiver<msg::Configure_Entity> on_Configure_Entity;
-    sq::Receiver<msg::Destroy_Entity> on_Destroy_Entity;
-
     unique_ptr<render::StencilVolumes> volumes;
     unique_ptr<render::TargetTextures> textures;
     unique_ptr<render::GenericShaders> shaders;
@@ -72,4 +69,4 @@ private:
     unique_ptr<Impl> impl;
 };
 
-}
+} // namespace sqt

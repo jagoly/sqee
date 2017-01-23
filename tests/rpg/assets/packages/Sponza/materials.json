@@ -1,0 +1,147 @@
+{
+
+"Arch":
+{
+  "diffuse":  "Sponza:diff/Arch",
+  "normal":   "Sponza:norm/Arch",
+  "specular": "Sponza:spec/Arch"
+},
+
+"Bricks":
+{
+  "diffuse":  "Sponza:diff/Bricks",
+  "normal":   "Sponza:norm/Bricks",
+  "specular": "Sponza:spec/Bricks"
+},
+
+"Ceiling":
+{
+  "diffuse":  "Sponza:diff/Ceiling",
+  "specular": "Sponza:spec/Ceiling"
+},
+
+"Chain":
+{
+  "diffuse":  "Sponza:diff/Chain",
+  "normal":   "Sponza:norm/Chain",
+  "specular": "0.45 0.45 0.45",
+  "mask":     "Sponza:mask/Chain"
+},
+
+"ColumnA":
+{
+  "diffuse":  "Sponza:diff/ColumnA",
+  "normal":   "Sponza:norm/ColumnA",
+  "specular": "Sponza:spec/ColumnA"
+},
+
+"ColumnB":
+{
+  "diffuse":  "Sponza:diff/ColumnB",
+  "normal":   "Sponza:norm/ColumnB",
+  "specular": "Sponza:spec/ColumnB"
+},
+
+"ColumnC":
+{
+  "diffuse":  "Sponza:diff/ColumnC",
+  "normal":   "Sponza:norm/ColumnC",
+  "specular": "Sponza:spec/ColumnC"
+},
+
+"CurtainBlue":
+{
+  "diffuse":  "Sponza:diff/CurtainBlue",
+  "specular": "Sponza:spec/Curtain"
+},
+
+"CurtainGreen":
+{
+  "diffuse":  "Sponza:diff/CurtainGreen",
+  "specular": "Sponza:spec/Curtain"
+},
+
+"CurtainRed":
+{
+  "diffuse":  "Sponza:diff/CurtainRed",
+  "specular": "Sponza:spec/Curtain"
+},
+
+"Details":
+{
+  "diffuse":  "Sponza:diff/Details",
+  "specular": "Sponza:spec/Details"
+},
+
+"FabricBlue":
+{
+  "diffuse":  "Sponza:diff/FabricBlue",
+  "specular": "Sponza:spec/Fabric"
+},
+
+"FabricGreen":
+{
+  "diffuse":  "Sponza:diff/FabricGreen",
+  "specular": "Sponza:spec/Fabric"
+},
+
+"FabricRed":
+{
+  "diffuse":  "Sponza:diff/FabricRed",
+  "specular": "Sponza:spec/Fabric"
+},
+
+"Floor":
+{
+  "diffuse":  "Sponza:diff/Floor",
+  "specular": "Sponza:spec/Floor"
+},
+
+"Lion":
+{
+  "diffuse":  "Sponza:diff/Lion",
+  "normal":   "Sponza:norm/Lion",
+  "specular": "0.15 0.15 0.15"
+},
+
+"Mount":
+{
+  "diffuse":  "Sponza:diff/Mount",
+  "normal":   "Sponza:norm/Mount",
+  "specular": "0.15 0.15 0.15"
+},
+
+"Plant":
+{
+  "diffuse":  "Sponza:diff/Plant",
+  "specular": "Sponza:spec/Plant",
+  "mask":     "Sponza:mask/Plant"
+},
+
+"Pole":
+{
+  "diffuse":  "Sponza:diff/Pole",
+  "specular": "Sponza:spec/Pole"
+},
+
+"Roof":
+{
+  "diffuse":  "Sponza:diff/Roof",
+  "specular": "0.25 0.25 0.25"
+},
+
+"VaseA":
+{
+  "diffuse":  "Sponza:diff/VaseA",
+  "normal":   "Sponza:norm/Vase",
+  "specular": "Sponza:spec/Vase"
+},
+
+"VaseB":
+{
+  "diffuse":  "Sponza:diff/VaseB",
+  "normal":   "Sponza:norm/Vase",
+  "specular": "Sponza:spec/Vase"
+}
+
+}

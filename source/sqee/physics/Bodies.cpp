@@ -1,4 +1,4 @@
-#include <rp3d/engine/DynamicsWorld.hpp>
+/*#include <rp3d/engine/DynamicsWorld.hpp>
 #include <rp3d/collision/shapes/BoxShape.hpp>
 #include <rp3d/collision/shapes/SphereShape.hpp>
 #include <rp3d/collision/shapes/ConeShape.hpp>
@@ -8,7 +8,7 @@
 #include <sqee/assert.hpp>
 #include <sqee/redist/tinyformat.hpp>
 #include <sqee/physics/Bodies.hpp>
-#include <sqee/app/Resources.hpp>
+#include <sqee/misc/Resource.hpp>
 #include <sqee/misc/Files.hpp>
 
 using namespace sq;
@@ -136,3 +136,4 @@ void DynamicBody::add_CapsuleShape(uint _id, float _radius, float _height, Vec3F
 //        else throw_error(path, lnum, "Invalid section \"%s\"", section);
 //    }
 //}
+*/

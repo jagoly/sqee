@@ -1,55 +1,51 @@
-#include <sqee/redist/gl_ext_4_2.hpp>
-#include <sqee/gl/FixedBuffer.hpp>
-#include <sqee/gl/DynamicBuffer.hpp>
+#include <sqee/gl/Context.hpp>
 #include <sqee/gl/VertexArray.hpp>
 
 using namespace sq;
 
-VertexArray::VertexArray() {
-    gl::CreateVertexArrays(1, &vao);
+//============================================================================//
+
+VertexArray::VertexArray()
+{
+    gl::CreateVertexArrays(1, &mHandle);
 }
 
-VertexArray::~VertexArray() {
-    gl::DeleteVertexArrays(1, &vao);
+VertexArray::VertexArray(VertexArray&& other)
+{
+    Context::get().impl_reset_VertexArray(&other, this);
+    mHandle = other.mHandle; other.mHandle = 0u;
 }
 
-void VertexArray::add_attribute(const FixedBuffer& _buffer, uint _index, uint _offs,
-                                uint _stride, uint _size, GLenum _type, bool _normalize) const {
-    gl::VertexArrayVertexBuffer(vao, _index, _buffer.get_handle(), _offs, _stride);
-    gl::VertexArrayAttribFormat(vao, _index, _size, _type, _normalize, 0u);
-    gl::EnableVertexArrayAttrib(vao, _index);
+VertexArray::~VertexArray()
+{
+    Context::get().impl_reset_VertexArray(this);
+    gl::DeleteVertexArrays(1, &mHandle);
 }
 
-void VertexArray::add_attribute(const DynamicBuffer& _buffer, uint _index, uint _offs,
-                                uint _stride, uint _size, GLenum _type, bool _normalize) const {
-    gl::VertexArrayVertexBuffer(vao, _index, _buffer.get_handle(), _offs, _stride);
-    gl::VertexArrayAttribFormat(vao, _index, _size, _type, _normalize, 0u);
-    gl::EnableVertexArrayAttrib(vao, _index);
+//============================================================================//
+
+void VertexArray::add_float_attribute(uint index, uint size, GLenum type, bool normalize, uint offset)
+{
+    gl::VertexArrayAttribFormat(mHandle, index, int(size), type, normalize, offset);
+    gl::VertexArrayAttribBinding(mHandle, index, 0u);
+    gl::EnableVertexArrayAttrib(mHandle, index);
 }
 
-
-void VertexArray::add_attribute_I(const FixedBuffer& _buffer, uint _index, uint _offs,
-                                  uint _stride, uint _size, GLenum _type) const {
-    gl::VertexArrayVertexBuffer(vao, _index, _buffer.get_handle(), _offs, _stride);
-    gl::VertexArrayAttribIFormat(vao, _index, _size, _type, 0u);
-    gl::EnableVertexArrayAttrib(vao, _index);
+void VertexArray::add_integer_attribute(uint index, uint size, GLenum type, uint offset)
+{
+    gl::VertexArrayAttribIFormat(mHandle, index, int(size), type, offset);
+    gl::VertexArrayAttribBinding(mHandle, index, 0u);
+    gl::EnableVertexArrayAttrib(mHandle, index);
 }
 
-void VertexArray::add_attribute_I(const DynamicBuffer& _buffer, uint _index, uint _offs,
-                                  uint _stride, uint _size, GLenum _type) const {
-    gl::VertexArrayVertexBuffer(vao, _index, _buffer.get_handle(), _offs, _stride);
-    gl::VertexArrayAttribIFormat(vao, _index, _size, _type, 0u);
-    gl::EnableVertexArrayAttrib(vao, _index);
+//============================================================================//
+
+void VertexArray::set_vertex_buffer(const FixedBuffer& buffer, uint offset, uint stride)
+{
+    gl::VertexArrayVertexBuffer(mHandle, 0u, buffer.get_handle(), offset, int(stride));
 }
 
-void VertexArray::set_element_buffer(const sq::FixedBuffer& _buffer) const {
-    gl::VertexArrayElementBuffer(vao, _buffer.get_handle());
-}
-
-void VertexArray::set_element_buffer(const sq::DynamicBuffer& _buffer) const {
-    gl::VertexArrayElementBuffer(vao, _buffer.get_handle());
-}
-
-void VertexArray::bind() const {
-    gl::BindVertexArray(vao);
+void VertexArray::set_index_buffer(const FixedBuffer& buffer)
+{
+    gl::VertexArrayElementBuffer(mHandle, buffer.get_handle());
 }

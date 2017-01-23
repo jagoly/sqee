@@ -1,2 +1,0 @@
-000000_diff  CC RGB1
-FFFFFF_spec  CC RGB1

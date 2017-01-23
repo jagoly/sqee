@@ -6,9 +6,11 @@
 #include <sqee/builtins.hpp>
 #include <sqee/maths/Vectors.hpp>
 #include <sqee/maths/Quaternion.hpp>
-#include <sqee/app/Resources.hpp>
+#include <sqee/misc/Resource.hpp>
 
 namespace sq {
+
+//============================================================================//
 
 struct Listener
 {
@@ -16,25 +18,37 @@ struct Listener
     static void set_rotation(QuatF rotation);
 };
 
+//============================================================================//
+
 class SoundWave : NonCopyable
 {
 public:
+
     SoundWave(const string& path);
 
 private:
+
     sf::SoundBuffer mBuffer;
     friend class Sound;
 };
 
-class Sound : MoveOnly
+//============================================================================//
+
+class Sound : public MoveOnly
 {
 public:
+
+    //========================================================//
+
+    /// constructor
     Sound();
+
+    //========================================================//
 
     /// set the source sound wave object
     void set_wave(Handle<SoundWave> handle);
 
-    // play, pause, stop /////
+    //========================================================//
 
     /// play the sound
     void play() { mSound->play(); }
@@ -45,6 +59,8 @@ public:
     /// stop the sound
     void stop() { mSound->stop(); }
 
+    //========================================================//
+
     /// check if the sound is playing
     bool check_playing() const { return mSound->getStatus() == sf::Sound::Playing; }
 
@@ -54,7 +70,7 @@ public:
     /// check if the sound is stopped
     bool check_stopped() const { return mSound->getStatus() == sf::Sound::Stopped; }
 
-    // set basic sound paramaters /////
+    //========================================================//
 
     /// set the volume of the sound
     void set_volume(float volume) { mSound->setVolume(volume); }
@@ -65,7 +81,7 @@ public:
     /// set looping option of the sound
     void set_loop(bool loop) { mSound->setLoop(loop); }
 
-    // set spatial sound paramaters /////
+    //========================================================//
 
     /// set position of the sound
     void set_position(Vec3F position);
@@ -74,8 +90,13 @@ public:
     void set_attenuation(float start, float factor);
 
 private:
+
+    //========================================================//
+
     Handle<SoundWave> mWaveHandle;
     unique_ptr<sf::Sound> mSound;
 };
 
-}
+//============================================================================//
+
+} // namespace sq

@@ -1,39 +1,62 @@
 #pragma once
 
 #include <deque>
-#include <functional>
 
-#include <sqee/builtins.hpp>
-#include <sqee/misc/OrderedMap.hpp>
-
-// Forward Declarations /////
-namespace sq { class Application; }
+#include <sqee/app/Application.hpp>
 
 namespace sq {
 
+//============================================================================//
+
 /// The SQEE Debugging Overlay
-class DebugOverlay final : NonCopyable {
+class DebugOverlay final : NonCopyable
+{
 public:
-    DebugOverlay(Application& _app);
 
+    //========================================================//
+
+    /// Constructor
+    DebugOverlay(Application& app);
+
+    //========================================================//
+
+    /// called eight times per second
     void tick();
-    void render(float _ft);
 
+    /// called once every frame
+    void render(float frameTime);
+
+    //========================================================//
+
+    /// enable or disable the overlay
     void toggle_active();
-    OrderedMap<string, std::function<void()>> onShowFuncs;
-    OrderedMap<string, std::function<void()>> onHideFuncs;
 
-    void notify(const string& _message, uint _time);
+    /// check if the overlay is active
+    bool is_active() const { return mActive; }
 
-    double accumulation = 0.0;
-    bool active = true;
+    //========================================================//
+
+    /// display a message in the corner
+    void notify(const string& message, uint ticks);
+
+    //========================================================//
+
+    float accumulation = 0.0f;
 
 private:
-    Application& app;
 
-    std::deque<pair<string, uint>> notifyDeq;
-    float frameTime = 1.f / 60.f;
-    uint notifyTimeLeft = 0u;
+    //========================================================//
+
+    Application& mApplication;
+
+    std::deque<pair<string, uint>> mNotifications;
+
+    float mFrameTime = 0.f;
+    uint mTicksLeft = 0u;
+
+    bool mActive = true;
 };
 
-}
+//============================================================================//
+
+} // namespace sq
