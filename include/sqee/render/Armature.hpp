@@ -1,53 +1,52 @@
 #pragma once
 
-#include <unordered_map>
-
 #include <sqee/builtins.hpp>
+
 #include <sqee/maths/Vectors.hpp>
 #include <sqee/maths/Quaternion.hpp>
+#include <sqee/maths/Matrices.hpp>
 
 namespace sq {
 
-/// An armature bone in it's resting state
-struct ArmatureBone {
-    ArmatureBone(const string& _name, int _prntInd, Vec3F _head, Vec3F _tail, QuatF _quat)
-        : name(_name), prntInd(_prntInd), head(_head), tail(_tail), quat(_quat) {}
-    string name; int prntInd; Vec3F head, tail; QuatF quat;
-};
-
-/// A transformation of an armature bone
-struct ArmaTransform {
-    ArmaTransform(const ArmatureBone* _bone, QuatF _rotation, Vec3F _offset)
-        : bone(_bone), rotation(_rotation), offset(_offset) {}
-    const ArmatureBone* bone; QuatF rotation; Vec3F offset;
-};
+//============================================================================//
 
 /// The SQEE Armature class
-class Armature : NonCopyable
+class Armature final : public MoveOnly
 {
 public:
-    Armature() = default;
-    Armature(const string& _path);
-    void create(const string& _path);
-    void load_library(const string& _path);
 
-    vector<ArmatureBone> boneVector;
-    using Pose = vector<ArmaTransform>;
-    using Anim = vector<pair<Pose&, uint>>;
-    std::unordered_map<string, Pose> poseMap;
-    std::unordered_map<string, Anim> animMap;
+    //========================================================//
 
+    struct PoseBone
+    {
+        Vec3F offset   = { 0.f, 0.f, 0.f };
+        QuatF rotation = { 0.f, 0.f, 0.f, 1.f };
+        Vec3F scale    = { 1.f, 1.f, 1.f };
+    };
 
-    using UboData = vector<Mat34F>;
-    static UboData make_UboData(const Pose& _pose);
-    static Pose mix_Poses(const Pose& _a, const Pose& _b, float _factor);
-
-private:
+    using Pose = vector<PoseBone>;
 
     vector<string> mBoneNames;
-    vector<int8_t> mBoneParents;
+    vector<int32_t> mBoneParents;
+
+    vector<Mat4F> mBaseMats;
+    vector<Mat4F> mInverseMats;
+
+    Pose mRestPose;
+
+    void load_bones_from_file(const string& path);
+
+    void refresh_matrices();
+
+    //========================================================//
+
+    Pose blend_poses(const Pose& poseA, const Pose& poseB, float factor) const;
+
+    Pose load_pose_from_file(const string& path) const;
+
+    vector<Mat34F> pose_to_ubo_data(const Pose& pose) const;
 };
 
-unique_ptr<Armature> load_Armature(const string& _path);
+//============================================================================//
 
 } // namespace sq

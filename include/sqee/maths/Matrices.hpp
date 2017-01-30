@@ -134,7 +134,7 @@ template <class T> struct Matrix<3, 4, T>
     constexpr ColT& operator[](int index) { return mCols[index]; }
     constexpr const ColT& operator[](int index) const { return mCols[index]; }
 
-    //constexpr Matrix& operator*=(Matrix m) { return *this = (*this * m); }
+    constexpr Matrix& operator*=(Matrix m) { return *this = (*this * m); }
 
     const T* data() const { return reinterpret_cast<const T*>(mCols); }
 
@@ -165,7 +165,7 @@ template <class T> struct Matrix<4, 4, T>
     constexpr ColT& operator[](int index) { return mCols[index]; }
     constexpr const ColT& operator[](int index) const { return mCols[index]; }
 
-    constexpr Matrix& operator*=(Matrix _m) { return *this = (*this * _m); }
+    constexpr Matrix& operator*=(Matrix m) { return *this = (*this * m); }
 
     const T* data() const { return reinterpret_cast<const T*>(mCols); }
 
@@ -191,6 +191,15 @@ Matrix33<T> operator*(Matrix33<T> a, Matrix33<T> b)
     Vector3<T> colB = a[0]*b[1][0] + a[1]*b[1][1] + a[2]*b[1][2];
     Vector3<T> colC = a[0]*b[2][0] + a[1]*b[2][1] + a[2]*b[2][2];
     return Matrix33<T> ( colA, colB, colC );
+}
+
+template <class T> constexpr
+Matrix34<T> operator*(Matrix34<T> a, Matrix34<T> b)
+{
+    Vector4<T> colA = a[0]*b[0][0] + a[1]*b[0][1] + a[2]*b[0][2];
+    Vector4<T> colB = a[0]*b[1][0] + a[1]*b[1][1] + a[2]*b[1][2];
+    Vector4<T> colC = a[0]*b[2][0] + a[1]*b[2][1] + a[2]*b[2][2];
+    return Matrix34<T> ( colA, colB, colC );
 }
 
 template <class T> constexpr
@@ -395,23 +404,33 @@ Matrix44<T> inverse(Matrix44<T> m)
 
 //============================================================================//
 
-// Scale (Matrix44, Vector3) /////
+// Affine Inverse (Matrix) /////
 
 template <class T> inline
-Matrix44<T> scale(Matrix44<T> m, Vector3<T> v)
+Matrix22<T> affine_inverse(Matrix33<T> m)
 {
-    return Matrix44<T> ( m[0]*v.x, m[1]*v.y, m[2]*v.z, m[3] );
+    Matrix22<T> inv22 = maths::inverse(Matrix22<T>(m));
+
+    Vector3<T> colA { inv22[0], T(0.0) };
+    Vector3<T> colB { inv22[1], T(0.0) };
+
+    Vector3<T> colC { -(inv22 * Vector2<T>(m[2])), T(1.0) };
+
+    return Matrix33<T> ( colA, colB, colC );
 }
 
-//============================================================================//
-
-// Translate (Matrix44, Vector3) /////
-
 template <class T> inline
-Matrix44<T> translate(Matrix44<T> m, Vector3<T> v)
+Matrix44<T> affine_inverse(Matrix44<T> m)
 {
-    auto colD = m[0]*v.x + m[1]*v.y + m[2]*v.z + m[3];
-    return Matrix44<T> ( m[0], m[1], m[2], colD );
+    Matrix33<T> inv33 = maths::inverse(Matrix33<T>(m));
+
+    Vector4<T> colA { inv33[0], T(0.0) };
+    Vector4<T> colB { inv33[1], T(0.0) };
+    Vector4<T> colC { inv33[2], T(0.0) };
+
+    Vector4<T> colD { -(inv33 * Vector3<T>(m[3])), T(1.0) };
+
+    return Matrix44<T> ( colA, colB, colC, colD );
 }
 
 //============================================================================//

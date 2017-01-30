@@ -17,7 +17,7 @@ using HandleMesh = sq::Handle<sq::Mesh>;
 HandleMesh acquire_Mesh(const string& path);
 
 using HandleArmature = sq::Handle<sq::Armature>;
-HandleArmature acquire_Armature(const string& path);
+//HandleArmature acquire_Armature(const string& path);
 
 using HandleSoundWave = sq::Handle<sq::SoundWave>;
 HandleSoundWave acquire_SoundWave(const string& path);

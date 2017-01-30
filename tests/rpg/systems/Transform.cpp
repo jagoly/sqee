@@ -1,3 +1,4 @@
+#include <sqee/maths/Functions.hpp>
 #include <sqee/dop/Functions.hpp>
 
 #include "Transform.hpp"

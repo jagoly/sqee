@@ -1,3 +1,4 @@
+#include <sqee/maths/Functions.hpp>
 #include <sqee/dop/Functions.hpp>
 
 #include <sqee/render/Mesh.hpp>
@@ -65,9 +66,9 @@ void refresh_render_tables(ObjectsData& tables)
 
         data.armature = skeleton.armature;
 
-        const auto& pose = data.armature->poseMap.at("Dead");
-        auto uboData = sq::Armature::make_UboData(pose);
-        data.ubo.update("bones", uboData.data());
+//        const auto& pose = data.armature->poseMap.at("Dead");
+//        auto uboData = sq::Armature::make_UboData(pose);
+//        data.ubo.update("bones", uboData.data());
     }
 }
 

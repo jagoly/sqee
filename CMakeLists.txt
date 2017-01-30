@@ -119,6 +119,7 @@ set(SOURCES
   "${INCDIR}/maths/Vectors.hpp"
   "${INCDIR}/maths/Matrices.hpp"
   "${INCDIR}/maths/Quaternion.hpp"
+  "${INCDIR}/maths/Functions.hpp"
   "${INCDIR}/maths/Volumes.hpp"
 
   "${INCDIR}/render/Armature.hpp"         "${SRCDIR}/render/Armature.cpp"
@@ -213,7 +214,7 @@ find_library(SFML_AUDIO_LIB sfml-audio /)
 find_library(SFML_WINDOW_LIB sfml-window /)
 find_library(SFML_SYSTEM_LIB sfml-system /)
 
-#find_library(REACTPHYSICS3D_LIB reactphysics3d /)
+find_library(REACTPHYSICS3D_LIB reactphysics3d /)
 
 find_library(OPENGL_LIB NAMES GL opengl32 PATHS /)
 find_library(OPENAL_LIB NAMES openal openal32 PATHS /)
@@ -222,7 +223,7 @@ find_library(OPENAL_LIB NAMES openal openal32 PATHS /)
 
 target_link_libraries(sqee
     ${SFML_AUDIO_LIB} ${SFML_WINDOW_LIB} ${SFML_SYSTEM_LIB}
-    #${REACTPHYSICS3D_LIB}
+    ${REACTPHYSICS3D_LIB}
     ${OPENGL_LIB} ${OPENAL_LIB}
 )
 

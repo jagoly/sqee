@@ -54,13 +54,13 @@ HandleMesh acquire_Mesh(const string& path)
 
 //========================================================//
 
-HandleArmature acquire_Armature(const string& path)
-{
-    auto& resource = static_MapArmature()[path];
-    if (resource.loaded() == true) return resource;
-    resource.uptr.reset(new sq::Armature(path));
-    return resource;
-}
+//HandleArmature acquire_Armature(const string& path)
+//{
+//    auto& resource = static_MapArmature()[path];
+//    if (resource.loaded() == true) return resource;
+//    resource.uptr.reset(new sq::Armature(path));
+//    return resource;
+//}
 
 //========================================================//
 

@@ -129,7 +129,7 @@ void ModelEdit::enable_decals(bool enable)
 
 void SkeletonEdit::set_armature(const string& path)
 {
-    entry->armature = acquire_Armature(path);
+    //entry->armature = acquire_Armature(path);
 }
 
 //============================================================================//

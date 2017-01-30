@@ -219,7 +219,7 @@ Quaternion<T> slerp(Quaternion<T> a, Quaternion<T> b, T factor)
 
     // lerp to prevent division by zero
     if (absCosine > T(1.0) - std::numeric_limits<T>::epsilon())
-        return maths::lerp(a, b, factor);
+        return maths::normalize(maths::lerp(a, b, factor));
 
     // don't go the long way around
     if (cosine < T(0.0)) b = -b;
@@ -234,52 +234,6 @@ Quaternion<T> slerp(Quaternion<T> a, Quaternion<T> b, T factor)
     T w = (a.w * factorA) + (b.w * factorB);
     return Quaternion<T> { x, y, z, w };
 }
-
-//============================================================================//
-
-// mix alias for slerp /////
-
-template <class T> inline
-Quaternion<T> mix(Quaternion<T> a, Quaternion<T> b, T factor)
-{
-    return maths::slerp(a, b, factor);
-}
-
-//============================================================================//
-
-// quaternion from eular (Scalars) /////
-
-//template <class T> inline
-//Quaternion<T> from_eular_xyz(T x, T y, T z)
-//{
-//    Vector3<T> halfrads = Vector3<T>(x, y, z);
-//    halfrads = maths::radians(halfrads) * T(0.5);
-
-//    Vector3<T> s = maths::sin(halfrads);
-//    Vector3<T> c = maths::cos(halfrads);
-
-//    T qx = (s.x * c.y * c.z) - (c.x * s.y * s.z);
-//    T qy = (c.x * s.y * c.z) + (s.x * c.y * s.z);
-//    T qz = (c.x * c.y * s.z) - (s.x * s.y * c.z);
-//    T qw = (c.x * c.y * c.z) + (s.x * s.y * s.z);
-//    return Quaternion<T> { qx, qy, qz, qw };
-//}
-
-//template <class T> inline
-//Quaternion<T> from_eular_zyx(T z, T y, T x)
-//{
-//    Vector3<T> halfrads = Vector3<T>(x, y, z);
-//    halfrads = maths::radians(halfrads) * T(0.5);
-
-//    Vector3<T> s = maths::sin(halfrads);
-//    Vector3<T> c = maths::cos(halfrads);
-
-//    T qx = (s.x * c.y * c.z) - (c.x * s.y * s.z);
-//    T qy = (c.x * s.y * c.z) + (s.x * c.y * s.z);
-//    T qz = (c.x * c.y * s.z) - (s.x * s.y * c.z);
-//    T qw = (c.x * c.y * c.z) + (s.x * s.y * s.z);
-//    return Quaternion<T> { qx, qy, qz, qw };
-//}
 
 //============================================================================//
 
