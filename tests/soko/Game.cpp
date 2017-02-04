@@ -277,8 +277,7 @@ void GameScene::render() {
         if (wall->rotate == 2u) rotation = maths::radians(0.5f);
         if (wall->rotate == 3u) rotation = maths::radians(0.75f);
 
-        Mat4F modelMat = maths::translate(Mat4F(), Vec3F(Vec2F(wall->position), 0.f));
-        modelMat = maths::rotate(modelMat, Vec3F(0.f, 0.f, -1.f), rotation);
+        Mat4F modelMat = maths::transform(Vec3F(Vec2F(wall->position), 0.f), QuatF(0.f, 0.f, rotation), Vec3F(1.f));
         Mat3F normMat = maths::inverse(maths::transpose(Mat3F(camera->viewMat * modelMat)));
         VS_object->update<Mat4F>("modelMat", modelMat);
         VS_object->update<Mat3F>("normMat", normMat);
@@ -289,8 +288,7 @@ void GameScene::render() {
     { // Player
         float rotation = maths::mix(rotCrnt, rotNext, tickPercent);
         Vec2F translation = maths::mix(posCrnt, posNext, tickPercent);
-        Mat4F modelMat = maths::translate(Mat4F(), Vec3F(translation, 0.f));
-        modelMat = maths::rotate(modelMat, Vec3F(0.f, 0.f, -1.f), rotation);
+        Mat4F modelMat = maths::transform(Vec3F(translation, 0.f), QuatF(0.f, 0.f, rotation), Vec3F(1.f));
         Mat3F normMat = maths::inverse(maths::transpose(Mat3F(camera->viewMat * modelMat)));
         VS_object->update<Mat4F>("modelMat", modelMat);
         VS_object->update<Mat3F>("normMat", normMat);

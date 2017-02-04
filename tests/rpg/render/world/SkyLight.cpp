@@ -1,5 +1,7 @@
 #include <sqee/redist/gl_ext_4_2.hpp>
 
+#include <sqee/maths/Functions.hpp>
+
 #include "../../world/World.hpp"
 
 #include "../../Options.hpp"

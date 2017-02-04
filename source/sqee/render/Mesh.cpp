@@ -1,4 +1,5 @@
 #include <sqee/redist/gl_ext_4_2.hpp>
+
 #include <sqee/debug/Logging.hpp>
 
 #include <sqee/misc/Resource.hpp>
@@ -79,7 +80,8 @@ void Mesh::draw_partial(uint index) const
 
 void Mesh::impl_load_ascii(const string& path)
 {
-    string section = "";
+    enum class Section { None, Header, Vertices, Indices };
+    Section section = Section::None;
 
     vector<uchar> vertexData;
     vector<uint> indexData;
@@ -103,38 +105,35 @@ void Mesh::impl_load_ascii(const string& path)
 
         if (key.front() == '#') continue;
 
-        else if (key == "{")
+        if (key == "SECTION")
         {
-            if (section.empty()) section = line[1];
-            else log_warning("stray { in mesh '%s'", path);
-        }
+            if      (line[1] == "Header")   section = Section::Header;
+            else if (line[1] == "Vertices") section = Section::Vertices;
+            else if (line[1] == "Indices")  section = Section::Indices;
 
-        else if (key == "}")
-        {
-            if (!section.empty()) section.clear();
-            else log_warning("stray } in mesh '%s'", path);
+            else log_error("invalid section '%s' in mesh '%s'", line[1], path);
         }
 
         //========================================================//
 
-        else if (section == "header")
+        else if (section == Section::Header)
         {
             if (key == "Attrs")
             {
                 for (uint i = 1u; i < line.size(); ++i)
                 {
-                    if (line[i] == "TCRD") mOptionsBits |= 0b10000;
-                    if (line[i] == "NORM") mOptionsBits |= 0b01000;
-                    if (line[i] == "TANG") mOptionsBits |= 0b00100;
-                    if (line[i] == "COLR") mOptionsBits |= 0b00010;
-                    if (line[i] == "BONE") mOptionsBits |= 0b00001;
+                    if      (line[i] == "TCRD") mOptionsBits |= 0b10000;
+                    else if (line[i] == "NORM") mOptionsBits |= 0b01000;
+                    else if (line[i] == "TANG") mOptionsBits |= 0b00100;
+                    else if (line[i] == "COLR") mOptionsBits |= 0b00010;
+                    else if (line[i] == "BONE") mOptionsBits |= 0b00001;
+
+                    else log_warning("unknown attribute '%s' in mesh '%s'", line[i], path);
                 }
             }
 
             else if (key == "Origin") mOrigin = { stof(line[1]), stof(line[2]), stof(line[3]) };
-
             else if (key == "Extents") mExtents = { stof(line[1]), stof(line[2]), stof(line[3]) };
-
             else if (key == "Radius") mRadius = stof(line[1]);
 
             else if (key == "SubMesh")
@@ -151,12 +150,12 @@ void Mesh::impl_load_ascii(const string& path)
                 mIndexTotal += indexCount;
             }
 
-            else log_warning("invalid header key '%s' in mesh '%s'", key, path);
+            else log_warning("unknown header key '%s' in mesh '%s'", key, path);
         }
 
         //========================================================//
 
-        else if (section == "vertices")
+        else if (section == Section::Vertices)
         {
             if (allocatedVertices == false)
             {
@@ -226,7 +225,7 @@ void Mesh::impl_load_ascii(const string& path)
 
         //========================================================//
 
-        else if (section == "indices")
+        else if (section == Section::Indices)
         {
             if (allocatedIndices == false)
             {
@@ -242,13 +241,13 @@ void Mesh::impl_load_ascii(const string& path)
 
         //========================================================//
 
-        else log_error("invalid section '%s' in mesh '%s'", section, path);
+        else log_error("missing $SECTION in mesh '%s'", path);
     }
 
     //========================================================//
 
-    SQASSERT(vertexPtr == vertexData.end().base(), "");
-    SQASSERT(indexPtr == indexData.end().base(), "");
+    SQASSERT(vertexPtr == vertexData.end().base(), "vertex count mismatch");
+    SQASSERT(indexPtr == indexData.end().base(), "index count mismatch");
 
     impl_load_final(vertexData, indexData);
 }

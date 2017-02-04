@@ -1,4 +1,5 @@
 #include <sqee/gl/UniformBuffer.hpp>
+#include <sqee/maths/Functions.hpp>
 #include <sqee/maths/Volumes.hpp>
 #include <sqee/render/Camera.hpp>
 

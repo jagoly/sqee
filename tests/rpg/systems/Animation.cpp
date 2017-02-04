@@ -64,7 +64,7 @@ void sqt::sys::system_blend_animations(WorldStuff& stuff, float factor)
         const auto& next = timeline[meta.index + 1u];
 
         transform.localPosition = maths::mix(crnt.position, next.position, factor);
-        transform.localRotation = maths::mix(crnt.rotation, next.rotation, factor);
+        transform.localRotation = maths::slerp(crnt.rotation, next.rotation, factor);
         transform.localScale = maths::mix(crnt.scale, next.scale, factor);
     }
 }

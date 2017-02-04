@@ -134,8 +134,6 @@ template <class T> struct Matrix<3, 4, T>
     constexpr ColT& operator[](int index) { return mCols[index]; }
     constexpr const ColT& operator[](int index) const { return mCols[index]; }
 
-    constexpr Matrix& operator*=(Matrix m) { return *this = (*this * m); }
-
     const T* data() const { return reinterpret_cast<const T*>(mCols); }
 
     private: Vector<4, T> mCols[3];
@@ -191,15 +189,6 @@ Matrix33<T> operator*(Matrix33<T> a, Matrix33<T> b)
     Vector3<T> colB = a[0]*b[1][0] + a[1]*b[1][1] + a[2]*b[1][2];
     Vector3<T> colC = a[0]*b[2][0] + a[1]*b[2][1] + a[2]*b[2][2];
     return Matrix33<T> ( colA, colB, colC );
-}
-
-template <class T> constexpr
-Matrix34<T> operator*(Matrix34<T> a, Matrix34<T> b)
-{
-    Vector4<T> colA = a[0]*b[0][0] + a[1]*b[0][1] + a[2]*b[0][2];
-    Vector4<T> colB = a[0]*b[1][0] + a[1]*b[1][1] + a[2]*b[1][2];
-    Vector4<T> colC = a[0]*b[2][0] + a[1]*b[2][1] + a[2]*b[2][2];
-    return Matrix34<T> ( colA, colB, colC );
 }
 
 template <class T> constexpr
@@ -431,100 +420,6 @@ Matrix44<T> affine_inverse(Matrix44<T> m)
     Vector4<T> colD { -(inv33 * Vector3<T>(m[3])), T(1.0) };
 
     return Matrix44<T> ( colA, colB, colC, colD );
-}
-
-//============================================================================//
-
-// Rotate (Matrix44, Vector3, Scalar) /////
-
-template <class T> inline
-Matrix44<T> rotate(Matrix44<T> m, Vector3<T> axis, T angle)
-{
-    axis = maths::normalize(axis);
-    angle = maths::radians(angle);
-    T s = std::sin(angle);
-    T c = std::cos(angle);
-
-    Vector3<T> temp = axis * (T(1.0) - c);
-
-    auto colA = m[0] * (c + temp.x * axis.x);
-    colA += m[1] * (temp.x * axis.y + s * axis.z);
-    colA += m[2] * (temp.x * axis.z - s * axis.y);
-
-    auto colB = m[1] * (c + temp.y * axis.y);
-    colB += m[0] * (temp.y * axis.x - s * axis.z);
-    colB += m[2] * (temp.y * axis.z + s * axis.x);
-
-    auto colC = m[2] * (c + temp.z * axis.z);
-    colC += m[0] * (temp.z * axis.x + s * axis.y);
-    colC += m[1] * (temp.z * axis.y - s * axis.x);
-
-    return Matrix44<T> ( colA, colB, colC, m[3] );
-}
-
-//============================================================================//
-
-// Create Look At View Matrix /////
-
-template <class T> inline
-Matrix44<T> look_at(Vector3<T> eye, Vector3<T> centre, Vector3<T> up)
-{
-    Vector3<T> f = normalize(centre - eye);
-    Vector3<T> s = normalize(maths::cross(f, up));
-    Vector3<T> u = maths::cross(s, f);
-
-    Vector4<T> colA { s.x, u.x, -f.x, 0.0 };
-    Vector4<T> colB { s.y, u.y, -f.y, 0.0 };
-    Vector4<T> colC { s.z, u.z, -f.z, 0.0 };
-
-    Vector4<T> colD { -dot(s, eye), -dot(u, eye), dot(f, eye), 1.0 };
-
-    return Matrix44<T> ( colA, colB, colC, colD );
-}
-
-//============================================================================//
-
-// Create Perspective Projection Matrix /////
-
-#undef near
-#undef far
-
-template <class T> inline
-Matrix44<T> perspective(T fov, T aspect, T near, T far)
-{
-    T tanHalfFov = std::tan(fov * T(0.5));
-    T invRange = T(1.0) / (far - near);
-
-    Vector4<T> colA { T(1.0) / (aspect * tanHalfFov), 0.0, 0.0, 0.0 };
-    Vector4<T> colB { 0.0, T(1.0) / tanHalfFov, 0.0, 0.0 };
-    Vector4<T> colC { 0.0, 0.0, -invRange * (far + near), -1.0 };
-    Vector4<T> colD { 0.0, 0.0, -invRange * (T(2.0) * far * near), 0.0 };
-
-    return Matrix44<T> ( colA, colB, colC, colD );
-}
-
-template <class T> inline
-Matrix44<T> perspective(T fov, T aspect, Vector2<T> range)
-{
-    return maths::perspective(fov, aspect, range.x, range.y);
-}
-
-//============================================================================//
-
-// Create Orthographic Projection Matrix /////
-
-template <class T> inline
-Matrix44<T> ortho(T l, T r, T b, T t, T n, T f)
-{
-    T ax = T(2.0) / (r-l); T by = T(2.0) / (t-b); T cz = T(-2.0) / (f-n);
-    Vector4<T> colD { -(r+l) / (r-l), -(t+b) / (t-b), -(f+n) / (f-n), 1.0 };
-    return Matrix44<T> ( {ax, 0, 0, 0}, {0, by, 0, 0}, {0, 0, cz, 0}, colD );
-}
-
-template <class T> inline
-Matrix44<T> ortho(Vector3<T> min, Vector3<T> max)
-{
-    return maths::ortho(min.x, max.x, min.y, max.y, min.z, max.z);
 }
 
 //============================================================================//

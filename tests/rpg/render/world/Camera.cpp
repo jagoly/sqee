@@ -1,6 +1,8 @@
-#include "Camera.hpp"
+#include <sqee/maths/Functions.hpp>
 
 #include "../../Options.hpp"
+
+#include "Camera.hpp"
 
 using namespace sqt::render;
 namespace maths = sq::maths;

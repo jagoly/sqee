@@ -1,5 +1,6 @@
 #pragma once
 
+#include <sqee/assert.hpp>
 #include <sqee/builtins.hpp>
 
 #include <sqee/redist/tinyformat.hpp>
