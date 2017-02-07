@@ -104,12 +104,15 @@ void Texture::impl_update_paramaters()
 
     //========================================================//
 
-    if (!mFilter && !mMipmaps) gl::TextureParameteri(mHandle, gl::TEXTURE_MIN_FILTER, gl::NEAREST);
-    if (!mFilter &&  mMipmaps) gl::TextureParameteri(mHandle, gl::TEXTURE_MIN_FILTER, gl::NEAREST_MIPMAP_NEAREST);
-    if ( mFilter && !mMipmaps) gl::TextureParameteri(mHandle, gl::TEXTURE_MIN_FILTER, gl::LINEAR);
-    if ( mFilter &&  mMipmaps) gl::TextureParameteri(mHandle, gl::TEXTURE_MIN_FILTER, gl::LINEAR_MIPMAP_LINEAR);
+    if (mTarget != gl::TEXTURE_2D_MULTISAMPLE)
+    {
+        if (!mFilter && !mMipmaps) gl::TextureParameteri(mHandle, gl::TEXTURE_MIN_FILTER, gl::NEAREST);
+        if (!mFilter &&  mMipmaps) gl::TextureParameteri(mHandle, gl::TEXTURE_MIN_FILTER, gl::NEAREST_MIPMAP_NEAREST);
+        if ( mFilter && !mMipmaps) gl::TextureParameteri(mHandle, gl::TEXTURE_MIN_FILTER, gl::LINEAR);
+        if ( mFilter &&  mMipmaps) gl::TextureParameteri(mHandle, gl::TEXTURE_MIN_FILTER, gl::LINEAR_MIPMAP_LINEAR);
 
-    gl::TextureParameteri(mHandle, gl::TEXTURE_MAG_FILTER, mFilter ? gl::LINEAR : gl::NEAREST);
+        gl::TextureParameteri(mHandle, gl::TEXTURE_MAG_FILTER, mFilter ? gl::LINEAR : gl::NEAREST);
+    }
 
     //========================================================//
 
@@ -122,8 +125,11 @@ void Texture::impl_update_paramaters()
         default: SQASSERT(false, "invalid wrap paramater"); }
     };
 
-    set_wrap_param(gl::TEXTURE_WRAP_S, mWrap[0]);
-    set_wrap_param(gl::TEXTURE_WRAP_T, mWrap[1]);
+    if (mTarget != gl::TEXTURE_2D_MULTISAMPLE)
+    {
+        set_wrap_param(gl::TEXTURE_WRAP_S, mWrap[0]);
+        set_wrap_param(gl::TEXTURE_WRAP_T, mWrap[1]);
+    }
 
     //========================================================//
 
@@ -156,7 +162,7 @@ void Texture::impl_update_paramaters()
 
 Texture::Format Texture::impl_string_to_format(string str)
 {
-    static std::map<string, Format> map
+    static const std::map<string, Format> map
     {
         { "R8_UN", Format::R8_UN },
         { "RG8_UN", Format::RG8_UN },

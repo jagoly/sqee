@@ -49,6 +49,11 @@ void FrameBuffer::attach(GLenum attach, const TextureArrayCube& tex, uint layer,
     gl::NamedFramebufferTextureLayer(mHandle, attach, tex.get_handle(), 0, int(6u * layer + face));
 }
 
+void FrameBuffer::attach(GLenum attach, const TextureMulti& tex)
+{
+    gl::NamedFramebufferTexture(mHandle, attach, tex.get_handle(), 0);
+}
+
 //============================================================================//
 
 void FrameBuffer::draw_buffers(std::initializer_list<GLenum> drawBufs)

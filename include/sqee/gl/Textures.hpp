@@ -132,4 +132,20 @@ public:
 
 //============================================================================//
 
+/// OpenGL TEXTURE_2D_MULTISAMPLE Object
+class TextureMulti final : public Texture
+{
+public:
+
+    //========================================================//
+
+    /// Constructor
+    TextureMulti(Format format);
+
+    /// Allocate the storage for the texture
+    void allocate_storage(Vec3U size);
+};
+
+//============================================================================//
+
 } // namespace sq

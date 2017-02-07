@@ -187,6 +187,8 @@ TextureArray2D::TextureArray2D(Format format) : Texture(gl::TEXTURE_2D_ARRAY, fo
 
 TextureArrayCube::TextureArrayCube(Format format) : Texture(gl::TEXTURE_CUBE_MAP_ARRAY, format) {}
 
+TextureMulti::TextureMulti(Format format) : Texture(gl::TEXTURE_2D_MULTISAMPLE, format) {}
+
 //============================================================================//
 
 // Allocate Storage Methods /////
@@ -226,6 +228,18 @@ void TextureArray2D::allocate_storage(Vec3U size)
     const int levels = impl_calculate_mip_levels(mMipmaps, Vec2U(size));
 
     gl::TextureStorage3D(mHandle, levels, meta.pixelFormat, int(size.x), int(size.y), int(size.z));
+
+    mSize = { size.x, size.y, size.z };
+}
+
+void TextureMulti::allocate_storage(Vec3U size)
+{
+    Texture::impl_create_object();
+    Texture::impl_update_paramaters();
+
+    const auto& meta = impl_Format_Meta[uint8_t(mFormat)];
+
+    gl::TextureStorage2DMultisample(mHandle, int(size.z), meta.pixelFormat, int(size.x), int(size.y), false);
 
     mSize = { size.x, size.y, size.z };
 }
