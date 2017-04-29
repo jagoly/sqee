@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chaiscript/chaiscript.hpp>
 #include <chaiscript/dispatchkit/dispatchkit.hpp>
 #include <chaiscript/utility/utility.hpp>
 

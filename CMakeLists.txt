@@ -14,15 +14,15 @@ endif ()
 
 ################################################################################
 
-option(SQEE_BUNDLED_LIBS "Use libs and headers from extlibs directory" TRUE)
+option(SQEE_BUNDLED_LIBS "Use libs and headers from extlibs directory" FALSE)
 option(SQEE_STATIC_LINK "Link dependencies to SQEE statically" FALSE)
 option(SQEE_STATIC_LIB "Build SQEE as a static library" FALSE)
 
 ################################################################################
 
-#if (NOT CMAKE_BUILD_TYPE)
-#    set(CMAKE_BUILD_TYPE "Release")
-#endif ()
+if (NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release")
+endif ()
 
 if (CMAKE_BUILD_TYPE MATCHES "Debug")
     add_definitions(-DSQEE_DEBUG)
@@ -194,14 +194,6 @@ if (SQEE_BUNDLED_LIBS)
         elseif (SQEE_WINDOWS)
             set(EXTLIBS "${CMAKE_SOURCE_DIR}/extlibs/libs/windows/dynamic/")
         endif ()
-    endif()
-
-    if (SQEE_SPECIAL_LINUX_DEBUG)
-        if (NOT SQEE_LINUX OR SQEE_STATIC_LINK OR NOT CMAKE_BUILD_TYPE MATCHES "Debug")
-            message(FATAL_ERROR "Options incorrect for Special Linux Debug Mode")
-        else ()
-            set(EXTLIBS "${CMAKE_SOURCE_DIR}/extlibs/libs/linux/debug/")
-        endif ()
     endif ()
 
     list(APPEND CMAKE_FIND_ROOT_PATH "${EXTLIBS}" "${EXTLIBS}/..")
@@ -214,7 +206,7 @@ find_library(SFML_AUDIO_LIB sfml-audio /)
 find_library(SFML_WINDOW_LIB sfml-window /)
 find_library(SFML_SYSTEM_LIB sfml-system /)
 
-find_library(REACTPHYSICS3D_LIB reactphysics3d /)
+#find_library(REACTPHYSICS3D_LIB reactphysics3d /)
 
 find_library(OPENGL_LIB NAMES GL opengl32 PATHS /)
 find_library(OPENAL_LIB NAMES openal openal32 PATHS /)
@@ -223,7 +215,7 @@ find_library(OPENAL_LIB NAMES openal openal32 PATHS /)
 
 target_link_libraries(sqee
     ${SFML_AUDIO_LIB} ${SFML_WINDOW_LIB} ${SFML_SYSTEM_LIB}
-    ${REACTPHYSICS3D_LIB}
+    #${REACTPHYSICS3D_LIB}
     ${OPENGL_LIB} ${OPENAL_LIB}
 )
 

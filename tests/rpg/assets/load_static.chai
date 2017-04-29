@@ -24,7 +24,7 @@ var cell = sq_create_root_entity([]);
 }
 
 // ShadowBox
-//add_static_model(cell, Vec3F(0.0, 0.0, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), [], "Sponza:ShadowBox");
+add_static_model(cell, Vec3F(0.0, 0.0, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), [], "Sponza:ShadowBox");
 
 // FloorA | FloorB
 add_static_model(cell, Vec3F(0.0, 0.0, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Floor"], "Sponza:FloorA");
@@ -196,37 +196,37 @@ add_static_model(cell, Vec3F(0.0, 0.0, 11.0), QuatF(0.0, 0.0, 0.0), Vec3F(-1.0, 
 add_static_model(cell, Vec3F(0.0, 0.0, 11.0), QuatF(0.0, 0.0, 0.0), Vec3F(-1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:EdgeCover");
 add_static_model(cell, Vec3F(0.0, 0.0, 11.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, -1.0, 1.0), ["Sponza:Arch"], "Sponza:EdgeCover");
 add_static_model(cell, Vec3F(0.0, 0.0, 11.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:EdgeCover");
-/*
+
 // FlagPole_00 | FlagPole_01 | FlagPole_02 | FlagPole_03
-add_static_model(cell, Vec3F(-6.663, -1.61, 10.29), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:FlagPole"], "Sponza:FlagPole");
-add_static_model(cell, Vec3F(-2.21, -1.61, 10.29), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:FlagPole"], "Sponza:FlagPole");
-add_static_model(cell, Vec3F(2.21, -1.61, 10.29), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:FlagPole"], "Sponza:FlagPole");
-add_static_model(cell, Vec3F(6.663, -1.61, 10.29), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:FlagPole"], "Sponza:FlagPole");
+add_static_model(cell, Vec3F(-6.663, -1.61, 10.29), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:Pole"], "Sponza:FlagPole");
+add_static_model(cell, Vec3F(-2.21, -1.61, 10.29), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:Pole"], "Sponza:FlagPole");
+add_static_model(cell, Vec3F(2.21, -1.61, 10.29), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:Pole"], "Sponza:FlagPole");
+add_static_model(cell, Vec3F(6.663, -1.61, 10.29), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:Pole"], "Sponza:FlagPole");
 
 // FlagPole_10 | FlagPole_11 | FlagPole_12 | FlagPole_13
-add_static_model(cell, Vec3F(-6.663, 1.61, 10.29), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:FlagPole"], "Sponza:FlagPole");
-add_static_model(cell, Vec3F(-2.21, 1.61, 10.29), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:FlagPole"], "Sponza:FlagPole");
-add_static_model(cell, Vec3F(2.21, 1.61, 10.29), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:FlagPole"], "Sponza:FlagPole");
-add_static_model(cell, Vec3F(6.663, 1.61, 10.29), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:FlagPole"], "Sponza:FlagPole");
+add_static_model(cell, Vec3F(-6.663, 1.61, 10.29), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Pole"], "Sponza:FlagPole");
+add_static_model(cell, Vec3F(-2.21, 1.61, 10.29), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Pole"], "Sponza:FlagPole");
+add_static_model(cell, Vec3F(2.21, 1.61, 10.29), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Pole"], "Sponza:FlagPole");
+add_static_model(cell, Vec3F(6.663, 1.61, 10.29), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Pole"], "Sponza:FlagPole");
 
-// VaseHanging_0 | VaseHanging_1 | VaseHanging_2 | VaseHanging_3
-add_static_model(cell, Vec3F(-6.663, -2.2, 1.89), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:Chain", "Sponza:VaseB"], "Sponza:VaseHanging");
-add_static_model(cell, Vec3F(-6.663, 2.2, 1.89), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Chain", "Sponza:VaseB"], "Sponza:VaseHanging");
-add_static_model(cell, Vec3F(6.663, -2.2, 1.89), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:Chain", "Sponza:VaseB"], "Sponza:VaseHanging");
-add_static_model(cell, Vec3F(6.663, 2.2, 1.89), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Chain", "Sponza:VaseB"], "Sponza:VaseHanging");
+// VaseA_00 | VaseA_01 | VaseA_02 | VaseA_03
+add_static_model(cell, Vec3F(-10.7, -2.27, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:VaseA", "Sponza:Plant"], "Sponza:VaseA");
+add_static_model(cell, Vec3F(-2.21, -2.27, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:VaseA", "Sponza:Plant"], "Sponza:VaseA");
+add_static_model(cell, Vec3F(2.21, -2.27, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:VaseA", "Sponza:Plant"], "Sponza:VaseA");
+add_static_model(cell, Vec3F(10.7, -2.27, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:VaseA", "Sponza:Plant"], "Sponza:VaseA");
 
-// VasePlant_00 | VasePlant_01 | VasePlant_02 | VasePlant_03
-add_static_model(cell, Vec3F(-10.7, -2.27, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Plant", "Sponza:VaseA"], "Sponza:VasePlant");
-add_static_model(cell, Vec3F(-2.21, -2.27, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Plant", "Sponza:VaseA"], "Sponza:VasePlant");
-add_static_model(cell, Vec3F(2.21, -2.27, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Plant", "Sponza:VaseA"], "Sponza:VasePlant");
-add_static_model(cell, Vec3F(10.7, -2.27, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Plant", "Sponza:VaseA"], "Sponza:VasePlant");
+// VaseA_10 | VaseA_11 | VaseA_12 | VaseA_13
+add_static_model(cell, Vec3F(-10.7, 2.27, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:VaseA", "Sponza:Plant"], "Sponza:VaseA");
+add_static_model(cell, Vec3F(-2.21, 2.27, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:VaseA", "Sponza:Plant"], "Sponza:VaseA");
+add_static_model(cell, Vec3F(2.21, 2.27, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:VaseA", "Sponza:Plant"], "Sponza:VaseA");
+add_static_model(cell, Vec3F(10.7, 2.27, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:VaseA", "Sponza:Plant"], "Sponza:VaseA");
 
-// VasePlant_10 | VasePlant_11 | VasePlant_12 | VasePlant_13
-add_static_model(cell, Vec3F(-10.7, 2.27, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Plant", "Sponza:VaseA"], "Sponza:VasePlant");
-add_static_model(cell, Vec3F(-2.21, 2.27, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Plant", "Sponza:VaseA"], "Sponza:VasePlant");
-add_static_model(cell, Vec3F(2.21, 2.27, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Plant", "Sponza:VaseA"], "Sponza:VasePlant");
-add_static_model(cell, Vec3F(10.7, 2.27, 0.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Plant", "Sponza:VaseA"], "Sponza:VasePlant");
-*/
+// VaseB_0 | VaseB_1 | VaseB_2 | VaseB_3
+add_static_model(cell, Vec3F(-6.663, -2.2, 1.89), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:VaseB", "Sponza:Chain"], "Sponza:VaseB");
+add_static_model(cell, Vec3F(-6.663, 2.2, 1.89), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:VaseB", "Sponza:Chain"], "Sponza:VaseB");
+add_static_model(cell, Vec3F(6.663, -2.2, 1.89), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:VaseB", "Sponza:Chain"], "Sponza:VaseB");
+add_static_model(cell, Vec3F(6.663, 2.2, 1.89), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:VaseB", "Sponza:Chain"], "Sponza:VaseB");
+
 // Lion_0 | Lion_1
 add_static_model(cell, Vec3F(-16.425, 0.0, 2.225), QuatF(0.0, 0.0, 0.75), Vec3F(1.0, 1.0, 1.0), ["Sponza:Lion"], "Sponza:Lion");
 add_static_model(cell, Vec3F(16.425, 0.0, 2.225), QuatF(0.0, 0.0, 0.25), Vec3F(1.0, 1.0, 1.0), ["Sponza:Lion"], "Sponza:Lion");
@@ -253,7 +253,7 @@ add_static_model(cell, Vec3F(0.0, 0.0, 5.0), QuatF(0.0, 0.0, 0.0), Vec3F(-1.0, -
 add_static_model(cell, Vec3F(0.0, 0.0, 5.0), QuatF(0.0, 0.0, 0.0), Vec3F(-1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:MouldingB");
 add_static_model(cell, Vec3F(0.0, 0.0, 5.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, -1.0, 1.0), ["Sponza:Arch"], "Sponza:MouldingB");
 add_static_model(cell, Vec3F(0.0, 0.0, 5.0), QuatF(0.0, 0.0, 0.0), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:MouldingB");
-/*
+
 // HoleA_00 | HoleA_01 | HoleA_02 | HoleA_03 | HoleA_04
 add_static_model(cell, Vec3F(-8.887, -2.69, 11.6), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:HoleA");
 add_static_model(cell, Vec3F(-4.439, -2.69, 11.6), QuatF(0.0, 0.0, 0.5), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:HoleA");
@@ -283,7 +283,7 @@ add_static_model(cell, Vec3F(6.85, 2.64, 14.9), QuatF(0.0, 0.0, 0.0), Vec3F(1.0,
 // HoleA_20 | HoleB_20
 add_static_model(cell, Vec3F(-11.25, 0.0, 11.6), QuatF(0.0, 0.0, 0.25), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch"], "Sponza:HoleA");
 add_static_model(cell, Vec3F(-11.14, 0.0, 14.9), QuatF(0.0, 0.0, 0.25), Vec3F(1.0, 1.0, 1.0), ["Sponza:Arch", "Sponza:Ceiling"], "Sponza:HoleB");
-*/
+
 // Roof_0 | Roof_1 | Roof_2 | Roof_3
 add_static_model(cell, Vec3F(0.0, 0.0, 16.25), QuatF(0.0, 0.0, 0.0), Vec3F(-1.0, -1.0, 1.0), ["Sponza:Roof"], "Sponza:Roof");
 add_static_model(cell, Vec3F(0.0, 0.0, 16.25), QuatF(0.0, 0.0, 0.0), Vec3F(-1.0, 1.0, 1.0), ["Sponza:Roof"], "Sponza:Roof");

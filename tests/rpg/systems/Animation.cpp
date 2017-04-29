@@ -18,7 +18,8 @@ void sqt::sys::system_tick_animations(WorldStuff& stuff)
 
             if (++entry->index == entry->times.size())
             {
-                entry->callback_on_end(entry.id);
+                if (entry->callback_on_end)
+                    entry->callback_on_end(entry.id);
                 entry->index = 0u;
             }
         }

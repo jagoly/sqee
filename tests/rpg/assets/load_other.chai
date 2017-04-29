@@ -99,7 +99,7 @@ group = sq_create_entity(cell, ["Transform"]);
   }
 
   var anim = sq_begin_animation(group, timeline);
-  anim.set_callback_on_end(print_foo);
+//  anim.set_callback_on_end(print_foo);
 }
 
   // DiceGroup.DiceA

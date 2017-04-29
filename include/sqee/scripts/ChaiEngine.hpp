@@ -1,7 +1,6 @@
 #pragma once
 
-#include <chaiscript/language/chaiscript_eval.hpp>
-#include <chaiscript/language/chaiscript_engine.hpp>
+#include <chaiscript/chaiscript.hpp>
 
 #include <sqee/setup.hpp>
 

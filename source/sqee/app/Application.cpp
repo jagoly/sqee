@@ -42,7 +42,11 @@ Application::Application()
     gl::Enable(gl::DEBUG_OUTPUT);
     gl::Enable(gl::DEBUG_OUTPUT_SYNCHRONOUS);
 
-    gl::DebugMessageControl(gl::DEBUG_SOURCE_API, gl::DEBUG_TYPE_OTHER, gl::DEBUG_SEVERITY_NOTIFICATION, 0, 0, false);
+    gl::DebugMessageControl(gl::DEBUG_SOURCE_API, gl::DEBUG_TYPE_OTHER,
+                            gl::DEBUG_SEVERITY_NOTIFICATION, 0, 0, false);
+    gl::DebugMessageControl(gl::DEBUG_SOURCE_SHADER_COMPILER, gl::DEBUG_TYPE_OTHER,
+                            gl::DEBUG_SEVERITY_NOTIFICATION, 0, 0, false);
+
     gl::DebugMessageCallback(debug_callback, nullptr);
 
     #endif

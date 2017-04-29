@@ -60,7 +60,7 @@ void sq::chaiscript_setup_app(ChaiEngine& engine)
     //========================================================//
 
     m->add(vector_conversion<vector<string>>());
-    chai::bootstrap::operators::assign<vector<string>>(m);
+    chai::bootstrap::operators::assign<vector<string>>(*m);
 
     //========================================================//
 
