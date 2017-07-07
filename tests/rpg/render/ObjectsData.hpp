@@ -2,7 +2,9 @@
 
 #include <sqee/dop/Classes.hpp>
 
-#include <sqee/misc/Resource.hpp>
+#include <sqee/misc/ResourceHandle.hpp>
+
+#include <sqee/maths/Volumes.hpp>
 
 #include <sqee/gl/UniformBuffer.hpp>
 #include <sqee/gl/FrameBuffer.hpp>
@@ -12,24 +14,71 @@
 #include <sqee/render/Material.hpp>
 #include <sqee/render/Mesh.hpp>
 
-#include "world/Camera.hpp"
-#include "world/SkyBox.hpp"
-#include "world/Ambient.hpp"
-#include "world/SkyLight.hpp"
+#include "../Options.hpp"
 
-#include "../helpers.hpp"
-
-namespace sqt { namespace render {
+namespace sqt {
 
 //============================================================================//
 
-struct ObjectsData : sq::NonCopyable
-{
-    //========================================================//
+class WorldStuff; // Forward Declaration
 
-    struct RenderModelData
+//============================================================================//
+
+struct RenderStuff : sq::NonCopyable
+{
+    RenderStuff();
+
+    //--------------------------------------------------------//
+
+    struct CameraData
     {
-        vector<sq::Handle<sq::Material>> materials;
+        Vec3F position;
+        Vec3F direction;
+        float range;
+
+        Mat4F viewMat;
+        Mat4F projMat;
+
+        sq::maths::Frustum frustum;
+        sq::UniformBuffer ubo;
+    };
+
+    //--------------------------------------------------------//
+
+    struct SkyboxData
+    {
+        string path;
+        sq::TextureCube tex;
+        Vec4F params;
+    };
+
+    //--------------------------------------------------------//
+
+    struct AmbientData
+    {
+        Vec3F colour;
+    };
+
+    //--------------------------------------------------------//
+
+    struct SkylightData
+    {
+        std::array<sq::FrameBuffer, 6> fbos;
+
+        std::array<Mat4F, 6> matrices;
+        std::array<sq::maths::Planes<4>, 6> planes;
+
+        sq::UniformBuffer ubo;
+        sq::TextureArray2D tex;
+
+        uint cascades;
+    };
+
+    //--------------------------------------------------------//
+
+    struct ModelData
+    {
+        std::vector<sq::Handle<sq::Material>> materials;
         sq::Handle<sq::Mesh> mesh;
 
         Mat4F modelMatrix;
@@ -37,47 +86,18 @@ struct ObjectsData : sq::NonCopyable
         bool isMirrored;
     };
 
-    //========================================================//
+    //--------------------------------------------------------//
 
-    struct RenderSkeletonData
+    struct SkeletonData
     {
         sq::Handle<sq::Armature> armature;
 
         sq::UniformBuffer ubo;
     };
 
-    //========================================================//
+    //--------------------------------------------------------//
 
-    struct RenderLightCascData
-    {
-        array<int32_t, 6> cullFrusIds;
-
-        array<sq::FrameBuffer, 6> fbos;
-        array<Mat4F, 6> lightMatArr;
-
-        sq::UniformBuffer ubo;
-        sq::TextureArray2D tex;
-
-        uint cascadeCount;
-        float cascadeSize;
-    };
-
-    //========================================================//
-
-    struct RenderLightPointData
-    {
-        array<sq::FrameBuffer, 6> fbos;
-        array<Mat4F, 6> lightMatArr;
-
-        sq::UniformBuffer ubo;
-        sq::TextureCube tex;
-
-        Mat4F modelMatrix;
-    };
-
-    //========================================================//
-
-    struct RenderLightSpotData
+    struct OrthoLightData
     {
         sq::FrameBuffer fbo;
         Mat4F lightMatrix;
@@ -88,22 +108,59 @@ struct ObjectsData : sq::NonCopyable
         Mat4F modelMatrix;
     };
 
-    //========================================================//
+    //--------------------------------------------------------//
 
-    sq::dop::Table<RenderModelData> mModelTable;
-    sq::dop::Table<RenderSkeletonData> mSkeletonTable;
-    sq::dop::Table<RenderLightSpotData> mLightSpotTable;
+    struct PointLightData
+    {
+        std::array<sq::FrameBuffer, 6> fbos;
 
-    unique_ptr<render::CameraData> cameraData;
-    unique_ptr<render::SkyBoxData> skyboxData;
-    unique_ptr<render::AmbientData> ambientData;
-    unique_ptr<render::SkyLightData> skylightData;
+        std::array<Mat4F, 6> lightMatrices;
+        std::array<sq::maths::Frustum, 6> frustums;
+
+        sq::UniformBuffer ubo;
+        sq::TextureCube tex;
+
+        Mat4F modelMatrix;
+    };
+
+    //--------------------------------------------------------//
+
+    struct SpotLightData
+    {
+        sq::FrameBuffer fbo;
+
+        Mat4F lightMatrix;
+        sq::maths::Frustum frustum;
+
+        sq::UniformBuffer ubo;
+        sq::Texture2D tex;
+
+        Mat4F modelMatrix;
+    };
+
+    //--------------------------------------------------------//
+
+    CameraData camera;
+
+    unique_ptr<SkyboxData> skybox;
+    unique_ptr<AmbientData> ambient;
+    unique_ptr<SkylightData> skylight;
+
+    //--------------------------------------------------------//
+
+    struct {
+        sq::dop::Table<ModelData>      model;
+        sq::dop::Table<SkeletonData>   skeleton;
+        sq::dop::Table<OrthoLightData> ortholight;
+        sq::dop::Table<PointLightData> pointlight;
+        sq::dop::Table<SpotLightData>  spotlight;
+    } tables;
 };
 
 //============================================================================//
 
-void refresh_render_tables(ObjectsData& tables);
+void refresh_render_stuff(RenderStuff& rstuff, const WorldStuff& wstuff, const Options& options);
 
 //============================================================================//
 
-}} // namespace sqt::render
+} // namespace sqt

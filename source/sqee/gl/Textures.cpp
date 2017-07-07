@@ -2,9 +2,9 @@
 
 #include <sqee/assert.hpp>
 
-#include <sqee/redist/gl_ext_4_2.hpp>
+#include <sqee/redist/gl_loader.hpp>
 #include <sqee/redist/stb_image.hpp>
-#include <sqee/redist/json.hpp>
+#include <sqee/redist/nl_json.hpp>
 
 #include <sqee/debug/Logging.hpp>
 
@@ -129,7 +129,9 @@ inline void impl_to_signed_norm_16(uint16_t* data, int count)
 struct Impl_Load_Image : NonCopyable
 {
     void* data = nullptr;
-    Vec2U size = {0u, 0u};
+    Vec2U size = { 0u, 0u };
+
+    //--------------------------------------------------------//
 
     Impl_Load_Image(Texture::Format format, const string& path)
     {
@@ -138,13 +140,13 @@ struct Impl_Load_Image : NonCopyable
         else if (check_file_exists(fullPath+".jpg")) fullPath += ".jpg";
         else log_error("Failed to find image %s", fullPath);
 
-        //========================================================//
+        //--------------------------------------------------------//
 
         const auto& meta = impl_Format_Meta[uint8_t(format)];
 
         SQASSERT(meta.group == 0 || meta.group == 2, "fixme");
 
-        //========================================================//
+        //--------------------------------------------------------//
 
         Vec2I size = { 0, 0 };
         int channels = 0;
@@ -160,10 +162,12 @@ struct Impl_Load_Image : NonCopyable
             impl_to_signed_norm_8(unormPtr, size.x * size.y * channels);
         }
 
-        //========================================================//
+        //--------------------------------------------------------//
 
         this->size = Vec2U(size);
     }
+
+    //--------------------------------------------------------//
 
     ~Impl_Load_Image()
     {
@@ -186,6 +190,8 @@ TextureCube::TextureCube(Format format) : Texture(gl::TEXTURE_CUBE_MAP, format) 
 TextureArray2D::TextureArray2D(Format format) : Texture(gl::TEXTURE_2D_ARRAY, format) {}
 
 TextureArrayCube::TextureArrayCube(Format format) : Texture(gl::TEXTURE_CUBE_MAP_ARRAY, format) {}
+
+TextureVolume::TextureVolume(Format format) : Texture(gl::TEXTURE_3D, format) {}
 
 TextureMulti::TextureMulti(Format format) : Texture(gl::TEXTURE_2D_MULTISAMPLE, format) {}
 
@@ -232,6 +238,18 @@ void TextureArray2D::allocate_storage(Vec3U size)
     mSize = { size.x, size.y, size.z };
 }
 
+void TextureVolume::allocate_storage(Vec3U size)
+{
+    Texture::impl_create_object();
+    Texture::impl_update_paramaters();
+
+    const auto& meta = impl_Format_Meta[uint8_t(mFormat)];
+
+    gl::TextureStorage3D(mHandle, 1, meta.pixelFormat, int(size.x), int(size.y), int(size.z));
+
+    mSize = { size.x, size.y, size.z };
+}
+
 void TextureMulti::allocate_storage(Vec3U size)
 {
     Texture::impl_create_object();
@@ -246,7 +264,7 @@ void TextureMulti::allocate_storage(Vec3U size)
 
 //============================================================================//
 
-// Load Memory Methods /////
+// Memory Loading Methods /////
 
 void Texture2D::load_memory(const void* data)
 {
@@ -288,9 +306,19 @@ void TextureArray2D::load_memory(const void* data, uint layer)
                           meta.baseFormat, meta.dataType, data);
 }
 
+void TextureVolume::load_memory(const void* data, Vec3U offset, Vec3U size)
+{
+    const auto& meta = impl_Format_Meta[uint8_t(mFormat)];
+
+    const int x = int(offset.x), y = int(offset.y), z = int(offset.z);
+    const int w = int(size.x), h = int(size.y), d = int(size.z);
+
+    gl::TextureSubImage3D(mHandle, 0, x, y, z, w, h, d, meta.baseFormat, meta.dataType, data);
+}
+
 //============================================================================//
 
-// Load File Methods /////
+// File Loading Methods /////
 
 void Texture2D::load_file(const string& path)
 {
@@ -306,6 +334,16 @@ void TextureCube::load_file(const string& path, uint face)
     SQASSERT(image.size == Vec2U(mSize), "");
 
     load_memory(image.data, face);
+}
+
+void TextureCube::load_directory(const string& path)
+{
+    load_file(path + "/0_right",   0u);
+    load_file(path + "/1_left",    1u);
+    load_file(path + "/2_forward", 2u);
+    load_file(path + "/3_back",    3u);
+    load_file(path + "/4_up",      4u);
+    load_file(path + "/5_down",    5u);
 }
 
 void TextureArray2D::load_file(const string& path, uint layer)

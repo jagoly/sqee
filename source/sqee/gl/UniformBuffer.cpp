@@ -11,71 +11,46 @@ UniformBuffer::UniformBuffer() : mContext(Context::get()) {}
 
 //============================================================================//
 
-UniformBuffer::UniformBuffer(UniformBuffer&& other)
-    : mContext(other.mContext)
+UniformBuffer::UniformBuffer(UniformBuffer&& other) : mContext(other.mContext)
 {
     mContext.impl_reset_UniformBuffer(&other, this);
 
-    mItemMap = std::move(other.mItemMap);
-    mCurrentSize = other.mCurrentSize;
-
+    mBufferSize = other.mBufferSize;
     mHandle = other.mHandle;
+
+    other.mBufferSize = 0u;
     other.mHandle = 0u;
 }
+
+UniformBuffer& UniformBuffer::operator=(UniformBuffer&& other)
+{ std::swap(*this, other); return *this; }
 
 //============================================================================//
 
 UniformBuffer::~UniformBuffer()
 {
-    if (mHandle != 0u)
-    {
-        mContext.impl_reset_UniformBuffer(this);
-        gl::DeleteBuffers(1, &mHandle);
-        mHandle = 0u;
-    }
+    mContext.impl_reset_UniformBuffer(this);
+
+    if (mHandle) gl::DeleteBuffers(1, &mHandle);
 }
 
 //============================================================================//
 
-void UniformBuffer::reserve(const string& name, uint size)
-{
-    mItemMap.emplace(name, Item{mCurrentSize, size * 4u});
-    mCurrentSize += size * 4u;
-}
-
-//============================================================================//
-
-void UniformBuffer::create_and_allocate()
+void UniformBuffer::create_and_allocate(uint size)
 {
     SQASSERT(mHandle == 0u, "UniformBuffer already created");
 
     gl::CreateBuffers(1, &mHandle);
-    gl::NamedBufferStorage(mHandle, mCurrentSize, nullptr, gl::DYNAMIC_STORAGE_BIT);
+    gl::NamedBufferStorage(mHandle, size, nullptr, gl::DYNAMIC_STORAGE_BIT);
+
+    mBufferSize = size;
 }
 
 //============================================================================//
 
-void UniformBuffer::update(const string& name, const void* data)
-{
-    const Item& item = mItemMap.at(name);
-
-    gl::NamedBufferSubData(mHandle, item.offset, item.size, data);
-}
-
-void UniformBuffer::update(const string& name, uint offset, uint size, const void* data)
-{
-    const Item& item = mItemMap.at(name);
-
-    offset *= 4u; size *= 4u;
-    SQASSERT(offset + size <= item.size, "range out of bounds");
-
-    gl::NamedBufferSubData(mHandle, item.offset + offset, size, data);
-}
-
 void UniformBuffer::update(uint offset, uint size, const void* data)
 {
-    offset *= 4u; size *= 4u;
-    SQASSERT(offset + size <= mCurrentSize, "range out of bounds");
+    SQASSERT(offset + size <= mBufferSize, "out of range");
 
     gl::NamedBufferSubData(mHandle, offset, size, data);
 }

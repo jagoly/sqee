@@ -7,20 +7,27 @@ using namespace sq;
 
 //============================================================================//
 
-FrameBuffer::FrameBuffer()
+FrameBuffer::FrameBuffer() : mContext(Context::get())
 {
     gl::CreateFramebuffers(1, &mHandle);
 }
 
-FrameBuffer::FrameBuffer(FrameBuffer&& other)
+//============================================================================//
+
+FrameBuffer::FrameBuffer(FrameBuffer&& other) : mContext(other.mContext)
 {
-    Context::get().impl_reset_FrameBuffer(&other, this);
+    mContext.impl_reset_FrameBuffer(&other, this);
     mHandle = other.mHandle; other.mHandle = 0u;
 }
 
+FrameBuffer& FrameBuffer::operator=(FrameBuffer&& other)
+{ std::swap(*this, other); return *this; }
+
+//============================================================================//
+
 FrameBuffer::~FrameBuffer()
 {
-    Context::get().impl_reset_FrameBuffer(this);
+    mContext.impl_reset_FrameBuffer(this);
     gl::DeleteFramebuffers(1, &mHandle);
 }
 
@@ -28,29 +35,31 @@ FrameBuffer::~FrameBuffer()
 
 void FrameBuffer::attach(GLenum attach, const Texture2D& tex)
 {
+    SQASSERT(tex.get_handle(), "");
     gl::NamedFramebufferTexture(mHandle, attach, tex.get_handle(), 0);
 }
 
 void FrameBuffer::attach(GLenum attach, const TextureCube& tex, uint face)
 {
-    SQASSERT(face < 6u, "invalid face");
+    SQASSERT(tex.get_handle() && face < 6u, "");
     gl::NamedFramebufferTextureLayer(mHandle, attach, tex.get_handle(), 0, int(face));
 }
 
 void FrameBuffer::attach(GLenum attach, const TextureArray2D& tex, uint layer)
 {
-    SQASSERT(layer < tex.get_size().z, "invalid layer");
+    SQASSERT(tex.get_handle() && layer < tex.get_size().z, "");
     gl::NamedFramebufferTextureLayer(mHandle, attach, tex.get_handle(), 0, int(layer));
 }
 
 void FrameBuffer::attach(GLenum attach, const TextureArrayCube& tex, uint layer, uint face)
 {
-    SQASSERT(layer < tex.get_size().z && face < 6u, "invalid layer or face");
+    SQASSERT(tex.get_handle() && layer < tex.get_size().z && face < 6u, "");
     gl::NamedFramebufferTextureLayer(mHandle, attach, tex.get_handle(), 0, int(6u * layer + face));
 }
 
 void FrameBuffer::attach(GLenum attach, const TextureMulti& tex)
 {
+    SQASSERT(tex.get_handle(), "");
     gl::NamedFramebufferTexture(mHandle, attach, tex.get_handle(), 0);
 }
 
@@ -58,17 +67,19 @@ void FrameBuffer::attach(GLenum attach, const TextureMulti& tex)
 
 void FrameBuffer::draw_buffers(std::initializer_list<GLenum> drawBufs)
 {
-    gl::NamedFramebufferDrawBuffers(mHandle, drawBufs.size(), drawBufs.begin());
+    gl::NamedFramebufferDrawBuffers(mHandle, int(drawBufs.size()), drawBufs.begin());
 }
 
 //============================================================================//
 
 void FrameBuffer::blit(const FrameBuffer& other, Vec2U size, GLenum mask) const
 {
-    gl::BlitNamedFramebuffer(mHandle, other.mHandle, 0, 0, size.x, size.y, 0, 0, size.x, size.y, mask, gl::NEAREST);
+    gl::BlitNamedFramebuffer ( mHandle, other.mHandle, 0, 0, int(size.x), int(size.y),
+                               0, 0, int(size.x), int(size.y), mask, gl::NEAREST );
 }
 
 void FrameBuffer::blit(const FrameBuffer& other, Vec2U sizeA, Vec2U sizeB, GLenum mask, GLenum filter) const
 {
-    gl::BlitNamedFramebuffer(mHandle, other.mHandle, 0, 0, sizeA.x, sizeA.y, 0, 0, sizeB.x, sizeB.y, mask, filter);
+    gl::BlitNamedFramebuffer ( mHandle, other.mHandle, 0, 0, int(sizeA.x), int(sizeA.y),
+                               0, 0, int(sizeB.x), int(sizeB.y), mask, filter );
 }

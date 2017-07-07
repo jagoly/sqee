@@ -1,24 +1,27 @@
 // GLSL Vertex Shader
 
-layout(location=0) in vec3 V_pos;
-
-uniform mat4 modelView;
+//============================================================================//
 
 #include headers/blocks/Camera
 
-layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
+layout(std140, binding=0) uniform CAMERA { CameraBlock CB; };
 
-out noperspective vec2 s_tcrd;
+//============================================================================//
+
+layout(location=0) in vec3 v_Position;
+
+layout(location=0) uniform mat4 u_ModelView;
+
+out noperspective vec2 screenPos;
 out vec3 viewNorm, viewTan;
 
-out gl_PerVertex {
-    vec4 gl_Position;
-};
+//============================================================================//
 
+void main()
+{
+    gl_Position = CB.projMat * u_ModelView * vec4(v_Position, 1.f);
+    screenPos = gl_Position.xy / gl_Position.w * 0.5f + 0.5f;
 
-void main() {
-    gl_Position = CB.proj * modelView * vec4(V_pos, 1.f);
-    s_tcrd = gl_Position.xy / gl_Position.w * 0.5f + 0.5f;
-    viewNorm = mat3(modelView) * vec3(0.f, 0.f, 1.f);
-    viewTan = mat3(modelView) * vec3(0.f, -1.f, 0.f);
+    viewNorm = mat3(u_ModelView) * vec3(0.f, 0.f, +1.f);
+    viewTan = mat3(u_ModelView) * vec3(0.f, -1.f, 0.f);
 }

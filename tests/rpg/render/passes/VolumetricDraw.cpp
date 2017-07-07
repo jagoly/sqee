@@ -13,20 +13,31 @@ VolumetricPasses::VolumetricPasses(const SharedStuff& stuff) : SharedStuff(stuff
 {
     FB_Shafts.draw_buffers({gl::COLOR_ATTACHMENT0});
 
-    VS_Shafts_Stencil.add_uniform("matrix"); // Mat4F
+    processor.load_vertex(PROG_Shafts_Stencil, "volumetric/Shafts/Stencil_vs");
+    processor.load_vertex(PROG_Shafts_LightCasc, "volumetric/Shafts/Light_vs");
+    processor.load_vertex(PROG_Shafts_LightOrtho, "volumetric/Shafts/Light_vs");
+    processor.load_vertex(PROG_Shafts_LightPoint, "volumetric/Shafts/Light_vs");
+    processor.load_vertex(PROG_Shafts_LightSpot, "volumetric/Shafts/Light_vs");
 
-    shaders.preprocs(VS_Shafts_Stencil, "volumetric/Shafts/Stencil_vs");
-    shaders.preprocs(VS_Shafts_Light, "volumetric/Shafts/Light_vs");
+    PROG_Shafts_Stencil.link_program_stages();
 }
 
 //============================================================================//
 
 void VolumetricPasses::update_options()
 {
-    if (options.Shafts_Quality) shaders.preprocs(FS_Shafts_LightCasc, "volumetric/Shafts/LightCasc_fs");
-    if (options.Shafts_Quality) shaders.preprocs(FS_Shafts_LightOrtho, "volumetric/Shafts/LightOrtho_fs");
-    if (options.Shafts_Quality) shaders.preprocs(FS_Shafts_LightPoint, "volumetric/Shafts/LightPoint_fs");
-    if (options.Shafts_Quality) shaders.preprocs(FS_Shafts_LightSpot, "volumetric/Shafts/LightSpot_fs");
+    if (options.Shafts_Quality)
+    {
+        processor.load_fragment(PROG_Shafts_LightCasc, "volumetric/Shafts/LightCasc_fs");
+        processor.load_fragment(PROG_Shafts_LightOrtho, "volumetric/Shafts/LightOrtho_fs");
+        processor.load_fragment(PROG_Shafts_LightPoint, "volumetric/Shafts/LightPoint_fs");
+        processor.load_fragment(PROG_Shafts_LightSpot, "volumetric/Shafts/LightSpot_fs");
+
+        PROG_Shafts_LightCasc.link_program_stages();
+        PROG_Shafts_LightOrtho.link_program_stages();
+        PROG_Shafts_LightPoint.link_program_stages();
+        PROG_Shafts_LightSpot.link_program_stages();
+    }
 
     // delete or allocate shafts depth stencil texture
     if (options.Shafts_Quality == 0u) TEX_Shafts_Depth.delete_object();
@@ -62,9 +73,9 @@ void VolumetricPasses::render(const data::VolumetricPasses& data)
     context.bind_Texture(TEX_Shafts_Depth, 7u);
 
     // render shafts of all other types of lights using stencil volumes
-//    for (const auto& light : _data.orthoPassVec) impl_render_StencilPass(light, volumes.Light_Ortho, FS_Shafts_LightOrtho);
-    for (const auto& light : data.pointPassVec) impl_render_StencilPass(light, volumes.Light_Point, FS_Shafts_LightPoint);
-    for (const auto& light : data.spotPassVec) impl_render_StencilPass(light, volumes.Light_Spot, FS_Shafts_LightSpot);
+    for (const auto& light : data.orthoPassVec) impl_render_StencilPass(light, volumes.Light_Ortho, PROG_Shafts_LightOrtho);
+    for (const auto& light : data.pointPassVec) impl_render_StencilPass(light, volumes.Light_Point, PROG_Shafts_LightPoint);
+    for (const auto& light : data.spotPassVec) impl_render_StencilPass(light, volumes.Light_Spot, PROG_Shafts_LightSpot);
 }
 
 //============================================================================//
@@ -79,26 +90,24 @@ void VolumetricPasses::impl_render_SkyLightPass(const data::VolumetricSkyLightPa
     context.bind_Texture(textures.Depth_HalfSize, 7u);
     context.bind_Texture(light.tex, 8u);
 
-    context.use_Shader_Vert(VS_Shafts_Light);
-    context.use_Shader_Frag(FS_Shafts_LightCasc);
+    context.bind_Program(PROG_Shafts_LightCasc);
     sq::draw_screen_quad();
 }
 
 //============================================================================//
 
 void VolumetricPasses::impl_render_StencilPass(const data::VolumetricStencilPass& light,
-                                               const sq::Volume& volume, const sq::Shader& shader)
+                                               const sq::Volume& volume, const sq::Program& program)
 {
     FB_HalfDepthBlit.blit(FB_Shafts, options.Window_Size / 2u, gl::DEPTH_BUFFER_BIT);
 
 
-    context.use_Shader_Vert(VS_Shafts_Stencil);
-    context.disable_shader_stage_fragment();
+    context.bind_Program(PROG_Shafts_Stencil);
 
-    VS_Shafts_Stencil.update<Mat4F>("matrix", light.matrix);
+    PROG_Shafts_Stencil.update(0, light.matrix);
 
 
-    if (options.Vignette_Enable && light.stencil == true)
+    if (light.stencil == true)
     {
         context.set_state(Context::Cull_Face::Back);
         context.set_state(Context::Depth_Test::Keep);
@@ -127,8 +136,7 @@ void VolumetricPasses::impl_render_StencilPass(const data::VolumetricStencilPass
     context.bind_UniformBuffer(light.ubo, 1u);
     context.bind_Texture(light.tex, 8u);
 
-    context.use_Shader_Vert(VS_Shafts_Light);
-    context.use_Shader_Frag(shader);
+    context.bind_Program(program);
     sq::draw_screen_quad();
 }
 

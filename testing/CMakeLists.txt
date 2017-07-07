@@ -7,6 +7,8 @@ set(SOURCES
     "Common.hpp"
     "Common.cpp"
 
+    "tests/messages.cpp"
+
     "tests/maths/scalars.cpp"
     "tests/maths/vectors.cpp"
     "tests/maths/matrices.cpp"

@@ -1,39 +1,59 @@
 // GLSL Fragment Shader
 
-in vec2 texcrd;
+//============================================================================//
 
 #include runtime/Options
+
 #include builtin/funcs/depth
 
-layout(binding=0) uniform sampler2D texShafts;
-layout(binding=1) uniform sampler2D texDepHalf;
+//============================================================================//
 
-out vec3 fragColour;
+in vec2 texcrd;
 
+layout(binding=0) uniform sampler2D tex_Shafts;
+layout(binding=1) uniform sampler2D tex_DepHalf;
 
-const vec2 offsets[6] = {
-vec2(0.f, -3.f) * OPTION_PixSizeHalf,
-vec2(0.f, -2.f) * OPTION_PixSizeHalf,
-vec2(0.f, -1.f) * OPTION_PixSizeHalf,
-vec2(0.f, +1.f) * OPTION_PixSizeHalf,
-vec2(0.f, +2.f) * OPTION_PixSizeHalf,
-vec2(0.f, +3.f) * OPTION_PixSizeHalf
+out vec3 frag_Colour;
+
+//============================================================================//
+
+const int c_OffsetCount = 6;
+
+const vec2 c_Offsets[6] =
+{
+  vec2(0.f, -3.f) * OPTION_PixSizeHalf,
+  vec2(0.f, -2.f) * OPTION_PixSizeHalf,
+  vec2(0.f, -1.f) * OPTION_PixSizeHalf,
+  vec2(0.f, +1.f) * OPTION_PixSizeHalf,
+  vec2(0.f, +2.f) * OPTION_PixSizeHalf,
+  vec2(0.f, +3.f) * OPTION_PixSizeHalf
 };
 
+//============================================================================//
 
-void main() {
-    const float near = OPTION_ViewNear, far = OPTION_ViewFar;
+void main()
+{
+    const float centreDepth = get_linear_depth(tex_DepHalf, texcrd, OPTION_ViewNear, OPTION_ViewFar);
+    const vec3 centreColour = texture(tex_Shafts, texcrd).rgb;
 
-    vec3 centreColour = fragColour = texture(texShafts, texcrd).rgb;
-    float centreDepth = linearise(texture(texDepHalf, texcrd).r, near, far);
+    //--------------------------------------------------------//
 
-    for (int i = 0; i < 6; ++i) {
-        vec2 sampCoord = texcrd + offsets[i];
-        vec3 sampColour = texture(texShafts, sampCoord).rgb;
-        float sampDepth = linearise(texture(texDepHalf, sampCoord).r, near, far);
-        float factor = clamp(2.f - distance(centreDepth, sampDepth), 0.f, 1.f);
-        fragColour += mix(centreColour, sampColour, factor);
+    frag_Colour = centreColour;
+
+    for (int i = 0; i < c_OffsetCount; ++i)
+    {
+        vec2 sampleCrd = texcrd + c_Offsets[i];
+
+        float sampleDepth = get_linear_depth(tex_DepHalf, sampleCrd, OPTION_ViewNear, OPTION_ViewFar);
+        vec3 sampleColour = texture(tex_Shafts, sampleCrd).rgb;
+
+        float factor = smoothstep(0.f, 1.f, distance(sampleDepth, centreDepth));
+
+        frag_Colour += mix(sampleColour, centreColour, factor);
     }
 
-    fragColour /= 7.f;
+    //--------------------------------------------------------//
+
+    frag_Colour /= float(c_OffsetCount) + 1.f;
 }
+

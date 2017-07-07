@@ -11,15 +11,16 @@ class Context; // Forward Declaration
 
 //============================================================================//
 
-/// OpenGL Texture Base Class
+/// OpenGL Texture base class.
 class Texture : public MoveOnly
 {
-public:
+public: //====================================================//
 
-    //========================================================//
-
-    enum class Format : uint8_t
+    /// Format for texture storage.
+    enum class Format : int8_t
     {
+        Undefined = -1,
+
         // unsigned normalised /////
         R8_UN,  RG8_UN,  RGB8_UN,  RGBA8_UN,
         R16_UN, RG16_UN, RGB16_UN, RGBA16_UN,
@@ -46,84 +47,105 @@ public:
         DEPTH16, STENCIL8, DEP24S8
     };
 
-    //========================================================//
+    //--------------------------------------------------------//
 
-    /// Move Constructor
-    Texture(Texture&& other);
+    Texture(Texture&& other); ///< Move Constructor.
 
-    /// Destructor
-    ~Texture() { delete_object(); }
+    Texture& operator=(Texture&& other); ///< Move Assignment.
 
-    //========================================================//
+    ~Texture() { delete_object(); } ///< Destructor.
 
-    /// Manually delete the GL object
+    //--------------------------------------------------------//
+
+    /// Delete the OpenGL object.
     void delete_object();
 
-    /// Generate mipmaps for the texture
+    /// Set the texture format.
+    void set_format(Format format);
+
+    /// Automatically generate mipmaps.
     void generate_auto_mipmaps();
 
-    /// Return the size of the texture
-    Vec3U get_size() const { return mSize; }
+    //--------------------------------------------------------//
 
-    /// Return the texture target
+    /// Get the target of the texture.
     GLenum get_target() const { return mTarget; }
 
-    /// Return the texture format
+    /// Get the format of the texture.
     Format get_format() const { return mFormat; }
 
-    /// Get the OpenGL handle
+    /// Get the OpenGL object handle.
     GLuint get_handle() const { return mHandle; }
 
-    //========================================================//
+    /// Get the size of the texture.
+    Vec3U get_size() const { return mSize; }
 
+    //--------------------------------------------------------//
+
+    /// Enable or disable filtered sampling.
     void set_filter_mode(bool enable);
+
+    /// Enable or disable mipmap support.
     void set_mipmaps_mode(bool enable);
+
+    /// Enable or disable shadow sampling.
     void set_shadow_mode(bool enable);
 
-    //========================================================//
+    //--------------------------------------------------------//
 
+    /// Set the wrap modes to use (C, R, M).
     void set_wrap_mode(char x, char y);
+
+    /// Set the swizzle modes to use (0, 1, R, G, B, A).
     void set_swizzle_mode(char r, char g, char b, char a);
 
-protected:
+protected: //=================================================//
 
-    //========================================================//
-
+    /// Protected Constructor.
     Texture(GLenum target, Format format);
 
-    //========================================================//
+private: //===================================================//
+
+    friend class Texture2D;
+    friend class TextureCube;
+    friend class TextureArray2D;
+    friend class TextureArrayCube;
+    friend class TextureVolume;
+    friend class TextureMulti;
+
+    //--------------------------------------------------------//
+
+    Context& mContext;
 
     const GLenum mTarget;
-    const Format mFormat;
 
-    //========================================================//
+    Format mFormat;
+
+    GLuint mHandle = 0u;
+
+    //--------------------------------------------------------//
 
     bool mFilter = false;
     bool mMipmaps = false;
     bool mShadow = false;
 
-    //========================================================//
+    //--------------------------------------------------------//
 
-    array<char, 2> mWrap {{ 'C', 'C' }};
-    array<char, 4> mSwizzle {{ 'R', 'G', 'B', 'A' }};
+    std::array<char, 2> mWrap {{ 'C', 'C' }};
+    std::array<char, 4> mSwizzle {{ 'R', 'G', 'B', 'A' }};
 
-    //========================================================//
+    //--------------------------------------------------------//
 
-    Vec3U mSize {0u, 0u, 0u};
+    Vec3U mSize = { 0u, 0u, 0u };
 
-    //========================================================//
-
-    GLuint mHandle = 0u;
-    Context& mContext;
-
-    //========================================================//
+    //--------------------------------------------------------//
 
     void impl_create_object();
     void impl_update_paramaters();
 
-    //========================================================//
+    //--------------------------------------------------------//
 
-    static Format impl_string_to_format(string str);
+    static Format impl_string_to_format(std::string arg);
 };
 
 //============================================================================//

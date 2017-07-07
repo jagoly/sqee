@@ -27,19 +27,14 @@ template <class T> struct Approx
 
     static_assert
     (
-        std::is_same<T, float>::value ||
-
-        std::is_same<T, Vec2F>::value ||
-        std::is_same<T, Vec3F>::value ||
-        std::is_same<T, Vec4F>::value ||
-
-        std::is_same<T, Mat2F>::value ||
-        std::is_same<T, Mat23F>::value ||
-        std::is_same<T, Mat3F>::value ||
-        std::is_same<T, Mat34F>::value ||
-        std::is_same<T, Mat4F>::value ||
-
-        std::is_same<T, QuatF>::value,
+        std::is_same_v<T, float> ||
+        std::is_same_v<T, Vec2F> ||
+        std::is_same_v<T, Vec3F> ||
+        std::is_same_v<T, Vec4F> ||
+        std::is_same_v<T, Mat3F> ||
+        std::is_same_v<T, Mat34F> ||
+        std::is_same_v<T, Mat4F> ||
+        std::is_same_v<T, QuatF>,
 
         "not implemented for T"
     );
@@ -67,6 +62,12 @@ std::ostream& operator<<(std::ostream& os, const Approx<T>& arg)
     return os << "Approx(" << sq::chai_string(arg.value) << ")";
 }
 
+template <> inline
+std::ostream& operator<<(std::ostream& os, const Approx<float>& arg)
+{
+    return os << "Approx(" << std::to_string(arg.value) << ")";
+}
+
 //============================================================================//
 
 namespace sq {
@@ -75,8 +76,6 @@ inline std::ostream& operator<<(std::ostream& os, const Vec2F& arg) { return os 
 inline std::ostream& operator<<(std::ostream& os, const Vec3F& arg) { return os << sq::chai_string(arg); }
 inline std::ostream& operator<<(std::ostream& os, const Vec4F& arg) { return os << sq::chai_string(arg); }
 
-inline std::ostream& operator<<(std::ostream& os, const Mat2F& arg) { return os << sq::chai_string(arg); }
-inline std::ostream& operator<<(std::ostream& os, const Mat23F& arg) { return os << sq::chai_string(arg); }
 inline std::ostream& operator<<(std::ostream& os, const Mat3F& arg) { return os << sq::chai_string(arg); }
 inline std::ostream& operator<<(std::ostream& os, const Mat34F& arg) { return os << sq::chai_string(arg); }
 inline std::ostream& operator<<(std::ostream& os, const Mat4F& arg) { return os << sq::chai_string(arg); }

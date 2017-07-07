@@ -5,7 +5,7 @@ namespace algo = sq::algo;
 
 //============================================================================//
 
-void dop::Group::reserve(uint count)
+void dop::Group::reserve(size_t count)
 {
     mIds.reserve(count);
 }
@@ -25,8 +25,7 @@ void dop::Group::clear()
 
 void dop::Group::insert(int32_t id)
 {
-    const auto iter = algo::find(mIds, id);
-    SQASSERT(iter == mIds.end(), "id already used");
+    SQASSERT(!algo::exists(mIds, id), "id already used");
 
     if (mIsSorted == true && size() != 0u)
         mIsSorted = mIds.back() < id;

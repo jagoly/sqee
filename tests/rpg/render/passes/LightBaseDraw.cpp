@@ -13,18 +13,21 @@ LightBasePasses::LightBasePasses(const SharedStuff& stuff) : SharedStuff(stuff)
 {
     FB_Lighting.draw_buffers({gl::COLOR_ATTACHMENT0});
 
-    FS_Main_Ambient.add_uniform("colour"); // Vec3F
-    FS_Skybox.add_uniform("params"); // Vec4F
+    processor.load_vertex(PROG_Main_Skybox, "lighting/Main/Skybox_vs");
+    processor.load_vertex(PROG_Main_Ambient, "generic/FullScreen_vs");
 
-    shaders.preprocs(VS_Main_Skybox, "lighting/Main/Skybox_vs");
-    shaders.preprocs(FS_Skybox, "lighting/Skybox_fs");
+    processor.load_fragment(PROG_Main_Skybox, "lighting/Skybox_fs");
+
+    PROG_Main_Skybox.link_program_stages();
 }
 
 //============================================================================//
 
 void LightBasePasses::update_options()
 {
-    shaders.preprocs(FS_Main_Ambient, "lighting/Main/Ambient_fs");
+    processor.load_fragment(PROG_Main_Ambient, "lighting/Main/Ambient_fs");
+
+    PROG_Main_Ambient.link_program_stages();
 
     // re-attach textures to lighting framebuffer
     FB_Lighting.attach(gl::COLOR_ATTACHMENT0, textures.Lighting_Main);
@@ -58,6 +61,8 @@ void LightBasePasses::render(const data::LightBasePasses& data)
     ////// sub passes //////
     if (data.skyboxPass != nullptr) impl_render_SkyBoxPass(*data.skyboxPass);
     if (data.ambientPass != nullptr) impl_render_AmbientPass(*data.ambientPass);
+
+    context.bind_Program_default();
 }
 
 //============================================================================//
@@ -67,13 +72,12 @@ void LightBasePasses::impl_render_SkyBoxPass(const data::LightBaseSkyBoxPass& da
     // only render where there is no geometry
     context.set_Stencil_Params(gl::EQUAL, 0, 1, 0);
 
-    context.use_Shader_Vert(VS_Main_Skybox);
-    context.use_Shader_Frag(FS_Skybox);
+    context.bind_Program(PROG_Main_Skybox);
 
     // enable alpha blending
     //context.set_state(Context::Blend_Mode::Alpha);
 
-    FS_Skybox.update<Vec4F>("params", data.params);
+    PROG_Main_Skybox.update(0, data.params);
     context.bind_Texture(data.tex, 0u);
     sq::draw_screen_quad();
 }
@@ -85,8 +89,7 @@ void LightBasePasses::impl_render_AmbientPass(const data::LightBaseAmbientPass& 
     // only render where there is geometry
     context.set_Stencil_Params(gl::EQUAL, 1, 1, 0);
 
-    context.use_Shader_Vert(shaders.VS_FullScreen);
-    context.use_Shader_Frag(FS_Main_Ambient);
+    context.bind_Program(PROG_Main_Ambient);
 
     if (options.SSAO_Quality != 0u)
     {
@@ -95,7 +98,7 @@ void LightBasePasses::impl_render_AmbientPass(const data::LightBaseAmbientPass& 
         context.bind_Texture(textures.Depth_HalfSize, 1u);
     }
 
-    FS_Main_Ambient.update<Vec3F>("colour", data.colour);
+    PROG_Main_Ambient.update(0, data.colour);
     sq::draw_screen_quad();
 }
 

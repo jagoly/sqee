@@ -13,23 +13,38 @@ LightAccumPasses::LightAccumPasses(const SharedStuff& stuff) : SharedStuff(stuff
 {
     FB_Lighting.draw_buffers({gl::COLOR_ATTACHMENT0});
 
-    VS_Main_Stencil.add_uniform("matrix"); // Mat4F
+    processor.load_vertex(PROG_Main_Stencil, "lighting/Main/Stencil_vs");
 
-    shaders.preprocs(VS_Main_Stencil, "lighting/Main/Stencil_vs");
+    processor.load_vertex(PROG_Main_LightCasc, "generic/FullScreen_vs");
+    processor.load_vertex(PROG_Main_LightOrtho_base, "generic/FullScreen_vs");
+    processor.load_vertex(PROG_Main_LightOrtho_shad, "generic/FullScreen_vs");
+    processor.load_vertex(PROG_Main_LightPoint_base, "generic/FullScreen_vs");
+    processor.load_vertex(PROG_Main_LightPoint_shad, "generic/FullScreen_vs");
+    processor.load_vertex(PROG_Main_LightSpot_base, "generic/FullScreen_vs");
+    processor.load_vertex(PROG_Main_LightSpot_shad, "generic/FullScreen_vs");
+
+    PROG_Main_Stencil.link_program_stages();
 }
 
 //============================================================================//
 
 void LightAccumPasses::update_options()
 {
-    shaders.preprocs(FS_Main_LightOrtho_base, "lighting/Main/LightOrtho_fs");
-    shaders.preprocs(FS_Main_LightPoint_base, "lighting/Main/LightPoint_fs");
-    shaders.preprocs(FS_Main_LightSpot_base, "lighting/Main/LightSpot_fs");
+    processor.load_fragment(PROG_Main_LightCasc, "lighting/Main/LightCasc_fs");
+    processor.load_fragment(PROG_Main_LightOrtho_base, "lighting/Main/LightOrtho_fs");
+    processor.load_fragment(PROG_Main_LightOrtho_shad, "lighting/Main/LightOrtho_fs", "#define SHADOW");
+    processor.load_fragment(PROG_Main_LightPoint_base, "lighting/Main/LightPoint_fs");
+    processor.load_fragment(PROG_Main_LightPoint_shad, "lighting/Main/LightPoint_fs", "#define SHADOW");
+    processor.load_fragment(PROG_Main_LightSpot_base, "lighting/Main/LightSpot_fs");
+    processor.load_fragment(PROG_Main_LightSpot_shad, "lighting/Main/LightSpot_fs", "#define SHADOW");
 
-    shaders.preprocs(FS_Main_LightCasc_shad, "lighting/Main/LightCasc_fs", "#define SHADOW");
-    shaders.preprocs(FS_Main_LightOrtho_shad, "lighting/Main/LightOrtho_fs", "#define SHADOW");
-    shaders.preprocs(FS_Main_LightPoint_shad, "lighting/Main/LightPoint_fs", "#define SHADOW");
-    shaders.preprocs(FS_Main_LightSpot_shad, "lighting/Main/LightSpot_fs", "#define SHADOW");
+    PROG_Main_LightCasc.link_program_stages();
+    PROG_Main_LightOrtho_base.link_program_stages();
+    PROG_Main_LightOrtho_shad.link_program_stages();
+    PROG_Main_LightPoint_base.link_program_stages();
+    PROG_Main_LightPoint_shad.link_program_stages();
+    PROG_Main_LightSpot_base.link_program_stages();
+    PROG_Main_LightSpot_shad.link_program_stages();
 
     // re-attach textures to lighting framebuffer
     FB_Lighting.attach(gl::COLOR_ATTACHMENT0, textures.Lighting_Main);
@@ -61,9 +76,9 @@ void LightAccumPasses::render(const data::LightAccumPasses& data)
     if (data.skylightPass != nullptr) impl_render_SkyLightPass(*data.skylightPass);
 
     // render all other types of lights using stencil volumes
-    for (const auto& light : data.orthoPassVec) impl_render_StencilPass(light, volumes.Light_Ortho, FS_Main_LightOrtho_shad);
-    for (const auto& light : data.pointPassVec) impl_render_StencilPass(light, volumes.Light_Point, FS_Main_LightPoint_shad);
-    for (const auto& light : data.spotPassVec) impl_render_StencilPass(light, volumes.Light_Spot, FS_Main_LightSpot_shad);
+    for (auto& light : data.orthoPassVec) impl_render_StencilPass(light, volumes.Light_Ortho, PROG_Main_LightOrtho_shad);
+    for (auto& light : data.pointPassVec) impl_render_StencilPass(light, volumes.Light_Point, PROG_Main_LightPoint_shad);
+    for (auto& light : data.spotPassVec) impl_render_StencilPass(light, volumes.Light_Spot, PROG_Main_LightSpot_shad);
 }
 
 //============================================================================//
@@ -77,8 +92,7 @@ void LightAccumPasses::impl_render_SkyLightPass(const data::LightAccumSkyLightPa
     context.set_state(Context::Stencil_Test::Keep);
     context.set_Stencil_Params(gl::EQUAL, 1, 1, 0);
 
-    context.use_Shader_Vert(shaders.VS_FullScreen);
-    context.use_Shader_Frag(FS_Main_LightCasc_shad);
+    context.bind_Program(PROG_Main_LightCasc);
 
     context.bind_UniformBuffer(light.ubo, 1u);
     context.bind_Texture(light.tex, 8u);
@@ -90,7 +104,7 @@ void LightAccumPasses::impl_render_SkyLightPass(const data::LightAccumSkyLightPa
 //============================================================================//
 
 void LightAccumPasses::impl_render_StencilPass(const data::LightAccumStencilPass& light,
-                                               const sq::Volume& volume, const sq::Shader& shader)
+                                               const sq::Volume& volume, const sq::Program& program)
 {
     // enable depth test for stenciling
     context.set_state(Context::Depth_Test::Keep);
@@ -105,15 +119,13 @@ void LightAccumPasses::impl_render_StencilPass(const data::LightAccumStencilPass
     // clear light volume stencil bit
     context.clear_Stencil(0, 2);
 
-    context.use_Shader_Vert(VS_Main_Stencil);
-    context.disable_shader_stage_fragment();
+    context.bind_Program(PROG_Main_Stencil);
 
-    VS_Main_Stencil.update<Mat4F>("matrix", light.matrix);
+    PROG_Main_Stencil.update(0, light.matrix);
 
     volume.bind_and_draw(context);
 
-    context.use_Shader_Vert(shaders.VS_FullScreen);
-    context.use_Shader_Frag(shader);
+    context.bind_Program(program);
 
     // disable depth test for light accumulation
     context.set_state(Context::Depth_Test::Disable);

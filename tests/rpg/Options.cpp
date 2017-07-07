@@ -6,6 +6,8 @@
 
 using namespace sqt;
 
+//============================================================================//
+
 void Options::validate() const
 {
     sq::log_assert(Window_Size.x  >= 640u,  "horizontal resolution too low");
@@ -18,15 +20,10 @@ void Options::validate() const
     sq::log_assert(SSAO_Quality   <= 2u,    "SSAO_Quality too high");
     sq::log_assert(FSAA_Quality   <= 2u,    "FSAA_Quality too high");
 
-    static const std::unordered_set<string> validDebugTextures {
+    static const std::unordered_set<string> validDebugTextures
+    {
         "", "diffuse", "surface", "normals", "specular", "lighting", "volumetric", "ssao", "bloom"
     };
 
     sq::log_assert(validDebugTextures.count(Debug_Texture), "Debug_Texture not recognised");
-}
-
-Options& Options::get()
-{
-    static Options instance;
-    return instance;
 }

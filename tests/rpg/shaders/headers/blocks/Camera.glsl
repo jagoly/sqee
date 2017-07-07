@@ -1,12 +1,14 @@
 // GLSL Uniform Block
 
-struct CameraBlock {
-    mat4 view;    // 16
-    mat4 proj;    // 16
-    mat4 invView; // 16
-    mat4 invProj; // 16
-    mat4 trnView; // 16
-    vec3 pos;     // 4
-    vec3 dir;     // 4
-    // Size: 88
+struct CameraBlock
+{
+    mat4 viewMat;    // 64
+    mat4 projMat;    // 64
+    mat4 invViewMat; // 64
+    mat4 invProjMat; // 64
+    mat4 trnViewMat; // 64
+    vec3 position;   // 16
+    vec3 direction;  // 16
+
+    // TOTAL: 352
 };

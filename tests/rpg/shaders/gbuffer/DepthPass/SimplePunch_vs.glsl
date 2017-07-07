@@ -1,18 +1,19 @@
 // GLSL Vertex Shader
 
-layout(location=0) in vec3 V_pos;
-layout(location=1) in vec2 V_texcrd;
+//============================================================================//
 
-uniform mat4 matrix;
+layout(location=0) in vec3 v_Position;
+layout(location=1) in vec2 v_TexCoord;
+
+layout(location=0) uniform mat4 u_Matrix;
 
 out vec2 texcrd;
 
-out gl_PerVertex {
-    vec4 gl_Position;
-};
+//============================================================================//
 
+void main()
+{
+    texcrd = v_TexCoord;
 
-void main() {
-    texcrd = V_texcrd;
-    gl_Position = matrix * vec4(V_pos, 1.f);
+    gl_Position = u_Matrix * vec4(v_Position, 1.f);
 }

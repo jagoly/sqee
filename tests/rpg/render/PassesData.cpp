@@ -1,9 +1,9 @@
 #include <sqee/dop/Functions.hpp>
 
-#include "../world/World.hpp"
-
 #include "../systems/Render.hpp"
 #include "../systems/Culling.hpp"
+
+#include "../systems/WorldStuff.hpp"
 
 #include "ObjectsData.hpp"
 #include "PassesData.hpp"
@@ -11,10 +11,11 @@
 namespace dop = sq::dop;
 namespace maths = sq::maths;
 using namespace sqt::render;
+using namespace sqt;
 
 //============================================================================//
 
-void PassesData::prepare(const ObjectsData& objects)
+void PassesData::prepare(const WorldStuff& wstuff, const RenderStuff& rstuff)
 {
     // Clear Main Depth Passes
     depthData.modelSimplePass.solidFullVec.clear();
@@ -53,99 +54,52 @@ void PassesData::prepare(const ObjectsData& objects)
     volumetricData.pointPassVec.clear();
     volumetricData.spotPassVec.clear();
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     // Clear Visible Light Sets
-//    visibleOrthoSet.clear();
-//    visiblePointMap.clear();
-//    visibleSpotSet.clear();
+    //visibleOrthoSet.clear();
+    //visiblePointMap.clear();
+    //visibleSpotSet.clear();
 
+    mVisibleSet = sys::system_get_visible_objects_frustum(wstuff, rstuff.camera.frustum);
 
-    const auto& stuff = sys::static_WorldStuff();
+    mModelSimpleSet = dop::reduce(mVisibleSet, wstuff.groups.modelSimple);
+    mModelSkellySet = dop::reduce(mVisibleSet, wstuff.groups.modelSkelly);
 
-    const auto& camera = *objects.cameraData;
+    mLightOrthoSet.mIds = wstuff.groups.lightOrtho.mIds;
+    mLightPointSet.mIds = wstuff.groups.lightPoint.mIds;
+    mLightSpotSet.mIds = wstuff.groups.lightSpot.mIds;
 
-    mVisibleSet = sys::system_get_visible_objects_frustum(stuff, camera.frustum);
+    //--------------------------------------------------------//
 
-    mModelSimpleSet = dop::reduce(mVisibleSet, stuff.groups.modelSimple);
-    mModelSkellySet = dop::reduce(mVisibleSet, stuff.groups.modelSkelly);
-    mLightSpotSet = dop::reduce(mVisibleSet, stuff.groups.lightSpot);
+    prepare_depth_models(rstuff);
 
-    prepare_depth_models(objects);
+    prepare_gbuffer_models(rstuff);
+    prepare_gbuffer_decals(rstuff);
 
-    prepare_gbuffer_models(objects);
-    prepare_gbuffer_decals(objects);
+    prepare_lighting_basic(rstuff);
+    prepare_lighting_accum(rstuff);
 
-    prepare_lighting_basic(objects);
-    prepare_lighting_accum(objects);
-
-    prepare_shadow_mapping(objects);
+    prepare_shadow_mapping(rstuff, wstuff);
 }
 
 //============================================================================//
 
-#define SQ_BEGIN_FOR_EACH_ModelSimple \
-    for (const auto& entityDataPair : _objects.entityMap) { \
-        if (entityDataPair.second.modelSimple != nullptr) { \
-            const ModelSimpleData& model = *entityDataPair.second.modelSimple;
-
-#define SQ_BEGIN_FOR_EACH_ModelSkelly \
-    for (const auto& entityDataPair : _objects.entityMap) { \
-        if (entityDataPair.second.modelSkelly != nullptr) { \
-            const ModelSkellyData& model = *entityDataPair.second.modelSkelly;
-
-#define SQ_BEGIN_FOR_EACH_DecalBasic \
-    for (const auto& entityDataPair : _objects.entityMap) { \
-        if (entityDataPair.second.decalBasic != nullptr) { \
-            const DecalBasicData& decal = *entityDataPair.second.decalBasic;
-
-#define SQ_BEGIN_FOR_EACH_LightOrtho \
-    for (const auto& entityDataPair : _objects.entityMap) { \
-        if (entityDataPair.second.lightOrtho != nullptr) { \
-            const LightOrthoData& light = *entityDataPair.second.lightOrtho;
-
-#define SQ_BEGIN_FOR_EACH_LightPoint \
-    for (const auto& entityDataPair : _objects.entityMap) { \
-        if (entityDataPair.second.lightPoint != nullptr) { \
-            const LightPointData& light = *entityDataPair.second.lightPoint;
-
-#define SQ_BEGIN_FOR_EACH_LightSpot \
-    for (const auto& entityDataPair : _objects.entityMap) { \
-        if (entityDataPair.second.lightSpot != nullptr) { \
-            const LightSpotData& light = *entityDataPair.second.lightSpot;
-
-#define SQ_END_FOR_EACH }}
-
-//============================================================================//
-
-void PassesData::prepare_depth_models(const ObjectsData& objects)
+void PassesData::prepare_depth_models(const RenderStuff& stuff)
 {
+    const auto& camera = stuff.camera;
+
     auto& simplePass = depthData.modelSimplePass;
     auto& skellyPass = depthData.modelSkellyPass;
 
-    const CameraData& camera = *objects.cameraData;
+    //--------------------------------------------------------//
 
-    //========================================================//
-
-    const auto& modelTable = objects.mModelTable;
-    const auto& skeletonTable = objects.mSkeletonTable;
-
-    const auto refs_ModelSimple = dop::joined(mModelSimpleSet, modelTable);
-    const auto refs_ModelSkelly = dop::joined(mModelSkellySet, modelTable, skeletonTable);
-
-    //========================================================//
-
-    for (auto& entry : refs_ModelSimple)
+    for (auto& [id, model] : dop::joined(mModelSimpleSet, stuff.tables.model))
     {
-        const auto& model = std::get<1>(entry);
-
-        // calculate model-view-projection matrix for this model
         const Mat4F matrix = camera.projMat * camera.viewMat * model.modelMatrix;
 
-        // check if this model has any mask textures
         if (model.hasMaskTexture == true)
         {
-            // iterate through sub-meshes and get mask handles
             for (uint index = 0u; index < model.materials.size(); ++index)
             {
                 const auto& mask = model.materials[index]->get_mask_handle();
@@ -153,26 +107,21 @@ void PassesData::prepare_depth_models(const ObjectsData& objects)
                 // add this sub-mesh either to the punch part map, or the solid part vector
                 auto& dest = mask.check() ? simplePass.punchPartMap[&mask.get()] : simplePass.solidPartVec;
                 dest.push_back({model.mesh.get(), matrix, model.isMirrored, index});
-        }}
+            }
+        }
 
         // no sub-meshes have a mask texture, so add to the full model vector
         else simplePass.solidFullVec.push_back({model.mesh.get(), matrix, model.isMirrored});
     }
 
-    //========================================================//
+    //--------------------------------------------------------//
 
-    for (auto& entry : refs_ModelSkelly)
+    for (auto& [id, model, skeleton] : dop::joined(mModelSkellySet, stuff.tables.model, stuff.tables.skeleton))
     {
-        const auto& model = std::get<1>(entry);
-        const auto& skeleton = std::get<2>(entry);
-
-        // calculate model-view-projection matrix for this model
         const Mat4F matrix = camera.projMat * camera.viewMat * model.modelMatrix;
 
-        // check if this model has any mask textures
         if (model.hasMaskTexture == true)
         {
-            // iterate through sub-meshes and get mask handles
             for (uint index = 0u; index < model.materials.size(); ++index)
             {
                 const auto& mask = model.materials[index]->get_mask_handle();
@@ -180,7 +129,8 @@ void PassesData::prepare_depth_models(const ObjectsData& objects)
                 // add this sub-mesh either to the punch part map, or the solid part vector
                 auto& dest = mask.check() ? skellyPass.punchPartMap[&mask.get()] : skellyPass.solidPartVec;
                 dest.push_back({skeleton.ubo, model.mesh.get(), matrix, model.isMirrored, index});
-        }}
+            }
+        }
 
         // no sub-meshes have a mask texture, so add to the full model vector
         else skellyPass.solidFullVec.push_back({skeleton.ubo, model.mesh.get(), matrix, model.isMirrored});
@@ -189,28 +139,17 @@ void PassesData::prepare_depth_models(const ObjectsData& objects)
 
 //============================================================================//
 
-void PassesData::prepare_gbuffer_models(const ObjectsData& objects)
+void PassesData::prepare_gbuffer_models(const RenderStuff& stuff)
 {
+    const auto& camera = stuff.camera;
+
     auto& simplePass = gbufferData.modelPasses.simplePass;
     auto& skellyPass = gbufferData.modelPasses.skellyPass;
 
-    const CameraData& camera = *objects.cameraData;
+    //--------------------------------------------------------//
 
-    //========================================================//
-
-    const auto& modelTable = objects.mModelTable;
-    const auto& skeletonTable = objects.mSkeletonTable;
-
-    const auto refs_ModelSimple = dop::joined(mModelSimpleSet, modelTable);
-    const auto refs_ModelSkelly = dop::joined(mModelSkellySet, modelTable, skeletonTable);
-
-    //========================================================//
-
-    for (auto& entry : refs_ModelSimple)
+    for (auto& [id, model] : dop::joined(mModelSimpleSet, stuff.tables.model))
     {
-        const auto& model = std::get<1>(entry);
-
-        // calculate model-view-projection and normal matrices
         const Mat4F matrix = camera.projMat * camera.viewMat * model.modelMatrix;
         const Mat3F normMat = maths::normal_matrix(camera.viewMat * model.modelMatrix);
 
@@ -226,14 +165,10 @@ void PassesData::prepare_gbuffer_models(const ObjectsData& objects)
         }
     }
 
-    //========================================================//
+    //--------------------------------------------------------//
 
-    for (auto& entry : refs_ModelSkelly)
+    for (auto& [id, model, skeleton] : dop::joined(mModelSkellySet, stuff.tables.model, stuff.tables.skeleton))
     {
-        const auto& model = std::get<1>(entry);
-        const auto& skeleton = std::get<2>(entry);
-
-        // calculate model-view-projection and normal matrices
         const Mat4F matrix = camera.projMat * camera.viewMat * model.modelMatrix;
         const Mat3F normMat = maths::normal_matrix(camera.viewMat * model.modelMatrix);
 
@@ -252,11 +187,11 @@ void PassesData::prepare_gbuffer_models(const ObjectsData& objects)
 
 //============================================================================//
 
-void PassesData::prepare_gbuffer_decals(const ObjectsData& _objects) {
+void PassesData::prepare_gbuffer_decals(const RenderStuff& stuff) {
 
     auto& basicPass = gbufferData.decalPasses.basicPass;
 
-    const CameraData& camera = *_objects.cameraData;
+    const auto& camera = stuff.camera;
 
 /*    SQ_BEGIN_FOR_EACH_DecalBasic {
 
@@ -276,10 +211,10 @@ void PassesData::prepare_gbuffer_decals(const ObjectsData& _objects) {
 
 //============================================================================//
 
-void PassesData::prepare_lighting_basic(const ObjectsData& objects)
+void PassesData::prepare_lighting_basic(const RenderStuff& stuff)
 {
-    const auto& skybox = objects.skyboxData;
-    const auto& ambient = objects.ambientData;
+    const auto& skybox = stuff.skybox;
+    const auto& ambient = stuff.ambient;
 
     auto& skyboxPass = lightBaseData.skyboxPass;
     auto& ambientPass = lightBaseData.ambientPass;
@@ -290,7 +225,7 @@ void PassesData::prepare_lighting_basic(const ObjectsData& objects)
 
 //============================================================================//
 
-void PassesData::prepare_lighting_accum(const ObjectsData& objects)
+void PassesData::prepare_lighting_accum(const RenderStuff& stuff)
 {
     auto& skylightPass = lightAccumData.skylightPass;
     auto& orthoPassVec = lightAccumData.orthoPassVec;
@@ -302,165 +237,73 @@ void PassesData::prepare_lighting_accum(const ObjectsData& objects)
     auto& pointShaftsVec = volumetricData.pointPassVec;
     auto& spotShaftsVec = volumetricData.spotPassVec;
 
-    //========================================================//
+    //--------------------------------------------------------//
 
-    auto& simplePass = depthData.modelSimplePass;
-    auto& skellyPass = depthData.modelSkellyPass;
-
-    const CameraData& camera = *objects.cameraData;
-
-    //========================================================//
-
-    const auto& culling = sys::static_WorldStuff().culling;
-
-    //========================================================//
-
-    if (objects.skylightData != nullptr)
+    if (auto skylight = stuff.skylight.get())
     {
-        const SkyLightData& skylight = *objects.skylightData;
-        skylightPass.reset(new data::LightAccumSkyLightPass{skylight.ubo, skylight.tex});
-        skylightShafts.reset(new data::VolumetricSkyLightPass{skylight.ubo, skylight.tex});
-    }
-/*
-    for (auto& entry : dop::joined(mLightSpotSet, objects.mLightSpotTable, culling.spotLights))
-    {
-        const auto& light = std::get<1>(entry);
-        const auto& cullData = std::get<2>(entry);
-
-        const Vec2U viewport = Vec2U(light.tex.get_size());
-
-        // iterate through individual faces
-        for (uint face = 0u; face < 6u; ++face)
-        {
-            // skip this face if it is not visible
-            if (visibleFaces[face] == false) continue;
-            const auto& cascade = light.cascades[ind];
-
-            // add the current cascade to the pass vector
-            cascPassVec.push_back({cascade.fbo, viewPort, {}});
-
-            // get the complete set of entities visible to this cascade
-            auto visibleSet = mCullingSys->get_visible_set(cascade.planes);
-
-            // reduce the visible set down to sets for each type of entity
-            auto modelSimpleSet = dop::reduce(visibleSet, mRenderSys->get_ModelSimpleSet());
-            auto modelSkellySet = dop::reduce(visibleSet, mRenderSys->get_ModelSkellySet());
-
-            add_simple_models_to_shadows(cascPassVec.back().depthPasses.modelSimplePass,
-                                         objects, modelSimpleSet, cascade.matrix);
-
-            add_skelly_models_to_shadows(cascPassVec.back().depthPasses.modelSkellyPass,
-                                         objects, modelSkellySet, cascade.matrix);
-        }
+        skylightPass = sq::make_unique_aggregate<data::LightAccumSkyLightPass>(skylight->ubo, skylight->tex);
+        skylightShafts = sq::make_unique_aggregate<data::VolumetricSkyLightPass>(skylight->ubo, skylight->tex);
     }
 
-    SQ_BEGIN_FOR_EACH_LightPoint {
+    //--------------------------------------------------------//
 
-        // Check if this light is visible to main camera
-        if (sq::intersects(light.sphere, camera.frus) == true) {
+    for (auto& [id, light] : dop::joined(mLightOrthoSet, stuff.tables.ortholight))
+    {
+        // Calculate model-view-projection matrix for this light
+        const Mat4F matrix = stuff.camera.projMat * stuff.camera.viewMat * light.modelMatrix;
 
-            // Calculate model-view-projection matrix for this light
-            const Mat4F matrix = camera.projMat * camera.viewMat * light.modelMat;
+        // Check if the camera is inside the light volume
+        //bool inside = sq::point_in_cone_volume(camera.position, light.frus);
 
-            // Check if the camera is inside the light volume
-            bool inside = sq::point_in_sphere_volume(camera.position, light.sphere);
+        // Add this ortho light to the main light passes
+        orthoPassVec.push_back({light.ubo, light.tex, matrix});
+        orthoShaftsVec.push_back({light.ubo, light.tex, matrix, false});
+    }
 
-            // Add this point light to the main light passes
-            pointPassVec.push_back({light.ubo, light.tex, matrix});
-            pointShaftsVec.push_back({light.ubo, light.tex, matrix, !inside});
+    //--------------------------------------------------------//
 
-            // Add this point light to the visible map
-            array<bool, 6>& visFaces = visiblePointMap[entityDataPair.first];
+    for (auto& [id, light] : dop::joined(mLightPointSet, stuff.tables.pointlight))
+    {
+        // Calculate model-view-projection matrix for this light
+        const Mat4F matrix = stuff.camera.projMat * stuff.camera.viewMat * light.modelMatrix;
 
-            // Mark each face of the point light as either visible or not visible
-            for (uint face = 0u; face < 6u; ++face) visFaces[face] = sq::intersects(light.faces[face].frus, camera.frus);
-        }
+        // Check if the camera is inside the light volume
+        //bool inside = sq::point_in_cone_volume(camera.position, light.frus);
 
-    } SQ_END_FOR_EACH;
-*/
-/*    SQ_BEGIN_FOR_EACH_LightOrtho {
+        // Add this point light to the main light passes
+        pointPassVec.push_back({light.ubo, light.tex, matrix});
+        pointShaftsVec.push_back({light.ubo, light.tex, matrix, false});
+    }
 
-        // Check if this light is visible to main camera
-        //if (sq::bbox_in_frus(light.bbox, camera.frus) == true) {
+    //--------------------------------------------------------//
 
-            // Calculate model-view-projection matrix for this light
-            const Mat4F matrix = camera.projMat * camera.viewMat * light.modelMat;
+    for (auto& [id, light] : dop::joined(mLightSpotSet, stuff.tables.spotlight))
+    {
+        // Calculate model-view-projection matrix for this light
+        const Mat4F matrix = stuff.camera.projMat * stuff.camera.viewMat * light.modelMatrix;
 
-            // Add this ortho light to the main light passes
-            orthoPassVec.push_back({light.ubo, light.tex, matrix});
-            //orthoShaftsVec.push_back({light.ubo, light.tex, matrix, false});
+        // Check if the camera is inside the light volume
+        //bool inside = sq::point_in_cone_volume(camera.position, light.frus);
 
-            // Mark this ortho light to render shadows
-            visibleOrthoSet.insert(entityDataPair.first);
-        //}
-
-    } SQ_END_FOR_EACH;*/
-
-/*    SQ_BEGIN_FOR_EACH_LightPoint {
-
-        // Check if this light is visible to main camera
-        if (sq::intersects(light.sphere, camera.frus) == true) {
-
-            // Calculate model-view-projection matrix for this light
-            const Mat4F matrix = camera.projMat * camera.viewMat * light.modelMat;
-
-            // Check if the camera is inside the light volume
-            bool inside = sq::point_in_sphere_volume(camera.position, light.sphere);
-
-            // Add this point light to the main light passes
-            pointPassVec.push_back({light.ubo, light.tex, matrix});
-            pointShaftsVec.push_back({light.ubo, light.tex, matrix, !inside});
-
-            // Add this point light to the visible map
-            array<bool, 6>& visFaces = visiblePointMap[entityDataPair.first];
-
-            // Mark each face of the point light as either visible or not visible
-            for (uint face = 0u; face < 6u; ++face) visFaces[face] = sq::intersects(light.faces[face].frus, camera.frus);
-        }
-
-    } SQ_END_FOR_EACH;*/
-
-/*    SQ_BEGIN_FOR_EACH_LightSpot {
-
-        // Check if this light is visible to main camera
-        if (sq::intersects(light.frus, camera.frus) == true) {
-
-            // Calculate model-view-projection matrix for this light
-            const Mat4F matrix = camera.projMat * camera.viewMat * light.modelMat;
-
-            // Check if the camera is inside the light volume
-            bool inside = sq::point_in_cone_volume(camera.position, light.frus);
-
-            // Add this spot light to the main light passes
-            spotPassVec.push_back({light.ubo, light.tex, matrix});
-            spotShaftsVec.push_back({light.ubo, light.tex, matrix, !inside});
-
-            // Mark this spot light to render shadows
-            visibleSpotSet.insert(entityDataPair.first);
-        }
-
-    } SQ_END_FOR_EACH;*/
+        // Add this spot light to the main light passes
+        spotPassVec.push_back({light.ubo, light.tex, matrix});
+        spotShaftsVec.push_back({light.ubo, light.tex, matrix, false});
+    }
 }
 
 //============================================================================//
 
 namespace { // anonymous
 
-inline void add_simple_models_to_shadows(data::DepthModelSimplePass& pass, const ObjectsData& objects,
-                                         const dop::Group& group, const Mat4F& lightMatrix)
+void add_simple_models_to_shadows ( data::DepthModelSimplePass& pass, const RenderStuff& stuff,
+                                    const dop::Group& group, const Mat4F& lightMatrix )
 {
-    // iterate through all simple models
-    for (auto& entry : dop::joined(group, objects.mModelTable))
+    for (auto& [id, model] : dop::joined(group, stuff.tables.model))
     {
-        const auto& model = std::get<1>(entry);
-
-        // calculate combined matrix for this model
         const Mat4F matrix = lightMatrix * model.modelMatrix;
 
-        // check if this model has any mask textures
         if (model.hasMaskTexture == true)
         {
-            // iterate through sub-meshes and get mask handles
             for (uint index = 0u; index < model.materials.size(); ++index)
             {
                 const auto& mask = model.materials[index]->get_mask_handle();
@@ -468,29 +311,23 @@ inline void add_simple_models_to_shadows(data::DepthModelSimplePass& pass, const
                 // add this sub-mesh either to the punch part map, or the solid part vector
                 auto& dest = mask.check() ? pass.punchPartMap[&mask.get()] : pass.solidPartVec;
                 dest.push_back({model.mesh.get(), matrix, model.isMirrored, index});
-        }}
+            }
+        }
 
         // no sub-meshes have a mask texture, so add to the full model vector
         else pass.solidFullVec.push_back({model.mesh.get(), matrix, model.isMirrored});
     }
 }
 
-inline void add_skelly_models_to_shadows(data::DepthModelSkellyPass& pass, const ObjectsData& objects,
-                                         const dop::Group& group, const Mat4F& lightMatrix)
+void add_skelly_models_to_shadows ( data::DepthModelSkellyPass& pass, const RenderStuff& stuff,
+                                    const dop::Group& group, const Mat4F& lightMatrix )
 {
-    // iterate through all skelly models
-    for (auto& entry : dop::joined(group, objects.mModelTable, objects.mSkeletonTable))
+    for (auto& [id, model, skeleton] : dop::joined(group, stuff.tables.model, stuff.tables.skeleton))
     {
-        const auto& model = std::get<1>(entry);
-        const auto& skeleton = std::get<2>(entry);
-
-        // calculate combined matrix for this model
         const Mat4F matrix = lightMatrix * model.modelMatrix;
 
-        // check if this model has any mask textures
         if (model.hasMaskTexture == true)
         {
-            // iterate through sub-meshes and get mask handles
             for (uint index = 0u; index < model.materials.size(); ++index)
             {
                 const auto& mask = model.materials[index]->get_mask_handle();
@@ -498,7 +335,8 @@ inline void add_skelly_models_to_shadows(data::DepthModelSkellyPass& pass, const
                 // add this sub-mesh either to the punch part map, or the solid part vector
                 auto& dest = mask.check() ? pass.punchPartMap[&mask.get()] : pass.solidPartVec;
                 dest.push_back({skeleton.ubo, model.mesh.get(), matrix, model.isMirrored, index});
-        }}
+            }
+        }
 
         // no sub-meshes have a mask texture, so add to the full model vector
         else pass.solidFullVec.push_back({skeleton.ubo, model.mesh.get(), matrix, model.isMirrored});
@@ -509,175 +347,109 @@ inline void add_skelly_models_to_shadows(data::DepthModelSkellyPass& pass, const
 
 //============================================================================//
 
-void PassesData::prepare_shadow_mapping(const ObjectsData& objects)
+void PassesData::prepare_shadow_mapping(const RenderStuff& rstuff, const WorldStuff& wstuff)
 {
-    const auto& stuff = sys::static_WorldStuff();
-
     auto& cascPassVec = shadowsData.cascPassVec;
     auto& orthoPassVec = shadowsData.orthoPassVec;
     auto& pointPassVec = shadowsData.pointPassVec;
     auto& spotPassVec = shadowsData.spotPassVec;
 
-    if (objects.skylightData != nullptr)
+    //--------------------------------------------------------//
+
+    if (rstuff.skylight != nullptr)
     {
-        const SkyLightData& light = *objects.skylightData;
+        const auto& light = *rstuff.skylight;
         const Vec2U viewPort = Vec2U(light.tex.get_size());
 
         // iterate through individual cascades
-        for (uint ind = 0u; ind < light.cascadeCount; ++ind)
+        for (uint i = 0u; i < light.cascades; ++i)
         {
-            const auto& cascade = light.cascades[ind];
-
             // add the current cascade to the pass vector
-            cascPassVec.push_back({cascade.fbo, viewPort, {}});
+            cascPassVec.push_back({light.fbos[i], viewPort, {}});
 
             // get the complete set of entities visible to this cascade
-            auto visibleSet = sys::system_get_visible_objects_planes(stuff, cascade.planes);
-            //auto visibleSet = mCullingSys->get_visible_entity_set(cascade.planes);
+            const auto visibleSet = sys::system_get_visible_objects_planes(wstuff, light.planes[i]);
 
             // reduce the visible set down to sets for each type of entity
-            auto modelSimpleSet = dop::reduce(visibleSet, stuff.groups.modelSimple);
-            auto modelSkellySet = dop::reduce(visibleSet, stuff.groups.modelSkelly);
+            const auto modelSimpleSet = dop::reduce(visibleSet, wstuff.groups.modelSimple);
+            const auto modelSkellySet = dop::reduce(visibleSet, wstuff.groups.modelSkelly);
 
-            add_simple_models_to_shadows(cascPassVec.back().depthPasses.modelSimplePass,
-                                         objects, modelSimpleSet, cascade.matrix);
+            add_simple_models_to_shadows ( cascPassVec.back().depthPasses.modelSimplePass,
+                                           rstuff, modelSimpleSet, light.matrices[i] );
 
-            add_skelly_models_to_shadows(cascPassVec.back().depthPasses.modelSkellyPass,
-                                         objects, modelSkellySet, cascade.matrix);
+            add_skelly_models_to_shadows ( cascPassVec.back().depthPasses.modelSkellyPass,
+                                           rstuff, modelSkellySet, light.matrices[i] );
         }
     }
 
-    //========================================================//
+    //--------------------------------------------------------//
 
-//    for (auto& entry : dop::joined(mLightSpotSet, objects.mLightSpotTable))
-//    {
-//        const auto& light = std::get<1>(entry);
-//        const Vec2U viewport = Vec2U(light.tex.get_size());
+    for (auto& [id, light] : dop::joined(mLightOrthoSet, rstuff.tables.ortholight))
+    {
+        const Vec2U viewport = Vec2U(light.tex.get_size());
 
-//        // iterate through individual faces
-//        for (uint face = 0u; face < 6u; ++face)
-//        {
-//            // skip this face if it is not visible
-//            if (visibleFaces[face] == false) continue;
-//            const auto& cascade = light.cascades[ind];
+        orthoPassVec.push_back({light.fbo, viewport, {}});
 
-//            // add the current cascade to the pass vector
-//            cascPassVec.push_back({cascade.fbo, viewPort, {}});
+        // get the complete set of entities visible to this light
+        //dop::Group visibleSet = sys::system_get_visible_objects_frustum(wstuff, light.frustum);
 
-//            // get the complete set of entities visible to this cascade
-//            auto visibleSet = mCullingSys->get_visible_set(cascade.planes);
+        // reduce the visible set down to sets for each type of entity
+        //auto modelSimpleSet = dop::reduce(visibleSet, mRenderSys->get_ModelSimpleSet());
+        //auto modelSkellySet = dop::reduce(visibleSet, mRenderSys->get_ModelSkellySet());
 
-//            // reduce the visible set down to sets for each type of entity
-//            auto modelSimpleSet = dop::reduce(visibleSet, mRenderSys->get_ModelSimpleSet());
-//            auto modelSkellySet = dop::reduce(visibleSet, mRenderSys->get_ModelSkellySet());
+        add_simple_models_to_shadows ( orthoPassVec.back().depthPasses.modelSimplePass,
+                                       rstuff, wstuff.groups.modelSimple, light.lightMatrix );
 
-//            add_simple_models_to_shadows(cascPassVec.back().depthPasses.modelSimplePass,
-//                                         objects, modelSimpleSet, cascade.matrix);
-
-//            add_skelly_models_to_shadows(cascPassVec.back().depthPasses.modelSkellyPass,
-//                                         objects, modelSkellySet, cascade.matrix);
-//        }
-//    }
-
-/*
-    // iterate through visible ortho lights
-    for (const sq::Entity* lightEntity : visibleOrthoSet) {
-
-        // reference to the ortho light rendering data
-        const LightOrthoData& light = *entityMap.at(lightEntity).lightOrtho;
-        const Vec2U viewPort = Vec2U(light.tex.get_size());
-
-        // add the current ortho light to the pass vector
-        orthoPassVec.push_back({light.fbo, viewPort, {}});
-
-        // get references to the model simple and model skelly passes
-        auto& simplePass = orthoPassVec.back().depthPasses.modelSimplePass;
-        auto& skellyPass = orthoPassVec.back().depthPasses.modelSkellyPass;
-
-        SQ_BEGIN_FOR_EACH_StaticModel {
-            if (sq::intersects(model.bbox, light.ortho) == true)
-                add_StaticModel_to_ShadowsPass(simplePass, model, light.matrix);
-        } SQ_END_FOR_EACH;
-
-        SQ_BEGIN_FOR_EACH_ModelSimple {
-            if (sq::intersects(model.bbox, light.ortho) == true)
-                add_ModelSimple_to_ShadowsPass(simplePass, model, light.matrix);
-        } SQ_END_FOR_EACH;
-
-        SQ_BEGIN_FOR_EACH_ModelSkelly {
-            if (sq::intersects(model.sphere, light.ortho) == true)
-                add_ModelSkelly_to_ShadowsPass(skellyPass, model, light.matrix);
-        } SQ_END_FOR_EACH;
+        add_skelly_models_to_shadows ( orthoPassVec.back().depthPasses.modelSkellyPass,
+                                       rstuff, wstuff.groups.modelSkelly, light.lightMatrix );
     }
 
-    // iterate through visible point lights
-    for (const auto& lightPair : visiblePointMap) {
+    //--------------------------------------------------------//
 
-        // get references to map pair data
-        const sq::Entity* lightEntity = lightPair.first;
-        const array<bool, 6>& visibleFaces = lightPair.second;
+    for (auto& [id, light] : dop::joined(mLightPointSet, rstuff.tables.pointlight))
+    {
+        const Vec2U viewport = Vec2U(light.tex.get_size());
 
-        // reference to the point light rendering data
-        const LightPointData& light = *entityMap.at(lightEntity).lightPoint;
-        const Vec2U viewPort = Vec2U(light.tex.get_size());
+        for (uint face = 0u; face < 6u; ++face)
+        {
+            // add the current face to the pass vector
+            pointPassVec.push_back({light.fbos[face], viewport, {}});
 
-        // iterate through faces of the cube
-        for (uint face = 0u; face < 6u; ++face) {
+            // get the complete set of entities visible to this face
+            const auto visibleSet = sys::system_get_visible_objects_frustum(wstuff, light.frustums[face]);
 
-            // skip this face if it is not visible
-            if (visibleFaces[face] == false) continue;
+            // reduce the visible set down to sets for each type of entity
+            const auto modelSimpleSet = dop::reduce(visibleSet, wstuff.groups.modelSimple);
+            const auto modelSkellySet = dop::reduce(visibleSet, wstuff.groups.modelSkelly);
 
-            // add the current point light face to the pass vector
-            pointPassVec.push_back({light.faces[face].fbo, viewPort, {}});
+            add_simple_models_to_shadows ( pointPassVec.back().depthPasses.modelSimplePass,
+                                           rstuff, modelSimpleSet, light.lightMatrices[face]);
 
-            // get references to the model simple and model skelly passes
-            auto& simplePass = pointPassVec.back().depthPasses.modelSimplePass;
-            auto& skellyPass = pointPassVec.back().depthPasses.modelSkellyPass;
-
-            SQ_BEGIN_FOR_EACH_StaticModel {
-                if (sq::intersects(model.bbox, light.faces[face].frus) == true)
-                    add_StaticModel_to_ShadowsPass(simplePass, model, light.faces[face].matrix);
-            } SQ_END_FOR_EACH;
-
-            SQ_BEGIN_FOR_EACH_ModelSimple {
-                if (sq::intersects(model.bbox, light.faces[face].frus) == true)
-                    add_ModelSimple_to_ShadowsPass(simplePass, model, light.faces[face].matrix);
-            } SQ_END_FOR_EACH;
-
-            SQ_BEGIN_FOR_EACH_ModelSkelly {
-                if (sq::intersects(model.sphere, light.faces[face].frus) == true)
-                    add_ModelSkelly_to_ShadowsPass(skellyPass, model, light.faces[face].matrix);
-            } SQ_END_FOR_EACH;
+            add_skelly_models_to_shadows ( pointPassVec.back().depthPasses.modelSkellyPass,
+                                           rstuff, modelSkellySet, light.lightMatrices[face] );
         }
     }
 
-    // iterate through visible spot lights
-    for (const sq::Entity* lightEntity : visibleSpotSet) {
+    //--------------------------------------------------------//
 
-        // reference to the spot light rendering data
-        const LightSpotData& light = *entityMap.at(lightEntity).lightSpot;
-        const Vec2U viewPort = Vec2U(light.tex.get_size());
+    for (auto& [id, light] : dop::joined(mLightSpotSet, rstuff.tables.spotlight))
+    {
+        const Vec2U viewport = Vec2U(light.tex.get_size());
 
-        // add the current spot light to the pass vector
-        spotPassVec.push_back({light.fbo, viewPort, {}});
+        // add the current cascade to the pass vector
+        spotPassVec.push_back({light.fbo, viewport, {}});
 
-        // get references to the model simple and model skelly passes
-        auto& simplePass = spotPassVec.back().depthPasses.modelSimplePass;
-        auto& skellyPass = spotPassVec.back().depthPasses.modelSkellyPass;
+        // get the complete set of entities visible to this light
+        const auto visibleSet = sys::system_get_visible_objects_frustum(wstuff, light.frustum);
 
-        SQ_BEGIN_FOR_EACH_StaticModel {
-            if (sq::intersects(model.bbox, light.frus) == true)
-                add_StaticModel_to_ShadowsPass(simplePass, model, light.matrix);
-        } SQ_END_FOR_EACH;
+        // reduce the visible set down to sets for each type of entity
+        const auto modelSimpleSet = dop::reduce(visibleSet, wstuff.groups.modelSimple);
+        const auto modelSkellySet = dop::reduce(visibleSet, wstuff.groups.modelSkelly);
 
-        SQ_BEGIN_FOR_EACH_ModelSimple {
-            if (sq::intersects(model.bbox, light.frus) == true)
-                add_ModelSimple_to_ShadowsPass(simplePass, model, light.matrix);
-        } SQ_END_FOR_EACH;
+        add_simple_models_to_shadows ( spotPassVec.back().depthPasses.modelSimplePass,
+                                       rstuff, modelSimpleSet, light.lightMatrix );
 
-        SQ_BEGIN_FOR_EACH_ModelSkelly {
-            if (sq::intersects(model.sphere, light.frus) == true)
-                add_ModelSkelly_to_ShadowsPass(skellyPass, model, light.matrix);
-        } SQ_END_FOR_EACH;
-    }*/
+        add_skelly_models_to_shadows ( spotPassVec.back().depthPasses.modelSkellyPass,
+                                       rstuff, modelSkellySet, light.lightMatrix );
+    }
 }

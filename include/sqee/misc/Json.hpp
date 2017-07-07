@@ -1,6 +1,6 @@
 #include <sqee/builtins.hpp>
 
-#include <sqee/redist/json.hpp>
+#include <sqee/redist/nl_json.hpp>
 
 namespace sq {
 

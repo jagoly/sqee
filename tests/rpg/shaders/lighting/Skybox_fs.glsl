@@ -1,28 +1,37 @@
 // GLSL Fragment Shader
 
+//============================================================================//
+
+#include builtin/funcs/colour
+
+//============================================================================//
+
 in vec3 cubeNorm;
 
-#include builtin/funcs/colours
+layout(location=0) uniform vec4 u_Params;
 
-uniform vec4 params;
+layout(binding=0) uniform samplerCube tex_Skybox;
 
-layout(binding=0) uniform samplerCube texSkyBox;
+out vec4 frag_Colour;
 
-out vec4 fragColour;
+//============================================================================//
 
+void main()
+{
+    const float saturation = u_Params.x;
+    const float brightness = u_Params.y;
+    const float contrast = u_Params.z;
+    const float opacity = u_Params.w;
+    
+    //--------------------------------------------------------//
 
-void main() {
-    const float saturation = params.r;
-    const float brightness = params.g;
-    const float contrast = params.b;
-    const float opacity = params.a;
-
-    vec4 texel = texture(texSkyBox, cubeNorm);
+    vec4 texel = texture(tex_Skybox, cubeNorm);
     vec3 hsl = rgb_to_hsl(texel.rgb);
 
     hsl.y = hsl.y * saturation; 
     texel.rgb = hsl_to_rgb(hsl);
 
     texel.rgb = vec3(texel.rgb - 0.5f) * contrast + 0.5f;
-    fragColour = vec4(texel.rgb + brightness, texel.a * opacity);
+
+    frag_Colour = vec4(texel.rgb + brightness, texel.a * opacity);
 }

@@ -1,15 +1,20 @@
-#include <SFML/Window/Keyboard.hpp>
-#include <SFML/Window/Event.hpp>
+#include <chaiscript/chaiscript.hpp>
 
-#include <sqee/redist/gl_ext_4_2.hpp>
-#include <sqee/scripts/ChaiEngine.hpp>
-#include <sqee/app/ChaiConsole.hpp>
 #include <sqee/sound/Sound.hpp>
 #include <sqee/debug/Misc.hpp>
 
-#include "../RpgApp.hpp"
-#include "../world/World.hpp"
+#include "../Options.hpp"
+
 #include "../render/Renderer.hpp"
+#include "../systems/WorldStuff.hpp"
+
+#include "../systems/Animation.hpp"
+#include "../systems/Transform.hpp"
+#include "../systems/Render.hpp"
+#include "../systems/Culling.hpp"
+
+#include "../api/ScriptAPI.hpp"
+
 #include "Scripting.hpp"
 #include "MainScene.hpp"
 
@@ -18,114 +23,109 @@ namespace maths = sq::maths;
 
 //============================================================================//
 
-MainScene::MainScene(RpgApp& app) : sq::Scene(1.0 / 24.0), mRpgApp(app)
+MainScene::MainScene ( sq::MessageBus& bus, sq::ChaiEngine& engine,
+                       sq::InputDevices& input, ResourceCaches& caches,
+                       const Options& options )
+    : Scene(1.0 / 24.0)
+    , mBus(bus), mEngine(engine)
+    , mInput(input), mCaches(caches)
+    , options(options)
 {
-    auto& mbus = mRpgApp.get_message_bus();
+    world = std::make_unique<WorldStuff>();
+    renderer = std::make_unique<Renderer>(options);
 
-    mbus.register_type<msg::Enable_SkyBox>();
-    mbus.register_type<msg::Enable_Ambient>();
-    mbus.register_type<msg::Enable_SkyLight>();
+    api = std::make_unique<ScriptAPI> ( mCaches, *world );
 
-    mbus.register_type<msg::Disable_SkyBox>();
-    mbus.register_type<msg::Disable_Ambient>();
-    mbus.register_type<msg::Disable_SkyLight>();
+    mPosCrnt = mPosNext = world->camera.get_position();
 
-    mbus.register_type<msg::Debug_1>();
-    mbus.register_type<msg::Debug_2>();
-    mbus.register_type<msg::Debug_3>();
-    mbus.register_type<msg::Debug_4>();
+    mEngine.add_global(chai::var(api.get()), "api");
+}
 
-    world = std::make_unique<World>(mbus);
-    renderer = std::make_unique<Renderer>(mbus);
+MainScene::~MainScene() = default;
 
-    mPosCrnt = world->camera->PROP_position;
-    mPosNext = world->camera->PROP_position;
+//============================================================================//
 
-    chaiscript_setup_world(app.get_chai_engine());
-    chaiscript_setup_api(app.get_chai_engine());
-    chaiscript_setup_systems(app.get_chai_engine());
-    chaiscript_setup_messages(app.get_chai_engine());
+void MainScene::refresh_options()
+{
+    const Vec2F windowSize ( options.Window_Size );
+    world->camera.set_aspect(windowSize.x / windowSize.y);
+    world->camera.set_range(options.View_Distance);
 
-    auto& chaiEngine = mRpgApp.get_chai_engine();
-
-    chaiEngine.add_global(chai::var(&mbus), "mbus");
-    chaiEngine.add_global(chai::var(world.get()), "world");
-
-    on_Toggle_Chai_Console.func = [this](auto)
-    { this->mRpgApp.mouse_centre(); };
-
-    mbus.subscribe_back(on_Toggle_Chai_Console);
+    renderer->refresh_options();
 }
 
 //============================================================================//
 
-void MainScene::update_options()
+void MainScene::update()
 {
-    world->update_options();
-    renderer->update_options();
-}
-
-//============================================================================//
-
-bool MainScene::handle(sf::Event event)
-{
-    return false;
-}
-
-//============================================================================//
-
-void MainScene::tick()
-{
-    using KB = sf::Keyboard;
     mPosCrnt = mPosNext;
 
-    if (mRpgApp.get_chai_console().is_active() == false)
+    if (mEnableInput == true)
     {
-        if (KB::isKeyPressed(KB::PageUp)) mPosNext.z += 0.06f;
-        if (KB::isKeyPressed(KB::PageDown)) mPosNext.z -= 0.06f;
+        using Key = sq::Keyboard_Key;
 
-        if (KB::isKeyPressed(KB::Right) && !KB::isKeyPressed(KB::Left))
-            mPosNext += maths::rotate_z(Vec3F(+0.08f, 0.f, 0.f), mRotateZ);
-        if (KB::isKeyPressed(KB::Left) && !KB::isKeyPressed(KB::Right))
-            mPosNext += maths::rotate_z(Vec3F(-0.08f, 0.f, 0.f), mRotateZ);
+        Vec3F movement = { 0.f, 0.f, 0.f };
 
-        if (KB::isKeyPressed(KB::Up) && !KB::isKeyPressed(KB::Down))
-            mPosNext += maths::rotate_z(Vec3F(0.f, +0.08f, 0.f), mRotateZ);
-        if (KB::isKeyPressed(KB::Down) && !KB::isKeyPressed(KB::Up))
-            mPosNext += maths::rotate_z(Vec3F(0.f, -0.08f, 0.f), mRotateZ);
+        if (mInput.is_pressed( Key::PageUp   )) movement.z += 0.06f;
+        if (mInput.is_pressed( Key::PageDown )) movement.z -= 0.06f;
+
+        if (mInput.is_pressed( Key::Arrow_Right )) movement += maths::rotate_z(Vec3F(+0.08f, 0.f, 0.f), mRotateZ);
+        if (mInput.is_pressed( Key::Arrow_Left  )) movement += maths::rotate_z(Vec3F(-0.08f, 0.f, 0.f), mRotateZ);
+        if (mInput.is_pressed( Key::Arrow_Up    )) movement += maths::rotate_z(Vec3F(0.f, +0.08f, 0.f), mRotateZ);
+        if (mInput.is_pressed( Key::Arrow_Down  )) movement += maths::rotate_z(Vec3F(0.f, -0.08f, 0.f), mRotateZ);
+
+        if (mInput.is_pressed(Key::Shift_L) || mInput.is_pressed(Key::Shift_R)) movement *= 4.f;
+
+        mPosNext += movement;
     }
 
-    world->tick();
+    //--------------------------------------------------------//
+
+    sys::system_tick_animations(*world);
 }
 
 //============================================================================//
 
-void MainScene::render()
+void MainScene::render(double)
 {
-    const float tickPercent = float(accumulation) * 24.f;
+    const float tickPercent = float(mAccumulation) * 24.f;
 
-    world->tickPercent = tickPercent;
     renderer->tickPercent = tickPercent;
 
-    if (mRpgApp.get_chai_console().is_active() == false)
+    if (mEnableInput == true)
     {
-        const Vec2F mouseMove = mRpgApp.mouse_centre();
+        const Vec2F mouseMove = Vec2F(mInput.cursor_to_centre());
         mRotateZ += mouseMove.x / 1600.f; mRotateX += mouseMove.y / 2400.f;
         mRotateX = maths::clamp(mRotateX, -0.23f, +0.23f);
 
         const QuatF rotation = QuatF(mRotateX, 0.f, mRotateZ);
-        world->camera->PROP_position = maths::mix(mPosCrnt, mPosNext, tickPercent);
-        world->camera->PROP_direction = rotation * Vec3F(0.f, 1.f, 0.f);
+        world->camera.set_position(maths::mix(mPosCrnt, mPosNext, tickPercent));
+        world->camera.set_direction(rotation * Vec3F(0.f, 1.f, 0.f));
 
-        sq::Listener::set_position(world->camera->PROP_position);
+        sq::Listener::set_position(world->camera.get_position());
         sq::Listener::set_rotation(rotation);
     }
 
-    auto& stuff = sys::static_WorldStuff();
+    //--------------------------------------------------------//
 
-    sys::system_blend_animations(stuff, tickPercent);
+    world->deletedEntities.clear();
 
-    world->update();
+    sys::system_blend_animations(*world, tickPercent);
 
-    renderer->render_scene(world->sceneData);
+    sys::system_refresh_nesting(*world);
+    sys::system_refresh_transforms(*world);
+    sys::system_refresh_combo_sets(*world);
+    sys::system_refresh_culling(*world);
+
+    //--------------------------------------------------------//
+
+    renderer->render_scene(*world);
+}
+
+//============================================================================//
+
+void MainScene::set_input_enabled(bool enable)
+{
+    mEnableInput = enable;
+    mInput.cursor_to_centre();
 }

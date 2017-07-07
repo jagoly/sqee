@@ -10,17 +10,15 @@ using namespace sqt::render;
 
 namespace { // anonymous
 
-void impl_activate_material(Context& context, const sq::Shader& shader, const sq::Material& material)
+void impl_activate_material(Context& context, const sq::Program& program, const sq::Material& material)
 {
     const bool hasDiff = material.has_diffuse_texture();
     const bool hasNorm = material.has_normal_texture();
     const bool hasSpec = material.has_specular_texture();
+    program.update(2, Vec3I{ hasDiff, hasNorm, hasSpec });
 
-    const Vec3I mtrlMode { hasDiff, hasNorm, hasSpec };
-    shader.update<Vec3I>("mtrlMode", mtrlMode);
-
-    if (hasDiff == false) shader.update<Vec3F>("colourDiff", material.get_diffuse_colour());
-    if (hasSpec == false) shader.update<Vec3F>("colourSpec", material.get_specular_colour());
+    if (hasDiff == false) program.update(3, material.get_diffuse_colour());
+    if (hasSpec == false) program.update(4, material.get_specular_colour());
 
     if (hasDiff == true) context.bind_Texture(material.get_diffuse_texture(),  0u);
     if (hasNorm == true) context.bind_Texture(material.get_normal_texture(),   1u);
@@ -39,26 +37,17 @@ GbufferPasses::GbufferPasses(const SharedStuff& stuff) : SharedStuff(stuff)
         gl::COLOR_ATTACHMENT2, gl::COLOR_ATTACHMENT3
     });
 
-    VS_ModelPass_Simple.add_uniform("matrix"); // Mat4F
-    VS_ModelPass_Simple.add_uniform("normMat"); // Mat3F
-    VS_ModelPass_Skelly.add_uniform("matrix"); // Mat4F
-    VS_ModelPass_Skelly.add_uniform("normMat"); // Mat3F
+    processor.load_vertex(PROG_ModelPass_Simple, "gbuffer/ModelPass/Simple_vs");
+    processor.load_vertex(PROG_ModelPass_Skelly, "gbuffer/ModelPass/Skelly_vs");
+    processor.load_vertex(PROG_DecalPass_Decal, "gbuffer/DecalPass/Decal_vs");
 
-    FS_ModelPass_Model.add_uniform("mtrlMode"); // Vec3I
-    FS_ModelPass_Model.add_uniform("colourDiff"); // Vec3F
-    FS_ModelPass_Model.add_uniform("colourSpec"); // Vec3F
+    processor.load_fragment(PROG_ModelPass_Simple, "gbuffer/ModelPass/Model_fs");
+    processor.load_fragment(PROG_ModelPass_Skelly, "gbuffer/ModelPass/Model_fs");
+    processor.load_fragment(PROG_DecalPass_Decal, "gbuffer/DecalPass/Decal_fs");
 
-    shaders.preprocs(VS_ModelPass_Simple, "gbuffer/ModelPass/Simple_vs");
-    shaders.preprocs(VS_ModelPass_Skelly, "gbuffer/ModelPass/Skelly_vs");
-    shaders.preprocs(FS_ModelPass_Model, "gbuffer/ModelPass/Model_fs");
-
-    VS_DecalPass_Decal.add_uniform("modelView"); // Mat4F
-    FS_DecalPass_Decal.add_uniform("invModelView"); // Mat4F
-    FS_DecalPass_Decal.add_uniform("d_n_s"); // Vec3I
-    FS_DecalPass_Decal.add_uniform("alpha"); // float
-
-    shaders.preprocs(VS_DecalPass_Decal, "gbuffer/DecalPass/Decal_vs");
-    shaders.preprocs(FS_DecalPass_Decal, "gbuffer/DecalPass/Decal_fs");
+    PROG_ModelPass_Simple.link_program_stages();
+    PROG_ModelPass_Skelly.link_program_stages();
+    PROG_DecalPass_Decal.link_program_stages();
 }
 
 //============================================================================//
@@ -81,7 +70,7 @@ void GbufferPasses::render(const data::GbufferPasses& data)
     context.bind_FrameBuffer(FB_MainGbuffer);
     context.clear_Colour(Vec4F(0.f));
 
-    ////// sub passes //////
+    // render sub passes
     impl_render_ModelPasses(data.modelPasses);
     impl_render_DecalPasses(data.decalPasses);
 }
@@ -101,7 +90,7 @@ void GbufferPasses::impl_render_ModelPasses(const data::GbufferModelPasses& data
     context.set_state(Context::Stencil_Test::Disable);
     context.set_state(Context::Blend_Mode::Disable);
 
-    ////// sub passes //////
+    // render sub passes
     impl_render_ModelSimplePass(data.simplePass);
     impl_render_ModelSkellyPass(data.skellyPass);
 
@@ -113,20 +102,21 @@ void GbufferPasses::impl_render_ModelPasses(const data::GbufferModelPasses& data
 
 void GbufferPasses::impl_render_ModelSimplePass(const data::GbufferModelSimplePass& data)
 {
-    context.use_Shader_Vert(VS_ModelPass_Simple);
-    context.use_Shader_Frag(FS_ModelPass_Model);
+    /// Renders the gbuffer for all simple models.
+    /// Requires the completion of depth passes.
 
-    for (const auto& materialVecPair : data.partMap)
+    //--------------------------------------------------------//
+
+    context.bind_Program(PROG_ModelPass_Simple);
+
+    for (const auto& [material, models] : data.partMap)
     {
-        const auto& mtrl = materialVecPair.first;
-        const auto& models = materialVecPair.second;
-
-        impl_activate_material(context, FS_ModelPass_Model, *mtrl);
+        impl_activate_material(context, PROG_ModelPass_Simple, *material);
 
         for (const auto& model : models)
         {
-            VS_ModelPass_Simple.update<Mat4F>("matrix", model->matrix);
-            VS_ModelPass_Simple.update<Mat3F>("normMat", model->normMat);
+            PROG_ModelPass_Simple.update(0, model->matrix);
+            PROG_ModelPass_Simple.update(1, model->normMat);
 
             if (model->mirror) context.set_state(Context::Cull_Face::Front);
             else context.set_state(Context::Cull_Face::Back);
@@ -141,20 +131,21 @@ void GbufferPasses::impl_render_ModelSimplePass(const data::GbufferModelSimplePa
 
 void GbufferPasses::impl_render_ModelSkellyPass(const data::GbufferModelSkellyPass& data)
 {
-    context.use_Shader_Vert(VS_ModelPass_Skelly);
-    context.use_Shader_Frag(FS_ModelPass_Model);
+    /// Renders the gbuffer for all skelly models.
+    /// Requires the completion of depth passes.
 
-    for (const auto& materialVecPair : data.partMap)
+    //--------------------------------------------------------//
+
+    context.bind_Program(PROG_ModelPass_Skelly);
+
+    for (const auto& [material, models] : data.partMap)
     {
-        const auto& mtrl = materialVecPair.first;
-        const auto& models = materialVecPair.second;
-
-        impl_activate_material(context, FS_ModelPass_Model, *mtrl);
+        impl_activate_material(context, PROG_ModelPass_Skelly, *material);
 
         for (const auto& model : models)
         {
-            VS_ModelPass_Skelly.update<Mat4F>("matrix", model->matrix);
-            VS_ModelPass_Skelly.update<Mat3F>("normMat", model->normMat);
+            PROG_ModelPass_Skelly.update(0, model->matrix);
+            PROG_ModelPass_Skelly.update(1, model->normMat);
 
             if (model->mirror) context.set_state(Context::Cull_Face::Front);
             else context.set_state(Context::Cull_Face::Back);
@@ -185,7 +176,7 @@ void GbufferPasses::impl_render_DecalPasses(const data::GbufferDecalPasses& data
     context.bind_Texture(textures.Gbuffer_MainSpec, 6u);
     context.bind_Texture(textures.Depth_FullSize, 7u);
 
-    ////// sub passes //////
+    // render sub passes
     impl_render_DecalBasicPass(data.basicPass);
 }
 
@@ -193,21 +184,18 @@ void GbufferPasses::impl_render_DecalPasses(const data::GbufferDecalPasses& data
 
 void GbufferPasses::impl_render_DecalBasicPass(const data::GbufferDecalBasicPass& data)
 {
-    context.use_Shader_Vert(VS_DecalPass_Decal);
-    context.use_Shader_Frag(FS_DecalPass_Decal);
+    context.bind_Program(PROG_DecalPass_Decal);
 
-    for (const auto& materialVecPair : data.decalMap)
+    for (const auto& [material, decals] : data.decalMap)
     {
-        const auto& mtrl = materialVecPair.first;
-        const auto& decals = materialVecPair.second;
-
-        impl_activate_material(context, FS_DecalPass_Decal, *mtrl);
+        impl_activate_material(context, PROG_DecalPass_Decal, *material);
 
         for (const auto& decal : decals)
         {
-            VS_DecalPass_Decal.update<Mat4F>("modelView", decal.matrix);
-            FS_DecalPass_Decal.update<Mat4F>("invModelView", decal.invMatrix);
-            FS_DecalPass_Decal.update<float>("alpha", decal.alpha);
+            PROG_DecalPass_Decal.update(0, decal.matrix);
+            PROG_DecalPass_Decal.update(1, decal.invMatrix);
+            PROG_DecalPass_Decal.update(3, decal.alpha);
+
             volumes.Unit_Cube.bind_and_draw(context);
         }
     }

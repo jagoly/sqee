@@ -2,35 +2,47 @@
 
 #include <unordered_map>
 
-#include <sqee/gl/Shaders.hpp>
+#include <sqee/gl/Program.hpp>
 
 namespace sq {
 
 //============================================================================//
 
-/// The SQEE GLSL PreProcessor
+/// The SQEE GLSL PreProcessor.
 class PreProcessor final : NonCopyable
 {
-public:
+public: //====================================================//
 
-    //========================================================//
-
-    /// Constructor
+    /// Constructor.
     PreProcessor();
 
-    //========================================================//
+    //--------------------------------------------------------//
 
+    /// Import a header from a file.
     void import_header(const string& path);
+
+    /// Update a header from a string.
     void update_header(const string& key, const string& string);
 
-    void load(Shader& shader, const string& path, const string& extra = "") const;
-    void operator()(Shader& shader, const string& path, const string& extra = "") const;
+    //--------------------------------------------------------//
 
-private:
+    /// Process a GLSL shader source file.
+    string process(const string& path, const string& prelude) const;
 
-    //========================================================//
+    //--------------------------------------------------------//
 
-    std::unordered_map<string, vector<string>> mHeaders;
+    /// Load a GLSL vertex shader into a Program.
+    void load_vertex(Program& program, const string& path, const string& prelude = "") const;
+
+    /// Load a GLSL geometry shader into a Program.
+    void load_geometry(Program& program, const string& path, const string& prelude = "") const;
+
+    /// Load a GLSL fragment shader into a Program.
+    void load_fragment(Program& program, const string& path, const string& prelude = "") const;
+
+private: //===================================================//
+
+    std::unordered_map<string, std::vector<string>> mHeaders;
 };
 
 //============================================================================//

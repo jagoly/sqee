@@ -1,14 +1,14 @@
 // GLSL Vertex Shader
 
-layout(location=0) in vec3 V_pos;
+//============================================================================//
 
-uniform mat4 matrix;
+layout(location=0) in vec3 v_Position;
 
-out gl_PerVertex {
-    vec4 gl_Position;
-};
+layout(location=0) uniform mat4 u_Matrix;
 
+//============================================================================//
 
-void main() {
-    gl_Position = matrix * vec4(V_pos, 1.f);
+void main()
+{
+    gl_Position = u_Matrix * vec4(v_Position, 1.f);
 }

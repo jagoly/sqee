@@ -1,10 +1,12 @@
 // GLSL Uniform Block
 
-struct LightCascBlock {
-    vec3 direction;    // 3
-    uint cascadeCount; // 1
-    vec3 colour;       // 3
-    float cascadeSize; // 1
-    mat4 matrices[6];  // 96
-    // Size: 104
+struct LightCascBlock
+{
+    vec3 direction;    //  12
+    uint cascadeCount; //   4
+    vec3 colour;       //  12
+    float cascadeSize; //   4
+    mat4 matrices[6];  // 384
+
+    // TOTAL: 416
 };

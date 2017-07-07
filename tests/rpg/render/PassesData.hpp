@@ -13,26 +13,19 @@
 #include <sqee/render/Material.hpp>
 #include <sqee/render/Armature.hpp>
 
-#include "../helpers.hpp"
-
-namespace sqt {
-
-struct SceneData;
-
-namespace render { namespace data {
-
+namespace sqt::render::data {
 
 //============================================================================//
-// Depth Passes Data /////
+//  Depth Passes Data                                                         //
 //============================================================================//
 
 struct DepthModelSimplePass
 {
     struct Full // a model with no punch materials
     {
-        const sq::Mesh& mesh; // reference to the mesh
-        const Mat4F matrix;   // model-view-proj matrix
-        const bool mirror;    // sign of determinant
+        const sq::Mesh& mesh;  // reference to the mesh
+        const Mat4F matrix;    // model-view-proj matrix
+        const bool mirror;     // sign of determinant
     };
 
     struct Part // a single sub-mesh of the model
@@ -44,16 +37,16 @@ struct DepthModelSimplePass
     };
 
     // vector containing fully solid models
-    vector<Full> solidFullVec;
+    std::vector<Full> solidFullVec;
 
     // vector containing solid sub-meshes
-    vector<Part> solidPartVec;
+    std::vector<Part> solidPartVec;
 
     // map of mask textures to vectors of sub-meshes
-    std::map<const sq::Texture2D*, vector<Part>> punchPartMap;
+    std::map<const sq::Texture2D*, std::vector<Part>> punchPartMap;
 };
 
-//========================================================//
+//----------------------------------------------------------------------------//
 
 struct DepthModelSkellyPass
 {
@@ -75,16 +68,16 @@ struct DepthModelSkellyPass
     };
 
     // vector containing fully solid models
-    vector<Full> solidFullVec;
+    std::vector<Full> solidFullVec;
 
     // vector containing solid sub-meshes
-    vector<Part> solidPartVec;
+    std::vector<Part> solidPartVec;
 
     // map of mask textures to vectors of sub-meshes
-    std::map<const sq::Texture2D*, vector<Part>> punchPartMap;
+    std::map<const sq::Texture2D*, std::vector<Part>> punchPartMap;
 };
 
-//========================================================//
+//----------------------------------------------------------------------------//
 
 struct DepthPasses
 {
@@ -94,7 +87,7 @@ struct DepthPasses
 
 
 //============================================================================//
-// Gbuffer Passes Data /////
+//  Gbuffer Passes Data                                                       //
 //============================================================================//
 
 struct GbufferModelSimplePass
@@ -115,13 +108,13 @@ struct GbufferModelSimplePass
     };
 
     // vector containing shared base data
-    vector<Base> baseVec;
+    std::vector<Base> baseVec;
 
     // map of materials to vectors of sub-meshes
-    std::map<const sq::Material*, vector<Part>> partMap;
+    std::map<const sq::Material*, std::vector<Part>> partMap;
 };
 
-//========================================================//
+//----------------------------------------------------------------------------//
 
 struct GbufferModelSkellyPass
 {
@@ -142,13 +135,13 @@ struct GbufferModelSkellyPass
     };
 
     // vector containing shared base data
-    vector<Base> baseVec;
+    std::vector<Base> baseVec;
 
     // map of materials to vectors of sub-meshes
-    std::map<const sq::Material*, vector<Part>> partMap;
+    std::map<const sq::Material*, std::vector<Part>> partMap;
 };
 
-//========================================================//
+//----------------------------------------------------------------------------//
 
 struct GbufferDecalBasicPass
 {
@@ -160,10 +153,10 @@ struct GbufferDecalBasicPass
     };
 
     // map of materials to vectors of decals
-    std::map<const sq::Material*, vector<Decal>> decalMap;
+    std::map<const sq::Material*, std::vector<Decal>> decalMap;
 };
 
-//========================================================//
+//----------------------------------------------------------------------------//
 
 struct GbufferModelPasses
 {
@@ -184,7 +177,7 @@ struct GbufferPasses
 
 
 //============================================================================//
-// Shadows Passes Data /////
+//  Shadows Passes Data                                                       //
 //============================================================================//
 
 struct ShadowsPass // data for a single shadow map pass
@@ -194,19 +187,19 @@ struct ShadowsPass // data for a single shadow map pass
     DepthPasses depthPasses;    // the actual depth pass data
 };
 
-//========================================================//
+//----------------------------------------------------------------------------//
 
 struct ShadowsPasses
 {
-    vector<ShadowsPass> cascPassVec;
-    vector<ShadowsPass> orthoPassVec;
-    vector<ShadowsPass> pointPassVec;
-    vector<ShadowsPass> spotPassVec;
+    std::vector<ShadowsPass> cascPassVec;
+    std::vector<ShadowsPass> orthoPassVec;
+    std::vector<ShadowsPass> pointPassVec;
+    std::vector<ShadowsPass> spotPassVec;
 };
 
 
 //============================================================================//
-// LightBase Passes Data /////
+//  LightBase Passes Data                                                     //
 //============================================================================//
 
 struct LightBaseSkyBoxPass // data for a single skybox pass
@@ -215,14 +208,14 @@ struct LightBaseSkyBoxPass // data for a single skybox pass
     const Vec4F params;         // saturation, brightness, contrast, opacity
 };
 
-//========================================================//
+//----------------------------------------------------------------------------//
 
 struct LightBaseAmbientPass // data for a single ambient pass
 {
     const Vec3F colour; // ambient lighting colour
 };
 
-//========================================================//
+//----------------------------------------------------------------------------//
 
 struct LightBasePasses
 {
@@ -232,7 +225,7 @@ struct LightBasePasses
 
 
 //============================================================================//
-// LightAccum Passes Data /////
+//  LightAccum Passes Data                                                    //
 //============================================================================//
 
 struct LightAccumSkyLightPass // data for a single cascade light pass
@@ -241,7 +234,7 @@ struct LightAccumSkyLightPass // data for a single cascade light pass
     const sq::TextureArray2D& tex; // reference to light's shadow texture
 };
 
-//========================================================//
+//----------------------------------------------------------------------------//
 
 struct LightAccumStencilPass // data for a single non-cascade light pass
 {
@@ -250,19 +243,19 @@ struct LightAccumStencilPass // data for a single non-cascade light pass
     const Mat4F matrix;           // model-view-projection matrix
 };
 
-//========================================================//
+//----------------------------------------------------------------------------//
 
 struct LightAccumPasses
 {
     unique_ptr<LightAccumSkyLightPass> skylightPass;
-    vector<LightAccumStencilPass> orthoPassVec;
-    vector<LightAccumStencilPass> pointPassVec;
-    vector<LightAccumStencilPass> spotPassVec;
+    std::vector<LightAccumStencilPass> orthoPassVec;
+    std::vector<LightAccumStencilPass> pointPassVec;
+    std::vector<LightAccumStencilPass> spotPassVec;
 };
 
 
 //============================================================================//
-// Volumetric Passes Data /////
+//  Volumetric Passes Data                                                    //
 //============================================================================//
 
 struct VolumetricSkyLightPass // data for a single cascade light pass
@@ -271,7 +264,7 @@ struct VolumetricSkyLightPass // data for a single cascade light pass
     const sq::TextureArray2D& tex; // reference to light's shadow texture
 };
 
-//========================================================//
+//----------------------------------------------------------------------------//
 
 struct VolumetricStencilPass // data for a single non-cascade light pass
 {
@@ -281,29 +274,36 @@ struct VolumetricStencilPass // data for a single non-cascade light pass
     const bool stencil;           // is the camera outside of the volume
 };
 
-//========================================================//
+//----------------------------------------------------------------------------//
 
 struct VolumetricPasses
 {
     unique_ptr<VolumetricSkyLightPass> skylightPass;
-    vector<VolumetricStencilPass> orthoPassVec;
-    vector<VolumetricStencilPass> pointPassVec;
-    vector<VolumetricStencilPass> spotPassVec;
+    std::vector<VolumetricStencilPass> orthoPassVec;
+    std::vector<VolumetricStencilPass> pointPassVec;
+    std::vector<VolumetricStencilPass> spotPassVec;
 };
+
 
 //============================================================================//
 
-} // namespace data
+} // namespace sqt::render::data
 
+//============================================================================//
 
-class ObjectsData; // Forward Declaration
+namespace sqt { class RenderStuff; class WorldStuff; };
 
+//============================================================================//
+
+namespace sqt::render {
+
+//============================================================================//
 
 class PassesData : sq::NonCopyable
 {
 public:
 
-    void prepare(const ObjectsData& objects);
+    void prepare(const WorldStuff& wstuff, const RenderStuff& rstuff);
 
     data::DepthPasses depthData;
     data::GbufferPasses gbufferData;
@@ -314,23 +314,22 @@ public:
 
 private:
 
-    void prepare_depth_models(const ObjectsData& objects);
+    void prepare_depth_models(const RenderStuff& stuff);
 
-    void prepare_gbuffer_models(const ObjectsData& objects);
-    void prepare_gbuffer_decals(const ObjectsData& objects);
+    void prepare_gbuffer_models(const RenderStuff& stuff);
+    void prepare_gbuffer_decals(const RenderStuff& stuff);
 
-    void prepare_lighting_basic(const ObjectsData& objects);
-    void prepare_lighting_accum(const ObjectsData& objects);
+    void prepare_lighting_basic(const RenderStuff& stuff);
+    void prepare_lighting_accum(const RenderStuff& stuff);
 
-    void prepare_shadow_mapping(const ObjectsData& objects);
+    void prepare_shadow_mapping(const RenderStuff& stuff, const WorldStuff& wstuff);
 
     sq::dop::Group mVisibleSet;
     sq::dop::Group mModelSimpleSet;
     sq::dop::Group mModelSkellySet;
+    sq::dop::Group mLightOrthoSet;
+    sq::dop::Group mLightPointSet;
     sq::dop::Group mLightSpotSet;
-
-    //std::set<const sq::Entity*> visibleOrthoSet, visibleSpotSet;
-    //std::map<const sq::Entity*, array<bool, 6>> visiblePointMap;
 };
 
-}} // namespace sqt::render
+} // namespace sqt::render

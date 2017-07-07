@@ -1,9 +1,8 @@
 #include <fstream>
+#include <optional>
 
-#include <experimental/optional>
-
-#include <sqee/redist/gl_ext_4_2.hpp>
-#include <sqee/redist/json.hpp>
+#include <sqee/redist/gl_loader.hpp>
+#include <sqee/redist/nl_json.hpp>
 
 #include <sqee/debug/Logging.hpp>
 #include <sqee/gl/Textures.hpp>
@@ -15,11 +14,9 @@
 using namespace sq;
 using Json = nlohmann::json;
 
-using std::experimental::optional;
-
 namespace { // anonymous
 
-optional<Vec3F> impl_as_Vec3F(const string& str)
+std::optional<Vec3F> impl_as_Vec3F(const string& str)
 {
     SQASSERT(str.size() >= 11u, "");
     SQASSERT(str.front() != ' ', "");
@@ -52,7 +49,7 @@ optional<Vec3F> impl_as_Vec3F(const string& str)
     return result;
 }
 
-optional<string> impl_try_get(const Json& json, const string& key)
+std::optional<string> impl_try_get(const Json& json, const string& key)
 {
     const auto iter = json.find(key);
     if (iter == json.end()) return {};
@@ -61,7 +58,7 @@ optional<string> impl_try_get(const Json& json, const string& key)
 
 } // anonymous namespace
 
-Material::Material(const string& path, Texture2D::AcquireFunc acquireTexture)
+Material::Material(const string& path, ResourceCache<Texture2D>& textures)
 {
     const string::size_type splitPos = path.find(':');
     log_assert(splitPos != string::npos, "bad path '%s'", path);
@@ -75,22 +72,22 @@ Material::Material(const string& path, Texture2D::AcquireFunc acquireTexture)
     if (auto diffuse = impl_try_get(json, "diffuse"))
     {
         if (auto o = impl_as_Vec3F(*diffuse)) mDiffuseColour = *o;
-        else mDiffuseTexture = acquireTexture(*diffuse);
+        else mDiffuseTexture = textures.acquire(*diffuse);
     }
 
     if (auto normal = impl_try_get(json, "normal"))
     {
-        mNormalTexture = acquireTexture(*normal);
+        mNormalTexture = textures.acquire(*normal);
     }
 
     if (auto specular = impl_try_get(json, "specular"))
     {
         if (auto o = impl_as_Vec3F(*specular)) mSpecularColour = *o;
-        else mSpecularTexture = acquireTexture(*specular);
+        else mSpecularTexture = textures.acquire(*specular);
     }
 
     if (auto mask = impl_try_get(json, "mask"))
     {
-        mMaskTexture = acquireTexture(*mask);
+        mMaskTexture = textures.acquire(*mask);
     }
 }

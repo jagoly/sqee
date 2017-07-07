@@ -1,92 +1,109 @@
 // GLSL Fragment Shader
 
-// define SHADOW
+// #define SHADOW
 
-in vec2 texcrd;
+//============================================================================//
 
 #include runtime/Options
+
+#include builtin/funcs/position
+
 #include headers/blocks/Camera
 #include headers/blocks/LightOrtho
 
-layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
-layout(std140, binding=1) uniform LIGHTBLOCK { LightOrthoBlock LB; };
+layout(std140, binding=0) uniform CAMERA { CameraBlock CB; };
+layout(std140, binding=1) uniform LIGHT { LightOrthoBlock LB; };
 
-layout(binding=3) uniform sampler2D defrDiff;
-layout(binding=4) uniform sampler2D defrSurf;
-layout(binding=5) uniform sampler2D defrNorm;
-layout(binding=6) uniform sampler2D defrSpec;
-layout(binding=7) uniform sampler2D defrDepth;
+//============================================================================//
 
-out vec3 fragColour;
+in vec2 texcrd;
 
+layout(binding=3) uniform sampler2D tex_GbufDiff;
+layout(binding=4) uniform sampler2D tex_GbufSurf;
+layout(binding=5) uniform sampler2D tex_GbufNorm;
+layout(binding=6) uniform sampler2D tex_GbufSpec;
+layout(binding=7) uniform sampler2D tex_Depth;
+
+out vec3 frag_Colour;
+
+//============================================================================//
 
 #ifdef SHADOW
+
 #include headers/shadow/sample_ortho
-layout(binding=8) uniform sampler2DShadow texShad;
-float get_shadow_value(vec3 _wpos, vec3 _wsurf) {
-    vec3 normPos = _wpos + _wsurf*0.05f;
+layout(binding=8) uniform sampler2DShadow tex_Shadow;
+
+float get_shadow_value(vec3 wPos, vec3 wSurf)
+{
+    vec3 normPos = wPos + wSurf * 0.05f;
     vec4 sc = LB.matrix * vec4(normPos, 1.f);
     vec3 shadcrd = sc.xyz / sc.w * 0.5f + 0.5f;
-    float bias = get_bias(_wsurf, LB.direction);
 
-   #if defined OPTION_SHADOWS_FILTER && defined OPTION_SHADOWS_LARGE
-    return sample_shadow_x16(shadcrd, bias, 1.f / 1024.f, texShad);
-   #elif defined OPTION_SHADOWS_FILTER
-    return sample_shadow_x8(shadcrd, bias, 1.f / 1024.f, texShad);
-   #else
-    return sample_shadow(shadcrd, bias, texShad);
-   #endif
+    float bias = get_bias(wSurf, LB.direction);
+
+    #if defined OPTION_SHADOWS_FILTER && defined OPTION_SHADOWS_LARGE
+    return sample_shadow_x16(tex_Shadow, shadcrd, bias, 1.f / 1024.f);
+    #elif defined OPTION_SHADOWS_FILTER
+    return sample_shadow_x8(tex_Shadow, shadcrd, bias, 1.f / 1024.f);
+    #else
+    return sample_shadow(tex_Shadow, shadcrd, bias);
+    #endif
 }
+
 #endif
 
+//============================================================================//
 
-vec3 get_diffuse_value(vec3 _lightDir, vec3 _normal) {
-    vec3 txDiff = texture(defrDiff, texcrd).rgb;
-    float dotProd = max(dot(-_lightDir, _normal), 0.f);
-    return LB.colour * txDiff * dotProd;
+vec3 get_diffuse_value(vec3 dirToLight, vec3 viewNorm)
+{
+    vec3 texel = texture(tex_GbufDiff, texcrd).rgb;
+    float dotProd = max(dot(dirToLight, viewNorm), 0.f);
+    
+    return LB.colour * texel * dotProd;
 }
 
-
-vec3 get_specular_value(vec3 _lightDir, vec3 _normal, vec3 _position) {
-    vec3 txSpec = texture(defrSpec, texcrd).rgb;
-    vec3 reflection = reflect(_lightDir, _normal);
-    vec3 dirFromCam = normalize(-_position);
+vec3 get_specular_value(vec3 dirToLight, vec3 viewNorm, vec3 viewPos)
+{
+    vec3 texel = texture(tex_GbufSpec, texcrd).rgb;
+    vec3 reflection = reflect(-dirToLight, viewNorm);
+    vec3 dirFromCam = normalize(-viewPos);
     float factor = pow(max(dot(dirFromCam, reflection), 0.f), 33.f);
-    return LB.colour * txSpec * factor * 0.66f;
+
+    return LB.colour * texel * factor * 0.66f;
 }
 
+//============================================================================//
 
-vec3 get_view_pos(in vec2 _tc) {
-    float dep = texture(defrDepth, _tc).r * 2.f - 1.f;
-    vec4 p_pos = vec4(_tc * 2.f - 1.f, dep, 1.f);
-    vec4 v_pos = CB.invProj * p_pos;
-    return v_pos.xyz / v_pos.w;
-}
+void main()
+{
+    const vec3 viewPos = get_view_pos(tex_Depth, texcrd, CB.invProjMat);
+    const vec3 worldPos = get_world_pos(viewPos, CB.invViewMat);
 
+    const vec3 viewSurf = normalize(texture(tex_GbufSurf, texcrd).rgb);
+    const vec3 worldSurf = vec3(CB.trnViewMat * vec4(viewSurf, 0.f));
 
-void main() {
-    vec3 v_pos = get_view_pos(texcrd);
-    vec4 wp = CB.invView * vec4(v_pos, 1.f);
-    vec3 w_pos = wp.xyz / wp.w;
+    const vec3 viewNorm = normalize(texture(tex_GbufNorm, texcrd).rgb);
+    const vec3 worldNorm = vec3(CB.trnViewMat * vec4(viewNorm, 0.f));
 
-    vec3 v_surf = normalize(texture(defrSurf, texcrd).rgb);
-    vec3 w_surf = normalize(vec3(CB.trnView * vec4(v_surf, 0.f)));
-    vec3 v_norm = normalize(texture(defrNorm, texcrd).rgb);
-    vec3 w_norm = normalize(vec3(CB.trnView * vec4(v_norm, 0.f)));
+    //--------------------------------------------------------//
 
-    vec3 v_ldir = mat3(CB.view) * normalize(LB.direction);
+    const vec3 dirToLight = mat3(CB.viewMat) * normalize(-LB.direction);
 
-    //if (dot(-LB.direction, w_norm) < -0.25f) discard;
-   
-    float shad = 1.f;
+    //if (dot(-LB.direction, worldNorm) < -0.25f) discard;
+
+    //--------------------------------------------------------//
+
+    float shadow = 1.f;
+
     #ifdef SHADOW
-    shad = get_shadow_value(w_pos, w_surf);
-    if (shad == 0.f) discard;
+    shadow = get_shadow_value(worldPos, worldSurf);
+    if (shadow == 0.f) discard;
     #endif
 
-    vec3 value = get_diffuse_value(v_ldir, v_norm);
+    //--------------------------------------------------------//
 
-    value += get_specular_value(v_ldir, v_norm, v_pos);
+    const vec3 diff = get_diffuse_value(dirToLight, viewNorm);
+    const vec3 spec = get_specular_value(dirToLight, viewNorm, viewPos);
 
-    fragColour = value * shad;
+    frag_Colour = (diff + spec) * shadow;
 }

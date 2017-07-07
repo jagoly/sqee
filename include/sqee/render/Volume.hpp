@@ -1,6 +1,7 @@
 #pragma once
 
-#include <sqee/builtins.hpp>
+#include <sqee/maths/Vectors.hpp>
+
 #include <sqee/gl/VertexArray.hpp>
 #include <sqee/gl/FixedBuffer.hpp>
 
@@ -8,31 +9,34 @@ namespace sq {
 
 //============================================================================//
 
-class Context; // Forward Declaration
-
-//============================================================================//
-
-/// The SQEE Volume class
+/// Tiny position-only mesh object.
 class Volume final : public MoveOnly
 {
-public:
+public: //====================================================//
 
-    //========================================================//
+    /// Constructor.
+    /// @param vertices pointer to array of vertices
+    /// @param indices pointer to array of indices
+    /// @param vertexCount number of vertices to use
+    /// @param indexCount number of indices to use
 
-    Volume(const float* vertices, const uchar* indices, uchar vertexCount, uchar indexCount);
+    Volume ( const float* vertices, const uchar* indices,
+             uint8_t vertexCount, uint8_t indexCount );
 
+    //--------------------------------------------------------//
+
+    /// Bind the vao to the context and draw the mesh.
     void bind_and_draw(Context& context) const;
 
-private:
+private: //===================================================//
 
-    //========================================================//
+    VertexArray mVertexArray;
 
-    VertexArray mVAO;
     FixedBuffer mVertexBuffer;
     FixedBuffer mIndexBuffer;
 
-    const uint mVertexCount;
-    const uint mIndexCount;
+    const uint8_t mVertexCount;
+    const uint8_t mIndexCount;
 };
 
 //============================================================================//

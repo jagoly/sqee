@@ -1,25 +1,27 @@
 // GLSL Vertex Shader
 
-layout(location=0) in vec3 V_pos;
-layout(location=1) in vec2 V_texcrd;
-layout(location=2) in vec3 V_norm;
-layout(location=3) in vec4 V_tan;
+//============================================================================//
 
-uniform mat4 matrix;
-uniform mat3 normMat;
+layout(location=0) in vec3 v_Position;
+layout(location=1) in vec2 v_TexCoord;
+layout(location=2) in vec3 v_Normal;
+layout(location=3) in vec4 v_Tangent;
+
+layout(location=0) uniform mat4 u_Matrix;
+layout(location=1) uniform mat3 u_NormMat;
 
 out vec2 texcrd;
 out vec3 N, T, B;
 
-out gl_PerVertex {
-    vec4 gl_Position;
-};
+//============================================================================//
 
+void main()
+{
+    texcrd = v_TexCoord;
 
-void main() {
-    texcrd = V_texcrd;
-    N = normalize(normMat * V_norm);
-    T = normalize(normMat * V_tan.xyz);
-    B = normalize(normMat * cross(V_norm, V_tan.xyz) * V_tan.w);
-    gl_Position = matrix * vec4(V_pos, 1.f);
+    N = normalize(u_NormMat * v_Normal);
+    T = normalize(u_NormMat * v_Tangent.xyz);
+    B = normalize(u_NormMat * cross(v_Normal, v_Tangent.xyz) * v_Tangent.w);
+
+    gl_Position = u_Matrix * vec4(v_Position, 1.f);
 }

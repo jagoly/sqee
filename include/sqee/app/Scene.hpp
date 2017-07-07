@@ -2,46 +2,39 @@
 
 #include <sqee/setup.hpp>
 
-// Forward Declaration /////
-namespace sf { class Event; }
-
 namespace sq {
 
 //============================================================================//
 
-/// The SQEE Scene Class
-class Scene : sq::NonCopyable
+/// The SQEE Scene base class.
+class Scene : NonCopyable
 {
-public:
+public: //====================================================//
 
-    //========================================================//
-
-    /// Constructor
+    /// Constructor.
     Scene(double tickTime);
 
-    /// Virtual Destructor
+    /// Virtual Destructor.
     virtual ~Scene() = default;
 
-    //========================================================//
+    //--------------------------------------------------------//
 
-    /// called when a global option changes
-    virtual void update_options() = 0;
+    /// Call to update and then render the scene.
+    void update_and_render(double elapsed);
 
-    /// called when an event reaches this scene
-    virtual bool handle(sf::Event event) = 0;
+protected: //=================================================//
 
-    //========================================================//
+    /// Implement to simulate one tick.
+    virtual void update() = 0;
 
-    /// called once every tick
-    virtual void tick() = 0;
+    /// Implement to render the scene.
+    virtual void render(double elapsed) = 0;
 
-    /// called once every frame
-    virtual void render() = 0;
+    //--------------------------------------------------------//
 
-    //========================================================//
+    const double mTickTime;
 
-    double accumulation = 0.0;
-    const double tickTime;
+    double mAccumulation = 0.0;
 };
 
 //============================================================================//

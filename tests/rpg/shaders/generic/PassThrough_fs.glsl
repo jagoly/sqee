@@ -5,7 +5,7 @@
 in vec2 texcrd;
 
 #ifdef LAYER
-uniform int layer;
+layout(location=0) uniform int layer;
 layout(binding=0) uniform sampler2DArray tex;
 #else
 layout(binding=0) uniform sampler2D tex;

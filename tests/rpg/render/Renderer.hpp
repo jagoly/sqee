@@ -2,18 +2,21 @@
 
 #include <sqee/builtins.hpp>
 #include <sqee/app/MessageBus.hpp>
+#include <sqee/app/PreProcessor.hpp>
 
 #include "../messages.hpp"
 
 namespace sqt {
 
-struct SceneData;
+class WorldStuff;
+class RenderStuff;
+
+class Options;
 
 namespace render {
 
 struct StencilVolumes;
 struct TargetTextures;
-struct GenericShaders;
 
 class DepthPasses;
 class GbufferPasses;
@@ -24,36 +27,31 @@ class VolumetricPasses;
 class CompositePasses;
 class EffectsPasses;
 
+class PassesData;
+
 } // namespace render
 
-class Renderer final : sq::NonCopyable
+class Renderer final
 {
 public:
 
-    Renderer(sq::MessageBus& _messageBus);
+    Renderer(const Options& options);
 
     ~Renderer();
 
-    void update_options();
-    void render_scene(const SceneData& _scene);
+    void refresh_options();
+    void render_scene(const WorldStuff& wstuff);
 
     float tickPercent = 0.f;
 
 private:
 
-    sq::MessageBus& messageBus;
+    sq::PreProcessor mProcessor;
 
-    sq::Receiver<msg::Enable_SkyBox> on_Enable_SkyBox;
-    sq::Receiver<msg::Enable_Ambient> on_Enable_Ambient;
-    sq::Receiver<msg::Enable_SkyLight> on_Enable_SkyLight;
-
-    sq::Receiver<msg::Disable_SkyBox> on_Disable_SkyBox;
-    sq::Receiver<msg::Disable_Ambient> on_Disable_Ambient;
-    sq::Receiver<msg::Disable_SkyLight> on_Disable_SkyLight;
+    unique_ptr<RenderStuff> mRenderStuff;
 
     unique_ptr<render::StencilVolumes> volumes;
     unique_ptr<render::TargetTextures> textures;
-    unique_ptr<render::GenericShaders> shaders;
 
     unique_ptr<render::DepthPasses> depthDraw;
     unique_ptr<render::GbufferPasses> gbufferDraw;
@@ -64,9 +62,9 @@ private:
     unique_ptr<render::CompositePasses> compositeDraw;
     unique_ptr<render::EffectsPasses> effectsDraw;
 
-    struct Impl;
-    friend struct Impl;
-    unique_ptr<Impl> impl;
+    unique_ptr<render::PassesData> mPassesData;
+
+    const Options& options;
 };
 
 } // namespace sqt

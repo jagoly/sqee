@@ -11,65 +11,77 @@ namespace sq {
 
 //============================================================================//
 
-/// The SQEE Mesh Class
+/// The SQEE Mesh class.
 class Mesh final : public MoveOnly
 {
-public:
+public: //====================================================//
 
-    //========================================================//
-
-    /// Constructor
-    Mesh();
-
-    //========================================================//
-
-    /// Load mesh from a loose sqm file
+    /// Load the mesh from an SQM file.
     void load_from_file(const string& path);
 
-    //========================================================//
+    //--------------------------------------------------------//
 
-    uint get_sub_mesh_count() const { return mSubMeshVec.size(); }
-
-    //========================================================//
-
+    /// Check if the mesh has the TexCoord attribute.
     bool has_TCRD() const { return mOptionsBits & 0b10000; }
+
+    /// Check if the mesh has the Normal attribute.
     bool has_NORM() const { return mOptionsBits & 0b01000; }
+
+    /// Check if the mesh has the Tangent attribute.
     bool has_TANG() const { return mOptionsBits & 0b00100; }
+
+    /// Check if the mesh has the Colour attribute.
     bool has_COLR() const { return mOptionsBits & 0b00010; }
+
+    /// Check if the mesh has Bones & Weights attributes.
     bool has_BONE() const { return mOptionsBits & 0b00001; }
 
-    //========================================================//
+    //--------------------------------------------------------//
 
-    void draw_complete() const;
-    void draw_partial(uint index) const;
+    /// Access the mesh's vertex array object.
+    const VertexArray& get_vao() const { return mVertexArray; }
 
-    //========================================================//
+    /// Get the number of sub-meshes the mesh has.
+    uint get_sub_mesh_count() const { return uint(mSubMeshVec.size()); }
 
-    const VertexArray& get_vao() const { return mVAO; }
+    //--------------------------------------------------------//
 
-    //========================================================//
-
+    /// Access the mesh's bounding box origin.
     const Vec3F& get_origin() const { return mOrigin; }
+
+    /// Access the mesh's bounding box extents.
     const Vec3F& get_extents() const { return mExtents; }
+
+    /// Access the mesh's bounding box radius.
     const float& get_radius() const { return mRadius; }
 
-    //========================================================//
+    //--------------------------------------------------------//
 
-    /// Load an sq::Mesh from sqee packages
+    /// Draw the full mesh.
+    void draw_complete() const;
+
+    /// Draw the specified sub-mesh.
+    void draw_partial(uint index) const;
+
+    //--------------------------------------------------------//
+
+    /// Create a new sq::Mesh from sqee packages.
     static unique_ptr<Mesh> make_from_package(const string& path);
 
-private:
+private: //===================================================//
 
-    //========================================================//
+    uint8_t mOptionsBits = 0b00000;
 
-    Vec3F mOrigin, mExtents;
-    float mRadius = 0.f;
-
-    uchar mOptionsBits = 0b00000;
+    VertexArray mVertexArray;
 
     FixedBuffer mVertexBuffer;
     FixedBuffer mIndexBuffer;
-    VertexArray mVAO;
+
+    //--------------------------------------------------------//
+
+    uint mVertexSize = 0u;
+    uint mVertexTotal = 0u;
+    uint mIndexTotal = 0u;
 
     struct SubMesh
     {
@@ -77,17 +89,19 @@ private:
         uint firstIndex, indexCount;
     };
 
-    vector<SubMesh> mSubMeshVec;
+    std::vector<SubMesh> mSubMeshVec;
 
-    uint mVertexSize = 0u;
-    uint mVertexTotal = 0u;
-    uint mIndexTotal = 0u;
+    //--------------------------------------------------------//
 
-    //========================================================//
+    Vec3F mOrigin = Vec3F();
+    Vec3F mExtents = Vec3F();
+    float mRadius = 0.f;
+
+    //--------------------------------------------------------//
 
     void impl_load_ascii(const string& path);
 
-    void impl_load_final(const vector<uchar>& vertexData, const vector<uint>& indexData);
+    void impl_load_final(const std::vector<uchar>& vertexData, const std::vector<uint>& indexData);
 };
 
 //============================================================================//

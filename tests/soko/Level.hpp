@@ -8,27 +8,34 @@
 
 namespace sqt {
 
-struct Ball {
-    using Ptr = unique_ptr<Ball>;
+//============================================================================//
+
+struct Ball
+{
     Vec2F posCrnt, posNext;
-    bool pushed, inhole;
+    bool pushed, complete;
     Vec2I position;
 };
 
-struct Hole {
-    using Ptr = unique_ptr<Hole>;
-    bool filled; Vec2I position;
-};
-
-struct Wall {
-    using Ptr = unique_ptr<Wall>;
-    uchar connect, rotate;
+struct Hole
+{
+    bool complete;
     Vec2I position;
 };
 
-class Level {
-public:
-    struct Spec {
+struct Wall
+{
+    Vec2I position;
+};
+
+//============================================================================//
+
+class Level : sq::NonCopyable
+{
+public: //====================================================//
+
+    struct Specification
+    {
         std::set<Vec2I> ballSet;
         std::set<Vec2I> holeSet;
         std::set<Vec2I> wallSet;
@@ -36,18 +43,25 @@ public:
         Vec2I maxPos = {1, 1};
     };
 
-    Level(const Spec& _spec);
-    std::list<unique_ptr<Ball>> ballList;
-    std::list<unique_ptr<Hole>> holeList;
-    std::list<unique_ptr<Wall>> wallList;
+    //--------------------------------------------------------//
+
+    Level(const Specification& spec);
+
+    std::list<Ball> ballList;
+    std::list<Hole> holeList;
+    std::list<Wall> wallList;
+
     const Vec2I minPos, maxPos;
+
+    //--------------------------------------------------------//
 
     void update();
 
-    Ball* get_Ball(Vec2I _pos);
-    Hole* get_Hole(Vec2I _pos);
-    Wall* get_Wall(Vec2I _pos);
-    bool outside(Vec2I _pos);
+    Ball* get_ball(Vec2I pos);
+    Hole* get_hole(Vec2I pos);
+    Wall* get_wall(Vec2I pos);
+
+    bool outside(Vec2I pos);
 };
 
 }

@@ -18,8 +18,8 @@ int main(int argc, char* argv[])
     argc-=(argc>0); argv+=(argc>0);
 
     op::Stats stats(usage, argc, argv);
-    vector<op::Option> options(stats.options_max);
-    vector<op::Option> buffer(stats.buffer_max);
+    std::vector<op::Option> options(stats.options_max);
+    std::vector<op::Option> buffer(stats.buffer_max);
     op::Parser parse(usage, argc, argv, options.data(), buffer.data());
 
     if (options[HELP] || options[UNKNOWN] || parse.error())
@@ -29,6 +29,6 @@ int main(int argc, char* argv[])
     }
 
     sqt::RpgApp app;
-    app.eval_test_init();
-    return app.run();
+
+    return app.run(argc, argv);
 }

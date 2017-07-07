@@ -10,17 +10,17 @@ using namespace sqt::sys;
 
 void sqt::sys::system_tick_animations(WorldStuff& stuff)
 {
-    for (auto& entry : dop::entries(stuff.tables.animation))
+    for (auto& [id, data] : dop::joined(stuff.tables.animation))
     {
-        if (++entry->progress == entry->times[entry->index])
+        if (++data.progress == data.times[data.index])
         {
-            entry->progress = 0u;
+            data.progress = 0u;
 
-            if (++entry->index == entry->times.size())
+            if (++data.index == data.times.size())
             {
-                if (entry->callback_on_end)
-                    entry->callback_on_end(entry.id);
-                entry->index = 0u;
+                if (data.callback_on_end)
+                    data.callback_on_end(id);
+                data.index = 0u;
             }
         }
     }
@@ -50,14 +50,8 @@ void sqt::sys::system_blend_animations(WorldStuff& stuff, float factor)
     const auto& timelines = stuff.animation;
     auto& tables = stuff.tables;
 
-    for (auto& entry : dop::joined(table, timelines.transform, tables.transform))
+    for (auto& [id, meta, timeline, transform] : dop::joined(table, timelines.transform, tables.transform))
     {
-        //auto& [id, meta, timeline, transform] = entry;
-
-        const auto& meta = std::get<1>(entry);
-        const auto& timeline = std::get<2>(entry);
-        auto& transform = std::get<3>(entry);
-
         factor += float(meta.progress);
         factor /= float(meta.times[meta.index]);
 

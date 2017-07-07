@@ -2,57 +2,54 @@
 
 #include <deque>
 
-#include <sqee/app/Application.hpp>
+#include <sqee/builtins.hpp>
+
+#include <sqee/app/Scene.hpp>
+
+//============================================================================//
 
 namespace sq {
 
 //============================================================================//
 
-/// The SQEE Debugging Overlay
-class DebugOverlay final : NonCopyable
+/// The SQEE Debugging Overlay.
+class DebugOverlay final : public Scene
 {
-public:
+public: //====================================================//
 
-    //========================================================//
+    /// Constructor.
+    DebugOverlay();
 
-    /// Constructor
-    DebugOverlay(Application& app);
+    //--------------------------------------------------------//
 
-    //========================================================//
+    /// Toggle the overlay.
+    void toggle_active() { mActive = !mActive; }
 
-    /// called eight times per second
-    void tick();
+    /// Check if the overlay is active,
+    bool check_active() const { return mActive; }
 
-    /// called once every frame
-    void render(float frameTime);
+    //--------------------------------------------------------//
 
-    //========================================================//
+    /// Display a message in the corner.
+    void notify(const string& message);
 
-    /// enable or disable the overlay
-    void toggle_active();
+private: //===================================================//
 
-    /// check if the overlay is active
-    bool is_active() const { return mActive; }
+    void update() override;
 
-    //========================================================//
+    void render(double elapsed) override;
 
-    /// display a message in the corner
-    void notify(const string& message, uint ticks);
+    //--------------------------------------------------------//
 
-    //========================================================//
+    struct Notification
+    {
+        string message = "";
+        uint timeRemaining = 0u;
+    };
 
-    float accumulation = 0.0f;
+    std::deque<Notification> mNotifications;
 
-private:
-
-    //========================================================//
-
-    Application& mApplication;
-
-    std::deque<pair<string, uint>> mNotifications;
-
-    float mFrameTime = 0.f;
-    uint mTicksLeft = 0u;
+    double mFrameTime = 0.0;
 
     bool mActive = true;
 };

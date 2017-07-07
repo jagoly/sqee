@@ -1,16 +1,7 @@
-﻿#include <algorithm>
-
-#include <chaiscript/dispatchkit/bootstrap.hpp>
+﻿#include <chaiscript/dispatchkit/bootstrap.hpp>
 #include <chaiscript/dispatchkit/bootstrap_stl.hpp>
 
-#include <sqee/messages.hpp>
-
 #include <sqee/misc/StringCast.hpp>
-
-#include <sqee/app/Application.hpp>
-#include <sqee/app/DebugOverlay.hpp>
-#include <sqee/app/ChaiConsole.hpp>
-#include <sqee/app/MessageBus.hpp>
 
 #include <sqee/physics/Bodies.hpp>
 
@@ -22,50 +13,6 @@
 #include <sqee/scripts/BasicSetup.hpp>
 
 using namespace sq;
-
-//============================================================================//
-
-void sq::chaiscript_setup_app(ChaiEngine& engine)
-{
-    chai::ModulePtr m = std::make_shared<chai::Module>();
-
-    //========================================================//
-
-    m->add(user_type<Application>(), "Application");
-    m->add(user_type<ChaiConsole>(), "ChaiConsole");
-    m->add(user_type<DebugOverlay>(), "DebugOverlay");
-    m->add(user_type<MessageBus>(), "MessageBus");
-
-    //========================================================//
-
-    m->add(fun(&Application::OPTION_WindowTitle), "OPTION_WindowTitle");
-    m->add(fun(&Application::OPTION_WindowSize),  "OPTION_WindowSize");
-    m->add(fun(&Application::update_options),     "update_options");
-    m->add(fun(&Application::quit),               "quit");
-
-    auto get_overlay = [](Application* app) -> DebugOverlay& { return app->get_debug_overlay(); };
-    auto get_console = [](Application* app) -> ChaiConsole& { return app->get_chai_console(); };
-
-    m->add(fun(get_console), "console");
-    m->add(fun(get_overlay), "overlay");
-
-    //========================================================//
-
-    m->add(fun(&DebugOverlay::notify), "notify");
-
-    m->add(fun(&ChaiConsole::cs_clear),   "clear");
-    m->add(fun(&ChaiConsole::cs_history), "history");
-    m->add(fun(&ChaiConsole::cs_print),   "print");
-
-    //========================================================//
-
-    m->add(vector_conversion<vector<string>>());
-    chai::bootstrap::operators::assign<vector<string>>(*m);
-
-    //========================================================//
-
-    engine.add(m);
-}
 
 //============================================================================//
 
@@ -132,56 +79,73 @@ void sq::chaiscript_setup_physics(ChaiEngine& _engine) {
 
 namespace { // anonymous
 
+//----------------------------------------------------------------------------//
+
 template <int S, class T> inline
-void impl_setup_VectorT(chai::Module& m, const string& name)
+void impl_setup_VectorST(chai::Module& m, const string& name)
 {
     using VecST = Vector<S, T>;
 
     m.add(constructor<VecST(const VecST&)>(), name);
     m.add(fun(&VecST::operator=), "=");
 
-    m.add(vector_conversion<vector<VecST>>());
-    m.add(type_conversion<VecST, string>(&chai_string<VecST>));
+    m.add(vector_conversion<std::vector<VecST>>());
+    m.add(type_conversion<VecST, string, string(*)(const VecST&)>(&chai_string));
 
     m.add(fun<VecST, VecST, VecST>(operator+), "+");
     m.add(fun<VecST, VecST, VecST>(operator-), "-");
     m.add(fun<VecST, VecST, VecST>(operator*), "*");
     m.add(fun<VecST, VecST, VecST>(operator/), "/");
+
     m.add(fun<VecST, VecST, T>(operator+), "+");
     m.add(fun<VecST, VecST, T>(operator-), "-");
     m.add(fun<VecST, VecST, T>(operator*), "*");
     m.add(fun<VecST, VecST, T>(operator/), "/");
 }
 
+//----------------------------------------------------------------------------//
+
 template <class T> inline
 void impl_setup_Vector2(chai::Module& m, const string& name)
 {
-    impl_setup_VectorT<2, T>(m, name);
+    impl_setup_VectorST<2, T>(m, name);
+
     m.add(constructor<Vector2<T>(T, T)>(), name);
+
     m.add(fun(&Vector2<T>::x), "x");
     m.add(fun(&Vector2<T>::y), "y");
 }
 
+//----------------------------------------------------------------------------//
+
 template <class T> inline
 void impl_setup_Vector3(chai::Module& m, const string& name)
 {
-    impl_setup_VectorT<3, T>(m, name);
+    impl_setup_VectorST<3, T>(m, name);
+
     m.add(constructor<Vector3<T>(T, T, T)>(), name);
+
     m.add(fun(&Vector3<T>::x), "x");
     m.add(fun(&Vector3<T>::y), "y");
     m.add(fun(&Vector3<T>::z), "z");
 }
 
+//----------------------------------------------------------------------------//
+
 template <class T> inline
 void impl_setup_Vector4(chai::Module& m, const string& name)
 {
-    impl_setup_VectorT<4, T>(m, name);
+    impl_setup_VectorST<4, T>(m, name);
+
     m.add(constructor<Vector4<T>(T, T, T, T)>(), name);
+
     m.add(fun(&Vector4<T>::x), "x");
     m.add(fun(&Vector4<T>::y), "y");
     m.add(fun(&Vector4<T>::z), "z");
     m.add(fun(&Vector4<T>::w), "w");
 }
+
+//----------------------------------------------------------------------------//
 
 } // anonymous namespace
 
@@ -189,49 +153,51 @@ void impl_setup_Vector4(chai::Module& m, const string& name)
 
 void sq::chaiscript_setup_maths(ChaiEngine& engine)
 {
-    chai::ModulePtr m = std::make_shared<chai::Module>();
+    auto m = std::make_shared<chai::Module>();
+
+    //--------------------------------------------------------//
 
     impl_setup_Vector2<int>(*m, "Vec2I");
     impl_setup_Vector3<int>(*m, "Vec3I");
     impl_setup_Vector4<int>(*m, "Vec4I");
+
     impl_setup_Vector2<uint>(*m, "Vec2U");
     impl_setup_Vector3<uint>(*m, "Vec3U");
     impl_setup_Vector4<uint>(*m, "Vec4U");
+
     impl_setup_Vector2<float>(*m, "Vec2F");
     impl_setup_Vector3<float>(*m, "Vec3F");
     impl_setup_Vector4<float>(*m, "Vec4F");
 
+    //--------------------------------------------------------//
+
     m->add(constructor<QuatF(const QuatF&)>(), "QuatF");
     m->add(constructor<QuatF(float, float, float, float)>(), "QuatF");
     m->add(constructor<QuatF(float, float, float)>(), "QuatF");
-    m->add(fun(&QuatF::x), "x"); m->add(fun(&QuatF::y), "y");
-    m->add(fun(&QuatF::z), "z"); m->add(fun(&QuatF::w), "w");
     m->add(fun(&QuatF::operator=), "=");
 
-    m->add(vector_conversion<vector<int>>());
-    m->add(vector_conversion<vector<uint>>());
-    m->add(vector_conversion<vector<float>>());
-    m->add(vector_conversion<vector<QuatF>>());
+    m->add(vector_conversion<std::vector<QuatF>>());
+    m->add(type_conversion<QuatF, string, string(*)(const QuatF&)>(&chai_string));;
 
-    m->add(type_conversion<int, string>(&chai_string<int>));
-    m->add(type_conversion<uint, string>(&chai_string<uint>));
-    m->add(type_conversion<float, string>(&chai_string<float>));
-    m->add(type_conversion<QuatF, string>(&chai_string<QuatF>));
+    m->add(fun(&QuatF::x), "x");
+    m->add(fun(&QuatF::y), "y");
+    m->add(fun(&QuatF::z), "z");
+    m->add(fun(&QuatF::w), "w");
+
+    //--------------------------------------------------------//
+
+    m->add(vector_conversion<std::vector<int>>());
+    m->add(vector_conversion<std::vector<uint>>());
+    m->add(vector_conversion<std::vector<float>>());
+
+    //--------------------------------------------------------//
 
     m->add(fun<Vec2F, Vec2F>(&maths::normalize), "normalize");
     m->add(fun<Vec3F, Vec3F>(&maths::normalize), "normalize");
     m->add(fun<Vec4F, Vec4F>(&maths::normalize), "normalize");
     m->add(fun<QuatF, QuatF>(&maths::normalize), "normalize");
 
+    //--------------------------------------------------------//
+
     engine.add(m);
-}
-
-//============================================================================//
-
-void sq::chaiscript_setup_messages(ChaiEngine& _engine) {
-    chai::ModulePtr m(new chai::Module());
-
-    //chai_add_message_type<msg::Configure_Entity>(*m, "Configure_Entity");
-
-    _engine.add(m);
 }

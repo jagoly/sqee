@@ -3,8 +3,6 @@
 #include <sqee/render/Mesh.hpp>
 #include <sqee/render/Material.hpp>
 
-#include <sqee/misc/StringCast.hpp>
-
 #include "Culling.hpp"
 
 namespace dop = sq::dop;
@@ -14,6 +12,8 @@ using namespace sqt::sys;
 //============================================================================//
 
 namespace { // anonymous
+
+//============================================================================//
 
 inline bool sphere_outside_sphere(Vec3F origin, float radius, maths::Sphere sphere)
 {
@@ -87,6 +87,8 @@ inline bool box_outside_planes(Vec3F origin, Vec3F extents, QuatF basis, maths::
     return false;
 }
 
+//============================================================================//
+
 } // anonymous namespace
 
 //============================================================================//
@@ -96,26 +98,28 @@ dop::Group sqt::sys::system_get_visible_objects_sphere(const WorldStuff& stuff, 
     SQASSERT(stuff.culling.mainBoxes.mIsSorted, "");
     SQASSERT(stuff.culling.mainSpheres.mIsSorted, "");
 
-    dop::Group result; result.reserve(256u);
+    //--------------------------------------------------------//
 
-    //========================================================//
+    dop::Group result;
+    result.reserve(256u);
 
-    for (const auto& entry : dop::entries(stuff.culling.mainBoxes))
+    //--------------------------------------------------------//
+
+    for (const auto& [id, data] : dop::joined(stuff.culling.mainBoxes))
     {
-        if (sphere_outside_sphere(entry->origin, entry->radius, sphere)) continue;
-        if (box_outside_sphere(entry->origin, entry->extents, entry->basis, sphere)) continue;
-        result.mIds.push_back(entry.id);
+        if (sphere_outside_sphere(data.origin, data.radius, sphere)) continue;
+        if (box_outside_sphere(data.origin, data.extents, data.basis, sphere)) continue;
+        result.mIds.push_back(id);
     }
 
-    for (const auto& entry : dop::entries(stuff.culling.mainSpheres))
+    for (const auto& [id, data] : dop::joined(stuff.culling.mainSpheres))
     {
-        if (sphere_outside_sphere(entry->origin, entry->radius, sphere)) continue;
-        result.mIds.push_back(entry.id);
+        if (sphere_outside_sphere(data.origin, data.radius, sphere)) continue;
+        result.mIds.push_back(id);
     }
 
-    //========================================================//
+    //--------------------------------------------------------//
 
-    result.shrink_to_fit();
     return result;
 }
 
@@ -126,29 +130,31 @@ dop::Group sqt::sys::system_get_visible_objects_frustum(const WorldStuff& stuff,
     SQASSERT(stuff.culling.mainBoxes.mIsSorted, "");
     SQASSERT(stuff.culling.mainSpheres.mIsSorted, "");
 
-    dop::Group result; result.reserve(256u);
+    //--------------------------------------------------------//
 
-    //========================================================//
+    dop::Group result;
+    result.reserve(256u);
 
-    for (const auto& entry : dop::entries(stuff.culling.mainBoxes))
+    //--------------------------------------------------------//
+
+    for (const auto& [id, data] : dop::joined(stuff.culling.mainBoxes))
     {
-        if (sphere_outside_sphere(entry->origin, entry->radius, frustum.sphere)) continue;
-        if (sphere_outside_planes(entry->origin, entry->radius, frustum.planes)) continue;
-        if (box_outside_sphere(entry->origin, entry->extents, entry->basis, frustum.sphere)) continue;
-        if (box_outside_planes(entry->origin, entry->extents, entry->basis, frustum.planes)) continue;
-        result.mIds.push_back(entry.id);
+        if (sphere_outside_sphere(data.origin, data.radius, frustum.sphere)) continue;
+        if (sphere_outside_planes(data.origin, data.radius, frustum.planes)) continue;
+        if (box_outside_sphere(data.origin, data.extents, data.basis, frustum.sphere)) continue;
+        if (box_outside_planes(data.origin, data.extents, data.basis, frustum.planes)) continue;
+        result.mIds.push_back(id);
     }
 
-    for (const auto& entry : dop::entries(stuff.culling.mainSpheres))
+    for (const auto& [id, data] : dop::joined(stuff.culling.mainSpheres))
     {
-        if (sphere_outside_sphere(entry->origin, entry->radius, frustum.sphere)) continue;
-        if (sphere_outside_planes(entry->origin, entry->radius, frustum.planes)) continue;
-        result.mIds.push_back(entry.id);
+        if (sphere_outside_sphere(data.origin, data.radius, frustum.sphere)) continue;
+        if (sphere_outside_planes(data.origin, data.radius, frustum.planes)) continue;
+        result.mIds.push_back(id);
     }
 
-    //========================================================//
+    //--------------------------------------------------------//
 
-    result.shrink_to_fit();
     return result;
 }
 
@@ -159,26 +165,28 @@ dop::Group sqt::sys::system_get_visible_objects_planes(const WorldStuff& stuff, 
     SQASSERT(stuff.culling.mainBoxes.mIsSorted, "");
     SQASSERT(stuff.culling.mainSpheres.mIsSorted, "");
 
-    dop::Group result; result.reserve(256u);
+    //--------------------------------------------------------//
 
-    //========================================================//
+    dop::Group result;
+    result.reserve(256u);
 
-    for (const auto& entry : dop::entries(stuff.culling.mainBoxes))
+    //--------------------------------------------------------//
+
+    for (const auto& [id, data] : dop::joined(stuff.culling.mainBoxes))
     {
-        if (sphere_outside_planes(entry->origin, entry->radius, planes)) continue;
-        if (box_outside_planes(entry->origin, entry->extents, entry->basis, planes)) continue;
-        result.mIds.push_back(entry.id);
+        if (sphere_outside_planes(data.origin, data.radius, planes)) continue;
+        if (box_outside_planes(data.origin, data.extents, data.basis, planes)) continue;
+        result.mIds.push_back(id);
     }
 
-    for (const auto& entry : dop::entries(stuff.culling.mainSpheres))
+    for (const auto& [id, data] : dop::joined(stuff.culling.mainSpheres))
     {
-        if (sphere_outside_planes(entry->origin, entry->radius, planes)) continue;
-        result.mIds.push_back(entry.id);
+        if (sphere_outside_planes(data.origin, data.radius, planes)) continue;
+        result.mIds.push_back(id);
     }
 
-    //========================================================//
+    //--------------------------------------------------------//
 
-    result.shrink_to_fit();
     return result;
 }
 
@@ -188,14 +196,10 @@ void sqt::sys::system_refresh_culling(WorldStuff& stuff)
 {
     stuff.culling.mainBoxes.clear();
 
-    const auto& tables = stuff.tables;
+    //--------------------------------------------------------//
 
-    for (auto& entry : dop::joined(tables.transform, tables.model))
+    for (const auto& [id, transform, model] : dop::joined(stuff.tables.transform, stuff.tables.model))
     {
-        const auto& id = std::get<0>(entry);
-        const auto& transform = std::get<1>(entry);
-        const auto& model = std::get<2>(entry);
-
         const Vec3F scale = maths::abs(model.stretch * transform.worldScale);
         const float maxScale = maths::max(scale.x, scale.y, scale.z);
 

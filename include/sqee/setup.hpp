@@ -4,7 +4,6 @@
 #include <cstdint>
 #include <cmath>
 
-#include <type_traits>
 #include <utility>
 
 //============================================================================//
@@ -24,10 +23,21 @@ typedef char          GLchar;
 
 //============================================================================//
 
+/// @cond ignored
+namespace chaiscript {}
+namespace reactphysics3d {}
+/// @endcond ignored
+
+namespace chai = chaiscript;
+namespace rp3d = reactphysics3d;
+
+//============================================================================//
+
 namespace sq {
 
 //============================================================================//
 
+/// Base for objects that can't be copied or moved.
 struct NonCopyable
 {
     NonCopyable() = default;
@@ -39,6 +49,9 @@ struct NonCopyable
     NonCopyable& operator=(NonCopyable&&) = delete;
 };
 
+//----------------------------------------------------------------------------//
+
+/// Base for objects that can be moved but not copied.
 struct MoveOnly
 {
     MoveOnly() = default;
@@ -52,20 +65,18 @@ struct MoveOnly
 
 //============================================================================//
 
-/// variadic function call expansion helper
-struct expand { template <class... Args> expand(Args&&...) {} };
-
-/// returns its argument as a const reference
-template <class Type> constexpr std::add_const_t<Type>& as_const(Type& arg) { return arg; }
-
-//============================================================================//
-
 } // namespace sq
 
 //============================================================================//
 
-namespace chaiscript {}
-namespace reactphysics3d {}
+/// @namespace sq
+/// @brief The primary SQEE namespace.
 
-namespace chai = chaiscript;
-namespace rp3d = reactphysics3d;
+/// @namespace sq::algo
+/// @brief Some very basic generic algorithms.
+
+/// @namespace sq::dop
+/// @brief Utilities for data oriented programming.
+
+/// @namespace sq::maths
+/// @brief Mathematical classes and functions.

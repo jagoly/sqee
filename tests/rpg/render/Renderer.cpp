@@ -6,15 +6,6 @@
 #include <sqee/debug/Logging.hpp>
 #include <sqee/misc/StringCast.hpp>
 
-#include "../world/World.hpp"
-
-#include "../world/objects/Camera.hpp"
-#include "../world/objects/SkyBox.hpp"
-#include "../world/objects/Ambient.hpp"
-#include "../world/objects/SkyLight.hpp"
-
-#include "../systems/Entity.hpp"
-
 #include "ObjectsData.hpp"
 #include "PassesData.hpp"
 #include "SharedStuff.hpp"
@@ -37,84 +28,42 @@ namespace maths = sq::maths;
 
 Renderer::~Renderer() = default;
 
-struct Renderer::Impl {
-    Impl(Renderer& _renderer) : renderer(_renderer) {}
 
-    void refresh_entity_data(const SceneData& _scene);
-    void refresh_world_data(const SceneData& _scene);
-
-    Renderer& renderer;
-
-    render::ObjectsData objectsData;
-    render::PassesData passesData;
-};
-
-void Renderer::Impl::refresh_entity_data(const SceneData& _scene)
-{
-    //auto& entitySys = sys::static_EntitySystem();
-
-    //for (auto& entry : dop::entries(objectsData.mModelSimpleTable))
-    {
-        //if (entitySys.check_dirty(entry.id)) configure_entity(entry.id);
-    }
-
-    //for (auto& entry : dop::entries(objectsData.mModelSimpleTable))
-    {
-        //if (ent.first->check_dirty() == false) continue;
-        //entry->refresh(entry.id);
-        //if (ent.second.modelSkelly) ent.second.modelSkelly->refresh();
-        //if (ent.second.decalBasic) ent.second.decalBasic->refresh();
-        //if (ent.second.lightOrtho) ent.second.lightOrtho->refresh();
-        //if (ent.second.lightPoint) ent.second.lightPoint->refresh();
-        //if (ent.second.lightSpot) ent.second.lightSpot->refresh();
-    }
-}
-
-void Renderer::Impl::refresh_world_data(const SceneData& _scene) {
-    objectsData.cameraData->refresh(_scene);
-    if (objectsData.skyboxData) objectsData.skyboxData->refresh(*_scene.skybox);
-    if (objectsData.ambientData) objectsData.ambientData->refresh(*_scene.ambient);
-    if (objectsData.skylightData) objectsData.skylightData->refresh(_scene);
-}
-
-
-
-
-void Renderer::render_scene(const SceneData& scene)
+void Renderer::render_scene(const WorldStuff& wstuff)
 {
     static auto& context = Context::get();
 
     // TODO: find a proper solution for this
-    impl->passesData.gbufferData.modelPasses.simplePass.baseVec.reserve(256u);
-    impl->passesData.gbufferData.modelPasses.skellyPass.baseVec.reserve(32u);
+    mPassesData->gbufferData.modelPasses.simplePass.baseVec.reserve(256u);
+    mPassesData->gbufferData.modelPasses.skellyPass.baseVec.reserve(32u);
 
-    impl->refresh_entity_data(scene);
-    impl->refresh_world_data(scene);
+    //--------------------------------------------------------//
 
-    render::refresh_render_tables(impl->objectsData);
+    refresh_render_stuff(*mRenderStuff, wstuff, options);
 
-    impl->passesData.prepare(impl->objectsData);
+    mPassesData->prepare(wstuff, *mRenderStuff);
 
+    //--------------------------------------------------------//
+
+    context.bind_Program_default();
 
     // setup some state
-    context.bind_UniformBuffer(impl->objectsData.cameraData->ubo, 0u);
+    context.bind_UniformBuffer(mRenderStuff->camera.ubo, 0u);
     context.set_state(Context::Depth_Compare::LessEqual);
 
-    context.bind_shader_pipeline();
+    shadowsDraw->render(mPassesData->shadowsData);
 
-    shadowsDraw->render(impl->passesData.shadowsData);
-
-    depthDraw->render(impl->passesData.depthData);
-    gbufferDraw->render(impl->passesData.gbufferData);
+    depthDraw->render(mPassesData->depthData);
+    gbufferDraw->render(mPassesData->gbufferData);
 
     effectsDraw->render_effect_SSAO();
 
-    lightBaseDraw->render(impl->passesData.lightBaseData);
-    lightAccumDraw->render(impl->passesData.lightAccumData);
+    lightBaseDraw->render(mPassesData->lightBaseData);
+    lightAccumDraw->render(mPassesData->lightAccumData);
 
     effectsDraw->render_effect_Bloom();
 
-    volumetricDraw->render(impl->passesData.volumetricData);
+    volumetricDraw->render(mPassesData->volumetricData);
 
     effectsDraw->render_effect_Shafts();
 
@@ -128,71 +77,47 @@ void Renderer::render_scene(const SceneData& scene)
 
 
 
-Renderer::Renderer(sq::MessageBus& _messageBus) : messageBus(_messageBus), impl(new Impl(*this)) {
-
-    //recConfigureEntity.func = [this](EntityRPG& _e) { this->configure_entity(_e); };
-    //recRefreshEntity.func = [this](EntityRPG& _e) { this->refresh_entity(_e); };
-
-    //QuatF quat(0.0767f, 0.0654f, 0.f);
-    //Vec3F vec = quat * Vec3F(0.f, 0.f, -1.f);
-    //std::cout << sq::chai_string(vec) << std::endl;
-
-    impl->objectsData.cameraData = std::make_unique<render::CameraData>();
-
-    on_Enable_SkyBox.func = [this](auto) { impl->objectsData.skyboxData = std::make_unique<render::SkyBoxData>(); };
-    on_Enable_Ambient.func = [this](auto) { impl->objectsData.ambientData = std::make_unique<render::AmbientData>(); };
-    on_Enable_SkyLight.func = [this](auto) { impl->objectsData.skylightData = std::make_unique<render::SkyLightData>(); };
-
-    on_Disable_SkyBox.func = [this](auto) { impl->objectsData.skyboxData.reset(nullptr); };
-    on_Disable_Ambient.func = [this](auto) { impl->objectsData.ambientData.reset(nullptr); };
-    on_Disable_SkyLight.func = [this](auto) { impl->objectsData.skylightData.reset(nullptr); };
-
-    messageBus.subscribe_back(on_Enable_SkyBox);
-    messageBus.subscribe_back(on_Enable_Ambient);
-    messageBus.subscribe_back(on_Enable_SkyLight);
-
-    messageBus.subscribe_back(on_Disable_SkyBox);
-    messageBus.subscribe_back(on_Disable_Ambient);
-    messageBus.subscribe_back(on_Disable_SkyLight);
+Renderer::Renderer(const Options& options) : options(options)
+{
+    mRenderStuff = std::make_unique<RenderStuff>();
 
     // Allocate Shared Resource Structs /////
     volumes = std::make_unique<render::StencilVolumes>();
     textures = std::make_unique<render::TargetTextures>();
-    shaders = std::make_unique<render::GenericShaders>();
+
+    render::SharedStuff shared { *volumes, *textures, options, mProcessor, Context::get() };
 
     // Import GLSL Headers /////
-    shaders->preprocs.import_header("headers/blocks/Camera");
-    shaders->preprocs.import_header("headers/blocks/SkyBox");
-    shaders->preprocs.import_header("headers/blocks/Ambient");
-    shaders->preprocs.import_header("headers/blocks/Skeleton");
-    shaders->preprocs.import_header("headers/blocks/LightCasc");
-    shaders->preprocs.import_header("headers/blocks/LightOrtho");
-    shaders->preprocs.import_header("headers/blocks/LightPoint");
-    shaders->preprocs.import_header("headers/blocks/LightSpot");
-    shaders->preprocs.import_header("headers/blocks/reflect");
-    shaders->preprocs.import_header("headers/shadow/sample_casc");
-    shaders->preprocs.import_header("headers/shadow/sample_ortho");
-    shaders->preprocs.import_header("headers/shadow/sample_point");
-    shaders->preprocs.import_header("headers/shadow/sample_spot");
+    mProcessor.import_header("headers/blocks/Camera");
+    mProcessor.import_header("headers/blocks/SkyBox");
+    mProcessor.import_header("headers/blocks/Ambient");
+    mProcessor.import_header("headers/blocks/Skeleton");
+    mProcessor.import_header("headers/blocks/LightCasc");
+    mProcessor.import_header("headers/blocks/LightOrtho");
+    mProcessor.import_header("headers/blocks/LightPoint");
+    mProcessor.import_header("headers/blocks/LightSpot");
+    mProcessor.import_header("headers/blocks/reflect");
+    mProcessor.import_header("headers/shadow/sample_casc");
+    mProcessor.import_header("headers/shadow/sample_ortho");
+    mProcessor.import_header("headers/shadow/sample_point");
+    mProcessor.import_header("headers/shadow/sample_spot");
 
     // Allocate Passes Drawing Objects /////
-    render::SharedStuff stuff { *volumes, *textures, *shaders, Options::get(), Context::get() };
+    depthDraw = std::make_unique<render::DepthPasses>(shared);
+    gbufferDraw = std::make_unique<render::GbufferPasses>(shared);
+    shadowsDraw = std::make_unique<render::ShadowsPasses>(shared);
+    lightBaseDraw = std::make_unique<render::LightBasePasses>(shared);
+    lightAccumDraw = std::make_unique<render::LightAccumPasses>(shared);
+    volumetricDraw = std::make_unique<render::VolumetricPasses>(shared);
+    compositeDraw = std::make_unique<render::CompositePasses>(shared);
+    effectsDraw = std::make_unique<render::EffectsPasses>(shared);
 
-    depthDraw = std::make_unique<render::DepthPasses>(stuff);
-    gbufferDraw = std::make_unique<render::GbufferPasses>(stuff);
-    shadowsDraw = std::make_unique<render::ShadowsPasses>(stuff);
-    lightBaseDraw = std::make_unique<render::LightBasePasses>(stuff);
-    lightAccumDraw = std::make_unique<render::LightAccumPasses>(stuff);
-    volumetricDraw = std::make_unique<render::VolumetricPasses>(stuff);
-    compositeDraw = std::make_unique<render::CompositePasses>(stuff);
-    effectsDraw = std::make_unique<render::EffectsPasses>(stuff);
+    mPassesData = std::make_unique<render::PassesData>();
 }
 
 
-void Renderer::update_options()
+void Renderer::refresh_options()
 {
-    static const auto& options = Options::get();
-
     string headerStr = "// set of constants and defines added at runtime\n";
 
     headerStr += "const uint  OPTION_WinWidth  = " + std::to_string(options.Window_Size.x) + ";\n";
@@ -219,10 +144,9 @@ void Renderer::update_options()
                  "const vec2 OPTION_PixSizeHalf = 1.0f / OPTION_WinSizeHalf;\n"
                  "const vec2 OPTION_PixSizeQter = 1.0f / OPTION_WinSizeQter;\n";
 
-    shaders->preprocs.update_header("runtime/Options", headerStr);
+    mProcessor.update_header("runtime/Options", headerStr);
 
     textures->update_options(options);
-    shaders->update_options(options);
 
     depthDraw->update_options();
     gbufferDraw->update_options();

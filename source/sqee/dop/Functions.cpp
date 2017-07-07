@@ -24,13 +24,11 @@ dop::Group dop::reduce(const dop::Group& a, const dop::Group& b)
     const auto reserve = maths::min(a.size(), b.size());
     dop::Group result; result.reserve(reserve);
 
-    //========================================================//
-
     if (reserve == 0u) return result;
 
     dop::sort(a); dop::sort(b);
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     for ( auto iterA = a.mIds.begin(), iterB = b.mIds.begin();; )
     {
@@ -47,7 +45,7 @@ dop::Group dop::reduce(const dop::Group& a, const dop::Group& b)
          if (*iterB < *iterA && ++iterB == b.mIds.end()) break;
     };
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     result.shrink_to_fit();
 
@@ -61,13 +59,11 @@ dop::Group dop::reduce(const dop::Group& a, const dop::Group& b, const dop::Grou
     const auto reserve = maths::min(a.size(), b.size(), c.size());
     dop::Group result; result.reserve(reserve);
 
-    //========================================================//
-
     if (reserve == 0u) return result;
 
     dop::sort(a); dop::sort(b); dop::sort(c);
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     for ( auto iterA = a.mIds.begin(), iterB = b.mIds.begin(), iterC = c.mIds.begin();; )
     {
@@ -90,7 +86,7 @@ dop::Group dop::reduce(const dop::Group& a, const dop::Group& b, const dop::Grou
         if ( *iterC < *iterB && ++iterC == c.mIds.end() ) break;
     }
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     result.shrink_to_fit();
 
@@ -104,13 +100,11 @@ dop::Group dop::reduce(const dop::Group& a, const dop::Group& b, const dop::Grou
     const auto reserve = maths::min(a.size(), b.size(), c.size(), d.size());
     dop::Group result; result.reserve(reserve);
 
-    //========================================================//
-
     if (reserve == 0u) return result;
 
     dop::sort(a); dop::sort(b); dop::sort(c); dop::sort(d);
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     for ( auto iterA = a.mIds.begin(), iterB = b.mIds.begin(), iterC = c.mIds.begin(), iterD = d.mIds.begin();; )
     {
@@ -140,7 +134,7 @@ dop::Group dop::reduce(const dop::Group& a, const dop::Group& b, const dop::Grou
         if ( *iterD < *iterC && ++iterD == d.mIds.end() ) break;
     }
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     result.shrink_to_fit();
 

@@ -2,8 +2,8 @@ use("assets/load_static.chai");
 use("assets/load_other.chai");
 
 def main() {
-    app.OPTION_WindowTitle = "SQEE RPG (test_init.chai)";
-    app.OPTION_WindowSize = Vec2U(1280u, 720u);
+//    app.OPTION_WindowTitle = "SQEE RPG (test_init.chai)";
+//    app.OPTION_WindowSize = Vec2U(1280u, 720u);
 
 //    app.settings.mod("rpg_shadfilter", false);
 //    app.settings.mod("rpg_shadlarge", false);
@@ -15,11 +15,11 @@ def main() {
     load_static();
     load_other();
 
-    app.update_options();
+//    app.update_options();
 
 //    world.get_RootEntity().get_child("DiceGroup").add_AnimatorComponent();
 
-    app.console.print("Welcome to SQEE!");
+//    app.console.print("Welcome to SQEE!");
 }
 
 

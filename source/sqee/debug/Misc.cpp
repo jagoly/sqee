@@ -1,4 +1,4 @@
-#include <sqee/redist/gl_ext_4_2.hpp>
+#include <sqee/redist/gl_loader.hpp>
 #include <sqee/debug/Misc.hpp>
 
 using namespace sq;

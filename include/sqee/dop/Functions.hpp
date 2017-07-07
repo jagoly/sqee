@@ -5,12 +5,12 @@
 #include <sqee/dop/Classes.hpp>
 #include <sqee/maths/Scalar.hpp>
 
-namespace sq { namespace dop {
+namespace sq::dop {
 
 //============================================================================//
 
 template <class In, class Out>
-using transfer_const_type = std::conditional_t<std::is_const<In>::value, const Out, Out>;
+using transfer_const_type = std::conditional_t<std::is_const_v<In>, const Out, Out>;
 
 template <class Table>
 using table_data_type = transfer_const_type<Table, typename Table::data_type>;
@@ -21,18 +21,14 @@ using join_entry_type = std::tuple<int32_t, table_data_type<Tables>&...>;
 template <class... Tables>
 using join_vector_type = std::vector<join_entry_type<Tables...>>;
 
-template <class Table>
-using entry_type = Entry<table_data_type<Table>>;
-
-template <class Table>
-using entry_vector_type = std::vector<entry_type<Table>>;
-
 //============================================================================//
 
+/// Performs an insertion sort on an id vector.
 void impl_insertion_sort(std::vector<int32_t>& ids);
 
 //============================================================================//
 
+/// Ensure that a Group is sorted.
 inline void sort(const Group& group)
 {
     // skip if group already sorted
@@ -47,6 +43,7 @@ inline void sort(const Group& group)
 
 //============================================================================//
 
+/// Ensure that a table is sorted.
 template <class Type>
 inline void sort(const Table<Type>& table)
 {
@@ -60,9 +57,12 @@ inline void sort(const Table<Type>& table)
     std::vector<int32_t> sortedIds = table.mIds;
     impl_insertion_sort(sortedIds);
 
-    // create, reserve and fill vector of sorted data
-    std::vector<Type> sortedData; sortedData.reserve(sortedIds.size());
-    for (auto& id : sortedIds) sortedData.push_back(std::move(mutTable.get(id)));
+    // create and reserve new data vector
+    std::vector<Type> sortedData;
+    sortedData.reserve(sortedIds.size());
+
+    for (const int32_t id : sortedIds)
+        sortedData.push_back(std::move(mutTable.get(id)));
 
     mutTable.mIds = std::move(sortedIds);
     mutTable.mData = std::move(sortedData);
@@ -72,25 +72,14 @@ inline void sort(const Table<Type>& table)
 
 //============================================================================//
 
+/// Intersection of two groups (A ∩ B).
 Group reduce(const Group& a, const Group& b);
+
+/// Intersection of three groups (A ∩ B ∩ C).
 Group reduce(const Group& a, const Group& b, const Group& c);
+
+/// Intersection of four groups (A ∩ B ∩ C ∩ D).
 Group reduce(const Group& a, const Group& b, const Group& c, const Group& d);
-
-//============================================================================//
-
-// TODO: remove in C++17 in favour of joined + structured bindings
-
-template <class Table> inline
-entry_vector_type<Table> entries(Table& table)
-{
-    entry_vector_type<Table> result;
-    result.reserve(table.size());
-
-    for (uint i = 0u; i < table.size(); ++i)
-        result.emplace_back(table.mIds[i], &table.mData[i]);
-
-    return result;
-}
 
 //============================================================================//
 
@@ -100,13 +89,11 @@ join_vector_type<Table> joined(Table& table)
     join_vector_type<Table> result;
     result.reserve(table.size());
 
-    //========================================================//
-
     if (table.empty()) return result;
 
     dop::sort(table);
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     for (uint i = 0u; i < table.size(); ++i)
     {
@@ -115,7 +102,7 @@ join_vector_type<Table> joined(Table& table)
         result.push_back(std::tuple_cat(tupleId, tupleA));
     }
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     return result;
 }
@@ -129,13 +116,11 @@ join_vector_type<TableA> joined(const Group& g, TableA& a)
     const auto reserve = maths::min(g.size(), a.size());
     result.reserve(reserve);
 
-    //========================================================//
-
     if (reserve == 0u) return result;
 
     dop::sort(g); dop::sort(a);
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     for ( auto iterG = g.mIds.cbegin(), iterA = a.mIds.cbegin();; )
     {
@@ -154,9 +139,7 @@ join_vector_type<TableA> joined(const Group& g, TableA& a)
         if ( *iterA < *iterG && ++iterA == a.mIds.cend() ) break;
     }
 
-    //========================================================//
-
-    result.shrink_to_fit();
+    //--------------------------------------------------------//
 
     return result;
 }
@@ -170,13 +153,11 @@ join_vector_type<TableA, TableB> joined(TableA& a, TableB& b)
     const auto reserve = maths::min(a.size(), b.size());
     result.reserve(reserve);
 
-    //========================================================//
-
     if (reserve == 0u) return result;
 
     dop::sort(a); dop::sort(b);
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     for ( auto iterA = a.mIds.cbegin(), iterB = b.mIds.cbegin();; )
     {
@@ -196,9 +177,7 @@ join_vector_type<TableA, TableB> joined(TableA& a, TableB& b)
         if ( *iterB < *iterA && ++iterB == b.mIds.cend() ) break;
     }
 
-    //========================================================//
-
-    result.shrink_to_fit();
+    //--------------------------------------------------------//
 
     return result;
 }
@@ -212,13 +191,11 @@ join_vector_type<TableA, TableB> joined(const Group& g, TableA& a, TableB& b)
     const auto reserve = maths::min(g.size(), a.size(), b.size());
     result.reserve(reserve);
 
-    //========================================================//
-
     if (reserve == 0u) return result;
 
     dop::sort(g); dop::sort(a); dop::sort(b);
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     for ( auto iterG = g.mIds.cbegin(), iterA = a.mIds.cbegin(), iterB = b.mIds.cbegin();; )
     {
@@ -244,9 +221,7 @@ join_vector_type<TableA, TableB> joined(const Group& g, TableA& a, TableB& b)
         if ( *iterB < *iterA && ++iterB == b.mIds.cend() ) break;
     }
 
-    //========================================================//
-
-    result.shrink_to_fit();
+    //--------------------------------------------------------//
 
     return result;
 }
@@ -260,13 +235,11 @@ join_vector_type<TableA, TableB, TableC> joined(TableA& a, TableB& b, TableC& c)
     const auto reserve = maths::min(a.size(), b.size(), c.size());
     result.reserve(reserve);
 
-    //========================================================//
-
     if (reserve == 0u) return result;
 
     dop::sort(a); dop::sort(b); dop::sort(c);
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     for ( auto iterA = a.mIds.cbegin(), iterB = b.mIds.cbegin(), iterC = c.mIds.cbegin();; )
     {
@@ -293,9 +266,7 @@ join_vector_type<TableA, TableB, TableC> joined(TableA& a, TableB& b, TableC& c)
         if ( *iterC < *iterB && ++iterC == c.mIds.cend() ) break;
     }
 
-    //========================================================//
-
-    result.shrink_to_fit();
+    //--------------------------------------------------------//
 
     return result;
 }
@@ -309,13 +280,11 @@ join_vector_type<TableA, TableB, TableC> joined(const Group& g, TableA& a, Table
     const auto reserve = maths::min(g.size(), a.size(), b.size(), c.size());
     result.reserve(reserve);
 
-    //========================================================//
-
     if (reserve == 0u) return result;
 
     dop::sort(g); dop::sort(a); dop::sort(b); dop::sort(c);
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     for ( auto iterG = g.mIds.cbegin(), iterA = a.mIds.cbegin(), iterB = b.mIds.cbegin(), iterC = c.mIds.cbegin();; )
     {
@@ -350,13 +319,11 @@ join_vector_type<TableA, TableB, TableC> joined(const Group& g, TableA& a, Table
         if ( *iterC < *iterB && ++iterC == c.mIds.cend() ) break;
     }
 
-    //========================================================//
-
-    result.shrink_to_fit();
+    //--------------------------------------------------------//
 
     return result;
 }
 
 //============================================================================//
 
-}} // namespace sq::dop
+} // namespace sq::dop

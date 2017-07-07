@@ -1,12 +1,14 @@
 // GLSL Uniform Block
 
-struct LightSpotBlock {
-    vec3 position;   // 3
-    float intensity; // 1
-    vec3 direction;  // 3
-    float softness;  // 1
-    vec3 colour;     // 3
-    float angle;     // 1
-    mat4 matrix;     // 16
-    // Size: 28
+struct LightSpotBlock
+{
+    vec3 position;   // 12
+    float intensity; //  4
+    vec3 direction;  // 12
+    float softness;  //  4
+    vec3 colour;     // 12
+    float angle;     //  4
+    mat4 matrix;     // 64
+
+    // TOTAL: 112
 };

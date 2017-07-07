@@ -1,27 +1,26 @@
 #pragma once
 
-#include <sqee/misc/Resource.hpp>
+#include <map>
+
+#include <sqee/misc/ResourceCache.hpp>
+
 #include <sqee/gl/Textures.hpp>
 
 namespace sq {
 
 //============================================================================//
 
-/// The SQEE Material Class
+/// The SQEE Material class.
 class Material final : public MoveOnly
 {
-public:
+public: //====================================================//
 
-    //========================================================//
-
-    using AcquireFunc = Handle<Material>(*)(const string&);
-
-    Material(const string& path, Texture2D::AcquireFunc acquireTexture);
+    Material(const string& path, ResourceCache<Texture2D>& textures);
 
     /// Move Constructor
     Material(Material&& other);
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     bool has_diffuse_texture()  const { return mDiffuseTexture.check(); }
     bool has_normal_texture()   const { return mNormalTexture.check(); }
@@ -41,9 +40,7 @@ public:
     Vec3F get_diffuse_colour()  const { return mDiffuseColour; }
     Vec3F get_specular_colour() const { return mSpecularColour; }
 
-private:
-
-    //========================================================//
+private: //===================================================//
 
     Handle<Texture2D> mDiffuseTexture;
     Handle<Texture2D> mNormalTexture;

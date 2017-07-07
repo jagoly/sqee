@@ -11,16 +11,21 @@ using namespace sqt::render;
 
 CompositePasses::CompositePasses(const SharedStuff& stuff) : SharedStuff(stuff)
 {
-
+    processor.load_vertex(PROG_Composite, "generic/FullScreen_vs");
+    processor.load_vertex(PROG_FSAA_Screen, "generic/FullScreen_vs");
 }
 
 //============================================================================//
 
 void CompositePasses::update_options()
 {
-    shaders.preprocs(FS_Composite, "composite/Composite_fs");
+    processor.load_fragment(PROG_Composite, "composite/Composite_fs");
 
-    if (options.FSAA_Quality) shaders.preprocs(FS_FSAA_Screen, "composite/FSAA/FXAA_fs");
+    if (options.FSAA_Quality) processor.load_fragment(PROG_FSAA_Screen, "composite/FSAA/FXAA_fs");
+    else processor.load_fragment(PROG_FSAA_Screen, "generic/PassThrough_fs");
+
+    PROG_Composite.link_program_stages();
+    PROG_FSAA_Screen.link_program_stages();
 
     // re-attach texture to composite framebuffer
     FB_Composite.attach(gl::COLOR_ATTACHMENT0, textures.Composite_Main);
@@ -38,7 +43,6 @@ void CompositePasses::render_to_screen()
     context.set_ViewPort(options.Window_Size);
 
     context.bind_Texture(textures.Lighting_Main, 0u);
-    context.use_Shader_Vert(shaders.VS_FullScreen);
 
     if (options.Shafts_Quality != 0u)
     {
@@ -55,15 +59,13 @@ void CompositePasses::render_to_screen()
     }
 
     context.bind_FrameBuffer(FB_Composite);
-    context.use_Shader_Frag(FS_Composite);
+    context.bind_Program(PROG_Composite);
     sq::draw_screen_quad();
 
     context.bind_FrameBuffer_default();
     context.bind_Texture(textures.Composite_Main, 0u);
 
-    // use full-screen anti-aliasing shader if enabled
-    if (options.FSAA_Quality > 0) context.use_Shader_Frag(FS_FSAA_Screen);
-    else context.use_Shader_Frag(shaders.FS_PassThrough);
+    context.bind_Program(PROG_FSAA_Screen);
 
     if (options.Debug_Texture.empty() == false)
     {
@@ -79,6 +81,8 @@ void CompositePasses::render_to_screen()
     }
 
     sq::draw_screen_quad();
+
+    context.bind_Program_default();
 }
 
 //============================================================================//

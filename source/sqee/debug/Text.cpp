@@ -3,10 +3,10 @@
 #include <sqee/assert.hpp>
 
 #include <sqee/gl/Context.hpp>
-#include <sqee/gl/VertexArray.hpp>
 #include <sqee/gl/FixedBuffer.hpp>
+#include <sqee/gl/Program.hpp>
 #include <sqee/gl/Textures.hpp>
-#include <sqee/gl/Shaders.hpp>
+#include <sqee/gl/VertexArray.hpp>
 
 #include <sqee/debug/Text.hpp>
 
@@ -23,9 +23,9 @@ namespace { // anonymous
 
 //============================================================================//
 
-const char vertexShaderSource[] = R"glsl(
+const char vertexSource[] = R"glsl(
 
-#version 420 core
+#version 450 core
 
 const vec2 texcrds[6] =
 {
@@ -33,39 +33,37 @@ const vec2 texcrds[6] =
     vec2(1, 0), vec2(1, 1), vec2(0, 0)
 };
 
-layout(location=0) in vec3 V_glyph;
+layout(location=0) in vec3 glyph;
 
 out vec3 texcrd;
 
-out gl_PerVertex { vec4 gl_Position; };
-
 void main()
 {
-    gl_Position = vec4(V_glyph.xy, 0.f, 1.f);
+    gl_Position = vec4(glyph.xy, 0.f, 1.f);
     texcrd.xy = texcrds[gl_VertexID % 6];
-    texcrd.z = V_glyph.z;
+    texcrd.z = glyph.z;
 }
 
 )glsl";
 
-//========================================================//
+//============================================================================//
 
-const char fragmentShaderSource[] = R"glsl(
+const char fragmentSource[] = R"glsl(
 
-#version 420 core
+#version 450 core
 
 in vec3 texcrd;
 
-uniform vec4 colour;
+layout(location=0) uniform vec4 colour;
 
 layout(binding=0) uniform sampler2DArray tex;
 
-out vec4 fragColour;
+out vec4 fragment;
 
 void main()
 {
     float texel = texture(tex, texcrd).r;
-    fragColour = vec4(colour.rgb, texel * colour.a);
+    fragment = vec4(colour.rgb, texel * colour.a);
 }
 
 )glsl";
@@ -74,37 +72,32 @@ void main()
 
 struct TextBasicStuff
 {
-    VertexArray vao;
-    FixedBuffer vbo { gl::ARRAY_BUFFER };
+    FixedBuffer vbo; VertexArray vao;
 
-    TextureArray2D TEX_Font { Texture::Format::R8_UN };
-    TextureArray2D TEX_Glow { Texture::Format::R8_UN };
+    TextureArray2D texFont { Texture::Format::R8_UN };
+    TextureArray2D texGlow { Texture::Format::R8_UN };
 
-    Shader VS_Text { Shader::Stage::Vertex };
-    Shader FS_Text { Shader::Stage::Fragment };
+    Program program;
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     TextBasicStuff()
     {
-        TEX_Font.set_filter_mode(true);
-        TEX_Glow.set_filter_mode(true);
+        texFont.set_filter_mode(true);
+        texGlow.set_filter_mode(true);
 
-        vbo.allocate_editable(2048u * 12u, nullptr);
-        vao.set_vertex_buffer(vbo, 0u, 12u);
+        vbo.allocate_dynamic(2048u * 12u, nullptr);
+        vao.set_vertex_buffer(vbo, 12u);
 
         vao.add_float_attribute(0u, 3u, gl::FLOAT, false, 0u);
 
-        TEX_Font.allocate_storage({16u, 16u, 256u});
-        TEX_Font.load_memory(data_TextFont);
+        texFont.allocate_storage({16u, 16u, 256u});
+        texFont.load_memory(data_TextFont);
 
-        TEX_Glow.allocate_storage({16u, 16u, 256u});
-        TEX_Glow.load_memory(data_TextGlow);
+        texGlow.allocate_storage({16u, 16u, 256u});
+        texGlow.load_memory(data_TextGlow);
 
-        FS_Text.add_uniform("colour"); // Vec4F
-
-        VS_Text.load(vertexShaderSource);
-        FS_Text.load(fragmentShaderSource);
+        program.create(vertexSource, fragmentSource);
     }
 };
 
@@ -114,15 +107,14 @@ struct TextBasicStuff
 
 //============================================================================//
 
-void sq::render_text_basic(const string& text, Vec2I flow, Vec2I align,
-                           Vec2F scale, Vec4F colour, bool shadow)
+void sq::render_text_basic(const string& text, Vec2I flow, Vec2I align, Vec2F scale, Vec4F colour, bool shadow)
 {
     SQASSERT(flow.x == -1 || flow.x == +1, "invalid horizontal flow");
     SQASSERT(flow.y == -1 || flow.y == +1, "invalid vertical flow");
     SQASSERT(align.x == -1 || align.x == 0 || align.x == +1, "invalid horizontal align");
     SQASSERT(align.y == -1 || align.y == 0 || align.y == +1, "invalid vertical align");
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     static auto& context = Context::get();
 
@@ -135,9 +127,9 @@ void sq::render_text_basic(const string& text, Vec2I flow, Vec2I align,
 
     const float maxWidth = 1.f - margin.x * 2.f;
 
-    //========================================================//
+    //--------------------------------------------------------//
 
-    vector<string> lines = { "" };
+    std::vector<string> lines = { "" };
 
     for (uint i = 0u; i < text.size(); i++)
     {
@@ -146,7 +138,7 @@ void sq::render_text_basic(const string& text, Vec2I flow, Vec2I align,
         lines.back().push_back(text.at(i));
     }
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     // if flow.x == align.x, then reverse rows
     if ((flow.x == -1 && align.x == -1) || (flow.x == +1 && align.x == +1))
@@ -156,7 +148,7 @@ void sq::render_text_basic(const string& text, Vec2I flow, Vec2I align,
     if ((flow.y == -1 && align.y == -1) || (flow.y == +1 && align.y == +1))
         std::reverse(lines.begin(), lines.end());
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     // text origin and per-character offset
 
@@ -171,9 +163,9 @@ void sq::render_text_basic(const string& text, Vec2I flow, Vec2I align,
     if (align.x == +1) offset.x = -offset.x;
     if (align.y == +1) offset.y = -offset.y;
 
-    //========================================================//
+    //--------------------------------------------------------//
 
-    vector<array<Vec3F, 6>> glyphs;
+    std::vector<std::array<Vec3F, 6>> glyphs;
 
     float currentY = origin.y;
 
@@ -201,30 +193,29 @@ void sq::render_text_basic(const string& text, Vec2I flow, Vec2I align,
         currentY += offset.y;
     }
 
-    //========================================================//
+    //--------------------------------------------------------//
 
-    stuff.vbo.update(0u, glyphs.size() * 72u, glyphs.data());
-
-    context.bind_shader_pipeline();
+    stuff.vbo.update(0u, uint(glyphs.size()) * 72u, glyphs.data());
 
     context.set_state(Context::Cull_Face::Disable);
     context.set_state(Context::Depth_Test::Disable);
     context.set_state(Context::Stencil_Test::Disable);
     context.set_state(Context::Blend_Mode::Alpha);
 
-    context.use_Shader_Vert(stuff.VS_Text);
-    context.use_Shader_Frag(stuff.FS_Text);
+    context.bind_Program(stuff.program);
     context.bind_VertexArray(stuff.vao);
 
     if (shadow == true)
     {
-        context.bind_Texture(stuff.TEX_Glow, 0u);
+        context.bind_Texture(stuff.texGlow, 0u);
         const Vec3F rgb(maths::dot(Vec3F(colour), 0.33f) < 0.5f);
-        stuff.FS_Text.update<Vec4F>("colour", Vec4F(rgb, colour.a));
-        gl::DrawArrays(gl::TRIANGLES, 0, glyphs.size() * 6u);
+        stuff.program.update(0, Vec4F(rgb, colour.a));
+
+        gl::DrawArrays(gl::TRIANGLES, 0, int(glyphs.size()) * 6);
     }
 
-    context.bind_Texture(stuff.TEX_Font, 0u);
-    stuff.FS_Text.update<Vec4F>("colour", colour);
-    gl::DrawArrays(gl::TRIANGLES, 0, glyphs.size() * 6u);
+    context.bind_Texture(stuff.texFont, 0u);
+    stuff.program.update(0, Vec4F(colour));
+
+    gl::DrawArrays(gl::TRIANGLES, 0, int(glyphs.size()) * 6);
 }

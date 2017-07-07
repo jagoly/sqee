@@ -2,7 +2,7 @@
 
 #include "WorldStuff.hpp"
 
-namespace sqt { namespace sys {
+namespace sqt::sys {
 
 //============================================================================//
 
@@ -12,4 +12,4 @@ void system_blend_animations(WorldStuff& stuff, float factor);
 
 //============================================================================//
 
-}} // namespace sqt::sys
+} // namespace sqt::sys

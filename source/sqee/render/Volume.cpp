@@ -6,29 +6,28 @@ using namespace sq;
 
 //============================================================================//
 
-Volume::Volume(const float* vertices, const uchar* indices, uchar vertexCount, uchar indexCount)
+Volume::Volume ( const float* vertices, const uchar* indices,
+                 uint8_t vertexCount, uint8_t indexCount )
 
-    : mVertexBuffer(gl::ARRAY_BUFFER), mIndexBuffer(gl::ELEMENT_ARRAY_BUFFER),
-      mVertexCount(vertexCount), mIndexCount(indexCount)
+    : mVertexCount(vertexCount), mIndexCount(indexCount)
 {
     constexpr uint vertexSize = sizeof(GLfloat[3]);
-    constexpr uint indexSize = sizeof(GLbyte);
+    constexpr uint indexSize = sizeof(GLubyte);
 
     mVertexBuffer.allocate_constant(vertexCount * vertexSize, vertices);
     mIndexBuffer.allocate_constant(indexCount * indexSize, indices);
 
-    mVAO.set_vertex_buffer(mVertexBuffer, 0u, vertexSize);
-    mVAO.set_index_buffer(mIndexBuffer);
+    mVertexArray.set_vertex_buffer(mVertexBuffer, vertexSize);
+    mVertexArray.set_index_buffer(mIndexBuffer);
 
-    mVAO.add_float_attribute(0u, 3u, gl::FLOAT, false, 0u);
+    mVertexArray.add_float_attribute(0u, 3u, gl::FLOAT, false, 0u);
 }
 
 //============================================================================//
 
 void Volume::bind_and_draw(Context& context) const
 {
-    context.bind_VertexArray(mVAO);
+    context.bind_VertexArray(mVertexArray);
 
-    const auto count = GLsizei(mIndexCount);
-    gl::DrawElements(gl::TRIANGLES, count, gl::UNSIGNED_BYTE, nullptr);
+    gl::DrawElements(gl::TRIANGLES, int(mIndexCount), gl::UNSIGNED_BYTE, nullptr);
 }

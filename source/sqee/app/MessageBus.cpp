@@ -1,64 +1,53 @@
+#include <sqee/assert.hpp>
+#include <sqee/misc/Algorithms.hpp>
 #include <sqee/app/MessageBus.hpp>
 
 using namespace sq;
 
 //============================================================================//
 
-void MessageBus::subscribe_front(ReceiverBase& receiver)
+void MessageBus::impl_register_type(std::type_index type)
 {
-    SQASSERT(impl_check_registered(receiver.type) == true, "");
-    SQASSERT(impl_check_subscribed(receiver) == false, "");
-
-    receiver.unsubscriber = [&]() { this->unsubscribe(receiver); };
-
-    auto& receivers = mSubscriberMap.at(receiver.type);
-    receivers.insert(receivers.begin(), &receiver);
+    auto [iter, success] = mSubscriberMap.insert({ type, {} });
+    SQASSERT(success, "message type already registered");
 }
 
 //============================================================================//
 
-void MessageBus::subscribe_back(ReceiverBase& receiver)
+void MessageBus::impl_unregister_type(std::type_index type)
 {
-    SQASSERT(impl_check_registered(receiver.type) == true, "");
-    SQASSERT(impl_check_subscribed(receiver) == false, "");
-
-    receiver.unsubscriber = [&]() { this->unsubscribe(receiver); };
-
-    auto& receivers = mSubscriberMap.at(receiver.type);
-    receivers.push_back(&receiver);
+    auto iter = mSubscriberMap.find(type);
+    SQASSERT(iter != mSubscriberMap.end(), "message type not registered");
+    SQASSERT(iter->second.empty(), "message type has subscribers");
+    mSubscriberMap.erase(iter);
 }
 
 //============================================================================//
 
-void MessageBus::unsubscribe(ReceiverBase& receiver)
+void MessageBus::impl_subscribe(ReceiverBase* receiver, std::type_index type)
 {
-    SQASSERT(impl_check_registered(receiver.type) == true, "");
-    SQASSERT(impl_check_subscribed(receiver) == true, "");
-
-    receiver.unsubscriber = nullptr;
-
-    auto& receivers = mSubscriberMap.at(receiver.type);
-    receivers.erase(algo::find(receivers, &receiver));
-}
-
-
-//============================================================================//
-
-void MessageBus::impl_register_type(type_index type)
-{
-    SQASSERT(impl_check_registered(type) == false, "");
-
-    mSubscriberMap.insert({ type, {} });
+    auto iter = mSubscriberMap.find(type);
+    SQASSERT(iter != mSubscriberMap.end(), "message type not registered");
+    SQASSERT(!algo::exists(iter->second, receiver), "receiver already subscribed");
+    iter->second.push_back(receiver);
 }
 
 //============================================================================//
 
-void MessageBus::impl_unregister_type(type_index type)
+void MessageBus::impl_unsubscribe(ReceiverBase* receiver, std::type_index type)
 {
-    SQASSERT(impl_check_registered(type) == true, "");
+    auto mapIter = mSubscriberMap.find(type);
+    SQASSERT(mapIter != mSubscriberMap.end(), "message type not registered");
+    auto vecIter = algo::find(mapIter->second, receiver);
+    SQASSERT(vecIter != mapIter->second.end(), "receiver not subscribed");
+    mapIter->second.erase(vecIter);
+}
 
-    auto& receivers = mSubscriberMap.at(type);
-    for (auto r : receivers) r->unsubscriber = nullptr;
+//============================================================================//
 
-    mSubscriberMap.erase(type);
+std::vector<ReceiverBase*>& MessageBus::impl_get_subscribers(std::type_index type)
+{
+    auto iter = mSubscriberMap.find(type);
+    SQASSERT(iter != mSubscriberMap.end(), "message type not registered");
+    return iter->second;
 }

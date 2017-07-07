@@ -10,12 +10,10 @@ namespace sq {
 
 //============================================================================//
 
-/// The SQEE Armature class
+/// The SQEE Armature class.
 class Armature final : public MoveOnly
 {
-public:
-
-    //========================================================//
+public: //====================================================//
 
     struct Bone
     {
@@ -25,47 +23,45 @@ public:
     };
 
     struct Frame { uint index, time; };
-    using Pose = vector<Bone>;
+    using Pose = std::vector<Bone>;
 
     struct Animation
     {
         uint boneCount = 0u;
         uint tickRate = 0u;
-        vector<Frame> frames;
-        vector<Pose> poses;
+        std::vector<Frame> frames;
+        std::vector<Pose> poses;
     };
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     void load_bones(const string& path);
 
     void load_rest_pose(const string& path);
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     Pose make_pose(const string& path) const;
 
     Animation make_animation(const string& path) const;
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     Pose blend_poses(const Pose& a, const Pose& b, float factor) const;
 
     Pose compute_pose(const Animation& animation, float time) const;
 
-    vector<Mat34F> compute_ubo_data(const Pose& pose) const;
+    std::vector<Mat34F> compute_ubo_data(const Pose& pose) const;
 
     Mat4F compute_transform(const Pose& pose, const string& name) const;
 
-private:
+private: //===================================================//
 
-    //========================================================//
+    std::vector<string> mBoneNames;
+    std::vector<int32_t> mBoneParents;
 
-    vector<string> mBoneNames;
-    vector<int32_t> mBoneParents;
-
-    vector<Mat4F> mBaseMats;
-    vector<Mat4F> mInverseMats;
+    std::vector<Mat4F> mBaseMats;
+    std::vector<Mat4F> mInverseMats;
 
     Pose mRestPose;
 };

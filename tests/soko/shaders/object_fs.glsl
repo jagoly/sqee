@@ -4,18 +4,18 @@ in vec3 v_pos;
 in vec3 v_norm;
 in vec3 colour;
 
-#include camera_block
 #include uniform_block
 
-layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
-layout(std140, binding=1) uniform UNIFORMBLOCK { UniformBlock UB; };
+layout(std140, binding=0) uniform UNIFORM { UniformBlock UB; };
 
 out vec4 fragColour;
 
 
-void main() {
-    vec3 lightDir = mat3(CB.view) * UB.slDirection;
+void main() 
+{
+    vec3 lightDir = mat3(UB.cameraView) * normalize(UB.lightDirection);
     float dotProd = max(dot(-lightDir, v_norm), 0.f);
-    fragColour.rgb = dotProd * UB.slColour * colour;
-    fragColour.rgb += colour * UB.aColour;
+    
+    fragColour.rgb = colour * UB.ambientColour;
+    fragColour.rgb += colour * UB.lightColour * dotProd;
 }

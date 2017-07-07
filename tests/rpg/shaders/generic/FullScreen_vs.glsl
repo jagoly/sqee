@@ -1,15 +1,16 @@
 // GLSL Vertex Shader
 
-#include builtin/data/screen
+//============================================================================//
+
+#include builtin/misc/screen
 
 out vec2 texcrd;
 
-out gl_PerVertex {
-    vec4 gl_Position;
-};
+//============================================================================//
 
+void main()
+{
+    texcrd = v_Position * 0.5f + 0.5f;
 
-void main() {
-    texcrd = V_pos * 0.5f + 0.5f;
-    gl_Position = vec4(V_pos, 0.f, 1.f);
+    gl_Position = vec4(v_Position, 0.f, 1.f);
 }

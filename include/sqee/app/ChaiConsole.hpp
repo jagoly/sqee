@@ -2,56 +2,61 @@
 
 #include <forward_list>
 
-#include <sqee/app/Application.hpp>
+#include <sqee/builtins.hpp>
+
+#include <sqee/app/Scene.hpp>
+#include <sqee/app/ChaiEngine.hpp>
+#include <sqee/app/Event.hpp>
+
+//============================================================================//
 
 namespace sq {
 
 //============================================================================//
 
-/// The SQEE Chaiscript Console
-class ChaiConsole final : NonCopyable
+/// The SQEE ChaiScript Console.
+class ChaiConsole final : public Scene
 {
-public:
+public: //====================================================//
 
-    //========================================================//
+    /// Constructor.
+    ChaiConsole(ChaiEngine& engine);
 
-    /// Constructor
-    ChaiConsole(Application& app);
+    //--------------------------------------------------------//
 
-    //========================================================//
+    /// Call to handle console input.
+    void handle_event(Event event);
 
-    /// called to handle text input
-    void handle(sf::Event event);
+    //--------------------------------------------------------//
 
-    /// called two times per second
-    void tick();
+    /// Toggle the console.
+    void toggle_active() { mActive = !mActive; }
 
-    /// called once every frame
-    void render();
+    /// Check if the console is active,
+    bool check_active() const { return mActive; }
 
-    //========================================================//
+    //--------------------------------------------------------//
 
-    /// enable or disable the console
-    void toggle_active();
+    /// Clear cnsole output.
+    void clear();
 
-    /// check if the console is active
-    bool is_active() const { return mActive; }
+    /// Display command history.
+    void history();
 
-    //========================================================//
+    /// Print to the console.
+    void print(const string& arg);
 
-    void cs_print(const string& str);
-    void cs_history();
-    void cs_clear();
+private: //===================================================//
 
-    //========================================================//
+    void update() override;
 
-    float accumulation = 0.0f;
+    void render(double elapsed) override;
 
-private:
+    //--------------------------------------------------------//
 
-    //========================================================//
+    ChaiEngine& mEngine;
 
-    Application& mApplication;
+    //--------------------------------------------------------//
 
     string mInput;
 
@@ -67,4 +72,6 @@ private:
     bool mActive = false;
 };
 
-}
+//============================================================================//
+
+} // namespace sq

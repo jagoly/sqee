@@ -8,13 +8,17 @@ namespace sq {
 
 //============================================================================//
 
-template <class T, if_float<T>...> struct Quaternion
+template <class T> struct Quaternion
 {
+    static_assert(std::is_floating_point_v<T>);
+
+    //--------------------------------------------------------//
+
     constexpr Quaternion() : data { T(0.0), T(0.0), T(0.0), T(1.0) } {}
     constexpr Quaternion(T x, T y, T z, T w) : data { x, y, z, w } {}
     constexpr Quaternion(const Quaternion& q) : data { q.x, q.y, q.z, q.w } {}
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     inline explicit Quaternion(T rx, T ry, T rz)
     {
@@ -28,24 +32,9 @@ template <class T, if_float<T>...> struct Quaternion
         y = (c.x * s.y * c.z) + (s.x * c.y * s.z);
         z = (c.x * c.y * s.z) - (s.x * s.y * c.z);
         w = (c.x * c.y * c.z) + (s.x * s.y * s.z);
-
-//        double t0 = std::cos(yaw * 0.5f);
-//        double t1 = std::sin(yaw * 0.5f);
-//        double t2 = std::cos(roll * 0.5f);
-//        double t3 = std::sin(roll * 0.5f);
-//        double t4 = std::cos(pitch * 0.5f);
-//        double t5 = std::sin(pitch * 0.5f);
-
-//        q.w() = t0 * t2 * t4 + t1 * t3 * t5;
-//        q.x() = t0 * t3 * t4 - t1 * t2 * t5;
-//        q.y() = t0 * t2 * t5 + t1 * t3 * t4;
-//        q.z() = t1 * t2 * t4 - t0 * t3 * t5;
-
-//        float ls = x*x + y*y + z*z + w*w;
-//        *this = *this / std::sqrt(ls);
     }
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     inline explicit Quaternion(const Matrix33<T>& m)
     {
@@ -65,7 +54,7 @@ template <class T, if_float<T>...> struct Quaternion
         if (index == 3) { x = valueC;  y = valueB;  z = biggest; w = valueA;  }
     }
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     constexpr explicit operator Matrix33<T>() const
     {
@@ -75,13 +64,13 @@ template <class T, if_float<T>...> struct Quaternion
         return Matrix33<T> ( colA, colB, colC );
     }
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     inline explicit Quaternion(const Matrix44<T>& m) : Quaternion(Matrix33<T>(m)) {}
 
     constexpr explicit operator Matrix44<T>() const { return Matrix44<T> ( Matrix33<T>(*this) ); }
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     union { T data[4]; struct { T x, y, z, w; }; };
 };

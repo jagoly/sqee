@@ -1,74 +1,146 @@
 // GLSL Header File
 
 #include builtin/funcs/random
-#include builtin/disks/uniform
+#include builtin/misc/disks
 
-float get_bias(vec3 _normal, vec3 _lightDir) {
-    float lightDot = dot(_normal, -_lightDir);
+//============================================================================//
+
+float get_bias(vec3 normal, vec3 dirToLight)
+{
+    float lightDot = dot(normal, -dirToLight);
     float magicTan = sqrt(1.f - lightDot * lightDot) / lightDot;
+
     return clamp(0.001f * magicTan, 0.f, 0.01f);
 }
 
-float sample_shadow(vec3 _sc, int _layer, float _bias, sampler2DArrayShadow _tex) {
-    return texture(_tex, vec4(_sc.xy, _layer, _sc.z - _bias));
+float sample_shadow(sampler2DArrayShadow tex, vec3 sc, int layer, float bias)
+{
+    return texture(tex, vec4(sc.xy, layer, sc.z - bias));
 }
 
-float sample_shadow_x4(vec3 _sc, int _layer, float _bias, float _radius, sampler2DArrayShadow _tex) {
-    float angle = rand2(_sc.xy), vis = 0.f;
-    float s = sin(angle), c = cos(angle);
-    for (int ind = 0; ind < 4; ind++) {
-        vec2 offs = disk4[ind] * _radius;
-        offs = vec2(c * offs.x - s * offs.y, c * offs.y + s * offs.x);
-        vis += texture(_tex, vec4(_sc.x+offs.x, _sc.y+offs.y, _layer, _sc.z - _bias));
-    } return vis / 4.f;
+//============================================================================//
+
+float sample_shadow_x4(sampler2DArrayShadow tex, vec3 sc, int layer, float bias, float radius)
+{
+    const float rotation = rand2(sc.xy);
+    const float rrs = radius * sin(rotation);
+    const float rrc = radius * cos(rotation);
+
+    float result = 0.f;
+
+    for (int i = 0; i < 4; ++i)
+    {
+        vec2 os = rrs * c_Disk4[i], oc = rrc * c_Disk4[i];
+        vec2 offset = vec2(oc.x - os.y, oc.y + os.x);
+
+        result += texture(tex, vec4(sc.xy + offset, layer, sc.z - bias));
+    }
+
+    return result / 4.f;
 }
 
-float sample_shadow_x6(vec3 _sc, int _layer, float _bias, float _radius, sampler2DArrayShadow _tex) {
-    float angle = rand2(_sc.xy), vis = 0.f;
-    float s = sin(angle), c = cos(angle);
-    for (int ind = 0; ind < 6; ind++) {
-        vec2 offs = disk6[ind] * _radius;
-        offs = vec2(c * offs.x - s * offs.y, c * offs.y + s * offs.x);
-        vis += texture(_tex, vec4(_sc.x+offs.x, _sc.y+offs.y, _layer, _sc.z - _bias));
-    } return vis / 6.f;
+//============================================================================//
+
+float sample_shadow_x6(sampler2DArrayShadow tex, vec3 sc, int layer, float bias, float radius)
+{
+    const float rotation = rand2(sc.xy);
+    const float rrs = radius * sin(rotation);
+    const float rrc = radius * cos(rotation);
+
+    float result = 0.f;
+
+    for (int i = 0; i < 6; ++i)
+    {
+        vec2 os = rrs * c_Disk6[i], oc = rrc * c_Disk6[i];
+        vec2 offset = vec2(oc.x - os.y, oc.y + os.x);
+
+        result += texture(tex, vec4(sc.xy + offset, layer, sc.z - bias));
+    }
+
+    return result / 6.f;
 }
 
-float sample_shadow_x8(vec3 _sc, int _layer, float _bias, float _radius, sampler2DArrayShadow _tex) {
-    float angle = rand2(_sc.xy), vis = 0.f;
-    float s = sin(angle), c = cos(angle);
-    for (int ind = 0; ind < 8; ind++) {
-        vec2 offs = disk8[ind] * _radius;
-        offs = vec2(c * offs.x - s * offs.y, c * offs.y + s * offs.x);
-        vis += texture(_tex, vec4(_sc.x+offs.x, _sc.y+offs.y, _layer, _sc.z - _bias));
-    } return vis / 8.f;
+//============================================================================//
+
+float sample_shadow_x8(sampler2DArrayShadow tex, vec3 sc, int layer, float bias, float radius)
+{
+    const float rotation = rand2(sc.xy);
+    const float rrs = radius * sin(rotation);
+    const float rrc = radius * cos(rotation);
+
+    float result = 0.f;
+
+    for (int i = 0; i < 8; ++i)
+    {
+        vec2 os = rrs * c_Disk8[i], oc = rrc * c_Disk8[i];
+        vec2 offset = vec2(oc.x - os.y, oc.y + os.x);
+
+        result += texture(tex, vec4(sc.xy + offset, layer, sc.z - bias));
+    }
+
+    return result / 8.f;
 }
 
-float sample_shadow_x12(vec3 _sc, int _layer, float _bias, float _radius, sampler2DArrayShadow _tex) {
-    float angle = rand2(_sc.xy), vis = 0.f;
-    float s = sin(angle), c = cos(angle);
-    for (int ind = 0; ind < 12; ind++) {
-        vec2 offs = disk12[ind] * _radius;
-        offs = vec2(c * offs.x - s * offs.y, c * offs.y + s * offs.x);
-        vis += texture(_tex, vec4(_sc.x+offs.x, _sc.y+offs.y, _layer, _sc.z - _bias));
-    } return vis / 12.f;
+//============================================================================//
+
+float sample_shadow_x12(sampler2DArrayShadow tex, vec3 sc, int layer, float bias, float radius)
+{
+    const float rotation = rand2(sc.xy);
+    const float rrs = radius * sin(rotation);
+    const float rrc = radius * cos(rotation);
+
+    float result = 0.f;
+
+    for (int i = 0; i < 12; ++i)
+    {
+        vec2 os = rrs * c_Disk12[i], oc = rrc * c_Disk12[i];
+        vec2 offset = vec2(oc.x - os.y, oc.y + os.x);
+
+        result += texture(tex, vec4(sc.xy + offset, layer, sc.z - bias));
+    }
+
+    return result / 12.f;
 }
 
-float sample_shadow_x16(vec3 _sc, int _layer, float _bias, float _radius, sampler2DArrayShadow _tex) {
-    float angle = rand2(_sc.xy), vis = 0.f;
-    float s = sin(angle), c = cos(angle);
-    for (int ind = 0; ind < 16; ind++) {
-        vec2 offs = disk16[ind] * _radius;
-        offs = vec2(c * offs.x - s * offs.y, c * offs.y + s * offs.x);
-        vis += texture(_tex, vec4(_sc.x+offs.x, _sc.y+offs.y, _layer, _sc.z - _bias));
-    } return vis / 16.f;
+//============================================================================//
+
+float sample_shadow_x16(sampler2DArrayShadow tex, vec3 sc, int layer, float bias, float radius)
+{
+    const float rotation = rand2(sc.xy);
+    const float rrs = radius * sin(rotation);
+    const float rrc = radius * cos(rotation);
+
+    float result = 0.f;
+
+    for (int i = 0; i < 16; ++i)
+    {
+        vec2 os = rrs * c_Disk16[i], oc = rrc * c_Disk16[i];
+        vec2 offset = vec2(oc.x - os.y, oc.y + os.x);
+
+        result += texture(tex, vec4(sc.xy + offset, layer, sc.z - bias));
+    }
+
+    return result / 16.f;
 }
 
-float sample_shadow_x24(vec3 _sc, int _layer, float _bias, float _radius, sampler2DArrayShadow _tex) {
-    float angle = rand2(_sc.xy), vis = 0.f;
-    float s = sin(angle), c = cos(angle);
-    for (int ind = 0; ind < 24; ind++) {
-        vec2 offs = disk24[ind] * _radius;
-        offs = vec2(c * offs.x - s * offs.y, c * offs.y + s * offs.x);
-        vis += texture(_tex, vec4(_sc.x+offs.x, _sc.y+offs.y, _layer, _sc.z - _bias));
-    } return vis / 24.f;
+//============================================================================//
+
+float sample_shadow_x24(sampler2DArrayShadow tex, vec3 sc, int layer, float bias, float radius)
+{
+    const float rotation = rand2(sc.xy);
+    const float rrs = radius * sin(rotation);
+    const float rrc = radius * cos(rotation);
+
+    float result = 0.f;
+
+    for (int i = 0; i < 24; ++i)
+    {
+        vec2 os = rrs * c_Disk24[i], oc = rrc * c_Disk24[i];
+        vec2 offset = vec2(oc.x - os.y, oc.y + os.x);
+
+        result += texture(tex, vec4(sc.xy + offset, layer, sc.z - bias));
+    }
+
+    return result / 24.f;
 }
+

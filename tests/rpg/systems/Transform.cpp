@@ -9,59 +9,69 @@ using namespace sqt::sys;
 
 //============================================================================//
 
+void sqt::sys::system_refresh_nesting(WorldStuff& stuff)
+{
+    stuff.nestingRootGroup.clear();
+
+    for (auto& table : stuff.nestingTables)
+        table.clear();
+
+    //--------------------------------------------------------//
+
+    for (auto& [id, entity] : dop::joined(stuff.tables.entity))
+    {
+        uint8_t nestLevel = 0u;
+
+        for (int32_t grand = entity.parent; grand != -1; ++nestLevel)
+            grand = stuff.tables.entity.get(grand).parent;
+
+        SQASSERT(nestLevel <= 8u, "too much nesting");
+
+        if (nestLevel == 0u) stuff.nestingRootGroup.insert(id);
+        else stuff.nestingTables[--nestLevel].insert(id, entity.parent);
+    }
+}
+
+//============================================================================//
+
 void sqt::sys::system_refresh_transforms(WorldStuff& stuff)
 {
-    auto& tables = stuff.tables;
-
-    auto joinResult = dop::joined(tables.entity, tables.transform);
-
-    uint8_t maxNesting = 0u;
-
-    //========================================================//
-
-    for (auto& joinEntry : joinResult)
+    for (auto& transform : stuff.tables.transform.mData)
     {
-        const auto& entity = std::get<1>(joinEntry);
-        auto& transform = std::get<2>(joinEntry);
-
-        maxNesting = maths::max(entity.nesting, maxNesting);
-
         const Vec3F& position = transform.localPosition;
         const QuatF& rotation = transform.localRotation;
         const float& scale = transform.localScale;
 
-        // calculate the local space matrix
         transform.localMatrix = maths::translate(Mat4F(), position);
         transform.localMatrix *= Mat4F(Mat3F(rotation) * Mat3F(scale));
 
         transform.worldMatrix = transform.localMatrix;
     }
 
-    //========================================================//
+    //--------------------------------------------------------//
 
-    //for (uint8_t level = 1u; level <= maxNesting; ++level)
-    //{
-        for (auto& joinEntry : joinResult)
-        {
-            const auto& entity = std::get<1>(joinEntry);
-            auto& transform = std::get<2>(joinEntry);
-
-            //if (entity.nesting != level) continue;
-
-            if (auto parent = tables.transform.try_get(entity.parent))
-            {
-                Mat4F& worldMatrix = transform.worldMatrix;
-                worldMatrix = parent->worldMatrix * worldMatrix;
-            }
-        }
-    //}
-
-    //========================================================//
-
-    for (auto& tf : tables.transform.mData)
+    for (auto& nestingTable : stuff.nestingTables)
     {
-        tf.worldPosition = Vec3F(tf.worldMatrix[3]);
-        tf.worldRotation = maths::normalize(QuatF(tf.worldMatrix));
-        tf.worldScale = maths::length(Vec3F(tf.worldMatrix[0]));
+        for (auto& [id, parent, transform] : dop::joined(nestingTable, stuff.tables.transform))
+        {
+            if (auto parentTransform = stuff.tables.transform.try_get(parent))
+                transform.worldMatrix = parentTransform->worldMatrix * transform.worldMatrix;
+        }
+    }
+
+    //--------------------------------------------------------//
+
+    for (auto& transform : stuff.tables.transform.mData)
+    {
+        transform.worldPosition = Vec3F(transform.worldMatrix[3]);
+        transform.worldRotation = maths::normalize(QuatF(transform.worldMatrix));
+        transform.worldScale = maths::length(Vec3F(transform.worldMatrix[0]));
+    }
+
+    //--------------------------------------------------------//
+
+    for (auto& [id, transform, model] : dop::joined(stuff.tables.transform, stuff.tables.model))
+    {
+        model.matrix = maths::scale(transform.worldMatrix, model.stretch);
     }
 }

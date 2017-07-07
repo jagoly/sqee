@@ -5,20 +5,27 @@ using namespace sq;
 
 //============================================================================//
 
-VertexArray::VertexArray()
+VertexArray::VertexArray() : mContext(Context::get())
 {
     gl::CreateVertexArrays(1, &mHandle);
 }
 
-VertexArray::VertexArray(VertexArray&& other)
+//============================================================================//
+
+VertexArray::VertexArray(VertexArray&& other) : mContext(other.mContext)
 {
-    Context::get().impl_reset_VertexArray(&other, this);
+    mContext.impl_reset_VertexArray(&other, this);
     mHandle = other.mHandle; other.mHandle = 0u;
 }
 
+VertexArray& VertexArray::operator=(VertexArray&& other)
+{ std::swap(*this, other); return *this; }
+
+//============================================================================//
+
 VertexArray::~VertexArray()
 {
-    Context::get().impl_reset_VertexArray(this);
+    mContext.impl_reset_VertexArray(this);
     gl::DeleteVertexArrays(1, &mHandle);
 }
 
@@ -40,9 +47,9 @@ void VertexArray::add_integer_attribute(uint index, uint size, GLenum type, uint
 
 //============================================================================//
 
-void VertexArray::set_vertex_buffer(const FixedBuffer& buffer, uint offset, uint stride)
+void VertexArray::set_vertex_buffer(const FixedBuffer& buffer, uint stride)
 {
-    gl::VertexArrayVertexBuffer(mHandle, 0u, buffer.get_handle(), offset, int(stride));
+    gl::VertexArrayVertexBuffer(mHandle, 0u, buffer.get_handle(), 0u, int(stride));
 }
 
 void VertexArray::set_index_buffer(const FixedBuffer& buffer)

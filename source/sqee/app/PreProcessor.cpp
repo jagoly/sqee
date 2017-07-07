@@ -9,21 +9,23 @@ using namespace sq;
 
 //============================================================================//
 
-extern const char data_funcs_depth[];
-extern const char data_funcs_random[];
-extern const char data_funcs_colours[];
-extern const char data_disks_uniform[];
-extern const char data_data_screen[];
+extern const char data_glsl_misc_screen[];
+extern const char data_glsl_funcs_position[];
+extern const char data_glsl_funcs_depth[];
+extern const char data_glsl_funcs_random[];
+extern const char data_glsl_funcs_colour[];
+extern const char data_glsl_misc_disks[];
 
 //============================================================================//
 
 PreProcessor::PreProcessor()
 {
-    mHeaders.emplace("builtin/funcs/depth", tokenise_string(data_funcs_depth, '\n'));
-    mHeaders.emplace("builtin/funcs/random", tokenise_string(data_funcs_random, '\n'));
-    mHeaders.emplace("builtin/funcs/colours", tokenise_string(data_funcs_colours, '\n'));
-    mHeaders.emplace("builtin/disks/uniform", tokenise_string(data_disks_uniform, '\n'));
-    mHeaders.emplace("builtin/data/screen", tokenise_string(data_data_screen, '\n'));
+    mHeaders.emplace("builtin/misc/screen", tokenise_string(data_glsl_misc_screen, '\n'));
+    mHeaders.emplace("builtin/funcs/position", tokenise_string(data_glsl_funcs_position, '\n'));
+    mHeaders.emplace("builtin/funcs/depth", tokenise_string(data_glsl_funcs_depth, '\n'));
+    mHeaders.emplace("builtin/funcs/random", tokenise_string(data_glsl_funcs_random, '\n'));
+    mHeaders.emplace("builtin/funcs/colour", tokenise_string(data_glsl_funcs_colour, '\n'));
+    mHeaders.emplace("builtin/misc/disks", tokenise_string(data_glsl_misc_disks, '\n'));
 }
 
 //============================================================================//
@@ -32,10 +34,8 @@ void PreProcessor::import_header(const string& path)
 {
     const string fullPath = "shaders/" + path + ".glsl";
     const string header = get_string_from_file(fullPath);
-    mHeaders.emplace(path, tokenise_string(header, '\n'));
+    mHeaders[path] = tokenise_string(header, '\n');
 }
-
-//============================================================================//
 
 void PreProcessor::update_header(const string& key, const string& string)
 {
@@ -44,23 +44,23 @@ void PreProcessor::update_header(const string& key, const string& string)
 
 //============================================================================//
 
-void PreProcessor::load(Shader& shader, const string& path, const string& extra) const
+string PreProcessor::process(const string& path, const string& prelude) const
 {
     const string fullPath = "shaders/" + path + ".glsl";
     const string fileStr = get_string_from_file(fullPath);
 
-    vector<string> lineVec = tokenise_string(fileStr, '\n');
+    std::vector<string> lineVec = tokenise_string(fileStr, '\n');
     std::list<string> lines(lineVec.begin(), lineVec.end());
 
-    string source = "#version 420 core\n#line 0\n";
-    source.append(extra);
+    string source = "#version 450 core\n#line 0\n";
+    source.append(prelude);
 
-    vector<pair<uint, string>> errorVec;
+    std::vector<std::pair<uint, string>> errorVec;
     uint lineNum = 0u, tokenNum = 0u;
 
     for (auto it = lines.begin(); it != lines.end(); ++it)
     {
-        vector<string> tokens = tokenise_string(*it, ' ');
+        std::vector<string> tokens = tokenise_string(*it, ' ');
 
         if (tokens.empty() == false)
         {
@@ -85,7 +85,7 @@ void PreProcessor::load(Shader& shader, const string& path, const string& extra)
 
                 if (errorVec.empty() == false) break;
 
-                vector<string> header = mHeaders.at(tokens[1]);
+                std::vector<string> header = mHeaders.at(tokens[1]);
                 header.emplace_back("#line " + std::to_string(++lineNum));
                 lines.insert(std::next(it), header.begin(), header.end());
 
@@ -105,18 +105,28 @@ void PreProcessor::load(Shader& shader, const string& path, const string& extra)
     if (errorVec.empty() == false)
     {
         string errorLines;
-        for (const pair<uint, string>& error : errorVec)
+        for (const std::pair<uint, string>& error : errorVec)
             errorLines += tfm::format("\nLine %d: %s", error.first, error.second);
 
-        log_warning("Failed to process shader from \"%s\"%s", path, errorLines);
+        log_error("Failed to pre-process shader from \"%s\"%s", path, errorLines);
     }
 
-    else shader.load(source, path);
+    return source;
 }
 
 //============================================================================//
 
-void PreProcessor::operator()(Shader& shader, const string& path, const string& extra) const
+void PreProcessor::load_vertex(Program& program, const string& path, const string& prelude) const
 {
-    load(shader, path, extra);
+    program.load_vertex(this->process(path, prelude), path);
+}
+
+void PreProcessor::load_geometry(Program& program, const string& path, const string& prelude) const
+{
+    program.load_geometry(this->process(path, prelude), path);
+}
+
+void PreProcessor::load_fragment(Program& program, const string& path, const string& prelude) const
+{
+    program.load_fragment(this->process(path, prelude), path);
 }

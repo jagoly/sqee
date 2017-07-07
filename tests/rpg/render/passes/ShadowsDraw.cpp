@@ -9,16 +9,18 @@ using namespace sqt::render;
 
 ShadowsPasses::ShadowsPasses(const SharedStuff& stuff) : SharedStuff(stuff)
 {
-    VS_SimpleSolid.add_uniform("matrix"); // Mat4F
-    VS_SkellySolid.add_uniform("matrix"); // Mat4F
-    VS_SimplePunch.add_uniform("matrix"); // Mat4F
-    VS_SkellyPunch.add_uniform("matrix"); // Mat4F
+    processor.load_vertex(PROG_SimpleSolid, "shadows/SimpleSolid_vs");
+    processor.load_vertex(PROG_SimplePunch, "shadows/SimplePunch_vs");
+    processor.load_vertex(PROG_SkellySolid, "shadows/SkellySolid_vs");
+    processor.load_vertex(PROG_SkellyPunch, "shadows/SkellyPunch_vs");
 
-    shaders.preprocs(VS_SimpleSolid, "shadows/SimpleSolid_vs");
-    shaders.preprocs(VS_SkellySolid, "shadows/SkellySolid_vs");
-    shaders.preprocs(VS_SimplePunch, "shadows/SimplePunch_vs");
-    shaders.preprocs(VS_SkellyPunch, "shadows/SkellyPunch_vs");
-    shaders.preprocs(FS_ModelPunch, "shadows/ModelPunch_fs");
+    processor.load_fragment(PROG_SimplePunch, "shadows/ModelPunch_fs");
+    processor.load_fragment(PROG_SkellyPunch, "shadows/ModelPunch_fs");
+
+    PROG_SimpleSolid.link_program_stages();
+    PROG_SimplePunch.link_program_stages();
+    PROG_SkellySolid.link_program_stages();
+    PROG_SkellyPunch.link_program_stages();
 }
 
 //============================================================================//
@@ -46,6 +48,8 @@ void ShadowsPasses::render(const data::ShadowsPasses& data)
     context.set_state(Context::Depth_Clamp::Disable);
     for (const auto& pass : data.pointPassVec) impl_render_ShadowsPass(pass);
     for (const auto& pass : data.spotPassVec) impl_render_ShadowsPass(pass);
+
+    context.bind_Program_default();
 }
 
 //============================================================================//
@@ -62,12 +66,11 @@ void ShadowsPasses::impl_render_ShadowsPass(const data::ShadowsPass& pass)
 
     // render solid simple models /////
 
-    context.use_Shader_Vert(VS_SimpleSolid);
-    context.disable_shader_stage_fragment();
+    context.bind_Program(PROG_SimpleSolid);
 
     for (const auto& model : dp.modelSimplePass.solidFullVec)
     {
-        VS_SimpleSolid.update<Mat4F>("matrix", model.matrix);
+        PROG_SimpleSolid.update(0, model.matrix);
 
         if (model.mirror) context.set_state(Context::Cull_Face::Front);
         else context.set_state(Context::Cull_Face::Back);
@@ -78,7 +81,7 @@ void ShadowsPasses::impl_render_ShadowsPass(const data::ShadowsPass& pass)
 
     for (const auto& model : dp.modelSimplePass.solidPartVec)
     {
-        VS_SimpleSolid.update<Mat4F>("matrix", model.matrix);
+        PROG_SimpleSolid.update(0, model.matrix);
 
         if (model.mirror) context.set_state(Context::Cull_Face::Front);
         else context.set_state(Context::Cull_Face::Back);
@@ -91,12 +94,11 @@ void ShadowsPasses::impl_render_ShadowsPass(const data::ShadowsPass& pass)
 
     // render solid skelly models /////
 
-    context.use_Shader_Vert(VS_SkellySolid);
-    context.disable_shader_stage_fragment();
+    context.bind_Program(PROG_SkellySolid);
 
     for (const auto& model : dp.modelSkellyPass.solidFullVec)
     {
-        VS_SkellySolid.update<Mat4F>("matrix", model.matrix);
+        PROG_SkellySolid.update(0, model.matrix);
 
         if (model.mirror) context.set_state(Context::Cull_Face::Front);
         else context.set_state(Context::Cull_Face::Back);
@@ -108,7 +110,7 @@ void ShadowsPasses::impl_render_ShadowsPass(const data::ShadowsPass& pass)
 
     for (const auto& model : dp.modelSkellyPass.solidPartVec)
     {
-        VS_SkellySolid.update<Mat4F>("matrix", model.matrix);
+        PROG_SkellySolid.update(0, model.matrix);
 
         if (model.mirror) context.set_state(Context::Cull_Face::Front);
         else context.set_state(Context::Cull_Face::Back);
@@ -122,8 +124,7 @@ void ShadowsPasses::impl_render_ShadowsPass(const data::ShadowsPass& pass)
 
     // render punch simple models /////
 
-    context.use_Shader_Vert(VS_SimplePunch);
-    context.use_Shader_Frag(FS_ModelPunch);
+    context.bind_Program(PROG_SimplePunch);
 
     for (const auto& textureVecPair : dp.modelSimplePass.punchPartMap)
     {
@@ -131,7 +132,7 @@ void ShadowsPasses::impl_render_ShadowsPass(const data::ShadowsPass& pass)
 
         for (const auto& model : textureVecPair.second)
         {
-            VS_SimplePunch.update<Mat4F>("matrix", model.matrix);
+            PROG_SimplePunch.update(0, model.matrix);
 
             if (model.mirror) context.set_state(Context::Cull_Face::Front);
             else context.set_state(Context::Cull_Face::Back);
@@ -145,8 +146,7 @@ void ShadowsPasses::impl_render_ShadowsPass(const data::ShadowsPass& pass)
 
     // render punch skelly models /////
 
-    context.use_Shader_Vert(VS_SkellyPunch);
-    context.use_Shader_Frag(FS_ModelPunch);
+    context.bind_Program(PROG_SkellyPunch);
 
     for (const auto& textureVecPair : dp.modelSkellyPass.punchPartMap)
     {
@@ -154,7 +154,7 @@ void ShadowsPasses::impl_render_ShadowsPass(const data::ShadowsPass& pass)
 
         for (const auto& model : textureVecPair.second)
         {
-            VS_SkellyPunch.update<Mat4F>("matrix", model.matrix);
+            PROG_SkellyPunch.update(0, model.matrix);
 
             if (model.mirror) context.set_state(Context::Cull_Face::Front);
             else context.set_state(Context::Cull_Face::Back);

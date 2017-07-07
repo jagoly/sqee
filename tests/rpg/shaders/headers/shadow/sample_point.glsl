@@ -1,7 +1,7 @@
 // GLSL Header File
 
 #include builtin/funcs/random
-#include builtin/disks/uniform
+#include builtin/misc/disks
 
 float get_bias(vec3 _normal, vec3 _lightDir) {
     float lightDot = dot(_normal, -_lightDir);
@@ -22,7 +22,7 @@ float sample_shadow_x4(vec4 _sc, float _bias, float _radius, samplerCubeShadow _
     if (absVec.z > absVec.x && absVec.z > absVec.y) ind = 2;
 
     for (int i = 0; i < 4; i++) {
-        vec2 offs = disk4[i] * _radius;
+        vec2 offs = c_Disk4[i] * _radius;
         offs = vec2(c * offs.x - s * offs.y, c * offs.y + s * offs.x);
         vec3 sampDir = _sc.xyz;
         if (ind == 0) sampDir.y += offs.x, sampDir.z += offs.y;
@@ -41,7 +41,7 @@ float sample_shadow_x8(vec4 _sc, float _bias, float _radius, samplerCubeShadow _
     if (absVec.z > absVec.x && absVec.z > absVec.y) ind = 2;
 
     for (int i = 0; i < 8; i++) {
-        vec2 offs = disk8[i] * _radius;
+        vec2 offs = c_Disk8[i] * _radius;
         offs = vec2(c * offs.x - s * offs.y, c * offs.y + s * offs.x);
         vec3 sampDir = _sc.xyz;
         if (ind == 0) sampDir.y += offs.x, sampDir.z += offs.y;
@@ -60,7 +60,7 @@ float sample_shadow_x16(vec4 _sc, float _bias, float _radius, samplerCubeShadow 
     if (absVec.z > absVec.x && absVec.z > absVec.y) ind = 2;
 
     for (int i = 0; i < 16; i++) {
-        vec2 offs = disk16[i] * _radius;
+        vec2 offs = c_Disk16[i] * _radius;
         offs = vec2(c * offs.x - s * offs.y, c * offs.y + s * offs.x);
         vec3 sampDir = _sc.xyz;
         if (ind == 0) sampDir.y += offs.x, sampDir.z += offs.y;

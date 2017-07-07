@@ -5,7 +5,7 @@
 #include <sqee/maths/Vectors.hpp>
 #include <sqee/maths/Quaternion.hpp>
 
-namespace sq { namespace maths {
+namespace sq::maths {
 
 //============================================================================//
 
@@ -97,4 +97,6 @@ inline Planes<4> make_ortho_xy(Mat4F matrix)
     return result;
 }
 
-}} // namespace sq::maths
+//============================================================================//
+
+} // namespace sq::maths

@@ -1,34 +1,41 @@
 // GLSL Fragment Shader
 
-in vec2 texcrd;
+//============================================================================//
 
 #include runtime/Options
+
+#include builtin/funcs/depth
+
 #include headers/blocks/Camera
 
-uniform vec3 colour;
+//============================================================================//
 
-layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
+in vec2 texcrd;
 
-layout(binding=3) uniform sampler2D gbufDiff;
+layout(std140, binding=0) uniform CAMERA { CameraBlock CB; };
+
+layout(location=0) uniform vec3 u_Colour;
+
+layout(binding=3) uniform sampler2D tex_GbufDiff;
 
 #ifdef OPTION_SSAO_ENABLE
-#include builtin/funcs/depth
-layout(binding=0) uniform sampler2D texAmbOcc;
-layout(binding=1) uniform sampler2D texDepHalf;
-layout(binding=7) uniform sampler2D gbufDepth;
+layout(binding=0) uniform sampler2D tex_SSAO;
+layout(binding=1) uniform sampler2D tex_DepHalf;
+layout(binding=7) uniform sampler2D tex_DepFull;
 #endif
 
-out vec3 fragColour;
+out vec3 frag_Colour;
 
+//============================================================================//
 
-void main() {
-    vec3 value = texture(gbufDiff, texcrd).rgb;
+void main()
+{
+    vec3 value = texture(tex_GbufDiff, texcrd).rgb;
 
     #ifdef OPTION_SSAO_ENABLE
-    const float near = OPTION_ViewNear; const float far = OPTION_ViewFar;
-    value *= nearest_depth_sca(texcrd, texAmbOcc, gbufDepth, texDepHalf, 0.04f, near, far);
-//    value *= texture(texAmbOcc, texcrd).r;
+    value *= nearest_depth_float ( texcrd, tex_SSAO, tex_DepFull, tex_DepHalf,
+                                   0.04f, OPTION_ViewNear, OPTION_ViewFar );
     #endif
 
-    fragColour = value * colour;
+    frag_Colour = value * u_Colour;
 }

@@ -1,6 +1,8 @@
 // GLSL Uniform Block
 
-struct AmbientBlock {
-    vec3 colour; // 4
-    // Size: 4
+struct AmbientBlock
+{
+    vec3 colour; // 16
+
+    // TOTAL: 16
 };

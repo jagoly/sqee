@@ -1,3 +1,4 @@
+#include <sqee/assert.hpp>
 #include <sqee/debug/Logging.hpp>
 
 #include <sqee/maths/Functions.hpp>
@@ -23,7 +24,7 @@ void Armature::load_bones(const string& path)
         {
             const auto iter = algo::find(mBoneNames, linePair.first[1]);
             SQASSERT(iter != mBoneNames.end(), "invalid parent bone name");
-            mBoneParents.push_back(std::distance(mBoneNames.begin(), iter));
+            mBoneParents.push_back(int(std::distance(mBoneNames.begin(), iter)));
         }
         else mBoneParents.push_back(-1);
     }
@@ -35,7 +36,7 @@ void Armature::load_rest_pose(const string& path)
 {
     mRestPose = make_pose(path);
 
-    const uint boneCount = mRestPose.size();
+    const uint boneCount = uint(mRestPose.size());
 
     mBaseMats.reserve(boneCount);
     mInverseMats.reserve(boneCount);
@@ -58,7 +59,7 @@ void Armature::load_rest_pose(const string& path)
 
 Armature::Pose Armature::make_pose(const string& path) const
 {
-    const uint boneCount = mBoneNames.size();
+    const uint boneCount = uint(mBoneNames.size());
 
     const auto lines = sq::tokenise_file("assets/" + path);
     SQASSERT(boneCount == lines.size(), "bone count mismatch");
@@ -92,18 +93,17 @@ Armature::Animation Armature::make_animation(const string& path) const
 
     Armature::Animation result;
 
-    //for (const auto& [line, num] : tokenise_file(path))
-    for (const auto& linePair : tokenise_file("assets/" + path))
+    //--------------------------------------------------------//
+
+    for (const auto& [line, num] : tokenise_file("assets/" + path))
     {
-        const auto& line = linePair.first;
-        //const auto& num = linePair.second;
         const auto& key = line.front();
 
-        //========================================================//
+        //--------------------------------------------------------//
 
         if (key.front() == '#') continue;
 
-        //========================================================//
+        //--------------------------------------------------------//
 
         if (key == "SECTION")
         {
@@ -114,7 +114,7 @@ Armature::Animation Armature::make_animation(const string& path) const
             else log_error("invalid section '%s' in armature '%s'", line[1], path);
         }
 
-        //========================================================//
+        //--------------------------------------------------------//
 
         else if (section == Section::Header)
         {
@@ -126,7 +126,7 @@ Armature::Animation Armature::make_animation(const string& path) const
             else log_warning("unknown header key '%s' in armature '%s'", key, path);
         }
 
-        //========================================================//
+        //--------------------------------------------------------//
 
         else if (section == Section::Frames)
         {
@@ -137,7 +137,7 @@ Armature::Animation Armature::make_animation(const string& path) const
             result.frames.push_back(frame);
         }
 
-        //========================================================//
+        //--------------------------------------------------------//
 
         else if (section == Section::Poses)
         {
@@ -155,12 +155,12 @@ Armature::Animation Armature::make_animation(const string& path) const
             bone.scale = { stof(line[7]), stof(line[8]), stof(line[9]) };
         }
 
-        //========================================================//
+        //--------------------------------------------------------//
 
         else log_error("missing SECTION in armature '%s'", path);
     }
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     SQASSERT(boneNum == poseCount * result.boneCount, "missing or extra bones");
     SQASSERT(mRestPose.size() == result.boneCount, "bone count mismatch");
@@ -172,7 +172,7 @@ Armature::Animation Armature::make_animation(const string& path) const
 
 Armature::Pose Armature::blend_poses(const Pose& a, const Pose& b, float factor) const
 {
-    const uint boneCount = mRestPose.size();
+    const uint boneCount = uint(mRestPose.size());
 
     SQASSERT(boneCount == a.size(), "bone count mismatch");
     SQASSERT(boneCount == b.size(), "bone count mismatch");
@@ -223,14 +223,14 @@ Armature::Pose Armature::compute_pose(const Animation& animation, float time) co
 
 //============================================================================//
 
-vector<Mat34F> Armature::compute_ubo_data(const Pose& pose) const
+std::vector<Mat34F> Armature::compute_ubo_data(const Pose& pose) const
 {
-    const uint boneCount = mRestPose.size();
+    const uint boneCount = uint(mRestPose.size());
 
     SQASSERT(boneCount == pose.size(), "bone count mismatch");
 
-    vector<Mat4F> localMats;
-    vector<Mat4F> finalMats;
+    std::vector<Mat4F> localMats;
+    std::vector<Mat4F> finalMats;
 
     for (uint i = 0u; i < boneCount; ++i)
     {
@@ -251,7 +251,7 @@ vector<Mat34F> Armature::compute_ubo_data(const Pose& pose) const
         }
     }
 
-    vector<Mat34F> result;
+    std::vector<Mat34F> result;
     result.reserve(boneCount);
 
     for (const Mat4F& mat : finalMats)
@@ -264,13 +264,13 @@ vector<Mat34F> Armature::compute_ubo_data(const Pose& pose) const
 
 Mat4F Armature::compute_transform(const Pose& pose, const string& name) const
 {
-    const uint boneCount = mRestPose.size();
+    const uint boneCount = uint(mRestPose.size());
 
     SQASSERT(boneCount == pose.size(), "bone count mismatch");
 
     const auto iter = algo::find(mBoneNames, name);
     SQASSERT(iter != mBoneNames.end(), "invalid bone name");
-    const uint index = std::distance(mBoneNames.begin(), iter);
+    const uint index = uint(std::distance(mBoneNames.begin(), iter));
 
     const Bone& bone = pose[index];
     const Mat4F local = maths::transform(bone.offset, bone.rotation, bone.scale);

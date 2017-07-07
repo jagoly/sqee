@@ -1,8 +1,12 @@
 // GLSL Header File
 
-struct UniformBlock {
-    vec3 slDirection; // 4
-    vec3 slColour;    // 4
-    vec3 aColour;     // 4
-    // Size: 12
+struct UniformBlock
+{
+    mat4 cameraView;     // 64
+    mat4 cameraProj;     // 64
+    vec3 lightDirection; // 16
+    vec3 lightColour;    // 16
+    vec3 ambientColour;  // 16
+    
+    // TOTAL: 176
 };

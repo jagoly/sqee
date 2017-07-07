@@ -6,7 +6,10 @@ namespace sq {
 
 //============================================================================//
 
-template <int S, class T, if_numeric<T>...> struct Vector {};
+template <int S, class T> struct Vector
+{
+    static_assert(std::is_arithmetic_v<T>);
+};
 
 template <class T> using Vector2 = Vector<2, T>;
 template <class T> using Vector3 = Vector<3, T>;
@@ -22,7 +25,7 @@ template <class T> struct Vector<2, T>
     constexpr explicit Vector(T s) : Vector(s, s) {}
 
     // Copy Constructors
-    constexpr Vector(const Vector2<T>& v) : data { v[0], v[1] } {}
+    constexpr Vector(const Vector2<T>& v) = default;
     template<class U> explicit Vector(Vector2<U> v) : Vector(v.x, v.y) {}
 
     // Swizzle Constructors
@@ -46,7 +49,7 @@ template <class T> struct Vector<3, T>
     constexpr explicit Vector(T s) : Vector(s, s, s) {}
 
     // Copy Constructors
-    constexpr Vector(const Vector3<T>& v) : data { v[0], v[1], v[2] } {}
+    constexpr Vector(const Vector3<T>& v) = default;
     template<class U> explicit Vector(Vector3<U> v) : Vector(v.x, v.y, v.z) {}
 
     // Swizzle Constructors
@@ -71,7 +74,7 @@ template <class T> struct Vector<4, T>
     constexpr explicit Vector(T s) : Vector(s, s, s, s) {}
 
     // Copy Constructors
-    constexpr Vector(const Vector4<T>& v) : data { v[0], v[1], v[2], v[3] } {}
+    constexpr Vector(const Vector4<T>& v) = default;
     template<class U> explicit Vector(Vector4<U> v) : Vector(v.x, v.y, v.z, v.w) {}
 
     // Swizzle Constructors
@@ -95,13 +98,19 @@ template <class T> struct Vector<4, T>
 template <int S, class T> constexpr
 bool operator==(Vector<S, T> a, Vector<S, T> b)
 {
-    for (int i=0; i<S; ++i) if (a[i] != b[i]) return false; return true;
+    for (int i = 0; i < S; ++i)
+        if (a[i] != b[i]) return false;
+
+    return true;
 }
 
 template <int S, class T> constexpr
 bool operator!=(Vector<S, T> a, Vector<S, T> b)
 {
-    for (int i=0; i<S; ++i) if (a[i] != b[i]) return true; return false;
+    for (int i = 0; i < S; ++i)
+        if (a[i] != b[i]) return true;
+
+    return false;
 }
 
 //============================================================================//
@@ -111,8 +120,12 @@ bool operator!=(Vector<S, T> a, Vector<S, T> b)
 template <int S, class T> constexpr
 bool operator<(Vector<S, T> a, Vector<S, T> b)
 {
-    static_assert(std::is_integral<T>::value, "should not compare floats");
-    for (int i=0; i<S; ++i) if (a[i] != b[i]) return a[i] < b[i]; return false;
+    static_assert(std::is_integral_v<T>);
+
+    for (int i = 0; i < S; ++i)
+        if (a[i] != b[i]) return a[i] < b[i];
+
+    return false;
 }
 
 //============================================================================//
@@ -129,7 +142,7 @@ template <int S, class T> constexpr
 Vector<S, T>& operator+=(Vector<S, T>& a, Vector<S, T> b)
 { for (int i=0; i<S; ++i) a[i] += b[i]; return a; }
 
-//========================================================//
+//--------------------------------------------------------//
 
 template <int S, class T> constexpr
 Vector<S, T> operator-(Vector<S, T> a, Vector<S, T> b)
@@ -139,7 +152,7 @@ template <int S, class T> constexpr
 Vector<S, T>& operator-=(Vector<S, T>& a, Vector<S, T> b)
 { for (int i=0; i<S; ++i) a[i] -= b[i]; return a; }
 
-//========================================================//
+//--------------------------------------------------------//
 
 template <int S, class T> constexpr
 Vector<S, T> operator*(Vector<S, T> a, Vector<S, T> b)
@@ -149,7 +162,7 @@ template <int S, class T> constexpr
 Vector<S, T>& operator*=(Vector<S, T>& a, Vector<S, T> b)
 { for (int i=0; i<S; ++i) a[i] *= b[i]; return a; }
 
-//========================================================//
+//--------------------------------------------------------//
 
 template <int S, class T> constexpr
 Vector<S, T> operator/(Vector<S, T> a, Vector<S, T> b)
@@ -173,7 +186,7 @@ template <int S, class T> constexpr
 Vector<S, T>& operator+=(Vector<S, T>& v, T s)
 { for (int i=0; i<S; ++i) v[i] += s; return v; }
 
-//========================================================//
+//--------------------------------------------------------//
 
 template <int S, class T> constexpr
 Vector<S, T> operator-(Vector<S, T> v, T s)
@@ -183,7 +196,7 @@ template <int S, class T> constexpr
 Vector<S, T>& operator-=(Vector<S, T>& v, T s)
 { for (int i=0; i<S; ++i) v[i] -= s; return v; }
 
-//========================================================//
+//--------------------------------------------------------//
 
 template <int S, class T> constexpr
 Vector<S, T> operator*(Vector<S, T> v, T s)
@@ -193,7 +206,7 @@ template <int S, class T> constexpr
 Vector<S, T>& operator*=(Vector<S, T>& v, T s)
 { for (int i=0; i<S; ++i) v[i] *= s; return v; }
 
-//========================================================//
+//--------------------------------------------------------//
 
 template <int S, class T> constexpr
 Vector<S, T> operator/(Vector<S, T> v, T s)
@@ -210,14 +223,16 @@ Vector<S, T>& operator/=(Vector<S, T>& v, T s)
 template <int S, class T> constexpr
 Vector<S, T> operator+(Vector<S, T> vec)
 {
-    static_assert(std::is_signed<T>::value, "");
+    static_assert(std::is_signed_v<T>);
+
     return Vector<S, T>() + vec;
 }
 
 template <int S, class T> constexpr
 Vector<S, T> operator-(Vector<S, T> vec)
 {
-    static_assert(std::is_signed<T>::value, "");
+    static_assert(std::is_signed_v<T>);
+
     return Vector<S, T>() - vec;
 }
 
@@ -227,20 +242,29 @@ namespace maths {
 
 //============================================================================//
 
-// minimum, maximum (Vectors) /////
-
+/// Compute the component-wise minimum of two vectors.
 template <int S, class T> constexpr
 Vector<S, T> min(Vector<S, T> a, Vector<S, T> b)
-{ for (int i=0; i<S; ++i) a[i] = min(a[i], b[i]); return a; }
+{
+    for (int i = 0; i < S; ++i)
+        a[i] = maths::min(a[i], b[i]);
 
+    return a;
+}
+
+/// Compute the component-wise maximum of two vectors.
 template <int S, class T> constexpr
 Vector<S, T> max(Vector<S, T> a, Vector<S, T> b)
-{ for (int i=0; i<S; ++i) a[i] = max(a[i], b[i]); return a; }
+{
+    for (int i = 0; i < S; ++i)
+        a[i] = maths::max(a[i], b[i]);
+
+    return a;
+}
 
 //============================================================================//
 
-// clamp to range (Vector) /////
-
+/// Clamp a vector to within the specified range.
 template <int S, class T> constexpr
 Vector<S, T> clamp(Vector<S, T> vec, Vector<S, T> min, Vector<S, T> max)
 {
@@ -249,57 +273,93 @@ Vector<S, T> clamp(Vector<S, T> vec, Vector<S, T> min, Vector<S, T> max)
 
 //============================================================================//
 
-// linear interpolation (Vectors, Scalar) /////
-
-template <int S, class T, if_float<T>...> constexpr
+/// Linearly interpolate between two vectors.
+template <int S, class T> constexpr
 Vector<S, T> mix(Vector<S, T> a, Vector<S, T> b, T factor)
 {
+    static_assert(std::is_floating_point_v<T>);
+
     return a * (T(1.0) - factor) + b * factor;
 }
 
 //============================================================================//
 
-// sine, cosine, tangent (Vector) /////
-
-template <int S, class T, if_float<T>...> inline
+/// Compute the component-wise sine of a vector.
+template <int S, class T> inline
 Vector<S, T> sin(Vector<S, T> vec)
-{ for (int i=0; i<S; ++i) vec[i] = std::sin(vec[i]); return vec; }
+{
+    static_assert(std::is_floating_point_v<T>);
 
-template <int S, class T, if_float<T>...> inline
+    for (int i = 0; i < S; ++i)
+        vec[i] = std::sin(vec[i]);
+
+    return vec;
+}
+
+/// Compute the component-wise cosine of a vector.
+template <int S, class T> inline
 Vector<S, T> cos(Vector<S, T> vec)
-{ for (int i=0; i<S; ++i) vec[i] = std::cos(vec[i]); return vec; }
+{
+    static_assert(std::is_floating_point_v<T>);
 
-template <int S, class T, if_float<T>...> inline
+    for (int i = 0; i < S; ++i)
+        vec[i] = std::cos(vec[i]);
+
+    return vec;
+}
+
+/// Compute the component-wise tangent of a vector.
+template <int S, class T> inline
 Vector<S, T> tan(Vector<S, T> vec)
-{ for (int i=0; i<S; ++i) vec[i] = std::tan(vec[i]); return vec; }
+{
+    static_assert(std::is_floating_point_v<T>);
+
+    for (int i = 0; i < S; ++i)
+        vec[i] = std::tan(vec[i]);
+
+    return vec;
+}
 
 //============================================================================//
 
-// absolute (Vector) /////
-
-template <int S, class T, if_numeric<T>...> constexpr
+/// Compute the component-wise absolute of a vector.
+template <int S, class T> constexpr
 Vector<S, T> abs(Vector<S, T> vec)
-{ for (int i=0; i<S; ++i) vec[i] = std::abs(vec[i]); return vec; }
+{
+    for (int i = 0; i < S; ++i)
+        vec[i] = std::abs(vec[i]);
+
+    return vec;
+}
 
 //============================================================================//
 
-// convert between radians and cycles (Vector) /////
-
-template <int S, class T, if_float<T>...> constexpr
+/// Convert a vector from cycles to radians.
+template <int S, class T> constexpr
 Vector<S, T> radians(Vector<S, T> cycles)
-{ return cycles * T(2.0 * 3.14159265358979323846); }
+{
+    static_assert(std::is_floating_point_v<T>);
 
-template <int S, class T, if_float<T>...> constexpr
+    return cycles * T(2.0 * 3.14159265358979323846);
+}
+
+/// Convert a vector from radians to cycles.
+template <int S, class T> constexpr
 Vector<S, T> cycles(Vector<S, T> radians)
-{ return radians * T(0.5 / 3.14159265358979323846); }
+{
+    static_assert(std::is_floating_point_v<T>);
+
+    return radians * T(0.5 / 3.14159265358979323846);
+}
 
 //============================================================================//
 
-// dot product (Vector, Vector) /////
-
-template <int S, class T, if_float<T>...> constexpr
+/// Compute the dot product of two vectors.
+template <int S, class T> constexpr
 T dot(Vector<S, T> a, Vector<S, T> b)
 {
+    static_assert(std::is_floating_point_v<T>);
+
     T result = T(0.0);
 
     for (int i = 0; i < S; ++i)
@@ -308,13 +368,12 @@ T dot(Vector<S, T> a, Vector<S, T> b)
     return result;
 }
 
-//============================================================================//
-
-// dot product (Vector, Scalar) /////
-
-template <int S, class T, if_float<T>...> constexpr
+/// Compute the dot product of a vector and a scalar.
+template <int S, class T> constexpr
 T dot(Vector<S, T> v, T s)
 {
+    static_assert(std::is_floating_point_v<T>);
+
     T result = T(0.0);
 
     for (int i = 0; i < S; ++i)
@@ -325,51 +384,56 @@ T dot(Vector<S, T> v, T s)
 
 //============================================================================//
 
-// length (Vector) /////
-
-template <int S, class T, if_float<T>...> inline
+/// Compute the length of a vector.
+template <int S, class T> inline
 T length(Vector<S, T> vec)
 {
+    static_assert(std::is_floating_point_v<T>);
+
     return std::sqrt(maths::dot(vec, vec));
 }
 
 //============================================================================//
 
-// normalize (Vector) /////
-
-template <int S, class T, if_float<T>...> inline
+/// Compute the unit length vector.
+template <int S, class T> inline
 Vector<S, T> normalize(Vector<S, T> vec)
 {
+    static_assert(std::is_floating_point_v<T>);
+
     return vec * (T(1.0) / maths::length(vec));
 }
 
 //============================================================================//
 
-// distance (Vector, Vector) /////
-
-template <int S, class T, if_float<T>...> inline
+/// Compute the distance between two vectors.
+template <int S, class T> inline
 T distance(Vector<S, T> a, Vector<S, T> b)
 {
+    static_assert(std::is_floating_point_v<T>);
+
     return maths::length(a - b);
 }
 
 //============================================================================//
 
-// reflect incident ray (Vector, Vector) /////
-
-template <int S, class T, if_float<T>...> constexpr
+/// Compute the reflection of incident by normal.
+template <int S, class T> constexpr
 Vector<S, T> reflect(Vector<S, T> incident, Vector<S, T> normal)
 {
+    static_assert(std::is_floating_point_v<T>);
+
     return incident - normal * maths::dot(normal, incident) * T(2.0);
 }
 
 //============================================================================//
 
-// cross product (Vector3, Vector3) /////
-
-template <class T, if_float<T>...> constexpr
+/// Compute the cross product of two vectors.
+template <class T> constexpr
 Vector3<T> cross(Vector3<T> a, Vector3<T> b)
 {
+    static_assert(std::is_floating_point_v<T>);
+
     T x = (a.y * b.z) - (b.y * a.z);
     T y = (a.z * b.x) - (b.z * a.x);
     T z = (a.x * b.y) - (b.x * a.y);
@@ -378,11 +442,12 @@ Vector3<T> cross(Vector3<T> a, Vector3<T> b)
 
 //============================================================================//
 
-// rotate along axis (Vector3, Scalar) /////
-
-template <class T, if_float<T>...> inline
+/// Rotate a vector along the X axis.
+template <class T> inline
 Vector3<T> rotate_x(Vector3<T> vec, T angle)
 {
+    static_assert(std::is_floating_point_v<T>);
+
     T s = std::sin(radians(angle));
     T c = std::cos(radians(angle));
     T y = (+vec.y * c) + (-vec.z * s);
@@ -390,9 +455,12 @@ Vector3<T> rotate_x(Vector3<T> vec, T angle)
     return Vector3<T>(vec.x, y, z);
 }
 
-template <class T, if_float<T>...> inline
+/// Rotate a vector along the Y axis.
+template <class T> inline
 Vector3<T> rotate_y(Vector3<T> vec, T angle)
 {
+    static_assert(std::is_floating_point_v<T>);
+
     T s = std::sin(radians(angle));
     T c = std::cos(radians(angle));
     T x = (+vec.x * c) + (+vec.z * s);
@@ -400,9 +468,12 @@ Vector3<T> rotate_y(Vector3<T> vec, T angle)
     return Vector3<T>(x, vec.y, z);
 }
 
-template <class T, if_float<T>...> inline
+/// Rotate a vector along the Z axis.
+template <class T> inline
 Vector3<T> rotate_z(Vector3<T> vec, T angle)
 {
+    static_assert(std::is_floating_point_v<T>);
+
     T s = std::sin(radians(angle));
     T c = std::cos(radians(angle));
     T x = (+vec.x * c) + (-vec.y * s);

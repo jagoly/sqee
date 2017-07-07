@@ -12,9 +12,6 @@
 
 using namespace sq;
 
-using std::ifstream;
-using std::stringstream;
-
 
 bool sq::check_file_exists(const string& path)
 {
@@ -46,13 +43,13 @@ string sq::get_string_from_file(const string& path)
         return string();
     }
 
-    stringstream sstr;
+    std::stringstream sstr;
     sstr << src.rdbuf();
     return sstr.str();
 }
 
 
-vector<uchar> sq::get_bytes_from_file(const string& path)
+std::vector<uchar> sq::get_bytes_from_file(const string& path)
 {
     using unsigned_ifstream = std::basic_ifstream<uchar>;
     unsigned_ifstream src(path, std::ios::binary | std::ios::ate);
@@ -61,12 +58,12 @@ vector<uchar> sq::get_bytes_from_file(const string& path)
     if (src.is_open() == false)
     {
         log_warning("Couldn't open file '%s'", path);
-        return vector<uchar>();
+        return {};
     }
 
     const auto fileSize = src.tellg();
 
-    vector<uchar> result;
+    std::vector<uchar> result;
     result.resize(uint(fileSize));
 
     src.seekg(0, src.beg);
@@ -76,9 +73,9 @@ vector<uchar> sq::get_bytes_from_file(const string& path)
 }
 
 
-vector<string> sq::tokenise_string(const string& _str, char _dlm) {
-    stringstream sstr(_str);
-    vector<string> retVec; string item;
+std::vector<string> sq::tokenise_string(const string& _str, char _dlm) {
+    std::stringstream sstr(_str);
+    std::vector<string> retVec; string item;
     while (std::getline(sstr, item, _dlm))
         if (item.empty() == false)
             retVec.emplace_back(item);
@@ -86,26 +83,26 @@ vector<string> sq::tokenise_string(const string& _str, char _dlm) {
 }
 
 
-vector<pair<vector<string>, uint>> sq::tokenise_file(const string& _path) {
-    ifstream src(_path);
+std::vector<std::pair<std::vector<string>, uint>> sq::tokenise_file(const string& _path) {
+    std::ifstream src(_path);
     if (src.is_open() == false) {
         log_warning("Couldn't open file %s", _path);
-        return vector<pair<vector<string>, uint>>();
+        return {};
     }
 
     uint lineNum = 1u;
-    stringstream sstr; sstr << src.rdbuf();
-    vector<pair<vector<string>, uint>> retVec;
+    std::stringstream sstr; sstr << src.rdbuf();
+    std::vector<std::pair<std::vector<string>, uint>> retVec;
     for (string& line : tokenise_string(sstr.str(), '\n')) {
-        vector<string> tokens = tokenise_string(line, ' ');
+        std::vector<string> tokens = tokenise_string(line, ' ');
         if (!tokens.empty()) retVec.emplace_back(tokens, lineNum);
         lineNum += 1u;
     } return retVec;
 }
 
 
-vector<string> sq::get_files_from_dir(const string& _path) {
-    vector<string> retVec;
+std::vector<string> sq::get_files_from_dir(const string& _path) {
+    std::vector<string> retVec;
 
     #if defined SQEE_LINUX
     DIR* dir; struct dirent *ent;

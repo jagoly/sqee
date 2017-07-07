@@ -1,20 +1,13 @@
 #pragma once
 
-#include <sqee/messages.hpp>
+#include <cstdint>
 
 namespace msg {
 
-struct Enable_SkyBox {};
-struct Enable_Ambient {};
-struct Enable_SkyLight {};
+//============================================================//
 
-struct Disable_SkyBox {};
-struct Disable_Ambient {};
-struct Disable_SkyLight {};
+struct Debug_Button { const int8_t code; };
 
-struct Debug_1 {};
-struct Debug_2 {};
-struct Debug_3 {};
-struct Debug_4 {};
+//============================================================//
 
-}
+} // namespace msg

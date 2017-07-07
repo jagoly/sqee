@@ -1,8 +1,7 @@
 #pragma once
 
-#include <unordered_map>
-
-#include <sqee/builtins.hpp>
+#include <sqee/setup.hpp>
+#include <sqee/helpers.hpp>
 
 namespace sq {
 
@@ -12,60 +11,57 @@ class Context; // Forward Declaration
 
 //============================================================================//
 
-/// OpenGL Uniform Buffer Object
+/// OpenGL Uniform Buffer Object.
 class UniformBuffer final : public MoveOnly
 {
-public:
+public: //====================================================//
 
-    //========================================================//
+    UniformBuffer(); ///< Constructor
 
-    /// Constructor
-    UniformBuffer();
+    UniformBuffer(UniformBuffer&& other); ///< Move Constructor
 
-    /// Move Constructor
-    UniformBuffer(UniformBuffer&& other);
+    UniformBuffer& operator=(UniformBuffer&& other); ///< Move Assignment
 
-    /// Destructor
-    ~UniformBuffer();
+    ~UniformBuffer(); ///< Destructor
 
-    //========================================================//
+    //--------------------------------------------------------//
 
-    /// Reserve space for a uniform of size
-    void reserve(const string& name, uint size);
+    /// Allocate buffer storage.
+    void create_and_allocate(uint size);
 
-    /// Create object and allocate storage
-    void create_and_allocate();
-
-    //========================================================//
-
-    /// Update a single uniform with a pointer
-    void update(const string& name, const void* data);
-
-    /// Update part of the buffer relative to a uniform
-    void update(const string& name, uint offset, uint size, const void* data);
-
-    /// Update an arbitary section of the buffer
+    /// Update a section of the buffer from a pointer.
     void update(uint offset, uint size, const void* data);
 
-    /// Get the current size of the reserve list
-    uint get_size() const { return mCurrentSize; }
+    //--------------------------------------------------------//
 
-    //========================================================//
+    /// Update a section of the buffer with a value.
+    template <class T>
+    void update(uint offset, const T& data)
+    {
+        update(offset, sizeof(T), &data);
+    }
 
-    /// Get the OpenGL object handle
+    /// Update the entire buffer with a set of values.
+    template <class... Ts>
+    void update_complete(const Ts&... args)
+    {
+        update(0u, Structure{args...});
+    }
+
+    //--------------------------------------------------------//
+
+    /// Get the OpenGL object handle.
     GLuint get_handle() const { return mHandle; }
 
-private:
+private: //===================================================//
 
-    //========================================================//
+    Context& mContext;
 
-    struct Item { const uint offset, size; };
-    std::unordered_map<string, Item> mItemMap;
-    uint mCurrentSize = 0u;
+    uint mBufferSize = 0u;
 
     GLuint mHandle = 0u;
-    Context& mContext;
 };
+
 
 //============================================================================//
 

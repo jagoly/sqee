@@ -1,19 +1,15 @@
 #pragma once
 
-#include <sqee/gl/FrameBuffer.hpp>
-
 #include "../SharedStuff.hpp"
 #include "../PassesData.hpp"
 
-namespace sqt { namespace render {
+namespace sqt::render {
 
 //============================================================================//
 
 class LightBasePasses : public SharedStuff
 {
-public:
-
-    //========================================================//
+public: //====================================================//
 
     LightBasePasses(const SharedStuff& stuff);
 
@@ -21,17 +17,14 @@ public:
 
     void render(const data::LightBasePasses& data);
 
-private:
-
-    //========================================================//
+private: //===================================================//
 
     sq::FrameBuffer FB_Lighting;
 
-    sq::Shader VS_Main_Skybox { sq::Shader::Stage::Vertex };
-    sq::Shader FS_Main_Ambient { sq::Shader::Stage::Fragment };
-    sq::Shader FS_Skybox { sq::Shader::Stage::Fragment };
+    sq::Program PROG_Main_Skybox;
+    sq::Program PROG_Main_Ambient;
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     void impl_render_SkyBoxPass(const data::LightBaseSkyBoxPass& data);
     void impl_render_AmbientPass(const data::LightBaseAmbientPass& data);
@@ -39,4 +32,4 @@ private:
 
 //============================================================================//
 
-}} // namespace sqt::render
+} // namespace sqt::render

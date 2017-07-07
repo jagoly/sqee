@@ -1,71 +1,65 @@
-#include <sqee/messages.hpp>
-#include <sqee/gl/Context.hpp>
 #include <sqee/debug/Text.hpp>
 
-#include <sqee/app/MessageBus.hpp>
 #include <sqee/app/DebugOverlay.hpp>
 
 using namespace sq;
 
 //============================================================================//
 
-DebugOverlay::DebugOverlay(Application& app) : mApplication(app) {}
+DebugOverlay::DebugOverlay() : Scene(0.1) {}
 
 //============================================================================//
 
-void DebugOverlay::tick()
+void DebugOverlay::update()
 {
-    if (mNotifications.empty() == false && --mTicksLeft == 0u)
-    {
-        mNotifications.pop_front();
+    for (auto& notifcation : mNotifications)
+        --notifcation.timeRemaining;
 
-        if (mNotifications.empty() == false)
-            mTicksLeft = mNotifications.front().second;
+    for (auto& notifcation : mNotifications)
+    {
+        if (notifcation.timeRemaining != 0u) break;
+        else mNotifications.pop_front();
     }
 }
 
 //============================================================================//
 
-void DebugOverlay::render(float frameTime)
+void DebugOverlay::render(double elapsed)
 {
-    static auto& context = Context::get();
+    mFrameTime = maths::mix(mFrameTime, elapsed, 0.2);
 
-    context.set_ViewPort(mApplication.OPTION_WindowSize);
+    //--------------------------------------------------------//
 
-    mFrameTime = maths::mix(frameTime, mFrameTime, 0.8f);
-    const double fps = 1.0 / double(mFrameTime);
-
-    char roundedFPS[10];
-    std::sprintf(roundedFPS, "%.2f", fps);
-
-    render_text_basic(roundedFPS, Vec2I(+1, -1), Vec2I(-1, -1), Vec2F(40, 50), Vec4F(1, 1, 1, 1), true);
-
-    if (mNotifications.empty() == false && mTicksLeft != mNotifications.front().second)
+    if (mActive == true)
     {
-        const string& message = mNotifications.front().first;
-        const float alpha = mTicksLeft == 1u ? 1.f - accumulation * 8.f : 1.f;
+        char fpsString[8]; std::snprintf(fpsString, 8, "%.2f", 1.0 / mFrameTime);
 
-        render_text_basic(message, Vec2I(+1, -1), Vec2I(-1, -1), Vec2F(25, 30), Vec4F(1, 1, 1, alpha), true);
+        // display frame rate in the bottom left corner
+        render_text_basic(fpsString, {+1, +1}, {-1, -1}, {40.f, 50.f}, {1.f, 1.f, 1.f, 1.f}, true);
+
+        //--------------------------------------------------------//
+
+        auto lineNumber = mNotifications.size();
+
+        for (const auto& [message, timeRemaining] : mNotifications)
+        {
+            const string offsetMessage = string(--lineNumber, '\n') + message;
+            const float alpha = timeRemaining == 1u ? 1.f - float(mAccumulation) * 8.f : 1.f;
+
+            // display notifications in the bottom right corner
+            render_text_basic(offsetMessage, {+1, +1}, {+1, -1}, {25.f, 30.f}, {1.f, 1.f, 1.f, alpha}, true);
+        }
     }
 }
 
 //============================================================================//
 
-void DebugOverlay::toggle_active()
-{
-    mActive = !mActive;
-
-    const msg::Toggle_Debug_Overlay message { mActive };
-    mApplication.get_message_bus().send_message(message);
-}
-
-//============================================================================//
-
-void DebugOverlay::notify(const string& message, uint ticks)
+void DebugOverlay::notify(const string& message)
 {
     if (mActive == true)
     {
-        mNotifications.emplace_back(message, ticks);
-        if (mNotifications.size() == 1u) mTicksLeft = ticks;
+        if (mNotifications.size() >= 10u) mNotifications.pop_front();
+
+        mNotifications.push_back({message, 20u});
     }
 }

@@ -1,97 +1,126 @@
 //============================================================================//
 
-// Input data for full screen with TRIANGLE_STRIP /////
+// input data for full screen with TRIANGLE_STRIP /////
 
-extern const char data_data_screen[] = R"glsl(
+extern const char data_glsl_misc_screen[] = R"glsl(
 
-const vec2 V_pos_data[4] =
+const vec2 c_PositionArray[4] =
 {
     vec2(-1.f, -1.f), vec2(-1.f, +1.f),
     vec2(+1.f, -1.f), vec2(+1.f, +1.f)
 };
 
-vec2 V_pos = V_pos_data[gl_VertexID];
+vec2 v_Position = c_PositionArray[gl_VertexID];
 
 )glsl";
 
+
 //============================================================================//
 
-// Functions for sampling and using depth
+// functions for position reconstruction /////
 
-extern const char data_funcs_depth[] = R"glsl(
+extern const char data_glsl_funcs_position[] = R"glsl(
+
+vec3 get_view_pos(sampler2D depthTex, vec2 texcrd, mat4 invProjMat)
+{
+    float depth = texture(depthTex, texcrd).r * 2.f - 1.f;
+
+    vec4 projPos = vec4(texcrd * 2.f - 1.f, depth, 1.f);
+    vec4 viewPosW = invProjMat * projPos;
+
+    return viewPosW.xyz / viewPosW.w;
+}
+
+vec3 get_world_pos(vec3 viewPos, mat4 invViewMat)
+{
+   vec4 worldPosW = invViewMat * vec4(viewPos, 1.f);
+
+   return worldPosW.xyz / worldPosW.w;
+}
+
+)glsl";
+
+
+//============================================================================//
+
+// functions for special sampling using depth /////
+
+extern const char data_glsl_funcs_depth[] = R"glsl(
 
 float linearise(float depth, float n, float f)
 {
     return (2.f * n) / (f + n - depth * (f - n)) * (f - n);
 }
 
-vec3 get_view_pos(vec2 texcrd, mat4 invProj, sampler2D depthTex)
+float get_linear_depth(sampler2D depthTex, vec2 texcrd, float near, float far)
 {
-    float depth = texture(depthTex, texcrd).r * 2.f - 1.f;
-    vec4 p_pos = vec4(texcrd * 2.f - 1.f, depth, 1.f);
-    vec4 v_pos = invProj * p_pos;
-    return v_pos.xyz / v_pos.w;
+    return linearise(texture(depthTex, texcrd).r, near, far);
 }
 
-float nearest_depth_sca(vec2 texcrd, sampler2D sampler,
-                        sampler2D depthFull, sampler2D depthSmall,
-                        float thres, float rmin, float rmax)
+float nearest_depth_float ( vec2 texcrd, sampler2D sampler,
+                            sampler2D depthFull, sampler2D depthSmall,
+                            float thres, float near, float far )
 {
-    vec4 txSmall = textureGather(depthSmall, texcrd);
-    float txFull = texture(depthFull, texcrd).r;
-    txFull = linearise(txFull, rmin, rmax);
+    float depth = linearise(texture(depthFull, texcrd).r, near, far);
+    vec4 depthGather = textureGather(depthSmall, texcrd);
 
-    float distA = distance(txFull, linearise(txSmall.r, rmin, rmax));
-    float distB = distance(txFull, linearise(txSmall.g, rmin, rmax));
-    float distC = distance(txFull, linearise(txSmall.b, rmin, rmax));
-    float distD = distance(txFull, linearise(txSmall.a, rmin, rmax));
+    float distA = distance(depth, linearise(depthGather.x, near, far));
+    float distB = distance(depth, linearise(depthGather.y, near, far));
+    float distC = distance(depth, linearise(depthGather.z, near, far));
+    float distD = distance(depth, linearise(depthGather.w, near, far));
 
     if (max(max(max(distA, distB), distC), distD) > thres)
     {
-        vec4 texel = textureGather(sampler, texcrd);
-        float minDiff = distA; float value = texel.r;
-        if (distB < minDiff) { minDiff = distB; value = texel.g; }
-        if (distC < minDiff) { minDiff = distC; value = texel.b; }
-        if (distD < minDiff) { minDiff = distD; value = texel.a; }
-        return value;
+        vec4 gather = textureGather(sampler, texcrd);
+
+        float minDist = distA; float result = gather.x;
+        if (distB < minDist) { minDist = distB; result = gather.y; }
+        if (distC < minDist) { minDist = distC; result = gather.z; }
+        if (distD < minDist) { minDist = distD; result = gather.w; }
+
+        return result;
     }
-    else return texture(sampler, texcrd).r;
+
+    return texture(sampler, texcrd).r;
 }
 
-vec3 nearest_depth_vec3(vec2 texcrd, sampler2D sampler,
-                        sampler2D depthFull, sampler2D depthSmall,
-                        float thres, float rmin, float rmax)
+vec3 nearest_depth_vec3 ( vec2 texcrd, sampler2D sampler,
+                          sampler2D depthFull, sampler2D depthSmall,
+                          float thres, float near, float far )
 {
-    vec4 txSmall = textureGather(depthSmall, texcrd);
-    float txFull = texture(depthFull, texcrd).r;
-    txFull = linearise(txFull, rmin, rmax);
+    float depth = linearise(texture(depthFull, texcrd).r, near, far);
+    vec4 depthGather = textureGather(depthSmall, texcrd);
 
-    float distA = distance(txFull, linearise(txSmall.r, rmin, rmax));
-    float distB = distance(txFull, linearise(txSmall.g, rmin, rmax));
-    float distC = distance(txFull, linearise(txSmall.b, rmin, rmax));
-    float distD = distance(txFull, linearise(txSmall.a, rmin, rmax));
+    float distA = distance(depth, linearise(depthGather.x, near, far));
+    float distB = distance(depth, linearise(depthGather.y, near, far));
+    float distC = distance(depth, linearise(depthGather.z, near, far));
+    float distD = distance(depth, linearise(depthGather.w, near, far));
 
     if (max(max(max(distA, distB), distC), distD) > thres)
     {
-        vec4 texelR = textureGather(sampler, texcrd, 0);
-        vec4 texelG = textureGather(sampler, texcrd, 1);
-        vec4 texelB = textureGather(sampler, texcrd, 2);
-        float minDiff = distA; vec3 value = vec3(texelR.r, texelG.r, texelB.r);
-        if (distB < minDiff) { minDiff = distB; value = vec3(texelR.g, texelG.g, texelB.g); }
-        if (distC < minDiff) { minDiff = distC; value = vec3(texelR.b, texelG.b, texelB.b); }
-        if (distD < minDiff) { minDiff = distD; value = vec3(texelR.a, texelG.a, texelB.a); }
-        return value;
+        vec4 gatherR = textureGather(sampler, texcrd, 0);
+        vec4 gatherG = textureGather(sampler, texcrd, 1);
+        vec4 gatherB = textureGather(sampler, texcrd, 2);
+
+        float minDist = distA; vec3 result = vec3(gatherR.x, gatherG.x, gatherB.x);
+        if (distB < minDist) { minDist = distB; result = vec3(gatherR.y, gatherG.y, gatherB.y); }
+        if (distC < minDist) { minDist = distC; result = vec3(gatherR.z, gatherG.z, gatherB.z); }
+        if (distD < minDist) { minDist = distD; result = vec3(gatherR.w, gatherG.w, gatherB.w); }
+
+        return result;
     }
-    else return texture(sampler, texcrd).rgb;
+
+    return texture(sampler, texcrd).rgb;
 }
 
 )glsl";
 
+
 //============================================================================//
 
-// Functions for generating random values from a seed
+// Functions for generating random values from a seed /////
 
-extern const char data_funcs_random[] = R"glsl(
+extern const char data_glsl_funcs_random[] = R"glsl(
 
 float rand1(float seed)
 {
@@ -110,11 +139,12 @@ float rand3(vec3 seed)
 
 )glsl";
 
+
 //============================================================================//
 
-// Functions for colour-space manipulation
+// functions for colour space manipulation /////
 
-extern const char data_funcs_colours[] = R"glsl(
+extern const char data_glsl_funcs_colour[] = R"glsl(
 
 vec3 rgb_to_hsv(vec3 _c)
 {
@@ -206,106 +236,108 @@ float rgb_to_luma(vec3 rgb)
 
 )glsl";
 
+
 //============================================================================//
 
-// A set of uniform-spiral disks
+// a set of uniform spiral disks /////
 
-extern const char data_disks_uniform[] = R"glsl(
+extern const char data_glsl_misc_disks[] = R"glsl(
 
-const vec2 disk6[6] =
+const vec2 c_Disk6[6] =
 {
-    vec2( 0.000000, +1.000000),
-    vec2(-0.787800, +0.454837),
-    vec2(-0.696923, -0.402369),
-    vec2( 0.000000, -0.683013),
-    vec2(+0.467086, -0.269672),
-    vec2(+0.311526, +0.179859)
+  vec2( 0.000000, +1.000000),
+  vec2(-0.787800, +0.454837),
+  vec2(-0.696923, -0.402369),
+  vec2( 0.000000, -0.683013),
+  vec2(+0.467086, -0.269672),
+  vec2(+0.311526, +0.179859)
 };
 
-const vec2 disk12[12] =
+const vec2 c_Disk12[12] =
 {
-    vec2( 0.000000, +1.000000),
-    vec2(-0.478297, -0.828435),
-    vec2(+0.787800, +0.454837),
-    vec2(-0.859123,  0.000000),
-    vec2(+0.696923, -0.402369),
-    vec2(-0.373098, +0.646225),
-    vec2( 0.000000, -0.683013),
-    vec2(+0.307225, +0.532129),
-    vec2(-0.467086, -0.269672),
-    vec2(+0.455719,  0.000000),
-    vec2(-0.311526, +0.179859),
-    vec2(+0.120746, -0.209139)
+  vec2( 0.000000, +1.000000),
+  vec2(-0.478297, -0.828435),
+  vec2(+0.787800, +0.454837),
+  vec2(-0.859123,  0.000000),
+  vec2(+0.696923, -0.402369),
+  vec2(-0.373098, +0.646225),
+  vec2( 0.000000, -0.683013),
+  vec2(+0.307225, +0.532129),
+  vec2(-0.467086, -0.269672),
+  vec2(+0.455719,  0.000000),
+  vec2(-0.311526, +0.179859),
+  vec2(+0.120746, -0.209139)
 };
 
-const vec2 disk24[24] =
+const vec2 c_Disk24[24] =
 {
-    vec2( 0.000000, +1.000000),
-    vec2(-0.945383, -0.253315),
-    vec2(+0.478297, -0.828435),
-    vec2(+0.660140, +0.660140),
-    vec2(-0.787800, +0.454837),
-    vec2(-0.229019, -0.854711),
-    vec2(+0.859123,  0.000000),
-    vec2(-0.215448, +0.804062),
-    vec2(-0.696923, -0.402369),
-    vec2(+0.548724, -0.548724),
-    vec2(+0.373098, +0.646225),
-    vec2(-0.690853, +0.185113),
-    vec2( 0.000000, -0.683013),
-    vec2(+0.627333, +0.168093),
-    vec2(-0.307225, +0.532129),
-    vec2(-0.408575, -0.408575),
-    vec2(+0.467086, -0.269672),
-    vec2(+0.129092, +0.481777),
-    vec2(-0.455719,  0.000000),
-    vec2(+0.106023, -0.395685),
-    vec2(+0.311526, +0.179859),
-    vec2(-0.215357, +0.215357),
-    vec2(-0.120746, -0.209139),
-    vec2(+0.158083, -0.042358)
+  vec2( 0.000000, +1.000000),
+  vec2(-0.945383, -0.253315),
+  vec2(+0.478297, -0.828435),
+  vec2(+0.660140, +0.660140),
+  vec2(-0.787800, +0.454837),
+  vec2(-0.229019, -0.854711),
+  vec2(+0.859123,  0.000000),
+  vec2(-0.215448, +0.804062),
+  vec2(-0.696923, -0.402369),
+  vec2(+0.548724, -0.548724),
+  vec2(+0.373098, +0.646225),
+  vec2(-0.690853, +0.185113),
+  vec2( 0.000000, -0.683013),
+  vec2(+0.627333, +0.168093),
+  vec2(-0.307225, +0.532129),
+  vec2(-0.408575, -0.408575),
+  vec2(+0.467086, -0.269672),
+  vec2(+0.129092, +0.481777),
+  vec2(-0.455719,  0.000000),
+  vec2(+0.106023, -0.395685),
+  vec2(+0.311526, +0.179859),
+  vec2(-0.215357, +0.215357),
+  vec2(-0.120746, -0.209139),
+  vec2(+0.158083, -0.042358)
 };
 
-const vec2 disk4[4] =
+const vec2 c_Disk4[4] =
 {
-    vec2( 0.000000, +0.615793),
-    vec2(-0.786598,  0.000000),
-    vec2( 0.000000, -0.920423),
-    vec2(+1.000000,  0.000000)
+  vec2( 0.000000, +0.615793),
+  vec2(-0.786598,  0.000000),
+  vec2( 0.000000, -0.920423),
+  vec2(+1.000000,  0.000000)
 };
 
-const vec2 disk8[8] =
+const vec2 c_Disk8[8] =
 {
-    vec2( 0.000000, +0.374386),
-    vec2(-0.347073, -0.347073),
-    vec2(+0.603291,  0.000000),
-    vec2(-0.501968, +0.501968),
-    vec2( 0.000000, -0.807897),
-    vec2(+0.631658, +0.631658),
-    vec2(-0.960211,  0.000000),
-    vec2(+0.707107, -0.707107)
+  vec2( 0.000000, +0.374386),
+  vec2(-0.347073, -0.347073),
+  vec2(+0.603291,  0.000000),
+  vec2(-0.501968, +0.501968),
+  vec2( 0.000000, -0.807897),
+  vec2(+0.631658, +0.631658),
+  vec2(-0.960211,  0.000000),
+  vec2(+0.707107, -0.707107)
 };
 
-const vec2 disk16[16] =
+const vec2 c_Disk16[16] =
 {
-    vec2( 0.000000, +0.195923),
-    vec2(-0.098818, -0.238567),
-    vec2(+0.226579, +0.226579),
-    vec2(-0.353385, -0.146377),
-    vec2(+0.444372,  0.000000),
-    vec2(-0.467436, +0.193618),
-    vec2(+0.400996, -0.400996),
-    vec2(-0.240175, +0.579834),
-    vec2( 0.000000, -0.687193),
-    vec2(+0.285259, +0.688676),
-    vec2(-0.566849, -0.566849),
-    vec2(+0.789866, +0.327173),
-    vec2(-0.903948,  0.000000),
-    vec2(+0.874590, -0.362267),
-    vec2(-0.693039, +0.693039),
-    vec2(+0.382683, -0.923880)
+  vec2( 0.000000, +0.195923),
+  vec2(-0.098818, -0.238567),
+  vec2(+0.226579, +0.226579),
+  vec2(-0.353385, -0.146377),
+  vec2(+0.444372,  0.000000),
+  vec2(-0.467436, +0.193618),
+  vec2(+0.400996, -0.400996),
+  vec2(-0.240175, +0.579834),
+  vec2( 0.000000, -0.687193),
+  vec2(+0.285259, +0.688676),
+  vec2(-0.566849, -0.566849),
+  vec2(+0.789866, +0.327173),
+  vec2(-0.903948,  0.000000),
+  vec2(+0.874590, -0.362267),
+  vec2(-0.693039, +0.693039),
+  vec2(+0.382683, -0.923880)
 };
 
 )glsl";
+
 
 //============================================================================//

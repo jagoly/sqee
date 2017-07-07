@@ -25,16 +25,16 @@ char get_file_first_char(const string& path);
 string get_string_from_file(const string& path);
 
 /// Load a file into a vector of bytes
-vector<uchar> get_bytes_from_file(const string& path);
+std::vector<uchar> get_bytes_from_file(const string& path);
 
 /// Tokenise a string into a vector of strings
-vector<string> tokenise_string(const string& str, char dlm);
+std::vector<string> tokenise_string(const string& str, char dlm);
 
 /// Tokenise a file and remove empty lines, also get line numbers
-vector<pair<vector<string>, uint>> tokenise_file(const string& path);
+std::vector<std::pair<std::vector<string>, uint>> tokenise_file(const string& path);
 
 /// Get a list of files in a directory
-vector<string> get_files_from_dir(const string& path);
+std::vector<string> get_files_from_dir(const string& path);
 
 /// Extract file name portion from a path
 string file_name_from_path(const string& path);

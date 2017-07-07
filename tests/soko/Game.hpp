@@ -4,54 +4,73 @@
 #include <sqee/app/Scene.hpp>
 #include <sqee/maths/Vectors.hpp>
 
+#include <sqee/app/Event.hpp>
 #include <sqee/app/PreProcessor.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
-#include <sqee/gl/Shaders.hpp>
+#include <sqee/gl/Program.hpp>
 
-#include <sqee/render/Camera.hpp>
 #include <sqee/render/Mesh.hpp>
+
+#include "Level.hpp"
 
 namespace sqt {
 
-class SokoApp; class Level;
+class GameScene final : public sq::Scene
+{
+public: //====================================================//
 
-class GameScene : public sq::Scene {
-public:
-    GameScene(SokoApp& _app);
+    GameScene(sq::InputDevices& input);
 
-    void update_options();
-    void tick(); void render();
-    bool handle(sf::Event event);
+    ~GameScene();
 
-private:
-    unique_ptr<sq::PreProcessor> preprocs;
-    unique_ptr<sq::UniformBuffer> ubo;
-    unique_ptr<sq::Camera> camera;
+    //--------------------------------------------------------//
+
+    void refresh_options();
+
+    void handle_event(sq::Event event);
+
+private: //===================================================//
+
+    sq::InputDevices& mInput;
+
+    //--------------------------------------------------------//
+
+    void update() override;
+
+    void render(double elapsed) override;
+
+    //--------------------------------------------------------//
+
+    sq::PreProcessor processor;
+
+    sq::UniformBuffer ubo;
+
     unique_ptr<Level> level;
 
-    unique_ptr<sq::Shader> VS_object;
-    unique_ptr<sq::Shader> FS_object;
+    sq::Program PROG_Object;
 
-    unique_ptr<sq::Mesh> MESH_Ball;
-    unique_ptr<sq::Mesh> MESH_Floor;
-    unique_ptr<sq::Mesh> MESH_HoleA;
-    unique_ptr<sq::Mesh> MESH_HoleB;
-    unique_ptr<sq::Mesh> MESH_WallA;
-    unique_ptr<sq::Mesh> MESH_WallB;
-    unique_ptr<sq::Mesh> MESH_WallC;
-    unique_ptr<sq::Mesh> MESH_WallD;
-    unique_ptr<sq::Mesh> MESH_WallE;
-    unique_ptr<sq::Mesh> MESH_WallF;
-    unique_ptr<sq::Mesh> MESH_Player;
+    sq::Mesh MESH_Ball;
+    sq::Mesh MESH_Floor;
+    sq::Mesh MESH_HoleA;
+    sq::Mesh MESH_HoleB;
+    sq::Mesh MESH_Player;
+    sq::Mesh MESH_Wall;
+
+    //bool moving = false;
 
     int rotation = 0;
-    Vec2I position = {0, 0};
-    float rotCrnt, rotNext;
+    Vec2I position = { 0, 0 };
     Vec2F posCrnt, posNext;
-    bool animate = false;
-    bool pushing = false;
+//    bool animate = false;
+//    bool pushing = false;
 
-    SokoApp& app;
+    Ball* pushedBall = nullptr;
+
+    uint moveProgress = 10u;
+    Vec2I moveOffset = { 0, 0 };
+
+    Mat4F viewMat;
+    Mat4F projMat;
 };
 
 }

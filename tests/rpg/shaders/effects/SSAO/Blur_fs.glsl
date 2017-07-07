@@ -1,44 +1,60 @@
 // GLSL Fragment Shader
 
-in vec2 texcrd;
+//============================================================================//
 
 #include runtime/Options
+
 #include builtin/funcs/depth
-#include headers/blocks/Camera
 
-layout(std140, binding=0) uniform CAMERABLOCK { CameraBlock CB; };
+//============================================================================//
 
-layout(binding=0) uniform sampler2D texAmbOcc;
-layout(binding=1) uniform sampler2D texDepHalf;
+in vec2 texcrd;
 
-out float fragColour;
+layout(binding=0) uniform sampler2D tex_SSAO;
+layout(binding=1) uniform sampler2D tex_DepHalf;
 
+out float frag_Value;
 
-const vec2 offsets[8] = {
-vec2(-1.5f, -0.5f) * OPTION_PixSizeHalf,
-vec2(-1.5f, +0.5f) * OPTION_PixSizeHalf,
-vec2(-0.5f, -1.5f) * OPTION_PixSizeHalf,
-vec2(-0.5f, +1.5f) * OPTION_PixSizeHalf,
-vec2(+0.5f, -1.5f) * OPTION_PixSizeHalf,
-vec2(+0.5f, +1.5f) * OPTION_PixSizeHalf,
-vec2(+1.5f, -0.5f) * OPTION_PixSizeHalf,
-vec2(+1.5f, +0.5f) * OPTION_PixSizeHalf,
+//============================================================================//
+
+const int c_OffsetCount = 8;
+
+const vec2 c_Offsets[8] =
+{
+  vec2(-1.5f, -0.5f) * OPTION_PixSizeHalf,
+  vec2(-1.5f, +0.5f) * OPTION_PixSizeHalf,
+  vec2(-0.5f, -1.5f) * OPTION_PixSizeHalf,
+  vec2(-0.5f, +1.5f) * OPTION_PixSizeHalf,
+  vec2(+0.5f, -1.5f) * OPTION_PixSizeHalf,
+  vec2(+0.5f, +1.5f) * OPTION_PixSizeHalf,
+  vec2(+1.5f, -0.5f) * OPTION_PixSizeHalf,
+  vec2(+1.5f, +0.5f) * OPTION_PixSizeHalf,
 };
 
+//============================================================================//
 
-void main() {
-    const float near = OPTION_ViewNear, far = OPTION_ViewFar;
+void main()
+{
+    const float centreDepth = get_linear_depth(tex_DepHalf, texcrd, OPTION_ViewNear, OPTION_ViewFar);
+    const float centreValue = texture(tex_SSAO, texcrd).r;
 
-    float centreDepth = linearise(texture(texDepHalf, texcrd).r, near, far);
-    float centreColour = fragColour = texture(texAmbOcc, texcrd).r;
+    //--------------------------------------------------------//
 
-    for (int i = 0; i < 8; ++i) {
-        vec2 sampCoord = texcrd + offsets[i];
-        float sampColour = texture(texAmbOcc, sampCoord).r;
-        float sampDepth = linearise(texture(texDepHalf, sampCoord).r, near, far);
-        float factor = smoothstep(distance(centreDepth, sampDepth), 0.01f, 0.02f);
-        fragColour += mix(centreColour, sampColour, factor);
+    frag_Value = centreValue;
+
+    for (int i = 0; i < c_OffsetCount; ++i)
+    {
+        vec2 sampleCrd = texcrd + c_Offsets[i];
+
+        float sampleDepth = get_linear_depth(tex_DepHalf, sampleCrd, OPTION_ViewNear, OPTION_ViewFar);
+        float sampleValue = texture(tex_SSAO, sampleCrd).r;
+
+        float factor = smoothstep(0.01f, 0.02f, distance(sampleDepth, centreDepth));
+
+        frag_Value += mix(sampleValue, centreValue, factor);
     }
 
-    fragColour /= 9.f;
+    //--------------------------------------------------------//
+
+    frag_Value /= float(c_OffsetCount) + 1.f;
 }

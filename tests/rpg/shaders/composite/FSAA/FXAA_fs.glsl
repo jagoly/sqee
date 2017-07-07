@@ -6,9 +6,9 @@
 
 in vec2 texcrd;
 
-layout(binding=0) uniform sampler2D texScreen;
+layout(binding=0) uniform sampler2D tex_Screen;
 
-out vec4 fragColour;
+out vec4 frag_Colour;
 
 //============================================================================//
 
@@ -433,6 +433,6 @@ void main()
 {
     const vec2 pixelSize = 1.f / OPTION_WinSizeFull;
 
-    fragColour = FxaaPixelShader( texcrd, texScreen, pixelSize, 0.75f, 0.125f, 0.0625f );
-    fragColour.a = 1.f;
+    frag_Colour = FxaaPixelShader( texcrd, tex_Screen, pixelSize, 0.75f, 0.125f, 0.0625f );
+    frag_Colour.a = 1.f;
 }

@@ -40,22 +40,3 @@ void TargetTextures::update_options(const Options& options)
     if (options.Bloom_Enable == false) Effects_Bloom.delete_object();
     else Effects_Bloom.allocate_storage(options.Window_Size / 4u);
 }
-
-//============================================================================//
-
-GenericShaders::GenericShaders()
-{
-    VS_MainStencil.add_uniform("matrix"); // Mat4F
-    VS_ReflStencil.add_uniform("matrix"); // Mat4F
-}
-
-//============================================================================//
-
-void GenericShaders::update_options(const Options& /*options*/)
-{
-    preprocs.load(VS_FullScreen, "generic/FullScreen_vs");
-    preprocs.load(VS_MainStencil, "generic/MainStencil_vs");
-    preprocs.load(VS_ReflStencil, "generic/ReflStencil_vs");
-    preprocs.load(FS_PassThrough, "generic/PassThrough_fs");
-    preprocs.load(FS_FillSpace, "generic/FillSpace_fs");
-}

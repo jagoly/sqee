@@ -1,13 +1,40 @@
-#include <sqee/redist/gl_ext_4_2.hpp>
+#include <sqee/redist/gl_loader.hpp>
 
+#include <sqee/assert.hpp>
 #include <sqee/debug/Logging.hpp>
 
-#include <sqee/misc/Resource.hpp>
 #include <sqee/misc/Files.hpp>
 
 #include <sqee/render/Mesh.hpp>
 
 using namespace sq;
+
+//============================================================================//
+
+
+//============================================================================//
+
+void Mesh::load_from_file(const string& path)
+{
+    impl_load_ascii("assets/" + path + ".sqm");
+}
+
+//============================================================================//
+
+void Mesh::draw_complete() const
+{
+    gl::DrawElements(gl::TRIANGLES, int(mIndexTotal), gl::UNSIGNED_INT, nullptr);
+}
+
+void Mesh::draw_partial(uint index) const
+{
+    const auto& subMesh = mSubMeshVec[index];
+    const auto startLong = long(subMesh.firstIndex * 4u);
+    const auto start = reinterpret_cast<void*>(startLong);
+    const auto count = GLsizei(subMesh.indexCount);
+
+    gl::DrawElements(gl::TRIANGLES, count, gl::UNSIGNED_INT, start);
+}
 
 //============================================================================//
 
@@ -50,41 +77,13 @@ inline void impl_ascii_append_SInt8(uchar*& ptr, const string& str)
 
 //============================================================================//
 
-Mesh::Mesh() : mVertexBuffer(gl::ARRAY_BUFFER), mIndexBuffer(gl::ELEMENT_ARRAY_BUFFER) {}
-
-//============================================================================//
-
-void Mesh::load_from_file(const string& path)
-{
-    impl_load_ascii("assets/" + path + ".sqm");
-}
-
-//============================================================================//
-
-void Mesh::draw_complete() const
-{
-    gl::DrawElements(gl::TRIANGLES, int(mIndexTotal), gl::UNSIGNED_INT, nullptr);
-}
-
-void Mesh::draw_partial(uint index) const
-{
-    const auto& subMesh = mSubMeshVec[index];
-    const auto startLong = long(subMesh.firstIndex * 4u);
-    const auto start = reinterpret_cast<void*>(startLong);
-    const auto count = GLsizei(subMesh.indexCount);
-
-    gl::DrawElements(gl::TRIANGLES, count, gl::UNSIGNED_INT, start);
-}
-
-//============================================================================//
-
 void Mesh::impl_load_ascii(const string& path)
 {
     enum class Section { None, Header, Vertices, Indices };
     Section section = Section::None;
 
-    vector<uchar> vertexData;
-    vector<uint> indexData;
+    std::vector<uchar> vertexData;
+    std::vector<uint> indexData;
 
     bool allocatedVertices = false;
     bool allocatedIndices = false;
@@ -94,14 +93,12 @@ void Mesh::impl_load_ascii(const string& path)
 
     //========================================================//
 
-    //for (const auto& [line, num] : tokenise_file(path))
-    for (const auto& linePair : tokenise_file(path))
-    {
-        const auto& line = linePair.first;
-        //const auto& num = linePair.second;
-        const auto& key = line.front();
 
-        //========================================================//
+    for (const auto& [line, num] : tokenise_file(path))
+    {
+        const string& key = line.front();
+
+        //--------------------------------------------------------//
 
         if (key.front() == '#') continue;
 
@@ -114,7 +111,7 @@ void Mesh::impl_load_ascii(const string& path)
             else log_error("invalid section '%s' in mesh '%s'", line[1], path);
         }
 
-        //========================================================//
+        //--------------------------------------------------------//
 
         else if (section == Section::Header)
         {
@@ -153,7 +150,7 @@ void Mesh::impl_load_ascii(const string& path)
             else log_warning("unknown header key '%s' in mesh '%s'", key, path);
         }
 
-        //========================================================//
+        //--------------------------------------------------------//
 
         else if (section == Section::Vertices)
         {
@@ -223,7 +220,7 @@ void Mesh::impl_load_ascii(const string& path)
             }
         }
 
-        //========================================================//
+        //--------------------------------------------------------//
 
         else if (section == Section::Indices)
         {
@@ -239,9 +236,9 @@ void Mesh::impl_load_ascii(const string& path)
             *(indexPtr++) = stou(line[2]);
         }
 
-        //========================================================//
+        //--------------------------------------------------------//
 
-        else log_error("missing $SECTION in mesh '%s'", path);
+        else log_error("missing SECTION in mesh '%s'", path);
     }
 
     //========================================================//
@@ -254,13 +251,13 @@ void Mesh::impl_load_ascii(const string& path)
 
 //============================================================================//
 
-void Mesh::impl_load_final(const vector<uchar>& vertexData, const vector<uint>& indexData)
+void Mesh::impl_load_final(const std::vector<uchar>& vertexData, const std::vector<uint>& indexData)
 {
-    mVertexBuffer.allocate_constant(vertexData.size(), vertexData.data());
-    mIndexBuffer.allocate_constant(indexData.size() * 4u, indexData.data());
+    mVertexBuffer.allocate_constant(uint(vertexData.size()), vertexData.data());
+    mIndexBuffer.allocate_constant(uint(indexData.size()) * 4u, indexData.data());
 
-    mVAO.set_vertex_buffer(mVertexBuffer, 0u, mVertexSize);
-    mVAO.set_index_buffer(mIndexBuffer);
+    mVertexArray.set_vertex_buffer(mVertexBuffer, mVertexSize);
+    mVertexArray.set_index_buffer(mIndexBuffer);
 
     const uint sizeTCRD = sizeof(GL_Float32[2]) * has_TCRD();
     const uint sizeNORM = sizeof(GL_SNorm16[3]) * has_NORM();
@@ -276,15 +273,15 @@ void Mesh::impl_load_final(const vector<uchar>& vertexData, const vector<uint>& 
     const uint offsetBoneI = offsetCOLR + sizeCOLR;
     const uint offsetBoneW = offsetBoneI + sizeBONE;
 
-    mVAO.add_float_attribute(0u, 3u, gl::FLOAT, false, 0u);
+    mVertexArray.add_float_attribute(0u, 3u, gl::FLOAT, false, 0u);
 
-    if (has_TCRD()) mVAO.add_float_attribute(1u, 2u, gl::FLOAT, false, offsetTCRD);
-    if (has_NORM()) mVAO.add_float_attribute(2u, 3u, gl::SHORT, true, offsetNORM);
-    if (has_TANG()) mVAO.add_float_attribute(3u, 4u, gl::SHORT, true, offsetTANG);
-    if (has_COLR()) mVAO.add_float_attribute(4u, 3u, gl::FLOAT, false, offsetCOLR);
+    if (has_TCRD()) mVertexArray.add_float_attribute(1u, 2u, gl::FLOAT, false, offsetTCRD);
+    if (has_NORM()) mVertexArray.add_float_attribute(2u, 3u, gl::SHORT, true, offsetNORM);
+    if (has_TANG()) mVertexArray.add_float_attribute(3u, 4u, gl::SHORT, true, offsetTANG);
+    if (has_COLR()) mVertexArray.add_float_attribute(4u, 3u, gl::FLOAT, false, offsetCOLR);
 
-    if (has_BONE()) mVAO.add_integer_attribute(5u, 4u, gl::BYTE, offsetBoneI);
-    if (has_BONE()) mVAO.add_float_attribute(6u, 4u, gl::UNSIGNED_BYTE, true, offsetBoneW);
+    if (has_BONE()) mVertexArray.add_integer_attribute(5u, 4u, gl::BYTE, offsetBoneI);
+    if (has_BONE()) mVertexArray.add_float_attribute(6u, 4u, gl::UNSIGNED_BYTE, true, offsetBoneW);
 }
 
 //============================================================================//

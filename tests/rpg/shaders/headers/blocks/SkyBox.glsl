@@ -1,9 +1,11 @@
 // GLSL Uniform Block
 
-struct SkyBoxBlock {
-    float saturation; // 1
-    float brightness; // 1
-    float contrast;   // 1
-    float alpha;      // 1
-    // Size: 4
+struct SkyBoxBlock
+{
+    float saturation; // 4
+    float brightness; // 4
+    float contrast;   // 4
+    float alpha;      // 4
+
+    // TOTAL: 16
 };

@@ -1,18 +1,15 @@
-#include <sqee/render/Mesh.hpp>
-#include <sqee/render/Material.hpp>
-#include <sqee/render/Armature.hpp>
-
 #include "WorldStuff.hpp"
 
-namespace sqt { namespace sys {
+using namespace sqt;
 
-WorldStuff::WorldStuff() = default;
-WorldStuff::~WorldStuff() = default;
+//============================================================================//
 
-WorldStuff& static_WorldStuff()
+WorldStuff::WorldStuff()
 {
-    static WorldStuff stuff;
-    return stuff;
+    skybox = std::make_unique<world::Skybox>();
+    ambient = std::make_unique<world::Ambient>();
+
+    skylight = std::make_unique<world::Skylight>(camera);
 }
 
-}} // namespace sqt::sys
+WorldStuff::~WorldStuff() = default;

@@ -10,14 +10,12 @@ using namespace sq;
 //============================================================================//
 
 Texture::Texture(GLenum target, Format format)
-    : mTarget(target), mFormat(format),
-      mContext(Context::get()) {}
+    : mContext(Context::get()), mTarget(target), mFormat(format) {}
 
 //============================================================================//
 
 Texture::Texture(Texture&& other)
-    : mTarget(other.mTarget), mFormat(other.mFormat),
-      mContext(other.mContext)
+    : mContext(other.mContext), mTarget(other.mTarget), mFormat(other.mFormat)
 {
     mContext.impl_reset_Texture(&other, this);
 
@@ -32,6 +30,9 @@ Texture::Texture(Texture&& other)
     other.mHandle = 0u;
 }
 
+Texture& Texture::operator=(Texture&& other)
+{ std::swap(*this, other); return *this; }
+
 //============================================================================//
 
 void Texture::delete_object()
@@ -44,6 +45,15 @@ void Texture::delete_object()
     }
 
     mSize = { 0u, 0u, 0u };
+}
+
+//============================================================================//
+
+void Texture::set_format(Format format)
+{
+    SQASSERT(mHandle == 0u, "texture already created");
+
+    mFormat = format;
 }
 
 //============================================================================//
@@ -91,6 +101,8 @@ void Texture::set_swizzle_mode(char r, char g, char b, char a)
 
 void Texture::impl_create_object()
 {
+    SQASSERT(mFormat != Format::Undefined, "format not set");
+
     this->delete_object();
     gl::CreateTextures(mTarget, 1, &mHandle);
 }
@@ -102,7 +114,7 @@ void Texture::impl_update_paramaters()
     // do nothing if texture not created
     if (mHandle == 0u) return;
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     if (mTarget != gl::TEXTURE_2D_MULTISAMPLE)
     {
@@ -114,7 +126,7 @@ void Texture::impl_update_paramaters()
         gl::TextureParameteri(mHandle, gl::TEXTURE_MAG_FILTER, mFilter ? gl::LINEAR : gl::NEAREST);
     }
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     const auto set_wrap_param = [this](GLenum pname, char param)
     {
@@ -131,7 +143,7 @@ void Texture::impl_update_paramaters()
         set_wrap_param(gl::TEXTURE_WRAP_T, mWrap[1]);
     }
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     const auto set_swizzle_param = [this](GLenum pname, char param)
     {
@@ -150,7 +162,7 @@ void Texture::impl_update_paramaters()
     set_swizzle_param(gl::TEXTURE_SWIZZLE_B, mSwizzle[2]);
     set_swizzle_param(gl::TEXTURE_SWIZZLE_A, mSwizzle[3]);
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     if (mShadow == true)
     {
@@ -160,7 +172,7 @@ void Texture::impl_update_paramaters()
 
 //============================================================================//
 
-Texture::Format Texture::impl_string_to_format(string str)
+Texture::Format Texture::impl_string_to_format(string arg)
 {
     static const std::map<string, Format> map
     {
@@ -174,5 +186,5 @@ Texture::Format Texture::impl_string_to_format(string str)
         { "RGBA8_SN", Format::RGBA8_SN },
     };
 
-    return map.at(str);
+    return map.at(arg);
 }

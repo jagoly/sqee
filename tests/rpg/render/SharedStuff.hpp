@@ -1,11 +1,10 @@
 #pragma once
 
-#include <sqee/redist/gl_ext_4_2.hpp>
 #include <sqee/app/PreProcessor.hpp>
-
 #include <sqee/render/Volume.hpp>
+#include <sqee/gl/FrameBuffer.hpp>
+#include <sqee/gl/Program.hpp>
 #include <sqee/gl/Textures.hpp>
-#include <sqee/gl/Shaders.hpp>
 
 namespace sqt {
 
@@ -64,31 +63,13 @@ struct TargetTextures : sq::NonCopyable
 
 //============================================================================//
 
-struct GenericShaders : sq::NonCopyable
-{
-    GenericShaders();
-
-    sq::Shader VS_FullScreen { sq::Shader::Stage::Vertex };
-    sq::Shader VS_MainStencil { sq::Shader::Stage::Vertex };
-    sq::Shader VS_ReflStencil { sq::Shader::Stage::Vertex };
-
-    sq::Shader FS_PassThrough { sq::Shader::Stage::Fragment };
-    sq::Shader FS_FillSpace { sq::Shader::Stage::Fragment };
-
-    sq::PreProcessor preprocs;
-
-    void update_options(const Options& options);
-};
-
-//============================================================================//
-
 struct SharedStuff
 {
     const StencilVolumes& volumes;
     const TargetTextures& textures;
-    const GenericShaders& shaders;
-
     const Options& options;
+
+    sq::PreProcessor& processor;
     sq::Context& context;
 };
 

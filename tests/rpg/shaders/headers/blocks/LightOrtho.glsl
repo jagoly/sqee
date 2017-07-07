@@ -1,9 +1,11 @@
 // GLSL Uniform Block
 
-struct LightOrthoBlock {
-    vec3 direction; // 3
-    float density;  // 1
-    vec3 colour;    // 4
-    mat4 matrix;    // 16
-    // Size: 24
+struct LightOrthoBlock
+{
+    vec3 direction; // 12
+    float density;  //  4
+    vec3 colour;    // 16
+    mat4 matrix;    // 64
+
+    // TOTAL: 96
 };

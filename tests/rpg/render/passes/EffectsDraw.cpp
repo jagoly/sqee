@@ -21,23 +21,53 @@ EffectsPasses::EffectsPasses(const SharedStuff& stuff) : SharedStuff(stuff)
     TEX_SSAO_Blur.set_filter_mode(true);
     TEX_Bloom_Blur.set_filter_mode(true);
     TEX_Shafts_Blur.set_filter_mode(true);
+
+    processor.load_vertex(PROG_SSAO_Main, "generic/FullScreen_vs");
+    processor.load_vertex(PROG_SSAO_Blur, "generic/FullScreen_vs");
+    processor.load_vertex(PROG_Bloom_Main, "generic/FullScreen_vs");
+    processor.load_vertex(PROG_Bloom_BlurH, "generic/FullScreen_vs");
+    processor.load_vertex(PROG_Bloom_BlurV, "generic/FullScreen_vs");
+    processor.load_vertex(PROG_Shafts_BlurH, "generic/FullScreen_vs");
+    processor.load_vertex(PROG_Shafts_BlurV, "generic/FullScreen_vs");
+    processor.load_vertex(PROG_Overlay, "generic/FullScreen_vs");
 }
 
 //============================================================================//
 
 void EffectsPasses::update_options()
 {
-    if (options.SSAO_Quality) shaders.preprocs(FS_SSAO_Main, "effects/SSAO/Main_fs");
-    if (options.SSAO_Quality) shaders.preprocs(FS_SSAO_Blur, "effects/SSAO/Blur_fs");
+    if (options.SSAO_Quality)
+    {
+        processor.load_fragment(PROG_SSAO_Main, "effects/SSAO/Main_fs");
+        processor.load_fragment(PROG_SSAO_Blur, "effects/SSAO/Blur_fs");
 
-    if (options.Bloom_Enable) shaders.preprocs(FS_Bloom_Main, "effects/Bloom/Main_fs");
-    if (options.Bloom_Enable) shaders.preprocs(FS_Bloom_BlurH, "effects/Bloom/BlurH_fs");
-    if (options.Bloom_Enable) shaders.preprocs(FS_Bloom_BlurV, "effects/Bloom/BlurV_fs");
+        PROG_SSAO_Main.link_program_stages();
+        PROG_SSAO_Blur.link_program_stages();
+    }
 
-    if (options.Shafts_Quality) shaders.preprocs(FS_Shafts_BlurH, "effects/Shafts/BlurH_fs");
-    if (options.Shafts_Quality) shaders.preprocs(FS_Shafts_BlurV, "effects/Shafts/BlurV_fs");
+    if (options.Bloom_Enable)
+    {
+        processor.load_fragment(PROG_Bloom_Main, "effects/Bloom/Main_fs");
+        processor.load_fragment(PROG_Bloom_BlurH, "effects/Bloom/BlurH_fs");
+        processor.load_fragment(PROG_Bloom_BlurV, "effects/Bloom/BlurV_fs");
 
-    shaders.preprocs(FS_Overlay, "effects/Overlay_fs");
+        PROG_Bloom_Main.link_program_stages();
+        PROG_Bloom_BlurH.link_program_stages();
+        PROG_Bloom_BlurV.link_program_stages();
+    }
+
+    if (options.Shafts_Quality)
+    {
+        processor.load_fragment(PROG_Shafts_BlurH, "effects/Shafts/BlurH_fs");
+        processor.load_fragment(PROG_Shafts_BlurV, "effects/Shafts/BlurV_fs");
+
+        PROG_Shafts_BlurH.link_program_stages();
+        PROG_Shafts_BlurV.link_program_stages();
+    }
+
+    processor.load_fragment(PROG_Overlay, "effects/Overlay_fs");
+
+    PROG_Overlay.link_program_stages();
 
     // delete or allocate ssao blur texture
     if (options.SSAO_Quality == 0u) TEX_SSAO_Blur.delete_object();
@@ -76,23 +106,24 @@ void EffectsPasses::render_effect_SSAO()
     if (options.SSAO_Quality != 0)
     {
         context.set_ViewPort(options.Window_Size / 2u);
-        context.use_Shader_Vert(shaders.VS_FullScreen);
 
         context.bind_FrameBuffer(FB_SSAO_Main);
         context.bind_Texture(textures.Depth_HalfSize, 1u);
-        context.use_Shader_Frag(FS_SSAO_Main);
+        context.bind_Program(PROG_SSAO_Main);
         sq::draw_screen_quad();
 
         context.bind_FrameBuffer(FB_SSAO_Blur);
         context.bind_Texture(textures.Effects_SSAO, 0u);
-        context.use_Shader_Frag(FS_SSAO_Blur);
+        context.bind_Program(PROG_SSAO_Blur);
         sq::draw_screen_quad();
 
         context.bind_FrameBuffer(FB_SSAO_Main);
         context.bind_Texture(TEX_SSAO_Blur, 0u);
-        context.use_Shader_Frag(FS_SSAO_Blur);
+        context.bind_Program(PROG_SSAO_Blur);
         sq::draw_screen_quad();
     }
+
+    context.bind_Program_default();
 }
 
 //============================================================================//
@@ -107,33 +138,34 @@ void EffectsPasses::render_effect_Bloom()
     if (options.Bloom_Enable == true)
     {
         context.set_ViewPort(options.Window_Size / 4u);
-        context.use_Shader_Vert(shaders.VS_FullScreen);
 
         context.bind_FrameBuffer(FB_Bloom_Main);
         context.bind_Texture(textures.Lighting_Main, 0u);
-        context.use_Shader_Frag(FS_Bloom_Main);
+        context.bind_Program(PROG_Bloom_Main);
         sq::draw_screen_quad();
 
         context.bind_FrameBuffer(FB_Bloom_Blur);
         context.bind_Texture(textures.Effects_Bloom, 0u);
-        context.use_Shader_Frag(FS_Bloom_BlurH);
+        context.bind_Program(PROG_Bloom_BlurH);
         sq::draw_screen_quad();
 
         context.bind_FrameBuffer(FB_Bloom_Main);
         context.bind_Texture(TEX_Bloom_Blur, 0u);
-        context.use_Shader_Frag(FS_Bloom_BlurV);
+        context.bind_Program(PROG_Bloom_BlurV);
         sq::draw_screen_quad();
 
         context.bind_FrameBuffer(FB_Bloom_Blur);
         context.bind_Texture(textures.Effects_Bloom, 0u);
-        context.use_Shader_Frag(FS_Bloom_BlurH);
+        context.bind_Program(PROG_Bloom_BlurH);
         sq::draw_screen_quad();
 
         context.bind_FrameBuffer(FB_Bloom_Main);
         context.bind_Texture(TEX_Bloom_Blur, 0u);
-        context.use_Shader_Frag(FS_Bloom_BlurV);
+        context.bind_Program(PROG_Bloom_BlurV);
         sq::draw_screen_quad();
     }
+
+    context.bind_Program_default();
 }
 
 //============================================================================//
@@ -148,29 +180,30 @@ void EffectsPasses::render_effect_Shafts()
     if (options.Shafts_Quality != 0u)
     {
         context.set_ViewPort(options.Window_Size / 2u);
-        context.use_Shader_Vert(shaders.VS_FullScreen);
         context.bind_Texture(textures.Depth_HalfSize, 1u);
 
         context.bind_FrameBuffer(FB_Shafts_Blur);
         context.bind_Texture(textures.Volumetric_Shafts, 0u);
-        context.use_Shader_Frag(FS_Shafts_BlurH);
+        context.bind_Program(PROG_Shafts_BlurH);
         sq::draw_screen_quad();
 
         context.bind_FrameBuffer(FB_Shafts_Main);
         context.bind_Texture(TEX_Shafts_Blur, 0u);
-        context.use_Shader_Frag(FS_Shafts_BlurV);
+        context.bind_Program(PROG_Shafts_BlurV);
         sq::draw_screen_quad();
 
         context.bind_FrameBuffer(FB_Shafts_Blur);
         context.bind_Texture(textures.Volumetric_Shafts, 0u);
-        context.use_Shader_Frag(FS_Shafts_BlurH);
+        context.bind_Program(PROG_Shafts_BlurH);
         sq::draw_screen_quad();
 
         context.bind_FrameBuffer(FB_Shafts_Main);
         context.bind_Texture(TEX_Shafts_Blur, 0u);
-        context.use_Shader_Frag(FS_Shafts_BlurV);
+        context.bind_Program(PROG_Shafts_BlurV);
         sq::draw_screen_quad();
     }
+
+    context.bind_Program_default();
 }
 
 //============================================================================//
@@ -187,9 +220,11 @@ void EffectsPasses::render_effect_Overlay()
     // apply vignette effect if enabled
     if (options.Vignette_Enable == true)
     {
-        context.use_Shader_Frag(FS_Overlay);
+        context.bind_Program(PROG_Overlay);
         sq::draw_screen_quad();
     }
+
+    context.bind_Program_default();
 }
 
 //============================================================================//

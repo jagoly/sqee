@@ -7,75 +7,14 @@ namespace sq {
 
 //============================================================================//
 
-template <int H, int W, class T, if_float<T>...> struct Matrix {};
+template <int H, int W, class T> struct Matrix
+{
+    static_assert(std::is_floating_point_v<T>);
+};
 
-template <class T> using Matrix22 = Matrix<2, 2, T>;
-template <class T> using Matrix23 = Matrix<2, 3, T>;
 template <class T> using Matrix33 = Matrix<3, 3, T>;
 template <class T> using Matrix34 = Matrix<3, 4, T>;
 template <class T> using Matrix44 = Matrix<4, 4, T>;
-
-//============================================================================//
-
-template <class T> struct Matrix<2, 2, T>
-{
-    // Column and Row Types
-    using ColT = Vector<2, T>;
-    using RowT = Vector<2, T>;
-
-    // Default and Copy Constructors
-    constexpr Matrix() : mCols { {1,0}, {0,1} } {}
-    constexpr Matrix(const Matrix& m) : mCols { m[0], m[1] } {}
-
-    // Scalar and Vector Constructors
-    constexpr explicit Matrix(T s) : mCols { {s,0}, {0,s} } {}
-    constexpr explicit Matrix(ColT a, ColT b) : mCols { a, b } {}
-
-    // Matrix Resize Constructors
-    constexpr explicit Matrix(Matrix23<T> m) : mCols { ColT(m[0]), ColT(m[1]) } {}
-    constexpr explicit Matrix(Matrix33<T> m) : mCols { ColT(m[0]), ColT(m[1]) } {}
-
-    // Array Access Operators
-    constexpr ColT& operator[](int index) { return mCols[index]; }
-    constexpr const ColT& operator[](int index) const { return mCols[index]; }
-
-    constexpr Matrix& operator*=(Matrix m) { return *this = (*this * m); }
-
-    const T* data() const { return reinterpret_cast<const T*>(mCols); }
-
-    private: Vector<2, T> mCols[2];
-};
-
-//============================================================================//
-
-template <class T> struct Matrix<2, 3, T>
-{
-    // Column and Row Types
-    using ColT = Vector<3, T>;
-    using RowT = Vector<2, T>;
-
-    // Default and Copy Constructors
-    constexpr Matrix() : mCols { {1,0,0}, {0,1,0} } {}
-    constexpr Matrix(const Matrix& m) : mCols { m[0], m[1] } {}
-
-    // Scalar and Vector Constructors
-    constexpr explicit Matrix(T s) : mCols { {s,0,0}, {0,s,0} } {}
-    constexpr explicit Matrix(ColT a, ColT b) : mCols { a, b } {}
-
-    // Matrix Resize Constructors
-    constexpr explicit Matrix(Matrix22<T> m) : mCols { ColT(m[0], 0), ColT(m[1], 0) } {}
-    constexpr explicit Matrix(Matrix33<T> m) : mCols { ColT(m[0]), ColT(m[1]) } {}
-
-    // Array Access Operators
-    constexpr ColT& operator[](int index) { return mCols[index]; }
-    constexpr const ColT& operator[](int index) const { return mCols[index]; }
-
-    //constexpr Matrix& operator*=(Matrix m) { return *this = (*this * m); }
-
-    const T* data() const { return reinterpret_cast<const T*>(mCols); }
-
-    private: Vector<3, T> mCols[2];
-};
 
 //============================================================================//
 
@@ -94,8 +33,6 @@ template <class T> struct Matrix<3, 3, T>
     constexpr explicit Matrix(ColT a, ColT b, ColT c) : mCols { a, b, c } {}
 
     // Matrix Resize Constructors
-    constexpr explicit Matrix(Matrix22<T> m) : mCols { ColT(m[0], 0), ColT(m[1], 0), ColT(0, 0, 1) } {}
-    constexpr explicit Matrix(Matrix23<T> m) : mCols { ColT(m[0]), ColT(m[1]), ColT(0, 0, 1) } {}
     constexpr explicit Matrix(Matrix34<T> m) : mCols { ColT(m[0]), ColT(m[1]), ColT(m[2]) } {}
     constexpr explicit Matrix(Matrix44<T> m) : mCols { ColT(m[0]), ColT(m[1]), ColT(m[2]) } {}
 
@@ -175,14 +112,6 @@ template <class T> struct Matrix<4, 4, T>
 // Multiplication (Matrix, Matrix) /////
 
 template <class T> constexpr
-Matrix22<T> operator*(Matrix22<T> a, Matrix22<T> b)
-{
-    Vector2<T> colA = a[0]*b[0][0] + a[1]*b[0][1];
-    Vector2<T> colB = a[0]*b[1][0] + a[1]*b[1][1];
-    return Matrix22<T> ( colA, colB );
-}
-
-template <class T> constexpr
 Matrix33<T> operator*(Matrix33<T> a, Matrix33<T> b)
 {
     Vector3<T> colA = a[0]*b[0][0] + a[1]*b[0][1] + a[2]*b[0][2];
@@ -204,14 +133,6 @@ Matrix44<T> operator*(Matrix44<T> a, Matrix44<T> b)
 //============================================================================//
 
 // Multiplication (Matrix, Vector) /////
-
-template <class T> constexpr
-Vector2<T> operator*(Matrix22<T> m, Vector2<T> v)
-{
-    T x = m[0][0]*v[0] + m[1][0]*v[1];
-    T y = m[0][1]*v[0] + m[1][1]*v[1];
-    return Vector2<T> { x, y };
-}
 
 template <class T> constexpr
 Vector3<T> operator*(Matrix33<T> m, Vector3<T> v)
@@ -238,16 +159,7 @@ namespace maths {
 
 //============================================================================//
 
-// Transpose (Matrix) /////
-
-template <class T> constexpr
-Matrix22<T> transpose(Matrix22<T> m)
-{
-    Vector2<T> colA { m[0][0], m[1][0] };
-    Vector2<T> colB { m[0][1], m[1][1] };
-    return Matrix22<T> ( colA, colB );
-}
-
+/// Compute the transpose of a Matrix33.
 template <class T> constexpr
 Matrix33<T> transpose(Matrix33<T> m)
 {
@@ -257,6 +169,7 @@ Matrix33<T> transpose(Matrix33<T> m)
     return Matrix33<T> ( colA, colB, colC );
 }
 
+/// Compute the transpose of a Matrix44.
 template <class T> constexpr
 Matrix44<T> transpose(Matrix44<T> m)
 {
@@ -269,14 +182,7 @@ Matrix44<T> transpose(Matrix44<T> m)
 
 //============================================================================//
 
-// Determinant (Matrix) /////
-
-template <class T> inline
-T determinant(Matrix22<T> m)
-{
-    return m[0][0]*m[1][1] - m[1][0]*m[0][1];
-}
-
+/// Compute the determinant of a Matrix33.
 template <class T> inline
 T determinant(Matrix33<T> m)
 {
@@ -286,6 +192,7 @@ T determinant(Matrix33<T> m)
     return valueA - valueB + valueC;
 }
 
+/// Compute the determinant of a Matrix44.
 template <class T> inline
 T determinant(Matrix44<T> m)
 {
@@ -306,17 +213,7 @@ T determinant(Matrix44<T> m)
 
 //============================================================================//
 
-// Inverse (Matrix) /////
-
-template <class T> inline
-Matrix22<T> inverse(Matrix22<T> m)
-{
-    T invDet = T(1.0) / maths::determinant(m);
-    T ax = m[1][1] * invDet; T ay = m[0][1] * invDet;
-    T bx = m[1][1] * invDet; T by = m[0][1] * invDet;
-    return Matrix22<T> ( {+ax, -ay}, {+bx, -by} );
-}
-
+/// Compute the inverse of a Matrix33.
 template <class T> inline
 Matrix33<T> inverse(Matrix33<T> m)
 {
@@ -337,6 +234,7 @@ Matrix33<T> inverse(Matrix33<T> m)
     return Matrix33<T> ( colA, colB, colC );
 }
 
+/// Compute the inverse of a Matrix44.
 template <class T> inline
 Matrix44<T> inverse(Matrix44<T> m)
 {
@@ -393,21 +291,7 @@ Matrix44<T> inverse(Matrix44<T> m)
 
 //============================================================================//
 
-// Affine Inverse (Matrix) /////
-
-template <class T> inline
-Matrix22<T> affine_inverse(Matrix33<T> m)
-{
-    Matrix22<T> inv22 = maths::inverse(Matrix22<T>(m));
-
-    Vector3<T> colA { inv22[0], T(0.0) };
-    Vector3<T> colB { inv22[1], T(0.0) };
-
-    Vector3<T> colC { -(inv22 * Vector2<T>(m[2])), T(1.0) };
-
-    return Matrix33<T> ( colA, colB, colC );
-}
-
+/// Compute the affine inverse of a Matrix44.
 template <class T> inline
 Matrix44<T> affine_inverse(Matrix44<T> m)
 {
@@ -424,8 +308,7 @@ Matrix44<T> affine_inverse(Matrix44<T> m)
 
 //============================================================================//
 
-// Convert To Normal Matrix /////
-
+/// Compute the normal matrix of a model view matrix.
 template <class T> inline
 Matrix33<T> normal_matrix(Matrix44<T> modelView)
 {
@@ -436,8 +319,6 @@ Matrix33<T> normal_matrix(Matrix44<T> modelView)
 
 }} // namespace sq::maths
 
-using Mat2F  = sq::Matrix<2, 2, float>;
-using Mat23F = sq::Matrix<2, 3, float>;
 using Mat3F  = sq::Matrix<3, 3, float>;
 using Mat34F = sq::Matrix<3, 4, float>;
 using Mat4F  = sq::Matrix<4, 4, float>;

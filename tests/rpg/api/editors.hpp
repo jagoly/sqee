@@ -4,18 +4,22 @@
 
 //============================================================================//
 
-namespace sqt { namespace api {
+namespace sqt { class ScriptAPI; } // Forward Declaration
+
+//============================================================================//
+
+namespace sqt::api {
 
 //============================================================================//
 
 struct EntityEdit
 {
-    EntityEdit(sys::WorldStuff& stuff, int32_t id);
+    EntityEdit(ScriptAPI& api, int32_t id);
 
     sq::dop::Entry<sys::EntityData> entry;
-    sys::WorldStuff& stuff;
+    ScriptAPI& api;
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     void set_unique_name(const string& name);
     void adopt_child(int32_t child);
@@ -25,12 +29,12 @@ struct EntityEdit
 
 struct AnimationEdit
 {
-    AnimationEdit(sys::WorldStuff& stuff, int32_t id);
+    AnimationEdit(ScriptAPI& api, int32_t id);
 
     sq::dop::Entry<sys::AnimationData> entry;
-    sys::WorldStuff& stuff;
+    ScriptAPI& api;
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     void set_callback_on_end(std::function<void(int32_t id)> func);
 };
@@ -39,12 +43,12 @@ struct AnimationEdit
 
 struct TransformEdit
 {
-    TransformEdit(sys::WorldStuff& stuff, int32_t id);
+    TransformEdit(ScriptAPI& api, int32_t id);
 
     sq::dop::Entry<sys::TransformData> entry;
-    sys::WorldStuff& stuff;
+    ScriptAPI& api;
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     void set_position(Vec3F position);
     void set_rotation(QuatF rotation);
@@ -55,12 +59,12 @@ struct TransformEdit
 
 struct ModelEdit
 {
-    ModelEdit(sys::WorldStuff& stuff, int32_t id);
+    ModelEdit(ScriptAPI& api, int32_t id);
 
     sq::dop::Entry<sys::ModelData> entry;
-    sys::WorldStuff& stuff;
+    ScriptAPI& api;
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     void set_stretch(Vec3F stretch);
 
@@ -76,29 +80,79 @@ struct ModelEdit
 
 struct SkeletonEdit
 {
-    SkeletonEdit(sys::WorldStuff& stuff, int32_t id);
+    SkeletonEdit(ScriptAPI& api, int32_t id);
 
     sq::dop::Entry<sys::SkeletonData> entry;
-    sys::WorldStuff& stuff;
+    ScriptAPI& api;
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     void set_armature(const string& path);
 };
 
 //============================================================================//
 
+struct OrthoLightEdit
+{
+    OrthoLightEdit(ScriptAPI& api, int32_t id);
+
+    sq::dop::Entry<sys::OrthoLightData> entry;
+    ScriptAPI& api;
+
+    //--------------------------------------------------------//
+
+    void set_colour(Vec3F colour);
+    void set_minimum(Vec3F minimum);
+    void set_maximum(Vec3F maximum);
+    void set_density(float density);
+    void set_resolution(uint resolution);
+};
+
+//============================================================================//
+
+struct PointLightEdit
+{
+    PointLightEdit(ScriptAPI& api, int32_t id);
+
+    sq::dop::Entry<sys::PointLightData> entry;
+    ScriptAPI& api;
+
+    //--------------------------------------------------------//
+
+    void set_colour(Vec3F colour);
+    void set_resolution(uint resolution);
+};
+
+//============================================================================//
+
+struct SpotLightEdit
+{
+    SpotLightEdit(ScriptAPI& api, int32_t id);
+
+    sq::dop::Entry<sys::SpotLightData> entry;
+    ScriptAPI& api;
+
+    //--------------------------------------------------------//
+
+    void set_colour(Vec3F colour);
+    void set_softness(float softness);
+    void set_angle(float angle);
+    void set_resolution(uint resolution);
+};
+
+//============================================================================//
+
 struct SoundEdit
 {
-    SoundEdit(sys::WorldStuff& stuff, int32_t id);
+    SoundEdit(ScriptAPI& api, int32_t id);
 
     sq::dop::Entry<sys::SoundData> entry;
-    sys::WorldStuff& stuff;
+    ScriptAPI& api;
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     void set_volume(float volume);
     void enable_looping(bool enable);
 };
 
-}} // namespace sqt::api
+} // namespace sqt::api

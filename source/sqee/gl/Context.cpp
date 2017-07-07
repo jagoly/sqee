@@ -7,13 +7,11 @@ using namespace sq;
 Context::Context()
 {
     gl::CreateVertexArrays(1, &mDummyVAO);
-    gl::CreateProgramPipelines(1, &mPipeline);
 }
 
 Context::~Context()
 {
     gl::DeleteVertexArrays(1, &mDummyVAO);
-    gl::DeleteProgramPipelines(1, &mPipeline);
 }
 
 //============================================================================//
@@ -54,6 +52,36 @@ void Context::clear_Depth_Stencil()
 
     if (crnt_Depth_Test == Depth_Test::Keep) gl::DepthMask(false);
     if (crnt_Stencil_Params.w != 255u) gl::StencilMask(crnt_Stencil_Params.w);
+}
+
+//============================================================================//
+
+void Context::impl_reset_FrameBuffer(const FrameBuffer* old, const FrameBuffer* fresh)
+{
+    if (mFrameBufferBindingRead == old) mFrameBufferBindingRead = fresh;
+    if (mFrameBufferBindingDraw == old) mFrameBufferBindingDraw = fresh;
+}
+
+void Context::impl_reset_Program(const Program* old, const Program* fresh)
+{
+    if (mProgramBinding == old) mProgramBinding = fresh;
+}
+
+void Context::impl_reset_Texture(const Texture* old, const Texture* fresh)
+{
+    for (auto& reference : mTextureBindings)
+        if (reference == old) reference = fresh;
+}
+
+void Context::impl_reset_UniformBuffer(const UniformBuffer* old, const UniformBuffer* fresh)
+{
+    for (auto& binding : mUniformBufferBindings)
+        if (binding.ptr == old) binding.ptr = fresh;
+}
+
+void Context::impl_reset_VertexArray(const VertexArray* old, const VertexArray* fresh)
+{
+    if (mVertexArrayBinding == old) mVertexArrayBinding = fresh;
 }
 
 //============================================================================//

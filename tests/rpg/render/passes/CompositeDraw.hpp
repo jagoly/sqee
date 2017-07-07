@@ -1,18 +1,14 @@
 #pragma once
 
-#include <sqee/gl/FrameBuffer.hpp>
-
 #include "../SharedStuff.hpp"
 
-namespace sqt { namespace render {
+namespace sqt::render {
 
 //============================================================================//
 
 class CompositePasses : public SharedStuff
 {
-public:
-
-    //========================================================//
+public: //====================================================//
 
     CompositePasses(const SharedStuff& stuff);
 
@@ -20,16 +16,14 @@ public:
 
     void render_to_screen();
 
-private:
-
-    //========================================================//
+private: //===================================================//
 
     sq::FrameBuffer FB_Composite;
 
-    sq::Shader FS_Composite {sq::Shader::Stage::Fragment};
-    sq::Shader FS_FSAA_Screen {sq::Shader::Stage::Fragment};
+    sq::Program PROG_Composite;
+    sq::Program PROG_FSAA_Screen;
 };
 
 //============================================================================//
 
-}} // namespace sqt::render
+} // namespace sqt::render

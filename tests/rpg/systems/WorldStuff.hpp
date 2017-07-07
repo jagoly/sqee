@@ -1,6 +1,7 @@
 #pragma once
 
 #include <unordered_map>
+#include <functional>
 
 #include <sqee/dop/Classes.hpp>
 
@@ -9,21 +10,22 @@
 #include <sqee/maths/Matrices.hpp>
 #include <sqee/maths/Volumes.hpp>
 
+#include <sqee/gl/Textures.hpp>
+#include <sqee/render/Material.hpp>
+#include <sqee/render/Mesh.hpp>
+#include <sqee/render/Armature.hpp>
 #include <sqee/sound/Sound.hpp>
 
-#include "../resources/Manager.hpp"
-#include "../helpers.hpp"
+#include "../main/ResourceCaches.hpp"
+
+#include "../world/Camera.hpp"
+#include "../world/Skybox.hpp"
+#include "../world/Ambient.hpp"
+#include "../world/Skylight.hpp"
 
 //============================================================================//
 
-namespace sqt { namespace sys {
-
-//============================================================================//
-
-//struct CullSphere { Vec3F origin; float radius; };
-//struct CullBox { Vec3F origin; float radius; Vec3F extents; QuatF basis; };
-//struct CullPlane { Vec3F normal; float offset; };
-//using CullFrustum = std::array<CullPlane, 4>;
+namespace sqt::sys {
 
 //============================================================================//
 
@@ -31,7 +33,6 @@ struct EntityData
 {
     string uniqueName = "";
     int32_t parent = -1;
-    uint8_t nesting = 0u;
 
     sq::dop::Group children;
 };
@@ -65,10 +66,10 @@ struct TransformData
 
 struct ModelData
 {
-    Vec3F stretch = {1.f, 1.f, 1.f};
+    Vec3F stretch = { 1.f, 1.f, 1.f };
 
-    vector<HandleMaterial> materials;
-    HandleMesh mesh;
+    std::vector<Handle<sq::Material>> materials;
+    Handle<sq::Mesh> mesh;
 
     bool enableRender = true;
     bool enableShadow = true;
@@ -81,22 +82,29 @@ struct ModelData
 
 struct SkeletonData
 {
-    HandleArmature armature;
+    Handle<sq::Armature> armature;
 };
 
 //========================================================//
 
-struct PointLightData
+struct OrthoLightData
 {
-    Vec3F colour = {1.f, 1.f, 1.f};
+    Vec3F colour = { 1.f, 1.f, 1.f };
+    Vec3F minimum = { -1.f, -1.f, -1.f };
+    Vec3F maximum = { +1.f, +1.f, +1.f };
+    float density = 0.f;
     uint resolution = 0u;
 };
 
-//========================================================//
+struct PointLightData
+{
+    Vec3F colour = { 1.f, 1.f, 1.f };
+    uint resolution = 0u;
+};
 
 struct SpotLightData
 {
-    Vec3F colour = {1.f, 1.f, 1.f};
+    Vec3F colour = { 1.f, 1.f, 1.f };
     float softness = 0.f;
     float angle = 0.125f;
     uint resolution = 0u;
@@ -130,84 +138,91 @@ struct CullSpotLightData { sq::maths::Frustum frustum; };
 
 //============================================================================//
 
-struct WorldStuff : sq::NonCopyable
+} // namespace sqt::sys
+
+namespace sqt {
+
+class WorldStuff final : sq::NonCopyable
 {
+public: //====================================================//
+
+    WorldStuff();
+
+    ~WorldStuff();
+
+    //--------------------------------------------------------//
+
     int32_t entityCounter = -1;
     int32_t soundCounter = -1;
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     struct {
-        sq::dop::Table<EntityData>     entity;
-        sq::dop::Table<AnimationData>  animation;
-        sq::dop::Table<TransformData>  transform;
-        sq::dop::Table<ModelData>      model;
-        sq::dop::Table<SkeletonData>   skeleton;
-        sq::dop::Table<PointLightData> pointLight;
-        sq::dop::Table<SpotLightData>  spotLight;
+        sq::dop::Table<sys::EntityData>     entity;
+        sq::dop::Table<sys::AnimationData>  animation;
+        sq::dop::Table<sys::TransformData>  transform;
+        sq::dop::Table<sys::ModelData>      model;
+        sq::dop::Table<sys::SkeletonData>   skeleton;
+        sq::dop::Table<sys::OrthoLightData> ortholight;
+        sq::dop::Table<sys::PointLightData> pointlight;
+        sq::dop::Table<sys::SpotLightData>  spotlight;
     } tables;
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     struct {
         sq::dop::Group modelSimple;
         sq::dop::Group modelSkelly;
         sq::dop::Group decalBasic;
-
         sq::dop::Group lightOrtho;
         sq::dop::Group lightPoint;
         sq::dop::Group lightSpot;
     } groups;
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     std::unordered_map<string, int32_t> uniqueNames;
 
-    //========================================================//
+    sq::dop::Group deletedEntities;
 
-    struct {
-        sq::dop::Table<std::vector<AnimTransformData>> transform;
-        //dop::DataTable<std::vector<AnimPointLightData>> pointLight;
-        //dop::DataTable<std::vector<AnimSpotLightData>> spotLight;
-    } animation;
-
-    //========================================================//
+    //--------------------------------------------------------//
 
     struct {
         sq::dop::Table<sq::maths::Box>    mainBoxes;
         sq::dop::Table<sq::maths::Sphere> mainSpheres;
 
-//        dop::DataTable<CullBox>    modelBoxes;
-//        dop::DataTable<CullSphere> modelSpheres;
-
-//        dop::DataTable<CullBox>    lightBoxes;
-//        dop::DataTable<CullSphere> lightSpheres;
-
-        sq::dop::Table<CullPointLightData> pointLights;
-        sq::dop::Table<CullSpotLightData>  spotLights;
+        sq::dop::Table<sys::CullPointLightData> pointLights;
+        sq::dop::Table<sys::CullSpotLightData>  spotLights;
     } culling;
 
-    //========================================================//
+    //--------------------------------------------------------//
 
     struct {
-        sq::dop::Table<SoundData> table;
+        sq::dop::Table<std::vector<sys::AnimTransformData>> transform;
+        //dop::DataTable<std::vector<AnimOrthoLightData>> orthoLight;
+        //dop::DataTable<std::vector<AnimPointLightData>> pointLight;
+        //dop::DataTable<std::vector<AnimSpotLightData>> spotLight;
+    } animation;
 
-        // 0: EFFECTS | 1: SPEECH | 2: MUSIC /////
-        array<float, 3> groupVolumes {{1.f, 1.f, 1.f}};
-    } sound;
+    //--------------------------------------------------------//
 
-    //========================================================//
+    sq::dop::Table<sys::SoundData> soundTable;
+    std::array<float, 3> soundGroupVolumes {{1.f, 1.f, 1.f}};
 
-private:
+    //--------------------------------------------------------//
 
-    WorldStuff(); ~WorldStuff();
-    friend WorldStuff& static_WorldStuff();
+    sq::dop::Group nestingRootGroup;
+    std::array<sq::dop::Table<int32_t>, 8> nestingTables;
+
+    //--------------------------------------------------------//
+
+    world::Camera camera;
+
+    unique_ptr<world::Skybox> skybox;
+    unique_ptr<world::Ambient> ambient;
+    unique_ptr<world::Skylight> skylight;
 };
 
 //============================================================================//
 
-WorldStuff& static_WorldStuff();
-
-//============================================================================//
-
-}} // namespace sqt::sys
+} // namespace sqt

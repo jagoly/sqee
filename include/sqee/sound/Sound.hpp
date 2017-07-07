@@ -4,9 +4,11 @@
 #include <SFML/Audio/SoundBuffer.hpp>
 
 #include <sqee/builtins.hpp>
+
 #include <sqee/maths/Vectors.hpp>
 #include <sqee/maths/Quaternion.hpp>
-#include <sqee/misc/Resource.hpp>
+
+#include <sqee/misc/ResourceHandle.hpp>
 
 namespace sq {
 
@@ -20,13 +22,14 @@ struct Listener
 
 //============================================================================//
 
-class SoundWave : NonCopyable
+/// Wrapper for sf::SoundBuffer.
+class SoundWave final : NonCopyable
 {
-public:
+public: //====================================================//
 
     SoundWave(const string& path);
 
-private:
+private: //===================================================//
 
     sf::SoundBuffer mBuffer;
     friend class Sound;
@@ -34,64 +37,61 @@ private:
 
 //============================================================================//
 
-class Sound : public MoveOnly
+/// Wrapper for sf::Sound.
+class Sound final : public MoveOnly
 {
-public:
+public: //====================================================//
 
-    //========================================================//
-
-    /// constructor
+    /// Constructor.
     Sound();
 
-    //========================================================//
+    //--------------------------------------------------------//
 
-    /// set the source sound wave object
+    /// Set the source SoundWave object.
     void set_wave(Handle<SoundWave> handle);
 
-    //========================================================//
+    //--------------------------------------------------------//
 
-    /// play the sound
+    /// Play the sound.
     void play() { mSound->play(); }
 
-    /// pause the sound
+    /// Pause the sound.
     void pause() { mSound->pause(); }
 
-    /// stop the sound
+    /// Stop the sound.
     void stop() { mSound->stop(); }
 
-    //========================================================//
+    //--------------------------------------------------------//
 
-    /// check if the sound is playing
+    /// Check if the sound is playing.
     bool check_playing() const { return mSound->getStatus() == sf::Sound::Playing; }
 
-    /// check if the sound is paused
+    /// Check if the sound is paused.
     bool check_paused() const { return mSound->getStatus() == sf::Sound::Paused; }
 
-    /// check if the sound is stopped
+    /// Check if the sound is stopped.
     bool check_stopped() const { return mSound->getStatus() == sf::Sound::Stopped; }
 
-    //========================================================//
+    //--------------------------------------------------------//
 
-    /// set the volume of the sound
+    /// Set the volume of the sound.
     void set_volume(float volume) { mSound->setVolume(volume); }
 
-    /// set cooridante space of the sound
+    /// Set whether the sound's origin is relative to the listener.
     void set_relative(bool relative) { mSound->setRelativeToListener(relative); }
 
-    /// set looping option of the sound
+    /// Set whether the sound should loop.
     void set_loop(bool loop) { mSound->setLoop(loop); }
 
-    //========================================================//
+    //--------------------------------------------------------//
 
-    /// set position of the sound
+    /// Set the origin of the sound.
     void set_position(Vec3F position);
 
-    /// set fade start and attenuation
+    /// Set fading start and attenuation.
     void set_attenuation(float start, float factor);
 
-private:
-
-    //========================================================//
+private: //===================================================//
 
     Handle<SoundWave> mWaveHandle;
     unique_ptr<sf::Sound> mSound;

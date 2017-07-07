@@ -1,6 +1,5 @@
 #pragma once
 
-#include <sqee/setup.hpp>
 #include <sqee/builtins.hpp>
 #include <sqee/maths/Vectors.hpp>
 
@@ -8,55 +7,50 @@ namespace sqt {
 
 //============================================================================//
 
-/// SQEE RPG Global Options
-class Options : sq::NonCopyable
+/// SQEE RPG Global Options.
+class Options final : sq::NonCopyable
 {
-public:
+public: //====================================================//
 
-    //========================================================//
+    /// Constructor.
+    Options() = default;
 
-    /// The Size of the Viewport
+    //--------------------------------------------------------//
+
+    /// The Size of the Viewport.
     Vec2U Window_Size = {800u, 600u};
 
-    /// The Maximum Visible Distance
+    /// The Maximum Visible Distance.
     float View_Distance = 50.f;
 
-    /// Use High Quality Shadow Filtering
+    /// Use High Quality Shadow Filtering.
     bool Shadows_Filter = true;
 
-    /// Use High Resolution Shadow Textures
+    /// Use High Resolution Shadow Textures.
     bool Shadows_Large = true;
 
-    /// Enable Simple Vignette Effect
+    /// Enable Simple Vignette Effect.
     bool Vignette_Enable = true;
 
-    /// Enable HDR Bloom Effect
+    /// Enable HDR Bloom Effect.
     bool Bloom_Enable = true;
 
-    /// Light Shafts Effect Quality
+    /// Light Shafts Effect Quality.
     uchar Shafts_Quality = 2u;
 
-    /// Screen Space Ambient Occlusion Quality
+    /// Screen Space Ambient Occlusion Quality.
     uchar SSAO_Quality = 2u;
 
-    /// Full Screen Anti-Aliasing Quality
+    /// Full Screen Anti-Aliasing Quality.
     uchar FSAA_Quality = 2u;
 
-    /// Debug Texture to Draw to Screen
+    /// Debug Texture to Draw to Screen.
     string Debug_Texture = "";
 
-    //========================================================//
+    //--------------------------------------------------------//
 
-    /// Assert that options are valid
+    /// Assert that options are valid.
     void validate() const;
-
-    /// Get the Static Instance
-    static Options& get();
-
-    //========================================================//
-
-    /// Private Constructor
-    private: Options() = default;
 };
 
 //============================================================================//

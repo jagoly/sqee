@@ -1,5 +1,5 @@
+cmake_minimum_required(VERSION 3.2)
 project(SQEE)
-cmake_minimum_required(VERSION 3.0)
 
 ################################################################################
 
@@ -14,7 +14,6 @@ endif ()
 
 ################################################################################
 
-option(SQEE_BUNDLED_LIBS "Use libs and headers from extlibs directory" FALSE)
 option(SQEE_STATIC_LINK "Link dependencies to SQEE statically" FALSE)
 option(SQEE_STATIC_LIB "Build SQEE as a static library" FALSE)
 
@@ -27,6 +26,8 @@ endif ()
 if (CMAKE_BUILD_TYPE MATCHES "Debug")
     add_definitions(-DSQEE_DEBUG)
 endif ()
+
+################################################################################
 
 if (SQEE_LINUX)
     add_definitions(-DSQEE_LINUX)
@@ -42,113 +43,141 @@ add_definitions(-DRP3D_ENABLE_SWITCH_YZ)
 
 ################################################################################
 
-if (CMAKE_COMPILER_IS_GNUCC)
+string(APPEND CMAKE_CXX_FLAGS " -std=c++17")
 
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -Wextra -Wno-comment ")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-parameter -Wno-strict-aliasing ")
+################################################################################
 
-    if (SQEE_LINUX)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-    elseif (SQEE_WINDOWS)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mwindows -Wa,-mbig-obj")
-    elseif (SQEE_ANDROID)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-    elseif (SQEE_MACOSX)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-    endif ()
+string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra")
+string(APPEND CMAKE_CXX_FLAGS " -Wno-unused-parameter -Wno-strict-aliasing")
+string(APPEND CMAKE_CXX_FLAGS " -Wno-comment -Wno-misleading-indentation")
 
-else ()
-
-    message(FATAL_ERROR "Non-GNU compilers are not yet supported, please help fix this :)")
-
+if (SQEE_LINUX)
+    string(APPEND CMAKE_CXX_FLAGS "")
+elseif (SQEE_WINDOWS)
+    string(APPEND CMAKE_CXX_FLAGS " -mwindows -Wa,-mbig-obj")
+elseif (SQEE_ANDROID)
+    string(APPEND CMAKE_CXX_FLAGS "")
+elseif (SQEE_MACOSX)
+    string(APPEND CMAKE_CXX_FLAGS "")
 endif ()
 
 ################################################################################
 
-set(SRCDIR "${PROJECT_SOURCE_DIR}/source/sqee")
-set(INCDIR "${PROJECT_SOURCE_DIR}/include/sqee")
-
 set(SOURCES
 
-  # 3rd Party Source
+  #==========================================================#
+  # 3rd Party Source                                         #
+  #==========================================================#
 
-  "${INCDIR}/redist/lmccop.hpp"
-  "${INCDIR}/redist/tinyformat.hpp"
-  "${INCDIR}/redist/json.hpp"
+  "include/sqee/redist/gl_loader.hpp"
+  "source/sqee/redist/gl_loader.cpp"
 
-  "${INCDIR}/redist/gl_ext_4_2.hpp"
-  "${SRCDIR}/redist/gl_ext_4_2.cpp"
+  "include/sqee/redist/stb_image.hpp"
+  "source/sqee/redist/stb_image.cpp"
 
-  "${INCDIR}/redist/stb_image.hpp"
-  "${SRCDIR}/redist/stb_image.cpp"
+  "include/sqee/redist/lmccop.hpp"
+  "include/sqee/redist/nl_json.hpp"
+  "include/sqee/redist/tinyformat.hpp"
 
-  # SQEE Source
 
-  "${INCDIR}/setup.hpp"
-  "${INCDIR}/builtins.hpp"
-  "${INCDIR}/messages.hpp"
-  "${INCDIR}/assert.hpp"
+  #==========================================================#
+  # SQEE Source                                              #
+  #==========================================================#
 
-  "${INCDIR}/debug/Logging.hpp"           "${SRCDIR}/debug/Logging.cpp"
-  "${INCDIR}/debug/Misc.hpp"              "${SRCDIR}/debug/Misc.cpp"
-  "${INCDIR}/debug/OpenGL.hpp"            "${SRCDIR}/debug/OpenGL.cpp"
-  "${INCDIR}/debug/Text.hpp"              "${SRCDIR}/debug/Text.cpp"
+  "include/sqee/assert.hpp"
+  "include/sqee/builtins.hpp"
+  "include/sqee/helpers.hpp"
+  "include/sqee/setup.hpp"
 
-  "${INCDIR}/gl/Context.hpp"              "${SRCDIR}/gl/Context.cpp"
-  "${INCDIR}/gl/Drawing.hpp"              "${SRCDIR}/gl/Drawing.cpp"
-  "${INCDIR}/gl/FixedBuffer.hpp"          "${SRCDIR}/gl/FixedBuffer.cpp"
-  "${INCDIR}/gl/FrameBuffer.hpp"          "${SRCDIR}/gl/FrameBuffer.cpp"
-  "${INCDIR}/gl/Shaders.hpp"              "${SRCDIR}/gl/Shaders.cpp"
-  "${INCDIR}/gl/TextureBase.hpp"          "${SRCDIR}/gl/TextureBase.cpp"
-  "${INCDIR}/gl/Textures.hpp"             "${SRCDIR}/gl/Textures.cpp"
-  "${INCDIR}/gl/UniformBuffer.hpp"        "${SRCDIR}/gl/UniformBuffer.cpp"
-  "${INCDIR}/gl/VertexArray.hpp"          "${SRCDIR}/gl/VertexArray.cpp"
+  #----------------------------------------------------------#
 
-  "${INCDIR}/scripts/ChaiEngine.hpp"      "${SRCDIR}/scripts/ChaiEngine.cpp"
-  "${INCDIR}/scripts/BasicSetup.hpp"      "${SRCDIR}/scripts/BasicSetup.cpp"
-  "${INCDIR}/scripts/Helpers.hpp"         "${SRCDIR}/scripts/Helpers.cpp"
+  "include/sqee/app/Application.hpp"   "source/sqee/app/Application.cpp"
+  "include/sqee/app/ChaiConsole.hpp"   "source/sqee/app/ChaiConsole.cpp"
+  "include/sqee/app/ChaiEngine.hpp"    "source/sqee/app/ChaiEngine.cpp"
+  "include/sqee/app/DebugOverlay.hpp"  "source/sqee/app/DebugOverlay.cpp"
+  "include/sqee/app/InputDevices.hpp"  "source/sqee/app/InputDevices.cpp"
+  "include/sqee/app/MessageBus.hpp"    "source/sqee/app/MessageBus.cpp"
+  "include/sqee/app/PreProcessor.hpp"  "source/sqee/app/PreProcessor.cpp"
+  "include/sqee/app/Scene.hpp"         "source/sqee/app/Scene.cpp"
+  "include/sqee/app/Window.hpp"        "source/sqee/app/Window.cpp"
 
-  "${INCDIR}/app/Application.hpp"         "${SRCDIR}/app/Application.cpp"
-  "${INCDIR}/app/ChaiConsole.hpp"         "${SRCDIR}/app/ChaiConsole.cpp"
-  "${INCDIR}/app/DebugOverlay.hpp"        "${SRCDIR}/app/DebugOverlay.cpp"
-  "${INCDIR}/app/MessageBus.hpp"          "${SRCDIR}/app/MessageBus.cpp"
-  "${INCDIR}/app/PreProcessor.hpp"        "${SRCDIR}/app/PreProcessor.cpp"
-  "${INCDIR}/app/Scene.hpp"               "${SRCDIR}/app/Scene.cpp"
+  "include/sqee/app/Event.hpp"
 
-  "${INCDIR}/maths/Scalar.hpp"
-  "${INCDIR}/maths/Vectors.hpp"
-  "${INCDIR}/maths/Matrices.hpp"
-  "${INCDIR}/maths/Quaternion.hpp"
-  "${INCDIR}/maths/Functions.hpp"
-  "${INCDIR}/maths/Volumes.hpp"
+  #----------------------------------------------------------#
 
-  "${INCDIR}/render/Armature.hpp"         "${SRCDIR}/render/Armature.cpp"
-  "${INCDIR}/render/Camera.hpp"           "${SRCDIR}/render/Camera.cpp"
-  "${INCDIR}/render/Mesh.hpp"             "${SRCDIR}/render/Mesh.cpp"
-  "${INCDIR}/render/Material.hpp"         "${SRCDIR}/render/Material.cpp"
-  "${INCDIR}/render/Volume.hpp"           "${SRCDIR}/render/Volume.cpp"
+  "include/sqee/debug/Logging.hpp"  "source/sqee/debug/Logging.cpp"
+  "include/sqee/debug/Misc.hpp"     "source/sqee/debug/Misc.cpp"
+  "include/sqee/debug/OpenGL.hpp"   "source/sqee/debug/OpenGL.cpp"
+  "include/sqee/debug/Text.hpp"     "source/sqee/debug/Text.cpp"
 
-  "${INCDIR}/physics/VecTypes.hpp"
-  "${INCDIR}/physics/Bodies.hpp"          "${SRCDIR}/physics/Bodies.cpp"
+  #----------------------------------------------------------#
 
-  "${INCDIR}/misc/Algorithms.hpp"
-  "${INCDIR}/misc/Resource.hpp"
-  "${INCDIR}/misc/StringCast.hpp"         "${SRCDIR}/misc/StringCast.cpp"
-  "${INCDIR}/misc/Files.hpp"              "${SRCDIR}/misc/Files.cpp"
-  "${INCDIR}/misc/Json.hpp"               "${SRCDIR}/misc/Json.cpp"
+  "include/sqee/dop/Classes.hpp"    "source/sqee/dop/Classes.cpp"
+  "include/sqee/dop/Functions.hpp"  "source/sqee/dop/Functions.cpp"
 
-  "${INCDIR}/sound/Sound.hpp"             "${SRCDIR}/sound/Sound.cpp"
+  #----------------------------------------------------------#
 
-  "${INCDIR}/dop/Classes.hpp"   "${SRCDIR}/dop/Classes.cpp"
-  "${INCDIR}/dop/Functions.hpp" "${SRCDIR}/dop/Functions.cpp"
+  "include/sqee/gl/Context.hpp"        "source/sqee/gl/Context.cpp"
+  "include/sqee/gl/Drawing.hpp"        "source/sqee/gl/Drawing.cpp"
+  "include/sqee/gl/FixedBuffer.hpp"    "source/sqee/gl/FixedBuffer.cpp"
+  "include/sqee/gl/FrameBuffer.hpp"    "source/sqee/gl/FrameBuffer.cpp"
+  "include/sqee/gl/Program.hpp"        "source/sqee/gl/Program.cpp"
+  "include/sqee/gl/TextureBase.hpp"    "source/sqee/gl/TextureBase.cpp"
+  "include/sqee/gl/Textures.hpp"       "source/sqee/gl/Textures.cpp"
+  "include/sqee/gl/UniformBuffer.hpp"  "source/sqee/gl/UniformBuffer.cpp"
+  "include/sqee/gl/VertexArray.hpp"    "source/sqee/gl/VertexArray.cpp"
 
-  # Compiled-In Data
+  #----------------------------------------------------------#
 
-  "${SRCDIR}/data/GLSLHeaders.cpp"
-  "${SRCDIR}/data/TextFont.c"
-  "${SRCDIR}/data/TextGlow.c"
-  "${SRCDIR}/data/Volumes.c"
+  "include/sqee/maths/Functions.hpp"
+  "include/sqee/maths/Matrices.hpp"
+  "include/sqee/maths/Quaternion.hpp"
+  "include/sqee/maths/Scalar.hpp"
+  "include/sqee/maths/Vectors.hpp"
+  "include/sqee/maths/Volumes.hpp"
 
+  #----------------------------------------------------------#
+
+  "include/sqee/misc/Files.hpp"       "source/sqee/misc/Files.cpp"
+  "include/sqee/misc/Json.hpp"        "source/sqee/misc/Json.cpp"
+  "include/sqee/misc/StringCast.hpp"  "source/sqee/misc/StringCast.cpp"
+
+  "include/sqee/misc/Algorithms.hpp"
+  "include/sqee/misc/ResourceCache.hpp"
+  "include/sqee/misc/ResourceHandle.hpp"
+
+  #----------------------------------------------------------#
+
+  "include/sqee/physics/Bodies.hpp"  "source/sqee/physics/Bodies.cpp"
+
+  #----------------------------------------------------------#
+
+  "include/sqee/render/Armature.hpp"  "source/sqee/render/Armature.cpp"
+  "include/sqee/render/Material.hpp"  "source/sqee/render/Material.cpp"
+  "include/sqee/render/Mesh.hpp"      "source/sqee/render/Mesh.cpp"
+  "include/sqee/render/Volume.hpp"    "source/sqee/render/Volume.cpp"
+
+  #----------------------------------------------------------#
+
+  "include/sqee/scripts/BasicSetup.hpp"  "source/sqee/scripts/BasicSetup.cpp"
+
+  "include/sqee/scripts/Helpers.hpp"
+
+  #----------------------------------------------------------#
+
+  "include/sqee/sound/Sound.hpp"  "source/sqee/sound/Sound.cpp"
+
+
+  #==========================================================#
+  # Compiled-In Data                                         #
+  #==========================================================#
+
+  "source/sqee/data/GLSLHeaders.cpp"
+
+  "source/sqee/data/TextFont.c"
+  "source/sqee/data/TextGlow.c"
+
+  "source/sqee/data/Volumes.c"
 )
 
 ################################################################################
@@ -158,11 +187,9 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build")
 
 ################################################################################
 
-include_directories("${PROJECT_SOURCE_DIR}/include")
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules/")
 
-if (SQEE_BUNDLED_LIBS)
-    include_directories("${PROJECT_SOURCE_DIR}/extlibs/include/")
-endif ()
+include_directories("${PROJECT_SOURCE_DIR}/include")
 
 ################################################################################
 
@@ -174,56 +201,24 @@ endif ()
 
 ################################################################################
 
-if (SQEE_BUNDLED_LIBS)
+find_package(SFML 2.4 COMPONENTS audio window system REQUIRED)
 
-    if (SQEE_ANDROID)
-        set(EXTLIBS "${CMAKE_SOURCE_DIR}/extlibs/libs/android/")
-    elseif (SQEE_MACOSX)
-        set(EXTLIBS "${CMAKE_SOURCE_DIR}/extlibs/libs/macosx/")
-    endif ()
-
-    if (SQEE_STATIC_LINK)
-        if (SQEE_LINUX)
-            set(EXTLIBS "${CMAKE_SOURCE_DIR}/extlibs/libs/linux/static/")
-        elseif (SQEE_WINDOWS)
-            set(EXTLIBS "${CMAKE_SOURCE_DIR}/extlibs/libs/windows/static/")
-        endif ()
-    else ()
-        if (SQEE_LINUX)
-            set(EXTLIBS "${CMAKE_SOURCE_DIR}/extlibs/libs/linux/dynamic/")
-        elseif (SQEE_WINDOWS)
-            set(EXTLIBS "${CMAKE_SOURCE_DIR}/extlibs/libs/windows/dynamic/")
-        endif ()
-    endif ()
-
-    list(APPEND CMAKE_FIND_ROOT_PATH "${EXTLIBS}" "${EXTLIBS}/..")
-
-endif()
+include_directories(${SFML_INCLUDE_DIR})
+target_link_libraries(sqee ${SFML_LIBRARIES})
 
 ################################################################################
 
-find_library(SFML_AUDIO_LIB sfml-audio /)
-find_library(SFML_WINDOW_LIB sfml-window /)
-find_library(SFML_SYSTEM_LIB sfml-system /)
+#find_package(ReactPhysics3D REQUIRED)
 
-#find_library(REACTPHYSICS3D_LIB reactphysics3d /)
+#include_directories(${RP3D_INCLUDE_DIR})
+#target_link_libraries(sqee ${RP3D_LIBRARY})
+
+################################################################################
 
 find_library(OPENGL_LIB NAMES GL opengl32 PATHS /)
 find_library(OPENAL_LIB NAMES openal openal32 PATHS /)
 
-################################################################################
-
-target_link_libraries(sqee
-    ${SFML_AUDIO_LIB} ${SFML_WINDOW_LIB} ${SFML_SYSTEM_LIB}
-    #${REACTPHYSICS3D_LIB}
-    ${OPENGL_LIB} ${OPENAL_LIB}
-)
-
-if (SQEE_LINUX)
-    target_link_libraries(sqee dl)
-elseif (SQEE_WINDOWS)
-    target_link_libraries(sqee)
-endif ()
+target_link_libraries(sqee ${OPENGL_LIB} ${OPENAL_LIB})
 
 ################################################################################
 
@@ -253,7 +248,5 @@ endif ()
 ################################################################################
 
 add_subdirectory("testing")
-
-add_subdirectory("tests/test")
 add_subdirectory("tests/soko")
 add_subdirectory("tests/rpg")

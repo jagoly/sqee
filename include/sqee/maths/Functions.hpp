@@ -4,18 +4,18 @@
 #include <sqee/maths/Quaternion.hpp>
 #include <sqee/maths/Matrices.hpp>
 
-namespace sq { namespace maths {
+namespace sq::maths {
 
 //============================================================================//
 
-// Scale (Matrix, Vector3) /////
-
+/// Scale a Matrix33 by Vector3.
 template <class T> inline
 Matrix33<T> scale(Matrix33<T> m, Vector3<T> v)
 {
     return Matrix33<T> ( m[0]*v.x, m[1]*v.y, m[2]*v.z );
 }
 
+/// Scale a Matrix44 by Vector3.
 template <class T> inline
 Matrix44<T> scale(Matrix44<T> m, Vector3<T> v)
 {
@@ -24,8 +24,7 @@ Matrix44<T> scale(Matrix44<T> m, Vector3<T> v)
 
 //============================================================================//
 
-// Translate (Matrix44, Vector3) /////
-
+/// Translate a Matrix44 by Vector3.
 template <class T> inline
 Matrix44<T> translate(Matrix44<T> m, Vector3<T> v)
 {
@@ -35,8 +34,7 @@ Matrix44<T> translate(Matrix44<T> m, Vector3<T> v)
 
 //============================================================================//
 
-// Create Transform Model Matrix /////
-
+/// Create a matrix from a translation, rotation, and scale.
 template <class T> inline
 Matrix44<T> transform(Vector3<T> translation, Quaternion<T> rotation, Vector3<T> scale)
 {
@@ -48,8 +46,7 @@ Matrix44<T> transform(Vector3<T> translation, Quaternion<T> rotation, Vector3<T>
 
 //============================================================================//
 
-// Create Look At View Matrix /////
-
+/// Create a view matrix from two points and a direction.
 template <class T> inline
 Matrix44<T> look_at(Vector3<T> eye, Vector3<T> centre, Vector3<T> up)
 {
@@ -68,11 +65,10 @@ Matrix44<T> look_at(Vector3<T> eye, Vector3<T> centre, Vector3<T> up)
 
 //============================================================================//
 
-// Create Perspective Projection Matrix /////
-
 #undef near // mingw or win32 crap
 #undef far // mingw or win32 crap
 
+/// Create a perspective projection matrix.
 template <class T> inline
 Matrix44<T> perspective(T fov, T aspect, T near, T far)
 {
@@ -87,6 +83,7 @@ Matrix44<T> perspective(T fov, T aspect, T near, T far)
     return Matrix44<T> ( colA, colB, colC, colD );
 }
 
+/// Create a perspective projection matrix.
 template <class T> inline
 Matrix44<T> perspective(T fov, T aspect, Vector2<T> range)
 {
@@ -95,8 +92,7 @@ Matrix44<T> perspective(T fov, T aspect, Vector2<T> range)
 
 //============================================================================//
 
-// Create Orthographic Projection Matrix /////
-
+/// Create an orthographic projection matrix.
 template <class T> inline
 Matrix44<T> ortho(T l, T r, T b, T t, T n, T f)
 {
@@ -105,6 +101,7 @@ Matrix44<T> ortho(T l, T r, T b, T t, T n, T f)
     return Matrix44<T> ( {ax, 0, 0, 0}, {0, by, 0, 0}, {0, 0, cz, 0}, colD );
 }
 
+/// Create an orthographic projection matrix.
 template <class T> inline
 Matrix44<T> ortho(Vector3<T> min, Vector3<T> max)
 {
@@ -113,4 +110,4 @@ Matrix44<T> ortho(Vector3<T> min, Vector3<T> max)
 
 //============================================================================//
 
-}} // namespace sq::maths
+} // namespace sq::maths
