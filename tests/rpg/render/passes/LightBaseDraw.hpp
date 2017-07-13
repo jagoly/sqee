@@ -3,11 +3,11 @@
 #include "../SharedStuff.hpp"
 #include "../PassesData.hpp"
 
-namespace sqt::render {
-
 //============================================================================//
 
-class LightBasePasses : public SharedStuff
+namespace sqt::render {
+
+class LightBasePasses final : public SharedStuff
 {
 public: //====================================================//
 
@@ -29,7 +29,5 @@ private: //===================================================//
     void impl_render_SkyBoxPass(const data::LightBaseSkyBoxPass& data);
     void impl_render_AmbientPass(const data::LightBaseAmbientPass& data);
 };
-
-//============================================================================//
 
 } // namespace sqt::render

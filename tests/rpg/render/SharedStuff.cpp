@@ -1,4 +1,5 @@
-#include "../Options.hpp"
+#include "../main/Options.hpp"
+
 #include "SharedStuff.hpp"
 
 using namespace sqt::render;

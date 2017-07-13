@@ -191,8 +191,6 @@ void PassesData::prepare_gbuffer_decals(const RenderStuff& stuff) {
 
     auto& basicPass = gbufferData.decalPasses.basicPass;
 
-    const auto& camera = stuff.camera;
-
 /*    SQ_BEGIN_FOR_EACH_DecalBasic {
 
         // Check if decal is visible to main camera
@@ -268,11 +266,11 @@ void PassesData::prepare_lighting_accum(const RenderStuff& stuff)
         const Mat4F matrix = stuff.camera.projMat * stuff.camera.viewMat * light.modelMatrix;
 
         // Check if the camera is inside the light volume
-        //bool inside = sq::point_in_cone_volume(camera.position, light.frus);
+        const bool inside = maths::point_in_sphere(stuff.camera.position, light.sphere, 1.05146f);
 
         // Add this point light to the main light passes
         pointPassVec.push_back({light.ubo, light.tex, matrix});
-        pointShaftsVec.push_back({light.ubo, light.tex, matrix, false});
+        pointShaftsVec.push_back({light.ubo, light.tex, matrix, !inside});
     }
 
     //--------------------------------------------------------//
@@ -283,11 +281,11 @@ void PassesData::prepare_lighting_accum(const RenderStuff& stuff)
         const Mat4F matrix = stuff.camera.projMat * stuff.camera.viewMat * light.modelMatrix;
 
         // Check if the camera is inside the light volume
-        //bool inside = sq::point_in_cone_volume(camera.position, light.frus);
+        const bool inside = maths::point_in_cone(stuff.camera.position, light.cone, 1.00864f);
 
         // Add this spot light to the main light passes
         spotPassVec.push_back({light.ubo, light.tex, matrix});
-        spotShaftsVec.push_back({light.ubo, light.tex, matrix, false});
+        spotShaftsVec.push_back({light.ubo, light.tex, matrix, !inside});
     }
 }
 
@@ -368,7 +366,7 @@ void PassesData::prepare_shadow_mapping(const RenderStuff& rstuff, const WorldSt
             cascPassVec.push_back({light.fbos[i], viewPort, {}});
 
             // get the complete set of entities visible to this cascade
-            const auto visibleSet = sys::system_get_visible_objects_planes(wstuff, light.planes[i]);
+            const auto visibleSet = sys::system_get_visible_objects_ortho(wstuff, light.orthos[i]);
 
             // reduce the visible set down to sets for each type of entity
             const auto modelSimpleSet = dop::reduce(visibleSet, wstuff.groups.modelSimple);

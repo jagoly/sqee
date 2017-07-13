@@ -8,6 +8,7 @@
 #include <sqee/render/Material.hpp>
 #include <sqee/render/Armature.hpp>
 
+#include "../main/Options.hpp"
 #include "../systems/WorldStuff.hpp"
 
 #include "ObjectsData.hpp"
@@ -140,7 +141,7 @@ void sqt::refresh_render_stuff(RenderStuff& rstuff, const WorldStuff& wstuff, co
         rstuff.skylight->tex.set_filter_mode(true);
         rstuff.skylight->tex.set_shadow_mode(true);
 
-        rstuff.skylight->ubo.create_and_allocate(416u);
+        rstuff.skylight->ubo.create_and_allocate(512u);
     }
 
     //--------------------------------------------------------//
@@ -148,7 +149,8 @@ void sqt::refresh_render_stuff(RenderStuff& rstuff, const WorldStuff& wstuff, co
     if (auto skylight = rstuff.skylight.get())
     {
         skylight->cascades = wstuff.skylight->get_cascades();
-        skylight->matrices = wstuff.skylight->get_matrices();
+
+        wstuff.skylight->compute_cascades(skylight->spheres, skylight->orthos, skylight->matrices);
 
         const uint resolution = wstuff.skylight->get_resolution() * (options.Shadows_Large + 1u);
         const Vec3U newSize { resolution, resolution, skylight->cascades };
@@ -161,12 +163,9 @@ void sqt::refresh_render_stuff(RenderStuff& rstuff, const WorldStuff& wstuff, co
                 skylight->fbos[i].attach(gl::DEPTH_ATTACHMENT, skylight->tex, i);
         }
 
-        for (uint i = 0u; i < skylight->cascades; ++i)
-            skylight->planes[i] = maths::make_ortho_xy(skylight->matrices[i]);
-
         skylight->ubo.update_complete ( wstuff.skylight->get_rotation() * Vec3F(0, 0, -1), skylight->cascades,
                                         wstuff.skylight->get_colour(), camera.range / float(skylight->cascades),
-                                        skylight->matrices );
+                                        skylight->spheres, skylight->matrices );
     }
 
     //========================================================//
@@ -301,6 +300,8 @@ void sqt::refresh_render_stuff(RenderStuff& rstuff, const WorldStuff& wstuff, co
 
         entry.modelMatrix = maths::scale(maths::translate(Mat4F(), position), Vec3F(scale));
 
+        entry.sphere = maths::Sphere { position, scale };
+
         const Mat4F projMat = maths::perspective(maths::radians(0.25f), 1.f, 0.1f, scale);
 
         entry.lightMatrices[0] = projMat * maths::look_at(position, position + Vec3F(+1, 0, 0), Vec3F(0, -1, 0));
@@ -310,12 +311,12 @@ void sqt::refresh_render_stuff(RenderStuff& rstuff, const WorldStuff& wstuff, co
         entry.lightMatrices[4] = projMat * maths::look_at(position, position + Vec3F(0, 0, +1), Vec3F(0, -1, 0));
         entry.lightMatrices[5] = projMat * maths::look_at(position, position + Vec3F(0, 0, -1), Vec3F(0, -1, 0));
 
-//        entry.frustums[0] = maths::make_frustum(entry.lightMatrices[0], position, Vec3F(+1, 0, 0), scale);
-//        entry.frustums[1] = maths::make_frustum(entry.lightMatrices[1], position, Vec3F(-1, 0, 0), scale);
-//        entry.frustums[2] = maths::make_frustum(entry.lightMatrices[2], position, Vec3F(0, +1, 0), scale);
-//        entry.frustums[3] = maths::make_frustum(entry.lightMatrices[3], position, Vec3F(0, -1, 0), scale);
-//        entry.frustums[4] = maths::make_frustum(entry.lightMatrices[4], position, Vec3F(0, 0, +1), scale);
-//        entry.frustums[5] = maths::make_frustum(entry.lightMatrices[5], position, Vec3F(0, 0, -1), scale);
+        entry.frustums[0] = maths::make_frustum(entry.lightMatrices[0], position, Vec3F(+1, 0, 0), scale);
+        entry.frustums[1] = maths::make_frustum(entry.lightMatrices[1], position, Vec3F(-1, 0, 0), scale);
+        entry.frustums[2] = maths::make_frustum(entry.lightMatrices[2], position, Vec3F(0, +1, 0), scale);
+        entry.frustums[3] = maths::make_frustum(entry.lightMatrices[3], position, Vec3F(0, -1, 0), scale);
+        entry.frustums[4] = maths::make_frustum(entry.lightMatrices[4], position, Vec3F(0, 0, +1), scale);
+        entry.frustums[5] = maths::make_frustum(entry.lightMatrices[5], position, Vec3F(0, 0, -1), scale);
 
         entry.ubo.update_complete ( position, scale, light.colour, 0, entry.lightMatrices );
     }
@@ -364,8 +365,10 @@ void sqt::refresh_render_stuff(RenderStuff& rstuff, const WorldStuff& wstuff, co
         entry.lightMatrix = projMat * viewMat;
 
         // calculate light bounding frustum
-//        entry.frustum = sq::maths::make_frustum ( entry.lightMatrix, transform.worldPosition,
-//                                                  direction, transform.worldScale );
+        entry.frustum = sq::maths::make_frustum ( entry.lightMatrix, transform.worldPosition,
+                                                  direction, transform.worldScale );
+
+        entry.cone = { transform.worldPosition, transform.worldScale, direction, std::tan(angle) * transform.worldScale };
 
         // calculate cone volume size and model matrix
         Vec3F modelScale = Vec3F(Vec2F(std::tan(angle)), 1.f) * transform.worldScale;
@@ -376,4 +379,3 @@ void sqt::refresh_render_stuff(RenderStuff& rstuff, const WorldStuff& wstuff, co
                                     entry.lightMatrix );
     }
 }
-

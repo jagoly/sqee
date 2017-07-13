@@ -5,12 +5,13 @@
 #include <sqee/maths/Vectors.hpp>
 #include <sqee/maths/Quaternion.hpp>
 #include <sqee/maths/Matrices.hpp>
+#include <sqee/maths/Volumes.hpp>
 
 #include "Camera.hpp"
 
-namespace sqt::world {
-
 //============================================================================//
+
+namespace sqt::world {
 
 class Skylight final : sq::NonCopyable
 {
@@ -55,8 +56,10 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    /// Compute the light matrices.
-    std::array<Mat4F, 6> get_matrices() const;
+    /// Compute the light's shadow cascade data.
+    void compute_cascades ( std::array<sq::maths::Sphere, 6>& spheres,
+                            std::array<sq::maths::Ortho2D, 6>& orthos,
+                            std::array<Mat4F, 6>& matrices ) const;
 
 private: //===================================================//
 
@@ -70,7 +73,5 @@ private: //===================================================//
 
     const Camera& camera;
 };
-
-//============================================================================//
 
 } // namespace sqt::world

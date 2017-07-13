@@ -68,8 +68,8 @@ struct ModelData
 {
     Vec3F stretch = { 1.f, 1.f, 1.f };
 
-    std::vector<Handle<sq::Material>> materials;
-    Handle<sq::Mesh> mesh;
+    std::vector<MaterialHandle> materials;
+    MeshHandle mesh;
 
     bool enableRender = true;
     bool enableShadow = true;
@@ -82,7 +82,7 @@ struct ModelData
 
 struct SkeletonData
 {
-    Handle<sq::Armature> armature;
+    ArmatureHandle armature;
 };
 
 //========================================================//

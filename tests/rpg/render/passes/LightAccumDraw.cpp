@@ -1,7 +1,6 @@
 #include <sqee/gl/Context.hpp>
 #include <sqee/gl/Drawing.hpp>
 
-#include "../../Options.hpp"
 #include "LightAccumDraw.hpp"
 
 using Context = sq::Context;
@@ -72,6 +71,8 @@ void LightAccumPasses::render(const data::LightAccumPasses& data)
     context.bind_Texture(textures.Gbuffer_MainSpec, 6u);
     context.bind_Texture(textures.Depth_FullSize, 7u);
 
+    //-- render sub passes -----------------------------------//
+
     // render cascade light pass without stencil
     if (data.skylightPass != nullptr) impl_render_SkyLightPass(*data.skylightPass);
 
@@ -140,5 +141,3 @@ void LightAccumPasses::impl_render_StencilPass(const data::LightAccumStencilPass
     // render full screen lighting quad
     sq::draw_screen_quad();
 }
-
-//============================================================================//

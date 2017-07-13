@@ -5,27 +5,26 @@
 #include <sqee/maths/Vectors.hpp>
 
 #include <sqee/app/Scene.hpp>
-#include <sqee/app/MessageBus.hpp>
 #include <sqee/app/ChaiEngine.hpp>
 #include <sqee/app/InputDevices.hpp>
 
+#include "Options.hpp"
+#include "ResourceCaches.hpp"
+
+//====== Forward Declarations ================================================//
+
+namespace sqt { class WorldStuff; class Renderer; class ScriptAPI; }
+
+//============================================================================//
 
 namespace sqt {
-
-//============================================================================//
-
-// Forward Declarations /////
-class Options; class World; class Renderer; class ResourceCaches; class WorldStuff; class ScriptAPI;
-
-//============================================================================//
 
 class MainScene final : public sq::Scene
 {
 public: //====================================================//
 
-    MainScene ( sq::MessageBus& bus, sq::ChaiEngine& engine,
-                sq::InputDevices& input, ResourceCaches& caches,
-                const Options& options );
+    MainScene ( const Options& options, sq::ChaiEngine& engine,
+                sq::InputDevices& input, ResourceCaches& caches );
 
     ~MainScene();
 
@@ -43,12 +42,11 @@ private: //===================================================//
 
     //--------------------------------------------------------//
 
-    sq::MessageBus& mBus;
+    const Options& options;
+
     sq::ChaiEngine& mEngine;
     sq::InputDevices& mInput;
     ResourceCaches& mCaches;
-
-    const Options& options;
 
     //--------------------------------------------------------//
 
@@ -65,7 +63,5 @@ private: //===================================================//
 
     bool mEnableInput = true;
 };
-
-//============================================================================//
 
 } // namespace sqt

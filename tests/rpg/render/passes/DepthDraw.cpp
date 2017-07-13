@@ -1,6 +1,5 @@
 #include <sqee/gl/Context.hpp>
 
-#include "../../Options.hpp"
 #include "DepthDraw.hpp"
 
 using Context = sq::Context;
@@ -58,9 +57,13 @@ void DepthPasses::render(const data::DepthPasses& data)
     impl_render_ModelSimplePass(data.modelSimplePass);
     impl_render_ModelSkellyPass(data.modelSkellyPass);
 
-    // blit the main full size depth stencil texture to half and quarter textures
-    FB_FullDepth.blit(FB_HalfDepth, INFO_fullSize, INFO_halfSize, gl::DEPTH_BUFFER_BIT | gl::STENCIL_BUFFER_BIT, gl::NEAREST);
-    FB_FullDepth.blit(FB_QterDepth, INFO_fullSize, INFO_qterSize, gl::DEPTH_BUFFER_BIT | gl::STENCIL_BUFFER_BIT, gl::NEAREST);
+    //-- blit depth stencil to half and quarter textures -----//
+
+    FB_FullDepth.blit ( FB_HalfDepth, INFO_fullSize, INFO_halfSize,
+                        gl::DEPTH_BUFFER_BIT | gl::STENCIL_BUFFER_BIT, gl::NEAREST );
+
+    FB_FullDepth.blit ( FB_QterDepth, INFO_fullSize, INFO_qterSize,
+                        gl::DEPTH_BUFFER_BIT | gl::STENCIL_BUFFER_BIT, gl::NEAREST );
 }
 
 //============================================================================//
@@ -173,5 +176,3 @@ void DepthPasses::impl_render_ModelSkellyPass(const data::DepthModelSkellyPass& 
         }
     }
 }
-
-//============================================================================//

@@ -2,11 +2,11 @@
 
 #include "../SharedStuff.hpp"
 
-namespace sqt::render {
-
 //============================================================================//
 
-class EffectsPasses : public SharedStuff
+namespace sqt::render {
+
+class EffectsPasses final : public SharedStuff
 {
 public: //====================================================//
 
@@ -34,14 +34,15 @@ private: //===================================================//
 
     sq::Program PROG_SSAO_Main;
     sq::Program PROG_SSAO_Blur;
+
     sq::Program PROG_Bloom_Main;
     sq::Program PROG_Bloom_BlurH;
     sq::Program PROG_Bloom_BlurV;
+
     sq::Program PROG_Shafts_BlurH;
     sq::Program PROG_Shafts_BlurV;
+
     sq::Program PROG_Overlay;
 };
-
-//============================================================================//
 
 } // namespace sqt::render

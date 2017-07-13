@@ -21,7 +21,7 @@ template <class...> struct Structure;
 
 //----------------------------------------------------------------------------//
 
-/// @cond
+/// @cond ignore
 
 template <class Element> struct Structure<Element>
 {
@@ -47,7 +47,7 @@ template <class...> struct index_in_pack;
 
 //----------------------------------------------------------------------------//
 
-/// @cond ignored
+/// @cond ignore
 
 template <class T, class... Ts>
 struct index_in_pack<T, T, Ts...> : std::integral_constant<size_t, 0> {};

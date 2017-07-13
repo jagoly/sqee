@@ -3,11 +3,11 @@
 #include "../SharedStuff.hpp"
 #include "../PassesData.hpp"
 
-namespace sqt::render {
-
 //============================================================================//
 
-class GbufferPasses : public SharedStuff
+namespace sqt::render {
+
+class GbufferPasses final : public SharedStuff
 {
 public: //====================================================//
 
@@ -34,7 +34,5 @@ private: //===================================================//
     void impl_render_DecalPasses(const data::GbufferDecalPasses& data);
     void impl_render_DecalBasicPass(const data::GbufferDecalBasicPass& data);
 };
-
-//============================================================================//
 
 } // namespace sqt::render

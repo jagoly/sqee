@@ -2,8 +2,6 @@
 
 #include <sqee/dop/Classes.hpp>
 
-#include <sqee/misc/ResourceHandle.hpp>
-
 #include <sqee/maths/Volumes.hpp>
 
 #include <sqee/gl/UniformBuffer.hpp>
@@ -14,18 +12,19 @@
 #include <sqee/render/Material.hpp>
 #include <sqee/render/Mesh.hpp>
 
-#include "../Options.hpp"
+#include "../systems/WorldStuff.hpp"
+
+#include "../main/ResourceCaches.hpp"
+#include "../main/Options.hpp"
+
+//============================================================================//
 
 namespace sqt {
 
-//============================================================================//
-
-class WorldStuff; // Forward Declaration
-
-//============================================================================//
-
-struct RenderStuff : sq::NonCopyable
+class RenderStuff final : sq::NonCopyable
 {
+public: //====================================================//
+
     RenderStuff();
 
     //--------------------------------------------------------//
@@ -65,8 +64,9 @@ struct RenderStuff : sq::NonCopyable
     {
         std::array<sq::FrameBuffer, 6> fbos;
 
+        std::array<sq::maths::Sphere, 6> spheres;
+        std::array<sq::maths::Ortho2D, 6> orthos;
         std::array<Mat4F, 6> matrices;
-        std::array<sq::maths::Planes<4>, 6> planes;
 
         sq::UniformBuffer ubo;
         sq::TextureArray2D tex;
@@ -78,8 +78,8 @@ struct RenderStuff : sq::NonCopyable
 
     struct ModelData
     {
-        std::vector<sq::Handle<sq::Material>> materials;
-        sq::Handle<sq::Mesh> mesh;
+        std::vector<MaterialHandle> materials;
+        MeshHandle mesh;
 
         Mat4F modelMatrix;
         bool hasMaskTexture;
@@ -90,7 +90,7 @@ struct RenderStuff : sq::NonCopyable
 
     struct SkeletonData
     {
-        sq::Handle<sq::Armature> armature;
+        ArmatureHandle armature;
 
         sq::UniformBuffer ubo;
     };
@@ -117,6 +117,8 @@ struct RenderStuff : sq::NonCopyable
         std::array<Mat4F, 6> lightMatrices;
         std::array<sq::maths::Frustum, 6> frustums;
 
+        sq::maths::Sphere sphere;
+
         sq::UniformBuffer ubo;
         sq::TextureCube tex;
 
@@ -131,6 +133,8 @@ struct RenderStuff : sq::NonCopyable
 
         Mat4F lightMatrix;
         sq::maths::Frustum frustum;
+
+        sq::maths::Cone cone;
 
         sq::UniformBuffer ubo;
         sq::Texture2D tex;

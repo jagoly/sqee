@@ -1,7 +1,6 @@
 #include <sqee/gl/Context.hpp>
 #include <sqee/gl/Drawing.hpp>
 
-#include "../../Options.hpp"
 #include "VolumetricDraw.hpp"
 
 using Context = sq::Context;
@@ -56,26 +55,24 @@ void VolumetricPasses::render(const data::VolumetricPasses& data)
 {
     if (options.Shafts_Quality == 0u) return;
 
+    //--------------------------------------------------------//
+
     // bind and clear framebuffer
     context.set_ViewPort(options.Window_Size / 2u);
     context.bind_FrameBuffer(FB_Shafts);
     context.clear_Colour(Vec4F(0.f));
 
-    // set blending mode for light accumulation
     context.set_state(Context::Blend_Mode::Accumulate);
 
-
-    context.bind_Texture(TEX_Shafts_Depth, 7u);
+    //--------------------------------------------------------//
 
     // render cascade light shafts pass without stencil
     if (data.skylightPass != nullptr) impl_render_SkyLightPass(*data.skylightPass);
 
-    context.bind_Texture(TEX_Shafts_Depth, 7u);
-
     // render shafts of all other types of lights using stencil volumes
-    for (const auto& light : data.orthoPassVec) impl_render_StencilPass(light, volumes.Light_Ortho, PROG_Shafts_LightOrtho);
-    for (const auto& light : data.pointPassVec) impl_render_StencilPass(light, volumes.Light_Point, PROG_Shafts_LightPoint);
-    for (const auto& light : data.spotPassVec) impl_render_StencilPass(light, volumes.Light_Spot, PROG_Shafts_LightSpot);
+    for (auto& light : data.orthoPassVec) impl_render_StencilPass(light, volumes.Light_Ortho, PROG_Shafts_LightOrtho);
+    for (auto& light : data.pointPassVec) impl_render_StencilPass(light, volumes.Light_Point, PROG_Shafts_LightPoint);
+    for (auto& light : data.spotPassVec) impl_render_StencilPass(light, volumes.Light_Spot, PROG_Shafts_LightSpot);
 }
 
 //============================================================================//
@@ -87,10 +84,12 @@ void VolumetricPasses::impl_render_SkyLightPass(const data::VolumetricSkyLightPa
     context.set_state(Context::Stencil_Test::Disable);
 
     context.bind_UniformBuffer(light.ubo, 1u);
+
     context.bind_Texture(textures.Depth_HalfSize, 7u);
     context.bind_Texture(light.tex, 8u);
 
     context.bind_Program(PROG_Shafts_LightCasc);
+
     sq::draw_screen_quad();
 }
 
@@ -101,43 +100,50 @@ void VolumetricPasses::impl_render_StencilPass(const data::VolumetricStencilPass
 {
     FB_HalfDepthBlit.blit(FB_Shafts, options.Window_Size / 2u, gl::DEPTH_BUFFER_BIT);
 
-
     context.bind_Program(PROG_Shafts_Stencil);
 
     PROG_Shafts_Stencil.update(0, light.matrix);
 
+    //--------------------------------------------------------//
 
     if (light.stencil == true)
     {
+        context.clear_Stencil(0, 255);
+
+        context.set_state(Context::Depth_Clamp::Enable);
+
         context.set_state(Context::Cull_Face::Back);
         context.set_state(Context::Depth_Test::Keep);
         context.set_state(Context::Stencil_Test::Replace);
         context.set_Stencil_Params(gl::ALWAYS, 2, 0, 2);
 
-        context.clear_Stencil(0, 255);
-
         volume.bind_and_draw(context);
+
+        context.set_state(Context::Depth_Clamp::Disable);
 
         context.set_state(Context::Stencil_Test::Keep);
         context.set_Stencil_Params(gl::EQUAL, 2, 2, 0);
     }
     else context.set_state(Context::Stencil_Test::Disable);
 
+    //--------------------------------------------------------//
 
     context.set_state(Context::Cull_Face::Front);
     context.set_state(Context::Depth_Test::Replace);
 
     volume.bind_and_draw(context);
 
+    //--------------------------------------------------------//
 
     context.set_state(Context::Cull_Face::Disable);
     context.set_state(Context::Depth_Test::Disable);
 
     context.bind_UniformBuffer(light.ubo, 1u);
+
+    context.bind_Texture(TEX_Shafts_Depth, 7u);
     context.bind_Texture(light.tex, 8u);
 
     context.bind_Program(program);
+
     sq::draw_screen_quad();
 }
-
-//============================================================================//

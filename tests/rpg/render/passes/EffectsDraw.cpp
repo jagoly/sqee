@@ -1,7 +1,6 @@
 #include <sqee/gl/Context.hpp>
 #include <sqee/gl/Drawing.hpp>
 
-#include "../../Options.hpp"
 #include "EffectsDraw.hpp"
 
 using Context = sq::Context;
@@ -98,118 +97,137 @@ void EffectsPasses::update_options()
 
 void EffectsPasses::render_effect_SSAO()
 {
+    //-- render and blur the ssao effect texture -------------//
+
+    if (!options.SSAO_Quality) return;
+
+    //--------------------------------------------------------//
+
     context.set_state(Context::Cull_Face::Disable);
     context.set_state(Context::Depth_Test::Disable);
     context.set_state(Context::Stencil_Test::Disable);
     context.set_state(Context::Blend_Mode::Disable);
 
-    if (options.SSAO_Quality != 0)
-    {
-        context.set_ViewPort(options.Window_Size / 2u);
+    context.set_ViewPort(options.Window_Size / 2u);
 
-        context.bind_FrameBuffer(FB_SSAO_Main);
-        context.bind_Texture(textures.Depth_HalfSize, 1u);
-        context.bind_Program(PROG_SSAO_Main);
-        sq::draw_screen_quad();
+    //--------------------------------------------------------//
 
-        context.bind_FrameBuffer(FB_SSAO_Blur);
-        context.bind_Texture(textures.Effects_SSAO, 0u);
-        context.bind_Program(PROG_SSAO_Blur);
-        sq::draw_screen_quad();
+    context.bind_FrameBuffer(FB_SSAO_Main);
+    context.bind_Texture(textures.Depth_HalfSize, 1u);
+    context.bind_Program(PROG_SSAO_Main);
+    sq::draw_screen_quad();
 
-        context.bind_FrameBuffer(FB_SSAO_Main);
-        context.bind_Texture(TEX_SSAO_Blur, 0u);
-        context.bind_Program(PROG_SSAO_Blur);
-        sq::draw_screen_quad();
-    }
+    //--------------------------------------------------------//
 
-    context.bind_Program_default();
+    context.bind_FrameBuffer(FB_SSAO_Blur);
+    context.bind_Texture(textures.Effects_SSAO, 0u);
+    context.bind_Program(PROG_SSAO_Blur);
+    sq::draw_screen_quad();
+
+    context.bind_FrameBuffer(FB_SSAO_Main);
+    context.bind_Texture(TEX_SSAO_Blur, 0u);
+    context.bind_Program(PROG_SSAO_Blur);
+    sq::draw_screen_quad();
 }
 
 //============================================================================//
 
 void EffectsPasses::render_effect_Bloom()
 {
+    //-- render and blur the bloom effect texture ------------//
+
+    if (!options.Bloom_Enable) return;
+
+    //--------------------------------------------------------//
+
     context.set_state(Context::Cull_Face::Disable);
     context.set_state(Context::Depth_Test::Disable);
     context.set_state(Context::Stencil_Test::Disable);
     context.set_state(Context::Blend_Mode::Disable);
 
-    if (options.Bloom_Enable == true)
-    {
-        context.set_ViewPort(options.Window_Size / 4u);
+    context.set_ViewPort(options.Window_Size / 4u);
 
-        context.bind_FrameBuffer(FB_Bloom_Main);
-        context.bind_Texture(textures.Lighting_Main, 0u);
-        context.bind_Program(PROG_Bloom_Main);
-        sq::draw_screen_quad();
+    //--------------------------------------------------------//
 
-        context.bind_FrameBuffer(FB_Bloom_Blur);
-        context.bind_Texture(textures.Effects_Bloom, 0u);
-        context.bind_Program(PROG_Bloom_BlurH);
-        sq::draw_screen_quad();
+    context.bind_FrameBuffer(FB_Bloom_Main);
+    context.bind_Texture(textures.Lighting_Main, 0u);
+    context.bind_Program(PROG_Bloom_Main);
+    sq::draw_screen_quad();
 
-        context.bind_FrameBuffer(FB_Bloom_Main);
-        context.bind_Texture(TEX_Bloom_Blur, 0u);
-        context.bind_Program(PROG_Bloom_BlurV);
-        sq::draw_screen_quad();
+    //--------------------------------------------------------//
 
-        context.bind_FrameBuffer(FB_Bloom_Blur);
-        context.bind_Texture(textures.Effects_Bloom, 0u);
-        context.bind_Program(PROG_Bloom_BlurH);
-        sq::draw_screen_quad();
+    context.bind_FrameBuffer(FB_Bloom_Blur);
+    context.bind_Texture(textures.Effects_Bloom, 0u);
+    context.bind_Program(PROG_Bloom_BlurH);
+    sq::draw_screen_quad();
 
-        context.bind_FrameBuffer(FB_Bloom_Main);
-        context.bind_Texture(TEX_Bloom_Blur, 0u);
-        context.bind_Program(PROG_Bloom_BlurV);
-        sq::draw_screen_quad();
-    }
+    context.bind_FrameBuffer(FB_Bloom_Main);
+    context.bind_Texture(TEX_Bloom_Blur, 0u);
+    context.bind_Program(PROG_Bloom_BlurV);
+    sq::draw_screen_quad();
 
-    context.bind_Program_default();
+    context.bind_FrameBuffer(FB_Bloom_Blur);
+    context.bind_Texture(textures.Effects_Bloom, 0u);
+    context.bind_Program(PROG_Bloom_BlurH);
+    sq::draw_screen_quad();
+
+    context.bind_FrameBuffer(FB_Bloom_Main);
+    context.bind_Texture(TEX_Bloom_Blur, 0u);
+    context.bind_Program(PROG_Bloom_BlurV);
+    sq::draw_screen_quad();
 }
 
 //============================================================================//
 
 void EffectsPasses::render_effect_Shafts()
 {
+    //-- blur the volumetric shafts effect texture -----------//
+
+    if (!options.Shafts_Quality) return;
+
+    //--------------------------------------------------------//
+
     context.set_state(Context::Cull_Face::Disable);
     context.set_state(Context::Depth_Test::Disable);
     context.set_state(Context::Stencil_Test::Disable);
     context.set_state(Context::Blend_Mode::Disable);
 
-    if (options.Shafts_Quality != 0u)
-    {
-        context.set_ViewPort(options.Window_Size / 2u);
-        context.bind_Texture(textures.Depth_HalfSize, 1u);
+    context.set_ViewPort(options.Window_Size / 2u);
+    context.bind_Texture(textures.Depth_HalfSize, 1u);
 
-        context.bind_FrameBuffer(FB_Shafts_Blur);
-        context.bind_Texture(textures.Volumetric_Shafts, 0u);
-        context.bind_Program(PROG_Shafts_BlurH);
-        sq::draw_screen_quad();
+    //--------------------------------------------------------//
 
-        context.bind_FrameBuffer(FB_Shafts_Main);
-        context.bind_Texture(TEX_Shafts_Blur, 0u);
-        context.bind_Program(PROG_Shafts_BlurV);
-        sq::draw_screen_quad();
+    context.bind_FrameBuffer(FB_Shafts_Blur);
+    context.bind_Texture(textures.Volumetric_Shafts, 0u);
+    context.bind_Program(PROG_Shafts_BlurH);
+    sq::draw_screen_quad();
 
-        context.bind_FrameBuffer(FB_Shafts_Blur);
-        context.bind_Texture(textures.Volumetric_Shafts, 0u);
-        context.bind_Program(PROG_Shafts_BlurH);
-        sq::draw_screen_quad();
+    context.bind_FrameBuffer(FB_Shafts_Main);
+    context.bind_Texture(TEX_Shafts_Blur, 0u);
+    context.bind_Program(PROG_Shafts_BlurV);
+    sq::draw_screen_quad();
 
-        context.bind_FrameBuffer(FB_Shafts_Main);
-        context.bind_Texture(TEX_Shafts_Blur, 0u);
-        context.bind_Program(PROG_Shafts_BlurV);
-        sq::draw_screen_quad();
-    }
+    context.bind_FrameBuffer(FB_Shafts_Blur);
+    context.bind_Texture(textures.Volumetric_Shafts, 0u);
+    context.bind_Program(PROG_Shafts_BlurH);
+    sq::draw_screen_quad();
 
-    context.bind_Program_default();
+    context.bind_FrameBuffer(FB_Shafts_Main);
+    context.bind_Texture(TEX_Shafts_Blur, 0u);
+    context.bind_Program(PROG_Shafts_BlurV);
+    sq::draw_screen_quad();
 }
 
 //============================================================================//
 
 void EffectsPasses::render_effect_Overlay()
 {
+    //-- render the vignette overlay -------------------------//
+
+    if (!options.Vignette_Enable) return;
+
+    //--------------------------------------------------------//
+
     context.bind_FrameBuffer_default();
 
     context.set_state(Context::Cull_Face::Disable);
@@ -217,14 +235,7 @@ void EffectsPasses::render_effect_Overlay()
     context.set_state(Context::Stencil_Test::Disable);
     context.set_state(Context::Blend_Mode::Alpha);
 
-    // apply vignette effect if enabled
-    if (options.Vignette_Enable == true)
-    {
-        context.bind_Program(PROG_Overlay);
-        sq::draw_screen_quad();
-    }
+    context.bind_Program(PROG_Overlay);
 
-    context.bind_Program_default();
+    sq::draw_screen_quad();
 }
-
-//============================================================================//

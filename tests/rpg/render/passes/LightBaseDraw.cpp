@@ -1,7 +1,6 @@
 #include <sqee/gl/Context.hpp>
 #include <sqee/gl/Drawing.hpp>
 
-#include "../../Options.hpp"
 #include "LightBaseDraw.hpp"
 
 using Context = sq::Context;
@@ -58,11 +57,10 @@ void LightBasePasses::render(const data::LightBasePasses& data)
     context.bind_Texture(textures.Gbuffer_MainSpec, 6u);
     context.bind_Texture(textures.Depth_FullSize, 7u);
 
-    ////// sub passes //////
+    //-- render sub passes -----------------------------------//
+
     if (data.skyboxPass != nullptr) impl_render_SkyBoxPass(*data.skyboxPass);
     if (data.ambientPass != nullptr) impl_render_AmbientPass(*data.ambientPass);
-
-    context.bind_Program_default();
 }
 
 //============================================================================//
@@ -77,8 +75,10 @@ void LightBasePasses::impl_render_SkyBoxPass(const data::LightBaseSkyBoxPass& da
     // enable alpha blending
     //context.set_state(Context::Blend_Mode::Alpha);
 
-    PROG_Main_Skybox.update(0, data.params);
     context.bind_Texture(data.tex, 0u);
+
+    PROG_Main_Skybox.update(0, data.params);
+
     sq::draw_screen_quad();
 }
 
@@ -99,7 +99,6 @@ void LightBasePasses::impl_render_AmbientPass(const data::LightBaseAmbientPass& 
     }
 
     PROG_Main_Ambient.update(0, data.colour);
+
     sq::draw_screen_quad();
 }
-
-//============================================================================//

@@ -2,11 +2,11 @@
 
 #include "../SharedStuff.hpp"
 
-namespace sqt::render {
-
 //============================================================================//
 
-class CompositePasses : public SharedStuff
+namespace sqt::render {
+
+class CompositePasses final : public SharedStuff
 {
 public: //====================================================//
 
@@ -23,7 +23,5 @@ private: //===================================================//
     sq::Program PROG_Composite;
     sq::Program PROG_FSAA_Screen;
 };
-
-//============================================================================//
 
 } // namespace sqt::render

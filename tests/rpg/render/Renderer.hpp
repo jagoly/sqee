@@ -4,16 +4,13 @@
 #include <sqee/app/MessageBus.hpp>
 #include <sqee/app/PreProcessor.hpp>
 
-#include "../messages.hpp"
+#include "../main/Options.hpp"
 
-namespace sqt {
+//====== Forward Declarations ================================================//
 
-class WorldStuff;
-class RenderStuff;
+namespace sqt { class RenderStuff; class WorldStuff; }
 
-class Options;
-
-namespace render {
+namespace sqt::render {
 
 struct StencilVolumes;
 struct TargetTextures;
@@ -29,24 +26,33 @@ class EffectsPasses;
 
 class PassesData;
 
-} // namespace render
+} // namespace sqt::render
 
-class Renderer final
+//============================================================================//
+
+namespace sqt {
+
+class Renderer final : sq::NonCopyable
 {
-public:
+public: //====================================================//
 
     Renderer(const Options& options);
 
     ~Renderer();
 
+    //--------------------------------------------------------//
+
     void refresh_options();
+
     void render_scene(const WorldStuff& wstuff);
 
-    float tickPercent = 0.f;
+private: //===================================================//
 
-private:
+    const Options& options;
 
     sq::PreProcessor mProcessor;
+
+    //--------------------------------------------------------//
 
     unique_ptr<RenderStuff> mRenderStuff;
 
@@ -64,7 +70,6 @@ private:
 
     unique_ptr<render::PassesData> mPassesData;
 
-    const Options& options;
 };
 
 } // namespace sqt

@@ -93,7 +93,6 @@ void Mesh::impl_load_ascii(const string& path)
 
     //========================================================//
 
-
     for (const auto& [line, num] : tokenise_file(path))
     {
         const string& key = line.front();

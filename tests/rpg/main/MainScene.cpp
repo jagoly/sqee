@@ -3,8 +3,6 @@
 #include <sqee/sound/Sound.hpp>
 #include <sqee/debug/Misc.hpp>
 
-#include "../Options.hpp"
-
 #include "../render/Renderer.hpp"
 #include "../systems/WorldStuff.hpp"
 
@@ -15,7 +13,8 @@
 
 #include "../api/ScriptAPI.hpp"
 
-#include "Scripting.hpp"
+#include "Options.hpp"
+
 #include "MainScene.hpp"
 
 using namespace sqt;
@@ -23,18 +22,16 @@ namespace maths = sq::maths;
 
 //============================================================================//
 
-MainScene::MainScene ( sq::MessageBus& bus, sq::ChaiEngine& engine,
-                       sq::InputDevices& input, ResourceCaches& caches,
-                       const Options& options )
+MainScene::MainScene ( const Options& options, sq::ChaiEngine& engine,
+                       sq::InputDevices& input, ResourceCaches& caches )
     : Scene(1.0 / 24.0)
-    , mBus(bus), mEngine(engine)
+    , options(options), mEngine(engine)
     , mInput(input), mCaches(caches)
-    , options(options)
 {
     world = std::make_unique<WorldStuff>();
     renderer = std::make_unique<Renderer>(options);
 
-    api = std::make_unique<ScriptAPI> ( mCaches, *world );
+    api = std::make_unique<ScriptAPI>(mCaches, *world);
 
     mPosCrnt = mPosNext = world->camera.get_position();
 
@@ -59,6 +56,8 @@ void MainScene::refresh_options()
 void MainScene::update()
 {
     mPosCrnt = mPosNext;
+
+    //--------------------------------------------------------//
 
     if (mEnableInput == true)
     {
@@ -88,9 +87,9 @@ void MainScene::update()
 
 void MainScene::render(double)
 {
-    const float tickPercent = float(mAccumulation) * 24.f;
+    const float tickBlend = float(mAccumulation) * 24.f;
 
-    renderer->tickPercent = tickPercent;
+    //--------------------------------------------------------//
 
     if (mEnableInput == true)
     {
@@ -99,7 +98,7 @@ void MainScene::render(double)
         mRotateX = maths::clamp(mRotateX, -0.23f, +0.23f);
 
         const QuatF rotation = QuatF(mRotateX, 0.f, mRotateZ);
-        world->camera.set_position(maths::mix(mPosCrnt, mPosNext, tickPercent));
+        world->camera.set_position(maths::mix(mPosCrnt, mPosNext, tickBlend));
         world->camera.set_direction(rotation * Vec3F(0.f, 1.f, 0.f));
 
         sq::Listener::set_position(world->camera.get_position());
@@ -110,7 +109,9 @@ void MainScene::render(double)
 
     world->deletedEntities.clear();
 
-    sys::system_blend_animations(*world, tickPercent);
+    sys::system_blend_animations(*world, tickBlend);
+
+    //--------------------------------------------------------//
 
     sys::system_refresh_nesting(*world);
     sys::system_refresh_transforms(*world);

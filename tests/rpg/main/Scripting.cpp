@@ -5,10 +5,6 @@
 #include "../world/Ambient.hpp"
 #include "../world/Skylight.hpp"
 
-#include "../messages.hpp"
-
-#include "../api/editors.hpp"
-#include "../api/other.hpp"
 #include "../api/ScriptAPI.hpp"
 
 #include "Scripting.hpp"
@@ -184,15 +180,6 @@ void sqt::chaiscript_setup_api(sq::ChaiEngine& engine)
     m->add(fun(&api::AnimationTimeline::debug_assert_sanity), "debug_assert_sanity");
 
     //--------------------------------------------------------//
-
-    engine.add(m);
-}
-
-//============================================================================//
-
-void sqt::chaiscript_setup_messages(sq::ChaiEngine& engine)
-{
-    auto m = std::make_shared<chai::Module>();
 
     engine.add(m);
 }

@@ -3,11 +3,11 @@
 #include "../SharedStuff.hpp"
 #include "../PassesData.hpp"
 
-namespace sqt::render {
-
 //============================================================================//
 
-class ShadowsPasses : public SharedStuff
+namespace sqt::render {
+
+class ShadowsPasses final : public SharedStuff
 {
 public: //====================================================//
 
@@ -28,7 +28,5 @@ private: //===================================================//
 
     void impl_render_ShadowsPass(const data::ShadowsPass& data);
 };
-
-//============================================================================//
 
 } // namespace sqt::render

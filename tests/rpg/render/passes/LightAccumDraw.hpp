@@ -3,11 +3,11 @@
 #include "../SharedStuff.hpp"
 #include "../PassesData.hpp"
 
-namespace sqt::render {
-
 //============================================================================//
 
-class LightAccumPasses : public SharedStuff
+namespace sqt::render {
+
+class LightAccumPasses final : public SharedStuff
 {
 public: //====================================================//
 
@@ -42,7 +42,5 @@ private: //===================================================//
     void impl_render_StencilPass(const data::LightAccumStencilPass& light,
                                  const sq::Volume& volume, const sq::Program& program);
 };
-
-//============================================================================//
 
 } // namespace sqt::render

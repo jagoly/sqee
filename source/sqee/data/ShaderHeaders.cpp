@@ -1,8 +1,15 @@
+extern const char data_glsl_misc_screen[];
+extern const char data_glsl_funcs_position[];
+extern const char data_glsl_funcs_depth[];
+extern const char data_glsl_funcs_random[];
+extern const char data_glsl_funcs_colour[];
+extern const char data_glsl_misc_disks[];
+
 //============================================================================//
 
 // input data for full screen with TRIANGLE_STRIP /////
 
-extern const char data_glsl_misc_screen[] = R"glsl(
+const char data_glsl_misc_screen[] = R"glsl(
 
 const vec2 c_PositionArray[4] =
 {
@@ -19,7 +26,7 @@ vec2 v_Position = c_PositionArray[gl_VertexID];
 
 // functions for position reconstruction /////
 
-extern const char data_glsl_funcs_position[] = R"glsl(
+const char data_glsl_funcs_position[] = R"glsl(
 
 vec3 get_view_pos(sampler2D depthTex, vec2 texcrd, mat4 invProjMat)
 {
@@ -45,7 +52,7 @@ vec3 get_world_pos(vec3 viewPos, mat4 invViewMat)
 
 // functions for special sampling using depth /////
 
-extern const char data_glsl_funcs_depth[] = R"glsl(
+const char data_glsl_funcs_depth[] = R"glsl(
 
 float linearise(float depth, float n, float f)
 {
@@ -120,7 +127,7 @@ vec3 nearest_depth_vec3 ( vec2 texcrd, sampler2D sampler,
 
 // Functions for generating random values from a seed /////
 
-extern const char data_glsl_funcs_random[] = R"glsl(
+const char data_glsl_funcs_random[] = R"glsl(
 
 float rand1(float seed)
 {
@@ -144,7 +151,7 @@ float rand3(vec3 seed)
 
 // functions for colour space manipulation /////
 
-extern const char data_glsl_funcs_colour[] = R"glsl(
+const char data_glsl_funcs_colour[] = R"glsl(
 
 vec3 rgb_to_hsv(vec3 _c)
 {
@@ -241,7 +248,7 @@ float rgb_to_luma(vec3 rgb)
 
 // a set of uniform spiral disks /////
 
-extern const char data_glsl_misc_disks[] = R"glsl(
+const char data_glsl_misc_disks[] = R"glsl(
 
 const vec2 c_Disk6[6] =
 {
@@ -338,6 +345,3 @@ const vec2 c_Disk16[16] =
 };
 
 )glsl";
-
-
-//============================================================================//

@@ -1,17 +1,31 @@
 #pragma once
 
 #include <sqee/misc/ResourceCache.hpp>
+#include <sqee/misc/ResourceHandle.hpp>
 
-// Forward Declarations /////
-namespace sq { class Texture2D; class Mesh; class Armature; class SoundWave; class Material; }
+//====== Forward Declarations ================================================//
+
+namespace sq {
+
+class Texture2D;
+class Mesh;
+class Armature;
+class SoundWave;
+class Material;
+
+} // namespace sq
 
 //============================================================================//
 
 namespace sqt {
 
-//============================================================================//
+//====== Alias Declarations ==================================================//
 
-using sq::Handle;
+using TextureHandle  = sq::Handle<sq::Texture2D>;
+using MeshHandle     = sq::Handle<sq::Mesh>;
+using ArmatureHandle = sq::Handle<sq::Armature>;
+using SoundHandle    = sq::Handle<sq::SoundWave>;
+using MaterialHandle = sq::Handle<sq::Material>;
 
 //============================================================================//
 
@@ -21,7 +35,7 @@ class TextureCache final : public sq::ResourceCache<sq::Texture2D>
     private: unique_ptr<sq::Texture2D> create(const string& path) override;
 };
 
-//============================================================================//
+//----------------------------------------------------------------------------//
 
 class MeshCache final : public sq::ResourceCache<sq::Mesh>
 {
@@ -29,7 +43,7 @@ class MeshCache final : public sq::ResourceCache<sq::Mesh>
     private: unique_ptr<sq::Mesh> create(const string& path) override;
 };
 
-//============================================================================//
+//----------------------------------------------------------------------------//
 
 class ArmatureCache final : public sq::ResourceCache<sq::Armature>
 {
@@ -37,7 +51,7 @@ class ArmatureCache final : public sq::ResourceCache<sq::Armature>
     private: unique_ptr<sq::Armature> create(const string& path) override;
 };
 
-//============================================================================//
+//----------------------------------------------------------------------------//
 
 class SoundCache final : public sq::ResourceCache<sq::SoundWave>
 {
@@ -45,7 +59,7 @@ class SoundCache final : public sq::ResourceCache<sq::SoundWave>
     private: unique_ptr<sq::SoundWave> create(const string& path) override;
 };
 
-//============================================================================//
+//----------------------------------------------------------------------------//
 
 class MaterialCache final : public sq::ResourceCache<sq::Material>
 {
@@ -56,7 +70,7 @@ class MaterialCache final : public sq::ResourceCache<sq::Material>
 
 //============================================================================//
 
-class ResourceCaches final
+class ResourceCaches final : sq::NonCopyable
 {
 public: //====================================================//
 

@@ -15,7 +15,7 @@ sq::dop::Group system_get_visible_objects_sphere(const WorldStuff& stuff, sq::ma
 
 sq::dop::Group system_get_visible_objects_frustum(const WorldStuff& stuff, sq::maths::Frustum frustum);
 
-sq::dop::Group system_get_visible_objects_planes(const WorldStuff& stuff, sq::maths::Planes<4> planes);
+sq::dop::Group system_get_visible_objects_ortho(const WorldStuff& stuff, sq::maths::Ortho2D ortho);
 
 //============================================================================//
 

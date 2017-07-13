@@ -7,7 +7,7 @@
 #include headers/blocks/Camera
 #include headers/blocks/LightCasc
 
-const float density = 0.3f;
+const float density = 0.25f;
 
 //============================================================================//
 
@@ -25,13 +25,13 @@ out vec3 frag_Colour;
 //============================================================================//
 
 #ifdef OPTION_SHAFTS_HIGH
-const float NUM_SAMPLES = 96.f;
-const float MIN_STEP = 0.075f;
+const float NUM_SAMPLES = 64.f;
+const float MIN_STEP = 0.05f;
 const float MAX_STEP = 0.3f;
 #else
 const float NUM_SAMPLES = 32.f;
-const float MIN_STEP = 0.15f;
-const float MAX_STEP = 0.9f;
+const float MIN_STEP = 0.1f;
+const float MAX_STEP = 0.6f;
 #endif
 
 const float offsets[16] =
@@ -44,17 +44,18 @@ const float offsets[16] =
 
 //============================================================================//
 
-float get_shadow_value(float dist, vec3 worldPos)
+float get_shadow_value(vec3 worldPos)
 {
-    const vec3 ray = normalize(viewRay);
-    const float viewDist = -(ray * dist).z;
-
     int index = 0;
-    for (int i = 1; i < LB.cascadeCount; ++i)
-        if (viewDist > LB.cascadeSize * float(i))
-            index = i;
 
-    vec3 shadcrd = vec3(LB.matrices[index] * vec4(worldPos, 1.f)) * 0.5f + 0.5f;
+    for (; index < LB.cascadeCount - 1; ++index)
+    {
+        float dist = distance(LB.spheres[index].xyz, worldPos);
+        if (dist < LB.spheres[index].w) break;
+    }
+
+    vec3 shadcrd = vec3(LB.matrices[index] * vec4(worldPos, 1.f));
+    shadcrd = shadcrd * 0.5f + 0.5f;
 
     return texture(tex_Shadow, vec4(shadcrd.xy, index, shadcrd.z));
 }
@@ -72,7 +73,7 @@ float get_depth_distance(vec2 tcrd)
 
 void main()
 {
-    const float quarterDensity = 0.25f * density;
+    const float baseAccumRate = (1.f - density) * 0.025f;
     const vec3 worldRay = mat3(CB.invViewMat) * normalize(viewRay);
 
     const float depthDist = get_depth_distance(texcrd);
@@ -91,12 +92,11 @@ void main()
     {
         vec3 samplePos = CB.position + (dist - rayStartOffset) * worldRay;
 
-        float shadow = get_shadow_value(dist, samplePos);
+        float shadow = get_shadow_value(samplePos);
 
-        float value = (1.f - exp(-dist) * quarterDensity) * quarterDensity;
         float factor = stepSize * shadow;
 
-        accum += (1.f + quarterDensity - sqrt(accum)) * value * factor;
+        accum += ((density - accum) * 0.25f + baseAccumRate) * factor;
 
         if (accum > density) break;
     }

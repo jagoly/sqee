@@ -1,21 +1,15 @@
 #include <chaiscript/chaiscript.hpp>
 
-#include <sqee/app/DebugOverlay.hpp>
-#include <sqee/debug/Logging.hpp>
-#include <sqee/gl/Context.hpp>
-
 #include <sqee/scripts/BasicSetup.hpp>
 
-#include "main/MainScene.hpp"
+#include <sqee/debug/Logging.hpp>
+#include <sqee/debug/Misc.hpp>
+
 #include "main/Scripting.hpp"
 
-#include "Options.hpp"
-#include "messages.hpp"
 #include "RpgApp.hpp"
 
 using namespace sqt;
-namespace maths = sq::maths;
-using Context = sq::Context;
 
 //============================================================================//
 
@@ -28,10 +22,6 @@ RpgApp::~RpgApp() = default;
 void RpgApp::initialise(std::vector<string> args)
 {
     (void) args;
-
-    //--------------------------------------------------------//
-
-    mMessageBus.register_type<msg::Debug_Button>();
 
     //--------------------------------------------------------//
 
@@ -49,9 +39,7 @@ void RpgApp::initialise(std::vector<string> args)
 
     mResourceCaches = std::make_unique<ResourceCaches>();
 
-    mMainScene = std::make_unique<MainScene> ( mMessageBus, *mChaiEngine,
-                                               *mInputDevices, *mResourceCaches,
-                                               mOptions );
+    mMainScene = std::make_unique<MainScene>(mOptions, *mChaiEngine, *mInputDevices, *mResourceCaches);
 
     //--------------------------------------------------------//
 
@@ -70,11 +58,6 @@ void RpgApp::initialise(std::vector<string> args)
 
     chaiscript_setup_world(*mChaiEngine);
     chaiscript_setup_api(*mChaiEngine);
-    chaiscript_setup_messages(*mChaiEngine);
-
-    //--------------------------------------------------------//
-
-    mChaiEngine->add_global(chai::var(&mMessageBus), "mbus");
 
     //--------------------------------------------------------//
 
@@ -87,29 +70,21 @@ void RpgApp::initialise(std::vector<string> args)
 
 void RpgApp::update(double elapsed)
 {
-    static auto& context = Context::get();
+    //-- fetch and handle events -----------------------------//
 
-    //--------------------------------------------------------//
-
-    // fetch and handle events
     for (auto event : mWindow->fetch_events())
         this->handle_event(event);
 
-    //--------------------------------------------------------//
+    //-- update and render the main scene --------------------//
 
-    // update and render the main scene
     mMainScene->update_and_render(elapsed);
 
-    //--------------------------------------------------------//
+    //-- update and render the console and overlay -----------//
 
-    // set viewport for the console and overlay
-    context.set_ViewPort(mWindow->get_window_size());
-
-    // update and render the console and overlay
     mChaiConsole->update_and_render(elapsed);
     mDebugOverlay->update_and_render(elapsed);
 
-    //--------------------------------------------------------//
+    //-- swap da bufaz ---------------------------------------//
 
     mWindow->swap_buffers();
 }
@@ -259,9 +234,22 @@ void RpgApp::handle_event(sq::Event event)
             refresh_options();
         }
 
-        if (data.keyboard.key == Key::Pad_1) { mMessageBus.publish(msg::Debug_Button{1}); }
-        if (data.keyboard.key == Key::Pad_2) { mMessageBus.publish(msg::Debug_Button{2}); }
-        if (data.keyboard.key == Key::Pad_3) { mMessageBus.publish(msg::Debug_Button{3}); }
-        if (data.keyboard.key == Key::Pad_4) { mMessageBus.publish(msg::Debug_Button{4}); }
+        #ifdef SQEE_DEBUG
+
+        if (data.keyboard.key == Key::Num_1)
+        {
+            sqeeDebugToggle1 = !sqeeDebugToggle1;
+            notify(sqeeDebugToggle1, "sqeeDebugToggle1 set to ", {"false", "true"});
+            refresh_options();
+        }
+
+        if (data.keyboard.key == Key::Num_2)
+        {
+            sqeeDebugToggle2 = !sqeeDebugToggle2;
+            notify(sqeeDebugToggle2, "sqeeDebugToggle2 set to ", {"false", "true"});
+            refresh_options();
+        }
+
+        #endif
     }
 }

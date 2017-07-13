@@ -39,17 +39,19 @@ void ShadowsPasses::render(const data::ShadowsPasses& data)
     context.set_state(Context::Stencil_Test::Disable);
     context.set_state(Context::Blend_Mode::Disable);
 
-    // depth clamp orthographic projections
+    //-- depth clamp orthographic projections ----------------//
+
     context.set_state(Context::Depth_Clamp::Enable);
+
     for (const auto& pass : data.cascPassVec) impl_render_ShadowsPass(pass);
     for (const auto& pass : data.orthoPassVec) impl_render_ShadowsPass(pass);
 
-    // don't depth clamp perspective projections
+    //-- don't depth clamp perspective projections -----------//
+
     context.set_state(Context::Depth_Clamp::Disable);
+
     for (const auto& pass : data.pointPassVec) impl_render_ShadowsPass(pass);
     for (const auto& pass : data.spotPassVec) impl_render_ShadowsPass(pass);
-
-    context.bind_Program_default();
 }
 
 //============================================================================//
@@ -62,9 +64,7 @@ void ShadowsPasses::impl_render_ShadowsPass(const data::ShadowsPass& pass)
 
     const auto& dp = pass.depthPasses;
 
-    //========================================================//
-
-    // render solid simple models /////
+    //-- render solid simple models --------------------------//
 
     context.bind_Program(PROG_SimpleSolid);
 
@@ -90,9 +90,7 @@ void ShadowsPasses::impl_render_ShadowsPass(const data::ShadowsPass& pass)
         model.mesh.draw_partial(model.index);
     }
 
-    //========================================================//
-
-    // render solid skelly models /////
+    //-- render solid skelly models --------------------------//
 
     context.bind_Program(PROG_SkellySolid);
 
@@ -120,9 +118,7 @@ void ShadowsPasses::impl_render_ShadowsPass(const data::ShadowsPass& pass)
         model.mesh.draw_partial(model.index);
     }
 
-    //========================================================//
-
-    // render punch simple models /////
+    //-- render punch simple models --------------------------//
 
     context.bind_Program(PROG_SimplePunch);
 
@@ -142,9 +138,7 @@ void ShadowsPasses::impl_render_ShadowsPass(const data::ShadowsPass& pass)
         }
     }
 
-    //========================================================//
-
-    // render punch skelly models /////
+    //-- render punch skelly models --------------------------//
 
     context.bind_Program(PROG_SkellyPunch);
 
@@ -165,5 +159,3 @@ void ShadowsPasses::impl_render_ShadowsPass(const data::ShadowsPass& pass)
         }
     }
 }
-
-//============================================================================//

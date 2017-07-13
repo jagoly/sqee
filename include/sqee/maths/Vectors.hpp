@@ -384,6 +384,15 @@ T dot(Vector<S, T> v, T s)
 
 //============================================================================//
 
+/// Compute the squared length of a vector.
+template <int S, class T> constexpr
+T length_squared(Vector<S, T> vec)
+{
+    static_assert(std::is_floating_point_v<T>);
+
+    return maths::dot(vec, vec);
+}
+
 /// Compute the length of a vector.
 template <int S, class T> inline
 T length(Vector<S, T> vec)
@@ -395,16 +404,14 @@ T length(Vector<S, T> vec)
 
 //============================================================================//
 
-/// Compute the unit length vector.
-template <int S, class T> inline
-Vector<S, T> normalize(Vector<S, T> vec)
+/// Compute the squared distance between two vectors.
+template <int S, class T> constexpr
+T distance_squared(Vector<S, T> a, Vector<S, T> b)
 {
     static_assert(std::is_floating_point_v<T>);
 
-    return vec * (T(1.0) / maths::length(vec));
+    return maths::length_squared(a - b);
 }
-
-//============================================================================//
 
 /// Compute the distance between two vectors.
 template <int S, class T> inline
@@ -413,6 +420,17 @@ T distance(Vector<S, T> a, Vector<S, T> b)
     static_assert(std::is_floating_point_v<T>);
 
     return maths::length(a - b);
+}
+
+//============================================================================//
+
+/// Compute the unit length vector.
+template <int S, class T> inline
+Vector<S, T> normalize(Vector<S, T> vec)
+{
+    static_assert(std::is_floating_point_v<T>);
+
+    return vec * (T(1.0) / maths::length(vec));
 }
 
 //============================================================================//

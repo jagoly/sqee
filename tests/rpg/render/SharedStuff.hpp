@@ -6,22 +6,20 @@
 #include <sqee/gl/Program.hpp>
 #include <sqee/gl/Textures.hpp>
 
-namespace sqt {
+#include "../main/Options.hpp"
 
-//============================================================================//
-
-class Options; // Forward Declaration
+//====== Data Declarations ===================================================//
 
 extern "C" const float data_CubeVertices [8*3];
 extern "C" const uchar data_CubeIndices  [12*3];
-extern "C" const float data_SphereVertices [24*3];
-extern "C" const uchar data_SphereIndices  [44*3];
-extern "C" const float data_ConeVertices [18*3];
-extern "C" const uchar data_ConeIndices  [32*3];
+extern "C" const float data_SphereVertices [42*3];
+extern "C" const uchar data_SphereIndices  [80*3];
+extern "C" const float data_ConeVertices [26*3];
+extern "C" const uchar data_ConeIndices  [48*3];
 
 //============================================================================//
 
-namespace render {
+namespace sqt::render {
 
 //============================================================================//
 
@@ -30,8 +28,8 @@ struct StencilVolumes : sq::NonCopyable
     sq::Volume Unit_Cube { data_CubeVertices, data_CubeIndices, 8u, 36u };
 
     sq::Volume Light_Ortho { data_CubeVertices, data_CubeIndices, 8u, 36u };
-    sq::Volume Light_Point { data_SphereVertices, data_SphereIndices, 24u, 132u };
-    sq::Volume Light_Spot { data_ConeVertices, data_ConeIndices, 18u, 96u };
+    sq::Volume Light_Point { data_SphereVertices, data_SphereIndices, 42u, 240u };
+    sq::Volume Light_Spot { data_ConeVertices, data_ConeIndices, 26u, 144u };
 };
 
 //============================================================================//
@@ -65,14 +63,16 @@ struct TargetTextures : sq::NonCopyable
 
 struct SharedStuff
 {
-    const StencilVolumes& volumes;
-    const TargetTextures& textures;
     const Options& options;
 
+    const StencilVolumes& volumes;
+    const TargetTextures& textures;
+
     sq::PreProcessor& processor;
+
     sq::Context& context;
 };
 
 //============================================================================//
 
-}} // namespace sqt::render
+} // namespace sqt::render

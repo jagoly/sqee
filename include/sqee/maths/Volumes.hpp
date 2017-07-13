@@ -1,7 +1,5 @@
 #pragma once
 
-#include <array>
-
 #include <sqee/maths/Vectors.hpp>
 #include <sqee/maths/Quaternion.hpp>
 
@@ -9,10 +7,30 @@ namespace sq::maths {
 
 //============================================================================//
 
+struct Plane
+{
+    Vec3F normal; // normal of the plane
+    float offset; // distance from origin
+};
+
+struct Ray
+{
+    Vec3F direction; // direction of the ray
+    Vec3F origin;    // origin point of the ray
+};
+
 struct Sphere
 {
     Vec3F origin; // centre of the sphere
     float radius; // size of the sphere
+};
+
+struct Cone
+{
+    Vec3F origin;    // apex of the cone
+    float length;    // length of the cone
+    Vec3F direction; // from apex to base
+    float radius;    // radius of cone base
 };
 
 struct Box
@@ -20,25 +38,22 @@ struct Box
     Vec3F origin;  // centre of the shapes
     float radius;  // size of the sphere
     Vec3F extents; // size of the box
-    QuatF basis;   // rotation of the box
+    Mat3F basis;   // orientation matrix
 };
 
-struct Plane
+struct Ortho2D
 {
-    Vec3F normal; // normal of the plane
-    float offset; // distance from origin
+    Vec3F normalX;  // x axis normal
+    Vec3F normalY;  // y axis normal
+    Vec2F offsetsX; // x axis offsets
+    Vec2F offsetsY; // y axis offsets
+    Plane planeZ;   // z far plane
 };
-
-//============================================================================//
-
-template <size_t N> using Planes = std::array<Plane, N>;
-
-//============================================================================//
 
 struct Frustum
 {
-    Sphere sphere;    // origin, radius
-    Planes<5> planes; // near, L, R, B, T
+    Sphere sphere;   // origin, radius
+    Plane planes[5]; // near, L, R, B, T
 };
 
 //============================================================================//
@@ -74,27 +89,76 @@ inline Frustum make_frustum(Mat4F matrix, Vec3F origin, Vec3F direction, float r
 
 //============================================================================//
 
-inline Planes<4> make_ortho_xy(Mat4F matrix)
+/// Check if a point is inside of a @ref Sphere.
+///
+/// @param point the point to check
+/// @param sphere the sphere to check against
+/// @param scale multiply sphere radius
+///
+/// @result true if point is inside of sphere
+
+inline bool point_in_sphere(Vec3F point, Sphere sphere, float scale = 1.f)
 {
-    Planes<4> result;
+    const float dist = maths::distance(point, sphere.origin);
+    const float radius = sphere.radius * scale;
 
-    const Mat4F invMatrix = maths::inverse(matrix);
-    const auto divide_by_w = [](Vec4F v) { return Vec3F(v) / v.w; };
+    return dist < radius;
+}
 
-    const Vec3F pointA = divide_by_w(invMatrix * Vec4F(-1.f,  0.f, 0.f, 1.f));
-    const Vec3F pointB = divide_by_w(invMatrix * Vec4F(+1.f,  0.f, 0.f, 1.f));
-    const Vec3F pointC = divide_by_w(invMatrix * Vec4F( 0.f, -1.f, 0.f, 1.f));
-    const Vec3F pointD = divide_by_w(invMatrix * Vec4F( 0.f, +1.f, 0.f, 1.f));
+//============================================================================//
 
-    const Vec3F normalX = maths::normalize(Mat3F(invMatrix) * Vec3F(1.f, 0.f, 0.f));
-    const Vec3F normalY = maths::normalize(Mat3F(invMatrix) * Vec3F(0.f, 1.f, 0.f));
+/// Check if a point is inside of a @ref Cone.
+///
+/// @param point the point to check
+/// @param cone the cone to check against
+/// @param scale multiply cone radius
+///
+/// @result true if point is inside of cone
 
-    result[0] = Plane { -normalX, maths::dot(+normalX, pointA) }; // L
-    result[1] = Plane { +normalX, maths::dot(-normalX, pointB) }; // R
-    result[2] = Plane { -normalY, maths::dot(+normalY, pointC) }; // B
-    result[3] = Plane { +normalY, maths::dot(-normalY, pointD) }; // T
+inline bool point_in_cone(Vec3F point, Cone cone, float scale = 1.f)
+{
+    const float axisDot = maths::dot(point - cone.origin, cone.direction);
 
-    return result;
+    if (axisDot < 0.f || axisDot > cone.length) return false;
+
+    const float circleDist = maths::length((point - cone.origin) - cone.direction * axisDot);
+    const float circleRadius = (axisDot / cone.length) * cone.radius * scale;
+
+    return circleDist < circleRadius;
+}
+
+//============================================================================//
+
+/// Check if a point is inside of a @ref Plane.
+///
+/// @param point the point to check
+/// @param plane the plane to check against
+///
+/// @result true if point is inside of plane
+
+inline bool point_in_plane(Vec3F point, Plane plane)
+{
+    return maths::dot(point, plane.normal) < plane.offset;
+}
+
+//============================================================================//
+
+/// Check if a point is inside of an @ref Ortho2D.
+///
+/// @param point the point to check
+/// @param ortho the ortho to check against
+///
+/// @result true if point is inside of ortho
+
+inline bool point_in_ortho(Vec3F point, Ortho2D ortho)
+{
+    const float dotX = maths::dot(point, ortho.normalX);
+    const float dotY = maths::dot(point, ortho.normalY);
+
+    if (+dotX >= ortho.offsetsX[0] || -dotX >= ortho.offsetsX[1]) return false;
+    if (+dotY >= ortho.offsetsY[0] || -dotY >= ortho.offsetsY[1]) return false;
+
+    return true;
 }
 
 //============================================================================//

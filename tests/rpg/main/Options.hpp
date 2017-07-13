@@ -3,16 +3,14 @@
 #include <sqee/builtins.hpp>
 #include <sqee/maths/Vectors.hpp>
 
-namespace sqt {
-
 //============================================================================//
 
-/// SQEE RPG Global Options.
+namespace sqt {
+
 class Options final : sq::NonCopyable
 {
 public: //====================================================//
 
-    /// Constructor.
     Options() = default;
 
     //--------------------------------------------------------//
@@ -21,7 +19,7 @@ public: //====================================================//
     Vec2U Window_Size = {800u, 600u};
 
     /// The Maximum Visible Distance.
-    float View_Distance = 50.f;
+    float View_Distance = 40.f;
 
     /// Use High Quality Shadow Filtering.
     bool Shadows_Filter = true;
@@ -52,7 +50,5 @@ public: //====================================================//
     /// Assert that options are valid.
     void validate() const;
 };
-
-//============================================================================//
 
 } // namespace sqt

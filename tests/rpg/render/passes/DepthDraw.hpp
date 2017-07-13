@@ -3,11 +3,11 @@
 #include "../SharedStuff.hpp"
 #include "../PassesData.hpp"
 
-namespace sqt::render {
-
 //============================================================================//
 
-class DepthPasses : public SharedStuff
+namespace sqt::render {
+
+class DepthPasses final : public SharedStuff
 {
 public: //====================================================//
 
@@ -33,7 +33,5 @@ private: //===================================================//
     void impl_render_ModelSimplePass(const data::DepthModelSimplePass& data);
     void impl_render_ModelSkellyPass(const data::DepthModelSkellyPass& data);
 };
-
-//============================================================================//
 
 } // namespace sqt::render

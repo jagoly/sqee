@@ -45,8 +45,17 @@ void main()
     //--------------------------------------------------------//
 
     #ifdef OPTION_SHAFTS_ENABLE
+
+    const float oldLuma = dot(vec3(0.22f, 0.69f, 0.09f), value);
+
     value += nearest_depth_vec3 ( texcrd, tex_Shafts, tex_Depth, tex_DepQter,
                                   2.f, OPTION_ViewNear, OPTION_ViewFar );
+
+    const float newLuma = dot(vec3(0.22f, 0.69f, 0.09f), value);
+
+    value = value / newLuma;
+    value = value * ((oldLuma + newLuma) * 0.5f);
+
     #endif
 
     //--------------------------------------------------------//

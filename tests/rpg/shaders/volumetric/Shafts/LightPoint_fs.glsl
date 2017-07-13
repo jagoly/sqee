@@ -7,7 +7,7 @@
 #include headers/blocks/Camera
 #include headers/blocks/LightPoint
 
-const float density = 0.3f;
+const float density = 0.25f;
 
 //============================================================================//
 
@@ -25,9 +25,9 @@ out vec3 frag_Colour;
 //============================================================================//
 
 #ifdef OPTION_SHAFTS_HIGH
-const float NUM_SAMPLES = 48.f;
+const float NUM_SAMPLES = 32.f;
 const float MIN_STEP = 0.05f;
-const float MAX_STEP = 0.2f;
+const float MAX_STEP = 0.3f;
 #else
 const float NUM_SAMPLES = 16.f;
 const float MIN_STEP = 0.1f;
@@ -73,7 +73,7 @@ float get_depth_distance(vec2 tcrd)
 
 void main()
 {
-    const float quarterDensity = 0.25f * density;
+    const float baseAccumRate = (1.f - density) * 0.025f;
     const vec3 worldRay = mat3(CB.invViewMat) * normalize(viewRay);
 
     const float depthDist = get_depth_distance(texcrd);
@@ -94,13 +94,10 @@ void main()
         if (distToLight > LB.intensity) continue;
 
         float shadow = get_shadow_value(samplePos);
-
         float distanceAttn = 1.f - distToLight / LB.intensity;
-
-        float value = (1.f - exp(-dist) * quarterDensity) * quarterDensity;
         float factor = stepSize * shadow * distanceAttn;
 
-        accum += (1.f + quarterDensity - sqrt(accum)) * value * factor;
+        accum += ((density - accum) * 0.25f + baseAccumRate) * factor;
 
         if (accum > density) break;
     }

@@ -1,7 +1,6 @@
 #include <sqee/gl/Context.hpp>
 #include <sqee/gl/Drawing.hpp>
 
-#include "../../Options.hpp"
 #include "CompositeDraw.hpp"
 
 using Context = sq::Context;
@@ -81,8 +80,4 @@ void CompositePasses::render_to_screen()
     }
 
     sq::draw_screen_quad();
-
-    context.bind_Program_default();
 }
-
-//============================================================================//

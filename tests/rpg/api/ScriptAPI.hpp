@@ -5,9 +5,9 @@
 #include "other.hpp"
 #include "editors.hpp"
 
-namespace sqt {
-
 //============================================================================//
+
+namespace sqt {
 
 class ScriptAPI final : sq::NonCopyable
 {
@@ -85,7 +85,5 @@ private: //===================================================//
 
     void impl_play_sound(const string& path, uint group);
 };
-
-//============================================================================//
 
 } // namespace sqt

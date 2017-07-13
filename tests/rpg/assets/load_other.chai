@@ -33,7 +33,7 @@ def load_other()
     api.skylight.set_colour(Vec3F(1.0, 0.8, 0.8));
     api.skylight.set_density(0.25f);
     api.skylight.set_resolution(1024u);
-    api.skylight.set_cascades(4u);
+    api.skylight.set_cascades(3u);
 
     //--------------------------------------------------------//
 
@@ -73,7 +73,7 @@ def load_other()
         editTransform.set_rotation(QuatF(0.0, 0.0, 0.125));
         editTransform.set_scale(0.5f);
 
-        def callback(id) { api.ambient.set_colour(Vec3F(0.6, 0.6, 0.6));
+        def callback(id) { api.skybox.set_saturation(1.5f);
                            api.delete_entity(id); };
 
         var anim = api.begin_animation(group, timeline);
@@ -131,15 +131,30 @@ def load_other()
     leaf = api.create_entity(cell, ["Transform", "SpotLight"]);
     {
       var editTransform = api.edit_Transform(leaf);
-      editTransform.set_position(Vec3F(0.0, 7.0, 3.3));
-      editTransform.set_rotation(QuatF(-0.23, 0.0, 0.0));
+      editTransform.set_position(Vec3F(0.0, -7.0, 3.3));
+      editTransform.set_rotation(QuatF(0.23, 0.0, 0.0));
       editTransform.set_scale(20.0f);
 
       var editLight = api.edit_SpotLight(leaf);
       editLight.set_colour(Vec3F(1.0, 1.0, 0.5));
       editLight.set_softness(0.2f);
-      editLight.set_angle(0.07f);
+      editLight.set_angle(0.08f);
       editLight.set_resolution(256u);
+    }
+    
+    // SpotWest
+    leaf = api.create_entity(cell, ["Transform", "SpotLight"]);
+    {
+      var editTransform = api.edit_Transform(leaf);
+      editTransform.set_position(Vec3F(-8.0, 0.0, 1.5));
+      editTransform.set_rotation(QuatF(0.0, 0.75, 0.0));
+      editTransform.set_scale(12.0f);
+
+      var editLight = api.edit_SpotLight(leaf);
+      editLight.set_colour(Vec3F(1.0, 0.5, 0.5));
+      editLight.set_softness(0.6f);
+      editLight.set_angle(0.14f);
+      editLight.set_resolution(512u);
     }
 
     // PointCentre

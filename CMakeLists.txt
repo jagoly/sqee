@@ -129,6 +129,7 @@ set(SOURCES
 
   #----------------------------------------------------------#
 
+  "include/sqee/maths/Culling.hpp"
   "include/sqee/maths/Functions.hpp"
   "include/sqee/maths/Matrices.hpp"
   "include/sqee/maths/Quaternion.hpp"
@@ -172,7 +173,7 @@ set(SOURCES
   # Compiled-In Data                                         #
   #==========================================================#
 
-  "source/sqee/data/GLSLHeaders.cpp"
+  "source/sqee/data/ShaderHeaders.cpp"
 
   "source/sqee/data/TextFont.c"
   "source/sqee/data/TextGlow.c"
@@ -247,6 +248,8 @@ endif ()
 
 ################################################################################
 
+add_subdirectory("tests")
 add_subdirectory("testing")
+
 add_subdirectory("tests/soko")
 add_subdirectory("tests/rpg")

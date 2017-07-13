@@ -7,7 +7,7 @@
 
 float get_bias(vec3 normal, vec3 dirToLight)
 {
-    float lightDot = dot(normal, -dirToLight);
+    float lightDot = dot(normal, dirToLight);
     float magicTan = sqrt(1.f - lightDot * lightDot) / lightDot;
 
     return clamp(0.001f * magicTan, 0.f, 0.01f);

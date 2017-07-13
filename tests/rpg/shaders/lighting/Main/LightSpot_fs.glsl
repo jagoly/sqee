@@ -33,13 +33,13 @@ out vec3 frag_Colour;
 #include headers/shadow/sample_spot
 layout(binding=8) uniform sampler2DShadow tex_Shadow;
 
-float get_shadow_value(vec3 wPos, vec3 wSurf)
+float get_shadow_value(vec3 worldPos, vec3 worldSurf)
 {
-    vec3 normPos = wPos + wSurf * 0.05f;
+    vec3 normPos = worldPos + worldSurf * 0.05f;
     vec4 sc = LB.matrix * vec4(normPos, 1.f);
     vec3 shadcrd = sc.xyz / sc.w * 0.5f + 0.5f;
 
-    float bias = get_bias(wSurf, normalize(normPos - LB.position));
+    float bias = get_bias(worldSurf, normalize(LB.position - normPos));
 
     #if defined OPTION_SHADOWS_FILTER && defined OPTION_SHADOWS_LARGE
     return sample_shadow_x16(tex_Shadow, shadcrd, bias, 1.f / 128.f);
@@ -54,18 +54,18 @@ float get_shadow_value(vec3 wPos, vec3 wSurf)
 
 //============================================================================//
 
-vec3 get_diffuse_value(vec3 dirToLight, vec3 viewNorm)
+vec3 get_diffuse_value(vec3 dirFromLight, vec3 viewNorm)
 {
     vec3 texel = texture(tex_GbufDiff, texcrd).rgb;
-    float dotProd = max(dot(-dirToLight, viewNorm), 0.f);
+    float dotProd = max(dot(-dirFromLight, viewNorm), 0.f);
 
     return LB.colour * texel * dotProd;
 }
 
-vec3 get_specular_value(vec3 dirToLight, vec3 viewNorm, vec3 viewPos)
+vec3 get_specular_value(vec3 dirFromLight, vec3 viewNorm, vec3 viewPos)
 {
     vec3 texel = texture(tex_GbufSpec, texcrd).rgb;
-    vec3 reflection = reflect(dirToLight, viewNorm);
+    vec3 reflection = reflect(dirFromLight, viewNorm);
     vec3 dirFromCam = normalize(-viewPos);
     float factor = pow(max(dot(dirFromCam, reflection), 0.f), 33.f);
 
@@ -92,10 +92,10 @@ void main()
 
     const vec3 viewLightPos = vec3(CB.viewMat * vec4(LB.position, 1.f));
     const vec3 viewLightDir = mat3(CB.viewMat) * normalize(LB.direction);
-    const vec3 dirToLight = normalize(viewPos - viewLightPos);
-    if (dot(-dirToLight, viewNorm) < -0.25f) discard;
+    const vec3 dirFromLight = normalize(viewPos - viewLightPos);
+    if (dot(-dirFromLight, viewNorm) < -0.05f) discard;
 
-    const float angle = acos(dot(dirToLight, viewLightDir));
+    const float angle = acos(dot(dirFromLight, viewLightDir));
     if (angle > LB.angle) discard;
 
     //--------------------------------------------------------//
@@ -109,8 +109,8 @@ void main()
     
     //--------------------------------------------------------//
 
-    const vec3 diff = get_diffuse_value(dirToLight, viewNorm);
-    const vec3 spec = get_specular_value(dirToLight, viewNorm, viewPos);
+    const vec3 diff = get_diffuse_value(dirFromLight, viewNorm);
+    const vec3 spec = get_specular_value(dirFromLight, viewNorm, viewPos);
 
     const float angleAttn = pow((LB.angle - angle) / (1.f - LB.angle), sqrt(LB.softness));
     const float distanceAttn = 1.f - distToLight / LB.intensity;

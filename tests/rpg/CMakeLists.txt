@@ -7,16 +7,15 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build/tests/rpg")
 set(SOURCES
 
     "main.cpp"
-    "messages.hpp"
 
-    "RpgApp.hpp"   "RpgApp.cpp"
-    "Options.hpp"  "Options.cpp"
+    "RpgApp.hpp"  "RpgApp.cpp"
 
     "api/editors.hpp"    "api/editors.cpp"
     "api/other.hpp"      "api/other.cpp"
     "api/ScriptAPI.hpp"  "api/ScriptAPI.cpp"
 
     "main/MainScene.hpp"       "main/MainScene.cpp"
+    "main/Options.hpp"         "main/Options.cpp"
     "main/ResourceCaches.hpp"  "main/ResourceCaches.cpp"
     "main/Scripting.hpp"       "main/Scripting.cpp"
 

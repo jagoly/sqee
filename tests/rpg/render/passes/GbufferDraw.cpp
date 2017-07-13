@@ -1,6 +1,5 @@
 #include <sqee/gl/Context.hpp>
 
-#include "../../Options.hpp"
 #include "GbufferDraw.hpp"
 
 using Context = sq::Context;
@@ -169,7 +168,7 @@ void GbufferPasses::impl_render_DecalPasses(const data::GbufferDecalPasses& data
     context.set_state(Context::Stencil_Test::Disable);
     context.set_state(Context::Blend_Mode::Disable);
 
-    // bind all gbuffer textures for manual blending
+    // bind gbuffer textures for manual blending
     context.bind_Texture(textures.Gbuffer_MainDiff, 3u);
     context.bind_Texture(textures.Gbuffer_MainSurf, 4u);
     context.bind_Texture(textures.Gbuffer_MainNorm, 5u);
@@ -200,5 +199,3 @@ void GbufferPasses::impl_render_DecalBasicPass(const data::GbufferDecalBasicPass
         }
     }
 }
-
-//============================================================================//

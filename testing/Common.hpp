@@ -67,19 +67,3 @@ std::ostream& operator<<(std::ostream& os, const Approx<float>& arg)
 {
     return os << "Approx(" << std::to_string(arg.value) << ")";
 }
-
-//============================================================================//
-
-namespace sq {
-
-inline std::ostream& operator<<(std::ostream& os, const Vec2F& arg) { return os << sq::chai_string(arg); }
-inline std::ostream& operator<<(std::ostream& os, const Vec3F& arg) { return os << sq::chai_string(arg); }
-inline std::ostream& operator<<(std::ostream& os, const Vec4F& arg) { return os << sq::chai_string(arg); }
-
-inline std::ostream& operator<<(std::ostream& os, const Mat3F& arg) { return os << sq::chai_string(arg); }
-inline std::ostream& operator<<(std::ostream& os, const Mat34F& arg) { return os << sq::chai_string(arg); }
-inline std::ostream& operator<<(std::ostream& os, const Mat4F& arg) { return os << sq::chai_string(arg); }
-
-inline std::ostream& operator<<(std::ostream& os, const QuatF& arg) { return os << sq::chai_string(arg); }
-
-}

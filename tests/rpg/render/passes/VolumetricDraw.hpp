@@ -3,11 +3,11 @@
 #include "../SharedStuff.hpp"
 #include "../PassesData.hpp"
 
-namespace sqt::render {
-
 //============================================================================//
 
-class VolumetricPasses : public SharedStuff
+namespace sqt::render {
+
+class VolumetricPasses final : public SharedStuff
 {
 public: //====================================================//
 
@@ -36,7 +36,5 @@ private: //===================================================//
     void impl_render_StencilPass(const data::VolumetricStencilPass& light,
                                  const sq::Volume& volume, const sq::Program& program);
 };
-
-//============================================================================//
 
 } // namespace sqt::render
