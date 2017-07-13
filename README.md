@@ -13,14 +13,14 @@ LibSQEE is library containing all sorts of useful stuff for 3D applications, par
  * [JSON](https://github.com/nlohmann/json)
 
 ##### About SQEE RPG
-SQEE RPG is a not a library, but a complete game engine. It's formost aim is to allow the creation of a high quality 3D Action Role Playing Game. It is however being designed such that it should be usuable in other 3D games as well - most of the logic is contained withing chaiscript scripts.
+SQEE RPG is a not a library, but a complete game engine. It's formost aim is to allow the creation of a high quality 3D Action Role Playing Game. It is however being designed such that it should be usuable in other 3D games as well - most of the logic is contained within chaiscript scripts.
 
 ##### About SQEE Sokoban
 SQEE Sokoban is, along with SQEE RPG, an example application for LibSQEE. It is also a fun, nice looking game that can provide hours of puzzle fun :)
 
 ### Building SQEE
 
-To build SQEE, you will need SFML ([>= 2.4.2](http://www.sfml-dev.org/download.php)), ChaiScript [develop](https://github.com/ChaiScript/ChaiScript/tree/develop/)) and ReactPhysics3D* ([my fork](https://github.com/jagoly/reactphysics3d/)). On linux, you may be able to grab one or more of them from your distro's repos, if available and up to date. Otherwise, you can build and/or install them manually from the links above.
+To build SQEE, you will need SFML ([>= 2.4.2](http://www.sfml-dev.org/download.php)), ChaiScript ([develop](https://github.com/ChaiScript/ChaiScript/tree/develop/)), and ReactPhysics3D* ([my fork](https://github.com/jagoly/reactphysics3d/)). On linux, you may be able to grab one or more of them from your distro's repos, if available and up to date. Otherwise, you can build and/or install them manually from the links above.
 
 A C++ 17 capable compiler is required. This means GCC 7.x or clang 4.x. You also need a matching libstdc++ or libc++. If you are running Fedora 26+ or Arch, you should be good. For Ubuntu, you can use [this ppa](https://launchpad.net/~jonathonf/+archive/ubuntu/gcc-7.1).
 
