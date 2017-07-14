@@ -42,9 +42,8 @@ enum class Gamepad_Stick
 enum class Gamepad_Button
 {
     Unknown = -1,
-    DP_Left, DP_Right, DP_Up, DP_Down,
-    A, B, X, Y, L1, R1, L2, R2,
-    Select, Home, Start
+    A, B, X, Y, L1, R1,
+    Select, Start, Home
 };
 
 //============================================================================//

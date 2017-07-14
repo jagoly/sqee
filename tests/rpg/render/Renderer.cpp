@@ -38,14 +38,11 @@ Renderer::Renderer(const Options& options) : options(options)
     //-- import shader headers -------------------------------//
 
     mProcessor.import_header("headers/blocks/Camera");
-    mProcessor.import_header("headers/blocks/SkyBox");
-    mProcessor.import_header("headers/blocks/Ambient");
     mProcessor.import_header("headers/blocks/Skeleton");
     mProcessor.import_header("headers/blocks/LightCasc");
     mProcessor.import_header("headers/blocks/LightOrtho");
     mProcessor.import_header("headers/blocks/LightPoint");
     mProcessor.import_header("headers/blocks/LightSpot");
-    mProcessor.import_header("headers/blocks/reflect");
     mProcessor.import_header("headers/shadow/sample_casc");
     mProcessor.import_header("headers/shadow/sample_ortho");
     mProcessor.import_header("headers/shadow/sample_point");

@@ -164,6 +164,28 @@ static constexpr Mouse_Button conv_sfml_mouse_button[]
 
 //============================================================================//
 
+static constexpr Gamepad_Button conv_sfml_gamepad_button[]
+{
+    Gamepad_Button::A,       //  0 - A
+    Gamepad_Button::B,       //  1 - B
+    Gamepad_Button::X,       //  2 - X
+    Gamepad_Button::Y,       //  3 - Y
+    Gamepad_Button::L1,      //  4 - L1
+    Gamepad_Button::R1,      //  5 - R1
+    Gamepad_Button::Select,  //  6 - Select
+    Gamepad_Button::Start,   //  7 - Start
+    Gamepad_Button::Home,    //  8 - Home
+    Gamepad_Button::Unknown, //  9 - L3
+    Gamepad_Button::Unknown, // 10 - R3
+    Gamepad_Button::Unknown, // 11
+    Gamepad_Button::Unknown, // 12
+    Gamepad_Button::Unknown, // 13
+    Gamepad_Button::Unknown, // 14
+    Gamepad_Button::Unknown, // 15
+};
+
+//============================================================================//
+
 struct Window::Implementation
 {
     string windowTitle = "";
@@ -318,7 +340,7 @@ std::vector<Event> Window::fetch_events()
             event.data.gamepad =
             {
                 int32_t(sfe.joystickConnect.joystickId),
-                Gamepad_Button::Unknown //sfe.joystickButton.button
+                conv_sfml_gamepad_button[sfe.joystickButton.button]
             };
         }
 

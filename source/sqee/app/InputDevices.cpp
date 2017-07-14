@@ -5,6 +5,7 @@
 
 #include <sqee/app/Window.hpp>
 #include <sqee/app/InputDevices.hpp>
+#include <sqee/assert.hpp>
 
 using namespace sq;
 
@@ -18,6 +19,8 @@ InputDevices::InputDevices(Window& window)
 
 bool InputDevices::is_pressed(Keyboard_Key key) const
 {
+    SQASSERT(key != Keyboard_Key::Unknown, "");
+
     constexpr sf::Keyboard::Key sqee_to_sfml[]
     {
         sf::Keyboard::Key::Num0,  // Num_0
@@ -150,6 +153,8 @@ Vec2U InputDevices::get_cursor_location() const
 
 bool InputDevices::is_pressed(Mouse_Button button) const
 {
+    SQASSERT(button != Mouse_Button::Unknown, "");
+
     constexpr sf::Mouse::Button sqee_to_sfml[]
     {
         sf::Mouse::Button::Left,      // Left
@@ -177,10 +182,41 @@ Vec2I InputDevices::cursor_to_centre()
 
 Vec2F InputDevices::get_stick_pos(int32_t port, Gamepad_Stick stick) const
 {
-    return { 0.f, 0.f };
+    SQASSERT(port >= 0 && stick != Gamepad_Stick::Unknown, "");
+
+    if (stick == Gamepad_Stick::Left)
+    {
+        const float x = sf::Joystick::getAxisPosition(uint(port), sf::Joystick::X);
+        const float y = sf::Joystick::getAxisPosition(uint(port), sf::Joystick::Y);
+        return Vec2F ( x, -y ) / 100.f;
+    }
+
+    if (stick == Gamepad_Stick::Right)
+    {
+        const float x = sf::Joystick::getAxisPosition(uint(port), sf::Joystick::U);
+        const float y = sf::Joystick::getAxisPosition(uint(port), sf::Joystick::V);
+        return Vec2F ( x, -y ) / 100.f;
+    }
+
+    return Vec2F(0.f, 0.f);
 }
 
 bool InputDevices::is_pressed(int32_t port, Gamepad_Button button) const
 {
-    return false;
+    SQASSERT(port >= 0 && button != Gamepad_Button::Unknown, "");
+
+    constexpr uint sqee_to_sfml[]
+    {
+        0u, // A
+        1u, // B
+        2u, // X
+        3u, // Y
+        4u, // L1
+        5u, // R1
+        6u, // Select
+        7u, // Start
+        8u, // Home
+    };
+
+    return sf::Joystick::isButtonPressed(uint(port), sqee_to_sfml[int(button)]);
 }
