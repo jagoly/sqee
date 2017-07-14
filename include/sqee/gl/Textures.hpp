@@ -95,28 +95,28 @@ public: //====================================================//
 
 //============================================================================//
 
-/// GL_TEXTURE_CUBE_MAP_ARRAY Object.
-class TextureArrayCube final : public Texture
-{
-public: //====================================================//
+///// GL_TEXTURE_CUBE_MAP_ARRAY Object.
+//class TextureArrayCube final : public Texture
+//{
+//public: //====================================================//
 
-    /// Constructor.
-    TextureArrayCube(Format format = Format::Undefined);
+//    /// Constructor.
+//    TextureArrayCube(Format format = Format::Undefined);
 
-    /// Allocate storage for the texture.
-    void allocate_storage(Vec2U size);
+//    /// Allocate storage for the texture.
+//    void allocate_storage(Vec2U size);
 
-    //--------------------------------------------------------//
+//    //--------------------------------------------------------//
 
-    /// Transfer some memory into one layer-face of the texture.
-    void buffer_memory(const void* data, uint face, uint layer, GLenum type);
+//    /// Transfer some memory into one layer-face of the texture.
+//    void buffer_memory(const void* data, uint face, uint layer, GLenum type);
 
-    /// Load a png or jpg image into one layer-face of the texture.
-    void buffer_file(const string& path, uint face, uint layer);
+//    /// Load a png or jpg image into one layer-face of the texture.
+//    void buffer_file(const string& path, uint face, uint layer);
 
-    /// Load a directory of six png or jpg images into the texture.
-    void buffer_full(const string& path, uint layer);
-};
+//    /// Load a directory of six png or jpg images into the texture.
+//    void buffer_full(const string& path, uint layer);
+//};
 
 //============================================================================//
 

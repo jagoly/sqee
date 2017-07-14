@@ -16,7 +16,7 @@ InputDevices::InputDevices(Window& window)
 
 //============================================================================//
 
-bool InputDevices::is_pressed(Keyboard_Key key)
+bool InputDevices::is_pressed(Keyboard_Key key) const
 {
     constexpr sf::Keyboard::Key sqee_to_sfml[]
     {
@@ -135,9 +135,9 @@ bool InputDevices::is_pressed(Keyboard_Key key)
 
 //============================================================================//
 
-Vec2U InputDevices::get_cursor_location()
+Vec2U InputDevices::get_cursor_location() const
 {
-    auto window = static_cast<sf::Window*>(mSystemWindowPtr);
+    auto window = static_cast<const sf::Window*>(mSystemWindowPtr);
 
     sf::Vector2i size ( window->getSize() );
     sf::Vector2i position = sf::Mouse::getPosition(*window);
@@ -148,18 +148,7 @@ Vec2U InputDevices::get_cursor_location()
     return { clampedX, clampedY };
 }
 
-Vec2I InputDevices::cursor_to_centre()
-{
-    auto window = static_cast<sf::Window*>(mSystemWindowPtr);
-
-    sf::Vector2i centre ( window->getSize() / 2u );
-    sf::Vector2i position = sf::Mouse::getPosition(*window);
-    sf::Mouse::setPosition(centre, *window);
-
-    return { centre.x - position.x, centre.y - position.y };
-}
-
-bool InputDevices::is_pressed(Mouse_Button button)
+bool InputDevices::is_pressed(Mouse_Button button) const
 {
     constexpr sf::Mouse::Button sqee_to_sfml[]
     {
@@ -173,14 +162,25 @@ bool InputDevices::is_pressed(Mouse_Button button)
     return sf::Mouse::isButtonPressed(sqee_to_sfml[int(button)]);
 }
 
+Vec2I InputDevices::cursor_to_centre()
+{
+    auto window = static_cast<sf::Window*>(mSystemWindowPtr);
+
+    sf::Vector2i centre ( window->getSize() / 2u );
+    sf::Vector2i position = sf::Mouse::getPosition(*window);
+    sf::Mouse::setPosition(centre, *window);
+
+    return { centre.x - position.x, centre.y - position.y };
+}
+
 //============================================================================//
 
-Vec2F InputDevices::get_stick_pos(int32_t port, Gamepad_Stick stick)
+Vec2F InputDevices::get_stick_pos(int32_t port, Gamepad_Stick stick) const
 {
     return { 0.f, 0.f };
 }
 
-bool InputDevices::is_pressed(int32_t port, Gamepad_Button button)
+bool InputDevices::is_pressed(int32_t port, Gamepad_Button button) const
 {
     return false;
 }

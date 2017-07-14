@@ -25,7 +25,10 @@ namespace { // anonymous
 
 const char vertexSource[] = R"glsl(
 
-#version 450 core
+#version 330 core
+#extension GL_ARB_shading_language_420pack : enable
+#extension GL_ARB_explicit_uniform_location : enable
+#extension GL_ARB_gpu_shader5 : enable
 
 const vec2 texcrds[6] =
 {
@@ -50,7 +53,10 @@ void main()
 
 const char fragmentSource[] = R"glsl(
 
-#version 450 core
+#version 330 core
+#extension GL_ARB_shading_language_420pack : enable
+#extension GL_ARB_explicit_uniform_location : enable
+#extension GL_ARB_gpu_shader5 : enable
 
 in vec3 texcrd;
 

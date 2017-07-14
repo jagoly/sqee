@@ -88,6 +88,6 @@ void Context::impl_reset_VertexArray(const VertexArray* old, const VertexArray* 
 
 Context& Context::get()
 {
-    static Context instance;
+    thread_local Context instance;
     return instance;
 }

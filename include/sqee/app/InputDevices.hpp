@@ -60,26 +60,26 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     /// Check if the given key is pressed.
-    bool is_pressed(Keyboard_Key key);
+    bool is_pressed(Keyboard_Key key) const;
 
     //--------------------------------------------------------//
 
     /// Get the location of the cursor.
-    Vec2U get_cursor_location();
+    Vec2U get_cursor_location() const;
+
+    /// Check if the given button is pressed.
+    bool is_pressed(Mouse_Button button) const;
 
     /// Move the cursor to the window centre.
     Vec2I cursor_to_centre();
 
-    /// Check if the given button is pressed.
-    bool is_pressed(Mouse_Button button);
-
     //--------------------------------------------------------//
 
     /// Get position of the given analogue stick.
-    Vec2F get_stick_pos(int32_t port, Gamepad_Stick stick);
+    Vec2F get_stick_pos(int32_t port, Gamepad_Stick stick) const;
 
     /// Check if the given button is pressed.
-    bool is_pressed(int32_t port, Gamepad_Button button);
+    bool is_pressed(int32_t port, Gamepad_Button button) const;
 
 private: //===================================================//
 

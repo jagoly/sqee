@@ -51,11 +51,11 @@ void FrameBuffer::attach(GLenum attach, const TextureArray2D& tex, uint layer)
     gl::NamedFramebufferTextureLayer(mHandle, attach, tex.get_handle(), 0, int(layer));
 }
 
-void FrameBuffer::attach(GLenum attach, const TextureArrayCube& tex, uint layer, uint face)
-{
-    SQASSERT(tex.get_handle() && layer < tex.get_size().z && face < 6u, "");
-    gl::NamedFramebufferTextureLayer(mHandle, attach, tex.get_handle(), 0, int(6u * layer + face));
-}
+//void FrameBuffer::attach(GLenum attach, const TextureArrayCube& tex, uint layer, uint face)
+//{
+//    SQASSERT(tex.get_handle() && layer < tex.get_size().z && face < 6u, "");
+//    gl::NamedFramebufferTextureLayer(mHandle, attach, tex.get_handle(), 0, int(6u * layer + face));
+//}
 
 void FrameBuffer::attach(GLenum attach, const TextureMulti& tex)
 {

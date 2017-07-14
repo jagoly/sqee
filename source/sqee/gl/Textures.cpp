@@ -189,7 +189,7 @@ TextureCube::TextureCube(Format format) : Texture(gl::TEXTURE_CUBE_MAP, format) 
 
 TextureArray2D::TextureArray2D(Format format) : Texture(gl::TEXTURE_2D_ARRAY, format) {}
 
-TextureArrayCube::TextureArrayCube(Format format) : Texture(gl::TEXTURE_CUBE_MAP_ARRAY, format) {}
+//TextureArrayCube::TextureArrayCube(Format format) : Texture(gl::TEXTURE_CUBE_MAP_ARRAY, format) {}
 
 TextureVolume::TextureVolume(Format format) : Texture(gl::TEXTURE_3D, format) {}
 

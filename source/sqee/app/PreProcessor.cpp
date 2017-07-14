@@ -52,7 +52,12 @@ string PreProcessor::process(const string& path, const string& prelude) const
     std::vector<string> lineVec = tokenise_string(fileStr, '\n');
     std::list<string> lines(lineVec.begin(), lineVec.end());
 
-    string source = "#version 450 core\n#line 0\n";
+    string source = "#version 330 core\n"
+                    "#extension GL_ARB_shading_language_420pack : enable\n"
+                    "#extension GL_ARB_explicit_uniform_location : enable\n"
+                    "#extension GL_ARB_gpu_shader5 : enable\n"
+                    "#line 0\n";
+
     source.append(prelude);
 
     std::vector<std::pair<uint, string>> errorVec;

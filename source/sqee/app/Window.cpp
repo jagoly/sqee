@@ -185,7 +185,7 @@ Window::Window(string title, Vec2U size)
 
     sf::VideoMode mode { size.x, size.y, 32u };
     sf::Uint32 style = sf::Style::Default;
-    sf::ContextSettings settings { 24u, 8u, 0u, 4u, 5u, sf::ContextSettings::Core };
+    sf::ContextSettings settings { 24u, 8u, 0u, 3u, 3u, sf::ContextSettings::Core };
 
     impl->sfmlWindow.create(mode, title, style, settings);
 

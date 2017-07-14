@@ -32,8 +32,8 @@ public: //====================================================//
     /// Attach an immutable TextureArray2D.
     void attach(GLenum attach, const TextureArray2D& tex, uint layer);
 
-    /// Attach an immutable TextureArrayCube.
-    void attach(GLenum attach, const TextureArrayCube& tex, uint layer, uint face);
+//    /// Attach an immutable TextureArrayCube.
+//    void attach(GLenum attach, const TextureArrayCube& tex, uint layer, uint face);
 
     /// Attach an immutable TextureMulti.
     void attach(GLenum attach, const TextureMulti& tex);

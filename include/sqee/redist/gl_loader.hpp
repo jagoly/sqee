@@ -174,9 +174,93 @@ namespace gl
 			int m_numMissing;
 		};
 		
+		extern LoadTest var_KHR_debug;
+		extern LoadTest var_ARB_texture_storage;
+		extern LoadTest var_ARB_buffer_storage;
+		extern LoadTest var_ARB_direct_state_access;
+		extern LoadTest var_ARB_separate_shader_objects;
+		
 	} //namespace exts
 	enum
 	{
+		BUFFER                           = 0x82E0,
+		CONTEXT_FLAG_DEBUG_BIT           = 0x00000002,
+		DEBUG_CALLBACK_FUNCTION          = 0x8244,
+		DEBUG_CALLBACK_USER_PARAM        = 0x8245,
+		DEBUG_GROUP_STACK_DEPTH          = 0x826D,
+		DEBUG_LOGGED_MESSAGES            = 0x9145,
+		DEBUG_NEXT_LOGGED_MESSAGE_LENGTH = 0x8243,
+		DEBUG_OUTPUT                     = 0x92E0,
+		DEBUG_OUTPUT_SYNCHRONOUS         = 0x8242,
+		DEBUG_SEVERITY_HIGH              = 0x9146,
+		DEBUG_SEVERITY_LOW               = 0x9148,
+		DEBUG_SEVERITY_MEDIUM            = 0x9147,
+		DEBUG_SEVERITY_NOTIFICATION      = 0x826B,
+		DEBUG_SOURCE_API                 = 0x8246,
+		DEBUG_SOURCE_APPLICATION         = 0x824A,
+		DEBUG_SOURCE_OTHER               = 0x824B,
+		DEBUG_SOURCE_SHADER_COMPILER     = 0x8248,
+		DEBUG_SOURCE_THIRD_PARTY         = 0x8249,
+		DEBUG_SOURCE_WINDOW_SYSTEM       = 0x8247,
+		DEBUG_TYPE_DEPRECATED_BEHAVIOR   = 0x824D,
+		DEBUG_TYPE_ERROR                 = 0x824C,
+		DEBUG_TYPE_MARKER                = 0x8268,
+		DEBUG_TYPE_OTHER                 = 0x8251,
+		DEBUG_TYPE_PERFORMANCE           = 0x8250,
+		DEBUG_TYPE_POP_GROUP             = 0x826A,
+		DEBUG_TYPE_PORTABILITY           = 0x824F,
+		DEBUG_TYPE_PUSH_GROUP            = 0x8269,
+		DEBUG_TYPE_UNDEFINED_BEHAVIOR    = 0x824E,
+		DISPLAY_LIST                     = 0x82E7,
+		MAX_DEBUG_GROUP_STACK_DEPTH      = 0x826C,
+		MAX_DEBUG_LOGGED_MESSAGES        = 0x9144,
+		MAX_DEBUG_MESSAGE_LENGTH         = 0x9143,
+		MAX_LABEL_LENGTH                 = 0x82E8,
+		PROGRAM                          = 0x82E2,
+		PROGRAM_PIPELINE                 = 0x82E4,
+		QUERY                            = 0x82E3,
+		SAMPLER                          = 0x82E6,
+		SHADER                           = 0x82E1,
+		STACK_OVERFLOW                   = 0x0503,
+		STACK_UNDERFLOW                  = 0x0504,
+		VERTEX_ARRAY                     = 0x8074,
+		
+		TEXTURE_IMMUTABLE_FORMAT         = 0x912F,
+		
+		BUFFER_IMMUTABLE_STORAGE         = 0x821F,
+		BUFFER_STORAGE_FLAGS             = 0x8220,
+		CLIENT_MAPPED_BUFFER_BARRIER_BIT = 0x00004000,
+		CLIENT_STORAGE_BIT               = 0x0200,
+		DYNAMIC_STORAGE_BIT              = 0x0100,
+		MAP_COHERENT_BIT                 = 0x0080,
+		MAP_PERSISTENT_BIT               = 0x0040,
+		MAP_READ_BIT                     = 0x0001,
+		MAP_WRITE_BIT                    = 0x0002,
+		
+		QUERY_TARGET                     = 0x82EA,
+		TEXTURE_BINDING_1D               = 0x8068,
+		TEXTURE_BINDING_1D_ARRAY         = 0x8C1C,
+		TEXTURE_BINDING_2D               = 0x8069,
+		TEXTURE_BINDING_2D_ARRAY         = 0x8C1D,
+		TEXTURE_BINDING_2D_MULTISAMPLE   = 0x9104,
+		TEXTURE_BINDING_2D_MULTISAMPLE_ARRAY = 0x9105,
+		TEXTURE_BINDING_3D               = 0x806A,
+		TEXTURE_BINDING_BUFFER           = 0x8C2C,
+		TEXTURE_BINDING_CUBE_MAP         = 0x8514,
+		TEXTURE_BINDING_CUBE_MAP_ARRAY   = 0x900A,
+		TEXTURE_BINDING_RECTANGLE        = 0x84F6,
+		TEXTURE_TARGET                   = 0x1006,
+		
+		ACTIVE_PROGRAM                   = 0x8259,
+		ALL_SHADER_BITS                  = 0xFFFFFFFF,
+		FRAGMENT_SHADER_BIT              = 0x00000002,
+		GEOMETRY_SHADER_BIT              = 0x00000004,
+		PROGRAM_PIPELINE_BINDING         = 0x825A,
+		PROGRAM_SEPARABLE                = 0x8258,
+		TESS_CONTROL_SHADER_BIT          = 0x00000008,
+		TESS_EVALUATION_SHADER_BIT       = 0x00000010,
+		VERTEX_SHADER_BIT                = 0x00000001,
+		
 		ALPHA                            = 0x1906,
 		ALWAYS                           = 0x0207,
 		AND                              = 0x1501,
@@ -299,7 +383,6 @@ namespace gl
 		POLYGON_SMOOTH_HINT              = 0x0C53,
 		PROXY_TEXTURE_1D                 = 0x8063,
 		PROXY_TEXTURE_2D                 = 0x8064,
-		QUADS                            = 0x0007,
 		R3_G3_B2                         = 0x2A10,
 		READ_BUFFER                      = 0x0C02,
 		RED                              = 0x1903,
@@ -329,8 +412,6 @@ namespace gl
 		SRC_ALPHA                        = 0x0302,
 		SRC_ALPHA_SATURATE               = 0x0308,
 		SRC_COLOR                        = 0x0300,
-		STACK_OVERFLOW                   = 0x0503,
-		STACK_UNDERFLOW                  = 0x0504,
 		STENCIL                          = 0x1802,
 		STENCIL_BUFFER_BIT               = 0x00000400,
 		STENCIL_CLEAR_VALUE              = 0x0B91,
@@ -349,8 +430,8 @@ namespace gl
 		TEXTURE_1D                       = 0x0DE0,
 		TEXTURE_2D                       = 0x0DE1,
 		TEXTURE_ALPHA_SIZE               = 0x805F,
-		TEXTURE_BINDING_1D               = 0x8068,
-		TEXTURE_BINDING_2D               = 0x8069,
+		//TEXTURE_BINDING_1D taken from ext: ARB_direct_state_access
+		//TEXTURE_BINDING_2D taken from ext: ARB_direct_state_access
 		TEXTURE_BLUE_SIZE                = 0x805E,
 		TEXTURE_BORDER_COLOR             = 0x1004,
 		TEXTURE_GREEN_SIZE               = 0x805D,
@@ -377,7 +458,6 @@ namespace gl
 		UNSIGNED_SHORT                   = 0x1403,
 		VENDOR                           = 0x1F00,
 		VERSION                          = 0x1F02,
-		VERTEX_ARRAY                     = 0x8074,
 		VIEWPORT                         = 0x0BA2,
 		XOR                              = 0x1506,
 		ZERO                             = 0,
@@ -398,7 +478,7 @@ namespace gl
 		SMOOTH_POINT_SIZE_RANGE          = 0x0B12,
 		TEXTURE_3D                       = 0x806F,
 		TEXTURE_BASE_LEVEL               = 0x813C,
-		TEXTURE_BINDING_3D               = 0x806A,
+		//TEXTURE_BINDING_3D taken from ext: ARB_direct_state_access
 		TEXTURE_DEPTH                    = 0x8071,
 		TEXTURE_MAX_LEVEL                = 0x813D,
 		TEXTURE_MAX_LOD                  = 0x813B,
@@ -467,7 +547,7 @@ namespace gl
 		TEXTURE7                         = 0x84C7,
 		TEXTURE8                         = 0x84C8,
 		TEXTURE9                         = 0x84C9,
-		TEXTURE_BINDING_CUBE_MAP         = 0x8514,
+		//TEXTURE_BINDING_CUBE_MAP taken from ext: ARB_direct_state_access
 		TEXTURE_COMPRESSED               = 0x86A1,
 		TEXTURE_COMPRESSED_IMAGE_SIZE    = 0x86A0,
 		TEXTURE_COMPRESSION_HINT         = 0x84EF,
@@ -738,9 +818,9 @@ namespace gl
 		MAP_FLUSH_EXPLICIT_BIT           = 0x0010,
 		MAP_INVALIDATE_BUFFER_BIT        = 0x0008,
 		MAP_INVALIDATE_RANGE_BIT         = 0x0004,
-		MAP_READ_BIT                     = 0x0001,
+		//MAP_READ_BIT taken from ext: ARB_buffer_storage
 		MAP_UNSYNCHRONIZED_BIT           = 0x0020,
-		MAP_WRITE_BIT                    = 0x0002,
+		//MAP_WRITE_BIT taken from ext: ARB_buffer_storage
 		MAX_ARRAY_TEXTURE_LAYERS         = 0x88FF,
 		MAX_CLIP_DISTANCES               = 0x0D32,
 		MAX_COLOR_ATTACHMENTS            = 0x8CDF,
@@ -833,8 +913,8 @@ namespace gl
 		TEXTURE_1D_ARRAY                 = 0x8C18,
 		TEXTURE_2D_ARRAY                 = 0x8C1A,
 		TEXTURE_ALPHA_TYPE               = 0x8C13,
-		TEXTURE_BINDING_1D_ARRAY         = 0x8C1C,
-		TEXTURE_BINDING_2D_ARRAY         = 0x8C1D,
+		//TEXTURE_BINDING_1D_ARRAY taken from ext: ARB_direct_state_access
+		//TEXTURE_BINDING_2D_ARRAY taken from ext: ARB_direct_state_access
 		TEXTURE_BLUE_TYPE                = 0x8C12,
 		TEXTURE_DEPTH_TYPE               = 0x8C16,
 		TEXTURE_GREEN_TYPE               = 0x8C11,
@@ -898,8 +978,8 @@ namespace gl
 		SAMPLER_2D_RECT_SHADOW           = 0x8B64,
 		SAMPLER_BUFFER                   = 0x8DC2,
 		SIGNED_NORMALIZED                = 0x8F9C,
-		TEXTURE_BINDING_BUFFER           = 0x8C2C,
-		TEXTURE_BINDING_RECTANGLE        = 0x84F6,
+		//TEXTURE_BINDING_BUFFER taken from ext: ARB_direct_state_access
+		//TEXTURE_BINDING_RECTANGLE taken from ext: ARB_direct_state_access
 		TEXTURE_BUFFER                   = 0x8C2A,
 		TEXTURE_BUFFER_DATA_STORE_BINDING = 0x8C2D,
 		TEXTURE_RECTANGLE                = 0x84F5,
@@ -978,8 +1058,8 @@ namespace gl
 		SYNC_STATUS                      = 0x9114,
 		TEXTURE_2D_MULTISAMPLE           = 0x9100,
 		TEXTURE_2D_MULTISAMPLE_ARRAY     = 0x9102,
-		TEXTURE_BINDING_2D_MULTISAMPLE   = 0x9104,
-		TEXTURE_BINDING_2D_MULTISAMPLE_ARRAY = 0x9105,
+		//TEXTURE_BINDING_2D_MULTISAMPLE taken from ext: ARB_direct_state_access
+		//TEXTURE_BINDING_2D_MULTISAMPLE_ARRAY taken from ext: ARB_direct_state_access
 		TEXTURE_CUBE_MAP_SEAMLESS        = 0x884F,
 		TEXTURE_FIXED_SAMPLE_LOCATIONS   = 0x9107,
 		TEXTURE_SAMPLES                  = 0x9106,
@@ -1009,539 +1089,187 @@ namespace gl
 		TIME_ELAPSED                     = 0x88BF,
 		VERTEX_ATTRIB_ARRAY_DIVISOR      = 0x88FE,
 		
-		ACTIVE_SUBROUTINES               = 0x8DE5,
-		ACTIVE_SUBROUTINE_MAX_LENGTH     = 0x8E48,
-		ACTIVE_SUBROUTINE_UNIFORMS       = 0x8DE6,
-		ACTIVE_SUBROUTINE_UNIFORM_LOCATIONS = 0x8E47,
-		ACTIVE_SUBROUTINE_UNIFORM_MAX_LENGTH = 0x8E49,
-		COMPATIBLE_SUBROUTINES           = 0x8E4B,
-		DOUBLE_MAT2                      = 0x8F46,
-		DOUBLE_MAT2x3                    = 0x8F49,
-		DOUBLE_MAT2x4                    = 0x8F4A,
-		DOUBLE_MAT3                      = 0x8F47,
-		DOUBLE_MAT3x2                    = 0x8F4B,
-		DOUBLE_MAT3x4                    = 0x8F4C,
-		DOUBLE_MAT4                      = 0x8F48,
-		DOUBLE_MAT4x2                    = 0x8F4D,
-		DOUBLE_MAT4x3                    = 0x8F4E,
-		DOUBLE_VEC2                      = 0x8FFC,
-		DOUBLE_VEC3                      = 0x8FFD,
-		DOUBLE_VEC4                      = 0x8FFE,
-		DRAW_INDIRECT_BUFFER             = 0x8F3F,
-		DRAW_INDIRECT_BUFFER_BINDING     = 0x8F43,
-		FRACTIONAL_EVEN                  = 0x8E7C,
-		FRACTIONAL_ODD                   = 0x8E7B,
-		FRAGMENT_INTERPOLATION_OFFSET_BITS = 0x8E5D,
-		GEOMETRY_SHADER_INVOCATIONS      = 0x887F,
-		INT_SAMPLER_CUBE_MAP_ARRAY       = 0x900E,
-		ISOLINES                         = 0x8E7A,
-		MAX_COMBINED_TESS_CONTROL_UNIFORM_COMPONENTS = 0x8E1E,
-		MAX_COMBINED_TESS_EVALUATION_UNIFORM_COMPONENTS = 0x8E1F,
-		MAX_FRAGMENT_INTERPOLATION_OFFSET = 0x8E5C,
-		MAX_GEOMETRY_SHADER_INVOCATIONS  = 0x8E5A,
-		MAX_PATCH_VERTICES               = 0x8E7D,
-		MAX_PROGRAM_TEXTURE_GATHER_OFFSET = 0x8E5F,
-		MAX_SUBROUTINES                  = 0x8DE7,
-		MAX_SUBROUTINE_UNIFORM_LOCATIONS = 0x8DE8,
-		MAX_TESS_CONTROL_INPUT_COMPONENTS = 0x886C,
-		MAX_TESS_CONTROL_OUTPUT_COMPONENTS = 0x8E83,
-		MAX_TESS_CONTROL_TEXTURE_IMAGE_UNITS = 0x8E81,
-		MAX_TESS_CONTROL_TOTAL_OUTPUT_COMPONENTS = 0x8E85,
-		MAX_TESS_CONTROL_UNIFORM_BLOCKS  = 0x8E89,
-		MAX_TESS_CONTROL_UNIFORM_COMPONENTS = 0x8E7F,
-		MAX_TESS_EVALUATION_INPUT_COMPONENTS = 0x886D,
-		MAX_TESS_EVALUATION_OUTPUT_COMPONENTS = 0x8E86,
-		MAX_TESS_EVALUATION_TEXTURE_IMAGE_UNITS = 0x8E82,
-		MAX_TESS_EVALUATION_UNIFORM_BLOCKS = 0x8E8A,
-		MAX_TESS_EVALUATION_UNIFORM_COMPONENTS = 0x8E80,
-		MAX_TESS_GEN_LEVEL               = 0x8E7E,
-		MAX_TESS_PATCH_COMPONENTS        = 0x8E84,
-		MAX_TRANSFORM_FEEDBACK_BUFFERS   = 0x8E70,
-		MAX_VERTEX_STREAMS               = 0x8E71,
-		MIN_FRAGMENT_INTERPOLATION_OFFSET = 0x8E5B,
-		MIN_PROGRAM_TEXTURE_GATHER_OFFSET = 0x8E5E,
-		MIN_SAMPLE_SHADING_VALUE         = 0x8C37,
-		NUM_COMPATIBLE_SUBROUTINES       = 0x8E4A,
-		PATCHES                          = 0x000E,
-		PATCH_DEFAULT_INNER_LEVEL        = 0x8E73,
-		PATCH_DEFAULT_OUTER_LEVEL        = 0x8E74,
-		PATCH_VERTICES                   = 0x8E72,
-		PROXY_TEXTURE_CUBE_MAP_ARRAY     = 0x900B,
-		SAMPLER_CUBE_MAP_ARRAY           = 0x900C,
-		SAMPLER_CUBE_MAP_ARRAY_SHADOW    = 0x900D,
-		SAMPLE_SHADING                   = 0x8C36,
-		TESS_CONTROL_OUTPUT_VERTICES     = 0x8E75,
-		TESS_CONTROL_SHADER              = 0x8E88,
-		TESS_EVALUATION_SHADER           = 0x8E87,
-		TESS_GEN_MODE                    = 0x8E76,
-		TESS_GEN_POINT_MODE              = 0x8E79,
-		TESS_GEN_SPACING                 = 0x8E77,
-		TESS_GEN_VERTEX_ORDER            = 0x8E78,
-		TEXTURE_BINDING_CUBE_MAP_ARRAY   = 0x900A,
-		TEXTURE_CUBE_MAP_ARRAY           = 0x9009,
-		TRANSFORM_FEEDBACK               = 0x8E22,
-		TRANSFORM_FEEDBACK_BINDING       = 0x8E25,
-		TRANSFORM_FEEDBACK_BUFFER_ACTIVE = 0x8E24,
-		TRANSFORM_FEEDBACK_BUFFER_PAUSED = 0x8E23,
-		UNIFORM_BLOCK_REFERENCED_BY_TESS_CONTROL_SHADER = 0x84F0,
-		UNIFORM_BLOCK_REFERENCED_BY_TESS_EVALUATION_SHADER = 0x84F1,
-		UNSIGNED_INT_SAMPLER_CUBE_MAP_ARRAY = 0x900F,
-		
-		ACTIVE_PROGRAM                   = 0x8259,
-		ALL_SHADER_BITS                  = 0xFFFFFFFF,
-		FIXED                            = 0x140C,
-		FRAGMENT_SHADER_BIT              = 0x00000002,
-		GEOMETRY_SHADER_BIT              = 0x00000004,
-		HIGH_FLOAT                       = 0x8DF2,
-		HIGH_INT                         = 0x8DF5,
-		IMPLEMENTATION_COLOR_READ_FORMAT = 0x8B9B,
-		IMPLEMENTATION_COLOR_READ_TYPE   = 0x8B9A,
-		LAYER_PROVOKING_VERTEX           = 0x825E,
-		LOW_FLOAT                        = 0x8DF0,
-		LOW_INT                          = 0x8DF3,
-		MAX_FRAGMENT_UNIFORM_VECTORS     = 0x8DFD,
-		MAX_VARYING_VECTORS              = 0x8DFC,
-		MAX_VERTEX_UNIFORM_VECTORS       = 0x8DFB,
-		MAX_VIEWPORTS                    = 0x825B,
-		MEDIUM_FLOAT                     = 0x8DF1,
-		MEDIUM_INT                       = 0x8DF4,
-		NUM_PROGRAM_BINARY_FORMATS       = 0x87FE,
-		NUM_SHADER_BINARY_FORMATS        = 0x8DF9,
-		PROGRAM_BINARY_FORMATS           = 0x87FF,
-		PROGRAM_BINARY_LENGTH            = 0x8741,
-		PROGRAM_BINARY_RETRIEVABLE_HINT  = 0x8257,
-		PROGRAM_PIPELINE_BINDING         = 0x825A,
-		PROGRAM_SEPARABLE                = 0x8258,
-		RGB565                           = 0x8D62,
-		SHADER_BINARY_FORMATS            = 0x8DF8,
-		SHADER_COMPILER                  = 0x8DFA,
-		TESS_CONTROL_SHADER_BIT          = 0x00000008,
-		TESS_EVALUATION_SHADER_BIT       = 0x00000010,
-		UNDEFINED_VERTEX                 = 0x8260,
-		VERTEX_SHADER_BIT                = 0x00000001,
-		VIEWPORT_BOUNDS_RANGE            = 0x825D,
-		VIEWPORT_INDEX_PROVOKING_VERTEX  = 0x825F,
-		VIEWPORT_SUBPIXEL_BITS           = 0x825C,
-		
-		ACTIVE_ATOMIC_COUNTER_BUFFERS    = 0x92D9,
-		ALL_BARRIER_BITS                 = 0xFFFFFFFF,
-		ATOMIC_COUNTER_BARRIER_BIT       = 0x00001000,
-		ATOMIC_COUNTER_BUFFER            = 0x92C0,
-		ATOMIC_COUNTER_BUFFER_ACTIVE_ATOMIC_COUNTERS = 0x92C5,
-		ATOMIC_COUNTER_BUFFER_ACTIVE_ATOMIC_COUNTER_INDICES = 0x92C6,
-		ATOMIC_COUNTER_BUFFER_BINDING    = 0x92C1,
-		ATOMIC_COUNTER_BUFFER_DATA_SIZE  = 0x92C4,
-		ATOMIC_COUNTER_BUFFER_REFERENCED_BY_FRAGMENT_SHADER = 0x92CB,
-		ATOMIC_COUNTER_BUFFER_REFERENCED_BY_GEOMETRY_SHADER = 0x92CA,
-		ATOMIC_COUNTER_BUFFER_REFERENCED_BY_TESS_CONTROL_SHADER = 0x92C8,
-		ATOMIC_COUNTER_BUFFER_REFERENCED_BY_TESS_EVALUATION_SHADER = 0x92C9,
-		ATOMIC_COUNTER_BUFFER_REFERENCED_BY_VERTEX_SHADER = 0x92C7,
-		ATOMIC_COUNTER_BUFFER_SIZE       = 0x92C3,
-		ATOMIC_COUNTER_BUFFER_START      = 0x92C2,
-		BUFFER_UPDATE_BARRIER_BIT        = 0x00000200,
-		COMMAND_BARRIER_BIT              = 0x00000040,
-		COMPRESSED_RGBA_BPTC_UNORM       = 0x8E8C,
-		COMPRESSED_RGB_BPTC_SIGNED_FLOAT = 0x8E8E,
-		COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT = 0x8E8F,
-		COMPRESSED_SRGB_ALPHA_BPTC_UNORM = 0x8E8D,
-		COPY_READ_BUFFER_BINDING         = 0x8F36,
-		COPY_WRITE_BUFFER_BINDING        = 0x8F37,
-		ELEMENT_ARRAY_BARRIER_BIT        = 0x00000002,
-		FRAMEBUFFER_BARRIER_BIT          = 0x00000400,
-		IMAGE_1D                         = 0x904C,
-		IMAGE_1D_ARRAY                   = 0x9052,
-		IMAGE_2D                         = 0x904D,
-		IMAGE_2D_ARRAY                   = 0x9053,
-		IMAGE_2D_MULTISAMPLE             = 0x9055,
-		IMAGE_2D_MULTISAMPLE_ARRAY       = 0x9056,
-		IMAGE_2D_RECT                    = 0x904F,
-		IMAGE_3D                         = 0x904E,
-		IMAGE_BINDING_ACCESS             = 0x8F3E,
-		IMAGE_BINDING_FORMAT             = 0x906E,
-		IMAGE_BINDING_LAYER              = 0x8F3D,
-		IMAGE_BINDING_LAYERED            = 0x8F3C,
-		IMAGE_BINDING_LEVEL              = 0x8F3B,
-		IMAGE_BINDING_NAME               = 0x8F3A,
-		IMAGE_BUFFER                     = 0x9051,
-		IMAGE_CUBE                       = 0x9050,
-		IMAGE_CUBE_MAP_ARRAY             = 0x9054,
-		IMAGE_FORMAT_COMPATIBILITY_BY_CLASS = 0x90C9,
-		IMAGE_FORMAT_COMPATIBILITY_BY_SIZE = 0x90C8,
-		IMAGE_FORMAT_COMPATIBILITY_TYPE  = 0x90C7,
-		INT_IMAGE_1D                     = 0x9057,
-		INT_IMAGE_1D_ARRAY               = 0x905D,
-		INT_IMAGE_2D                     = 0x9058,
-		INT_IMAGE_2D_ARRAY               = 0x905E,
-		INT_IMAGE_2D_MULTISAMPLE         = 0x9060,
-		INT_IMAGE_2D_MULTISAMPLE_ARRAY   = 0x9061,
-		INT_IMAGE_2D_RECT                = 0x905A,
-		INT_IMAGE_3D                     = 0x9059,
-		INT_IMAGE_BUFFER                 = 0x905C,
-		INT_IMAGE_CUBE                   = 0x905B,
-		INT_IMAGE_CUBE_MAP_ARRAY         = 0x905F,
-		MAX_ATOMIC_COUNTER_BUFFER_BINDINGS = 0x92DC,
-		MAX_ATOMIC_COUNTER_BUFFER_SIZE   = 0x92D8,
-		MAX_COMBINED_ATOMIC_COUNTERS     = 0x92D7,
-		MAX_COMBINED_ATOMIC_COUNTER_BUFFERS = 0x92D1,
-		MAX_COMBINED_IMAGE_UNIFORMS      = 0x90CF,
-		MAX_COMBINED_IMAGE_UNITS_AND_FRAGMENT_OUTPUTS = 0x8F39,
-		MAX_FRAGMENT_ATOMIC_COUNTERS     = 0x92D6,
-		MAX_FRAGMENT_ATOMIC_COUNTER_BUFFERS = 0x92D0,
-		MAX_FRAGMENT_IMAGE_UNIFORMS      = 0x90CE,
-		MAX_GEOMETRY_ATOMIC_COUNTERS     = 0x92D5,
-		MAX_GEOMETRY_ATOMIC_COUNTER_BUFFERS = 0x92CF,
-		MAX_GEOMETRY_IMAGE_UNIFORMS      = 0x90CD,
-		MAX_IMAGE_SAMPLES                = 0x906D,
-		MAX_IMAGE_UNITS                  = 0x8F38,
-		MAX_TESS_CONTROL_ATOMIC_COUNTERS = 0x92D3,
-		MAX_TESS_CONTROL_ATOMIC_COUNTER_BUFFERS = 0x92CD,
-		MAX_TESS_CONTROL_IMAGE_UNIFORMS  = 0x90CB,
-		MAX_TESS_EVALUATION_ATOMIC_COUNTERS = 0x92D4,
-		MAX_TESS_EVALUATION_ATOMIC_COUNTER_BUFFERS = 0x92CE,
-		MAX_TESS_EVALUATION_IMAGE_UNIFORMS = 0x90CC,
-		MAX_VERTEX_ATOMIC_COUNTERS       = 0x92D2,
-		MAX_VERTEX_ATOMIC_COUNTER_BUFFERS = 0x92CC,
-		MAX_VERTEX_IMAGE_UNIFORMS        = 0x90CA,
-		MIN_MAP_BUFFER_ALIGNMENT         = 0x90BC,
-		NUM_SAMPLE_COUNTS                = 0x9380,
-		PACK_COMPRESSED_BLOCK_DEPTH      = 0x912D,
-		PACK_COMPRESSED_BLOCK_HEIGHT     = 0x912C,
-		PACK_COMPRESSED_BLOCK_SIZE       = 0x912E,
-		PACK_COMPRESSED_BLOCK_WIDTH      = 0x912B,
-		PIXEL_BUFFER_BARRIER_BIT         = 0x00000080,
-		SHADER_IMAGE_ACCESS_BARRIER_BIT  = 0x00000020,
-		TEXTURE_FETCH_BARRIER_BIT        = 0x00000008,
-		TEXTURE_IMMUTABLE_FORMAT         = 0x912F,
-		TEXTURE_UPDATE_BARRIER_BIT       = 0x00000100,
-		TRANSFORM_FEEDBACK_ACTIVE        = 0x8E24,
-		TRANSFORM_FEEDBACK_BARRIER_BIT   = 0x00000800,
-		TRANSFORM_FEEDBACK_PAUSED        = 0x8E23,
-		UNIFORM_ATOMIC_COUNTER_BUFFER_INDEX = 0x92DA,
-		UNIFORM_BARRIER_BIT              = 0x00000004,
-		UNPACK_COMPRESSED_BLOCK_DEPTH    = 0x9129,
-		UNPACK_COMPRESSED_BLOCK_HEIGHT   = 0x9128,
-		UNPACK_COMPRESSED_BLOCK_SIZE     = 0x912A,
-		UNPACK_COMPRESSED_BLOCK_WIDTH    = 0x9127,
-		UNSIGNED_INT_ATOMIC_COUNTER      = 0x92DB,
-		UNSIGNED_INT_IMAGE_1D            = 0x9062,
-		UNSIGNED_INT_IMAGE_1D_ARRAY      = 0x9068,
-		UNSIGNED_INT_IMAGE_2D            = 0x9063,
-		UNSIGNED_INT_IMAGE_2D_ARRAY      = 0x9069,
-		UNSIGNED_INT_IMAGE_2D_MULTISAMPLE = 0x906B,
-		UNSIGNED_INT_IMAGE_2D_MULTISAMPLE_ARRAY = 0x906C,
-		UNSIGNED_INT_IMAGE_2D_RECT       = 0x9065,
-		UNSIGNED_INT_IMAGE_3D            = 0x9064,
-		UNSIGNED_INT_IMAGE_BUFFER        = 0x9067,
-		UNSIGNED_INT_IMAGE_CUBE          = 0x9066,
-		UNSIGNED_INT_IMAGE_CUBE_MAP_ARRAY = 0x906A,
-		VERTEX_ATTRIB_ARRAY_BARRIER_BIT  = 0x00000001,
-		
-		ACTIVE_RESOURCES                 = 0x92F5,
-		ACTIVE_VARIABLES                 = 0x9305,
-		ANY_SAMPLES_PASSED_CONSERVATIVE  = 0x8D6A,
-		ARRAY_SIZE                       = 0x92FB,
-		ARRAY_STRIDE                     = 0x92FE,
-		ATOMIC_COUNTER_BUFFER_INDEX      = 0x9301,
-		ATOMIC_COUNTER_BUFFER_REFERENCED_BY_COMPUTE_SHADER = 0x90ED,
-		AUTO_GENERATE_MIPMAP             = 0x8295,
-		BLOCK_INDEX                      = 0x92FD,
-		BUFFER                           = 0x82E0,
-		BUFFER_BINDING                   = 0x9302,
-		BUFFER_DATA_SIZE                 = 0x9303,
-		BUFFER_VARIABLE                  = 0x92E5,
-		CAVEAT_SUPPORT                   = 0x82B8,
-		CLEAR_BUFFER                     = 0x82B4,
-		COLOR_COMPONENTS                 = 0x8283,
-		COLOR_ENCODING                   = 0x8296,
-		COLOR_RENDERABLE                 = 0x8286,
-		COMPRESSED_R11_EAC               = 0x9270,
-		COMPRESSED_RG11_EAC              = 0x9272,
-		COMPRESSED_RGB8_ETC2             = 0x9274,
-		COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2 = 0x9276,
-		COMPRESSED_RGBA8_ETC2_EAC        = 0x9278,
-		COMPRESSED_SIGNED_R11_EAC        = 0x9271,
-		COMPRESSED_SIGNED_RG11_EAC       = 0x9273,
-		COMPRESSED_SRGB8_ALPHA8_ETC2_EAC = 0x9279,
-		COMPRESSED_SRGB8_ETC2            = 0x9275,
-		COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2 = 0x9277,
-		COMPUTE_SHADER                   = 0x91B9,
-		COMPUTE_SHADER_BIT               = 0x00000020,
-		COMPUTE_SUBROUTINE               = 0x92ED,
-		COMPUTE_SUBROUTINE_UNIFORM       = 0x92F3,
-		COMPUTE_TEXTURE                  = 0x82A0,
-		COMPUTE_WORK_GROUP_SIZE          = 0x8267,
-		CONTEXT_FLAG_DEBUG_BIT           = 0x00000002,
-		DEBUG_CALLBACK_FUNCTION          = 0x8244,
-		DEBUG_CALLBACK_USER_PARAM        = 0x8245,
-		DEBUG_GROUP_STACK_DEPTH          = 0x826D,
-		DEBUG_LOGGED_MESSAGES            = 0x9145,
-		DEBUG_NEXT_LOGGED_MESSAGE_LENGTH = 0x8243,
-		DEBUG_OUTPUT                     = 0x92E0,
-		DEBUG_OUTPUT_SYNCHRONOUS         = 0x8242,
-		DEBUG_SEVERITY_HIGH              = 0x9146,
-		DEBUG_SEVERITY_LOW               = 0x9148,
-		DEBUG_SEVERITY_MEDIUM            = 0x9147,
-		DEBUG_SEVERITY_NOTIFICATION      = 0x826B,
-		DEBUG_SOURCE_API                 = 0x8246,
-		DEBUG_SOURCE_APPLICATION         = 0x824A,
-		DEBUG_SOURCE_OTHER               = 0x824B,
-		DEBUG_SOURCE_SHADER_COMPILER     = 0x8248,
-		DEBUG_SOURCE_THIRD_PARTY         = 0x8249,
-		DEBUG_SOURCE_WINDOW_SYSTEM       = 0x8247,
-		DEBUG_TYPE_DEPRECATED_BEHAVIOR   = 0x824D,
-		DEBUG_TYPE_ERROR                 = 0x824C,
-		DEBUG_TYPE_MARKER                = 0x8268,
-		DEBUG_TYPE_OTHER                 = 0x8251,
-		DEBUG_TYPE_PERFORMANCE           = 0x8250,
-		DEBUG_TYPE_POP_GROUP             = 0x826A,
-		DEBUG_TYPE_PORTABILITY           = 0x824F,
-		DEBUG_TYPE_PUSH_GROUP            = 0x8269,
-		DEBUG_TYPE_UNDEFINED_BEHAVIOR    = 0x824E,
-		DEPTH_COMPONENTS                 = 0x8284,
-		DEPTH_RENDERABLE                 = 0x8287,
-		DEPTH_STENCIL_TEXTURE_MODE       = 0x90EA,
-		DISPATCH_INDIRECT_BUFFER         = 0x90EE,
-		DISPATCH_INDIRECT_BUFFER_BINDING = 0x90EF,
-		FILTER                           = 0x829A,
-		FRAGMENT_SUBROUTINE              = 0x92EC,
-		FRAGMENT_SUBROUTINE_UNIFORM      = 0x92F2,
-		FRAGMENT_TEXTURE                 = 0x829F,
-		FRAMEBUFFER_BLEND                = 0x828B,
-		FRAMEBUFFER_DEFAULT_FIXED_SAMPLE_LOCATIONS = 0x9314,
-		FRAMEBUFFER_DEFAULT_HEIGHT       = 0x9311,
-		FRAMEBUFFER_DEFAULT_LAYERS       = 0x9312,
-		FRAMEBUFFER_DEFAULT_SAMPLES      = 0x9313,
-		FRAMEBUFFER_DEFAULT_WIDTH        = 0x9310,
-		FRAMEBUFFER_RENDERABLE           = 0x8289,
-		FRAMEBUFFER_RENDERABLE_LAYERED   = 0x828A,
-		FULL_SUPPORT                     = 0x82B7,
-		GEOMETRY_SUBROUTINE              = 0x92EB,
-		GEOMETRY_SUBROUTINE_UNIFORM      = 0x92F1,
-		GEOMETRY_TEXTURE                 = 0x829E,
-		GET_TEXTURE_IMAGE_FORMAT         = 0x8291,
-		GET_TEXTURE_IMAGE_TYPE           = 0x8292,
-		IMAGE_CLASS_10_10_10_2           = 0x82C3,
-		IMAGE_CLASS_11_11_10             = 0x82C2,
-		IMAGE_CLASS_1_X_16               = 0x82BE,
-		IMAGE_CLASS_1_X_32               = 0x82BB,
-		IMAGE_CLASS_1_X_8                = 0x82C1,
-		IMAGE_CLASS_2_X_16               = 0x82BD,
-		IMAGE_CLASS_2_X_32               = 0x82BA,
-		IMAGE_CLASS_2_X_8                = 0x82C0,
-		IMAGE_CLASS_4_X_16               = 0x82BC,
-		IMAGE_CLASS_4_X_32               = 0x82B9,
-		IMAGE_CLASS_4_X_8                = 0x82BF,
-		IMAGE_COMPATIBILITY_CLASS        = 0x82A8,
-		IMAGE_PIXEL_FORMAT               = 0x82A9,
-		IMAGE_PIXEL_TYPE                 = 0x82AA,
-		IMAGE_TEXEL_SIZE                 = 0x82A7,
-		INTERNALFORMAT_ALPHA_SIZE        = 0x8274,
-		INTERNALFORMAT_ALPHA_TYPE        = 0x827B,
-		INTERNALFORMAT_BLUE_SIZE         = 0x8273,
-		INTERNALFORMAT_BLUE_TYPE         = 0x827A,
-		INTERNALFORMAT_DEPTH_SIZE        = 0x8275,
-		INTERNALFORMAT_DEPTH_TYPE        = 0x827C,
-		INTERNALFORMAT_GREEN_SIZE        = 0x8272,
-		INTERNALFORMAT_GREEN_TYPE        = 0x8279,
-		INTERNALFORMAT_PREFERRED         = 0x8270,
-		INTERNALFORMAT_RED_SIZE          = 0x8271,
-		INTERNALFORMAT_RED_TYPE          = 0x8278,
-		INTERNALFORMAT_SHARED_SIZE       = 0x8277,
-		INTERNALFORMAT_STENCIL_SIZE      = 0x8276,
-		INTERNALFORMAT_STENCIL_TYPE      = 0x827D,
-		INTERNALFORMAT_SUPPORTED         = 0x826F,
-		IS_PER_PATCH                     = 0x92E7,
-		IS_ROW_MAJOR                     = 0x9300,
-		LOCATION                         = 0x930E,
-		LOCATION_INDEX                   = 0x930F,
-		MANUAL_GENERATE_MIPMAP           = 0x8294,
-		MATRIX_STRIDE                    = 0x92FF,
-		MAX_COMBINED_COMPUTE_UNIFORM_COMPONENTS = 0x8266,
-		MAX_COMBINED_DIMENSIONS          = 0x8282,
-		MAX_COMBINED_SHADER_OUTPUT_RESOURCES = 0x8F39,
-		MAX_COMBINED_SHADER_STORAGE_BLOCKS = 0x90DC,
-		MAX_COMPUTE_ATOMIC_COUNTERS      = 0x8265,
-		MAX_COMPUTE_ATOMIC_COUNTER_BUFFERS = 0x8264,
-		MAX_COMPUTE_IMAGE_UNIFORMS       = 0x91BD,
-		MAX_COMPUTE_SHADER_STORAGE_BLOCKS = 0x90DB,
-		MAX_COMPUTE_SHARED_MEMORY_SIZE   = 0x8262,
-		MAX_COMPUTE_TEXTURE_IMAGE_UNITS  = 0x91BC,
-		MAX_COMPUTE_UNIFORM_BLOCKS       = 0x91BB,
-		MAX_COMPUTE_UNIFORM_COMPONENTS   = 0x8263,
-		MAX_COMPUTE_WORK_GROUP_COUNT     = 0x91BE,
-		MAX_COMPUTE_WORK_GROUP_INVOCATIONS = 0x90EB,
-		MAX_COMPUTE_WORK_GROUP_SIZE      = 0x91BF,
-		MAX_DEBUG_GROUP_STACK_DEPTH      = 0x826C,
-		MAX_DEBUG_LOGGED_MESSAGES        = 0x9144,
-		MAX_DEBUG_MESSAGE_LENGTH         = 0x9143,
-		MAX_DEPTH                        = 0x8280,
-		MAX_ELEMENT_INDEX                = 0x8D6B,
-		MAX_FRAGMENT_SHADER_STORAGE_BLOCKS = 0x90DA,
-		MAX_FRAMEBUFFER_HEIGHT           = 0x9316,
-		MAX_FRAMEBUFFER_LAYERS           = 0x9317,
-		MAX_FRAMEBUFFER_SAMPLES          = 0x9318,
-		MAX_FRAMEBUFFER_WIDTH            = 0x9315,
-		MAX_GEOMETRY_SHADER_STORAGE_BLOCKS = 0x90D7,
-		MAX_HEIGHT                       = 0x827F,
-		MAX_LABEL_LENGTH                 = 0x82E8,
-		MAX_LAYERS                       = 0x8281,
-		MAX_NAME_LENGTH                  = 0x92F6,
-		MAX_NUM_ACTIVE_VARIABLES         = 0x92F7,
-		MAX_NUM_COMPATIBLE_SUBROUTINES   = 0x92F8,
-		MAX_SHADER_STORAGE_BLOCK_SIZE    = 0x90DE,
-		MAX_SHADER_STORAGE_BUFFER_BINDINGS = 0x90DD,
-		MAX_TESS_CONTROL_SHADER_STORAGE_BLOCKS = 0x90D8,
-		MAX_TESS_EVALUATION_SHADER_STORAGE_BLOCKS = 0x90D9,
-		MAX_UNIFORM_LOCATIONS            = 0x826E,
-		MAX_VERTEX_ATTRIB_BINDINGS       = 0x82DA,
-		MAX_VERTEX_ATTRIB_RELATIVE_OFFSET = 0x82D9,
-		MAX_VERTEX_SHADER_STORAGE_BLOCKS = 0x90D6,
-		MAX_WIDTH                        = 0x827E,
-		MIPMAP                           = 0x8293,
-		NAME_LENGTH                      = 0x92F9,
-		NUM_ACTIVE_VARIABLES             = 0x9304,
-		NUM_SHADING_LANGUAGE_VERSIONS    = 0x82E9,
-		OFFSET                           = 0x92FC,
-		PRIMITIVE_RESTART_FIXED_INDEX    = 0x8D69,
-		PROGRAM                          = 0x82E2,
-		PROGRAM_INPUT                    = 0x92E3,
-		PROGRAM_OUTPUT                   = 0x92E4,
-		PROGRAM_PIPELINE                 = 0x82E4,
-		QUERY                            = 0x82E3,
-		READ_PIXELS                      = 0x828C,
-		READ_PIXELS_FORMAT               = 0x828D,
-		READ_PIXELS_TYPE                 = 0x828E,
-		REFERENCED_BY_COMPUTE_SHADER     = 0x930B,
-		REFERENCED_BY_FRAGMENT_SHADER    = 0x930A,
-		REFERENCED_BY_GEOMETRY_SHADER    = 0x9309,
-		REFERENCED_BY_TESS_CONTROL_SHADER = 0x9307,
-		REFERENCED_BY_TESS_EVALUATION_SHADER = 0x9308,
-		REFERENCED_BY_VERTEX_SHADER      = 0x9306,
-		SAMPLER                          = 0x82E6,
-		SHADER                           = 0x82E1,
-		SHADER_IMAGE_ATOMIC              = 0x82A6,
-		SHADER_IMAGE_LOAD                = 0x82A4,
-		SHADER_IMAGE_STORE               = 0x82A5,
-		SHADER_STORAGE_BARRIER_BIT       = 0x00002000,
-		SHADER_STORAGE_BLOCK             = 0x92E6,
-		SHADER_STORAGE_BUFFER            = 0x90D2,
-		SHADER_STORAGE_BUFFER_BINDING    = 0x90D3,
-		SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT = 0x90DF,
-		SHADER_STORAGE_BUFFER_SIZE       = 0x90D5,
-		SHADER_STORAGE_BUFFER_START      = 0x90D4,
-		SIMULTANEOUS_TEXTURE_AND_DEPTH_TEST = 0x82AC,
-		SIMULTANEOUS_TEXTURE_AND_DEPTH_WRITE = 0x82AE,
-		SIMULTANEOUS_TEXTURE_AND_STENCIL_TEST = 0x82AD,
-		SIMULTANEOUS_TEXTURE_AND_STENCIL_WRITE = 0x82AF,
-		SRGB_READ                        = 0x8297,
-		SRGB_WRITE                       = 0x8298,
-		STENCIL_COMPONENTS               = 0x8285,
-		STENCIL_RENDERABLE               = 0x8288,
-		TESS_CONTROL_SUBROUTINE          = 0x92E9,
-		TESS_CONTROL_SUBROUTINE_UNIFORM  = 0x92EF,
-		TESS_CONTROL_TEXTURE             = 0x829C,
-		TESS_EVALUATION_SUBROUTINE       = 0x92EA,
-		TESS_EVALUATION_SUBROUTINE_UNIFORM = 0x92F0,
-		TESS_EVALUATION_TEXTURE          = 0x829D,
-		TEXTURE_BUFFER_OFFSET            = 0x919D,
-		TEXTURE_BUFFER_OFFSET_ALIGNMENT  = 0x919F,
-		TEXTURE_BUFFER_SIZE              = 0x919E,
-		TEXTURE_COMPRESSED_BLOCK_HEIGHT  = 0x82B2,
-		TEXTURE_COMPRESSED_BLOCK_SIZE    = 0x82B3,
-		TEXTURE_COMPRESSED_BLOCK_WIDTH   = 0x82B1,
-		TEXTURE_GATHER                   = 0x82A2,
-		TEXTURE_GATHER_SHADOW            = 0x82A3,
-		TEXTURE_IMAGE_FORMAT             = 0x828F,
-		TEXTURE_IMAGE_TYPE               = 0x8290,
-		TEXTURE_IMMUTABLE_LEVELS         = 0x82DF,
-		TEXTURE_SHADOW                   = 0x82A1,
-		TEXTURE_VIEW                     = 0x82B5,
-		TEXTURE_VIEW_MIN_LAYER           = 0x82DD,
-		TEXTURE_VIEW_MIN_LEVEL           = 0x82DB,
-		TEXTURE_VIEW_NUM_LAYERS          = 0x82DE,
-		TEXTURE_VIEW_NUM_LEVELS          = 0x82DC,
-		TOP_LEVEL_ARRAY_SIZE             = 0x930C,
-		TOP_LEVEL_ARRAY_STRIDE           = 0x930D,
-		TRANSFORM_FEEDBACK_VARYING       = 0x92F4,
-		TYPE                             = 0x92FA,
-		UNIFORM                          = 0x92E1,
-		UNIFORM_BLOCK                    = 0x92E2,
-		UNIFORM_BLOCK_REFERENCED_BY_COMPUTE_SHADER = 0x90EC,
-		VERTEX_ATTRIB_ARRAY_LONG         = 0x874E,
-		VERTEX_ATTRIB_BINDING            = 0x82D4,
-		VERTEX_ATTRIB_RELATIVE_OFFSET    = 0x82D5,
-		VERTEX_BINDING_BUFFER            = 0x8F4F,
-		VERTEX_BINDING_DIVISOR           = 0x82D6,
-		VERTEX_BINDING_OFFSET            = 0x82D7,
-		VERTEX_BINDING_STRIDE            = 0x82D8,
-		VERTEX_SUBROUTINE                = 0x92E8,
-		VERTEX_SUBROUTINE_UNIFORM        = 0x92EE,
-		VERTEX_TEXTURE                   = 0x829B,
-		VIEW_CLASS_128_BITS              = 0x82C4,
-		VIEW_CLASS_16_BITS               = 0x82CA,
-		VIEW_CLASS_24_BITS               = 0x82C9,
-		VIEW_CLASS_32_BITS               = 0x82C8,
-		VIEW_CLASS_48_BITS               = 0x82C7,
-		VIEW_CLASS_64_BITS               = 0x82C6,
-		VIEW_CLASS_8_BITS                = 0x82CB,
-		VIEW_CLASS_96_BITS               = 0x82C5,
-		VIEW_CLASS_BPTC_FLOAT            = 0x82D3,
-		VIEW_CLASS_BPTC_UNORM            = 0x82D2,
-		VIEW_CLASS_RGTC1_RED             = 0x82D0,
-		VIEW_CLASS_RGTC2_RG              = 0x82D1,
-		VIEW_CLASS_S3TC_DXT1_RGB         = 0x82CC,
-		VIEW_CLASS_S3TC_DXT1_RGBA        = 0x82CD,
-		VIEW_CLASS_S3TC_DXT3_RGBA        = 0x82CE,
-		VIEW_CLASS_S3TC_DXT5_RGBA        = 0x82CF,
-		VIEW_COMPATIBILITY_CLASS         = 0x82B6,
-		
-		BUFFER_IMMUTABLE_STORAGE         = 0x821F,
-		BUFFER_STORAGE_FLAGS             = 0x8220,
-		CLEAR_TEXTURE                    = 0x9365,
-		CLIENT_MAPPED_BUFFER_BARRIER_BIT = 0x00004000,
-		CLIENT_STORAGE_BIT               = 0x0200,
-		DYNAMIC_STORAGE_BIT              = 0x0100,
-		LOCATION_COMPONENT               = 0x934A,
-		MAP_COHERENT_BIT                 = 0x0080,
-		MAP_PERSISTENT_BIT               = 0x0040,
-		MAX_VERTEX_ATTRIB_STRIDE         = 0x82E5,
-		MIRROR_CLAMP_TO_EDGE             = 0x8743,
-		PRIMITIVE_RESTART_FOR_PATCHES_SUPPORTED = 0x8221,
-		QUERY_BUFFER                     = 0x9192,
-		QUERY_BUFFER_BARRIER_BIT         = 0x00008000,
-		QUERY_BUFFER_BINDING             = 0x9193,
-		QUERY_RESULT_NO_WAIT             = 0x9194,
-		TEXTURE_BUFFER_BINDING           = 0x8C2A,
-		TRANSFORM_FEEDBACK_BUFFER_INDEX  = 0x934B,
-		TRANSFORM_FEEDBACK_BUFFER_STRIDE = 0x934C,
-		
-		CLIP_DEPTH_MODE                  = 0x935D,
-		CLIP_ORIGIN                      = 0x935C,
-		CONTEXT_FLAG_ROBUST_ACCESS_BIT   = 0x00000004,
-		CONTEXT_LOST                     = 0x0507,
-		CONTEXT_RELEASE_BEHAVIOR         = 0x82FB,
-		CONTEXT_RELEASE_BEHAVIOR_FLUSH   = 0x82FC,
-		GUILTY_CONTEXT_RESET             = 0x8253,
-		INNOCENT_CONTEXT_RESET           = 0x8254,
-		LOSE_CONTEXT_ON_RESET            = 0x8252,
-		MAX_COMBINED_CLIP_AND_CULL_DISTANCES = 0x82FA,
-		MAX_CULL_DISTANCES               = 0x82F9,
-		NEGATIVE_ONE_TO_ONE              = 0x935E,
-		NO_RESET_NOTIFICATION            = 0x8261,
-		QUERY_BY_REGION_NO_WAIT_INVERTED = 0x8E1A,
-		QUERY_BY_REGION_WAIT_INVERTED    = 0x8E19,
-		QUERY_NO_WAIT_INVERTED           = 0x8E18,
-		QUERY_TARGET                     = 0x82EA,
-		QUERY_WAIT_INVERTED              = 0x8E17,
-		RESET_NOTIFICATION_STRATEGY      = 0x8256,
-		TEXTURE_TARGET                   = 0x1006,
-		UNKNOWN_CONTEXT_RESET            = 0x8255,
-		ZERO_TO_ONE                      = 0x935F,
-		
 	};
 	
 	namespace _detail
 	{
+		extern void (CODEGEN_FUNCPTR *DebugMessageCallback)(GLDEBUGPROC callback, const void * userParam);
+		extern void (CODEGEN_FUNCPTR *DebugMessageControl)(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint * ids, GLboolean enabled);
+		extern void (CODEGEN_FUNCPTR *DebugMessageInsert)(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar * buf);
+		extern GLuint (CODEGEN_FUNCPTR *GetDebugMessageLog)(GLuint count, GLsizei bufSize, GLenum * sources, GLenum * types, GLuint * ids, GLenum * severities, GLsizei * lengths, GLchar * messageLog);
+		extern void (CODEGEN_FUNCPTR *GetObjectLabel)(GLenum identifier, GLuint name, GLsizei bufSize, GLsizei * length, GLchar * label);
+		extern void (CODEGEN_FUNCPTR *GetObjectPtrLabel)(const void * ptr, GLsizei bufSize, GLsizei * length, GLchar * label);
+		extern void (CODEGEN_FUNCPTR *GetPointerv)(GLenum pname, void ** params);
+		extern void (CODEGEN_FUNCPTR *ObjectLabel)(GLenum identifier, GLuint name, GLsizei length, const GLchar * label);
+		extern void (CODEGEN_FUNCPTR *ObjectPtrLabel)(const void * ptr, GLsizei length, const GLchar * label);
+		extern void (CODEGEN_FUNCPTR *PopDebugGroup)(void);
+		extern void (CODEGEN_FUNCPTR *PushDebugGroup)(GLenum source, GLuint id, GLsizei length, const GLchar * message);
+		
+		extern void (CODEGEN_FUNCPTR *TexStorage1D)(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width);
+		extern void (CODEGEN_FUNCPTR *TexStorage2D)(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
+		extern void (CODEGEN_FUNCPTR *TexStorage3D)(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
+		
+		extern void (CODEGEN_FUNCPTR *BufferStorage)(GLenum target, GLsizeiptr size, const void * data, GLbitfield flags);
+		
+		extern void (CODEGEN_FUNCPTR *BindTextureUnit)(GLuint unit, GLuint texture);
+		extern void (CODEGEN_FUNCPTR *BlitNamedFramebuffer)(GLuint readFramebuffer, GLuint drawFramebuffer, GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
+		extern GLenum (CODEGEN_FUNCPTR *CheckNamedFramebufferStatus)(GLuint framebuffer, GLenum target);
+		extern void (CODEGEN_FUNCPTR *ClearNamedBufferData)(GLuint buffer, GLenum internalformat, GLenum format, GLenum type, const void * data);
+		extern void (CODEGEN_FUNCPTR *ClearNamedBufferSubData)(GLuint buffer, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void * data);
+		extern void (CODEGEN_FUNCPTR *ClearNamedFramebufferfi)(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLfloat depth, GLint stencil);
+		extern void (CODEGEN_FUNCPTR *ClearNamedFramebufferfv)(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLfloat * value);
+		extern void (CODEGEN_FUNCPTR *ClearNamedFramebufferiv)(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLint * value);
+		extern void (CODEGEN_FUNCPTR *ClearNamedFramebufferuiv)(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLuint * value);
+		extern void (CODEGEN_FUNCPTR *CompressedTextureSubImage1D)(GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void * data);
+		extern void (CODEGEN_FUNCPTR *CompressedTextureSubImage2D)(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void * data);
+		extern void (CODEGEN_FUNCPTR *CompressedTextureSubImage3D)(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void * data);
+		extern void (CODEGEN_FUNCPTR *CopyNamedBufferSubData)(GLuint readBuffer, GLuint writeBuffer, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size);
+		extern void (CODEGEN_FUNCPTR *CopyTextureSubImage1D)(GLuint texture, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width);
+		extern void (CODEGEN_FUNCPTR *CopyTextureSubImage2D)(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height);
+		extern void (CODEGEN_FUNCPTR *CopyTextureSubImage3D)(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height);
+		extern void (CODEGEN_FUNCPTR *CreateBuffers)(GLsizei n, GLuint * buffers);
+		extern void (CODEGEN_FUNCPTR *CreateFramebuffers)(GLsizei n, GLuint * framebuffers);
+		extern void (CODEGEN_FUNCPTR *CreateProgramPipelines)(GLsizei n, GLuint * pipelines);
+		extern void (CODEGEN_FUNCPTR *CreateQueries)(GLenum target, GLsizei n, GLuint * ids);
+		extern void (CODEGEN_FUNCPTR *CreateRenderbuffers)(GLsizei n, GLuint * renderbuffers);
+		extern void (CODEGEN_FUNCPTR *CreateSamplers)(GLsizei n, GLuint * samplers);
+		extern void (CODEGEN_FUNCPTR *CreateTextures)(GLenum target, GLsizei n, GLuint * textures);
+		extern void (CODEGEN_FUNCPTR *CreateTransformFeedbacks)(GLsizei n, GLuint * ids);
+		extern void (CODEGEN_FUNCPTR *CreateVertexArrays)(GLsizei n, GLuint * arrays);
+		extern void (CODEGEN_FUNCPTR *DisableVertexArrayAttrib)(GLuint vaobj, GLuint index);
+		extern void (CODEGEN_FUNCPTR *EnableVertexArrayAttrib)(GLuint vaobj, GLuint index);
+		extern void (CODEGEN_FUNCPTR *FlushMappedNamedBufferRange)(GLuint buffer, GLintptr offset, GLsizeiptr length);
+		extern void (CODEGEN_FUNCPTR *GenerateTextureMipmap)(GLuint texture);
+		extern void (CODEGEN_FUNCPTR *GetCompressedTextureImage)(GLuint texture, GLint level, GLsizei bufSize, void * pixels);
+		extern void (CODEGEN_FUNCPTR *GetNamedBufferParameteri64v)(GLuint buffer, GLenum pname, GLint64 * params);
+		extern void (CODEGEN_FUNCPTR *GetNamedBufferParameteriv)(GLuint buffer, GLenum pname, GLint * params);
+		extern void (CODEGEN_FUNCPTR *GetNamedBufferPointerv)(GLuint buffer, GLenum pname, void ** params);
+		extern void (CODEGEN_FUNCPTR *GetNamedBufferSubData)(GLuint buffer, GLintptr offset, GLsizeiptr size, void * data);
+		extern void (CODEGEN_FUNCPTR *GetNamedFramebufferAttachmentParameteriv)(GLuint framebuffer, GLenum attachment, GLenum pname, GLint * params);
+		extern void (CODEGEN_FUNCPTR *GetNamedFramebufferParameteriv)(GLuint framebuffer, GLenum pname, GLint * param);
+		extern void (CODEGEN_FUNCPTR *GetNamedRenderbufferParameteriv)(GLuint renderbuffer, GLenum pname, GLint * params);
+		extern void (CODEGEN_FUNCPTR *GetQueryBufferObjecti64v)(GLuint id, GLuint buffer, GLenum pname, GLintptr offset);
+		extern void (CODEGEN_FUNCPTR *GetQueryBufferObjectiv)(GLuint id, GLuint buffer, GLenum pname, GLintptr offset);
+		extern void (CODEGEN_FUNCPTR *GetQueryBufferObjectui64v)(GLuint id, GLuint buffer, GLenum pname, GLintptr offset);
+		extern void (CODEGEN_FUNCPTR *GetQueryBufferObjectuiv)(GLuint id, GLuint buffer, GLenum pname, GLintptr offset);
+		extern void (CODEGEN_FUNCPTR *GetTextureImage)(GLuint texture, GLint level, GLenum format, GLenum type, GLsizei bufSize, void * pixels);
+		extern void (CODEGEN_FUNCPTR *GetTextureLevelParameterfv)(GLuint texture, GLint level, GLenum pname, GLfloat * params);
+		extern void (CODEGEN_FUNCPTR *GetTextureLevelParameteriv)(GLuint texture, GLint level, GLenum pname, GLint * params);
+		extern void (CODEGEN_FUNCPTR *GetTextureParameterIiv)(GLuint texture, GLenum pname, GLint * params);
+		extern void (CODEGEN_FUNCPTR *GetTextureParameterIuiv)(GLuint texture, GLenum pname, GLuint * params);
+		extern void (CODEGEN_FUNCPTR *GetTextureParameterfv)(GLuint texture, GLenum pname, GLfloat * params);
+		extern void (CODEGEN_FUNCPTR *GetTextureParameteriv)(GLuint texture, GLenum pname, GLint * params);
+		extern void (CODEGEN_FUNCPTR *GetTransformFeedbacki64_v)(GLuint xfb, GLenum pname, GLuint index, GLint64 * param);
+		extern void (CODEGEN_FUNCPTR *GetTransformFeedbacki_v)(GLuint xfb, GLenum pname, GLuint index, GLint * param);
+		extern void (CODEGEN_FUNCPTR *GetTransformFeedbackiv)(GLuint xfb, GLenum pname, GLint * param);
+		extern void (CODEGEN_FUNCPTR *GetVertexArrayIndexed64iv)(GLuint vaobj, GLuint index, GLenum pname, GLint64 * param);
+		extern void (CODEGEN_FUNCPTR *GetVertexArrayIndexediv)(GLuint vaobj, GLuint index, GLenum pname, GLint * param);
+		extern void (CODEGEN_FUNCPTR *GetVertexArrayiv)(GLuint vaobj, GLenum pname, GLint * param);
+		extern void (CODEGEN_FUNCPTR *InvalidateNamedFramebufferData)(GLuint framebuffer, GLsizei numAttachments, const GLenum * attachments);
+		extern void (CODEGEN_FUNCPTR *InvalidateNamedFramebufferSubData)(GLuint framebuffer, GLsizei numAttachments, const GLenum * attachments, GLint x, GLint y, GLsizei width, GLsizei height);
+		extern void * (CODEGEN_FUNCPTR *MapNamedBuffer)(GLuint buffer, GLenum access);
+		extern void * (CODEGEN_FUNCPTR *MapNamedBufferRange)(GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access);
+		extern void (CODEGEN_FUNCPTR *NamedBufferData)(GLuint buffer, GLsizeiptr size, const void * data, GLenum usage);
+		extern void (CODEGEN_FUNCPTR *NamedBufferStorage)(GLuint buffer, GLsizeiptr size, const void * data, GLbitfield flags);
+		extern void (CODEGEN_FUNCPTR *NamedBufferSubData)(GLuint buffer, GLintptr offset, GLsizeiptr size, const void * data);
+		extern void (CODEGEN_FUNCPTR *NamedFramebufferDrawBuffer)(GLuint framebuffer, GLenum buf);
+		extern void (CODEGEN_FUNCPTR *NamedFramebufferDrawBuffers)(GLuint framebuffer, GLsizei n, const GLenum * bufs);
+		extern void (CODEGEN_FUNCPTR *NamedFramebufferParameteri)(GLuint framebuffer, GLenum pname, GLint param);
+		extern void (CODEGEN_FUNCPTR *NamedFramebufferReadBuffer)(GLuint framebuffer, GLenum src);
+		extern void (CODEGEN_FUNCPTR *NamedFramebufferRenderbuffer)(GLuint framebuffer, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer);
+		extern void (CODEGEN_FUNCPTR *NamedFramebufferTexture)(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level);
+		extern void (CODEGEN_FUNCPTR *NamedFramebufferTextureLayer)(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint layer);
+		extern void (CODEGEN_FUNCPTR *NamedRenderbufferStorage)(GLuint renderbuffer, GLenum internalformat, GLsizei width, GLsizei height);
+		extern void (CODEGEN_FUNCPTR *NamedRenderbufferStorageMultisample)(GLuint renderbuffer, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height);
+		extern void (CODEGEN_FUNCPTR *TextureBuffer)(GLuint texture, GLenum internalformat, GLuint buffer);
+		extern void (CODEGEN_FUNCPTR *TextureBufferRange)(GLuint texture, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size);
+		extern void (CODEGEN_FUNCPTR *TextureParameterIiv)(GLuint texture, GLenum pname, const GLint * params);
+		extern void (CODEGEN_FUNCPTR *TextureParameterIuiv)(GLuint texture, GLenum pname, const GLuint * params);
+		extern void (CODEGEN_FUNCPTR *TextureParameterf)(GLuint texture, GLenum pname, GLfloat param);
+		extern void (CODEGEN_FUNCPTR *TextureParameterfv)(GLuint texture, GLenum pname, const GLfloat * param);
+		extern void (CODEGEN_FUNCPTR *TextureParameteri)(GLuint texture, GLenum pname, GLint param);
+		extern void (CODEGEN_FUNCPTR *TextureParameteriv)(GLuint texture, GLenum pname, const GLint * param);
+		extern void (CODEGEN_FUNCPTR *TextureStorage1D)(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width);
+		extern void (CODEGEN_FUNCPTR *TextureStorage2D)(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
+		extern void (CODEGEN_FUNCPTR *TextureStorage2DMultisample)(GLuint texture, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations);
+		extern void (CODEGEN_FUNCPTR *TextureStorage3D)(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
+		extern void (CODEGEN_FUNCPTR *TextureStorage3DMultisample)(GLuint texture, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations);
+		extern void (CODEGEN_FUNCPTR *TextureSubImage1D)(GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void * pixels);
+		extern void (CODEGEN_FUNCPTR *TextureSubImage2D)(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void * pixels);
+		extern void (CODEGEN_FUNCPTR *TextureSubImage3D)(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void * pixels);
+		extern void (CODEGEN_FUNCPTR *TransformFeedbackBufferBase)(GLuint xfb, GLuint index, GLuint buffer);
+		extern void (CODEGEN_FUNCPTR *TransformFeedbackBufferRange)(GLuint xfb, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size);
+		extern GLboolean (CODEGEN_FUNCPTR *UnmapNamedBuffer)(GLuint buffer);
+		extern void (CODEGEN_FUNCPTR *VertexArrayAttribBinding)(GLuint vaobj, GLuint attribindex, GLuint bindingindex);
+		extern void (CODEGEN_FUNCPTR *VertexArrayAttribFormat)(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset);
+		extern void (CODEGEN_FUNCPTR *VertexArrayAttribIFormat)(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset);
+		extern void (CODEGEN_FUNCPTR *VertexArrayAttribLFormat)(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset);
+		extern void (CODEGEN_FUNCPTR *VertexArrayBindingDivisor)(GLuint vaobj, GLuint bindingindex, GLuint divisor);
+		extern void (CODEGEN_FUNCPTR *VertexArrayElementBuffer)(GLuint vaobj, GLuint buffer);
+		extern void (CODEGEN_FUNCPTR *VertexArrayVertexBuffer)(GLuint vaobj, GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride);
+		extern void (CODEGEN_FUNCPTR *VertexArrayVertexBuffers)(GLuint vaobj, GLuint first, GLsizei count, const GLuint * buffers, const GLintptr * offsets, const GLsizei * strides);
+		
+		extern void (CODEGEN_FUNCPTR *ActiveShaderProgram)(GLuint pipeline, GLuint program);
+		extern void (CODEGEN_FUNCPTR *BindProgramPipeline)(GLuint pipeline);
+		extern GLuint (CODEGEN_FUNCPTR *CreateShaderProgramv)(GLenum type, GLsizei count, const GLchar *const* strings);
+		extern void (CODEGEN_FUNCPTR *DeleteProgramPipelines)(GLsizei n, const GLuint * pipelines);
+		extern void (CODEGEN_FUNCPTR *GenProgramPipelines)(GLsizei n, GLuint * pipelines);
+		extern void (CODEGEN_FUNCPTR *GetProgramPipelineInfoLog)(GLuint pipeline, GLsizei bufSize, GLsizei * length, GLchar * infoLog);
+		extern void (CODEGEN_FUNCPTR *GetProgramPipelineiv)(GLuint pipeline, GLenum pname, GLint * params);
+		extern GLboolean (CODEGEN_FUNCPTR *IsProgramPipeline)(GLuint pipeline);
+		extern void (CODEGEN_FUNCPTR *ProgramUniform1d)(GLuint program, GLint location, GLdouble v0);
+		extern void (CODEGEN_FUNCPTR *ProgramUniform1dv)(GLuint program, GLint location, GLsizei count, const GLdouble * value);
+		extern void (CODEGEN_FUNCPTR *ProgramUniform1f)(GLuint program, GLint location, GLfloat v0);
+		extern void (CODEGEN_FUNCPTR *ProgramUniform1fv)(GLuint program, GLint location, GLsizei count, const GLfloat * value);
+		extern void (CODEGEN_FUNCPTR *ProgramUniform1i)(GLuint program, GLint location, GLint v0);
+		extern void (CODEGEN_FUNCPTR *ProgramUniform1iv)(GLuint program, GLint location, GLsizei count, const GLint * value);
+		extern void (CODEGEN_FUNCPTR *ProgramUniform1ui)(GLuint program, GLint location, GLuint v0);
+		extern void (CODEGEN_FUNCPTR *ProgramUniform1uiv)(GLuint program, GLint location, GLsizei count, const GLuint * value);
+		extern void (CODEGEN_FUNCPTR *ProgramUniform2d)(GLuint program, GLint location, GLdouble v0, GLdouble v1);
+		extern void (CODEGEN_FUNCPTR *ProgramUniform2dv)(GLuint program, GLint location, GLsizei count, const GLdouble * value);
+		extern void (CODEGEN_FUNCPTR *ProgramUniform2f)(GLuint program, GLint location, GLfloat v0, GLfloat v1);
+		extern void (CODEGEN_FUNCPTR *ProgramUniform2fv)(GLuint program, GLint location, GLsizei count, const GLfloat * value);
+		extern void (CODEGEN_FUNCPTR *ProgramUniform2i)(GLuint program, GLint location, GLint v0, GLint v1);
+		extern void (CODEGEN_FUNCPTR *ProgramUniform2iv)(GLuint program, GLint location, GLsizei count, const GLint * value);
+		extern void (CODEGEN_FUNCPTR *ProgramUniform2ui)(GLuint program, GLint location, GLuint v0, GLuint v1);
+		extern void (CODEGEN_FUNCPTR *ProgramUniform2uiv)(GLuint program, GLint location, GLsizei count, const GLuint * value);
+		extern void (CODEGEN_FUNCPTR *ProgramUniform3d)(GLuint program, GLint location, GLdouble v0, GLdouble v1, GLdouble v2);
+		extern void (CODEGEN_FUNCPTR *ProgramUniform3dv)(GLuint program, GLint location, GLsizei count, const GLdouble * value);
+		extern void (CODEGEN_FUNCPTR *ProgramUniform3f)(GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2);
+		extern void (CODEGEN_FUNCPTR *ProgramUniform3fv)(GLuint program, GLint location, GLsizei count, const GLfloat * value);
+		extern void (CODEGEN_FUNCPTR *ProgramUniform3i)(GLuint program, GLint location, GLint v0, GLint v1, GLint v2);
+		extern void (CODEGEN_FUNCPTR *ProgramUniform3iv)(GLuint program, GLint location, GLsizei count, const GLint * value);
+		extern void (CODEGEN_FUNCPTR *ProgramUniform3ui)(GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2);
+		extern void (CODEGEN_FUNCPTR *ProgramUniform3uiv)(GLuint program, GLint location, GLsizei count, const GLuint * value);
+		extern void (CODEGEN_FUNCPTR *ProgramUniform4d)(GLuint program, GLint location, GLdouble v0, GLdouble v1, GLdouble v2, GLdouble v3);
+		extern void (CODEGEN_FUNCPTR *ProgramUniform4dv)(GLuint program, GLint location, GLsizei count, const GLdouble * value);
+		extern void (CODEGEN_FUNCPTR *ProgramUniform4f)(GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3);
+		extern void (CODEGEN_FUNCPTR *ProgramUniform4fv)(GLuint program, GLint location, GLsizei count, const GLfloat * value);
+		extern void (CODEGEN_FUNCPTR *ProgramUniform4i)(GLuint program, GLint location, GLint v0, GLint v1, GLint v2, GLint v3);
+		extern void (CODEGEN_FUNCPTR *ProgramUniform4iv)(GLuint program, GLint location, GLsizei count, const GLint * value);
+		extern void (CODEGEN_FUNCPTR *ProgramUniform4ui)(GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3);
+		extern void (CODEGEN_FUNCPTR *ProgramUniform4uiv)(GLuint program, GLint location, GLsizei count, const GLuint * value);
+		extern void (CODEGEN_FUNCPTR *ProgramUniformMatrix2dv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value);
+		extern void (CODEGEN_FUNCPTR *ProgramUniformMatrix2fv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value);
+		extern void (CODEGEN_FUNCPTR *ProgramUniformMatrix2x3dv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value);
+		extern void (CODEGEN_FUNCPTR *ProgramUniformMatrix2x3fv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value);
+		extern void (CODEGEN_FUNCPTR *ProgramUniformMatrix2x4dv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value);
+		extern void (CODEGEN_FUNCPTR *ProgramUniformMatrix2x4fv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value);
+		extern void (CODEGEN_FUNCPTR *ProgramUniformMatrix3dv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value);
+		extern void (CODEGEN_FUNCPTR *ProgramUniformMatrix3fv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value);
+		extern void (CODEGEN_FUNCPTR *ProgramUniformMatrix3x2dv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value);
+		extern void (CODEGEN_FUNCPTR *ProgramUniformMatrix3x2fv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value);
+		extern void (CODEGEN_FUNCPTR *ProgramUniformMatrix3x4dv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value);
+		extern void (CODEGEN_FUNCPTR *ProgramUniformMatrix3x4fv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value);
+		extern void (CODEGEN_FUNCPTR *ProgramUniformMatrix4dv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value);
+		extern void (CODEGEN_FUNCPTR *ProgramUniformMatrix4fv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value);
+		extern void (CODEGEN_FUNCPTR *ProgramUniformMatrix4x2dv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value);
+		extern void (CODEGEN_FUNCPTR *ProgramUniformMatrix4x2fv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value);
+		extern void (CODEGEN_FUNCPTR *ProgramUniformMatrix4x3dv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value);
+		extern void (CODEGEN_FUNCPTR *ProgramUniformMatrix4x3fv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value);
+		extern void (CODEGEN_FUNCPTR *UseProgramStages)(GLuint pipeline, GLbitfield stages, GLuint program);
+		extern void (CODEGEN_FUNCPTR *ValidateProgramPipeline)(GLuint pipeline);
+		
 		extern void (CODEGEN_FUNCPTR *BlendFunc)(GLenum sfactor, GLenum dfactor);
 		extern void (CODEGEN_FUNCPTR *Clear)(GLbitfield mask);
 		extern void (CODEGEN_FUNCPTR *ClearColor)(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
@@ -1600,7 +1328,6 @@ namespace gl
 		extern void (CODEGEN_FUNCPTR *DrawArrays)(GLenum mode, GLint first, GLsizei count);
 		extern void (CODEGEN_FUNCPTR *DrawElements)(GLenum mode, GLsizei count, GLenum type, const void * indices);
 		extern void (CODEGEN_FUNCPTR *GenTextures)(GLsizei n, GLuint * textures);
-		extern void (CODEGEN_FUNCPTR *GetPointerv)(GLenum pname, void ** params);
 		extern GLboolean (CODEGEN_FUNCPTR *IsTexture)(GLuint texture);
 		extern void (CODEGEN_FUNCPTR *PolygonOffset)(GLfloat factor, GLfloat units);
 		extern void (CODEGEN_FUNCPTR *TexSubImage1D)(GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void * pixels);
@@ -1899,321 +1626,184 @@ namespace gl
 		extern void (CODEGEN_FUNCPTR *VertexAttribP4ui)(GLuint index, GLenum type, GLboolean normalized, GLuint value);
 		extern void (CODEGEN_FUNCPTR *VertexAttribP4uiv)(GLuint index, GLenum type, GLboolean normalized, const GLuint * value);
 		
-		extern void (CODEGEN_FUNCPTR *BeginQueryIndexed)(GLenum target, GLuint index, GLuint id);
-		extern void (CODEGEN_FUNCPTR *BindTransformFeedback)(GLenum target, GLuint id);
-		extern void (CODEGEN_FUNCPTR *BlendEquationSeparatei)(GLuint buf, GLenum modeRGB, GLenum modeAlpha);
-		extern void (CODEGEN_FUNCPTR *BlendEquationi)(GLuint buf, GLenum mode);
-		extern void (CODEGEN_FUNCPTR *BlendFuncSeparatei)(GLuint buf, GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha);
-		extern void (CODEGEN_FUNCPTR *BlendFunci)(GLuint buf, GLenum src, GLenum dst);
-		extern void (CODEGEN_FUNCPTR *DeleteTransformFeedbacks)(GLsizei n, const GLuint * ids);
-		extern void (CODEGEN_FUNCPTR *DrawArraysIndirect)(GLenum mode, const void * indirect);
-		extern void (CODEGEN_FUNCPTR *DrawElementsIndirect)(GLenum mode, GLenum type, const void * indirect);
-		extern void (CODEGEN_FUNCPTR *DrawTransformFeedback)(GLenum mode, GLuint id);
-		extern void (CODEGEN_FUNCPTR *DrawTransformFeedbackStream)(GLenum mode, GLuint id, GLuint stream);
-		extern void (CODEGEN_FUNCPTR *EndQueryIndexed)(GLenum target, GLuint index);
-		extern void (CODEGEN_FUNCPTR *GenTransformFeedbacks)(GLsizei n, GLuint * ids);
-		extern void (CODEGEN_FUNCPTR *GetActiveSubroutineName)(GLuint program, GLenum shadertype, GLuint index, GLsizei bufsize, GLsizei * length, GLchar * name);
-		extern void (CODEGEN_FUNCPTR *GetActiveSubroutineUniformName)(GLuint program, GLenum shadertype, GLuint index, GLsizei bufsize, GLsizei * length, GLchar * name);
-		extern void (CODEGEN_FUNCPTR *GetActiveSubroutineUniformiv)(GLuint program, GLenum shadertype, GLuint index, GLenum pname, GLint * values);
-		extern void (CODEGEN_FUNCPTR *GetProgramStageiv)(GLuint program, GLenum shadertype, GLenum pname, GLint * values);
-		extern void (CODEGEN_FUNCPTR *GetQueryIndexediv)(GLenum target, GLuint index, GLenum pname, GLint * params);
-		extern GLuint (CODEGEN_FUNCPTR *GetSubroutineIndex)(GLuint program, GLenum shadertype, const GLchar * name);
-		extern GLint (CODEGEN_FUNCPTR *GetSubroutineUniformLocation)(GLuint program, GLenum shadertype, const GLchar * name);
-		extern void (CODEGEN_FUNCPTR *GetUniformSubroutineuiv)(GLenum shadertype, GLint location, GLuint * params);
-		extern void (CODEGEN_FUNCPTR *GetUniformdv)(GLuint program, GLint location, GLdouble * params);
-		extern GLboolean (CODEGEN_FUNCPTR *IsTransformFeedback)(GLuint id);
-		extern void (CODEGEN_FUNCPTR *MinSampleShading)(GLfloat value);
-		extern void (CODEGEN_FUNCPTR *PatchParameterfv)(GLenum pname, const GLfloat * values);
-		extern void (CODEGEN_FUNCPTR *PatchParameteri)(GLenum pname, GLint value);
-		extern void (CODEGEN_FUNCPTR *PauseTransformFeedback)(void);
-		extern void (CODEGEN_FUNCPTR *ResumeTransformFeedback)(void);
-		extern void (CODEGEN_FUNCPTR *Uniform1d)(GLint location, GLdouble x);
-		extern void (CODEGEN_FUNCPTR *Uniform1dv)(GLint location, GLsizei count, const GLdouble * value);
-		extern void (CODEGEN_FUNCPTR *Uniform2d)(GLint location, GLdouble x, GLdouble y);
-		extern void (CODEGEN_FUNCPTR *Uniform2dv)(GLint location, GLsizei count, const GLdouble * value);
-		extern void (CODEGEN_FUNCPTR *Uniform3d)(GLint location, GLdouble x, GLdouble y, GLdouble z);
-		extern void (CODEGEN_FUNCPTR *Uniform3dv)(GLint location, GLsizei count, const GLdouble * value);
-		extern void (CODEGEN_FUNCPTR *Uniform4d)(GLint location, GLdouble x, GLdouble y, GLdouble z, GLdouble w);
-		extern void (CODEGEN_FUNCPTR *Uniform4dv)(GLint location, GLsizei count, const GLdouble * value);
-		extern void (CODEGEN_FUNCPTR *UniformMatrix2dv)(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value);
-		extern void (CODEGEN_FUNCPTR *UniformMatrix2x3dv)(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value);
-		extern void (CODEGEN_FUNCPTR *UniformMatrix2x4dv)(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value);
-		extern void (CODEGEN_FUNCPTR *UniformMatrix3dv)(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value);
-		extern void (CODEGEN_FUNCPTR *UniformMatrix3x2dv)(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value);
-		extern void (CODEGEN_FUNCPTR *UniformMatrix3x4dv)(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value);
-		extern void (CODEGEN_FUNCPTR *UniformMatrix4dv)(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value);
-		extern void (CODEGEN_FUNCPTR *UniformMatrix4x2dv)(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value);
-		extern void (CODEGEN_FUNCPTR *UniformMatrix4x3dv)(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value);
-		extern void (CODEGEN_FUNCPTR *UniformSubroutinesuiv)(GLenum shadertype, GLsizei count, const GLuint * indices);
-		
-		extern void (CODEGEN_FUNCPTR *ActiveShaderProgram)(GLuint pipeline, GLuint program);
-		extern void (CODEGEN_FUNCPTR *BindProgramPipeline)(GLuint pipeline);
-		extern void (CODEGEN_FUNCPTR *ClearDepthf)(GLfloat d);
-		extern GLuint (CODEGEN_FUNCPTR *CreateShaderProgramv)(GLenum type, GLsizei count, const GLchar *const* strings);
-		extern void (CODEGEN_FUNCPTR *DeleteProgramPipelines)(GLsizei n, const GLuint * pipelines);
-		extern void (CODEGEN_FUNCPTR *DepthRangeArrayv)(GLuint first, GLsizei count, const GLdouble * v);
-		extern void (CODEGEN_FUNCPTR *DepthRangeIndexed)(GLuint index, GLdouble n, GLdouble f);
-		extern void (CODEGEN_FUNCPTR *DepthRangef)(GLfloat n, GLfloat f);
-		extern void (CODEGEN_FUNCPTR *GenProgramPipelines)(GLsizei n, GLuint * pipelines);
-		extern void (CODEGEN_FUNCPTR *GetDoublei_v)(GLenum target, GLuint index, GLdouble * data);
-		extern void (CODEGEN_FUNCPTR *GetFloati_v)(GLenum target, GLuint index, GLfloat * data);
-		extern void (CODEGEN_FUNCPTR *GetProgramBinary)(GLuint program, GLsizei bufSize, GLsizei * length, GLenum * binaryFormat, void * binary);
-		extern void (CODEGEN_FUNCPTR *GetProgramPipelineInfoLog)(GLuint pipeline, GLsizei bufSize, GLsizei * length, GLchar * infoLog);
-		extern void (CODEGEN_FUNCPTR *GetProgramPipelineiv)(GLuint pipeline, GLenum pname, GLint * params);
-		extern void (CODEGEN_FUNCPTR *GetShaderPrecisionFormat)(GLenum shadertype, GLenum precisiontype, GLint * range, GLint * precision);
-		extern void (CODEGEN_FUNCPTR *GetVertexAttribLdv)(GLuint index, GLenum pname, GLdouble * params);
-		extern GLboolean (CODEGEN_FUNCPTR *IsProgramPipeline)(GLuint pipeline);
-		extern void (CODEGEN_FUNCPTR *ProgramBinary)(GLuint program, GLenum binaryFormat, const void * binary, GLsizei length);
-		extern void (CODEGEN_FUNCPTR *ProgramParameteri)(GLuint program, GLenum pname, GLint value);
-		extern void (CODEGEN_FUNCPTR *ProgramUniform1d)(GLuint program, GLint location, GLdouble v0);
-		extern void (CODEGEN_FUNCPTR *ProgramUniform1dv)(GLuint program, GLint location, GLsizei count, const GLdouble * value);
-		extern void (CODEGEN_FUNCPTR *ProgramUniform1f)(GLuint program, GLint location, GLfloat v0);
-		extern void (CODEGEN_FUNCPTR *ProgramUniform1fv)(GLuint program, GLint location, GLsizei count, const GLfloat * value);
-		extern void (CODEGEN_FUNCPTR *ProgramUniform1i)(GLuint program, GLint location, GLint v0);
-		extern void (CODEGEN_FUNCPTR *ProgramUniform1iv)(GLuint program, GLint location, GLsizei count, const GLint * value);
-		extern void (CODEGEN_FUNCPTR *ProgramUniform1ui)(GLuint program, GLint location, GLuint v0);
-		extern void (CODEGEN_FUNCPTR *ProgramUniform1uiv)(GLuint program, GLint location, GLsizei count, const GLuint * value);
-		extern void (CODEGEN_FUNCPTR *ProgramUniform2d)(GLuint program, GLint location, GLdouble v0, GLdouble v1);
-		extern void (CODEGEN_FUNCPTR *ProgramUniform2dv)(GLuint program, GLint location, GLsizei count, const GLdouble * value);
-		extern void (CODEGEN_FUNCPTR *ProgramUniform2f)(GLuint program, GLint location, GLfloat v0, GLfloat v1);
-		extern void (CODEGEN_FUNCPTR *ProgramUniform2fv)(GLuint program, GLint location, GLsizei count, const GLfloat * value);
-		extern void (CODEGEN_FUNCPTR *ProgramUniform2i)(GLuint program, GLint location, GLint v0, GLint v1);
-		extern void (CODEGEN_FUNCPTR *ProgramUniform2iv)(GLuint program, GLint location, GLsizei count, const GLint * value);
-		extern void (CODEGEN_FUNCPTR *ProgramUniform2ui)(GLuint program, GLint location, GLuint v0, GLuint v1);
-		extern void (CODEGEN_FUNCPTR *ProgramUniform2uiv)(GLuint program, GLint location, GLsizei count, const GLuint * value);
-		extern void (CODEGEN_FUNCPTR *ProgramUniform3d)(GLuint program, GLint location, GLdouble v0, GLdouble v1, GLdouble v2);
-		extern void (CODEGEN_FUNCPTR *ProgramUniform3dv)(GLuint program, GLint location, GLsizei count, const GLdouble * value);
-		extern void (CODEGEN_FUNCPTR *ProgramUniform3f)(GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2);
-		extern void (CODEGEN_FUNCPTR *ProgramUniform3fv)(GLuint program, GLint location, GLsizei count, const GLfloat * value);
-		extern void (CODEGEN_FUNCPTR *ProgramUniform3i)(GLuint program, GLint location, GLint v0, GLint v1, GLint v2);
-		extern void (CODEGEN_FUNCPTR *ProgramUniform3iv)(GLuint program, GLint location, GLsizei count, const GLint * value);
-		extern void (CODEGEN_FUNCPTR *ProgramUniform3ui)(GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2);
-		extern void (CODEGEN_FUNCPTR *ProgramUniform3uiv)(GLuint program, GLint location, GLsizei count, const GLuint * value);
-		extern void (CODEGEN_FUNCPTR *ProgramUniform4d)(GLuint program, GLint location, GLdouble v0, GLdouble v1, GLdouble v2, GLdouble v3);
-		extern void (CODEGEN_FUNCPTR *ProgramUniform4dv)(GLuint program, GLint location, GLsizei count, const GLdouble * value);
-		extern void (CODEGEN_FUNCPTR *ProgramUniform4f)(GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3);
-		extern void (CODEGEN_FUNCPTR *ProgramUniform4fv)(GLuint program, GLint location, GLsizei count, const GLfloat * value);
-		extern void (CODEGEN_FUNCPTR *ProgramUniform4i)(GLuint program, GLint location, GLint v0, GLint v1, GLint v2, GLint v3);
-		extern void (CODEGEN_FUNCPTR *ProgramUniform4iv)(GLuint program, GLint location, GLsizei count, const GLint * value);
-		extern void (CODEGEN_FUNCPTR *ProgramUniform4ui)(GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3);
-		extern void (CODEGEN_FUNCPTR *ProgramUniform4uiv)(GLuint program, GLint location, GLsizei count, const GLuint * value);
-		extern void (CODEGEN_FUNCPTR *ProgramUniformMatrix2dv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value);
-		extern void (CODEGEN_FUNCPTR *ProgramUniformMatrix2fv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value);
-		extern void (CODEGEN_FUNCPTR *ProgramUniformMatrix2x3dv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value);
-		extern void (CODEGEN_FUNCPTR *ProgramUniformMatrix2x3fv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value);
-		extern void (CODEGEN_FUNCPTR *ProgramUniformMatrix2x4dv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value);
-		extern void (CODEGEN_FUNCPTR *ProgramUniformMatrix2x4fv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value);
-		extern void (CODEGEN_FUNCPTR *ProgramUniformMatrix3dv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value);
-		extern void (CODEGEN_FUNCPTR *ProgramUniformMatrix3fv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value);
-		extern void (CODEGEN_FUNCPTR *ProgramUniformMatrix3x2dv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value);
-		extern void (CODEGEN_FUNCPTR *ProgramUniformMatrix3x2fv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value);
-		extern void (CODEGEN_FUNCPTR *ProgramUniformMatrix3x4dv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value);
-		extern void (CODEGEN_FUNCPTR *ProgramUniformMatrix3x4fv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value);
-		extern void (CODEGEN_FUNCPTR *ProgramUniformMatrix4dv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value);
-		extern void (CODEGEN_FUNCPTR *ProgramUniformMatrix4fv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value);
-		extern void (CODEGEN_FUNCPTR *ProgramUniformMatrix4x2dv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value);
-		extern void (CODEGEN_FUNCPTR *ProgramUniformMatrix4x2fv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value);
-		extern void (CODEGEN_FUNCPTR *ProgramUniformMatrix4x3dv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value);
-		extern void (CODEGEN_FUNCPTR *ProgramUniformMatrix4x3fv)(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value);
-		extern void (CODEGEN_FUNCPTR *ReleaseShaderCompiler)(void);
-		extern void (CODEGEN_FUNCPTR *ScissorArrayv)(GLuint first, GLsizei count, const GLint * v);
-		extern void (CODEGEN_FUNCPTR *ScissorIndexed)(GLuint index, GLint left, GLint bottom, GLsizei width, GLsizei height);
-		extern void (CODEGEN_FUNCPTR *ScissorIndexedv)(GLuint index, const GLint * v);
-		extern void (CODEGEN_FUNCPTR *ShaderBinary)(GLsizei count, const GLuint * shaders, GLenum binaryformat, const void * binary, GLsizei length);
-		extern void (CODEGEN_FUNCPTR *UseProgramStages)(GLuint pipeline, GLbitfield stages, GLuint program);
-		extern void (CODEGEN_FUNCPTR *ValidateProgramPipeline)(GLuint pipeline);
-		extern void (CODEGEN_FUNCPTR *VertexAttribL1d)(GLuint index, GLdouble x);
-		extern void (CODEGEN_FUNCPTR *VertexAttribL1dv)(GLuint index, const GLdouble * v);
-		extern void (CODEGEN_FUNCPTR *VertexAttribL2d)(GLuint index, GLdouble x, GLdouble y);
-		extern void (CODEGEN_FUNCPTR *VertexAttribL2dv)(GLuint index, const GLdouble * v);
-		extern void (CODEGEN_FUNCPTR *VertexAttribL3d)(GLuint index, GLdouble x, GLdouble y, GLdouble z);
-		extern void (CODEGEN_FUNCPTR *VertexAttribL3dv)(GLuint index, const GLdouble * v);
-		extern void (CODEGEN_FUNCPTR *VertexAttribL4d)(GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w);
-		extern void (CODEGEN_FUNCPTR *VertexAttribL4dv)(GLuint index, const GLdouble * v);
-		extern void (CODEGEN_FUNCPTR *VertexAttribLPointer)(GLuint index, GLint size, GLenum type, GLsizei stride, const void * pointer);
-		extern void (CODEGEN_FUNCPTR *ViewportArrayv)(GLuint first, GLsizei count, const GLfloat * v);
-		extern void (CODEGEN_FUNCPTR *ViewportIndexedf)(GLuint index, GLfloat x, GLfloat y, GLfloat w, GLfloat h);
-		extern void (CODEGEN_FUNCPTR *ViewportIndexedfv)(GLuint index, const GLfloat * v);
-		
-		extern void (CODEGEN_FUNCPTR *BindImageTexture)(GLuint unit, GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum access, GLenum format);
-		extern void (CODEGEN_FUNCPTR *DrawArraysInstancedBaseInstance)(GLenum mode, GLint first, GLsizei count, GLsizei instancecount, GLuint baseinstance);
-		extern void (CODEGEN_FUNCPTR *DrawElementsInstancedBaseInstance)(GLenum mode, GLsizei count, GLenum type, const void * indices, GLsizei instancecount, GLuint baseinstance);
-		extern void (CODEGEN_FUNCPTR *DrawElementsInstancedBaseVertexBaseInstance)(GLenum mode, GLsizei count, GLenum type, const void * indices, GLsizei instancecount, GLint basevertex, GLuint baseinstance);
-		extern void (CODEGEN_FUNCPTR *DrawTransformFeedbackInstanced)(GLenum mode, GLuint id, GLsizei instancecount);
-		extern void (CODEGEN_FUNCPTR *DrawTransformFeedbackStreamInstanced)(GLenum mode, GLuint id, GLuint stream, GLsizei instancecount);
-		extern void (CODEGEN_FUNCPTR *GetActiveAtomicCounterBufferiv)(GLuint program, GLuint bufferIndex, GLenum pname, GLint * params);
-		extern void (CODEGEN_FUNCPTR *GetInternalformativ)(GLenum target, GLenum internalformat, GLenum pname, GLsizei bufSize, GLint * params);
-		extern void (CODEGEN_FUNCPTR *MemoryBarrier)(GLbitfield barriers);
-		extern void (CODEGEN_FUNCPTR *TexStorage1D)(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width);
-		extern void (CODEGEN_FUNCPTR *TexStorage2D)(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
-		extern void (CODEGEN_FUNCPTR *TexStorage3D)(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
-		
-		extern void (CODEGEN_FUNCPTR *BindVertexBuffer)(GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride);
-		extern void (CODEGEN_FUNCPTR *ClearBufferData)(GLenum target, GLenum internalformat, GLenum format, GLenum type, const void * data);
-		extern void (CODEGEN_FUNCPTR *ClearBufferSubData)(GLenum target, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void * data);
-		extern void (CODEGEN_FUNCPTR *CopyImageSubData)(GLuint srcName, GLenum srcTarget, GLint srcLevel, GLint srcX, GLint srcY, GLint srcZ, GLuint dstName, GLenum dstTarget, GLint dstLevel, GLint dstX, GLint dstY, GLint dstZ, GLsizei srcWidth, GLsizei srcHeight, GLsizei srcDepth);
-		extern void (CODEGEN_FUNCPTR *DebugMessageCallback)(GLDEBUGPROC callback, const void * userParam);
-		extern void (CODEGEN_FUNCPTR *DebugMessageControl)(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint * ids, GLboolean enabled);
-		extern void (CODEGEN_FUNCPTR *DebugMessageInsert)(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar * buf);
-		extern void (CODEGEN_FUNCPTR *DispatchCompute)(GLuint num_groups_x, GLuint num_groups_y, GLuint num_groups_z);
-		extern void (CODEGEN_FUNCPTR *DispatchComputeIndirect)(GLintptr indirect);
-		extern void (CODEGEN_FUNCPTR *FramebufferParameteri)(GLenum target, GLenum pname, GLint param);
-		extern GLuint (CODEGEN_FUNCPTR *GetDebugMessageLog)(GLuint count, GLsizei bufSize, GLenum * sources, GLenum * types, GLuint * ids, GLenum * severities, GLsizei * lengths, GLchar * messageLog);
-		extern void (CODEGEN_FUNCPTR *GetFramebufferParameteriv)(GLenum target, GLenum pname, GLint * params);
-		extern void (CODEGEN_FUNCPTR *GetInternalformati64v)(GLenum target, GLenum internalformat, GLenum pname, GLsizei bufSize, GLint64 * params);
-		extern void (CODEGEN_FUNCPTR *GetObjectLabel)(GLenum identifier, GLuint name, GLsizei bufSize, GLsizei * length, GLchar * label);
-		extern void (CODEGEN_FUNCPTR *GetObjectPtrLabel)(const void * ptr, GLsizei bufSize, GLsizei * length, GLchar * label);
-		extern void (CODEGEN_FUNCPTR *GetProgramInterfaceiv)(GLuint program, GLenum programInterface, GLenum pname, GLint * params);
-		extern GLuint (CODEGEN_FUNCPTR *GetProgramResourceIndex)(GLuint program, GLenum programInterface, const GLchar * name);
-		extern GLint (CODEGEN_FUNCPTR *GetProgramResourceLocation)(GLuint program, GLenum programInterface, const GLchar * name);
-		extern GLint (CODEGEN_FUNCPTR *GetProgramResourceLocationIndex)(GLuint program, GLenum programInterface, const GLchar * name);
-		extern void (CODEGEN_FUNCPTR *GetProgramResourceName)(GLuint program, GLenum programInterface, GLuint index, GLsizei bufSize, GLsizei * length, GLchar * name);
-		extern void (CODEGEN_FUNCPTR *GetProgramResourceiv)(GLuint program, GLenum programInterface, GLuint index, GLsizei propCount, const GLenum * props, GLsizei bufSize, GLsizei * length, GLint * params);
-		extern void (CODEGEN_FUNCPTR *InvalidateBufferData)(GLuint buffer);
-		extern void (CODEGEN_FUNCPTR *InvalidateBufferSubData)(GLuint buffer, GLintptr offset, GLsizeiptr length);
-		extern void (CODEGEN_FUNCPTR *InvalidateFramebuffer)(GLenum target, GLsizei numAttachments, const GLenum * attachments);
-		extern void (CODEGEN_FUNCPTR *InvalidateSubFramebuffer)(GLenum target, GLsizei numAttachments, const GLenum * attachments, GLint x, GLint y, GLsizei width, GLsizei height);
-		extern void (CODEGEN_FUNCPTR *InvalidateTexImage)(GLuint texture, GLint level);
-		extern void (CODEGEN_FUNCPTR *InvalidateTexSubImage)(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth);
-		extern void (CODEGEN_FUNCPTR *MultiDrawArraysIndirect)(GLenum mode, const void * indirect, GLsizei drawcount, GLsizei stride);
-		extern void (CODEGEN_FUNCPTR *MultiDrawElementsIndirect)(GLenum mode, GLenum type, const void * indirect, GLsizei drawcount, GLsizei stride);
-		extern void (CODEGEN_FUNCPTR *ObjectLabel)(GLenum identifier, GLuint name, GLsizei length, const GLchar * label);
-		extern void (CODEGEN_FUNCPTR *ObjectPtrLabel)(const void * ptr, GLsizei length, const GLchar * label);
-		extern void (CODEGEN_FUNCPTR *PopDebugGroup)(void);
-		extern void (CODEGEN_FUNCPTR *PushDebugGroup)(GLenum source, GLuint id, GLsizei length, const GLchar * message);
-		extern void (CODEGEN_FUNCPTR *ShaderStorageBlockBinding)(GLuint program, GLuint storageBlockIndex, GLuint storageBlockBinding);
-		extern void (CODEGEN_FUNCPTR *TexBufferRange)(GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size);
-		extern void (CODEGEN_FUNCPTR *TexStorage2DMultisample)(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations);
-		extern void (CODEGEN_FUNCPTR *TexStorage3DMultisample)(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations);
-		extern void (CODEGEN_FUNCPTR *TextureView)(GLuint texture, GLenum target, GLuint origtexture, GLenum internalformat, GLuint minlevel, GLuint numlevels, GLuint minlayer, GLuint numlayers);
-		extern void (CODEGEN_FUNCPTR *VertexAttribBinding)(GLuint attribindex, GLuint bindingindex);
-		extern void (CODEGEN_FUNCPTR *VertexAttribFormat)(GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset);
-		extern void (CODEGEN_FUNCPTR *VertexAttribIFormat)(GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset);
-		extern void (CODEGEN_FUNCPTR *VertexAttribLFormat)(GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset);
-		extern void (CODEGEN_FUNCPTR *VertexBindingDivisor)(GLuint bindingindex, GLuint divisor);
-		
-		extern void (CODEGEN_FUNCPTR *BindBuffersBase)(GLenum target, GLuint first, GLsizei count, const GLuint * buffers);
-		extern void (CODEGEN_FUNCPTR *BindBuffersRange)(GLenum target, GLuint first, GLsizei count, const GLuint * buffers, const GLintptr * offsets, const GLsizeiptr * sizes);
-		extern void (CODEGEN_FUNCPTR *BindImageTextures)(GLuint first, GLsizei count, const GLuint * textures);
-		extern void (CODEGEN_FUNCPTR *BindSamplers)(GLuint first, GLsizei count, const GLuint * samplers);
-		extern void (CODEGEN_FUNCPTR *BindTextures)(GLuint first, GLsizei count, const GLuint * textures);
-		extern void (CODEGEN_FUNCPTR *BindVertexBuffers)(GLuint first, GLsizei count, const GLuint * buffers, const GLintptr * offsets, const GLsizei * strides);
-		extern void (CODEGEN_FUNCPTR *BufferStorage)(GLenum target, GLsizeiptr size, const void * data, GLbitfield flags);
-		extern void (CODEGEN_FUNCPTR *ClearTexImage)(GLuint texture, GLint level, GLenum format, GLenum type, const void * data);
-		extern void (CODEGEN_FUNCPTR *ClearTexSubImage)(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void * data);
-		
-		extern void (CODEGEN_FUNCPTR *BindTextureUnit)(GLuint unit, GLuint texture);
-		extern void (CODEGEN_FUNCPTR *BlitNamedFramebuffer)(GLuint readFramebuffer, GLuint drawFramebuffer, GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
-		extern GLenum (CODEGEN_FUNCPTR *CheckNamedFramebufferStatus)(GLuint framebuffer, GLenum target);
-		extern void (CODEGEN_FUNCPTR *ClearNamedBufferData)(GLuint buffer, GLenum internalformat, GLenum format, GLenum type, const void * data);
-		extern void (CODEGEN_FUNCPTR *ClearNamedBufferSubData)(GLuint buffer, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void * data);
-		extern void (CODEGEN_FUNCPTR *ClearNamedFramebufferfi)(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLfloat depth, GLint stencil);
-		extern void (CODEGEN_FUNCPTR *ClearNamedFramebufferfv)(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLfloat * value);
-		extern void (CODEGEN_FUNCPTR *ClearNamedFramebufferiv)(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLint * value);
-		extern void (CODEGEN_FUNCPTR *ClearNamedFramebufferuiv)(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLuint * value);
-		extern void (CODEGEN_FUNCPTR *ClipControl)(GLenum origin, GLenum depth);
-		extern void (CODEGEN_FUNCPTR *CompressedTextureSubImage1D)(GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void * data);
-		extern void (CODEGEN_FUNCPTR *CompressedTextureSubImage2D)(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void * data);
-		extern void (CODEGEN_FUNCPTR *CompressedTextureSubImage3D)(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void * data);
-		extern void (CODEGEN_FUNCPTR *CopyNamedBufferSubData)(GLuint readBuffer, GLuint writeBuffer, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size);
-		extern void (CODEGEN_FUNCPTR *CopyTextureSubImage1D)(GLuint texture, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width);
-		extern void (CODEGEN_FUNCPTR *CopyTextureSubImage2D)(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height);
-		extern void (CODEGEN_FUNCPTR *CopyTextureSubImage3D)(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height);
-		extern void (CODEGEN_FUNCPTR *CreateBuffers)(GLsizei n, GLuint * buffers);
-		extern void (CODEGEN_FUNCPTR *CreateFramebuffers)(GLsizei n, GLuint * framebuffers);
-		extern void (CODEGEN_FUNCPTR *CreateProgramPipelines)(GLsizei n, GLuint * pipelines);
-		extern void (CODEGEN_FUNCPTR *CreateQueries)(GLenum target, GLsizei n, GLuint * ids);
-		extern void (CODEGEN_FUNCPTR *CreateRenderbuffers)(GLsizei n, GLuint * renderbuffers);
-		extern void (CODEGEN_FUNCPTR *CreateSamplers)(GLsizei n, GLuint * samplers);
-		extern void (CODEGEN_FUNCPTR *CreateTextures)(GLenum target, GLsizei n, GLuint * textures);
-		extern void (CODEGEN_FUNCPTR *CreateTransformFeedbacks)(GLsizei n, GLuint * ids);
-		extern void (CODEGEN_FUNCPTR *CreateVertexArrays)(GLsizei n, GLuint * arrays);
-		extern void (CODEGEN_FUNCPTR *DisableVertexArrayAttrib)(GLuint vaobj, GLuint index);
-		extern void (CODEGEN_FUNCPTR *EnableVertexArrayAttrib)(GLuint vaobj, GLuint index);
-		extern void (CODEGEN_FUNCPTR *FlushMappedNamedBufferRange)(GLuint buffer, GLintptr offset, GLsizeiptr length);
-		extern void (CODEGEN_FUNCPTR *GenerateTextureMipmap)(GLuint texture);
-		extern void (CODEGEN_FUNCPTR *GetCompressedTextureImage)(GLuint texture, GLint level, GLsizei bufSize, void * pixels);
-		extern void (CODEGEN_FUNCPTR *GetCompressedTextureSubImage)(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLsizei bufSize, void * pixels);
-		extern GLenum (CODEGEN_FUNCPTR *GetGraphicsResetStatus)(void);
-		extern void (CODEGEN_FUNCPTR *GetNamedBufferParameteri64v)(GLuint buffer, GLenum pname, GLint64 * params);
-		extern void (CODEGEN_FUNCPTR *GetNamedBufferParameteriv)(GLuint buffer, GLenum pname, GLint * params);
-		extern void (CODEGEN_FUNCPTR *GetNamedBufferPointerv)(GLuint buffer, GLenum pname, void ** params);
-		extern void (CODEGEN_FUNCPTR *GetNamedBufferSubData)(GLuint buffer, GLintptr offset, GLsizeiptr size, void * data);
-		extern void (CODEGEN_FUNCPTR *GetNamedFramebufferAttachmentParameteriv)(GLuint framebuffer, GLenum attachment, GLenum pname, GLint * params);
-		extern void (CODEGEN_FUNCPTR *GetNamedFramebufferParameteriv)(GLuint framebuffer, GLenum pname, GLint * param);
-		extern void (CODEGEN_FUNCPTR *GetNamedRenderbufferParameteriv)(GLuint renderbuffer, GLenum pname, GLint * params);
-		extern void (CODEGEN_FUNCPTR *GetQueryBufferObjecti64v)(GLuint id, GLuint buffer, GLenum pname, GLintptr offset);
-		extern void (CODEGEN_FUNCPTR *GetQueryBufferObjectiv)(GLuint id, GLuint buffer, GLenum pname, GLintptr offset);
-		extern void (CODEGEN_FUNCPTR *GetQueryBufferObjectui64v)(GLuint id, GLuint buffer, GLenum pname, GLintptr offset);
-		extern void (CODEGEN_FUNCPTR *GetQueryBufferObjectuiv)(GLuint id, GLuint buffer, GLenum pname, GLintptr offset);
-		extern void (CODEGEN_FUNCPTR *GetTextureImage)(GLuint texture, GLint level, GLenum format, GLenum type, GLsizei bufSize, void * pixels);
-		extern void (CODEGEN_FUNCPTR *GetTextureLevelParameterfv)(GLuint texture, GLint level, GLenum pname, GLfloat * params);
-		extern void (CODEGEN_FUNCPTR *GetTextureLevelParameteriv)(GLuint texture, GLint level, GLenum pname, GLint * params);
-		extern void (CODEGEN_FUNCPTR *GetTextureParameterIiv)(GLuint texture, GLenum pname, GLint * params);
-		extern void (CODEGEN_FUNCPTR *GetTextureParameterIuiv)(GLuint texture, GLenum pname, GLuint * params);
-		extern void (CODEGEN_FUNCPTR *GetTextureParameterfv)(GLuint texture, GLenum pname, GLfloat * params);
-		extern void (CODEGEN_FUNCPTR *GetTextureParameteriv)(GLuint texture, GLenum pname, GLint * params);
-		extern void (CODEGEN_FUNCPTR *GetTextureSubImage)(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLsizei bufSize, void * pixels);
-		extern void (CODEGEN_FUNCPTR *GetTransformFeedbacki64_v)(GLuint xfb, GLenum pname, GLuint index, GLint64 * param);
-		extern void (CODEGEN_FUNCPTR *GetTransformFeedbacki_v)(GLuint xfb, GLenum pname, GLuint index, GLint * param);
-		extern void (CODEGEN_FUNCPTR *GetTransformFeedbackiv)(GLuint xfb, GLenum pname, GLint * param);
-		extern void (CODEGEN_FUNCPTR *GetVertexArrayIndexed64iv)(GLuint vaobj, GLuint index, GLenum pname, GLint64 * param);
-		extern void (CODEGEN_FUNCPTR *GetVertexArrayIndexediv)(GLuint vaobj, GLuint index, GLenum pname, GLint * param);
-		extern void (CODEGEN_FUNCPTR *GetVertexArrayiv)(GLuint vaobj, GLenum pname, GLint * param);
-		extern void (CODEGEN_FUNCPTR *GetnCompressedTexImage)(GLenum target, GLint lod, GLsizei bufSize, void * pixels);
-		extern void (CODEGEN_FUNCPTR *GetnTexImage)(GLenum target, GLint level, GLenum format, GLenum type, GLsizei bufSize, void * pixels);
-		extern void (CODEGEN_FUNCPTR *GetnUniformdv)(GLuint program, GLint location, GLsizei bufSize, GLdouble * params);
-		extern void (CODEGEN_FUNCPTR *GetnUniformfv)(GLuint program, GLint location, GLsizei bufSize, GLfloat * params);
-		extern void (CODEGEN_FUNCPTR *GetnUniformiv)(GLuint program, GLint location, GLsizei bufSize, GLint * params);
-		extern void (CODEGEN_FUNCPTR *GetnUniformuiv)(GLuint program, GLint location, GLsizei bufSize, GLuint * params);
-		extern void (CODEGEN_FUNCPTR *InvalidateNamedFramebufferData)(GLuint framebuffer, GLsizei numAttachments, const GLenum * attachments);
-		extern void (CODEGEN_FUNCPTR *InvalidateNamedFramebufferSubData)(GLuint framebuffer, GLsizei numAttachments, const GLenum * attachments, GLint x, GLint y, GLsizei width, GLsizei height);
-		extern void * (CODEGEN_FUNCPTR *MapNamedBuffer)(GLuint buffer, GLenum access);
-		extern void * (CODEGEN_FUNCPTR *MapNamedBufferRange)(GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access);
-		extern void (CODEGEN_FUNCPTR *MemoryBarrierByRegion)(GLbitfield barriers);
-		extern void (CODEGEN_FUNCPTR *NamedBufferData)(GLuint buffer, GLsizeiptr size, const void * data, GLenum usage);
-		extern void (CODEGEN_FUNCPTR *NamedBufferStorage)(GLuint buffer, GLsizeiptr size, const void * data, GLbitfield flags);
-		extern void (CODEGEN_FUNCPTR *NamedBufferSubData)(GLuint buffer, GLintptr offset, GLsizeiptr size, const void * data);
-		extern void (CODEGEN_FUNCPTR *NamedFramebufferDrawBuffer)(GLuint framebuffer, GLenum buf);
-		extern void (CODEGEN_FUNCPTR *NamedFramebufferDrawBuffers)(GLuint framebuffer, GLsizei n, const GLenum * bufs);
-		extern void (CODEGEN_FUNCPTR *NamedFramebufferParameteri)(GLuint framebuffer, GLenum pname, GLint param);
-		extern void (CODEGEN_FUNCPTR *NamedFramebufferReadBuffer)(GLuint framebuffer, GLenum src);
-		extern void (CODEGEN_FUNCPTR *NamedFramebufferRenderbuffer)(GLuint framebuffer, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer);
-		extern void (CODEGEN_FUNCPTR *NamedFramebufferTexture)(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level);
-		extern void (CODEGEN_FUNCPTR *NamedFramebufferTextureLayer)(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint layer);
-		extern void (CODEGEN_FUNCPTR *NamedRenderbufferStorage)(GLuint renderbuffer, GLenum internalformat, GLsizei width, GLsizei height);
-		extern void (CODEGEN_FUNCPTR *NamedRenderbufferStorageMultisample)(GLuint renderbuffer, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height);
-		extern void (CODEGEN_FUNCPTR *ReadnPixels)(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei bufSize, void * data);
-		extern void (CODEGEN_FUNCPTR *TextureBarrier)(void);
-		extern void (CODEGEN_FUNCPTR *TextureBuffer)(GLuint texture, GLenum internalformat, GLuint buffer);
-		extern void (CODEGEN_FUNCPTR *TextureBufferRange)(GLuint texture, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size);
-		extern void (CODEGEN_FUNCPTR *TextureParameterIiv)(GLuint texture, GLenum pname, const GLint * params);
-		extern void (CODEGEN_FUNCPTR *TextureParameterIuiv)(GLuint texture, GLenum pname, const GLuint * params);
-		extern void (CODEGEN_FUNCPTR *TextureParameterf)(GLuint texture, GLenum pname, GLfloat param);
-		extern void (CODEGEN_FUNCPTR *TextureParameterfv)(GLuint texture, GLenum pname, const GLfloat * param);
-		extern void (CODEGEN_FUNCPTR *TextureParameteri)(GLuint texture, GLenum pname, GLint param);
-		extern void (CODEGEN_FUNCPTR *TextureParameteriv)(GLuint texture, GLenum pname, const GLint * param);
-		extern void (CODEGEN_FUNCPTR *TextureStorage1D)(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width);
-		extern void (CODEGEN_FUNCPTR *TextureStorage2D)(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
-		extern void (CODEGEN_FUNCPTR *TextureStorage2DMultisample)(GLuint texture, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations);
-		extern void (CODEGEN_FUNCPTR *TextureStorage3D)(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
-		extern void (CODEGEN_FUNCPTR *TextureStorage3DMultisample)(GLuint texture, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations);
-		extern void (CODEGEN_FUNCPTR *TextureSubImage1D)(GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void * pixels);
-		extern void (CODEGEN_FUNCPTR *TextureSubImage2D)(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void * pixels);
-		extern void (CODEGEN_FUNCPTR *TextureSubImage3D)(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void * pixels);
-		extern void (CODEGEN_FUNCPTR *TransformFeedbackBufferBase)(GLuint xfb, GLuint index, GLuint buffer);
-		extern void (CODEGEN_FUNCPTR *TransformFeedbackBufferRange)(GLuint xfb, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size);
-		extern GLboolean (CODEGEN_FUNCPTR *UnmapNamedBuffer)(GLuint buffer);
-		extern void (CODEGEN_FUNCPTR *VertexArrayAttribBinding)(GLuint vaobj, GLuint attribindex, GLuint bindingindex);
-		extern void (CODEGEN_FUNCPTR *VertexArrayAttribFormat)(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset);
-		extern void (CODEGEN_FUNCPTR *VertexArrayAttribIFormat)(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset);
-		extern void (CODEGEN_FUNCPTR *VertexArrayAttribLFormat)(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset);
-		extern void (CODEGEN_FUNCPTR *VertexArrayBindingDivisor)(GLuint vaobj, GLuint bindingindex, GLuint divisor);
-		extern void (CODEGEN_FUNCPTR *VertexArrayElementBuffer)(GLuint vaobj, GLuint buffer);
-		extern void (CODEGEN_FUNCPTR *VertexArrayVertexBuffer)(GLuint vaobj, GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride);
-		extern void (CODEGEN_FUNCPTR *VertexArrayVertexBuffers)(GLuint vaobj, GLuint first, GLsizei count, const GLuint * buffers, const GLintptr * offsets, const GLsizei * strides);
-		
 	} //namespace _detail
+	
+	inline void DebugMessageCallback(GLDEBUGPROC callback, const void * userParam){_detail::DebugMessageCallback(callback, userParam);}
+	inline void DebugMessageControl(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint * ids, GLboolean enabled){_detail::DebugMessageControl(source, type, severity, count, ids, enabled);}
+	inline void DebugMessageInsert(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar * buf){_detail::DebugMessageInsert(source, type, id, severity, length, buf);}
+	inline GLuint GetDebugMessageLog(GLuint count, GLsizei bufSize, GLenum * sources, GLenum * types, GLuint * ids, GLenum * severities, GLsizei * lengths, GLchar * messageLog){return _detail::GetDebugMessageLog(count, bufSize, sources, types, ids, severities, lengths, messageLog);}
+	inline void GetObjectLabel(GLenum identifier, GLuint name, GLsizei bufSize, GLsizei * length, GLchar * label){_detail::GetObjectLabel(identifier, name, bufSize, length, label);}
+	inline void GetObjectPtrLabel(const void * ptr, GLsizei bufSize, GLsizei * length, GLchar * label){_detail::GetObjectPtrLabel(ptr, bufSize, length, label);}
+	inline void GetPointerv(GLenum pname, void ** params){_detail::GetPointerv(pname, params);}
+	inline void ObjectLabel(GLenum identifier, GLuint name, GLsizei length, const GLchar * label){_detail::ObjectLabel(identifier, name, length, label);}
+	inline void ObjectPtrLabel(const void * ptr, GLsizei length, const GLchar * label){_detail::ObjectPtrLabel(ptr, length, label);}
+	inline void PopDebugGroup(void){_detail::PopDebugGroup();}
+	inline void PushDebugGroup(GLenum source, GLuint id, GLsizei length, const GLchar * message){_detail::PushDebugGroup(source, id, length, message);}
+	
+	inline void TexStorage1D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width){_detail::TexStorage1D(target, levels, internalformat, width);}
+	inline void TexStorage2D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height){_detail::TexStorage2D(target, levels, internalformat, width, height);}
+	inline void TexStorage3D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth){_detail::TexStorage3D(target, levels, internalformat, width, height, depth);}
+	
+	inline void BufferStorage(GLenum target, GLsizeiptr size, const void * data, GLbitfield flags){_detail::BufferStorage(target, size, data, flags);}
+	
+	inline void BindTextureUnit(GLuint unit, GLuint texture){_detail::BindTextureUnit(unit, texture);}
+	inline void BlitNamedFramebuffer(GLuint readFramebuffer, GLuint drawFramebuffer, GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter){_detail::BlitNamedFramebuffer(readFramebuffer, drawFramebuffer, srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);}
+	inline GLenum CheckNamedFramebufferStatus(GLuint framebuffer, GLenum target){return _detail::CheckNamedFramebufferStatus(framebuffer, target);}
+	inline void ClearNamedBufferData(GLuint buffer, GLenum internalformat, GLenum format, GLenum type, const void * data){_detail::ClearNamedBufferData(buffer, internalformat, format, type, data);}
+	inline void ClearNamedBufferSubData(GLuint buffer, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void * data){_detail::ClearNamedBufferSubData(buffer, internalformat, offset, size, format, type, data);}
+	inline void ClearNamedFramebufferfi(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLfloat depth, GLint stencil){_detail::ClearNamedFramebufferfi(framebuffer, buffer, drawbuffer, depth, stencil);}
+	inline void ClearNamedFramebufferfv(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLfloat * value){_detail::ClearNamedFramebufferfv(framebuffer, buffer, drawbuffer, value);}
+	inline void ClearNamedFramebufferiv(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLint * value){_detail::ClearNamedFramebufferiv(framebuffer, buffer, drawbuffer, value);}
+	inline void ClearNamedFramebufferuiv(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLuint * value){_detail::ClearNamedFramebufferuiv(framebuffer, buffer, drawbuffer, value);}
+	inline void CompressedTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void * data){_detail::CompressedTextureSubImage1D(texture, level, xoffset, width, format, imageSize, data);}
+	inline void CompressedTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void * data){_detail::CompressedTextureSubImage2D(texture, level, xoffset, yoffset, width, height, format, imageSize, data);}
+	inline void CompressedTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void * data){_detail::CompressedTextureSubImage3D(texture, level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, data);}
+	inline void CopyNamedBufferSubData(GLuint readBuffer, GLuint writeBuffer, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size){_detail::CopyNamedBufferSubData(readBuffer, writeBuffer, readOffset, writeOffset, size);}
+	inline void CopyTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width){_detail::CopyTextureSubImage1D(texture, level, xoffset, x, y, width);}
+	inline void CopyTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height){_detail::CopyTextureSubImage2D(texture, level, xoffset, yoffset, x, y, width, height);}
+	inline void CopyTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height){_detail::CopyTextureSubImage3D(texture, level, xoffset, yoffset, zoffset, x, y, width, height);}
+	inline void CreateBuffers(GLsizei n, GLuint * buffers){_detail::CreateBuffers(n, buffers);}
+	inline void CreateFramebuffers(GLsizei n, GLuint * framebuffers){_detail::CreateFramebuffers(n, framebuffers);}
+	inline void CreateProgramPipelines(GLsizei n, GLuint * pipelines){_detail::CreateProgramPipelines(n, pipelines);}
+	inline void CreateQueries(GLenum target, GLsizei n, GLuint * ids){_detail::CreateQueries(target, n, ids);}
+	inline void CreateRenderbuffers(GLsizei n, GLuint * renderbuffers){_detail::CreateRenderbuffers(n, renderbuffers);}
+	inline void CreateSamplers(GLsizei n, GLuint * samplers){_detail::CreateSamplers(n, samplers);}
+	inline void CreateTextures(GLenum target, GLsizei n, GLuint * textures){_detail::CreateTextures(target, n, textures);}
+	inline void CreateTransformFeedbacks(GLsizei n, GLuint * ids){_detail::CreateTransformFeedbacks(n, ids);}
+	inline void CreateVertexArrays(GLsizei n, GLuint * arrays){_detail::CreateVertexArrays(n, arrays);}
+	inline void DisableVertexArrayAttrib(GLuint vaobj, GLuint index){_detail::DisableVertexArrayAttrib(vaobj, index);}
+	inline void EnableVertexArrayAttrib(GLuint vaobj, GLuint index){_detail::EnableVertexArrayAttrib(vaobj, index);}
+	inline void FlushMappedNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length){_detail::FlushMappedNamedBufferRange(buffer, offset, length);}
+	inline void GenerateTextureMipmap(GLuint texture){_detail::GenerateTextureMipmap(texture);}
+	inline void GetCompressedTextureImage(GLuint texture, GLint level, GLsizei bufSize, void * pixels){_detail::GetCompressedTextureImage(texture, level, bufSize, pixels);}
+	inline void GetNamedBufferParameteri64v(GLuint buffer, GLenum pname, GLint64 * params){_detail::GetNamedBufferParameteri64v(buffer, pname, params);}
+	inline void GetNamedBufferParameteriv(GLuint buffer, GLenum pname, GLint * params){_detail::GetNamedBufferParameteriv(buffer, pname, params);}
+	inline void GetNamedBufferPointerv(GLuint buffer, GLenum pname, void ** params){_detail::GetNamedBufferPointerv(buffer, pname, params);}
+	inline void GetNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, void * data){_detail::GetNamedBufferSubData(buffer, offset, size, data);}
+	inline void GetNamedFramebufferAttachmentParameteriv(GLuint framebuffer, GLenum attachment, GLenum pname, GLint * params){_detail::GetNamedFramebufferAttachmentParameteriv(framebuffer, attachment, pname, params);}
+	inline void GetNamedFramebufferParameteriv(GLuint framebuffer, GLenum pname, GLint * param){_detail::GetNamedFramebufferParameteriv(framebuffer, pname, param);}
+	inline void GetNamedRenderbufferParameteriv(GLuint renderbuffer, GLenum pname, GLint * params){_detail::GetNamedRenderbufferParameteriv(renderbuffer, pname, params);}
+	inline void GetQueryBufferObjecti64v(GLuint id, GLuint buffer, GLenum pname, GLintptr offset){_detail::GetQueryBufferObjecti64v(id, buffer, pname, offset);}
+	inline void GetQueryBufferObjectiv(GLuint id, GLuint buffer, GLenum pname, GLintptr offset){_detail::GetQueryBufferObjectiv(id, buffer, pname, offset);}
+	inline void GetQueryBufferObjectui64v(GLuint id, GLuint buffer, GLenum pname, GLintptr offset){_detail::GetQueryBufferObjectui64v(id, buffer, pname, offset);}
+	inline void GetQueryBufferObjectuiv(GLuint id, GLuint buffer, GLenum pname, GLintptr offset){_detail::GetQueryBufferObjectuiv(id, buffer, pname, offset);}
+	inline void GetTextureImage(GLuint texture, GLint level, GLenum format, GLenum type, GLsizei bufSize, void * pixels){_detail::GetTextureImage(texture, level, format, type, bufSize, pixels);}
+	inline void GetTextureLevelParameterfv(GLuint texture, GLint level, GLenum pname, GLfloat * params){_detail::GetTextureLevelParameterfv(texture, level, pname, params);}
+	inline void GetTextureLevelParameteriv(GLuint texture, GLint level, GLenum pname, GLint * params){_detail::GetTextureLevelParameteriv(texture, level, pname, params);}
+	inline void GetTextureParameterIiv(GLuint texture, GLenum pname, GLint * params){_detail::GetTextureParameterIiv(texture, pname, params);}
+	inline void GetTextureParameterIuiv(GLuint texture, GLenum pname, GLuint * params){_detail::GetTextureParameterIuiv(texture, pname, params);}
+	inline void GetTextureParameterfv(GLuint texture, GLenum pname, GLfloat * params){_detail::GetTextureParameterfv(texture, pname, params);}
+	inline void GetTextureParameteriv(GLuint texture, GLenum pname, GLint * params){_detail::GetTextureParameteriv(texture, pname, params);}
+	inline void GetTransformFeedbacki64_v(GLuint xfb, GLenum pname, GLuint index, GLint64 * param){_detail::GetTransformFeedbacki64_v(xfb, pname, index, param);}
+	inline void GetTransformFeedbacki_v(GLuint xfb, GLenum pname, GLuint index, GLint * param){_detail::GetTransformFeedbacki_v(xfb, pname, index, param);}
+	inline void GetTransformFeedbackiv(GLuint xfb, GLenum pname, GLint * param){_detail::GetTransformFeedbackiv(xfb, pname, param);}
+	inline void GetVertexArrayIndexed64iv(GLuint vaobj, GLuint index, GLenum pname, GLint64 * param){_detail::GetVertexArrayIndexed64iv(vaobj, index, pname, param);}
+	inline void GetVertexArrayIndexediv(GLuint vaobj, GLuint index, GLenum pname, GLint * param){_detail::GetVertexArrayIndexediv(vaobj, index, pname, param);}
+	inline void GetVertexArrayiv(GLuint vaobj, GLenum pname, GLint * param){_detail::GetVertexArrayiv(vaobj, pname, param);}
+	inline void InvalidateNamedFramebufferData(GLuint framebuffer, GLsizei numAttachments, const GLenum * attachments){_detail::InvalidateNamedFramebufferData(framebuffer, numAttachments, attachments);}
+	inline void InvalidateNamedFramebufferSubData(GLuint framebuffer, GLsizei numAttachments, const GLenum * attachments, GLint x, GLint y, GLsizei width, GLsizei height){_detail::InvalidateNamedFramebufferSubData(framebuffer, numAttachments, attachments, x, y, width, height);}
+	inline void * MapNamedBuffer(GLuint buffer, GLenum access){return _detail::MapNamedBuffer(buffer, access);}
+	inline void * MapNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access){return _detail::MapNamedBufferRange(buffer, offset, length, access);}
+	inline void NamedBufferData(GLuint buffer, GLsizeiptr size, const void * data, GLenum usage){_detail::NamedBufferData(buffer, size, data, usage);}
+	inline void NamedBufferStorage(GLuint buffer, GLsizeiptr size, const void * data, GLbitfield flags){_detail::NamedBufferStorage(buffer, size, data, flags);}
+	inline void NamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, const void * data){_detail::NamedBufferSubData(buffer, offset, size, data);}
+	inline void NamedFramebufferDrawBuffer(GLuint framebuffer, GLenum buf){_detail::NamedFramebufferDrawBuffer(framebuffer, buf);}
+	inline void NamedFramebufferDrawBuffers(GLuint framebuffer, GLsizei n, const GLenum * bufs){_detail::NamedFramebufferDrawBuffers(framebuffer, n, bufs);}
+	inline void NamedFramebufferParameteri(GLuint framebuffer, GLenum pname, GLint param){_detail::NamedFramebufferParameteri(framebuffer, pname, param);}
+	inline void NamedFramebufferReadBuffer(GLuint framebuffer, GLenum src){_detail::NamedFramebufferReadBuffer(framebuffer, src);}
+	inline void NamedFramebufferRenderbuffer(GLuint framebuffer, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer){_detail::NamedFramebufferRenderbuffer(framebuffer, attachment, renderbuffertarget, renderbuffer);}
+	inline void NamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level){_detail::NamedFramebufferTexture(framebuffer, attachment, texture, level);}
+	inline void NamedFramebufferTextureLayer(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint layer){_detail::NamedFramebufferTextureLayer(framebuffer, attachment, texture, level, layer);}
+	inline void NamedRenderbufferStorage(GLuint renderbuffer, GLenum internalformat, GLsizei width, GLsizei height){_detail::NamedRenderbufferStorage(renderbuffer, internalformat, width, height);}
+	inline void NamedRenderbufferStorageMultisample(GLuint renderbuffer, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height){_detail::NamedRenderbufferStorageMultisample(renderbuffer, samples, internalformat, width, height);}
+	inline void TextureBuffer(GLuint texture, GLenum internalformat, GLuint buffer){_detail::TextureBuffer(texture, internalformat, buffer);}
+	inline void TextureBufferRange(GLuint texture, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size){_detail::TextureBufferRange(texture, internalformat, buffer, offset, size);}
+	inline void TextureParameterIiv(GLuint texture, GLenum pname, const GLint * params){_detail::TextureParameterIiv(texture, pname, params);}
+	inline void TextureParameterIuiv(GLuint texture, GLenum pname, const GLuint * params){_detail::TextureParameterIuiv(texture, pname, params);}
+	inline void TextureParameterf(GLuint texture, GLenum pname, GLfloat param){_detail::TextureParameterf(texture, pname, param);}
+	inline void TextureParameterfv(GLuint texture, GLenum pname, const GLfloat * param){_detail::TextureParameterfv(texture, pname, param);}
+	inline void TextureParameteri(GLuint texture, GLenum pname, GLint param){_detail::TextureParameteri(texture, pname, param);}
+	inline void TextureParameteriv(GLuint texture, GLenum pname, const GLint * param){_detail::TextureParameteriv(texture, pname, param);}
+	inline void TextureStorage1D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width){_detail::TextureStorage1D(texture, levels, internalformat, width);}
+	inline void TextureStorage2D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height){_detail::TextureStorage2D(texture, levels, internalformat, width, height);}
+	inline void TextureStorage2DMultisample(GLuint texture, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations){_detail::TextureStorage2DMultisample(texture, samples, internalformat, width, height, fixedsamplelocations);}
+	inline void TextureStorage3D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth){_detail::TextureStorage3D(texture, levels, internalformat, width, height, depth);}
+	inline void TextureStorage3DMultisample(GLuint texture, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations){_detail::TextureStorage3DMultisample(texture, samples, internalformat, width, height, depth, fixedsamplelocations);}
+	inline void TextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void * pixels){_detail::TextureSubImage1D(texture, level, xoffset, width, format, type, pixels);}
+	inline void TextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void * pixels){_detail::TextureSubImage2D(texture, level, xoffset, yoffset, width, height, format, type, pixels);}
+	inline void TextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void * pixels){_detail::TextureSubImage3D(texture, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels);}
+	inline void TransformFeedbackBufferBase(GLuint xfb, GLuint index, GLuint buffer){_detail::TransformFeedbackBufferBase(xfb, index, buffer);}
+	inline void TransformFeedbackBufferRange(GLuint xfb, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size){_detail::TransformFeedbackBufferRange(xfb, index, buffer, offset, size);}
+	inline GLboolean UnmapNamedBuffer(GLuint buffer){return _detail::UnmapNamedBuffer(buffer);}
+	inline void VertexArrayAttribBinding(GLuint vaobj, GLuint attribindex, GLuint bindingindex){_detail::VertexArrayAttribBinding(vaobj, attribindex, bindingindex);}
+	inline void VertexArrayAttribFormat(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset){_detail::VertexArrayAttribFormat(vaobj, attribindex, size, type, normalized, relativeoffset);}
+	inline void VertexArrayAttribIFormat(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset){_detail::VertexArrayAttribIFormat(vaobj, attribindex, size, type, relativeoffset);}
+	inline void VertexArrayAttribLFormat(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset){_detail::VertexArrayAttribLFormat(vaobj, attribindex, size, type, relativeoffset);}
+	inline void VertexArrayBindingDivisor(GLuint vaobj, GLuint bindingindex, GLuint divisor){_detail::VertexArrayBindingDivisor(vaobj, bindingindex, divisor);}
+	inline void VertexArrayElementBuffer(GLuint vaobj, GLuint buffer){_detail::VertexArrayElementBuffer(vaobj, buffer);}
+	inline void VertexArrayVertexBuffer(GLuint vaobj, GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride){_detail::VertexArrayVertexBuffer(vaobj, bindingindex, buffer, offset, stride);}
+	inline void VertexArrayVertexBuffers(GLuint vaobj, GLuint first, GLsizei count, const GLuint * buffers, const GLintptr * offsets, const GLsizei * strides){_detail::VertexArrayVertexBuffers(vaobj, first, count, buffers, offsets, strides);}
+	
+	inline void ActiveShaderProgram(GLuint pipeline, GLuint program){_detail::ActiveShaderProgram(pipeline, program);}
+	inline void BindProgramPipeline(GLuint pipeline){_detail::BindProgramPipeline(pipeline);}
+	inline GLuint CreateShaderProgramv(GLenum type, GLsizei count, const GLchar *const* strings){return _detail::CreateShaderProgramv(type, count, strings);}
+	inline void DeleteProgramPipelines(GLsizei n, const GLuint * pipelines){_detail::DeleteProgramPipelines(n, pipelines);}
+	inline void GenProgramPipelines(GLsizei n, GLuint * pipelines){_detail::GenProgramPipelines(n, pipelines);}
+	inline void GetProgramPipelineInfoLog(GLuint pipeline, GLsizei bufSize, GLsizei * length, GLchar * infoLog){_detail::GetProgramPipelineInfoLog(pipeline, bufSize, length, infoLog);}
+	inline void GetProgramPipelineiv(GLuint pipeline, GLenum pname, GLint * params){_detail::GetProgramPipelineiv(pipeline, pname, params);}
+	inline GLboolean IsProgramPipeline(GLuint pipeline){return _detail::IsProgramPipeline(pipeline);}
+	inline void ProgramUniform1d(GLuint program, GLint location, GLdouble v0){_detail::ProgramUniform1d(program, location, v0);}
+	inline void ProgramUniform1dv(GLuint program, GLint location, GLsizei count, const GLdouble * value){_detail::ProgramUniform1dv(program, location, count, value);}
+	inline void ProgramUniform1f(GLuint program, GLint location, GLfloat v0){_detail::ProgramUniform1f(program, location, v0);}
+	inline void ProgramUniform1fv(GLuint program, GLint location, GLsizei count, const GLfloat * value){_detail::ProgramUniform1fv(program, location, count, value);}
+	inline void ProgramUniform1i(GLuint program, GLint location, GLint v0){_detail::ProgramUniform1i(program, location, v0);}
+	inline void ProgramUniform1iv(GLuint program, GLint location, GLsizei count, const GLint * value){_detail::ProgramUniform1iv(program, location, count, value);}
+	inline void ProgramUniform1ui(GLuint program, GLint location, GLuint v0){_detail::ProgramUniform1ui(program, location, v0);}
+	inline void ProgramUniform1uiv(GLuint program, GLint location, GLsizei count, const GLuint * value){_detail::ProgramUniform1uiv(program, location, count, value);}
+	inline void ProgramUniform2d(GLuint program, GLint location, GLdouble v0, GLdouble v1){_detail::ProgramUniform2d(program, location, v0, v1);}
+	inline void ProgramUniform2dv(GLuint program, GLint location, GLsizei count, const GLdouble * value){_detail::ProgramUniform2dv(program, location, count, value);}
+	inline void ProgramUniform2f(GLuint program, GLint location, GLfloat v0, GLfloat v1){_detail::ProgramUniform2f(program, location, v0, v1);}
+	inline void ProgramUniform2fv(GLuint program, GLint location, GLsizei count, const GLfloat * value){_detail::ProgramUniform2fv(program, location, count, value);}
+	inline void ProgramUniform2i(GLuint program, GLint location, GLint v0, GLint v1){_detail::ProgramUniform2i(program, location, v0, v1);}
+	inline void ProgramUniform2iv(GLuint program, GLint location, GLsizei count, const GLint * value){_detail::ProgramUniform2iv(program, location, count, value);}
+	inline void ProgramUniform2ui(GLuint program, GLint location, GLuint v0, GLuint v1){_detail::ProgramUniform2ui(program, location, v0, v1);}
+	inline void ProgramUniform2uiv(GLuint program, GLint location, GLsizei count, const GLuint * value){_detail::ProgramUniform2uiv(program, location, count, value);}
+	inline void ProgramUniform3d(GLuint program, GLint location, GLdouble v0, GLdouble v1, GLdouble v2){_detail::ProgramUniform3d(program, location, v0, v1, v2);}
+	inline void ProgramUniform3dv(GLuint program, GLint location, GLsizei count, const GLdouble * value){_detail::ProgramUniform3dv(program, location, count, value);}
+	inline void ProgramUniform3f(GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2){_detail::ProgramUniform3f(program, location, v0, v1, v2);}
+	inline void ProgramUniform3fv(GLuint program, GLint location, GLsizei count, const GLfloat * value){_detail::ProgramUniform3fv(program, location, count, value);}
+	inline void ProgramUniform3i(GLuint program, GLint location, GLint v0, GLint v1, GLint v2){_detail::ProgramUniform3i(program, location, v0, v1, v2);}
+	inline void ProgramUniform3iv(GLuint program, GLint location, GLsizei count, const GLint * value){_detail::ProgramUniform3iv(program, location, count, value);}
+	inline void ProgramUniform3ui(GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2){_detail::ProgramUniform3ui(program, location, v0, v1, v2);}
+	inline void ProgramUniform3uiv(GLuint program, GLint location, GLsizei count, const GLuint * value){_detail::ProgramUniform3uiv(program, location, count, value);}
+	inline void ProgramUniform4d(GLuint program, GLint location, GLdouble v0, GLdouble v1, GLdouble v2, GLdouble v3){_detail::ProgramUniform4d(program, location, v0, v1, v2, v3);}
+	inline void ProgramUniform4dv(GLuint program, GLint location, GLsizei count, const GLdouble * value){_detail::ProgramUniform4dv(program, location, count, value);}
+	inline void ProgramUniform4f(GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3){_detail::ProgramUniform4f(program, location, v0, v1, v2, v3);}
+	inline void ProgramUniform4fv(GLuint program, GLint location, GLsizei count, const GLfloat * value){_detail::ProgramUniform4fv(program, location, count, value);}
+	inline void ProgramUniform4i(GLuint program, GLint location, GLint v0, GLint v1, GLint v2, GLint v3){_detail::ProgramUniform4i(program, location, v0, v1, v2, v3);}
+	inline void ProgramUniform4iv(GLuint program, GLint location, GLsizei count, const GLint * value){_detail::ProgramUniform4iv(program, location, count, value);}
+	inline void ProgramUniform4ui(GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3){_detail::ProgramUniform4ui(program, location, v0, v1, v2, v3);}
+	inline void ProgramUniform4uiv(GLuint program, GLint location, GLsizei count, const GLuint * value){_detail::ProgramUniform4uiv(program, location, count, value);}
+	inline void ProgramUniformMatrix2dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value){_detail::ProgramUniformMatrix2dv(program, location, count, transpose, value);}
+	inline void ProgramUniformMatrix2fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value){_detail::ProgramUniformMatrix2fv(program, location, count, transpose, value);}
+	inline void ProgramUniformMatrix2x3dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value){_detail::ProgramUniformMatrix2x3dv(program, location, count, transpose, value);}
+	inline void ProgramUniformMatrix2x3fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value){_detail::ProgramUniformMatrix2x3fv(program, location, count, transpose, value);}
+	inline void ProgramUniformMatrix2x4dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value){_detail::ProgramUniformMatrix2x4dv(program, location, count, transpose, value);}
+	inline void ProgramUniformMatrix2x4fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value){_detail::ProgramUniformMatrix2x4fv(program, location, count, transpose, value);}
+	inline void ProgramUniformMatrix3dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value){_detail::ProgramUniformMatrix3dv(program, location, count, transpose, value);}
+	inline void ProgramUniformMatrix3fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value){_detail::ProgramUniformMatrix3fv(program, location, count, transpose, value);}
+	inline void ProgramUniformMatrix3x2dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value){_detail::ProgramUniformMatrix3x2dv(program, location, count, transpose, value);}
+	inline void ProgramUniformMatrix3x2fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value){_detail::ProgramUniformMatrix3x2fv(program, location, count, transpose, value);}
+	inline void ProgramUniformMatrix3x4dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value){_detail::ProgramUniformMatrix3x4dv(program, location, count, transpose, value);}
+	inline void ProgramUniformMatrix3x4fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value){_detail::ProgramUniformMatrix3x4fv(program, location, count, transpose, value);}
+	inline void ProgramUniformMatrix4dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value){_detail::ProgramUniformMatrix4dv(program, location, count, transpose, value);}
+	inline void ProgramUniformMatrix4fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value){_detail::ProgramUniformMatrix4fv(program, location, count, transpose, value);}
+	inline void ProgramUniformMatrix4x2dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value){_detail::ProgramUniformMatrix4x2dv(program, location, count, transpose, value);}
+	inline void ProgramUniformMatrix4x2fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value){_detail::ProgramUniformMatrix4x2fv(program, location, count, transpose, value);}
+	inline void ProgramUniformMatrix4x3dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value){_detail::ProgramUniformMatrix4x3dv(program, location, count, transpose, value);}
+	inline void ProgramUniformMatrix4x3fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value){_detail::ProgramUniformMatrix4x3fv(program, location, count, transpose, value);}
+	inline void UseProgramStages(GLuint pipeline, GLbitfield stages, GLuint program){_detail::UseProgramStages(pipeline, stages, program);}
+	inline void ValidateProgramPipeline(GLuint pipeline){_detail::ValidateProgramPipeline(pipeline);}
 	
 	inline void BlendFunc(GLenum sfactor, GLenum dfactor){_detail::BlendFunc(sfactor, dfactor);}
 	inline void Clear(GLbitfield mask){_detail::Clear(mask);}
@@ -2273,7 +1863,6 @@ namespace gl
 	inline void DrawArrays(GLenum mode, GLint first, GLsizei count){_detail::DrawArrays(mode, first, count);}
 	inline void DrawElements(GLenum mode, GLsizei count, GLenum type, const void * indices){_detail::DrawElements(mode, count, type, indices);}
 	inline void GenTextures(GLsizei n, GLuint * textures){_detail::GenTextures(n, textures);}
-	inline void GetPointerv(GLenum pname, void ** params){_detail::GetPointerv(pname, params);}
 	inline GLboolean IsTexture(GLuint texture){return _detail::IsTexture(texture);}
 	inline void PolygonOffset(GLfloat factor, GLfloat units){_detail::PolygonOffset(factor, units);}
 	inline void TexSubImage1D(GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void * pixels){_detail::TexSubImage1D(target, level, xoffset, width, format, type, pixels);}
@@ -2571,320 +2160,6 @@ namespace gl
 	inline void VertexAttribP3uiv(GLuint index, GLenum type, GLboolean normalized, const GLuint * value){_detail::VertexAttribP3uiv(index, type, normalized, value);}
 	inline void VertexAttribP4ui(GLuint index, GLenum type, GLboolean normalized, GLuint value){_detail::VertexAttribP4ui(index, type, normalized, value);}
 	inline void VertexAttribP4uiv(GLuint index, GLenum type, GLboolean normalized, const GLuint * value){_detail::VertexAttribP4uiv(index, type, normalized, value);}
-	
-	inline void BeginQueryIndexed(GLenum target, GLuint index, GLuint id){_detail::BeginQueryIndexed(target, index, id);}
-	inline void BindTransformFeedback(GLenum target, GLuint id){_detail::BindTransformFeedback(target, id);}
-	inline void BlendEquationSeparatei(GLuint buf, GLenum modeRGB, GLenum modeAlpha){_detail::BlendEquationSeparatei(buf, modeRGB, modeAlpha);}
-	inline void BlendEquationi(GLuint buf, GLenum mode){_detail::BlendEquationi(buf, mode);}
-	inline void BlendFuncSeparatei(GLuint buf, GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha){_detail::BlendFuncSeparatei(buf, srcRGB, dstRGB, srcAlpha, dstAlpha);}
-	inline void BlendFunci(GLuint buf, GLenum src, GLenum dst){_detail::BlendFunci(buf, src, dst);}
-	inline void DeleteTransformFeedbacks(GLsizei n, const GLuint * ids){_detail::DeleteTransformFeedbacks(n, ids);}
-	inline void DrawArraysIndirect(GLenum mode, const void * indirect){_detail::DrawArraysIndirect(mode, indirect);}
-	inline void DrawElementsIndirect(GLenum mode, GLenum type, const void * indirect){_detail::DrawElementsIndirect(mode, type, indirect);}
-	inline void DrawTransformFeedback(GLenum mode, GLuint id){_detail::DrawTransformFeedback(mode, id);}
-	inline void DrawTransformFeedbackStream(GLenum mode, GLuint id, GLuint stream){_detail::DrawTransformFeedbackStream(mode, id, stream);}
-	inline void EndQueryIndexed(GLenum target, GLuint index){_detail::EndQueryIndexed(target, index);}
-	inline void GenTransformFeedbacks(GLsizei n, GLuint * ids){_detail::GenTransformFeedbacks(n, ids);}
-	inline void GetActiveSubroutineName(GLuint program, GLenum shadertype, GLuint index, GLsizei bufsize, GLsizei * length, GLchar * name){_detail::GetActiveSubroutineName(program, shadertype, index, bufsize, length, name);}
-	inline void GetActiveSubroutineUniformName(GLuint program, GLenum shadertype, GLuint index, GLsizei bufsize, GLsizei * length, GLchar * name){_detail::GetActiveSubroutineUniformName(program, shadertype, index, bufsize, length, name);}
-	inline void GetActiveSubroutineUniformiv(GLuint program, GLenum shadertype, GLuint index, GLenum pname, GLint * values){_detail::GetActiveSubroutineUniformiv(program, shadertype, index, pname, values);}
-	inline void GetProgramStageiv(GLuint program, GLenum shadertype, GLenum pname, GLint * values){_detail::GetProgramStageiv(program, shadertype, pname, values);}
-	inline void GetQueryIndexediv(GLenum target, GLuint index, GLenum pname, GLint * params){_detail::GetQueryIndexediv(target, index, pname, params);}
-	inline GLuint GetSubroutineIndex(GLuint program, GLenum shadertype, const GLchar * name){return _detail::GetSubroutineIndex(program, shadertype, name);}
-	inline GLint GetSubroutineUniformLocation(GLuint program, GLenum shadertype, const GLchar * name){return _detail::GetSubroutineUniformLocation(program, shadertype, name);}
-	inline void GetUniformSubroutineuiv(GLenum shadertype, GLint location, GLuint * params){_detail::GetUniformSubroutineuiv(shadertype, location, params);}
-	inline void GetUniformdv(GLuint program, GLint location, GLdouble * params){_detail::GetUniformdv(program, location, params);}
-	inline GLboolean IsTransformFeedback(GLuint id){return _detail::IsTransformFeedback(id);}
-	inline void MinSampleShading(GLfloat value){_detail::MinSampleShading(value);}
-	inline void PatchParameterfv(GLenum pname, const GLfloat * values){_detail::PatchParameterfv(pname, values);}
-	inline void PatchParameteri(GLenum pname, GLint value){_detail::PatchParameteri(pname, value);}
-	inline void PauseTransformFeedback(void){_detail::PauseTransformFeedback();}
-	inline void ResumeTransformFeedback(void){_detail::ResumeTransformFeedback();}
-	inline void Uniform1d(GLint location, GLdouble x){_detail::Uniform1d(location, x);}
-	inline void Uniform1dv(GLint location, GLsizei count, const GLdouble * value){_detail::Uniform1dv(location, count, value);}
-	inline void Uniform2d(GLint location, GLdouble x, GLdouble y){_detail::Uniform2d(location, x, y);}
-	inline void Uniform2dv(GLint location, GLsizei count, const GLdouble * value){_detail::Uniform2dv(location, count, value);}
-	inline void Uniform3d(GLint location, GLdouble x, GLdouble y, GLdouble z){_detail::Uniform3d(location, x, y, z);}
-	inline void Uniform3dv(GLint location, GLsizei count, const GLdouble * value){_detail::Uniform3dv(location, count, value);}
-	inline void Uniform4d(GLint location, GLdouble x, GLdouble y, GLdouble z, GLdouble w){_detail::Uniform4d(location, x, y, z, w);}
-	inline void Uniform4dv(GLint location, GLsizei count, const GLdouble * value){_detail::Uniform4dv(location, count, value);}
-	inline void UniformMatrix2dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value){_detail::UniformMatrix2dv(location, count, transpose, value);}
-	inline void UniformMatrix2x3dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value){_detail::UniformMatrix2x3dv(location, count, transpose, value);}
-	inline void UniformMatrix2x4dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value){_detail::UniformMatrix2x4dv(location, count, transpose, value);}
-	inline void UniformMatrix3dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value){_detail::UniformMatrix3dv(location, count, transpose, value);}
-	inline void UniformMatrix3x2dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value){_detail::UniformMatrix3x2dv(location, count, transpose, value);}
-	inline void UniformMatrix3x4dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value){_detail::UniformMatrix3x4dv(location, count, transpose, value);}
-	inline void UniformMatrix4dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value){_detail::UniformMatrix4dv(location, count, transpose, value);}
-	inline void UniformMatrix4x2dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value){_detail::UniformMatrix4x2dv(location, count, transpose, value);}
-	inline void UniformMatrix4x3dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value){_detail::UniformMatrix4x3dv(location, count, transpose, value);}
-	inline void UniformSubroutinesuiv(GLenum shadertype, GLsizei count, const GLuint * indices){_detail::UniformSubroutinesuiv(shadertype, count, indices);}
-	
-	inline void ActiveShaderProgram(GLuint pipeline, GLuint program){_detail::ActiveShaderProgram(pipeline, program);}
-	inline void BindProgramPipeline(GLuint pipeline){_detail::BindProgramPipeline(pipeline);}
-	inline void ClearDepthf(GLfloat d){_detail::ClearDepthf(d);}
-	inline GLuint CreateShaderProgramv(GLenum type, GLsizei count, const GLchar *const* strings){return _detail::CreateShaderProgramv(type, count, strings);}
-	inline void DeleteProgramPipelines(GLsizei n, const GLuint * pipelines){_detail::DeleteProgramPipelines(n, pipelines);}
-	inline void DepthRangeArrayv(GLuint first, GLsizei count, const GLdouble * v){_detail::DepthRangeArrayv(first, count, v);}
-	inline void DepthRangeIndexed(GLuint index, GLdouble n, GLdouble f){_detail::DepthRangeIndexed(index, n, f);}
-	inline void DepthRangef(GLfloat n, GLfloat f){_detail::DepthRangef(n, f);}
-	inline void GenProgramPipelines(GLsizei n, GLuint * pipelines){_detail::GenProgramPipelines(n, pipelines);}
-	inline void GetDoublei_v(GLenum target, GLuint index, GLdouble * data){_detail::GetDoublei_v(target, index, data);}
-	inline void GetFloati_v(GLenum target, GLuint index, GLfloat * data){_detail::GetFloati_v(target, index, data);}
-	inline void GetProgramBinary(GLuint program, GLsizei bufSize, GLsizei * length, GLenum * binaryFormat, void * binary){_detail::GetProgramBinary(program, bufSize, length, binaryFormat, binary);}
-	inline void GetProgramPipelineInfoLog(GLuint pipeline, GLsizei bufSize, GLsizei * length, GLchar * infoLog){_detail::GetProgramPipelineInfoLog(pipeline, bufSize, length, infoLog);}
-	inline void GetProgramPipelineiv(GLuint pipeline, GLenum pname, GLint * params){_detail::GetProgramPipelineiv(pipeline, pname, params);}
-	inline void GetShaderPrecisionFormat(GLenum shadertype, GLenum precisiontype, GLint * range, GLint * precision){_detail::GetShaderPrecisionFormat(shadertype, precisiontype, range, precision);}
-	inline void GetVertexAttribLdv(GLuint index, GLenum pname, GLdouble * params){_detail::GetVertexAttribLdv(index, pname, params);}
-	inline GLboolean IsProgramPipeline(GLuint pipeline){return _detail::IsProgramPipeline(pipeline);}
-	inline void ProgramBinary(GLuint program, GLenum binaryFormat, const void * binary, GLsizei length){_detail::ProgramBinary(program, binaryFormat, binary, length);}
-	inline void ProgramParameteri(GLuint program, GLenum pname, GLint value){_detail::ProgramParameteri(program, pname, value);}
-	inline void ProgramUniform1d(GLuint program, GLint location, GLdouble v0){_detail::ProgramUniform1d(program, location, v0);}
-	inline void ProgramUniform1dv(GLuint program, GLint location, GLsizei count, const GLdouble * value){_detail::ProgramUniform1dv(program, location, count, value);}
-	inline void ProgramUniform1f(GLuint program, GLint location, GLfloat v0){_detail::ProgramUniform1f(program, location, v0);}
-	inline void ProgramUniform1fv(GLuint program, GLint location, GLsizei count, const GLfloat * value){_detail::ProgramUniform1fv(program, location, count, value);}
-	inline void ProgramUniform1i(GLuint program, GLint location, GLint v0){_detail::ProgramUniform1i(program, location, v0);}
-	inline void ProgramUniform1iv(GLuint program, GLint location, GLsizei count, const GLint * value){_detail::ProgramUniform1iv(program, location, count, value);}
-	inline void ProgramUniform1ui(GLuint program, GLint location, GLuint v0){_detail::ProgramUniform1ui(program, location, v0);}
-	inline void ProgramUniform1uiv(GLuint program, GLint location, GLsizei count, const GLuint * value){_detail::ProgramUniform1uiv(program, location, count, value);}
-	inline void ProgramUniform2d(GLuint program, GLint location, GLdouble v0, GLdouble v1){_detail::ProgramUniform2d(program, location, v0, v1);}
-	inline void ProgramUniform2dv(GLuint program, GLint location, GLsizei count, const GLdouble * value){_detail::ProgramUniform2dv(program, location, count, value);}
-	inline void ProgramUniform2f(GLuint program, GLint location, GLfloat v0, GLfloat v1){_detail::ProgramUniform2f(program, location, v0, v1);}
-	inline void ProgramUniform2fv(GLuint program, GLint location, GLsizei count, const GLfloat * value){_detail::ProgramUniform2fv(program, location, count, value);}
-	inline void ProgramUniform2i(GLuint program, GLint location, GLint v0, GLint v1){_detail::ProgramUniform2i(program, location, v0, v1);}
-	inline void ProgramUniform2iv(GLuint program, GLint location, GLsizei count, const GLint * value){_detail::ProgramUniform2iv(program, location, count, value);}
-	inline void ProgramUniform2ui(GLuint program, GLint location, GLuint v0, GLuint v1){_detail::ProgramUniform2ui(program, location, v0, v1);}
-	inline void ProgramUniform2uiv(GLuint program, GLint location, GLsizei count, const GLuint * value){_detail::ProgramUniform2uiv(program, location, count, value);}
-	inline void ProgramUniform3d(GLuint program, GLint location, GLdouble v0, GLdouble v1, GLdouble v2){_detail::ProgramUniform3d(program, location, v0, v1, v2);}
-	inline void ProgramUniform3dv(GLuint program, GLint location, GLsizei count, const GLdouble * value){_detail::ProgramUniform3dv(program, location, count, value);}
-	inline void ProgramUniform3f(GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2){_detail::ProgramUniform3f(program, location, v0, v1, v2);}
-	inline void ProgramUniform3fv(GLuint program, GLint location, GLsizei count, const GLfloat * value){_detail::ProgramUniform3fv(program, location, count, value);}
-	inline void ProgramUniform3i(GLuint program, GLint location, GLint v0, GLint v1, GLint v2){_detail::ProgramUniform3i(program, location, v0, v1, v2);}
-	inline void ProgramUniform3iv(GLuint program, GLint location, GLsizei count, const GLint * value){_detail::ProgramUniform3iv(program, location, count, value);}
-	inline void ProgramUniform3ui(GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2){_detail::ProgramUniform3ui(program, location, v0, v1, v2);}
-	inline void ProgramUniform3uiv(GLuint program, GLint location, GLsizei count, const GLuint * value){_detail::ProgramUniform3uiv(program, location, count, value);}
-	inline void ProgramUniform4d(GLuint program, GLint location, GLdouble v0, GLdouble v1, GLdouble v2, GLdouble v3){_detail::ProgramUniform4d(program, location, v0, v1, v2, v3);}
-	inline void ProgramUniform4dv(GLuint program, GLint location, GLsizei count, const GLdouble * value){_detail::ProgramUniform4dv(program, location, count, value);}
-	inline void ProgramUniform4f(GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3){_detail::ProgramUniform4f(program, location, v0, v1, v2, v3);}
-	inline void ProgramUniform4fv(GLuint program, GLint location, GLsizei count, const GLfloat * value){_detail::ProgramUniform4fv(program, location, count, value);}
-	inline void ProgramUniform4i(GLuint program, GLint location, GLint v0, GLint v1, GLint v2, GLint v3){_detail::ProgramUniform4i(program, location, v0, v1, v2, v3);}
-	inline void ProgramUniform4iv(GLuint program, GLint location, GLsizei count, const GLint * value){_detail::ProgramUniform4iv(program, location, count, value);}
-	inline void ProgramUniform4ui(GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3){_detail::ProgramUniform4ui(program, location, v0, v1, v2, v3);}
-	inline void ProgramUniform4uiv(GLuint program, GLint location, GLsizei count, const GLuint * value){_detail::ProgramUniform4uiv(program, location, count, value);}
-	inline void ProgramUniformMatrix2dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value){_detail::ProgramUniformMatrix2dv(program, location, count, transpose, value);}
-	inline void ProgramUniformMatrix2fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value){_detail::ProgramUniformMatrix2fv(program, location, count, transpose, value);}
-	inline void ProgramUniformMatrix2x3dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value){_detail::ProgramUniformMatrix2x3dv(program, location, count, transpose, value);}
-	inline void ProgramUniformMatrix2x3fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value){_detail::ProgramUniformMatrix2x3fv(program, location, count, transpose, value);}
-	inline void ProgramUniformMatrix2x4dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value){_detail::ProgramUniformMatrix2x4dv(program, location, count, transpose, value);}
-	inline void ProgramUniformMatrix2x4fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value){_detail::ProgramUniformMatrix2x4fv(program, location, count, transpose, value);}
-	inline void ProgramUniformMatrix3dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value){_detail::ProgramUniformMatrix3dv(program, location, count, transpose, value);}
-	inline void ProgramUniformMatrix3fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value){_detail::ProgramUniformMatrix3fv(program, location, count, transpose, value);}
-	inline void ProgramUniformMatrix3x2dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value){_detail::ProgramUniformMatrix3x2dv(program, location, count, transpose, value);}
-	inline void ProgramUniformMatrix3x2fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value){_detail::ProgramUniformMatrix3x2fv(program, location, count, transpose, value);}
-	inline void ProgramUniformMatrix3x4dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value){_detail::ProgramUniformMatrix3x4dv(program, location, count, transpose, value);}
-	inline void ProgramUniformMatrix3x4fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value){_detail::ProgramUniformMatrix3x4fv(program, location, count, transpose, value);}
-	inline void ProgramUniformMatrix4dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value){_detail::ProgramUniformMatrix4dv(program, location, count, transpose, value);}
-	inline void ProgramUniformMatrix4fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value){_detail::ProgramUniformMatrix4fv(program, location, count, transpose, value);}
-	inline void ProgramUniformMatrix4x2dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value){_detail::ProgramUniformMatrix4x2dv(program, location, count, transpose, value);}
-	inline void ProgramUniformMatrix4x2fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value){_detail::ProgramUniformMatrix4x2fv(program, location, count, transpose, value);}
-	inline void ProgramUniformMatrix4x3dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value){_detail::ProgramUniformMatrix4x3dv(program, location, count, transpose, value);}
-	inline void ProgramUniformMatrix4x3fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value){_detail::ProgramUniformMatrix4x3fv(program, location, count, transpose, value);}
-	inline void ReleaseShaderCompiler(void){_detail::ReleaseShaderCompiler();}
-	inline void ScissorArrayv(GLuint first, GLsizei count, const GLint * v){_detail::ScissorArrayv(first, count, v);}
-	inline void ScissorIndexed(GLuint index, GLint left, GLint bottom, GLsizei width, GLsizei height){_detail::ScissorIndexed(index, left, bottom, width, height);}
-	inline void ScissorIndexedv(GLuint index, const GLint * v){_detail::ScissorIndexedv(index, v);}
-	inline void ShaderBinary(GLsizei count, const GLuint * shaders, GLenum binaryformat, const void * binary, GLsizei length){_detail::ShaderBinary(count, shaders, binaryformat, binary, length);}
-	inline void UseProgramStages(GLuint pipeline, GLbitfield stages, GLuint program){_detail::UseProgramStages(pipeline, stages, program);}
-	inline void ValidateProgramPipeline(GLuint pipeline){_detail::ValidateProgramPipeline(pipeline);}
-	inline void VertexAttribL1d(GLuint index, GLdouble x){_detail::VertexAttribL1d(index, x);}
-	inline void VertexAttribL1dv(GLuint index, const GLdouble * v){_detail::VertexAttribL1dv(index, v);}
-	inline void VertexAttribL2d(GLuint index, GLdouble x, GLdouble y){_detail::VertexAttribL2d(index, x, y);}
-	inline void VertexAttribL2dv(GLuint index, const GLdouble * v){_detail::VertexAttribL2dv(index, v);}
-	inline void VertexAttribL3d(GLuint index, GLdouble x, GLdouble y, GLdouble z){_detail::VertexAttribL3d(index, x, y, z);}
-	inline void VertexAttribL3dv(GLuint index, const GLdouble * v){_detail::VertexAttribL3dv(index, v);}
-	inline void VertexAttribL4d(GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w){_detail::VertexAttribL4d(index, x, y, z, w);}
-	inline void VertexAttribL4dv(GLuint index, const GLdouble * v){_detail::VertexAttribL4dv(index, v);}
-	inline void VertexAttribLPointer(GLuint index, GLint size, GLenum type, GLsizei stride, const void * pointer){_detail::VertexAttribLPointer(index, size, type, stride, pointer);}
-	inline void ViewportArrayv(GLuint first, GLsizei count, const GLfloat * v){_detail::ViewportArrayv(first, count, v);}
-	inline void ViewportIndexedf(GLuint index, GLfloat x, GLfloat y, GLfloat w, GLfloat h){_detail::ViewportIndexedf(index, x, y, w, h);}
-	inline void ViewportIndexedfv(GLuint index, const GLfloat * v){_detail::ViewportIndexedfv(index, v);}
-	
-	inline void BindImageTexture(GLuint unit, GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum access, GLenum format){_detail::BindImageTexture(unit, texture, level, layered, layer, access, format);}
-	inline void DrawArraysInstancedBaseInstance(GLenum mode, GLint first, GLsizei count, GLsizei instancecount, GLuint baseinstance){_detail::DrawArraysInstancedBaseInstance(mode, first, count, instancecount, baseinstance);}
-	inline void DrawElementsInstancedBaseInstance(GLenum mode, GLsizei count, GLenum type, const void * indices, GLsizei instancecount, GLuint baseinstance){_detail::DrawElementsInstancedBaseInstance(mode, count, type, indices, instancecount, baseinstance);}
-	inline void DrawElementsInstancedBaseVertexBaseInstance(GLenum mode, GLsizei count, GLenum type, const void * indices, GLsizei instancecount, GLint basevertex, GLuint baseinstance){_detail::DrawElementsInstancedBaseVertexBaseInstance(mode, count, type, indices, instancecount, basevertex, baseinstance);}
-	inline void DrawTransformFeedbackInstanced(GLenum mode, GLuint id, GLsizei instancecount){_detail::DrawTransformFeedbackInstanced(mode, id, instancecount);}
-	inline void DrawTransformFeedbackStreamInstanced(GLenum mode, GLuint id, GLuint stream, GLsizei instancecount){_detail::DrawTransformFeedbackStreamInstanced(mode, id, stream, instancecount);}
-	inline void GetActiveAtomicCounterBufferiv(GLuint program, GLuint bufferIndex, GLenum pname, GLint * params){_detail::GetActiveAtomicCounterBufferiv(program, bufferIndex, pname, params);}
-	inline void GetInternalformativ(GLenum target, GLenum internalformat, GLenum pname, GLsizei bufSize, GLint * params){_detail::GetInternalformativ(target, internalformat, pname, bufSize, params);}
-	inline void MemoryBarrier(GLbitfield barriers){_detail::MemoryBarrier(barriers);}
-	inline void TexStorage1D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width){_detail::TexStorage1D(target, levels, internalformat, width);}
-	inline void TexStorage2D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height){_detail::TexStorage2D(target, levels, internalformat, width, height);}
-	inline void TexStorage3D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth){_detail::TexStorage3D(target, levels, internalformat, width, height, depth);}
-	
-	inline void BindVertexBuffer(GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride){_detail::BindVertexBuffer(bindingindex, buffer, offset, stride);}
-	inline void ClearBufferData(GLenum target, GLenum internalformat, GLenum format, GLenum type, const void * data){_detail::ClearBufferData(target, internalformat, format, type, data);}
-	inline void ClearBufferSubData(GLenum target, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void * data){_detail::ClearBufferSubData(target, internalformat, offset, size, format, type, data);}
-	inline void CopyImageSubData(GLuint srcName, GLenum srcTarget, GLint srcLevel, GLint srcX, GLint srcY, GLint srcZ, GLuint dstName, GLenum dstTarget, GLint dstLevel, GLint dstX, GLint dstY, GLint dstZ, GLsizei srcWidth, GLsizei srcHeight, GLsizei srcDepth){_detail::CopyImageSubData(srcName, srcTarget, srcLevel, srcX, srcY, srcZ, dstName, dstTarget, dstLevel, dstX, dstY, dstZ, srcWidth, srcHeight, srcDepth);}
-	inline void DebugMessageCallback(GLDEBUGPROC callback, const void * userParam){_detail::DebugMessageCallback(callback, userParam);}
-	inline void DebugMessageControl(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint * ids, GLboolean enabled){_detail::DebugMessageControl(source, type, severity, count, ids, enabled);}
-	inline void DebugMessageInsert(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar * buf){_detail::DebugMessageInsert(source, type, id, severity, length, buf);}
-	inline void DispatchCompute(GLuint num_groups_x, GLuint num_groups_y, GLuint num_groups_z){_detail::DispatchCompute(num_groups_x, num_groups_y, num_groups_z);}
-	inline void DispatchComputeIndirect(GLintptr indirect){_detail::DispatchComputeIndirect(indirect);}
-	inline void FramebufferParameteri(GLenum target, GLenum pname, GLint param){_detail::FramebufferParameteri(target, pname, param);}
-	inline GLuint GetDebugMessageLog(GLuint count, GLsizei bufSize, GLenum * sources, GLenum * types, GLuint * ids, GLenum * severities, GLsizei * lengths, GLchar * messageLog){return _detail::GetDebugMessageLog(count, bufSize, sources, types, ids, severities, lengths, messageLog);}
-	inline void GetFramebufferParameteriv(GLenum target, GLenum pname, GLint * params){_detail::GetFramebufferParameteriv(target, pname, params);}
-	inline void GetInternalformati64v(GLenum target, GLenum internalformat, GLenum pname, GLsizei bufSize, GLint64 * params){_detail::GetInternalformati64v(target, internalformat, pname, bufSize, params);}
-	inline void GetObjectLabel(GLenum identifier, GLuint name, GLsizei bufSize, GLsizei * length, GLchar * label){_detail::GetObjectLabel(identifier, name, bufSize, length, label);}
-	inline void GetObjectPtrLabel(const void * ptr, GLsizei bufSize, GLsizei * length, GLchar * label){_detail::GetObjectPtrLabel(ptr, bufSize, length, label);}
-	inline void GetProgramInterfaceiv(GLuint program, GLenum programInterface, GLenum pname, GLint * params){_detail::GetProgramInterfaceiv(program, programInterface, pname, params);}
-	inline GLuint GetProgramResourceIndex(GLuint program, GLenum programInterface, const GLchar * name){return _detail::GetProgramResourceIndex(program, programInterface, name);}
-	inline GLint GetProgramResourceLocation(GLuint program, GLenum programInterface, const GLchar * name){return _detail::GetProgramResourceLocation(program, programInterface, name);}
-	inline GLint GetProgramResourceLocationIndex(GLuint program, GLenum programInterface, const GLchar * name){return _detail::GetProgramResourceLocationIndex(program, programInterface, name);}
-	inline void GetProgramResourceName(GLuint program, GLenum programInterface, GLuint index, GLsizei bufSize, GLsizei * length, GLchar * name){_detail::GetProgramResourceName(program, programInterface, index, bufSize, length, name);}
-	inline void GetProgramResourceiv(GLuint program, GLenum programInterface, GLuint index, GLsizei propCount, const GLenum * props, GLsizei bufSize, GLsizei * length, GLint * params){_detail::GetProgramResourceiv(program, programInterface, index, propCount, props, bufSize, length, params);}
-	inline void InvalidateBufferData(GLuint buffer){_detail::InvalidateBufferData(buffer);}
-	inline void InvalidateBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr length){_detail::InvalidateBufferSubData(buffer, offset, length);}
-	inline void InvalidateFramebuffer(GLenum target, GLsizei numAttachments, const GLenum * attachments){_detail::InvalidateFramebuffer(target, numAttachments, attachments);}
-	inline void InvalidateSubFramebuffer(GLenum target, GLsizei numAttachments, const GLenum * attachments, GLint x, GLint y, GLsizei width, GLsizei height){_detail::InvalidateSubFramebuffer(target, numAttachments, attachments, x, y, width, height);}
-	inline void InvalidateTexImage(GLuint texture, GLint level){_detail::InvalidateTexImage(texture, level);}
-	inline void InvalidateTexSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth){_detail::InvalidateTexSubImage(texture, level, xoffset, yoffset, zoffset, width, height, depth);}
-	inline void MultiDrawArraysIndirect(GLenum mode, const void * indirect, GLsizei drawcount, GLsizei stride){_detail::MultiDrawArraysIndirect(mode, indirect, drawcount, stride);}
-	inline void MultiDrawElementsIndirect(GLenum mode, GLenum type, const void * indirect, GLsizei drawcount, GLsizei stride){_detail::MultiDrawElementsIndirect(mode, type, indirect, drawcount, stride);}
-	inline void ObjectLabel(GLenum identifier, GLuint name, GLsizei length, const GLchar * label){_detail::ObjectLabel(identifier, name, length, label);}
-	inline void ObjectPtrLabel(const void * ptr, GLsizei length, const GLchar * label){_detail::ObjectPtrLabel(ptr, length, label);}
-	inline void PopDebugGroup(void){_detail::PopDebugGroup();}
-	inline void PushDebugGroup(GLenum source, GLuint id, GLsizei length, const GLchar * message){_detail::PushDebugGroup(source, id, length, message);}
-	inline void ShaderStorageBlockBinding(GLuint program, GLuint storageBlockIndex, GLuint storageBlockBinding){_detail::ShaderStorageBlockBinding(program, storageBlockIndex, storageBlockBinding);}
-	inline void TexBufferRange(GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size){_detail::TexBufferRange(target, internalformat, buffer, offset, size);}
-	inline void TexStorage2DMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations){_detail::TexStorage2DMultisample(target, samples, internalformat, width, height, fixedsamplelocations);}
-	inline void TexStorage3DMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations){_detail::TexStorage3DMultisample(target, samples, internalformat, width, height, depth, fixedsamplelocations);}
-	inline void TextureView(GLuint texture, GLenum target, GLuint origtexture, GLenum internalformat, GLuint minlevel, GLuint numlevels, GLuint minlayer, GLuint numlayers){_detail::TextureView(texture, target, origtexture, internalformat, minlevel, numlevels, minlayer, numlayers);}
-	inline void VertexAttribBinding(GLuint attribindex, GLuint bindingindex){_detail::VertexAttribBinding(attribindex, bindingindex);}
-	inline void VertexAttribFormat(GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset){_detail::VertexAttribFormat(attribindex, size, type, normalized, relativeoffset);}
-	inline void VertexAttribIFormat(GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset){_detail::VertexAttribIFormat(attribindex, size, type, relativeoffset);}
-	inline void VertexAttribLFormat(GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset){_detail::VertexAttribLFormat(attribindex, size, type, relativeoffset);}
-	inline void VertexBindingDivisor(GLuint bindingindex, GLuint divisor){_detail::VertexBindingDivisor(bindingindex, divisor);}
-	
-	inline void BindBuffersBase(GLenum target, GLuint first, GLsizei count, const GLuint * buffers){_detail::BindBuffersBase(target, first, count, buffers);}
-	inline void BindBuffersRange(GLenum target, GLuint first, GLsizei count, const GLuint * buffers, const GLintptr * offsets, const GLsizeiptr * sizes){_detail::BindBuffersRange(target, first, count, buffers, offsets, sizes);}
-	inline void BindImageTextures(GLuint first, GLsizei count, const GLuint * textures){_detail::BindImageTextures(first, count, textures);}
-	inline void BindSamplers(GLuint first, GLsizei count, const GLuint * samplers){_detail::BindSamplers(first, count, samplers);}
-	inline void BindTextures(GLuint first, GLsizei count, const GLuint * textures){_detail::BindTextures(first, count, textures);}
-	inline void BindVertexBuffers(GLuint first, GLsizei count, const GLuint * buffers, const GLintptr * offsets, const GLsizei * strides){_detail::BindVertexBuffers(first, count, buffers, offsets, strides);}
-	inline void BufferStorage(GLenum target, GLsizeiptr size, const void * data, GLbitfield flags){_detail::BufferStorage(target, size, data, flags);}
-	inline void ClearTexImage(GLuint texture, GLint level, GLenum format, GLenum type, const void * data){_detail::ClearTexImage(texture, level, format, type, data);}
-	inline void ClearTexSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void * data){_detail::ClearTexSubImage(texture, level, xoffset, yoffset, zoffset, width, height, depth, format, type, data);}
-	
-	inline void BindTextureUnit(GLuint unit, GLuint texture){_detail::BindTextureUnit(unit, texture);}
-	inline void BlitNamedFramebuffer(GLuint readFramebuffer, GLuint drawFramebuffer, GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter){_detail::BlitNamedFramebuffer(readFramebuffer, drawFramebuffer, srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);}
-	inline GLenum CheckNamedFramebufferStatus(GLuint framebuffer, GLenum target){return _detail::CheckNamedFramebufferStatus(framebuffer, target);}
-	inline void ClearNamedBufferData(GLuint buffer, GLenum internalformat, GLenum format, GLenum type, const void * data){_detail::ClearNamedBufferData(buffer, internalformat, format, type, data);}
-	inline void ClearNamedBufferSubData(GLuint buffer, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void * data){_detail::ClearNamedBufferSubData(buffer, internalformat, offset, size, format, type, data);}
-	inline void ClearNamedFramebufferfi(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLfloat depth, GLint stencil){_detail::ClearNamedFramebufferfi(framebuffer, buffer, drawbuffer, depth, stencil);}
-	inline void ClearNamedFramebufferfv(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLfloat * value){_detail::ClearNamedFramebufferfv(framebuffer, buffer, drawbuffer, value);}
-	inline void ClearNamedFramebufferiv(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLint * value){_detail::ClearNamedFramebufferiv(framebuffer, buffer, drawbuffer, value);}
-	inline void ClearNamedFramebufferuiv(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLuint * value){_detail::ClearNamedFramebufferuiv(framebuffer, buffer, drawbuffer, value);}
-	inline void ClipControl(GLenum origin, GLenum depth){_detail::ClipControl(origin, depth);}
-	inline void CompressedTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void * data){_detail::CompressedTextureSubImage1D(texture, level, xoffset, width, format, imageSize, data);}
-	inline void CompressedTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void * data){_detail::CompressedTextureSubImage2D(texture, level, xoffset, yoffset, width, height, format, imageSize, data);}
-	inline void CompressedTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void * data){_detail::CompressedTextureSubImage3D(texture, level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, data);}
-	inline void CopyNamedBufferSubData(GLuint readBuffer, GLuint writeBuffer, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size){_detail::CopyNamedBufferSubData(readBuffer, writeBuffer, readOffset, writeOffset, size);}
-	inline void CopyTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width){_detail::CopyTextureSubImage1D(texture, level, xoffset, x, y, width);}
-	inline void CopyTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height){_detail::CopyTextureSubImage2D(texture, level, xoffset, yoffset, x, y, width, height);}
-	inline void CopyTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height){_detail::CopyTextureSubImage3D(texture, level, xoffset, yoffset, zoffset, x, y, width, height);}
-	inline void CreateBuffers(GLsizei n, GLuint * buffers){_detail::CreateBuffers(n, buffers);}
-	inline void CreateFramebuffers(GLsizei n, GLuint * framebuffers){_detail::CreateFramebuffers(n, framebuffers);}
-	inline void CreateProgramPipelines(GLsizei n, GLuint * pipelines){_detail::CreateProgramPipelines(n, pipelines);}
-	inline void CreateQueries(GLenum target, GLsizei n, GLuint * ids){_detail::CreateQueries(target, n, ids);}
-	inline void CreateRenderbuffers(GLsizei n, GLuint * renderbuffers){_detail::CreateRenderbuffers(n, renderbuffers);}
-	inline void CreateSamplers(GLsizei n, GLuint * samplers){_detail::CreateSamplers(n, samplers);}
-	inline void CreateTextures(GLenum target, GLsizei n, GLuint * textures){_detail::CreateTextures(target, n, textures);}
-	inline void CreateTransformFeedbacks(GLsizei n, GLuint * ids){_detail::CreateTransformFeedbacks(n, ids);}
-	inline void CreateVertexArrays(GLsizei n, GLuint * arrays){_detail::CreateVertexArrays(n, arrays);}
-	inline void DisableVertexArrayAttrib(GLuint vaobj, GLuint index){_detail::DisableVertexArrayAttrib(vaobj, index);}
-	inline void EnableVertexArrayAttrib(GLuint vaobj, GLuint index){_detail::EnableVertexArrayAttrib(vaobj, index);}
-	inline void FlushMappedNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length){_detail::FlushMappedNamedBufferRange(buffer, offset, length);}
-	inline void GenerateTextureMipmap(GLuint texture){_detail::GenerateTextureMipmap(texture);}
-	inline void GetCompressedTextureImage(GLuint texture, GLint level, GLsizei bufSize, void * pixels){_detail::GetCompressedTextureImage(texture, level, bufSize, pixels);}
-	inline void GetCompressedTextureSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLsizei bufSize, void * pixels){_detail::GetCompressedTextureSubImage(texture, level, xoffset, yoffset, zoffset, width, height, depth, bufSize, pixels);}
-	inline GLenum GetGraphicsResetStatus(void){return _detail::GetGraphicsResetStatus();}
-	inline void GetNamedBufferParameteri64v(GLuint buffer, GLenum pname, GLint64 * params){_detail::GetNamedBufferParameteri64v(buffer, pname, params);}
-	inline void GetNamedBufferParameteriv(GLuint buffer, GLenum pname, GLint * params){_detail::GetNamedBufferParameteriv(buffer, pname, params);}
-	inline void GetNamedBufferPointerv(GLuint buffer, GLenum pname, void ** params){_detail::GetNamedBufferPointerv(buffer, pname, params);}
-	inline void GetNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, void * data){_detail::GetNamedBufferSubData(buffer, offset, size, data);}
-	inline void GetNamedFramebufferAttachmentParameteriv(GLuint framebuffer, GLenum attachment, GLenum pname, GLint * params){_detail::GetNamedFramebufferAttachmentParameteriv(framebuffer, attachment, pname, params);}
-	inline void GetNamedFramebufferParameteriv(GLuint framebuffer, GLenum pname, GLint * param){_detail::GetNamedFramebufferParameteriv(framebuffer, pname, param);}
-	inline void GetNamedRenderbufferParameteriv(GLuint renderbuffer, GLenum pname, GLint * params){_detail::GetNamedRenderbufferParameteriv(renderbuffer, pname, params);}
-	inline void GetQueryBufferObjecti64v(GLuint id, GLuint buffer, GLenum pname, GLintptr offset){_detail::GetQueryBufferObjecti64v(id, buffer, pname, offset);}
-	inline void GetQueryBufferObjectiv(GLuint id, GLuint buffer, GLenum pname, GLintptr offset){_detail::GetQueryBufferObjectiv(id, buffer, pname, offset);}
-	inline void GetQueryBufferObjectui64v(GLuint id, GLuint buffer, GLenum pname, GLintptr offset){_detail::GetQueryBufferObjectui64v(id, buffer, pname, offset);}
-	inline void GetQueryBufferObjectuiv(GLuint id, GLuint buffer, GLenum pname, GLintptr offset){_detail::GetQueryBufferObjectuiv(id, buffer, pname, offset);}
-	inline void GetTextureImage(GLuint texture, GLint level, GLenum format, GLenum type, GLsizei bufSize, void * pixels){_detail::GetTextureImage(texture, level, format, type, bufSize, pixels);}
-	inline void GetTextureLevelParameterfv(GLuint texture, GLint level, GLenum pname, GLfloat * params){_detail::GetTextureLevelParameterfv(texture, level, pname, params);}
-	inline void GetTextureLevelParameteriv(GLuint texture, GLint level, GLenum pname, GLint * params){_detail::GetTextureLevelParameteriv(texture, level, pname, params);}
-	inline void GetTextureParameterIiv(GLuint texture, GLenum pname, GLint * params){_detail::GetTextureParameterIiv(texture, pname, params);}
-	inline void GetTextureParameterIuiv(GLuint texture, GLenum pname, GLuint * params){_detail::GetTextureParameterIuiv(texture, pname, params);}
-	inline void GetTextureParameterfv(GLuint texture, GLenum pname, GLfloat * params){_detail::GetTextureParameterfv(texture, pname, params);}
-	inline void GetTextureParameteriv(GLuint texture, GLenum pname, GLint * params){_detail::GetTextureParameteriv(texture, pname, params);}
-	inline void GetTextureSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLsizei bufSize, void * pixels){_detail::GetTextureSubImage(texture, level, xoffset, yoffset, zoffset, width, height, depth, format, type, bufSize, pixels);}
-	inline void GetTransformFeedbacki64_v(GLuint xfb, GLenum pname, GLuint index, GLint64 * param){_detail::GetTransformFeedbacki64_v(xfb, pname, index, param);}
-	inline void GetTransformFeedbacki_v(GLuint xfb, GLenum pname, GLuint index, GLint * param){_detail::GetTransformFeedbacki_v(xfb, pname, index, param);}
-	inline void GetTransformFeedbackiv(GLuint xfb, GLenum pname, GLint * param){_detail::GetTransformFeedbackiv(xfb, pname, param);}
-	inline void GetVertexArrayIndexed64iv(GLuint vaobj, GLuint index, GLenum pname, GLint64 * param){_detail::GetVertexArrayIndexed64iv(vaobj, index, pname, param);}
-	inline void GetVertexArrayIndexediv(GLuint vaobj, GLuint index, GLenum pname, GLint * param){_detail::GetVertexArrayIndexediv(vaobj, index, pname, param);}
-	inline void GetVertexArrayiv(GLuint vaobj, GLenum pname, GLint * param){_detail::GetVertexArrayiv(vaobj, pname, param);}
-	inline void GetnCompressedTexImage(GLenum target, GLint lod, GLsizei bufSize, void * pixels){_detail::GetnCompressedTexImage(target, lod, bufSize, pixels);}
-	inline void GetnTexImage(GLenum target, GLint level, GLenum format, GLenum type, GLsizei bufSize, void * pixels){_detail::GetnTexImage(target, level, format, type, bufSize, pixels);}
-	inline void GetnUniformdv(GLuint program, GLint location, GLsizei bufSize, GLdouble * params){_detail::GetnUniformdv(program, location, bufSize, params);}
-	inline void GetnUniformfv(GLuint program, GLint location, GLsizei bufSize, GLfloat * params){_detail::GetnUniformfv(program, location, bufSize, params);}
-	inline void GetnUniformiv(GLuint program, GLint location, GLsizei bufSize, GLint * params){_detail::GetnUniformiv(program, location, bufSize, params);}
-	inline void GetnUniformuiv(GLuint program, GLint location, GLsizei bufSize, GLuint * params){_detail::GetnUniformuiv(program, location, bufSize, params);}
-	inline void InvalidateNamedFramebufferData(GLuint framebuffer, GLsizei numAttachments, const GLenum * attachments){_detail::InvalidateNamedFramebufferData(framebuffer, numAttachments, attachments);}
-	inline void InvalidateNamedFramebufferSubData(GLuint framebuffer, GLsizei numAttachments, const GLenum * attachments, GLint x, GLint y, GLsizei width, GLsizei height){_detail::InvalidateNamedFramebufferSubData(framebuffer, numAttachments, attachments, x, y, width, height);}
-	inline void * MapNamedBuffer(GLuint buffer, GLenum access){return _detail::MapNamedBuffer(buffer, access);}
-	inline void * MapNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access){return _detail::MapNamedBufferRange(buffer, offset, length, access);}
-	inline void MemoryBarrierByRegion(GLbitfield barriers){_detail::MemoryBarrierByRegion(barriers);}
-	inline void NamedBufferData(GLuint buffer, GLsizeiptr size, const void * data, GLenum usage){_detail::NamedBufferData(buffer, size, data, usage);}
-	inline void NamedBufferStorage(GLuint buffer, GLsizeiptr size, const void * data, GLbitfield flags){_detail::NamedBufferStorage(buffer, size, data, flags);}
-	inline void NamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, const void * data){_detail::NamedBufferSubData(buffer, offset, size, data);}
-	inline void NamedFramebufferDrawBuffer(GLuint framebuffer, GLenum buf){_detail::NamedFramebufferDrawBuffer(framebuffer, buf);}
-	inline void NamedFramebufferDrawBuffers(GLuint framebuffer, GLsizei n, const GLenum * bufs){_detail::NamedFramebufferDrawBuffers(framebuffer, n, bufs);}
-	inline void NamedFramebufferParameteri(GLuint framebuffer, GLenum pname, GLint param){_detail::NamedFramebufferParameteri(framebuffer, pname, param);}
-	inline void NamedFramebufferReadBuffer(GLuint framebuffer, GLenum src){_detail::NamedFramebufferReadBuffer(framebuffer, src);}
-	inline void NamedFramebufferRenderbuffer(GLuint framebuffer, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer){_detail::NamedFramebufferRenderbuffer(framebuffer, attachment, renderbuffertarget, renderbuffer);}
-	inline void NamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level){_detail::NamedFramebufferTexture(framebuffer, attachment, texture, level);}
-	inline void NamedFramebufferTextureLayer(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint layer){_detail::NamedFramebufferTextureLayer(framebuffer, attachment, texture, level, layer);}
-	inline void NamedRenderbufferStorage(GLuint renderbuffer, GLenum internalformat, GLsizei width, GLsizei height){_detail::NamedRenderbufferStorage(renderbuffer, internalformat, width, height);}
-	inline void NamedRenderbufferStorageMultisample(GLuint renderbuffer, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height){_detail::NamedRenderbufferStorageMultisample(renderbuffer, samples, internalformat, width, height);}
-	inline void ReadnPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei bufSize, void * data){_detail::ReadnPixels(x, y, width, height, format, type, bufSize, data);}
-	inline void TextureBarrier(void){_detail::TextureBarrier();}
-	inline void TextureBuffer(GLuint texture, GLenum internalformat, GLuint buffer){_detail::TextureBuffer(texture, internalformat, buffer);}
-	inline void TextureBufferRange(GLuint texture, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size){_detail::TextureBufferRange(texture, internalformat, buffer, offset, size);}
-	inline void TextureParameterIiv(GLuint texture, GLenum pname, const GLint * params){_detail::TextureParameterIiv(texture, pname, params);}
-	inline void TextureParameterIuiv(GLuint texture, GLenum pname, const GLuint * params){_detail::TextureParameterIuiv(texture, pname, params);}
-	inline void TextureParameterf(GLuint texture, GLenum pname, GLfloat param){_detail::TextureParameterf(texture, pname, param);}
-	inline void TextureParameterfv(GLuint texture, GLenum pname, const GLfloat * param){_detail::TextureParameterfv(texture, pname, param);}
-	inline void TextureParameteri(GLuint texture, GLenum pname, GLint param){_detail::TextureParameteri(texture, pname, param);}
-	inline void TextureParameteriv(GLuint texture, GLenum pname, const GLint * param){_detail::TextureParameteriv(texture, pname, param);}
-	inline void TextureStorage1D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width){_detail::TextureStorage1D(texture, levels, internalformat, width);}
-	inline void TextureStorage2D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height){_detail::TextureStorage2D(texture, levels, internalformat, width, height);}
-	inline void TextureStorage2DMultisample(GLuint texture, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations){_detail::TextureStorage2DMultisample(texture, samples, internalformat, width, height, fixedsamplelocations);}
-	inline void TextureStorage3D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth){_detail::TextureStorage3D(texture, levels, internalformat, width, height, depth);}
-	inline void TextureStorage3DMultisample(GLuint texture, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations){_detail::TextureStorage3DMultisample(texture, samples, internalformat, width, height, depth, fixedsamplelocations);}
-	inline void TextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void * pixels){_detail::TextureSubImage1D(texture, level, xoffset, width, format, type, pixels);}
-	inline void TextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void * pixels){_detail::TextureSubImage2D(texture, level, xoffset, yoffset, width, height, format, type, pixels);}
-	inline void TextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void * pixels){_detail::TextureSubImage3D(texture, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels);}
-	inline void TransformFeedbackBufferBase(GLuint xfb, GLuint index, GLuint buffer){_detail::TransformFeedbackBufferBase(xfb, index, buffer);}
-	inline void TransformFeedbackBufferRange(GLuint xfb, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size){_detail::TransformFeedbackBufferRange(xfb, index, buffer, offset, size);}
-	inline GLboolean UnmapNamedBuffer(GLuint buffer){return _detail::UnmapNamedBuffer(buffer);}
-	inline void VertexArrayAttribBinding(GLuint vaobj, GLuint attribindex, GLuint bindingindex){_detail::VertexArrayAttribBinding(vaobj, attribindex, bindingindex);}
-	inline void VertexArrayAttribFormat(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset){_detail::VertexArrayAttribFormat(vaobj, attribindex, size, type, normalized, relativeoffset);}
-	inline void VertexArrayAttribIFormat(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset){_detail::VertexArrayAttribIFormat(vaobj, attribindex, size, type, relativeoffset);}
-	inline void VertexArrayAttribLFormat(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset){_detail::VertexArrayAttribLFormat(vaobj, attribindex, size, type, relativeoffset);}
-	inline void VertexArrayBindingDivisor(GLuint vaobj, GLuint bindingindex, GLuint divisor){_detail::VertexArrayBindingDivisor(vaobj, bindingindex, divisor);}
-	inline void VertexArrayElementBuffer(GLuint vaobj, GLuint buffer){_detail::VertexArrayElementBuffer(vaobj, buffer);}
-	inline void VertexArrayVertexBuffer(GLuint vaobj, GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride){_detail::VertexArrayVertexBuffer(vaobj, bindingindex, buffer, offset, stride);}
-	inline void VertexArrayVertexBuffers(GLuint vaobj, GLuint first, GLsizei count, const GLuint * buffers, const GLintptr * offsets, const GLsizei * strides){_detail::VertexArrayVertexBuffers(vaobj, first, count, buffers, offsets, strides);}
 	
 	
 	namespace sys
