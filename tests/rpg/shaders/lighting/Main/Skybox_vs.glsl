@@ -5,12 +5,10 @@
 #include builtin/misc/screen
 
 #include headers/blocks/Camera
-#include headers/blocks/SkyBox
 
 //============================================================================//
 
 layout(std140, binding=0) uniform CAMERA { CameraBlock CB; };
-layout(std140, binding=1) uniform SKYBOX { SkyBoxBlock SB; };
 
 out vec3 cubeNorm;
 

@@ -191,6 +191,7 @@ struct Window::Implementation
     string windowTitle = "";
     bool vsyncEnabled = false;
     bool cursorHidden = false;
+    bool keyRepeat = true;
     sf::Window sfmlWindow;
 };
 
@@ -266,6 +267,12 @@ void Window::set_cursor_hidden(bool hidden)
     impl->sfmlWindow.setMouseCursorVisible(!hidden);
 }
 
+void Window::set_key_repeat(bool repeat)
+{
+    impl->keyRepeat = repeat;
+    impl->sfmlWindow.setKeyRepeatEnabled(repeat);
+}
+
 //============================================================================//
 
 string Window::get_window_title() const
@@ -287,6 +294,11 @@ bool Window::get_vsync_enabled() const
 bool Window::get_cursor_hidden() const
 {
     return impl->cursorHidden;
+}
+
+bool Window::get_key_repeat() const
+{
+    return impl->keyRepeat;
 }
 
 //============================================================================//

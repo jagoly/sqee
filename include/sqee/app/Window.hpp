@@ -33,6 +33,9 @@ public: //====================================================//
     /// Should the cursor be hidden within the Window?
     void set_cursor_hidden(bool hidden);
 
+    /// Should holding a key spawn repeat events?
+    void set_key_repeat(bool repeat);
+
     //--------------------------------------------------------//
 
     /// Fetch any new events.
@@ -54,6 +57,9 @@ public: //====================================================//
 
     /// Check if cursor hiding is enabled.
     bool get_cursor_hidden() const;
+
+    /// Check if key repeat is enabled.
+    bool get_key_repeat() const;
 
 private: //===================================================//
 
