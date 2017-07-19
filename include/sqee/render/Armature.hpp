@@ -35,7 +35,7 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    void load_bones(const string& path);
+    void load_bones(const string& path, bool swapYZ = false);
 
     void load_rest_pose(const string& path);
 
@@ -63,7 +63,11 @@ private: //===================================================//
     std::vector<Mat4F> mBaseMats;
     std::vector<Mat4F> mInverseMats;
 
+    //--------------------------------------------------------//
+
     Pose mRestPose;
+
+    bool mSwapYZ = false;
 };
 
 //============================================================================//

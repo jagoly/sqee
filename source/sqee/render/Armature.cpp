@@ -12,8 +12,28 @@ using namespace sq;
 
 //============================================================================//
 
-void Armature::load_bones(const string& path)
+namespace { // anonymous
+
+inline void impl_swap_pose_yz(Armature::Pose& pose)
 {
+    for (Armature::Bone& bone : pose)
+    {
+        std::swap(bone.offset.y, bone.offset.z);
+        std::swap(bone.rotation.y, bone.rotation.z);
+        bone.rotation.w *= -1.f;
+    }
+}
+
+} // anonymous namespace
+
+//============================================================================//
+
+void Armature::load_bones(const string& path, bool swapYZ)
+{
+    mSwapYZ = swapYZ;
+
+    //--------------------------------------------------------//
+
     for (auto& linePair : sq::tokenise_file("assets/" + path))
     {
         SQASSERT(linePair.first.size() <= 2u, "");
@@ -78,6 +98,8 @@ Armature::Pose Armature::make_pose(const string& path) const
         result.back().rotation = { stof(line[3]), stof(line[4]), stof(line[5]), stof(line[6]) };
         result.back().scale = { stof(line[7]), stof(line[8]), stof(line[9]) };
     }
+
+    if (mSwapYZ == true) impl_swap_pose_yz(result);
 
     return result;
 }
@@ -164,6 +186,16 @@ Armature::Animation Armature::make_animation(const string& path) const
 
     SQASSERT(boneNum == poseCount * result.boneCount, "missing or extra bones");
     SQASSERT(mRestPose.size() == result.boneCount, "bone count mismatch");
+
+    //--------------------------------------------------------//
+
+    if (mSwapYZ == true)
+    {
+        for (Pose& pose : result.poses)
+            impl_swap_pose_yz(pose);
+    }
+
+    //--------------------------------------------------------//
 
     return result;
 }
