@@ -80,10 +80,10 @@ inline void impl_swap_attr_yz(uchar* vertexPtr, uint attrOffset)
 }
 
 template <class Type>
-inline void impl_flip_attr_w(uchar* vertexPtr, uint attrOffset)
+inline void impl_flip_attr_z(uchar* vertexPtr, uint attrOffset)
 {
     Type* attrPtr = reinterpret_cast<Type*>(vertexPtr + attrOffset);
-    *std::next(attrPtr, 3) *= Type(-1);
+    *std::next(attrPtr, 2) *= Type(-1);
 }
 
 } // anonymous namespace
@@ -286,20 +286,18 @@ void Mesh::impl_load_final(std::vector<uchar>& vertexData, std::vector<uint>& in
         for (auto iter = vertexData.begin(); iter != vertexData.end(); iter += mVertexSize)
         {
             impl_swap_attr_yz<GL_Float32>(iter.base(), 0u);
+            impl_flip_attr_z<GL_Float32>(iter.base(), 0u);
 
             if (has_NORM()) impl_swap_attr_yz<GL_SNorm16>(iter.base(), offsetNORM);
+            if (has_NORM()) impl_flip_attr_z<GL_SNorm16>(iter.base(), offsetNORM);
 
             if (has_TANG()) impl_swap_attr_yz<GL_SNorm16>(iter.base(), offsetTANG);
-            if (has_TANG()) impl_flip_attr_w<GL_SNorm16>(iter.base(), offsetTANG);
-        }
-
-        for (auto iter = indexData.begin(); iter != indexData.end(); ++iter)
-        {
-            std::swap(*(++iter), *(++iter));
+            if (has_TANG()) impl_flip_attr_z<GL_SNorm16>(iter.base(), offsetTANG);
         }
 
         std::swap(mOrigin.y, mOrigin.z);
         std::swap(mExtents.y, mExtents.z);
+        mOrigin.z *= -1.f;
     }
 
     //--------------------------------------------------------//
