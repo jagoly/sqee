@@ -17,7 +17,7 @@ class Mesh final : public MoveOnly
 public: //====================================================//
 
     /// Load the mesh from an SQM file.
-    void load_from_file(const string& path);
+    void load_from_file(const string& path, bool swapYZ = false);
 
     //--------------------------------------------------------//
 
@@ -72,6 +72,8 @@ private: //===================================================//
 
     uint8_t mOptionsBits = 0b00000;
 
+    bool mSwapYZ = false;
+
     VertexArray mVertexArray;
 
     FixedBuffer mVertexBuffer;
@@ -101,7 +103,7 @@ private: //===================================================//
 
     void impl_load_ascii(const string& path);
 
-    void impl_load_final(const std::vector<uchar>& vertexData, const std::vector<uint>& indexData);
+    void impl_load_final(std::vector<uchar>& vertexData, std::vector<uint>& indexData);
 };
 
 //============================================================================//

@@ -11,11 +11,10 @@ using namespace sq;
 
 //============================================================================//
 
-
-//============================================================================//
-
-void Mesh::load_from_file(const string& path)
+void Mesh::load_from_file(const string& path, bool swapYZ)
 {
+    mSwapYZ = swapYZ;
+
     impl_load_ascii("assets/" + path + ".sqm");
 }
 
@@ -71,6 +70,20 @@ inline void impl_ascii_append_SInt8(uchar*& ptr, const string& str)
     const auto value = GL_SInt8(stoi(str));
     reinterpret_cast<GL_SInt8&>(*ptr) = value;
     std::advance(ptr, sizeof(GL_SInt8));
+}
+
+template <class Type>
+inline void impl_swap_attr_yz(uchar* vertexPtr, uint attrOffset)
+{
+    Type* attrPtr = reinterpret_cast<Type*>(vertexPtr + attrOffset);
+    std::swap(*std::next(attrPtr, 1), *std::next(attrPtr, 2));
+}
+
+template <class Type>
+inline void impl_flip_attr_w(uchar* vertexPtr, uint attrOffset)
+{
+    Type* attrPtr = reinterpret_cast<Type*>(vertexPtr + attrOffset);
+    *std::next(attrPtr, 3) *= Type(-1);
 }
 
 } // anonymous namespace
@@ -250,14 +263,8 @@ void Mesh::impl_load_ascii(const string& path)
 
 //============================================================================//
 
-void Mesh::impl_load_final(const std::vector<uchar>& vertexData, const std::vector<uint>& indexData)
+void Mesh::impl_load_final(std::vector<uchar>& vertexData, std::vector<uint>& indexData)
 {
-    mVertexBuffer.allocate_constant(uint(vertexData.size()), vertexData.data());
-    mIndexBuffer.allocate_constant(uint(indexData.size()) * 4u, indexData.data());
-
-    mVertexArray.set_vertex_buffer(mVertexBuffer, mVertexSize);
-    mVertexArray.set_index_buffer(mIndexBuffer);
-
     const uint sizeTCRD = sizeof(GL_Float32[2]) * has_TCRD();
     const uint sizeNORM = sizeof(GL_SNorm16[3]) * has_NORM();
     const uint sizeTANG = sizeof(GL_SNorm16[4]) * has_TANG();
@@ -271,6 +278,37 @@ void Mesh::impl_load_final(const std::vector<uchar>& vertexData, const std::vect
 
     const uint offsetBoneI = offsetCOLR + sizeCOLR;
     const uint offsetBoneW = offsetBoneI + sizeBONE;
+
+    //--------------------------------------------------------//
+
+    if (mSwapYZ == true)
+    {
+        for (auto iter = vertexData.begin(); iter != vertexData.end(); iter += mVertexSize)
+        {
+            impl_swap_attr_yz<GL_Float32>(iter.base(), 0u);
+
+            if (has_NORM()) impl_swap_attr_yz<GL_SNorm16>(iter.base(), offsetNORM);
+
+            if (has_TANG()) impl_swap_attr_yz<GL_SNorm16>(iter.base(), offsetTANG);
+            if (has_TANG()) impl_flip_attr_w<GL_SNorm16>(iter.base(), offsetTANG);
+        }
+
+        for (auto iter = indexData.begin(); iter != indexData.end(); ++iter)
+        {
+            std::swap(*(++iter), *(++iter));
+        }
+
+        std::swap(mOrigin.y, mOrigin.z);
+        std::swap(mExtents.y, mExtents.z);
+    }
+
+    //--------------------------------------------------------//
+
+    mVertexBuffer.allocate_constant(uint(vertexData.size()), vertexData.data());
+    mIndexBuffer.allocate_constant(uint(indexData.size()) * 4u, indexData.data());
+
+    mVertexArray.set_vertex_buffer(mVertexBuffer, mVertexSize);
+    mVertexArray.set_index_buffer(mIndexBuffer);
 
     mVertexArray.add_float_attribute(0u, 3u, gl::FLOAT, false, 0u);
 
