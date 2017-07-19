@@ -17,7 +17,7 @@ namespace sq::algo {
 template <class Iter, class Value> constexpr
 Iter find(Iter begin, Iter end, const Value& value)
 {
-    while (begin != end && *begin != value) ++begin;
+    while (begin != end && !(*begin == value)) ++begin;
     return begin;
 }
 
@@ -34,7 +34,7 @@ Iter find(Iter begin, Iter end, const Value& value)
 template <class Iter, class Value> constexpr
 Iter find_not(Iter begin, Iter end, const Value& value)
 {
-    while (begin != end && *begin == value) ++begin;
+    while (begin != end && (*begin == value)) ++begin;
     return begin;
 }
 
