@@ -13,8 +13,15 @@ JsonValue sq::parse_json(const string& path)
 
     if (src.is_open() == false)
     {
-        log_error("Couldn't open json '%s'", path);
+        log_warning("Couldn't open json '%s'", path);
+        return {};
     }
 
-    return JsonValue::parse(src);
+    try { return JsonValue::parse(src); }
+    catch (const std::exception& e)
+    {
+        log_warning("problem loading '%s'\n  what():  %s", path, e.what());
+    }
+
+    return {};
 }

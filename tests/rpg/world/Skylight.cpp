@@ -74,13 +74,13 @@ void Skylight::compute_cascades ( std::array<sq::maths::Sphere, 6>& spheres,
 
         //--------------------------------------------------------//
 
-        Mat4F viewMat = maths::look_at(spheres[i].origin, spheres[i].origin - basis[2], basis[1]);
+        Mat4F viewMat = maths::look_at_RH(spheres[i].origin, spheres[i].origin - basis[2], basis[1]);
 
         viewMat[3].x -= std::fmod(viewMat[3].x, 2.f * spheres[i].radius / float(mResolution));
         viewMat[3].y -= std::fmod(viewMat[3].y, 2.f * spheres[i].radius / float(mResolution));
         viewMat[3].z -= std::fmod(viewMat[3].z, 2.f * spheres[i].radius / float(mResolution));
 
-        Mat4F projMat = maths::ortho(Vec3F(-spheres[i].radius), Vec3F(+spheres[i].radius));
+        Mat4F projMat = maths::ortho_RH(Vec3F(-spheres[i].radius), Vec3F(+spheres[i].radius));
 
         matrices[i] = projMat * viewMat;
     }

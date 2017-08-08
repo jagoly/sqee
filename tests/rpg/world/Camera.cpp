@@ -25,7 +25,7 @@ const Mat4F& Camera::get_view_matrix() const
 {
     if (mViewMatrixValid == false)
     {
-        mViewMatrix = maths::look_at(mPosition, mPosition + mDirection, {0.f, 0.f, 1.f});
+        mViewMatrix = maths::look_at_RH(mPosition, mPosition + mDirection, {0.f, 0.f, 1.f});
 
         mViewMatrixValid = true;
     }
@@ -37,7 +37,7 @@ const Mat4F& Camera::get_proj_matrix() const
 {
     if (mProjMatrixValid == false)
     {
-        mProjMatrix = maths::perspective(mFov, mAspect, 0.1f, mRange);
+        mProjMatrix = maths::perspective_RH(mFov, mAspect, 0.1f, mRange);
 
         mProjMatrixValid = true;
     }

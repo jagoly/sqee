@@ -84,8 +84,8 @@ void GameScene::refresh_options()
     constexpr Vec3F pos = { 3.f, -2.f, 10.f };
     constexpr Vec3F dir = { 0.f, 0.4f, -1.f };
 
-    viewMat = maths::look_at(pos, pos + dir, Vec3F(0.f, 0.f, 1.f));
-    projMat = maths::perspective(1.f, size.x / size.y, 0.5f, 25.f);
+    viewMat = maths::look_at_RH(pos, pos + dir, Vec3F(0.f, 0.f, 1.f));
+    projMat = maths::perspective_RH(1.f, size.x / size.y, 0.5f, 25.f);
 
     ubo.update(0u, viewMat);
     ubo.update(64u, projMat);

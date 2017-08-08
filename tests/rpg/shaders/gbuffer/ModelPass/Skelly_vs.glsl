@@ -8,12 +8,12 @@ layout(std140, binding=1) uniform SKELETON { SkeletonBlock SB; };
 
 //============================================================================//
 
-layout(location=0) in vec3  v_Position;
-layout(location=1) in vec2  v_TexCoord;
-layout(location=2) in vec3  v_Normal;
-layout(location=3) in vec4  v_Tangent;
+layout(location=0) in vec3 v_Position;
+layout(location=1) in vec2 v_TexCoord;
+layout(location=2) in vec3 v_Normal;
+layout(location=3) in vec4 v_Tangent;
 layout(location=5) in ivec4 v_Bones;
-layout(location=6) in vec4  v_Weights;
+layout(location=6) in vec4 v_Weights;
 
 layout(location=0) uniform mat4 u_Matrix;
 layout(location=1) uniform mat3 u_NormMat;

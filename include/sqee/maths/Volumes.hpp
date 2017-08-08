@@ -25,6 +25,13 @@ struct Sphere
     float radius; // size of the sphere
 };
 
+struct Capsule
+{
+    Vec3F originA; // first origin point
+    Vec3F originB; // second origin point
+    float radius;  // radius of cylinder
+};
+
 struct Cone
 {
     Vec3F origin;    // apex of the cone

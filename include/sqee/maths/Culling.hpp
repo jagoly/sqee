@@ -29,6 +29,35 @@ inline int8_t intersect_sphere_sphere(Sphere first, Sphere second)
 
 //============================================================================//
 
+/// Check for intersection between a @ref Sphere and a @ref Capsule.
+///
+/// @param sphere the sphere to check
+/// @param capsule the capsule to check against
+///
+/// @result -1 if outside, 0 if intersects, +1 if inside
+
+inline int8_t intersect_sphere_capsule(Sphere sphere, Capsule capsule)
+{
+    const Vec3F lineVec = capsule.originB - capsule.originA;
+    const float distOnLine = maths::dot(sphere.origin - capsule.originA, lineVec);
+    const Vec3F closest = capsule.originA + lineVec * maths::clamp(distOnLine, 0.f, 1.f);
+
+    const float dist = maths::distance_squared(sphere.origin, closest);
+
+    const float radiusSum = sphere.radius + capsule.radius;
+    const float radiusDiff = sphere.radius - capsule.radius;
+
+    // check if fully outside
+    if (dist > radiusSum * radiusSum) return -1;
+
+    // check if fully inside
+    if (dist < radiusDiff * radiusDiff) return +1;
+
+    return 0; // intersects
+}
+
+//============================================================================//
+
 /// Check for intersection between a @ref Sphere and an @ref Ortho2D.
 ///
 /// @param sphere the sphere to check

@@ -22,22 +22,29 @@ public: //====================================================//
         Vec3F scale    = { 1.f, 1.f, 1.f };
     };
 
-    struct Frame { uint index, time; };
     using Pose = std::vector<Bone>;
 
     struct Animation
     {
         uint boneCount = 0u;
-        uint tickRate = 0u;
-        std::vector<Frame> frames;
+        uint poseCount = 0u;
+        uint totalTime = 0u;
+
+        std::vector<uint32_t> times;
         std::vector<Pose> poses;
     };
 
     //--------------------------------------------------------//
 
+    /// Load armature relationship information.
     void load_bones(const string& path, bool swapYZ = false);
 
+    /// Load armature basis information.
     void load_rest_pose(const string& path);
+
+    //--------------------------------------------------------//
+
+    const Pose& get_rest_pose() const { return mRestPose; }
 
     //--------------------------------------------------------//
 

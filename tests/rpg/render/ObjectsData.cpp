@@ -249,8 +249,8 @@ void sqt::refresh_render_stuff(RenderStuff& rstuff, const WorldStuff& wstuff, co
         Vec3F tangent = maths::normalize(Mat3F(transform.worldMatrix) * Vec3F(0.f, +1.f, 0.f));
 
         // calculate view and projection matrices
-        Mat4F viewMat = maths::look_at(transform.worldPosition, transform.worldPosition + direction, tangent);
-        Mat4F projMat = maths::ortho(light.minimum * transform.worldScale, light.maximum * transform.worldScale);
+        Mat4F viewMat = maths::look_at_RH(transform.worldPosition, transform.worldPosition + direction, tangent);
+        Mat4F projMat = maths::ortho_RH(light.minimum * transform.worldScale, light.maximum * transform.worldScale);
 
         entry.lightMatrix = projMat * viewMat;
 
@@ -302,14 +302,14 @@ void sqt::refresh_render_stuff(RenderStuff& rstuff, const WorldStuff& wstuff, co
 
         entry.sphere = maths::Sphere { position, scale };
 
-        const Mat4F projMat = maths::perspective(maths::radians(0.25f), 1.f, 0.1f, scale);
+        const Mat4F projMat = maths::perspective_RH(maths::radians(0.25f), 1.f, 0.1f, scale);
 
-        entry.lightMatrices[0] = projMat * maths::look_at(position, position + Vec3F(+1, 0, 0), Vec3F(0, -1, 0));
-        entry.lightMatrices[1] = projMat * maths::look_at(position, position + Vec3F(-1, 0, 0), Vec3F(0, -1, 0));
-        entry.lightMatrices[2] = projMat * maths::look_at(position, position + Vec3F(0, +1, 0), Vec3F(0, 0, +1));
-        entry.lightMatrices[3] = projMat * maths::look_at(position, position + Vec3F(0, -1, 0), Vec3F(0, 0, -1));
-        entry.lightMatrices[4] = projMat * maths::look_at(position, position + Vec3F(0, 0, +1), Vec3F(0, -1, 0));
-        entry.lightMatrices[5] = projMat * maths::look_at(position, position + Vec3F(0, 0, -1), Vec3F(0, -1, 0));
+        entry.lightMatrices[0] = projMat * maths::look_at_RH(position, position + Vec3F(+1, 0, 0), Vec3F(0, -1, 0));
+        entry.lightMatrices[1] = projMat * maths::look_at_RH(position, position + Vec3F(-1, 0, 0), Vec3F(0, -1, 0));
+        entry.lightMatrices[2] = projMat * maths::look_at_RH(position, position + Vec3F(0, +1, 0), Vec3F(0, 0, +1));
+        entry.lightMatrices[3] = projMat * maths::look_at_RH(position, position + Vec3F(0, -1, 0), Vec3F(0, 0, -1));
+        entry.lightMatrices[4] = projMat * maths::look_at_RH(position, position + Vec3F(0, 0, +1), Vec3F(0, -1, 0));
+        entry.lightMatrices[5] = projMat * maths::look_at_RH(position, position + Vec3F(0, 0, -1), Vec3F(0, -1, 0));
 
         entry.frustums[0] = maths::make_frustum(entry.lightMatrices[0], position, Vec3F(+1, 0, 0), scale);
         entry.frustums[1] = maths::make_frustum(entry.lightMatrices[1], position, Vec3F(-1, 0, 0), scale);
@@ -359,8 +359,8 @@ void sqt::refresh_render_stuff(RenderStuff& rstuff, const WorldStuff& wstuff, co
         Vec3F tangent = maths::normalize(Mat3F(transform.worldMatrix) * Vec3F(0.f, 1.f, 0.f));
 
         // calculate view and projection matrices
-        Mat4F viewMat = maths::look_at(transform.worldPosition, transform.worldPosition + direction, tangent);
-        Mat4F projMat = maths::perspective(angle * 2.f, 1.f, 0.2f, transform.worldScale);
+        Mat4F viewMat = maths::look_at_RH(transform.worldPosition, transform.worldPosition + direction, tangent);
+        Mat4F projMat = maths::perspective_RH(angle * 2.f, 1.f, 0.2f, transform.worldScale);
 
         entry.lightMatrix = projMat * viewMat;
 
