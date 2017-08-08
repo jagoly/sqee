@@ -2,6 +2,8 @@
 
 #include <sqee/builtins.hpp>
 
+#include <sqee/misc/StringCast.hpp>
+
 #include <sqee/redist/tinyformat.hpp>
 
 namespace sq {

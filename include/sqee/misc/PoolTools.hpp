@@ -10,7 +10,7 @@ namespace sq {
 //============================================================================//
 
 /// Fast eight byte string type.
-struct TinyString
+struct TinyString final
 {
     constexpr TinyString(const char* str)
     {
@@ -37,7 +37,7 @@ struct TinyString
 
 /// A Simple Pool Allocator.
 template <class Type>
-class PoolAllocator : sq::NonCopyable
+class PoolAllocator final : sq::NonCopyable
 {
 public: //====================================================//
 
@@ -111,6 +111,7 @@ public: //====================================================//
     using Allocator = PoolAllocator<Type>;
 
     using iterator = typename std::vector<Item>::iterator;
+    using const_iterator = typename std::vector<Item>::const_iterator;
     using value_type = Item;
 
     //--------------------------------------------------------//
@@ -125,7 +126,9 @@ public: //====================================================//
         SQASSERT(key_exists(key) == false, "");
 
         Type* ptr = mAllocator.allocate(std::forward(args)...);
-        return mItemVector.emplace_back(Item{key, ptr}).ptr;
+        mItemVector.push_back({ key, ptr });
+
+        return ptr;
     }
 
     //--------------------------------------------------------//
@@ -144,8 +147,6 @@ public: //====================================================//
         return iter->ptr;
     }
 
-    //--------------------------------------------------------//
-
     TinyString operator[](const Type* ptr) const
     {
         const auto iter = ptr_find(ptr);
@@ -155,23 +156,29 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    iterator key_find(TinyString key) const
+    iterator key_find(TinyString key)
+    {
+        auto predicate = [key](Item& item) { return item.key == key; };
+        return algo::find_if(mItemVector, predicate);
+    }
+
+    const_iterator key_find(TinyString key) const
     {
         auto predicate = [key](const Item& item) { return item.key == key; };
         return algo::find_if(mItemVector, predicate);
     }
 
-    bool key_exists(TinyString key) const
+    const_iterator ptr_find(const Type* ptr) const
     {
-        return key_find(key) != mItemVector.end();
+        auto predicate = [ptr](const Item& item) { return item.ptr == ptr; };
+        return algo::find_if(mItemVector, predicate);
     }
 
     //--------------------------------------------------------//
 
-    iterator ptr_find(const Type* ptr) const
+    bool key_exists(TinyString key) const
     {
-        auto predicate = [ptr](const Item& item) { return item.ptr == ptr; };
-        return algo::find_if(mItemVector, predicate);
+        return key_find(key) != mItemVector.end();
     }
 
     bool ptr_exists(const Type* ptr) const
