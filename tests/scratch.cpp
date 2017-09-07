@@ -1,5 +1,4 @@
 #include <sqee/debug/Logging.hpp>
-#include <sqee/misc/StringCast.hpp>
 
 using namespace sq;
 

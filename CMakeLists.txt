@@ -87,6 +87,7 @@ set(SOURCES
   "include/sqee/assert.hpp"
   "include/sqee/builtins.hpp"
   "include/sqee/helpers.hpp"
+  "include/sqee/macros.hpp"
   "include/sqee/setup.hpp"
 
   #----------------------------------------------------------#

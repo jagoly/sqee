@@ -17,9 +17,9 @@ public: //====================================================//
 
     struct Bone
     {
-        Vec3F offset   = { 0.f, 0.f, 0.f };
-        QuatF rotation = { 0.f, 0.f, 0.f, 1.f };
-        Vec3F scale    = { 1.f, 1.f, 1.f };
+        Vec3F offset   = {};
+        float scale    = 1.f;
+        QuatF rotation = {};
     };
 
     using Pose = std::vector<Bone>;

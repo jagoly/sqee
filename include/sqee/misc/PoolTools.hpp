@@ -41,6 +41,9 @@ class PoolAllocator final : sq::NonCopyable
 {
 public: //====================================================//
 
+    static_assert(std::is_trivially_copyable_v<Type>);
+    static_assert(std::is_trivially_destructible_v<Type>);
+
     static constexpr size_t Size = sizeof(Type);
 
     //--------------------------------------------------------//

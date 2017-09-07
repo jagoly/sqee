@@ -88,18 +88,26 @@ Armature::Pose Armature::make_pose(const string& path) const
     SQASSERT(boneCount == lines.size(), "bone count mismatch");
 
     Armature::Pose result;
-    result.reserve(mBoneNames.size());
+    result.reserve(boneCount);
 
-    for (auto& linePair : lines)
+    for (const auto& [line, num] : lines)
     {
-        const auto& line = linePair.first;
-        SQASSERT(line.size() == 10u, "invalid pose bone");
+        Bone& bone = result.emplace_back();
 
-        result.emplace_back();
-
-        result.back().offset = { stof(line[0]), stof(line[1]), stof(line[2]) };
-        result.back().rotation = { stof(line[3]), stof(line[4]), stof(line[5]), stof(line[6]) };
-        result.back().scale = { stof(line[7]), stof(line[8]), stof(line[9]) };
+        // todo: remove support for old pose format
+        if (line.size() == 10)
+        {
+            bone.offset = { stof(line[0]), stof(line[1]), stof(line[2]) };
+            bone.rotation = { stof(line[3]), stof(line[4]), stof(line[5]), stof(line[6]) };
+            bone.scale = { stof(line[7]) };
+        }
+        else if (line.size() == 8)
+        {
+            bone.offset = { stof(line[0]), stof(line[1]), stof(line[2]) };
+            bone.scale = { stof(line[3]) };
+            bone.rotation = { stof(line[4]), stof(line[5]), stof(line[6]), stof(line[7]) };
+        }
+        else log_error("invalid bone on line %d of pose '%s'", num, path);
     }
 
     if (mSwapYZ == true) impl_swap_pose_yz(result);
@@ -155,7 +163,12 @@ Armature::Animation Armature::make_animation(const string& path) const
             else if (key == "Times")
             {
                 for (uint i = 1u; i < line.size(); ++i)
+                {
                     result.times.push_back(stou(line[i]));
+
+                    if (result.times.back() == 0u && i != line.size() - 1u)
+                        log_error("zero time for not last pose in animation '%s'", path);
+                }
             }
 
             else log_warning("unknown header key '%s' in animation '%s'", key, path);
@@ -171,12 +184,23 @@ Armature::Animation Armature::make_animation(const string& path) const
                 result.poses.back().reserve(result.boneCount);
             }
 
-            result.poses.back().emplace_back();
-            Bone& bone = result.poses.back().back();
+            //log_assert(line.size() == 10u, "invalid bone on line %d of animation '%s'", num, path);
 
-            bone.offset = { stof(line[0]), stof(line[1]), stof(line[2]) };
-            bone.rotation = { stof(line[3]), stof(line[4]), stof(line[5]), stof(line[6]) };
-            bone.scale = { stof(line[7]), stof(line[8]), stof(line[9]) };
+            Bone& bone = result.poses.back().emplace_back();
+
+            if (line.size() == 10)
+            {
+                bone.offset = { stof(line[0]), stof(line[1]), stof(line[2]) };
+                bone.rotation = { stof(line[3]), stof(line[4]), stof(line[5]), stof(line[6]) };
+                bone.scale = { stof(line[7]) };
+            }
+            else if (line.size() == 8)
+            {
+                bone.offset = { stof(line[0]), stof(line[1]), stof(line[2]) };
+                bone.scale = { stof(line[3]) };
+                bone.rotation = { stof(line[4]), stof(line[5]), stof(line[6]), stof(line[7]) };
+            }
+            else log_error("invalid bone on line %d of animation '%s'", num, path);
         }
 
         //--------------------------------------------------------//
@@ -228,11 +252,12 @@ Armature::Pose Armature::blend_poses(const Pose& a, const Pose& b, float factor)
     {
         const Bone& boneA = a[i];
         const Bone& boneB = b[i];
-        result.emplace_back();
 
-        result.back().offset = maths::mix(boneA.offset, boneB.offset, factor);
-        result.back().rotation = maths::slerp(boneA.rotation, boneB.rotation, factor);
-        result.back().scale = maths::mix(boneA.scale, boneB.scale, factor);
+        Bone& bone = result.emplace_back();
+
+        bone.offset = maths::mix(boneA.offset, boneB.offset, factor);
+        bone.scale = maths::mix(boneA.scale, boneB.scale, factor);
+        bone.rotation = maths::slerp(boneA.rotation, boneB.rotation, factor);
     }
 
     return result;
@@ -246,10 +271,24 @@ Armature::Pose Armature::compute_pose(const Animation& animation, float time) co
 
     //--------------------------------------------------------//
 
+    if (animation.poseCount == 1)
+    {
+        return animation.poses.front();
+    }
+
+    //--------------------------------------------------------//
+
     const float animTotalTime = float(animation.totalTime);
 
-    time = std::fmod(time, animTotalTime);
-    if (std::signbit(time)) time += animTotalTime;
+    if (animation.times.back() == 0u)
+    {
+        time = maths::clamp(time, 0.f, animTotalTime);
+    }
+    else
+    {
+        time = std::fmod(time, animTotalTime);
+        if (std::signbit(time)) time += animTotalTime;
+    }
 
     //--------------------------------------------------------//
 

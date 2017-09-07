@@ -72,6 +72,16 @@ template <class T> constexpr T clamp(T value, T min, T max)
 
 //============================================================================//
 
+/// Clamp a scalar value to an absolute magnitude,
+template <class T> constexpr T clamp_magnitude(T value, T magnitude)
+{
+    static_assert(std::is_arithmetic_v<T>);
+
+    return maths::clamp(value, -magnitude, +magnitude);
+}
+
+//============================================================================//
+
 /// Linearly interpolate between two scalars.
 template <class T> constexpr T mix(T a, T b, T factor)
 {

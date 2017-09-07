@@ -32,7 +32,7 @@ void sq::debug_callback(GLenum _source, GLenum _type, GLuint id, GLenum _severit
     if (_severity == gl::DEBUG_SEVERITY_MEDIUM)       severity = "MEDIUM";
     if (_severity == gl::DEBUG_SEVERITY_LOW)          severity = "LOW";
 
-    log_only("%s OpenGL: Source %s | Severity %s | Type %s | ID %s\n%s",
+    log_only("%s OpenGL: Source %s | Severity %s | Type %s | ID %s\n  %s",
              get_time_string(), source, severity, type, id, message);
 
     return;
