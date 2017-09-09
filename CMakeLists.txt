@@ -53,6 +53,8 @@ if (CMAKE_COMPILER_IS_GNUCXX)
 
 elseif (MSVC)
 
+    string(CONCAT CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " /std:c++latest")
+
     string(CONCAT CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " /W4")
 
 endif ()
