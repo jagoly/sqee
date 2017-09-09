@@ -1,0 +1,23 @@
+dist: trusty
+sudo: required
+language: cpp
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - g++-7
+
+before_script:
+  - wget https://www.sfml-dev.org/files/SFML-2.4.2-linux-gcc-64-bit.tar.gz -O /tmp/sfml.tar.gz
+  - tar -xf /tmp/sfml.tar.gz
+  - sudo cp -r SFML-2.4.2/* /usr/
+  - sudo apt build-dep libsfml -y
+  - wget https://github.com/ChaiScript/ChaiScript/archive/c++17.zip -O /tmp/chaiscript.zip
+  - unzip -q /tmp/chaiscript.zip
+  - sudo cp -r ChaiScript-c-17/include /usr/
+
+script:
+  - CXX=/usr/bin/g++-7 CC=/usr/bin/gcc-7 cmake . -DSQEE_LINUX=True
+  - cmake --build . --
