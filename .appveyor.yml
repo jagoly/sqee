@@ -10,6 +10,7 @@ before_build:
 - 7z x chaiscript.zip
 - rename SFML-2.4.2 sfml
 - rename Chaiscript-develop chai
+- cd ..
 
 build_script:
 - mkdir build
