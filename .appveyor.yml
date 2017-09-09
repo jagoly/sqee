@@ -16,5 +16,5 @@ build_script:
 - mkdir build
 - cd build
 - xcopy /E c:\projects\sqee\deps\chai\include\chaiscript c:\projects\sqee\include\chaiscript\
-- cmake c:/projects/sqee -DCMAKE_MODULE_PATH=c:/projects/sqee/deps/sfml/cmake/Modules -DSFML_ROOT=c:/projects/sqee/deps/sfml
+- cmake c:/projects/sqee -DSQEE_WINDOWS=True -DCMAKE_MODULE_PATH=c:/projects/sqee/deps/sfml/cmake/Modules -DSFML_ROOT=c:/projects/sqee/deps/sfml
 - cmake --build .
