@@ -43,22 +43,22 @@ add_definitions(-DRP3D_ENABLE_SWITCH_YZ)
 
 ################################################################################
 
-string(CONCAT CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS " -std=c++17")
+string(CONCAT CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " -std=c++17")
 
 ################################################################################
 
-string(CONCAT CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS " -Wall -Wextra")
-string(CONCAT CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS " -Wno-unused-parameter -Wno-strict-aliasing")
-string(CONCAT CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS " -Wno-comment -Wno-misleading-indentation")
+string(CONCAT CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " -Wall -Wextra")
+string(CONCAT CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " -Wno-unused-parameter -Wno-strict-aliasing")
+string(CONCAT CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " -Wno-comment -Wno-misleading-indentation")
 
 if (SQEE_LINUX)
-    string(CONCAT CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS "")
+    string(CONCAT CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "")
 elseif (SQEE_WINDOWS)
-    string(CONCAT CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS " -mwindows -Wa,-mbig-obj")
+    string(CONCAT CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " -mwindows -Wa,-mbig-obj")
 elseif (SQEE_ANDROID)
-    string(CONCAT CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS "")
+    string(CONCAT CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "")
 elseif (SQEE_MACOSX)
-    string(CONCAT CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS "")
+    string(CONCAT CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "")
 endif ()
 
 ################################################################################
