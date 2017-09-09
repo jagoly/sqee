@@ -209,6 +209,9 @@ find_package(SFML 2.4 COMPONENTS audio window system REQUIRED)
 include_directories(${SFML_INCLUDE_DIR})
 target_link_libraries(sqee ${SFML_LIBRARIES})
 
+find_package(OpenGL REQUIRED)
+target_link_libraries(sqee ${OPENGL_gl_LIBRARY})
+
 ################################################################################
 
 #find_package(ReactPhysics3D REQUIRED)
@@ -218,10 +221,10 @@ target_link_libraries(sqee ${SFML_LIBRARIES})
 
 ################################################################################
 
-find_library(OPENGL_LIB NAMES GL opengl32 PATHS /)
+#find_library(OPENGL_LIB NAMES GL opengl32 PATHS /)
 find_library(OPENAL_LIB NAMES openal openal32 PATHS /)
 
-target_link_libraries(sqee ${OPENGL_LIB} ${OPENAL_LIB})
+target_link_libraries(sqee ${OPENAL_LIB})
 
 ################################################################################
 
