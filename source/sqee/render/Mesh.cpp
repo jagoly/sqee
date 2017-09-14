@@ -28,8 +28,8 @@ void Mesh::draw_complete() const
 void Mesh::draw_partial(uint index) const
 {
     const auto& subMesh = mSubMeshVec[index];
-    const auto startLong = long(subMesh.firstIndex * 4u);
-    const auto start = reinterpret_cast<void*>(startLong);
+    const auto startInt = ptrdiff_t(subMesh.firstIndex * 4u);
+    const auto start = reinterpret_cast<void*>(startInt);
     const auto count = GLsizei(subMesh.indexCount);
 
     gl::DrawElements(gl::TRIANGLES, count, gl::UNSIGNED_INT, start);
@@ -248,8 +248,8 @@ void Mesh::impl_load_ascii(const string& path)
 
     //========================================================//
 
-    SQASSERT(vertexPtr == vertexData.end().base(), "vertex count mismatch");
-    SQASSERT(indexPtr == indexData.end().base(), "index count mismatch");
+    SQASSERT(vertexPtr == std::next(&vertexData.back()), "vertex count mismatch");
+    SQASSERT(indexPtr == std::next(&indexData.back()), "index count mismatch");
 
     impl_load_final(vertexData, indexData);
 }
@@ -278,9 +278,9 @@ void Mesh::impl_load_final(std::vector<uchar>& vertexData, std::vector<uint>& in
     {
         for (auto iter = vertexData.begin(); iter != vertexData.end(); iter += mVertexSize)
         {
-            impl_swap_attr_yz<GL_Float32>(iter.base(), 0u);
-            if (has_NORM()) impl_swap_attr_yz<GL_SNorm16>(iter.base(), offsetNORM);
-            if (has_TANG()) impl_swap_attr_yz<GL_SNorm16>(iter.base(), offsetTANG);
+            impl_swap_attr_yz<GL_Float32>(&*iter, 0u);
+            if (has_NORM()) impl_swap_attr_yz<GL_SNorm16>(&*iter, offsetNORM);
+            if (has_TANG()) impl_swap_attr_yz<GL_SNorm16>(&*iter, offsetTANG);
         }
 
         std::swap(mOrigin.y, mOrigin.z);

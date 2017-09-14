@@ -5,8 +5,8 @@
 
 //============================================================================//
 
-void sq::debug_callback(GLenum _source, GLenum _type, GLuint id, GLenum _severity,
-                        GLsizei, const GLchar* message, const void*)
+void MSVC_STDCALL sq::debug_callback(GLenum _source, GLenum _type, GLuint id, GLenum _severity,
+                                     GLsizei, const GLchar* message, const void*)
 {
     string source, type, severity;
 

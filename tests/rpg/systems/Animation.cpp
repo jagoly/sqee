@@ -38,8 +38,7 @@ void sqt::sys::system_blend_animations(WorldStuff& stuff, float tickBlend)
 
     //--------------------------------------------------------//
 
-    for ( auto& [id, meta, timeline, transform] :
-          dop::joined(metaTable, timelines.transform, tables.transform) )
+    for ( auto& [id, meta, timeline, transform] : dop::joined(metaTable, timelines.transform, tables.transform) )
     {
         const float factor = (tickBlend + float(meta.progress)) / float(meta.times[meta.index]);
 

@@ -1,3 +1,5 @@
+#ifndef SQEE_MSVC
+
 #include <sqee/assert.hpp>
 #include <sqee/misc/Algorithms.hpp>
 #include <sqee/app/MessageBus.hpp>
@@ -51,3 +53,5 @@ std::vector<ReceiverBase*>& MessageBus::impl_get_subscribers(std::type_index typ
     SQASSERT(iter != mSubscriberMap.end(), "message type not registered");
     return iter->second;
 }
+
+#endif

@@ -1,5 +1,11 @@
 #pragma once
 
+// fold expressions not supported on msvc
+// luckily the message bus is still not used,
+// so we can just not compile it at all
+
+#ifndef SQEE_MSVC
+
 #include <map>
 #include <typeindex>
 
@@ -175,3 +181,5 @@ Receiver<Messages...>::~Receiver() { mBus.unsubscribe_all(*this); }
 //============================================================================//
 
 } // namespace sq
+
+#endif // !SQEE_MSVC

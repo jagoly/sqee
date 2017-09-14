@@ -25,8 +25,8 @@ template <class T> struct Vector<2, T>
     constexpr explicit Vector(T s) : Vector(s, s) {}
 
     // Copy Constructors
-    constexpr Vector(const Vector2<T>& v) = default;
-    template<class U> explicit Vector(Vector2<U> v) : Vector(v.x, v.y) {}
+    constexpr Vector(const Vector<2, T>& v) = default;
+    template<class U> explicit Vector(Vector2<U> v) : Vector(T(v.x), T(v.y)) {}
 
     // Swizzle Constructors
     constexpr explicit Vector(Vector3<T> v) : Vector(v.x, v.y) {}
@@ -49,8 +49,8 @@ template <class T> struct Vector<3, T>
     constexpr explicit Vector(T s) : Vector(s, s, s) {}
 
     // Copy Constructors
-    constexpr Vector(const Vector3<T>& v) = default;
-    template<class U> explicit Vector(Vector3<U> v) : Vector(v.x, v.y, v.z) {}
+    constexpr Vector(const Vector<3, T>& v) = default;
+    template<class U> explicit Vector(Vector3<U> v) : Vector(T(v.x), T(v.y), T(v.z)) {}
 
     // Swizzle Constructors
     constexpr explicit Vector(Vector4<T> v) : Vector(v.x, v.y, v.z) {}
@@ -74,8 +74,8 @@ template <class T> struct Vector<4, T>
     constexpr explicit Vector(T s) : Vector(s, s, s, s) {}
 
     // Copy Constructors
-    constexpr Vector(const Vector4<T>& v) = default;
-    template<class U> explicit Vector(Vector4<U> v) : Vector(v.x, v.y, v.z, v.w) {}
+    constexpr Vector(const Vector<4, T>& v) = default;
+    template<class U> explicit Vector(Vector4<U> v) : Vector(T(v.x), T(v.y), T(v.z), T(v.w)) {}
 
     // Swizzle Constructors
     constexpr explicit Vector(Vector2<T> xy, T z, T w) : Vector(xy.x, xy.y, z, w) {}

@@ -4,6 +4,9 @@
 
 #include <sqee/setup.hpp>
 
+#undef min
+#undef max
+
 namespace sq::maths {
 
 //============================================================================//

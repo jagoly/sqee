@@ -196,7 +196,7 @@ template <class Type> inline
 uint Table<Type>::find(int32_t id) const
 {
     const auto iter = algo::find(mIds, id);
-    return std::distance(mIds.begin(), iter);
+    return uint(std::distance(mIds.begin(), iter));
 }
 
 //============================================================================//

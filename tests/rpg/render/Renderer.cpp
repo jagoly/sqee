@@ -1,4 +1,4 @@
-﻿#include <sqee/gl/Context.hpp>
+#include <sqee/gl/Context.hpp>
 #include <sqee/misc/StringCast.hpp>
 #include <sqee/debug/Misc.hpp>
 

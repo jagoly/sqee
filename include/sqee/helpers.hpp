@@ -10,7 +10,10 @@ namespace sq {
 template <class Type, class... Args>
 std::unique_ptr<Type> make_unique_aggregate(Args&&... args)
 {
+    // todo: not yet supported with clang + libstdc++
+    #ifndef SQEE_CLANG
     static_assert(std::is_aggregate_v<Type> == true);
+    #endif
 
     return std::unique_ptr<Type>(new Type{std::forward<Args>(args)...});
 }
@@ -37,7 +40,10 @@ template <class Element, class... Others> struct Structure<Element, Others...>
     Element element; Structure<Others...> others;
 };
 
+// MSVC doesn't support class template deduction yet
+#ifndef SQEE_MSVC
 template<class... Elements> Structure(const Elements&...) -> Structure<Elements...>;
+#endif
 
 /// @endcond
 

@@ -19,5 +19,5 @@ before_script:
   - sudo cp -r ChaiScript-develop/include /usr/
 
 script:
-  - CXX=/usr/bin/g++-7 CC=/usr/bin/gcc-7 cmake . -DSQEE_LINUX=True
+  - CXX=/usr/bin/g++-7 CC=/usr/bin/gcc-7 cmake .
   - cmake --build . --

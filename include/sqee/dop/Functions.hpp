@@ -9,11 +9,16 @@ namespace sq::dop {
 
 //============================================================================//
 
+#ifndef SQEE_MSVC
 template <class In, class Out>
 using transfer_const_type = std::conditional_t<std::is_const_v<In>, const Out, Out>;
+#else
+template <class In, class Out>
+using transfer_const_type = typename std::conditional<std::is_const<In>::value, const Out, Out>::type;
+#endif
 
-template <class Table>
-using table_data_type = transfer_const_type<Table, typename Table::data_type>;
+template <class Table_>
+using table_data_type = transfer_const_type<Table_, typename Table_::data_type>;
 
 template <class... Tables>
 using join_entry_type = std::tuple<int32_t, table_data_type<Tables>&...>;
@@ -83,10 +88,10 @@ Group reduce(const Group& a, const Group& b, const Group& c, const Group& d);
 
 //============================================================================//
 
-template <class Table> inline
-join_vector_type<Table> joined(Table& table)
+template <class Table_> inline
+join_vector_type<Table_> joined(Table_& table)
 {
-    join_vector_type<Table> result;
+    join_vector_type<Table_> result;
     result.reserve(table.size());
 
     if (table.empty()) return result;

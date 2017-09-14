@@ -1,4 +1,4 @@
-﻿#include <chaiscript/dispatchkit/bootstrap.hpp>
+#include <chaiscript/dispatchkit/bootstrap.hpp>
 #include <chaiscript/dispatchkit/bootstrap_stl.hpp>
 
 #include <sqee/misc/StringCast.hpp>

@@ -1,3 +1,5 @@
+#ifndef SQEE_MSVC
+
 #include "../catch.hpp"
 #include "../Common.hpp"
 
@@ -41,3 +43,5 @@ TEST_CASE("message bus / receiver tests", "[]")
     REQUIRE(object.intSum == 13);
     REQUIRE(object.stringSum == "hello, world!");
 }
+
+#endif // !SQEE_MSVC

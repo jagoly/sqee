@@ -45,7 +45,11 @@ public: //====================================================//
     template <class... Ts>
     void update_complete(const Ts&... args)
     {
-        update(0u, Structure{args...});
+        #ifndef SQEE_MSVC
+        update(0u, Structure(args...));
+        #else
+        update(0u, Structure<std::remove_reference_t<decltype(args)>...>{args...});
+        #endif
     }
 
     //--------------------------------------------------------//

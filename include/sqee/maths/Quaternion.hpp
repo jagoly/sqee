@@ -39,9 +39,9 @@ template <class T> struct Quaternion
     inline explicit Quaternion(const Matrix33<T>& m)
     {
         T biggest = m[0][0] + m[1][1] + m[2][2]; int index = 0;
-        if (T x = m[0][0] - m[1][1] - m[2][2] > biggest) { biggest = x; index = 1; }
-        if (T y = m[1][1] - m[0][0] - m[2][2] > biggest) { biggest = y; index = 2; }
-        if (T z = m[2][2] - m[0][0] - m[1][1] > biggest) { biggest = z; index = 3; }
+        if (T x = m[0][0] - m[1][1] - m[2][2] > biggest) { biggest = x; index = 1; } // fixme
+        if (T y = m[1][1] - m[0][0] - m[2][2] > biggest) { biggest = y; index = 2; } // fixme
+        if (T z = m[2][2] - m[0][0] - m[1][1] > biggest) { biggest = z; index = 3; } // fixme
         biggest = std::sqrt(biggest + T(1.0)) * T(0.5);
 
         T valueA = (T(0.25) / biggest) * (m[0][1] - m[1][0]);

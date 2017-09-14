@@ -1,8 +1,10 @@
 #pragma once
 
+#include <sqee/export.hpp>
+
 #ifdef SQEE_DEBUG
 
-extern bool sqeeDebugToggle1;
-extern bool sqeeDebugToggle2;
+SQEE_API extern bool sqeeDebugToggle1;
+SQEE_API extern bool sqeeDebugToggle2;
 
 #endif

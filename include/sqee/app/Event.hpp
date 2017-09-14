@@ -35,7 +35,7 @@ struct Event final
     };
 
     Type type = Type::Unknown;
-    Data data = {};
+    Data data;
 };
 
 static_assert(sizeof(Event) == 16, "");

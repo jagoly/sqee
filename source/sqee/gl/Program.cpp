@@ -27,7 +27,7 @@ void impl_load_shader(GLuint& shader, GLenum stage, const string& source, const 
     if (length > 0)
     {
         string logStr(log); logStr.erase(logStr.rfind('\n'));
-        log_error("Failed to compile shader from \"%s\"\n%s", path, logStr);
+        log_warning("Problem compiling shader from \"%s\"\n%s", path, logStr);
     }
 }
 

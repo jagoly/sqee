@@ -95,7 +95,7 @@ string PreProcessor::process(const string& path, const string& prelude) const
                 lines.insert(std::next(it), header.begin(), header.end());
 
                 it = lines.erase(std::prev(it));
-                tokenNum += header.size();
+                tokenNum += uint(header.size());
             }
 
             else source += *it + '\n';
