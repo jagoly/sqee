@@ -43,23 +43,31 @@ add_definitions(-DRP3D_ENABLE_SWITCH_YZ)
 
 ################################################################################
 
-string(CONCAT CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " -std=c++17")
+if (CMAKE_COMPILER_IS_GNUCXX)
 
-################################################################################
+    string(CONCAT CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " -std=c++17")
 
-string(CONCAT CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " -Wall -Wextra")
-string(CONCAT CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " -Wno-unused-parameter -Wno-strict-aliasing")
-string(CONCAT CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " -Wno-comment -Wno-misleading-indentation")
+    string(CONCAT CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " -Wall -Wextra")
+    string(CONCAT CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " -Wno-unused-parameter -Wno-strict-aliasing")
+    string(CONCAT CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " -Wno-comment -Wno-misleading-indentation")
 
-if (SQEE_LINUX)
-    string(CONCAT CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "")
-elseif (SQEE_WINDOWS)
-    string(CONCAT CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " -mwindows -Wa,-mbig-obj")
-elseif (SQEE_ANDROID)
-    string(CONCAT CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "")
-elseif (SQEE_MACOSX)
-    string(CONCAT CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "")
+elseif (MSVC)
+
+    string(CONCAT CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " /std:c++latest /experimental")
+
+    string(CONCAT CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " /W4")
+
 endif ()
+
+#if (SQEE_LINUX)
+#    string(CONCAT CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "")
+#elseif (SQEE_WINDOWS)
+#    string(CONCAT CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " -mwindows -Wa,-mbig-obj")
+#elseif (SQEE_ANDROID)
+#    string(CONCAT CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "")
+#elseif (SQEE_MACOSX)
+#    string(CONCAT CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "")
+#endif ()
 
 ################################################################################
 
@@ -209,6 +217,9 @@ find_package(SFML 2.4 COMPONENTS audio window system REQUIRED)
 include_directories(${SFML_INCLUDE_DIR})
 target_link_libraries(sqee ${SFML_LIBRARIES})
 
+find_package(OpenGL REQUIRED)
+target_link_libraries(sqee ${OPENGL_gl_LIBRARY})
+
 ################################################################################
 
 #find_package(ReactPhysics3D REQUIRED)
@@ -218,10 +229,10 @@ target_link_libraries(sqee ${SFML_LIBRARIES})
 
 ################################################################################
 
-find_library(OPENGL_LIB NAMES GL opengl32 PATHS /)
+#find_library(OPENGL_LIB NAMES GL opengl32 PATHS /)
 find_library(OPENAL_LIB NAMES openal openal32 PATHS /)
 
-target_link_libraries(sqee ${OPENGL_LIB} ${OPENAL_LIB})
+target_link_libraries(sqee ${OPENAL_LIB})
 
 ################################################################################
 
