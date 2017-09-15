@@ -48,7 +48,7 @@ public: //====================================================//
         #ifndef SQEE_MSVC
         update(0u, Structure(args...));
         #else
-        update(0u, Structure<std::remove_reference_t<decltype(args)>...>{args...});
+        update(0u, Structure<std::remove_reference_t<Ts>...>{args...});
         #endif
     }
 

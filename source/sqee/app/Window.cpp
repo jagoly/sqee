@@ -5,7 +5,9 @@
 #include <SFML/Window/Joystick.hpp>
 
 #include <sqee/redist/gl_loader.hpp>
+
 #include <sqee/assert.hpp>
+#include <sqee/macros.hpp>
 
 #include <sqee/debug/Logging.hpp>
 #include <sqee/debug/OpenGL.hpp>
@@ -212,7 +214,10 @@ Window::Window(string title, Vec2U size)
 
     impl->sfmlWindow.create(mode, title, style, settings);
 
-    gl::sys::LoadFunctions();
+    //--------------------------------------------------------//
+
+    const int numMissing = gl::sys::LoadFunctions().GetNumMissing();
+    if (numMissing) sq::log_warning("gl functions missing: %d", numMissing);
 
     //--------------------------------------------------------//
 
@@ -318,10 +323,13 @@ std::vector<Event> Window::fetch_events()
     {
         Event event { conv_sfml_event_type[sfe.type], {} };
 
-        if (event.type == Type::Unknown)
-            continue;
+        SWITCH ( event.type ) {
 
-        else if (event.type == Type::Window_Resize)
+        CASE ( Unknown ) continue; // don't do push_back()
+
+        CASE ( Window_Close, Window_Focus, Window_Unfocus ); // no extra data
+
+        CASE ( Window_Resize )
         {
             event.data.window_resize =
             {
@@ -329,7 +337,7 @@ std::vector<Event> Window::fetch_events()
             };
         }
 
-        else if (event.type == Type::Keyboard_Press || event.type == Type::Keyboard_Release)
+        CASE ( Keyboard_Press, Keyboard_Release )
         {
             event.data.keyboard =
             {
@@ -338,7 +346,7 @@ std::vector<Event> Window::fetch_events()
             };
         }
 
-        else if (event.type == Type::Mouse_Press || event.type == Type::Mouse_Release)
+        CASE ( Mouse_Press, Mouse_Release )
         {
             event.data.mouse =
             {
@@ -347,7 +355,7 @@ std::vector<Event> Window::fetch_events()
             };
         }
 
-        else if (event.type == Type::Gamepad_Press || event.type == Type::Gamepad_Release)
+        CASE ( Gamepad_Press, Gamepad_Release )
         {
             event.data.gamepad =
             {
@@ -356,13 +364,15 @@ std::vector<Event> Window::fetch_events()
             };
         }
 
-        else if (event.type == Event::Type::Text_Entry)
+        CASE ( Text_Entry )
         {
             event.data.text_entry =
             {
                 sfe.text.unicode
             };
         }
+
+        } SWITCH_END;
 
         result.push_back(event);
     }
