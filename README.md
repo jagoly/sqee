@@ -1,7 +1,7 @@
 # SQEE Readme
 
-Travis CI: [![Build Status](https://travis-ci.org/jagoly/sqee.svg?branch=master)](https://travis-ci.org/jagoly/sqee)
-AppVeyor:
+Travis: [![Build Status](https://travis-ci.org/jagoly/sqee.svg?branch=master)](https://travis-ci.org/jagoly/sqee)
+AppVeyor: [![Build Status](https://ci.appveyor.com/api/projects/status/r4ty4yf7g1g66cwt?svg=true)(https://ci.appveyor.com/project/jagoly/sqee)
 
 ##### About LibSQEE
 LibSQEE is library containing all sorts of useful stuff for 3D applications, particularly games. Features include C++ wrappers for various OpenGL components, a simple text rendering system, some nice classes for Windows and Scenes, a scripting console, loaders for custom model, material and animation formats, a generic resource manager, sound system, simple event handling system, physics bodies and more. LibSQEE intergrates a few third party libraries, namely:
