@@ -1,20 +1,29 @@
 image:
-- Visual Studio 2017
+  - Visual Studio 2017
+
 
 before_build:
-- mkdir deps
-- cd deps
-- curl -fsSL -o sfml.zip https://www.sfml-dev.org/files/SFML-2.4.2-windows-vc14-64-bit.zip
-- curl -fsSL -o chaiscript.zip https://github.com/ChaiScript/ChaiScript/archive/develop.zip
-- 7z x sfml.zip
-- 7z x chaiscript.zip
-- rename SFML-2.4.2 sfml
-- rename Chaiscript-develop chai
-- cd ..
+
+  - mkdir extlibs
+  - cd extlibs
+
+  - curl -fsSL -o sfml.zip https://www.sfml-dev.org/files/SFML-2.4.2-windows-vc14-64-bit.zip
+  - 7z x sfml.zip
+  - rename SFML-2.4.2 sfml
+
+  - curl -fsSL -o chaiscript.zip https://github.com/ChaiScript/ChaiScript/archive/develop.zip
+  - 7z x chaiscript.zip
+  - rename Chaiscript-develop chai
+
+  - cd ..
+
 
 build_script:
-- mkdir build
-- cd build
-- xcopy /E c:\projects\sqee\deps\chai\include\chaiscript c:\projects\sqee\include\chaiscript\
-- cmake c:/projects/sqee -DSQEE_WINDOWS=True -DOPENAL_LIB=c:/projects/sqee/deps/sfml/lib/openal32.lib -DCMAKE_MODULE_PATH=c:/projects/sqee/deps/sfml/cmake/Modules -DSFML_ROOT=c:/projects/sqee/deps/sfml
-- cmake --build .
+
+  - mkdir build
+  - cd build
+
+  - xcopy /E c:\projects\sqee\extlibs\chai\include\chaiscript c:\projects\sqee\include\chaiscript\
+
+  - cmake c:/projects/sqee -DSFML_ROOT=c:/projects/sqee/extlibs/sfml -G "Visual Studio 15 2017 Win64"
+  - cmake --build . --target sqee_testing
