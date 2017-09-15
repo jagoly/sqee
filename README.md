@@ -1,7 +1,7 @@
 # SQEE Readme
 
-Travis: [![Build Status](https://travis-ci.org/jagoly/sqee.svg?branch=master)](https://travis-ci.org/jagoly/sqee)
-AppVeyor: [![Build Status](https://ci.appveyor.com/api/projects/status/r4ty4yf7g1g66cwt?svg=true)(https://ci.appveyor.com/project/jagoly/sqee)
+[![Travis Status](https://travis-ci.org/jagoly/sqee.svg?branch=master)](https://travis-ci.org/jagoly/sqee)
+[![AppVeyor Status](https://ci.appveyor.com/api/projects/status/r4ty4yf7g1g66cwt?svg=true)](https://ci.appveyor.com/project/jagoly/sqee)
 
 ##### About LibSQEE
 LibSQEE is library containing all sorts of useful stuff for 3D applications, particularly games. Features include C++ wrappers for various OpenGL components, a simple text rendering system, some nice classes for Windows and Scenes, a scripting console, loaders for custom model, material and animation formats, a generic resource manager, sound system, simple event handling system, physics bodies and more. LibSQEE intergrates a few third party libraries, namely:
@@ -32,7 +32,6 @@ A C++ 17 capable compiler is required. This means GCC 7.x or clang 4.x. You also
 
 
 ##### SQEE CMake options:
- * `SQEE_[OS]` - Specify the target to build for. Rather than trying to automatically detect it, you must specify one option manually: `LINUX`, `WINDOWS`, `ANDROID` or `MACOSX`. All default to `False`.
  * `SQEE_STATIC_LINK` - Link with static versions of dependencies, if available. Otherwise, use shared versions. Defaults to `False`.
  * `SQEE_STATIC_LIB` - Build LibSQEE as a static library. Otherwise, build as shared. Defaults to `False`.
 
