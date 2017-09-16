@@ -310,10 +310,6 @@ bool Window::get_key_repeat() const
 
 std::vector<Event> Window::fetch_events()
 {
-    using Type = Event::Type;
-
-    //--------------------------------------------------------//
-
     std::vector<Event> result;
     sf::Event sfe;
 

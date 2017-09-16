@@ -7,6 +7,7 @@
 #include <vector>
 
 using std::string;
+using std::string_view;
 using std::unique_ptr;
 
 #include <sqee/setup.hpp>

@@ -1,53 +1,38 @@
 #include <fstream>
 #include <sstream>
 
-#if defined SQEE_LINUX
-#include <dirent.h>
-#elif defined SQEE_WINDOWS
-#include <windows.h>
-#endif
+#include <sqee/assert.hpp>
 
 #include <sqee/debug/Logging.hpp>
 #include <sqee/misc/Files.hpp>
 
 using namespace sq;
 
+//============================================================================//
 
 bool sq::check_file_exists(const string& path)
 {
     return std::ifstream(path).good();
 }
 
-
-char sq::get_file_first_char(const string& path)
-{
-    std::ifstream src(path);
-
-    if (src.is_open() == false)
-    {
-        log_warning("Couldn't open file '%s'", path);
-        return char(-1);
-    }
-
-    return char(src.get());
-}
-
+//============================================================================//
 
 string sq::get_string_from_file(const string& path)
 {
-    std::ifstream src(path);
-
-    if (src.is_open() == false)
+    if (std::ifstream src(path); src.is_open())
     {
-        log_warning("Couldn't open file '%s'", path);
-        return string();
+        std::stringstream stream;
+        stream << src.rdbuf();
+
+        return stream.str();
     }
 
-    std::stringstream sstr;
-    sstr << src.rdbuf();
-    return sstr.str();
+    log_warning("Couldn't open file %s", path);
+
+    return {};
 }
 
+//============================================================================//
 
 std::vector<uchar> sq::get_bytes_from_file(const string& path)
 {
@@ -72,70 +57,102 @@ std::vector<uchar> sq::get_bytes_from_file(const string& path)
     return result;
 }
 
+//============================================================================//
 
-std::vector<string> sq::tokenise_string(const string& _str, char _dlm) {
-    std::stringstream sstr(_str);
-    std::vector<string> retVec; string item;
-    while (std::getline(sstr, item, _dlm))
+std::vector<string> sq::tokenise_string(const string& str, char dlm)
+{
+    std::vector<string> result;
+
+    std::stringstream stream ( str );
+    string item;
+
+    while (std::getline(stream, item, dlm))
         if (item.empty() == false)
-            retVec.emplace_back(item);
-    return retVec;
+            result.emplace_back(item);
+
+    return result;
 }
 
+//============================================================================//
 
-std::vector<std::pair<std::vector<string>, uint>> sq::tokenise_file(const string& _path) {
-    std::ifstream src(_path);
-    if (src.is_open() == false) {
-        log_warning("Couldn't open file %s", _path);
-        return {};
+TokenisedFile sq::tokenise_file(const string& path)
+{
+    TokenisedFile result;
+
+    if (std::ifstream src(path); src.is_open())
+    {
+        std::stringstream stream;
+        stream << src.rdbuf();
+        result.fullString = stream.str();
+    }
+    else { log_warning("Couldn't open file %s", path); return result; }
+
+    const string& str = result.fullString;
+
+    size_t tokenStart = 0u;
+    size_t nextLine = str.find('\n');
+    size_t nextSpace = str.find(' ');
+
+    result.lines.push_back({ {}, 1u });
+
+    while (nextLine != string::npos || nextSpace != string::npos)
+    {
+        if (nextSpace < nextLine)
+        {
+            if (size_t tokenLen = nextSpace - tokenStart; tokenLen != 0u)
+            {
+                const char* startPtr = str.data() + tokenStart;
+                result.lines.back().tokens.emplace_back(startPtr, tokenLen);
+            }
+
+            tokenStart = ++nextSpace;
+            nextSpace = str.find(' ', nextSpace);
+        }
+        else if (nextLine < nextSpace)
+        {
+            if (size_t tokenLen = nextLine - tokenStart; tokenLen != 0u)
+            {
+                const char* startPtr = str.data() + tokenStart;
+                result.lines.back().tokens.emplace_back(startPtr, tokenLen);
+            }
+
+            tokenStart = ++nextLine;
+            nextLine = str.find('\n', nextLine);
+
+            if (result.lines.back().tokens.empty() == false)
+            {
+                size_t prevLineNum = result.lines.back().num;
+                result.lines.emplace_back();
+                result.lines.back().num = prevLineNum;
+            }
+
+            ++result.lines.back().num;
+        }
+        else SQASSERT(false, "");
     }
 
-    uint lineNum = 1u;
-    std::stringstream sstr; sstr << src.rdbuf();
-    std::vector<std::pair<std::vector<string>, uint>> retVec;
-    for (string& line : tokenise_string(sstr.str(), '\n')) {
-        std::vector<string> tokens = tokenise_string(line, ' ');
-        if (!tokens.empty()) retVec.emplace_back(tokens, lineNum);
-        lineNum += 1u;
-    } return retVec;
-}
-
-
-std::vector<string> sq::get_files_from_dir(const string& _path) {
-    std::vector<string> retVec;
-
-    #if defined SQEE_LINUX
-    DIR* dir; struct dirent *ent;
-    if ((dir = opendir(_path.c_str())) != NULL) {
-        while ((ent = readdir(dir)) != NULL)
-            if (ent->d_type == DT_REG)
-                retVec.emplace_back(ent->d_name);
-        closedir(dir);
+    if (size_t tokenLen = str.length() - tokenStart; tokenLen != 0u)
+    {
+        const char* startPtr = str.data() + tokenStart;
+        result.lines.back().tokens.emplace_back(startPtr, tokenLen);
     }
-    #elif defined SQEE_WINDOWS
-    WIN32_FIND_DATA findData;
-    string pattern = _path + "/*";
-    HANDLE hFind = FindFirstFile(pattern.c_str(), &findData);
-    if (hFind != INVALID_HANDLE_VALUE) {
-        do if (!(findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
-            retVec.push_back(findData.cFileName);
-        while (FindNextFile(hFind, &findData));
-        FindClose(hFind);
-    }
-    #endif
 
-    else log_warning("Couldn't open directory %s", _path);
-    return retVec;
+    if (result.lines.back().tokens.empty())
+        result.lines.pop_back();
+
+    return result;
 }
 
+//============================================================================//
 
-string sq::file_name_from_path(const string& _path) {
-    auto iter = std::find(_path.rbegin(), _path.rend(), '/');
-    return string(iter.base(), _path.end());
+string sq::file_name_from_path(const string& path)
+{
+    auto iter = std::find(path.rbegin(), path.rend(), '/');
+    return string(iter.base(), path.end());
 }
 
-
-string sq::directory_from_path(const string& _path) {
-    auto iter = std::find(_path.rbegin(), _path.rend(), '/');
-    return string(_path.begin(), iter.base());
+string sq::directory_from_path(const string& path)
+{
+    auto iter = std::find(path.rbegin(), path.rend(), '/');
+    return string(path.begin(), iter.base());
 }

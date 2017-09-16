@@ -135,6 +135,24 @@ struct Impl_Load_Image : NonCopyable
 
     Impl_Load_Image(Texture::Format format, const string& path)
     {
+//        // prepend assets directory to the path
+//        if (path.is_relative()) path = "assets" / path;
+
+//        // automatically add png or jpg file extension
+//        if (path.has_extension() == false)
+//        {
+//            const fs::path pathPNG = path.string() + ".png";
+//            const fs::path pathJPG = path.string() + ".jpg";
+
+//            const bool existsPNG = fs::exists(pathPNG);
+//            const bool existsJPG = fs::exists(pathJPG);
+
+//            if (existsPNG && existsJPG) log_warning("ambiguous image path '%s'", path);
+//            else if (existsPNG) path = pathPNG; else if (existsJPG) path = pathJPG;
+//        }
+
+//        log_assert(fs::exists(path), "file does not exist: %s", fs::absolute(path));
+
         string fullPath = "assets/" + path;
         if (check_file_exists(fullPath+".png")) fullPath += ".png";
         else if (check_file_exists(fullPath+".jpg")) fullPath += ".jpg";

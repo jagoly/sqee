@@ -4,6 +4,7 @@
 #include <sqee/debug/Logging.hpp>
 
 #include <sqee/misc/Files.hpp>
+#include <sqee/misc/Parsing.hpp>
 
 #include <sqee/render/Mesh.hpp>
 
@@ -44,30 +45,30 @@ using GL_SNorm16 = GLshort;
 using GL_UNorm8 = GLubyte;
 using GL_SInt8 = GLbyte;
 
-inline void impl_ascii_append_Float32(uchar*& ptr, const string& str)
+inline void impl_ascii_append_Float32(uchar*& ptr, string_view sv)
 {
-    const auto value = GL_Float32(stof(str));
+    const auto value = GL_Float32(sv_to_f(sv));
     reinterpret_cast<GL_Float32&>(*ptr) = value;
     std::advance(ptr, sizeof(GL_Float32));
 }
 
-inline void impl_ascii_append_SNorm16(uchar*& ptr, const string& str)
+inline void impl_ascii_append_SNorm16(uchar*& ptr, string_view sv)
 {
-    const auto value = GL_SNorm16(stof(str) * 32767.f);
+    const auto value = GL_SNorm16(sv_to_f(sv) * 32767.f);
     reinterpret_cast<GL_SNorm16&>(*ptr) = value;
     std::advance(ptr, sizeof(GL_SNorm16));
 }
 
-inline void impl_ascii_append_UNorm8(uchar*& ptr, const string& str)
+inline void impl_ascii_append_UNorm8(uchar*& ptr, string_view sv)
 {
-    const auto value = GL_UNorm8(stof(str) * 255.f);
+    const auto value = GL_UNorm8(sv_to_f(sv) * 255.f);
     reinterpret_cast<GL_UNorm8&>(*ptr) = value;
     std::advance(ptr, sizeof(GL_UNorm8));
 }
 
-inline void impl_ascii_append_SInt8(uchar*& ptr, const string& str)
+inline void impl_ascii_append_SInt8(uchar*& ptr, string_view sv)
 {
-    const auto value = GL_SInt8(stoi(str));
+    const auto value = GL_SInt8(sv_to_i(sv));
     reinterpret_cast<GL_SInt8&>(*ptr) = value;
     std::advance(ptr, sizeof(GL_SInt8));
 }
@@ -99,9 +100,9 @@ void Mesh::impl_load_ascii(const string& path)
 
     //========================================================//
 
-    for (const auto& [line, num] : tokenise_file(path))
+    for (const auto& [line, num] : tokenise_file(path).lines)
     {
-        const string& key = line.front();
+        const auto& key = line.front();
 
         //--------------------------------------------------------//
 
@@ -134,17 +135,17 @@ void Mesh::impl_load_ascii(const string& path)
                 }
             }
 
-            else if (key == "Origin") mOrigin = { stof(line[1]), stof(line[2]), stof(line[3]) };
-            else if (key == "Extents") mExtents = { stof(line[1]), stof(line[2]), stof(line[3]) };
-            else if (key == "Radius") mRadius = stof(line[1]);
+            else if (key == "Origin") sq::parse_tokens ( mOrigin, line[1], line[2], line[3] );
+            else if (key == "Extents") sq::parse_tokens ( mExtents, line[1], line[2], line[3] );
+            else if (key == "Radius") sq::parse_tokens ( mRadius, line[1] );
 
             else if (key == "SubMesh")
             {
                 const uint firstVertex = mVertexTotal;
                 const uint firstIndex = mIndexTotal;
 
-                const uint vertexCount = stou(line[1]);
-                const uint indexCount = stou(line[2]);
+                const uint vertexCount = sv_to_u(line[1]);
+                const uint indexCount = sv_to_u(line[2]);
 
                 mSubMeshVec.push_back({firstVertex, vertexCount, firstIndex, indexCount});
 
@@ -236,9 +237,9 @@ void Mesh::impl_load_ascii(const string& path)
                 allocatedIndices = true;
             }
 
-            *(indexPtr++) = stou(line[0]);
-            *(indexPtr++) = stou(line[1]);
-            *(indexPtr++) = stou(line[2]);
+            *(indexPtr++) = sv_to_u(line[0]);
+            *(indexPtr++) = sv_to_u(line[1]);
+            *(indexPtr++) = sv_to_u(line[2]);
         }
 
         //--------------------------------------------------------//

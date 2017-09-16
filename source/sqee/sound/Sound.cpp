@@ -27,6 +27,24 @@ void Listener::set_rotation(QuatF rotation)
 
 SoundWave::SoundWave(const string& path)
 {
+//    // prepend assets directory to the path
+//    if (path.is_relative()) path = "assets/sounds" / path;
+
+//    // automatically add flac or ogg file extension
+//    if (path.has_extension() == false)
+//    {
+//        const fs::path pathFLAC = path.string() + ".flac";
+//        const fs::path pathOGG = path.string() + ".ogg";
+
+//        const bool existsFLAC = fs::exists(pathFLAC);
+//        const bool existsOGG = fs::exists(pathOGG);
+
+//        if (existsFLAC && existsOGG) log_warning("ambiguous sound path '%s'", path);
+//        else if (existsFLAC) path = pathFLAC; else if (existsOGG) path = pathOGG;
+//    }
+
+//    log_assert(fs::exists(path), "file does not exist: %s", fs::absolute(path));
+
     string fullPath = "assets/sounds/" + path;
     if (check_file_exists(fullPath + ".flac")) fullPath += ".flac";
     else if (check_file_exists(fullPath + ".ogg")) fullPath += ".ogg";

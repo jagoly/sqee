@@ -7,6 +7,7 @@
 
 #include <sqee/misc/Algorithms.hpp>
 #include <sqee/misc/Files.hpp>
+#include <sqee/misc/Parsing.hpp>
 
 #include <sqee/render/Armature.hpp>
 
@@ -37,15 +38,15 @@ void Armature::load_bones(const string& path, bool swapYZ)
 
     //--------------------------------------------------------//
 
-    for (auto& linePair : sq::tokenise_file(path))
+    for (auto& [line, num] : sq::tokenise_file(path).lines)
     {
-        SQASSERT(linePair.first.size() <= 2u, "");
+        SQASSERT(line.size() <= 2u, "");
 
-        mBoneNames.push_back(linePair.first[0]);
+        mBoneNames.push_back(string(line[0]));
 
-        if (linePair.first.size() == 2u)
+        if (line.size() == 2u)
         {
-            const auto iter = algo::find(mBoneNames, linePair.first[1]);
+            const auto iter = algo::find(mBoneNames, line[1]);
             SQASSERT(iter != mBoneNames.end(), "invalid parent bone name");
             mBoneParents.push_back(int(std::distance(mBoneNames.begin(), iter)));
         }
@@ -84,28 +85,28 @@ Armature::Pose Armature::make_pose(const string& path) const
 {
     const uint boneCount = uint(mBoneNames.size());
 
-    const auto lines = sq::tokenise_file(path);
-    SQASSERT(boneCount == lines.size(), "bone count mismatch");
+    const auto tokenFile = sq::tokenise_file(path);
+    SQASSERT(boneCount == tokenFile.lines.size(), "bone count mismatch");
 
     Armature::Pose result;
     result.reserve(boneCount);
 
-    for (const auto& [line, num] : lines)
+    for (const auto& [line, num] : tokenFile.lines)
     {
         Bone& bone = result.emplace_back();
 
         // todo: remove support for old pose format
         if (line.size() == 10)
         {
-            bone.offset = { stof(line[0]), stof(line[1]), stof(line[2]) };
-            bone.rotation = { stof(line[3]), stof(line[4]), stof(line[5]), stof(line[6]) };
-            bone.scale = { stof(line[7]) };
+            sq::parse_tokens(bone.offset, line[0], line[1], line[2]);
+            sq::parse_tokens(bone.rotation, line[3], line[4], line[5], line[6]);
+            sq::parse_tokens(bone.scale, line[7]);
         }
         else if (line.size() == 8)
         {
-            bone.offset = { stof(line[0]), stof(line[1]), stof(line[2]) };
-            bone.scale = { stof(line[3]) };
-            bone.rotation = { stof(line[4]), stof(line[5]), stof(line[6]), stof(line[7]) };
+            sq::parse_tokens(bone.offset, line[0], line[1], line[2]);
+            sq::parse_tokens(bone.scale, line[3]);
+            sq::parse_tokens(bone.rotation, line[4], line[5], line[6], line[7]);
         }
         else log_error("invalid bone on line %d of pose '%s'", num, path);
     }
@@ -128,7 +129,7 @@ Armature::Animation Armature::make_animation(const string& path) const
 
     //--------------------------------------------------------//
 
-    for (const auto& [line, num] : tokenise_file(path))
+    for (const auto& [line, num] : tokenise_file(path).lines)
     {
         const auto& key = line.front();
 
@@ -150,12 +151,12 @@ Armature::Animation Armature::make_animation(const string& path) const
 
         else if (section == Section::Header)
         {
-            if      (key == "BoneCount") result.boneCount = stou(line[1]);
-            else if (key == "TotalTime") result.totalTime = stou(line[1]);
+            if      (key == "BoneCount") result.boneCount = sv_to_u(line[1]);
+            else if (key == "TotalTime") result.totalTime = sv_to_u(line[1]);
 
             else if (key == "PoseCount")
             {
-                result.poseCount = stou(line[1]);
+                result.poseCount = sv_to_u(line[1]);
                 result.times.reserve(result.poseCount);
                 result.poses.reserve(result.poseCount);
             }
@@ -164,7 +165,7 @@ Armature::Animation Armature::make_animation(const string& path) const
             {
                 for (uint i = 1u; i < line.size(); ++i)
                 {
-                    result.times.push_back(stou(line[i]));
+                    result.times.push_back(sv_to_u(line[i]));
 
                     if (result.times.back() == 0u && i != line.size() - 1u)
                         log_error("zero time for not last pose in animation '%s'", path);
@@ -190,15 +191,15 @@ Armature::Animation Armature::make_animation(const string& path) const
 
             if (line.size() == 10)
             {
-                bone.offset = { stof(line[0]), stof(line[1]), stof(line[2]) };
-                bone.rotation = { stof(line[3]), stof(line[4]), stof(line[5]), stof(line[6]) };
-                bone.scale = { stof(line[7]) };
+                sq::parse_tokens(bone.offset, line[0], line[1], line[2]);
+                sq::parse_tokens(bone.rotation, line[3], line[4], line[5], line[6]);
+                sq::parse_tokens(bone.scale, line[7]);
             }
             else if (line.size() == 8)
             {
-                bone.offset = { stof(line[0]), stof(line[1]), stof(line[2]) };
-                bone.scale = { stof(line[3]) };
-                bone.rotation = { stof(line[4]), stof(line[5]), stof(line[6]), stof(line[7]) };
+                sq::parse_tokens(bone.offset, line[0], line[1], line[2]);
+                sq::parse_tokens(bone.scale, line[3]);
+                sq::parse_tokens(bone.rotation, line[4], line[5], line[6], line[7]);
             }
             else log_error("invalid bone on line %d of animation '%s'", num, path);
         }
