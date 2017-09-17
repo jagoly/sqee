@@ -16,6 +16,18 @@ set(SOURCES
   "include/sqee/redist/nl_json.hpp"
   "include/sqee/redist/tinyformat.hpp"
 
+  "include/sqee/redist/imgui/imconfig.hpp"
+  "include/sqee/redist/imgui/imgui.hpp"
+  "include/sqee/redist/imgui/imgui_internal.hpp"
+
+  "include/sqee/redist/imgui/stb_rect_pack.hpp"
+  "include/sqee/redist/imgui/stb_textedit.hpp"
+  "include/sqee/redist/imgui/stb_truetype.hpp"
+
+  "source/sqee/redist/imgui/imgui.cpp"
+  "source/sqee/redist/imgui/imgui_demo.cpp"
+  "source/sqee/redist/imgui/imgui_draw.cpp"
+
 
   #==========================================================#
   # SQEE Source                                              #
@@ -34,6 +46,7 @@ set(SOURCES
   "include/sqee/app/ChaiConsole.hpp"   "source/sqee/app/ChaiConsole.cpp"
   "include/sqee/app/ChaiEngine.hpp"    "source/sqee/app/ChaiEngine.cpp"
   "include/sqee/app/DebugOverlay.hpp"  "source/sqee/app/DebugOverlay.cpp"
+  "include/sqee/app/GuiSystem.hpp"     "source/sqee/app/GuiSystem.cpp"
   "include/sqee/app/InputDevices.hpp"  "source/sqee/app/InputDevices.cpp"
   "include/sqee/app/MessageBus.hpp"    "source/sqee/app/MessageBus.cpp"
   "include/sqee/app/PreProcessor.hpp"  "source/sqee/app/PreProcessor.cpp"
@@ -115,6 +128,8 @@ set(SOURCES
   #==========================================================#
 
   "source/sqee/data/ShaderHeaders.cpp"
+
+  "source/sqee/data/UbuntuMinimal.cpp"
 
   "source/sqee/data/TextFont.c"
   "source/sqee/data/TextGlow.c"
