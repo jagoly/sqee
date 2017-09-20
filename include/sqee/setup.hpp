@@ -26,10 +26,12 @@ typedef char          GLchar;
 /// @cond ignore
 namespace chaiscript {}
 namespace reactphysics3d {}
+namespace ImGui {}
 /// @endcond
 
 namespace chai = chaiscript;
 namespace rp3d = reactphysics3d;
+namespace imgui = ImGui;
 
 //============================================================================//
 

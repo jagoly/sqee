@@ -29,7 +29,7 @@ static constexpr Event::Type conv_sfml_event_type[]
     Event::Type::Keyboard_Press,    // KeyPressed
     Event::Type::Keyboard_Release,  // KeyReleased
     Event::Type::Unknown,           // MouseWheelMoved
-    Event::Type::Unknown,           // MouseWheelScrolled
+    Event::Type::Mouse_Scroll,      // MouseWheelScrolled
     Event::Type::Mouse_Press,       // Mouse_ButtonPressed
     Event::Type::Mouse_Release,     // Mouse_ButtonReleased
     Event::Type::Unknown,           // MouseMoved
@@ -327,10 +327,7 @@ std::vector<Event> Window::fetch_events()
 
         CASE ( Window_Resize )
         {
-            event.data.window_resize =
-            {
-                { sfe.size.width, sfe.size.height }
-            };
+            event.data.resize = { { sfe.size.width, sfe.size.height } };
         }
 
         CASE ( Keyboard_Press, Keyboard_Release )
@@ -360,12 +357,17 @@ std::vector<Event> Window::fetch_events()
             };
         }
 
+        CASE ( Mouse_Scroll )
+        {
+            if (sfe.mouseWheelScroll.wheel != sf::Mouse::Wheel::VerticalWheel)
+                continue; // ignore horizontal scrolling for now
+
+            event.data.scroll = { sfe.mouseWheelScroll.delta };
+        }
+
         CASE ( Text_Entry )
         {
-            event.data.text_entry =
-            {
-                sfe.text.unicode
-            };
+            event.data.text = { sfe.text.unicode };
         }
 
         } SWITCH_END;

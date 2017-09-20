@@ -54,7 +54,7 @@ void ChaiConsole::handle_event(Event event)
 
     if (event.type == Type::Text_Entry)
     {
-        const uint code = event.data.text_entry.unicode;
+        const uint32_t code = event.data.text.unicode;
 
         if (code < 128u && std::isprint(char(code)))
         {

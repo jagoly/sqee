@@ -19,6 +19,7 @@ public: //====================================================//
 
     enum class Clip_Distance  : bool { Disable, Enable };
     enum class Depth_Clamp    : bool { Disable, Enable };
+    enum class Scissor_Test   : bool { Disable, Enable };
 //    enum class Alpha_Coverage : bool { Disable, Enable };
     enum class Cull_Face      : char { Disable, Back, Front };
     enum class Depth_Test     : char { Disable, Keep, Replace };
@@ -44,6 +45,15 @@ public: //====================================================//
 
         if (state == Depth_Clamp::Disable) { gl::Disable(gl::DEPTH_CLAMP); }
         if (state == Depth_Clamp::Enable) { gl::Enable(gl::DEPTH_CLAMP); }
+    }
+
+    /// Update Scissor_Test context state.
+    void set_state(Scissor_Test state)
+    {
+        if (impl_check_modify(crnt_Scissor_Test, state)) return;
+
+        if (state == Scissor_Test::Disable) { gl::Disable(gl::SCISSOR_TEST); }
+        if (state == Scissor_Test::Enable) { gl::Enable(gl::SCISSOR_TEST); }
     }
 
 //    /// Update Alpha_Coverage context state.
@@ -109,6 +119,17 @@ public: //====================================================//
         if (state == Depth_Compare::GreaterEqual) { gl::DepthFunc(gl::GEQUAL); }
         if (state == Depth_Compare::Equal) { gl::DepthFunc(gl::EQUAL); }
         if (state == Depth_Compare::NotEqual) { gl::DepthFunc(gl::NOTEQUAL); }
+    }
+
+    //--------------------------------------------------------//
+
+    /// Set the box used for scissor testing.
+    void set_Scissor_Params(uint x, uint y, uint width, uint height)
+    {
+        const Vec4U params { x, y, width, height };
+        if (impl_check_modify(crnt_Scissor_Params, params)) return;
+
+        gl::Scissor(int(x), int(y), int(width), int(height));
     }
 
     //--------------------------------------------------------//
@@ -280,6 +301,7 @@ private: //===================================================//
 
     Clip_Distance  crnt_Clip_Distance  = Clip_Distance  :: Disable;
     Depth_Clamp    crnt_Depth_Clamp    = Depth_Clamp    :: Disable;
+    Scissor_Test   crnt_Scissor_Test   = Scissor_Test   :: Disable;
 //    Alpha_Coverage crnt_Alpha_Coverage = Alpha_Coverage :: Disable;
     Cull_Face      crnt_Cull_Face      = Cull_Face      :: Disable;
     Depth_Test     crnt_Depth_Test     = Depth_Test     :: Disable;
@@ -287,8 +309,11 @@ private: //===================================================//
     Blend_Mode     crnt_Blend_Mode     = Blend_Mode     :: Disable;
     Depth_Compare  crnt_Depth_Compare  = Depth_Compare  :: Less;
 
+    Vec4U crnt_Scissor_Params = { 0u, 0u, 0u, 0u };
+
     Vec4U crnt_Stencil_Params = { gl::ALWAYS, 0u, 255u, 255u };
     Vec3U crnt_Stencil_Custom = { gl::KEEP, gl::KEEP, gl::KEEP };
+
     Vec2U crnt_Blend_Custom = { gl::ONE, gl::ZERO };
 
     Vec2U crnt_ViewPort = { 0u, 0u };

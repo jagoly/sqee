@@ -199,29 +199,27 @@ public: //====================================================//
     {
         SWITCH ( event.type ) {
 
-            //CASE ( Mouse_Scroll )
-            //{
-            //    if (event->wheel.y > 0)
-            //        g_MouseWheel = 1;
-            //    if (event->wheel.y < 0)
-            //        g_MouseWheel = -1;
-            //    return true;
-            //}
+            CASE ( Mouse_Scroll )
+            {
+                mMouseWheel += event.data.scroll.delta;
+
+                return true;
+            }
 
             CASE ( Mouse_Press )
             {
-                const decltype(Event::Data::mouse)& data = event.data.mouse;
+                const Mouse_Button button = event.data.mouse.button;
 
-                mMousePressed[0] |= (data.button == Mouse_Button::Left);
-                mMousePressed[1] |= (data.button == Mouse_Button::Right);
-                mMousePressed[2] |= (data.button == Mouse_Button::Middle);
+                mMousePressed[0] |= (button == Mouse_Button::Left);
+                mMousePressed[1] |= (button == Mouse_Button::Right);
+                mMousePressed[2] |= (button == Mouse_Button::Middle);
 
                 return true;
             }
 
             CASE ( Text_Entry )
             {
-                const auto code = event.data.text_entry.unicode;
+                const uint32_t code = event.data.text.unicode;
 
                 if (code < 128u && std::isprint(char(code)))
                     io.AddInputCharacter(static_cast<ImWchar>(code));
@@ -259,10 +257,12 @@ public: //====================================================//
         io.MouseDown[1] = mMousePressed[1] || input.is_pressed(Mouse_Button::Right);
         io.MouseDown[2] = mMousePressed[2] || input.is_pressed(Mouse_Button::Middle);
 
-        mMousePressed[0] = false; mMousePressed[1] = false; mMousePressed[1] = false;
+        io.MouseWheel = mMouseWheel;
 
-        //io.MouseWheel = g_MouseWheel;
-        //g_MouseWheel = 0.0f;
+        mMousePressed[0] = false;
+        mMousePressed[1] = false;
+        mMousePressed[2] = false;
+        mMouseWheel = 0.f;
 
         ImGui::NewFrame();
     }
@@ -275,11 +275,11 @@ public: //====================================================//
 
         context.bind_FrameBuffer_default();
 
+        context.set_state(Context::Scissor_Test::Enable);
+
         context.set_state(Context::Blend_Mode::Alpha);
         context.set_state(Context::Cull_Face::Disable);
         context.set_state(Context::Depth_Test::Disable);
-
-        gl::Enable(gl::SCISSOR_TEST);
 
         const Mat4F orthoMatrix
         {
@@ -321,7 +321,7 @@ public: //====================================================//
             }
         }
 
-        gl::Disable(gl::SCISSOR_TEST);
+        context.set_state(Context::Scissor_Test::Disable);
     }
 
     //--------------------------------------------------------//

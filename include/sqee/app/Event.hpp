@@ -22,16 +22,18 @@ struct Event final
         Mouse_Release,
         Gamepad_Press,
         Gamepad_Release,
+        Mouse_Scroll,
         Text_Entry
     };
 
     union Data
     {
-        struct { Vec2U size; }                                     window_resize;
+        struct { Vec2U size; }                                     resize;
         struct { Keyboard_Key key; bool shift, ctrl, alt, super; } keyboard;
         struct { Mouse_Button button; Vec2I position; }            mouse;
         struct { int32_t port; Gamepad_Button button; }            gamepad;
-        struct { uint32_t unicode; }                               text_entry;
+        struct { float delta; }                                    scroll;
+        struct { uint32_t unicode; }                               text;
     };
 
     Type type = Type::Unknown;
