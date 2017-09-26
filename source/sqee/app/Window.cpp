@@ -344,7 +344,8 @@ std::vector<Event> Window::fetch_events()
             event.data.mouse =
             {
                 conv_sfml_mouse_button[sfe.mouseButton.button],
-                { sfe.mouseButton.x, int(get_window_size().y) - sfe.mouseButton.y }
+                //{ sfe.mouseButton.x, int(get_window_size().y) - sfe.mouseButton.y }
+                { sfe.mouseButton.x, sfe.mouseButton.y }
             };
         }
 

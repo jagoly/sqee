@@ -82,3 +82,6 @@ struct MoveOnly
 
 /// @namespace sq::maths
 /// @brief Mathematical classes and functions.
+
+/// @namespace sq::gui
+/// @brief Helper classes and functions for ImGui.

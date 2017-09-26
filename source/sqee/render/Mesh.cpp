@@ -30,7 +30,8 @@ void Mesh::draw_partial(uint index) const
 {
     const auto& subMesh = mSubMeshVec[index];
     const auto startInt = ptrdiff_t(subMesh.firstIndex * 4u);
-    const auto start = reinterpret_cast<void*>(startInt);
+
+    const auto start = reinterpret_cast<GLuint*>(startInt);
     const auto count = GLsizei(subMesh.indexCount);
 
     gl::DrawElements(gl::TRIANGLES, count, gl::UNSIGNED_INT, start);

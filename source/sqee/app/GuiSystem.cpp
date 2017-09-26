@@ -3,6 +3,7 @@
 #include <sqee/redist/imgui/imgui.hpp>
 
 #include <sqee/gl/Context.hpp>
+#include <sqee/misc/Algorithms.hpp>
 #include <sqee/macros.hpp>
 
 #include <sqee/app/Window.hpp>
@@ -90,6 +91,28 @@ void main()
 
 class GuiSystem::Implementation final
 {
+public: //====================================================//
+
+    Implementation(Window& window, InputDevices& inputDevices);
+
+    ~Implementation() = default;
+
+    //--------------------------------------------------------//
+
+    void create_fonts();
+
+    void create_gl_objects();
+
+    //--------------------------------------------------------//
+
+    bool handle_event(Event event);
+
+    void finish_handle_events();
+
+    void finish_scene_update(double elapsed);
+
+    void render_gui();
+
 private: //===================================================//
 
     Window& window;
@@ -100,270 +123,370 @@ private: //===================================================//
 
     //--------------------------------------------------------//
 
-    bool mMousePressed[3] {};
-    float mMouseWheel = 0.0f;
     sq::Texture2D mTexture;
     sq::Program mProgram;
+
     sq::VertexArray mVAO;
     sq::FixedBuffer mVBO, mIBO;
-
-public: //====================================================//
-
-    Implementation(Window& window, InputDevices& inputDevices)
-        : window(window), input(inputDevices)
-        , io(ImGui::GetIO()), context(Context::get())
-    {
-        io.KeyMap[ImGuiKey_Tab]         = int(Keyboard_Key::Tab);
-        io.KeyMap[ImGuiKey_LeftArrow]   = int(Keyboard_Key::Arrow_Left);
-        io.KeyMap[ImGuiKey_RightArrow]  = int(Keyboard_Key::Arrow_Right);
-        io.KeyMap[ImGuiKey_UpArrow]     = int(Keyboard_Key::Arrow_Up);
-        io.KeyMap[ImGuiKey_DownArrow]   = int(Keyboard_Key::Arrow_Down);
-        io.KeyMap[ImGuiKey_PageUp]      = int(Keyboard_Key::PageUp);
-        io.KeyMap[ImGuiKey_PageDown]    = int(Keyboard_Key::PageDown);
-        io.KeyMap[ImGuiKey_Home]        = int(Keyboard_Key::Home);
-        io.KeyMap[ImGuiKey_End]         = int(Keyboard_Key::End);
-        io.KeyMap[ImGuiKey_Delete]      = int(Keyboard_Key::Delete);
-        io.KeyMap[ImGuiKey_Backspace]   = int(Keyboard_Key::BackSpace);
-        io.KeyMap[ImGuiKey_Enter]       = int(Keyboard_Key::Return);
-        io.KeyMap[ImGuiKey_Escape]      = int(Keyboard_Key::Escape);
-        io.KeyMap[ImGuiKey_A]           = int(Keyboard_Key::A);
-        io.KeyMap[ImGuiKey_C]           = int(Keyboard_Key::C);
-        io.KeyMap[ImGuiKey_V]           = int(Keyboard_Key::V);
-        io.KeyMap[ImGuiKey_X]           = int(Keyboard_Key::X);
-        io.KeyMap[ImGuiKey_Y]           = int(Keyboard_Key::Y);
-        io.KeyMap[ImGuiKey_Z]           = int(Keyboard_Key::Z);
-
-        //--------------------------------------------------------//
-
-        ImFontConfig fontConfig;
-        fontConfig.FontDataOwnedByAtlas = false;
-        fontConfig.OversampleH = 2;
-        fontConfig.OversampleV = 2;
-
-        std::strcpy(fontConfig.Name, "Ubuntu Regular");
-        io.Fonts->AddFontFromMemoryCompressedTTF(data_UbuntuRegular, data_UbuntuRegular_size, 16.f, &fontConfig);
-
-        std::strcpy(fontConfig.Name, "Ubuntu Bold");
-        io.Fonts->AddFontFromMemoryCompressedTTF(data_UbuntuBold, data_UbuntuBold_size, 16.f, &fontConfig);
-
-        std::strcpy(fontConfig.Name, "Ubuntu Italic");
-        io.Fonts->AddFontFromMemoryCompressedTTF(data_UbuntuItalic, data_UbuntuItalic_size, 16.f, &fontConfig);
-
-        std::strcpy(fontConfig.Name, "Ubuntu Mono Regular");
-        io.Fonts->AddFontFromMemoryCompressedTTF(data_UbuntuMonoRegular, data_UbuntuMonoRegular_size, 16.f, &fontConfig);
-
-        //--------------------------------------------------------//
-
-        create_gl_objects();
-
-        //io.SetClipboardTextFn = ImGui_ImplGlfwGL3_SetClipboardText;
-        //io.GetClipboardTextFn = ImGui_ImplGlfwGL3_GetClipboardText;
-        //io.ClipboardUserData = g_Window;
-        //#ifdef _WIN32
-        //    io.ImeWindowHandle = glfwGetWin32Window(g_Window);
-        //#endif
-    }
-
-    //--------------------------------------------------------//
-
-    void create_gl_objects()
-    {
-        mProgram.load_vertex(vertexSource);
-        mProgram.load_fragment(fragmentSource);
-        mProgram.link_program_stages();
-
-        mVBO.allocate_dynamic(65536u * 20u, nullptr);
-        mIBO.allocate_dynamic(65536u * 2u, nullptr);
-
-        mVAO.set_vertex_buffer(mVBO, 20u);
-        mVAO.set_index_buffer(mIBO);
-
-        mVAO.add_float_attribute(0u, 2u, gl::FLOAT, false, 0u);
-        mVAO.add_float_attribute(1u, 2u, gl::FLOAT, false, 8u);
-        mVAO.add_float_attribute(2u, 4u, gl::UNSIGNED_BYTE, true, 16u);
-
-        uchar* pixels; int width, height;
-        io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
-
-        mTexture.set_format(sq::Texture::Format::RGBA8_UN);
-        mTexture.set_filter_mode(true);
-        mTexture.allocate_storage({uint(width), uint(height)});
-        mTexture.load_memory(pixels);
-
-        io.Fonts->TexID = static_cast<void*>(&mTexture);
-    }
-
-    //--------------------------------------------------------//
-
-    bool handle_event(Event event)
-    {
-        SWITCH ( event.type ) {
-
-            CASE ( Mouse_Scroll )
-            {
-                mMouseWheel += event.data.scroll.delta;
-
-                return true;
-            }
-
-            CASE ( Mouse_Press )
-            {
-                const Mouse_Button button = event.data.mouse.button;
-
-                mMousePressed[0] |= (button == Mouse_Button::Left);
-                mMousePressed[1] |= (button == Mouse_Button::Right);
-                mMousePressed[2] |= (button == Mouse_Button::Middle);
-
-                return true;
-            }
-
-            CASE ( Text_Entry )
-            {
-                const uint32_t code = event.data.text.unicode;
-
-                if (code < 128u && std::isprint(char(code)))
-                    io.AddInputCharacter(static_cast<ImWchar>(code));
-
-                return true;
-            }
-
-            CASE ( Keyboard_Press, Keyboard_Release )
-            {
-                const decltype(Event::Data::keyboard)& data = event.data.keyboard;
-
-                io.KeysDown[int(data.key)] = (event.type == Event::Type::Keyboard_Press);
-
-                io.KeyShift = data.shift; io.KeyCtrl = data.ctrl;
-                io.KeyAlt = data.alt; io.KeySuper = data.super;
-
-                return true;
-            }
-
-            CASE_DEFAULT { return false; }
-
-        } SWITCH_END;
-    }
-
-    //--------------------------------------------------------//
-
-    void begin_new_frame(double elapsed)
-    {
-        io.DeltaTime = float(elapsed);
-
-        io.DisplaySize = Vec2F(window.get_window_size());
-        io.MousePos = Vec2F(input.get_cursor_location());
-
-        io.MouseDown[0] = mMousePressed[0] || input.is_pressed(Mouse_Button::Left);
-        io.MouseDown[1] = mMousePressed[1] || input.is_pressed(Mouse_Button::Right);
-        io.MouseDown[2] = mMousePressed[2] || input.is_pressed(Mouse_Button::Middle);
-
-        io.MouseWheel = mMouseWheel;
-
-        mMousePressed[0] = false;
-        mMousePressed[1] = false;
-        mMousePressed[2] = false;
-        mMouseWheel = 0.f;
-
-        ImGui::NewFrame();
-    }
-
-    //--------------------------------------------------------//
-
-    void render_draw_lists(ImDrawData* drawData)
-    {
-        const Vec2U vp = context.get_ViewPort();
-
-        context.bind_FrameBuffer_default();
-
-        context.set_state(Context::Scissor_Test::Enable);
-
-        context.set_state(Context::Blend_Mode::Alpha);
-        context.set_state(Context::Cull_Face::Disable);
-        context.set_state(Context::Depth_Test::Disable);
-
-        const Mat4F orthoMatrix
-        {
-            { +2.0f / vp.x, 0.0f, 0.0f, 0.0f },
-            { 0.0f, -2.0f / vp.y, 0.0f, 0.0f },
-            { 0.0f, 0.0f, -1.0f, 0.0f },
-            { -1.0f, +1.0f, 0.0f, +1.0f },
-        };
-
-        mProgram.update(0, orthoMatrix);
-
-        context.bind_Program(mProgram);
-        context.bind_Texture(mTexture, 0u);
-        context.bind_VertexArray(mVAO);
-
-        for (int n = 0; n < drawData->CmdListsCount; ++n)
-        {
-            const ImDrawList* cmdList = drawData->CmdLists[n];
-            const ImDrawIdx* indexBufferOffset = 0u;
-
-            mVBO.update(0u, uint(cmdList->VtxBuffer.Size) * sizeof(ImDrawVert), cmdList->VtxBuffer.Data);
-            mIBO.update(0u, uint(cmdList->IdxBuffer.Size) * sizeof(ImDrawIdx), cmdList->IdxBuffer.Data);
-
-            for (int m = 0; m < cmdList->CmdBuffer.Size; ++m)
-            {
-                const ImDrawCmd* cmd = &cmdList->CmdBuffer[m];
-
-                if (cmd->UserCallback == nullptr)
-                {
-                    gl::Scissor ( int(cmd->ClipRect.x), int(vp.y - cmd->ClipRect.w),
-                                  int(cmd->ClipRect.z - cmd->ClipRect.x),
-                                  int(cmd->ClipRect.w - cmd->ClipRect.y) );
-
-                    gl::DrawElements(gl::TRIANGLES, int(cmd->ElemCount), gl::UNSIGNED_SHORT, indexBufferOffset);
-                }
-                else cmd->UserCallback(cmdList, cmd);
-
-                indexBufferOffset += cmd->ElemCount;
-            }
-        }
-
-        context.set_state(Context::Scissor_Test::Disable);
-    }
-
-    //--------------------------------------------------------//
-
-    ~Implementation()
-    {
-        ImGui::Shutdown();
-    }
 };
 
 //============================================================================//
 
-GuiSystem::GuiSystem(Window& window, InputDevices& inputDevices)
+GuiSystem::Implementation::Implementation(Window& window, InputDevices& inputDevices)
+    : window(window), input(inputDevices)
+    , io(ImGui::GetIO()), context(Context::get())
 {
-    impl = std::make_unique<Implementation>(window, inputDevices);
+    io.KeyMap[ImGuiKey_Tab]         = int(Keyboard_Key::Tab);
+    io.KeyMap[ImGuiKey_LeftArrow]   = int(Keyboard_Key::Arrow_Left);
+    io.KeyMap[ImGuiKey_RightArrow]  = int(Keyboard_Key::Arrow_Right);
+    io.KeyMap[ImGuiKey_UpArrow]     = int(Keyboard_Key::Arrow_Up);
+    io.KeyMap[ImGuiKey_DownArrow]   = int(Keyboard_Key::Arrow_Down);
+    io.KeyMap[ImGuiKey_PageUp]      = int(Keyboard_Key::PageUp);
+    io.KeyMap[ImGuiKey_PageDown]    = int(Keyboard_Key::PageDown);
+    io.KeyMap[ImGuiKey_Home]        = int(Keyboard_Key::Home);
+    io.KeyMap[ImGuiKey_End]         = int(Keyboard_Key::End);
+    io.KeyMap[ImGuiKey_Delete]      = int(Keyboard_Key::Delete);
+    io.KeyMap[ImGuiKey_Backspace]   = int(Keyboard_Key::BackSpace);
+    io.KeyMap[ImGuiKey_Enter]       = int(Keyboard_Key::Return);
+    io.KeyMap[ImGuiKey_Escape]      = int(Keyboard_Key::Escape);
+    io.KeyMap[ImGuiKey_A]           = int(Keyboard_Key::A);
+    io.KeyMap[ImGuiKey_C]           = int(Keyboard_Key::C);
+    io.KeyMap[ImGuiKey_V]           = int(Keyboard_Key::V);
+    io.KeyMap[ImGuiKey_X]           = int(Keyboard_Key::X);
+    io.KeyMap[ImGuiKey_Y]           = int(Keyboard_Key::Y);
+    io.KeyMap[ImGuiKey_Z]           = int(Keyboard_Key::Z);
+
+    auto& style = imgui::GetStyle();
+
+    style.Alpha                 = 1.0f;         // default: 1.0
+    style.WindowPadding         = { 6, 6 };     // default: 8, 8
+    style.WindowMinSize         = { 32, 32 };   // default: 32, 32
+    style.WindowRounding        = 8;            // default: 9
+    style.ChildWindowRounding   = 4;            // default: 0
+    style.FramePadding          = { 6, 6 };     // default: 4, 3
+    style.FrameRounding         = 4;            // default: 0
+    style.ItemSpacing           = { 6, 6 };     // default: 8, 4
+    style.ItemInnerSpacing      = { 6, 6 };     // default: 4, 4
+    style.IndentSpacing         = 24;           // default: 21
+    style.ScrollbarSize         = 16;           // default: 16
+    style.ScrollbarRounding     = 8;            // default: 9
+    style.GrabMinSize           = 8;            // default: 10
+    style.GrabRounding          = 4;            // default: 0
+    style.AntiAliasedLines      = true;         // default: true
+
+    style.Colors[ImGuiCol_Text]                  = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+    style.Colors[ImGuiCol_TextDisabled]          = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
+    style.Colors[ImGuiCol_WindowBg]              = ImVec4(0.00f, 0.00f, 0.00f, 0.60f);
+    style.Colors[ImGuiCol_ChildWindowBg]         = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+    style.Colors[ImGuiCol_PopupBg]               = ImVec4(0.05f, 0.05f, 0.10f, 0.90f);
+    style.Colors[ImGuiCol_Border]                = ImVec4(0.80f, 0.80f, 0.80f, 0.30f);
+    style.Colors[ImGuiCol_BorderShadow]          = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+    style.Colors[ImGuiCol_FrameBg]               = ImVec4(0.70f, 0.50f, 0.40f, 0.40f);
+    style.Colors[ImGuiCol_FrameBgHovered]        = ImVec4(0.80f, 0.60f, 0.50f, 0.40f);
+    style.Colors[ImGuiCol_FrameBgActive]         = ImVec4(0.60f, 0.40f, 0.30f, 0.40f);
+    style.Colors[ImGuiCol_TitleBg]               = ImVec4(0.25f, 0.25f, 0.25f, 0.60f);
+    style.Colors[ImGuiCol_TitleBgCollapsed]      = ImVec4(0.40f, 0.40f, 0.40f, 0.40f);
+    style.Colors[ImGuiCol_TitleBgActive]         = ImVec4(0.20f, 0.20f, 0.20f, 0.80f);
+    style.Colors[ImGuiCol_MenuBarBg]             = ImVec4(0.40f, 0.40f, 0.40f, 0.40f);
+    style.Colors[ImGuiCol_ScrollbarBg]           = ImVec4(0.40f, 0.40f, 0.40f, 0.40f);
+    style.Colors[ImGuiCol_ScrollbarGrab]         = ImVec4(0.60f, 0.60f, 0.60f, 0.40f);
+    style.Colors[ImGuiCol_ScrollbarGrabHovered]  = ImVec4(0.70f, 0.70f, 0.70f, 0.40f);
+    style.Colors[ImGuiCol_ScrollbarGrabActive]   = ImVec4(0.50f, 0.50f, 0.50f, 0.40f);
+    style.Colors[ImGuiCol_ComboBg]               = ImVec4(0.20f, 0.20f, 0.20f, 0.99f);
+    style.Colors[ImGuiCol_CheckMark]             = ImVec4(0.90f, 0.90f, 0.90f, 0.50f);
+    style.Colors[ImGuiCol_SliderGrab]            = ImVec4(1.00f, 1.00f, 1.00f, 0.30f);
+    style.Colors[ImGuiCol_SliderGrabActive]      = ImVec4(0.80f, 0.50f, 0.50f, 1.00f);
+    style.Colors[ImGuiCol_Button]                = ImVec4(0.80f, 0.50f, 0.30f, 0.60f);
+    style.Colors[ImGuiCol_ButtonHovered]         = ImVec4(0.90f, 0.60f, 0.40f, 0.60f);
+    style.Colors[ImGuiCol_ButtonActive]          = ImVec4(0.70f, 0.40f, 0.20f, 0.60f);
+    style.Colors[ImGuiCol_Header]                = ImVec4(0.90f, 0.50f, 0.20f, 0.60f);
+    style.Colors[ImGuiCol_HeaderHovered]         = ImVec4(1.00f, 0.60f, 0.30f, 0.60f);
+    style.Colors[ImGuiCol_HeaderActive]          = ImVec4(0.80f, 0.40f, 0.10f, 0.60f);
+    style.Colors[ImGuiCol_Separator]             = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
+    style.Colors[ImGuiCol_SeparatorHovered]      = ImVec4(0.60f, 0.60f, 0.70f, 1.00f);
+    style.Colors[ImGuiCol_SeparatorActive]       = ImVec4(0.70f, 0.70f, 0.90f, 1.00f);
+    style.Colors[ImGuiCol_ResizeGrip]            = ImVec4(0.80f, 0.80f, 0.80f, 0.30f);
+    style.Colors[ImGuiCol_ResizeGripHovered]     = ImVec4(0.80f, 0.80f, 0.80f, 0.40f);
+    style.Colors[ImGuiCol_ResizeGripActive]      = ImVec4(0.80f, 0.80f, 0.80f, 0.45f);
+    style.Colors[ImGuiCol_CloseButton]           = ImVec4(0.90f, 0.90f, 0.20f, 0.60f);
+    style.Colors[ImGuiCol_CloseButtonHovered]    = ImVec4(1.00f, 1.00f, 0.30f, 0.60f);
+    style.Colors[ImGuiCol_CloseButtonActive]     = ImVec4(0.80f, 0.80f, 0.10f, 0.60f);
+    style.Colors[ImGuiCol_PlotLines]             = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+    style.Colors[ImGuiCol_PlotLinesHovered]      = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
+    style.Colors[ImGuiCol_PlotHistogram]         = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
+    style.Colors[ImGuiCol_PlotHistogramHovered]  = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
+    style.Colors[ImGuiCol_TextSelectedBg]        = ImVec4(0.60f, 0.30f, 0.15f, 1.00f);
+    style.Colors[ImGuiCol_ModalWindowDarkening]  = ImVec4(0.20f, 0.20f, 0.20f, 0.35f);
+
+    //--------------------------------------------------------//
+
+    create_fonts();
+
+    create_gl_objects();
 }
 
-GuiSystem::~GuiSystem() = default;
+//============================================================================//
 
-bool GuiSystem::handle_event(Event event)
+void GuiSystem::Implementation::create_fonts()
 {
-    return impl->handle_event(event);
+    ImFontConfig fontConfig;
+
+    fontConfig.FontDataOwnedByAtlas = false;
+
+    fontConfig.OversampleH = 2;
+    fontConfig.OversampleV = 2;
+
+    std::strcpy(fontConfig.Name, "Ubuntu Regular");
+    io.Fonts->AddFontFromMemoryCompressedTTF(data_UbuntuRegular, data_UbuntuRegular_size, 16.f, &fontConfig);
+
+    std::strcpy(fontConfig.Name, "Ubuntu Bold");
+    io.Fonts->AddFontFromMemoryCompressedTTF(data_UbuntuBold, data_UbuntuBold_size, 16.f, &fontConfig);
+
+    std::strcpy(fontConfig.Name, "Ubuntu Italic");
+    io.Fonts->AddFontFromMemoryCompressedTTF(data_UbuntuItalic, data_UbuntuItalic_size, 16.f, &fontConfig);
+
+    std::strcpy(fontConfig.Name, "Ubuntu Mono Regular");
+    io.Fonts->AddFontFromMemoryCompressedTTF(data_UbuntuMonoRegular, data_UbuntuMonoRegular_size, 16.f, &fontConfig);
 }
 
-void GuiSystem::begin_new_frame(double elapsed)
+//============================================================================//
+
+void GuiSystem::Implementation::create_gl_objects()
 {
-    impl->begin_new_frame(elapsed);
+    mProgram.load_vertex(vertexSource);
+    mProgram.load_fragment(fragmentSource);
+    mProgram.link_program_stages();
+
+    mVBO.allocate_dynamic(65536u * 20u, nullptr);
+    mIBO.allocate_dynamic(65536u * 2u, nullptr);
+
+    mVAO.set_vertex_buffer(mVBO, 20u);
+    mVAO.set_index_buffer(mIBO);
+
+    mVAO.add_float_attribute(0u, 2u, gl::FLOAT, false, 0u);
+    mVAO.add_float_attribute(1u, 2u, gl::FLOAT, false, 8u);
+    mVAO.add_float_attribute(2u, 4u, gl::UNSIGNED_BYTE, true, 16u);
+
+    uchar* pixels; int width, height;
+    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+
+    mTexture.set_format(sq::Texture::Format::RGBA8_UN);
+    mTexture.set_filter_mode(true);
+    mTexture.allocate_storage({uint(width), uint(height)});
+    mTexture.load_memory(pixels);
+
+    io.Fonts->TexID = static_cast<void*>(&mTexture);
 }
 
-void GuiSystem::render_gui()
+//============================================================================//
+
+bool GuiSystem::Implementation::handle_event(Event event)
 {
-    ImGui::Render();
-    impl->render_draw_lists(ImGui::GetDrawData());
+    SWITCH ( event.type ) {
+
+        CASE ( Mouse_Scroll )
+        {
+            io.MouseWheel += event.data.scroll.delta;
+        }
+
+        CASE ( Mouse_Press )
+        {
+            const Mouse_Button button = event.data.mouse.button;
+
+            io.MouseDown[0] |= (button == Mouse_Button::Left);
+            io.MouseDown[1] |= (button == Mouse_Button::Right);
+            io.MouseDown[2] |= (button == Mouse_Button::Middle);
+        }
+
+        CASE ( Text_Entry )
+        {
+            const uint32_t code = event.data.text.unicode;
+
+            if (code < 128u && std::isprint(char(code)))
+                io.AddInputCharacter(static_cast<ImWchar>(code));
+        }
+
+        CASE ( Keyboard_Press, Keyboard_Release )
+        {
+            const decltype(Event::Data::keyboard)& data = event.data.keyboard;
+
+            io.KeysDown[int(data.key)] = (event.type == Event::Type::Keyboard_Press);
+
+            io.KeyShift = data.shift; io.KeyCtrl = data.ctrl;
+            io.KeyAlt = data.alt; io.KeySuper = data.super;
+        }
+
+        CASE_DEFAULT { return false; }
+
+    } SWITCH_END;
+
+    //--------------------------------------------------------//
+
+    return true;
 }
 
+//============================================================================//
 
-//static const char* ImGui_ImplGlfwGL3_GetClipboardText(void* user_data)
-//{
-//    return glfwGetClipboardString((GLFWwindow*)user_data);
-//}
+void GuiSystem::Implementation::finish_handle_events()
+{
+    io.DisplaySize = Vec2F(window.get_window_size());
+    io.MousePos = Vec2F(input.get_cursor_location());
 
-//static void ImGui_ImplGlfwGL3_SetClipboardText(void* user_data, const char* text)
-//{
-//    glfwSetClipboardString((GLFWwindow*)user_data, text);
-//}
+    io.MouseDown[0] |= input.is_pressed(Mouse_Button::Left);
+    io.MouseDown[1] |= input.is_pressed(Mouse_Button::Right);
+    io.MouseDown[2] |= input.is_pressed(Mouse_Button::Middle);
+
+    //--------------------------------------------------------//
+
+    imgui::NewFrame();
+}
+
+//============================================================================//
+
+void GuiSystem::Implementation::finish_scene_update(double elapsed)
+{
+    imgui::Render();
+
+    //--------------------------------------------------------//
+
+    io.DeltaTime = float(elapsed);
+
+    io.MouseDown[0] = false;
+    io.MouseDown[1] = false;
+    io.MouseDown[2] = false;
+
+    io.MouseWheel = 0.f;
+}
+
+//============================================================================//
+
+void GuiSystem::Implementation::render_gui()
+{
+    SQASSERT(imgui::GetDrawData(), "imgui NewFrame() -> Render() sequence probably wrong");
+
+    //--------------------------------------------------------//
+
+    const ImDrawData& drawData = *imgui::GetDrawData();
+
+    const Vec2U vp = context.get_ViewPort();
+
+    //--------------------------------------------------------//
+
+    context.bind_FrameBuffer_default();
+
+    context.set_state(Context::Scissor_Test::Enable);
+
+    context.set_state(Context::Blend_Mode::Alpha);
+    context.set_state(Context::Cull_Face::Disable);
+    context.set_state(Context::Depth_Test::Disable);
+
+    const Mat4F orthoMatrix
+    {
+        { +2.0f / vp.x, 0.0f, 0.0f, 0.0f },
+        { 0.0f, -2.0f / vp.y, 0.0f, 0.0f },
+        { 0.0f, 0.0f, -1.0f, 0.0f },
+        { -1.0f, +1.0f, 0.0f, +1.0f },
+    };
+
+    mProgram.update(0, orthoMatrix);
+
+    context.bind_Program(mProgram);
+    context.bind_Texture(mTexture, 0u);
+    context.bind_VertexArray(mVAO);
+
+    //--------------------------------------------------------//
+
+    for (int n = 0; n < drawData.CmdListsCount; ++n)
+    {
+        const ImDrawList& cmdList = *drawData.CmdLists[n];
+        const ImDrawIdx* indexBufferOffset = 0;
+
+        mVBO.update(0u, uint(cmdList.VtxBuffer.Size) * sizeof(ImDrawVert), cmdList.VtxBuffer.Data);
+        mIBO.update(0u, uint(cmdList.IdxBuffer.Size) * sizeof(ImDrawIdx), cmdList.IdxBuffer.Data);
+
+        for (const ImDrawCmd& cmd : cmdList.CmdBuffer)
+        {
+            if (cmd.UserCallback == nullptr)
+            {
+                const uint clipX = uint(cmd.ClipRect.x);
+                const uint clipY = uint(vp.y - cmd.ClipRect.w);
+                const uint clipW = uint(cmd.ClipRect.z - cmd.ClipRect.x);
+                const uint clipH = uint(cmd.ClipRect.w - cmd.ClipRect.y);
+
+                context.set_Scissor_Params(clipX, clipY, clipW, clipH);
+
+                gl::DrawElements(gl::TRIANGLES, int(cmd.ElemCount), gl::UNSIGNED_SHORT, indexBufferOffset);
+            }
+            else cmd.UserCallback(&cmdList, &cmd);
+
+            std::advance(indexBufferOffset, cmd.ElemCount);
+        }
+    }
+
+    context.set_state(Context::Scissor_Test::Disable);
+}
+
+//============================================================================//
+
+GuiSystem*& GuiSystem::impl_get_ptr_ref()
+{
+    static GuiSystem* instance = nullptr;
+    return instance;
+}
+
+void GuiSystem::construct(Window& window, InputDevices& inputDevices)
+{
+    auto& instance = GuiSystem::impl_get_ptr_ref();
+
+    SQASSERT(instance == nullptr, "GuiSystem::construct() already called");
+
+    instance = new GuiSystem();
+
+    instance->impl = std::make_unique<Implementation>(window, inputDevices);
+}
+
+void GuiSystem::destruct()
+{
+    auto& instance = GuiSystem::impl_get_ptr_ref();
+
+    SQASSERT(instance != nullptr, "GuiSystem::destruct() already called");
+
+    delete instance;
+
+    imgui::Shutdown(); // todo: imgui probably can't be re-started after this
+}
+
+//============================================================================//
+
+bool GuiSystem::handle_event(Event event) { return impl->handle_event(event); }
+
+void GuiSystem::finish_handle_events() { impl->finish_handle_events(); }
+
+void GuiSystem::finish_scene_update(double elapsed) { impl->finish_scene_update(elapsed); }
+
+void GuiSystem::render_gui() { impl->render_gui(); }
+
+void GuiSystem::show_imgui_demo() { imgui::ShowTestWindow(); }
+
+//============================================================================//
+
+void GuiSystem::enable_widget(GuiWidget& widget)
+{
+    const auto iter = algo::find(mWidgets, &widget);
+    if (iter == mWidgets.end()) mWidgets.push_back(&widget);
+}
+
+void GuiSystem::disable_widget(GuiWidget& widget)
+{
+    const auto iter = algo::find(mWidgets, &widget);
+    if (iter != mWidgets.end()) mWidgets.erase(iter);
+}
+
+void GuiSystem::draw_widgets()
+{
+    for (const GuiWidget* widget : mWidgets)
+    {
+        if (widget->func != nullptr)
+            widget->func();
+    }
+}

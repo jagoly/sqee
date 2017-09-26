@@ -34,14 +34,14 @@ FixedBuffer::~FixedBuffer()
 
 //============================================================================//
 
-void FixedBuffer::allocate_constant(uint size, const void* data)
+void FixedBuffer::allocate_constant(uint size, const void* data, GLenum flags)
 {
-    gl::NamedBufferStorage(mHandle, size, data, gl::NONE);
+    gl::NamedBufferStorage(mHandle, size, data, gl::NONE | flags);
 }
 
-void FixedBuffer::allocate_dynamic(uint size, const void* data)
+void FixedBuffer::allocate_dynamic(uint size, const void* data, GLenum flags)
 {
-    gl::NamedBufferStorage(mHandle, size, data, gl::DYNAMIC_STORAGE_BIT);
+    gl::NamedBufferStorage(mHandle, size, data, gl::DYNAMIC_STORAGE_BIT | flags);
 }
 
 void FixedBuffer::update(uint offset, uint size, const void* data)

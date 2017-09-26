@@ -9,9 +9,10 @@
 
 #pragma once
 
-#ifndef IMGUI_VERSION
-#error Must include imgui.h before imgui_internal.h
-#endif
+//#ifndef IMGUI_VERSION
+//#error Must include imgui.h before imgui_internal.h
+//#endif
+#include <sqee/redist/imgui/imgui.hpp> // makes code completion work
 
 #include <stdio.h>      // FILE*
 #include <math.h>       // sqrtf, fabsf, fmodf, powf, floorf, ceilf, cosf, sinf

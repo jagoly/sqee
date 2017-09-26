@@ -26,10 +26,10 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     /// Allocate the buffer with constant data.
-    void allocate_constant(uint size, const void* data);
+    void allocate_constant(uint size, const void* data, GLenum flags = 0u);
 
     /// Allocate the buffer with dynamic data.
-    void allocate_dynamic(uint size, const void* data);
+    void allocate_dynamic(uint size, const void* data, GLenum flags = 0u);
 
     /// Update a section of the buffer with a pointer.
     void update(uint offset, uint size, const void* data);

@@ -4,7 +4,7 @@ using namespace sq;
 
 //============================================================================//
 
-Scene::Scene(double tickTime) : mTickTime(tickTime) {}
+Scene::Scene(double tickTime) : mTickTime(tickTime), mAccumulation(tickTime) {}
 
 //============================================================================//
 

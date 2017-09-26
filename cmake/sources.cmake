@@ -28,7 +28,6 @@ set(SOURCES
   "source/sqee/redist/imgui/imgui_demo.cpp"
   "source/sqee/redist/imgui/imgui_draw.cpp"
 
-
   #==========================================================#
   # SQEE Source                                              #
   #==========================================================#
@@ -47,6 +46,7 @@ set(SOURCES
   "include/sqee/app/ChaiEngine.hpp"    "source/sqee/app/ChaiEngine.cpp"
   "include/sqee/app/DebugOverlay.hpp"  "source/sqee/app/DebugOverlay.cpp"
   "include/sqee/app/GuiSystem.hpp"     "source/sqee/app/GuiSystem.cpp"
+  "include/sqee/app/GuiWidgets.hpp"    "source/sqee/app/GuiWidgets.cpp"
   "include/sqee/app/InputDevices.hpp"  "source/sqee/app/InputDevices.cpp"
   "include/sqee/app/MessageBus.hpp"    "source/sqee/app/MessageBus.cpp"
   "include/sqee/app/PreProcessor.hpp"  "source/sqee/app/PreProcessor.cpp"

@@ -145,6 +145,8 @@ Vec2U InputDevices::get_cursor_location() const
     sf::Vector2i size ( window->getSize() );
     sf::Vector2i position = sf::Mouse::getPosition(*window);
 
+    //position.y = size.y - position.y;
+
     uint clampedX = uint(maths::clamp(position.x, 0, size.x));
     uint clampedY = uint(maths::clamp(position.y, 0, size.y));
 
@@ -175,6 +177,7 @@ Vec2I InputDevices::cursor_to_centre()
     sf::Vector2i position = sf::Mouse::getPosition(*window);
     sf::Mouse::setPosition(centre, *window);
 
+    //return { centre.x - position.x, -(centre.y - position.y) };
     return { centre.x - position.x, centre.y - position.y };
 }
 
