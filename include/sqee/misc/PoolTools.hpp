@@ -25,10 +25,9 @@ struct TinyString final
         return data.u64 == other.data.u64;
     }
 
-    constexpr const char* c_str() const
-    {
-        return data.str;
-    }
+    constexpr const char* c_str() const { return data.str; }
+
+    operator string() const { return string(data.str); }
 
     union { uint64_t u64 = 0u; char str[8]; } data;
 };
@@ -123,6 +122,17 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
+    iterator begin() { return mItemVector.begin(); }
+    iterator end() { return mItemVector.end(); }
+
+    const_iterator cbegin() const { return mItemVector.cbegin(); }
+    const_iterator cend() const { return mItemVector.cend(); }
+
+    const_iterator begin() const { return mItemVector.cbegin(); }
+    const_iterator end() const { return mItemVector.cend(); }
+
+    //--------------------------------------------------------//
+
     template <class... Args>
     Type* emplace(TinyString key, Args&&... args)
     {
@@ -132,6 +142,22 @@ public: //====================================================//
         mItemVector.push_back({ key, ptr });
 
         return ptr;
+    }
+
+    void erase(TinyString key)
+    {
+        const auto iter = key_find(key);
+        SQASSERT(iter != mItemVector.end(), "");
+        mAllocator.deallocate(iter->ptr);
+        mItemVector.erase(iter);
+    }
+
+    void clear()
+    {
+        for (auto& item : mItemVector)
+            mAllocator.deallocate(item.ptr);
+
+        mItemVector.clear();
     }
 
     //--------------------------------------------------------//

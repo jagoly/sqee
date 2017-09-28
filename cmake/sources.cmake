@@ -97,9 +97,14 @@ set(SOURCES
 
   "include/sqee/misc/Algorithms.hpp"
   "include/sqee/misc/Parsing.hpp"
+
   "include/sqee/misc/PoolTools.hpp"
+
   "include/sqee/misc/ResourceCache.hpp"
   "include/sqee/misc/ResourceHandle.hpp"
+
+  "include/sqee/misc/FlagSet.hpp"
+  "include/sqee/misc/UniqueAny.hpp"
 
   #----------------------------------------------------------#
 

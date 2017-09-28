@@ -7,6 +7,44 @@ namespace sq {
 
 //============================================================================//
 
+namespace literals {
+
+constexpr int8_t operator "" _i8(unsigned long long v)
+{ return static_cast<int8_t>(v); }
+
+constexpr uint8_t operator "" _u8(unsigned long long v)
+{ return static_cast<uint8_t>(v); }
+
+constexpr int16_t operator "" _i16(unsigned long long v)
+{ return static_cast<int16_t>(v); }
+
+constexpr uint16_t operator "" _u16(unsigned long long v)
+{ return static_cast<uint16_t>(v); }
+
+constexpr int32_t operator "" _i32(unsigned long long v)
+{ return static_cast<int32_t>(v); }
+
+constexpr uint32_t operator "" _u32(unsigned long long v)
+{ return static_cast<uint32_t>(v); }
+
+constexpr int64_t operator "" _i64(unsigned long long v)
+{ return static_cast<int64_t>(v); }
+
+constexpr uint64_t operator "" _u64(unsigned long long v)
+{ return static_cast<uint64_t>(v); }
+
+} // namespace literals
+
+//============================================================================//
+
+template <class EnumType>
+std::underlying_type_t<EnumType>& underlying_reference(EnumType& ref)
+{
+    return reinterpret_cast<std::underlying_type_t<EnumType>&>(ref);
+}
+
+//----------------------------------------------------------------------------//
+
 template <class Type, class... Args>
 std::unique_ptr<Type> make_unique_aggregate(Args&&... args)
 {

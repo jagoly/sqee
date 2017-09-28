@@ -44,7 +44,7 @@ public: //====================================================//
     /// Update the entire buffer with a set of values.
     template <class... Ts>
     void update_complete(const Ts&... args)
-    {
+    { 
         #ifndef SQEE_MSVC
         update(0u, Structure(args...));
         #else

@@ -185,7 +185,7 @@ GuiSystem::Implementation::Implementation(Window& window, InputDevices& inputDev
     style.Colors[ImGuiCol_FrameBgHovered]        = ImVec4(0.80f, 0.60f, 0.50f, 0.40f);
     style.Colors[ImGuiCol_FrameBgActive]         = ImVec4(0.60f, 0.40f, 0.30f, 0.40f);
     style.Colors[ImGuiCol_TitleBg]               = ImVec4(0.25f, 0.25f, 0.25f, 0.60f);
-    style.Colors[ImGuiCol_TitleBgCollapsed]      = ImVec4(0.40f, 0.40f, 0.40f, 0.40f);
+    style.Colors[ImGuiCol_TitleBgCollapsed]      = ImVec4(0.30f, 0.30f, 0.30f, 0.40f);
     style.Colors[ImGuiCol_TitleBgActive]         = ImVec4(0.20f, 0.20f, 0.20f, 0.80f);
     style.Colors[ImGuiCol_MenuBarBg]             = ImVec4(0.40f, 0.40f, 0.40f, 0.40f);
     style.Colors[ImGuiCol_ScrollbarBg]           = ImVec4(0.40f, 0.40f, 0.40f, 0.40f);

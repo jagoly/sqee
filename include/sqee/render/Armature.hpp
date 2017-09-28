@@ -46,6 +46,8 @@ public: //====================================================//
 
     const Pose& get_rest_pose() const { return mRestPose; }
 
+    const std::vector<string>& get_bone_names() const { return mBoneNames; }
+
     //--------------------------------------------------------//
 
     Pose make_pose(const string& path) const;
