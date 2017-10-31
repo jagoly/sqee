@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <list>
 
 #include <sqee/builtins.hpp>
 
@@ -48,15 +49,10 @@ private: //===================================================//
     GuiSystem() = default;
     ~GuiSystem() = default;
 
-    //--------------------------------------------------------//
-
-    std::vector<GuiWidget*> mWidgets;
-
-    //--------------------------------------------------------//
-
     static GuiSystem*& impl_get_ptr_ref();
 
-    //--------------------------------------------------------//
+    // list so we can add or remove during iteration
+    std::list<GuiWidget*> mWidgets;
 
     class Implementation;
     friend class Implementation;

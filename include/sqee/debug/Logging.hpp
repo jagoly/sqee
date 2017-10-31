@@ -96,4 +96,32 @@ inline void log_assert(bool condition, const char* fmt, const Args&... args)
 
 //============================================================================//
 
+/// Log a block of WARNING messages.
+inline void log_warning_block(const string& heading, const std::vector<string>& lines)
+{
+    std::cout << '\n' << get_time_string() << " WARNING: " << heading << '\n';
+    for (const string& line : lines) std::cout << "  > " << line << '\n';
+    std::cout << std::endl;
+}
+
+//============================================================================//
+
+namespace literals {
+
+struct FormatString final
+{
+    template <class... Args>
+    string operator()(const Args&... args) const
+    { return tfm::format(mFmtStr, args...); }
+
+    const char* const mFmtStr;
+};
+
+inline FormatString operator ""_fmt_(const char* str, size_t)
+{ return FormatString { str }; }
+
+} // namespace literals
+
+//============================================================================//
+
 } // namespace sq

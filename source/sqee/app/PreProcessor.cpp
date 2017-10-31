@@ -47,10 +47,7 @@ void PreProcessor::update_header(const string& key, const string& string)
 string PreProcessor::process(const string& path, const string& prelude) const
 {
     const string fullPath = "shaders/" + path + ".glsl";
-    const string fileStr = get_string_from_file(fullPath);
-
-    std::vector<string> lineVec = tokenise_string(fileStr, '\n');
-    std::list<string> lines(lineVec.begin(), lineVec.end());
+    const string fullString = get_string_from_file(fullPath);
 
     string source = "#version 330 core\n"
                     "#extension GL_ARB_shading_language_420pack : enable\n"
@@ -58,54 +55,70 @@ string PreProcessor::process(const string& path, const string& prelude) const
                     "#extension GL_ARB_gpu_shader5 : enable\n"
                     "#line 0\n";
 
-    source.append(prelude);
+    source.reserve(fullString.size()); // might still be reallocated
+
+    source += prelude;
+
+    //--------------------------------------------------------//
 
     std::vector<std::pair<uint, string>> errorVec;
-    uint lineNum = 0u, tokenNum = 0u;
 
-    for (auto it = lines.begin(); it != lines.end(); ++it)
+    const auto base = tokenise_string_view(fullString, '\n');
+
+    //--------------------------------------------------------//
+
+    auto recursive_func = [&](auto&& thisFunc, const std::vector<string_view>& lines) -> void
     {
-        std::vector<string> tokens = tokenise_string(*it, ' ');
-
-        if (tokens.empty() == false)
+        for (size_t lineNum = 0u; lineNum < lines.size(); ++lineNum)
         {
-            if (tokens[0] == "#version")
-                errorVec.emplace_back(lineNum, "#version is added automatically");
+            const string_view& line = lines[lineNum];
 
-            if (tokens[0] == "#extension")
-                errorVec.emplace_back(lineNum, "extensions are added automatically");
-
-            if (errorVec.empty() == false) break;
-
-            if (tokens[0] == "#include")
+            if (line.empty() == true)
             {
-                if (tokens.size() == 1u)
-                    errorVec.emplace_back(lineNum, "#include missing a header path");
+                source += '\n';
+            }
+            else if (line.front() == '#')
+            {
+                const auto tokens = tokenise_string_view(line, ' ');
 
-                if (tokens.size() > 2u)
-                    errorVec.emplace_back(lineNum, "#include does not support spaces");
+                if (tokens[0] == "#include")
+                {
+                    const auto headerName = string(tokens.back());
+                    const auto headerFind = mHeaders.find(headerName);
 
-                if (mHeaders.count(tokens[1]) == 0u)
-                    errorVec.emplace_back(lineNum, "#include header has not been imported");
+                    if (tokens.size() == 1u)
+                        errorVec.emplace_back(lineNum, "#include missing a header path");
 
-                if (errorVec.empty() == false) break;
+                    else if (tokens.size() > 2u)
+                        errorVec.emplace_back(lineNum, "#include does not support spaces");
 
-                std::vector<string> header = mHeaders.at(tokens[1]);
-                header.emplace_back("#line " + std::to_string(++lineNum));
-                lines.insert(std::next(it), header.begin(), header.end());
+                    else if (headerFind == mHeaders.end())
+                        errorVec.emplace_back(lineNum, "#include header has not been imported");
 
-                it = lines.erase(std::prev(it));
-                tokenNum += uint(header.size());
+                    else
+                    {
+                        source += tfm::format("#line 0 // begin '%s'\n", headerName);
+
+                        thisFunc(thisFunc, headerFind->second.tokens);
+                    }
+                }
+
+                else if (tokens[0] == "#version")
+                    errorVec.emplace_back(lineNum, "#version is added automatically");
+
+                else if (tokens[0] == "#extension")
+                    errorVec.emplace_back(lineNum, "extensions are added automatically");
+
+                else { source += line; source += '\n'; } // #define, #ifdef, etc.
             }
 
-            else source += *it + '\n';
+            else { source += line; source += '\n'; }
         }
+    };
 
-        else source += '\n';
+    recursive_func(recursive_func, base);
 
-        if (tokenNum == 0u) ++lineNum;
-        else --tokenNum;
-    }
+    //--------------------------------------------------------//
 
     if (errorVec.empty() == false)
     {

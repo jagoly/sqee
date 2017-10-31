@@ -1,7 +1,10 @@
 #pragma once
 
-#include <functional>
 #include <limits>
+
+#include <functional>
+
+#include <sqee/helpers.hpp>
 
 #include <sqee/builtins.hpp>
 #include <sqee/misc/FlagSet.hpp>
@@ -9,34 +12,77 @@
 #include <sqee/redist/tinyformat.hpp>
 #include <sqee/redist/imgui/imgui.hpp>
 
-namespace sq::gui {
-
 //============================================================================//
+
+namespace sq::gui {
 
 constexpr const int FONT_REGULAR = 0;
 constexpr const int FONT_BOLD    = 1;
 constexpr const int FONT_ITALIC  = 2;
 constexpr const int FONT_MONO    = 3;
 
-//----------------------------------------------------------------------------//
-
-enum class WindowFlag
+enum class Collapse
 {
-    NoTitleBar    = 1 << 0,
-    AlwaysScrollX = 1 << 1,
-    AlwaysScrollY = 1 << 2,
-    ShrinkToFitX  = 1 << 3,
-    ShrinkToFitY  = 1 << 4,
-    MenuBar       = 1 << 5,
-    CloseButton   = 1 << 6
+    Close   = 1 << 0, ///< show a close button on the header
+    NoFrame = 1 << 1, ///< don't draw a frame around content
 };
+
+enum class Window
+{
+    NoTitle  = 1 << 0, ///< don't display the title bar
+    ScrollX  = 1 << 1, ///< always show horizontal scrollbar
+    ScrollY  = 1 << 2, ///< always show vertical scrollbar
+    MenuBar  = 1 << 3, ///< reserve space for a menu bar widget
+    Close    = 1 << 4, ///< show a close button on the title
+    NoMove   = 1 << 5, ///< don't allow the user to move the window
+    AutoSize = 1 << 6, ///< adjust window size to fit contents
+};
+
+enum class InputText
+{
+    LiveEdit       = 1 << 0, ///< immediately write back to string
+    CallbackAlways = 1 << 1, ///< activate callback every frame
+    CallbackFilter = 1 << 2, ///< activate callback for text input
+    DisableTab     = 1 << 3, ///< prevent tabbing out of the widget
+    //AutoHeight     = 1 << 4, ///< adjust height to fit contents // always on
+};
+
+struct ScopeResult
+{
+    bool display;
+    bool close;
+};
+
+struct InputTextCallbackData
+{
+    string text;        ///< check or modify the input string
+    uint cursorPos;     ///< check or modify text cursor position
+    uint selectStart;   ///< check or modify start of selection range
+    uint selectEnd;     ///< check or modify end of selection range
+    uint32_t character; ///< will be set to zero if not a filter event
+};
+
+using InputTextCallback = std::function<void(InputTextCallbackData&)>;
+
+} // namespace sq::gui
+
+SQEE_ALLOW_FLAGS_FOR_ENUM(sq::gui::Collapse);
+SQEE_ALLOW_FLAGS_FOR_ENUM(sq::gui::Window);
+SQEE_ALLOW_FLAGS_FOR_ENUM(sq::gui::InputText);
 
 //============================================================================//
 
-template <class... Args>
-using Callback = std::function<void(Args...)>;
+namespace sq::gui::flags {
 
-//----------------------------------------------------------------------------//
+using sq::gui::Collapse;
+using sq::gui::Window;
+using sq::gui::InputText;
+
+} // namespace sq::gui::flags
+
+//============================================================================//
+
+namespace sq::gui {
 
 inline ImGuiIO& get_io() { return imgui::GetIO(); }
 
@@ -44,39 +90,43 @@ inline ImVector<ImFont*>& get_fonts() { return get_io().Fonts->Fonts; }
 
 inline ImGuiStyle get_style() { return imgui::GetStyle(); }
 
-//============================================================================//
-
-namespace detail {
-
-bool CollapsingHeaderSized(const char* label);
-
-void BeginFramedGroup(bool lb, bool lt, bool rb, bool rt);
-
-void EndFramedGroup();
-
-inline void display_input_label(const char* label, float width)
-{
-    const float cursorStart = imgui::GetCursorPosX();
-
-    const float textWidth = imgui::CalcTextSize(label).x;
-    const float padding = (width - textWidth) / 2.f;
-
-    imgui::AlignFirstTextHeightToWidgets();
-    imgui::SetCursorPosX(cursorStart + padding - get_style().ItemSpacing.x);
-    imgui::TextUnformatted(label);
-    imgui::SameLine(cursorStart + width);
-}
-
-} // namespace detail
+} // namespace sq::gui
 
 //============================================================================//
 
-/// Base for scopes that need to "return" a bool.
-struct base_scope_result_bool
+namespace sq::gui::detail {
+
+struct base_scope_bool : private NonCopyable
 {
     operator bool() const { return mResult; }
-    protected: bool mResult;
+    protected: bool mResult {};
 };
+
+struct base_scope_result : private NonCopyable
+{
+    operator bool() const { return mResult.display; }
+    bool want_display() const { return mResult.display; }
+    bool want_close() const { return mResult.close; }
+    protected: ScopeResult mResult {};
+};
+
+ScopeResult begin_collapse(const char* label, FlagSet<Collapse> flags);
+
+ScopeResult begin_window(const char* label, Vec2F size, Vec2F position, FlagSet<Window> flags);
+
+void begin_framed_group(bool lb, bool lt, bool rb, bool rt);
+
+void end_framed_group();
+
+void display_input_label(const char* label, float width);
+
+bool display_input_text(const char* label, uint maxChars, string& ref, FlagSet<InputText> flags, InputTextCallback callback);
+
+} // namespace sq::gui::detail
+
+//============================================================================//
+
+namespace sq::gui {
 
 //============================================================================//
 
@@ -101,127 +151,134 @@ struct scope_item_width final
 /// Draw a decorative frame around a group of widgets.
 struct scope_framed_group final
 {
-    scope_framed_group() { detail::BeginFramedGroup(true, true, true, true); }
-    ~scope_framed_group() { detail::EndFramedGroup(); }
+    scope_framed_group() { detail::begin_framed_group(true, true, true, true); }
+    ~scope_framed_group() { detail::end_framed_group(); }
 };
 
-//----------------------------------------------------------------------------//
+//============================================================================//
 
-/// A collapsable header that respects PushItemWidth and draws a frame around content.
-struct scope_collapse : base_scope_result_bool
+struct scope_menu_bar final : detail::base_scope_bool
 {
-    scope_collapse(string label, int font = -1)
+    scope_menu_bar() { mResult = imgui::BeginMenuBar(); }
+    ~scope_menu_bar() { if (mResult) imgui::EndMenuBar(); }
+};
+
+struct scope_menu final : detail::base_scope_bool
+{
+    scope_menu(string label) { mResult = imgui::BeginMenu(label.c_str()); }
+    ~scope_menu() { if (mResult) imgui::EndMenu(); }
+};
+
+inline bool menu_item(string label)
+{
+    return imgui::MenuItem(label.c_str());
+}
+
+//============================================================================//
+
+/// Group with a collapsable header that respects PushItemWidth.
+///
+struct scope_collapse final : detail::base_scope_result
+{
+    scope_collapse(string label, FlagSet<Collapse> flags, int font = -1)
+        : mFlags(flags)
     {
         if (font >= 0) imgui::PushFont(get_fonts()[font]);
-        mResult = detail::CollapsingHeaderSized(label.c_str());
+        mResult = detail::begin_collapse(label.c_str(), mFlags);
         if (font >= 0) imgui::PopFont();
 
-        if (mResult == true)
+        if (mResult.display == true)
         {
-            imgui::SetCursorPosY(imgui::GetCursorPosY() - get_style().ItemSpacing.y);
-            detail::BeginFramedGroup(true, false, true, false);
+            if (!(mFlags & Collapse::NoFrame))
+            {
+                imgui::SetCursorPosY(imgui::GetCursorPosY() - get_style().ItemSpacing.y);
+                detail::begin_framed_group(true, false, true, false);
+            }
             imgui::PushID(label.c_str());
         }
     }
 
+    //--------------------------------------------------------//
+
     ~scope_collapse()
     {
-        if (mResult == true)
+        if (mResult.display == true)
         {
             imgui::PopID();
-            detail::EndFramedGroup();
+
+            if (!(mFlags & Collapse::NoFrame))
+                detail::end_framed_group();
         }
     }
+
+    //--------------------------------------------------------//
+
+    private: const FlagSet<Collapse> mFlags;
 };
 
 //----------------------------------------------------------------------------//
 
-/// A moveable and resizeable window.
-struct scope_window final
+/// An alternative api around imgui for creating windows.
+///
+struct scope_window final : detail::base_scope_result
 {
-    scope_window(string name, bool autoSize, FlagSet<WindowFlag> flags)
+    scope_window(string name, Vec2F minSize, Vec2F maxSize, Vec2F position, FlagSet<Window> _flags)
+        : flags(_flags)
     {
-        SQASSERT(flags.none_of(WindowFlag::ShrinkToFitX, WindowFlag::ShrinkToFitY), "");
+        // setting position relative to inverse sides not supported for moving windows
+        //SQASSERT(flags & Window::NoMove || (position.x >= 0.f && position.y >= 0.f), "");
+        //SQASSERT(flags & Window::NoMove || (maxSize.x >= 0.f && maxSize.y >= 0.f), "");
+
+        if (!(flags & Window::NoMove)) imgui::SetNextWindowPosCenter();
+
+        const Vec2F displaySize = get_io().DisplaySize;
+
+        if (std::signbit(minSize.x)) minSize.x += displaySize.x;
+        if (std::signbit(minSize.y)) minSize.y += displaySize.y;
+
+        if (maxSize.x <= 0.f) maxSize.x += displaySize.x;
+        if (maxSize.y <= 0.f) maxSize.y += displaySize.y;
+
+        imgui::SetNextWindowSizeConstraints(minSize, maxSize);
 
         ImGuiWindowFlags imFlags = ImGuiWindowFlags_NoSavedSettings;
 
-        if (autoSize == true) imFlags |= ImGuiWindowFlags_AlwaysAutoResize;
+        if (flags & Window::NoMove) imFlags |= ImGuiWindowFlags_NoMove;
+        if (flags & Window::AutoSize) imFlags |= ImGuiWindowFlags_AlwaysAutoResize;
 
-        if (flags & WindowFlag::NoTitleBar) imFlags |= ImGuiWindowFlags_NoTitleBar;
-        if (flags & WindowFlag::AlwaysScrollX) imFlags |= ImGuiWindowFlags_AlwaysHorizontalScrollbar;
-        if (flags & WindowFlag::AlwaysScrollY) imFlags |= ImGuiWindowFlags_AlwaysVerticalScrollbar;
-        if (flags & WindowFlag::MenuBar) imFlags |= ImGuiWindowFlags_MenuBar;
+        if (flags & Window::NoTitle) imFlags |= ImGuiWindowFlags_NoTitleBar;
+        if (flags & Window::MenuBar) imFlags |= ImGuiWindowFlags_MenuBar;
 
-        if (flags & WindowFlag::CloseButton)
+        if (flags & Window::ScrollX) imFlags |= ImGuiWindowFlags_AlwaysHorizontalScrollbar;
+        if (flags & Window::ScrollY) imFlags |= ImGuiWindowFlags_AlwaysVerticalScrollbar;
+
+        if (flags & Window::Close)
         {
             bool stayOpen = true;
-            mWantDisplay = imgui::Begin(name.c_str(), &stayOpen, imFlags);
-            mWantClose = !stayOpen;
+            mResult.display = imgui::Begin(name.c_str(), &stayOpen, imFlags);
+            mResult.close = !stayOpen;
         }
-        else mWantDisplay = imgui::Begin(name.c_str(), nullptr, imFlags);
+        else mResult.display = imgui::Begin(name.c_str(), nullptr, imFlags);
+
+        // these would work, but would cause an ugly delay when the window resizes
+        //SQASSERT(!(std::signbit(position.x) && (flags & Window::ShrinkX)), "");
+        //SQASSERT(!(std::signbit(position.y) && (flags & Window::ShrinkY)), "");
+
+        const Vec2F windowSize = imgui::GetWindowSize();
+
+        if (std::signbit(position.x)) position.x += displaySize.x - windowSize.x;
+        if (std::signbit(position.y)) position.y += displaySize.y - windowSize.y;
+
+        if (flags & Window::NoMove) imgui::SetWindowPos(position);
     }
+
+    //--------------------------------------------------------//
 
     ~scope_window() { imgui::End(); }
 
     //--------------------------------------------------------//
 
-    operator bool() const { return want_display(); }
-
-    bool want_display() const { return mWantDisplay; }
-    bool want_close() const { return mWantClose; }
-
-    private: bool mWantDisplay = false;
-    private: bool mWantClose = false;
-};
-
-//----------------------------------------------------------------------------//
-
-/// A window taking up a fixed region of the screen.
-struct scope_window_fixed final
-{
-    scope_window_fixed(string name, Vec2F size, Vec2F position, FlagSet<WindowFlag> flags)
-    {
-        const Vec2F displaySize = get_io().DisplaySize;
-
-        if (std::signbit(size.x)) size.x += displaySize.x;
-        if (std::signbit(size.y)) size.y += displaySize.y;
-
-        Vec2F minSize = size, maxSize = size;
-
-        if (flags & WindowFlag::ShrinkToFitX) minSize.x = 0.f;
-        if (flags & WindowFlag::ShrinkToFitY) minSize.y = 0.f;
-
-        imgui::SetNextWindowSizeConstraints(minSize, maxSize);
-
-        ImGuiWindowFlags imFlags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings
-                                 | ImGuiWindowFlags_AlwaysAutoResize;
-
-        if (flags & WindowFlag::NoTitleBar) imFlags |= ImGuiWindowFlags_NoTitleBar;
-        if (flags & WindowFlag::AlwaysScrollX) imFlags |= ImGuiWindowFlags_AlwaysHorizontalScrollbar;
-        if (flags & WindowFlag::AlwaysScrollY) imFlags |= ImGuiWindowFlags_AlwaysVerticalScrollbar;
-        if (flags & WindowFlag::MenuBar) imFlags |= ImGuiWindowFlags_MenuBar;
-
-        mWantDisplay = imgui::Begin(name.c_str(), nullptr, imFlags);
-
-        // these would work, but would cause an ugly delay when the window resizes
-        SQASSERT(!(std::signbit(position.x) && (flags & WindowFlag::ShrinkToFitX)), "");
-        SQASSERT(!(std::signbit(position.y) && (flags & WindowFlag::ShrinkToFitY)), "");
-
-        if (std::signbit(position.x)) position.x += displaySize.x - imgui::GetWindowSize().x;
-        if (std::signbit(position.y)) position.y += displaySize.y - imgui::GetWindowSize().y;
-
-        imgui::SetWindowPos(position);
-    }
-
-    ~scope_window_fixed() { imgui::End(); }
-
-    //--------------------------------------------------------//
-
-    operator bool() const { return want_display(); }
-
-    bool want_display() const { return mWantDisplay; }
-
-    private: bool mWantDisplay = false;
+    private: const FlagSet<Window> flags;
 };
 
 //============================================================================//
@@ -242,11 +299,10 @@ inline void display_text(string text)
 /// @tparam T integer type (int/uint, 8/16/32/64)
 ///
 /// @param label the string to use for the label
-/// @param labelWidth width to allocate for the label
+/// @param labelWidth width to allocate for the label (zero for no label)
 /// @param ref reference to the value to manipulate
 /// @param step amount to increment per +/- button click
-/// @param min the minimum value to allow
-/// @param max the maximum value to allow
+/// @param min,max the range of values to allow
 ///
 /// @result was the value just modified
 ///
@@ -257,7 +313,7 @@ bool input_int ( string label, float labelWidth, T& ref, int step,
     SQASSERT(min >= std::numeric_limits<T>::min(), "");
     SQASSERT(max <= std::numeric_limits<T>::max(), "");
 
-    detail::display_input_label(label.c_str(), labelWidth);
+    if (labelWidth != 0.f) detail::display_input_label(label.c_str(), labelWidth);
 
     const string hiddenLabel = "##" + label;
 
@@ -272,15 +328,14 @@ bool input_int ( string label, float labelWidth, T& ref, int step,
 
 /// Float input widget with a label and step buttons.
 ///
-/// @tparam T floating point type (float, double, long double)
+/// @tparam T float type (float, double, long double)
 ///
 /// @param label the string to use for the label
-/// @param labelWidth width to allocate for the label
+/// @param labelWidth width to allocate for the label (zero to hide)
 /// @param ref reference to the value to manipulate
 /// @param step amount to increment per +/- button click
 /// @param precision digits to display after the decimal point
-/// @param min the minimum value to allow
-/// @param max the maximum value to allow
+/// @param min,max the range of values to allow
 ///
 /// @result was the value just modified
 ///
@@ -291,7 +346,7 @@ bool input_float ( string label, float labelWidth, T& ref, float step, int preci
     SQASSERT(min >= std::numeric_limits<T>::min(), "");
     SQASSERT(max <= std::numeric_limits<T>::max(), "");
 
-    detail::display_input_label(label.c_str(), labelWidth);
+    if (labelWidth != 0.f) detail::display_input_label(label.c_str(), labelWidth);
 
     const string hiddenLabel = "##" + label;
 
@@ -304,14 +359,16 @@ bool input_float ( string label, float labelWidth, T& ref, float step, int preci
 
 //----------------------------------------------------------------------------//
 
-/// Vector Integer input widget with a label and step buttons.
+/// Integer vector input widget with a label.
+///
+/// @tparam S number of vector components
+/// @tparam T integer type (int/uint, 8/16/32/64)
 ///
 /// @param label the string to use for the label
-/// @param labelWidth width to allocate for the label
+/// @param labelWidth width to allocate for the label (zero to hide)
 /// @param ref reference to the value to manipulate
 /// @param step amount to increment per +/- button click
-/// @param min the minimum value to allow
-/// @param max the maximum value to allow
+/// @param min,max the range of values to allow
 ///
 /// @result was the value just modified
 ///
@@ -324,17 +381,14 @@ bool input_vec_i ( string label, float labelWidth, Vector<S,T>& ref,
     for (int i=0; i<S; ++i) SQASSERT(min[i] >= std::numeric_limits<T>::min(), "");
     for (int i=0; i<S; ++i) SQASSERT(max[i] >= std::numeric_limits<T>::max(), "");
 
-    detail::display_input_label(label.c_str(), labelWidth);
+    if (labelWidth != 0.f) detail::display_input_label(label.c_str(), labelWidth);
 
     const string hiddenLabel = "##" + label;
 
-    auto asInt32 = Vector<S,int>(ref);
-    bool changed;
-
+    auto asInt32 = Vector<S,int>(ref); bool changed;
     if constexpr (S == 2) changed = imgui::InputInt2(hiddenLabel.c_str(), asInt32.data);
     if constexpr (S == 3) changed = imgui::InputInt3(hiddenLabel.c_str(), asInt32.data);
     if constexpr (S == 4) changed = imgui::InputInt4(hiddenLabel.c_str(), asInt32.data);
-
     ref = Vector<S,T>(maths::clamp(asInt32, min, max));
 
     return changed;
@@ -342,15 +396,17 @@ bool input_vec_i ( string label, float labelWidth, Vector<S,T>& ref,
 
 //----------------------------------------------------------------------------//
 
-/// Vector Float input widget with a label and step buttons.
+/// Float vector input widget with a label.
+///
+/// @tparam S number of vector components
+/// @tparam T float type (float, double, long double)
 ///
 /// @param label the string to use for the label
-/// @param labelWidth width to allocate for the label
+/// @param labelWidth width to allocate for the label (zero to hide)
 /// @param ref reference to the value to manipulate
 /// @param step amount to increment per +/- button click
 /// @param precision digits to display after the decimal points
-/// @param min the minimum value to allow
-/// @param max the maximum value to allow
+/// @param min,max the range of values to allow
 ///
 /// @result was the value just modified
 ///
@@ -363,18 +419,242 @@ bool input_vec_f ( string label, float labelWidth, Vector<S,T>& ref, int precisi
     for (int i=0; i<S; ++i) SQASSERT(min[i] >= std::numeric_limits<T>::min(), "");
     for (int i=0; i<S; ++i) SQASSERT(max[i] >= std::numeric_limits<T>::max(), "");
 
-    detail::display_input_label(label.c_str(), labelWidth);
+    if (labelWidth != 0.f) detail::display_input_label(label.c_str(), labelWidth);
 
     const string hiddenLabel = "##" + label;
 
-    auto asFloat32 = Vector<S,float>(ref);
-    bool changed;
-
+    auto asFloat32 = Vector<S,float>(ref); bool changed;
     if constexpr (S == 2) changed = imgui::InputFloat2(hiddenLabel.c_str(), asFloat32.data, precision);
     if constexpr (S == 3) changed = imgui::InputFloat3(hiddenLabel.c_str(), asFloat32.data, precision);
     if constexpr (S == 4) changed = imgui::InputFloat4(hiddenLabel.c_str(), asFloat32.data, precision);
-
     ref = Vector<S,T>(maths::clamp(asFloat32, min, max));
+
+    return changed;
+}
+
+//----------------------------------------------------------------------------//
+
+/// Single line text input widget with a label.
+///
+/// @tparam MaxChars maxiumum string size to allow
+///
+/// @param label the string to use for the label
+/// @param labelWidth width to allocate for the label (zero to hide)
+/// @param ref reference to the string to manipulate
+/// @param flags set of TextInput flags to use
+/// @param callback function to use for callbacks
+///
+/// @result was the string just modified
+///
+template <uint MaxChars = 63u> inline
+bool input_text ( string label, float labelWidth, string& ref, FlagSet<InputText> flags, InputTextCallback callback )
+{
+    constexpr const size_t BufSize = MaxChars + 1u;
+
+    //SQASSERT(ref.size() <= MaxChars, "");
+    if (ref.size() > MaxChars) ref.resize(MaxChars);
+
+    SQASSERT(callback == nullptr || flags & (InputText::CallbackAlways | InputText::CallbackFilter), "");
+
+    ImGuiInputTextFlags imFlags = 0;
+
+    if (!(flags & InputText::LiveEdit)) imFlags |= ImGuiInputTextFlags_EnterReturnsTrue;
+    if (flags & InputText::CallbackAlways) imFlags |= ImGuiInputTextFlags_CallbackAlways;
+    if (flags & InputText::CallbackFilter) imFlags |= ImGuiInputTextFlags_CallbackCharFilter;
+    if (flags & InputText::DisableTab) imFlags |= ImGuiInputTextFlags_CallbackCompletion;
+
+    if (labelWidth != 0.f) detail::display_input_label(label.c_str(), labelWidth);
+
+    const string hiddenLabel = "##" + label;
+
+    std::array<char, BufSize> buffer;
+    ref.copy(buffer.data(), MaxChars);
+    buffer[ref.size()] = '\0';
+
+    bool changed;
+
+    //--------------------------------------------------------//
+
+    if (callback != nullptr)
+    {
+        const auto cbWrapper = [](ImGuiTextEditCallbackData* imData) -> int
+        {
+            InputTextCallbackData data
+            {
+                string(imData->Buf), uint(imData->CursorPos),
+                uint(imData->SelectionStart), uint(imData->SelectionEnd),
+                uint32_t(imData->EventChar)
+            };
+
+            std::invoke(*static_cast<InputTextCallback*>(imData->UserData), data);
+
+            if (data.text != string_view(imData->Buf))
+            {
+                SQASSERT(data.text.size() <= MaxChars, "naughty callback!");
+
+                data.text.copy(imData->Buf, MaxChars);
+                imData->Buf[data.text.size()] = '\0';
+
+                imData->BufTextLen = int(data.text.size());
+                imData->BufDirty = true;
+            }
+
+            imData->CursorPos = int(data.cursorPos);
+            imData->SelectionStart = int(data.selectStart);
+            imData->SelectionEnd = int(data.selectEnd);
+
+            imData->EventChar = ImWchar(data.character);
+
+            return 0; // not sure why imgui needs a result
+        };
+
+        changed = imgui::InputText(hiddenLabel.c_str(), buffer.data(), BufSize, imFlags, cbWrapper, &callback);
+    }
+
+    else if (flags & InputText::DisableTab)
+    {
+        const auto cbDummy = [](ImGuiTextEditCallbackData*) -> int { return 0; };
+        changed = imgui::InputText(hiddenLabel.c_str(), buffer.data(), BufSize, imFlags, cbDummy);
+    }
+
+    else changed = imgui::InputText(hiddenLabel.c_str(), buffer.data(), BufSize, imFlags);
+
+    //--------------------------------------------------------//
+
+    // need to do our own string compare when EnterReturnsTrue is enabled
+    if (changed && (flags & InputText::LiveEdit || ref != string_view(buffer.data())))
+    {
+        ref = string(buffer.data());
+        return true;
+    }
+
+    return false;
+}
+
+//----------------------------------------------------------------------------//
+
+/// Multi line text input widget.
+///
+/// @tparam MaxChars maxiumum string size to allow
+///
+/// @param label the string to use for the label
+/// @param labelWidth width to allocate for the label (zero to hide)
+/// @param ref reference to the string to manipulate
+/// @param flags set of TextInput flags to use
+/// @param callback function to use for callbacks
+///
+/// @result was the string just modified
+///
+template <uint MaxChars = 255u> inline
+bool input_text_multi ( string label, string& ref, FlagSet<InputText> flags, InputTextCallback callback )
+{
+    constexpr const size_t BufSize = MaxChars + 1u;
+
+    //SQASSERT(ref.size() <= MaxChars, "");
+    if (ref.size() > MaxChars) ref.resize(MaxChars);
+
+    SQASSERT(callback == nullptr || flags & (InputText::CallbackAlways | InputText::CallbackFilter), "");
+
+    ImGuiInputTextFlags imFlags = 0;
+
+    if (!(flags & InputText::LiveEdit)) imFlags |= ImGuiInputTextFlags_EnterReturnsTrue;
+    if (flags & InputText::CallbackAlways) imFlags |= ImGuiInputTextFlags_CallbackAlways;
+    if (flags & InputText::CallbackFilter) imFlags |= ImGuiInputTextFlags_CallbackCharFilter;
+    if (flags & InputText::DisableTab) imFlags |= ImGuiInputTextFlags_CallbackCompletion;
+
+    // using imgui provided label for now
+    //if (labelWidth != 0.f) detail::display_input_label(label.c_str(), labelWidth);
+
+    std::array<char, BufSize> buffer;
+    ref.copy(buffer.data(), MaxChars);
+    buffer[ref.size()] = '\0';
+
+    float height = imgui::CalcTextSize(ref.c_str()).y;
+    height += imgui::CalcTextSize("\n").y + get_style().FramePadding.y * 2.f;
+    const Vec2F size = { 0.f, height };
+
+    bool changed;
+
+    //--------------------------------------------------------//
+
+    if (callback != nullptr)
+    {
+        const auto cbWrapper = [](ImGuiTextEditCallbackData* imData) -> int
+        {
+            InputTextCallbackData data
+            {
+                string(imData->Buf), uint(imData->CursorPos),
+                uint(imData->SelectionStart), uint(imData->SelectionEnd),
+                uint32_t(imData->EventChar)
+            };
+
+            std::invoke(*static_cast<InputTextCallback*>(imData->UserData), data);
+
+            if (data.text != string_view(imData->Buf))
+            {
+                SQASSERT(data.text.size() <= MaxChars, "naughty callback!");
+
+                data.text.copy(imData->Buf, MaxChars);
+                imData->Buf[data.text.size()] = '\0';
+
+                imData->BufTextLen = int(data.text.size());
+                imData->BufDirty = true;
+            }
+
+            imData->CursorPos = int(data.cursorPos);
+            imData->SelectionStart = int(data.selectStart);
+            imData->SelectionEnd = int(data.selectEnd);
+
+            imData->EventChar = ImWchar(data.character);
+
+            return 0; // not sure why imgui needs a result
+        };
+
+        changed = imgui::InputTextMultiline(label.c_str(), buffer.data(), BufSize, size, imFlags, cbWrapper, &callback);
+    }
+
+    else if (flags & InputText::DisableTab)
+    {
+        const auto cbDummy = [](ImGuiTextEditCallbackData*) -> int { return 0; };
+        changed = imgui::InputTextMultiline(label.c_str(), buffer.data(), BufSize, size, imFlags, cbDummy);
+    }
+
+    else changed = imgui::InputTextMultiline(label.c_str(), buffer.data(), BufSize, size, imFlags);
+
+    //--------------------------------------------------------//
+
+    // need to do our own string compare when EnterReturnsTrue is enabled
+    if (changed && (flags & InputText::LiveEdit || ref != string_view(buffer.data())))
+    {
+        ref = string(buffer.data());
+        return true;
+    }
+
+    return false;
+}
+
+//----------------------------------------------------------------------------//
+
+/// Combo Box widget.
+///
+template <class IntType> inline
+bool input_combo(string label, float labelWidth, IntType& ref, const std::vector<string>& items)
+{
+    detail::display_input_label(label.c_str(), labelWidth);
+
+    const size_t itemCount = items.size();
+    SQASSERT(itemCount <= std::numeric_limits<IntType>::max(), "");
+
+    std::vector<const char*> cStrItems;
+    cStrItems.reserve(itemCount);
+
+    for (const string& item : items) cStrItems.push_back(item.c_str());
+
+    const string hiddenLabel = "##" + label;
+
+    auto asInt32 = static_cast<int>(ref);
+    bool changed = imgui::Combo(hiddenLabel.c_str(), &asInt32, cStrItems.data(), int(itemCount));
+    ref = static_cast<IntType>(asInt32);
 
     return changed;
 }
@@ -400,32 +680,6 @@ inline bool button_with_tooltip(string label, string tooltip)
     }
 
     return clicked;
-}
-
-//----------------------------------------------------------------------------//
-
-/// Combo Box widget.
-///
-template <class IntType>
-inline bool input_combo(string label, float labelWidth, IntType& ref, const std::vector<string>& items)
-{
-    detail::display_input_label(label.c_str(), labelWidth);
-
-    const size_t itemCount = items.size();
-    SQASSERT(itemCount <= std::numeric_limits<IntType>::max(), "");
-
-    std::vector<const char*> cStrItems;
-    cStrItems.reserve(itemCount);
-
-    for (const string& item : items) cStrItems.push_back(item.c_str());
-
-    const string hiddenLabel = "##" + label;
-
-    auto asInt32 = static_cast<int>(ref);
-    bool changed = imgui::Combo(hiddenLabel.c_str(), &asInt32, cStrItems.data(), int(itemCount));
-    ref = static_cast<IntType>(asInt32);
-
-    return changed;
 }
 
 //============================================================================//

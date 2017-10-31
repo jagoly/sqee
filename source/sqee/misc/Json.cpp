@@ -7,21 +7,20 @@ using namespace sq;
 
 //============================================================================//
 
-JsonValue sq::parse_json(const string& path)
+JsonValue sq::parse_json_from_file(const string& path)
 {
-    std::ifstream src(path);
+    auto src = std::ifstream(path);
 
-    if (src.is_open() == false)
+    if (src.good() == false)
     {
-        log_warning("Couldn't open json '%s'", path);
+        log_warning("could not open json file '%s'", path);
         return {};
     }
 
     try { return JsonValue::parse(src); }
     catch (const std::exception& e)
     {
-        log_warning("problem loading '%s'\n  what():  %s", path, e.what());
+        log_warning("problem parsing json '%s'\n  what():  %s", path, e.what());
+        return {};
     }
-
-    return {};
 }

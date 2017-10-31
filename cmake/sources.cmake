@@ -28,6 +28,8 @@ set(SOURCES
   "source/sqee/redist/imgui/imgui_demo.cpp"
   "source/sqee/redist/imgui/imgui_draw.cpp"
 
+  "include/sqee/redist/variant.hpp"
+
   #==========================================================#
   # SQEE Source                                              #
   #==========================================================#
@@ -94,9 +96,9 @@ set(SOURCES
   "include/sqee/misc/Files.hpp"       "source/sqee/misc/Files.cpp"
   "include/sqee/misc/Json.hpp"        "source/sqee/misc/Json.cpp"
   "include/sqee/misc/StringCast.hpp"  "source/sqee/misc/StringCast.cpp"
+  "include/sqee/misc/Parsing.hpp"     "source/sqee/misc/Parsing.cpp"
 
   "include/sqee/misc/Algorithms.hpp"
-  "include/sqee/misc/Parsing.hpp"
 
   "include/sqee/misc/PoolTools.hpp"
 

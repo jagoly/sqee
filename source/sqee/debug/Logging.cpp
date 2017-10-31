@@ -2,6 +2,8 @@
 
 #include <sqee/debug/Logging.hpp>
 
+using namespace sq;
+
 string sq::get_time_string()
 {
     auto now = std::time(nullptr);

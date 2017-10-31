@@ -2,6 +2,8 @@
 
 #include <unordered_map>
 
+#include <sqee/misc/Parsing.hpp>
+
 #include <sqee/gl/Program.hpp>
 
 namespace sq {
@@ -42,7 +44,7 @@ public: //====================================================//
 
 private: //===================================================//
 
-    std::unordered_map<string, std::vector<string>> mHeaders;
+    std::unordered_map<string, TokenisedString> mHeaders;
 };
 
 //============================================================================//

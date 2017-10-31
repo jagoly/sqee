@@ -19,17 +19,17 @@ bool sq::check_file_exists(const string& path)
 
 string sq::get_string_from_file(const string& path)
 {
-    if (std::ifstream src(path); src.is_open())
-    {
-        std::stringstream stream;
-        stream << src.rdbuf();
+    auto src = std::ifstream(path);
 
-        return stream.str();
+    if (src.good() == false)
+    {
+        log_warning("could not open file '%s'", path);
+        return {};
     }
 
-    log_warning("Couldn't open file %s", path);
-
-    return {};
+    std::stringstream stream;
+    stream << src.rdbuf();
+    return string(stream.str());
 }
 
 //============================================================================//
@@ -38,9 +38,8 @@ std::vector<uchar> sq::get_bytes_from_file(const string& path)
 {
     using unsigned_ifstream = std::basic_ifstream<uchar>;
     unsigned_ifstream src(path, std::ios::binary | std::ios::ate);
-    //std::ifstream src(path, std::ios::binary | std::ios::ate);
 
-    if (src.is_open() == false)
+    if (src.good() == false)
     {
         log_warning("Couldn't open file '%s'", path);
         return {};
@@ -59,35 +58,14 @@ std::vector<uchar> sq::get_bytes_from_file(const string& path)
 
 //============================================================================//
 
-std::vector<string> sq::tokenise_string(const string& str, char dlm)
-{
-    std::vector<string> result;
-
-    std::stringstream stream ( str );
-    string item;
-
-    while (std::getline(stream, item, dlm))
-        if (item.empty() == false)
-            result.emplace_back(item);
-
-    return result;
-}
-
-//============================================================================//
-
 TokenisedFile sq::tokenise_file(const string& path)
 {
     TokenisedFile result;
 
-    if (std::ifstream src(path); src.is_open())
-    {
-        std::stringstream stream;
-        stream << src.rdbuf();
-        result.fullString = stream.str();
-    }
-    else { log_warning("Couldn't open file %s", path); return result; }
-
+    result.fullString = get_string_from_file(path);
     const string& str = result.fullString;
+
+    if (str.empty()) return result;
 
     size_t tokenStart = 0u;
     size_t nextLine = str.find('\n');

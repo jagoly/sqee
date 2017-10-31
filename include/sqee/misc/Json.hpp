@@ -4,8 +4,12 @@
 
 namespace sq {
 
+//============================================================================//
+
 using JsonValue = nlohmann::json;
 
-JsonValue parse_json(const string& path);
+JsonValue parse_json_from_file(const string& path);
+
+//============================================================================//
 
 } // namespace sq

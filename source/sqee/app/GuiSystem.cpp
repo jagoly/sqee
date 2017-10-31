@@ -2,9 +2,10 @@
 
 #include <sqee/redist/imgui/imgui.hpp>
 
+#include <sqee/assert.hpp>
+
 #include <sqee/gl/Context.hpp>
 #include <sqee/misc/Algorithms.hpp>
-#include <sqee/macros.hpp>
 
 #include <sqee/app/Window.hpp>
 #include <sqee/app/InputDevices.hpp>
@@ -236,16 +237,18 @@ void GuiSystem::Implementation::create_fonts()
     fontConfig.OversampleH = 2;
     fontConfig.OversampleV = 2;
 
-    std::strcpy(fontConfig.Name, "Ubuntu Regular");
+    constexpr size_t MaxNameLen = sizeof(ImFontConfig::Name);
+
+    string_view("Ubuntu Regular").copy(fontConfig.Name, MaxNameLen);
     io.Fonts->AddFontFromMemoryCompressedTTF(data_UbuntuRegular, data_UbuntuRegular_size, 16.f, &fontConfig);
 
-    std::strcpy(fontConfig.Name, "Ubuntu Bold");
+    string_view("Ubuntu Bold").copy(fontConfig.Name, MaxNameLen);
     io.Fonts->AddFontFromMemoryCompressedTTF(data_UbuntuBold, data_UbuntuBold_size, 16.f, &fontConfig);
 
-    std::strcpy(fontConfig.Name, "Ubuntu Italic");
+    string_view("Ubuntu Italic").copy(fontConfig.Name, MaxNameLen);
     io.Fonts->AddFontFromMemoryCompressedTTF(data_UbuntuItalic, data_UbuntuItalic_size, 16.f, &fontConfig);
 
-    std::strcpy(fontConfig.Name, "Ubuntu Mono Regular");
+    string_view("Ubuntu Mono Regular").copy(fontConfig.Name, MaxNameLen);
     io.Fonts->AddFontFromMemoryCompressedTTF(data_UbuntuMonoRegular, data_UbuntuMonoRegular_size, 16.f, &fontConfig);
 }
 
@@ -336,6 +339,18 @@ void GuiSystem::Implementation::finish_handle_events()
     io.MouseDown[1] |= input.is_pressed(Mouse_Button::Right);
     io.MouseDown[2] |= input.is_pressed(Mouse_Button::Middle);
 
+    io.KeyShift |= input.is_pressed(Keyboard_Key::Shift_L);
+    io.KeyShift |= input.is_pressed(Keyboard_Key::Shift_R);
+
+    io.KeyCtrl |= input.is_pressed(Keyboard_Key::Control_L);
+    io.KeyCtrl |= input.is_pressed(Keyboard_Key::Control_R);
+
+    io.KeyAlt |= input.is_pressed(Keyboard_Key::Alt_L);
+    io.KeyAlt |= input.is_pressed(Keyboard_Key::Alt_R);
+
+    io.KeySuper |= input.is_pressed(Keyboard_Key::Super_L);
+    io.KeySuper |= input.is_pressed(Keyboard_Key::Super_R);
+
     //--------------------------------------------------------//
 
     imgui::NewFrame();
@@ -351,11 +366,11 @@ void GuiSystem::Implementation::finish_scene_update(double elapsed)
 
     io.DeltaTime = float(elapsed);
 
-    io.MouseDown[0] = false;
-    io.MouseDown[1] = false;
-    io.MouseDown[2] = false;
+    io.MouseDown[0] = io.MouseDown[1] = io.MouseDown[2] = false;
 
     io.MouseWheel = 0.f;
+
+    io.KeyShift = io.KeyCtrl = io.KeyAlt = io.KeySuper = false;
 }
 
 //============================================================================//
@@ -473,20 +488,20 @@ void GuiSystem::show_imgui_demo() { imgui::ShowTestWindow(); }
 void GuiSystem::enable_widget(GuiWidget& widget)
 {
     const auto iter = algo::find(mWidgets, &widget);
-    if (iter == mWidgets.end()) mWidgets.push_back(&widget);
+    if (iter == mWidgets.end()) mWidgets.push_front(&widget);
+    else SQASSERT(false, "");
 }
 
 void GuiSystem::disable_widget(GuiWidget& widget)
 {
     const auto iter = algo::find(mWidgets, &widget);
     if (iter != mWidgets.end()) mWidgets.erase(iter);
+    else SQASSERT(false, "");
 }
 
 void GuiSystem::draw_widgets()
 {
     for (const GuiWidget* widget : mWidgets)
-    {
         if (widget->func != nullptr)
             widget->func();
-    }
 }

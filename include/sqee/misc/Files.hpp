@@ -17,17 +17,14 @@ std::vector<uchar> get_bytes_from_file(const string& path);
 
 //============================================================================//
 
-struct TokenisedFile
+struct TokenisedFile : sq::MoveOnly
 {
-    using Tokens = std::vector<std::string_view>;
-    struct Line { Tokens tokens; std::size_t num; };
+    using Tokens = std::vector<string_view>;
+    struct Line { Tokens tokens; size_t num; };
 
-    std::string fullString;
+    string fullString;
     std::vector<Line> lines;
 };
-
-/// Split a string into a vector of strings.
-std::vector<string> tokenise_string(const string& str, char dlm);
 
 /// Load a text file into an easy to parse structure.
 TokenisedFile tokenise_file(const string& path);

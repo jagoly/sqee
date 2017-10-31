@@ -11,9 +11,18 @@ class UniqueAny : public sq::MoveOnly
 {
 public: //====================================================//
 
-    constexpr UniqueAny() noexcept = default;
+    UniqueAny() noexcept
+    {
+        mDataStore = nullptr;
+        mTypeInfo = &typeid(void);
+        mDestructor = nullptr;
+    }
 
-    ~UniqueAny() { reset(); }
+    ~UniqueAny()
+    {
+        if (has_value() == true)
+            mDestructor(mDataStore);
+    }
 
     //--------------------------------------------------------//
 
@@ -28,8 +37,11 @@ public: //====================================================//
         other.mDestructor = nullptr;
     }
 
-    UniqueAny& operator=(UniqueAny&& other) noexcept
+    UniqueAny& operator=(UniqueAny&& other)
     {
+        if (has_value() == true)
+            mDestructor(mDataStore);
+
         mDataStore = other.mDataStore;
         mTypeInfo = other.mTypeInfo;
         mDestructor = other.mDestructor;
@@ -46,6 +58,8 @@ public: //====================================================//
     template <class T, class... Args>
     void emplace(Args&&... args)
     {
+        SQASSERT(has_value() == false, "");
+
         mDataStore = new T(std::forward<Args>(args)...);
         mTypeInfo = &typeid(T);
         mDestructor = &impl_destroy<T>;
@@ -110,6 +124,11 @@ public: //====================================================//
         return mDataStore == other;
     }
 
+    bool operator!=(void* other) const noexcept
+    {
+        return mDataStore != other;
+    }
+
 private: //===================================================//
 
     template <class T>
@@ -118,9 +137,9 @@ private: //===================================================//
         delete static_cast<T*>(ptr);
     }
 
-    void* mDataStore = nullptr;
-    const std::type_info* mTypeInfo = &typeid(void);
-    void (*mDestructor)(void*) = nullptr;
+    void* mDataStore;
+    const std::type_info* mTypeInfo;
+    void (*mDestructor)(void*);
 };
 
 } // namespace sq

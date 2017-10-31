@@ -1,5 +1,7 @@
 #pragma once
 
+#include <algorithm>
+
 #include <sqee/builtins.hpp>
 #include <sqee/assert.hpp>
 
@@ -9,27 +11,56 @@ namespace sq {
 
 //============================================================================//
 
-/// Fast eight byte string type.
-struct TinyString final
+/// Fast static size string type. Useful for keys.
+///
+/// @tparam Len maximum number of characters, sans null termination.
+///
+template <size_t Len>
+class TinyString final
 {
-    constexpr TinyString(const char* str)
+public: //====================================================//
+
+    constexpr TinyString() noexcept = default;
+
+    constexpr TinyString(const TinyString& other) noexcept = default;
+
+    //--------------------------------------------------------//
+
+    constexpr TinyString(const char* str) noexcept
     {
-        for (int i = 0; i < 7 && str[i] != 0; ++i)
-            data.str[i] = str[i];
+        const auto sv = string_view(str);
+        SQASSERT(sv.length() <= Len, "string literal too long");
+        std::copy_n(str, sv.length(), mData);
     }
 
-    TinyString(const TinyString& other) = default;
-
-    constexpr bool operator==(TinyString other) const
+    constexpr TinyString(const char* str, size_t len) noexcept
     {
-        return data.u64 == other.data.u64;
+        SQASSERT(len <= Len, "string or string_view too long");
+        std::copy_n(str, len, mData);
     }
 
-    constexpr const char* c_str() const { return data.str; }
+    //--------------------------------------------------------//
 
-    operator string() const { return string(data.str); }
+    constexpr bool operator==(const TinyString& other) const noexcept
+    {
+        return std::equal(mData, mData + Len, other.mData);
+    }
 
-    union { uint64_t u64 = 0u; char str[8]; } data;
+    constexpr bool empty() const noexcept { return mData[0] == '\0'; }
+
+    constexpr const char* c_str() const noexcept { return mData; }
+
+    //--------------------------------------------------------//
+
+    TinyString(const string& str) noexcept : TinyString(str.data(), str.size()) {}
+
+    TinyString(const string_view& sv) noexcept : TinyString(sv.data(), sv.size()) {}
+
+    operator string() const { return string(mData); }
+
+private: //===================================================//
+
+    char mData[Len + 1] {};
 };
 
 //============================================================================//
@@ -103,13 +134,13 @@ private: //===================================================//
 
 //============================================================================//
 
-/// Bidirectional string to pointer map into a pool.
-template <class Type>
+/// Bidirectional map of items to pointer map into a pool.
+template <class Key, class Type>
 class TinyPoolMap final : sq::NonCopyable
 {
 public: //====================================================//
 
-    struct Item { TinyString key; Type* ptr; };
+    struct Item { Key key; Type* ptr; };
     using Allocator = PoolAllocator<Type>;
 
     using iterator = typename std::vector<Item>::iterator;
@@ -134,7 +165,7 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     template <class... Args>
-    Type* emplace(TinyString key, Args&&... args)
+    Type* emplace(Key key, Args&&... args)
     {
         SQASSERT(key_exists(key) == false, "");
 
@@ -144,7 +175,7 @@ public: //====================================================//
         return ptr;
     }
 
-    void erase(TinyString key)
+    void erase(const Key& key)
     {
         const auto iter = key_find(key);
         SQASSERT(iter != mItemVector.end(), "");
@@ -162,21 +193,21 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    Type* operator[](TinyString key)
+    Type* operator[](const Key& key)
     {
         const auto iter = key_find(key);
         SQASSERT(iter != mItemVector.end(), "");
         return iter->ptr;
     }
 
-    const Type* operator[](TinyString key) const
+    const Type* operator[](const Key& key) const
     {
         const auto iter = key_find(key);
         SQASSERT(iter != mItemVector.end(), "");
         return iter->ptr;
     }
 
-    TinyString operator[](const Type* ptr) const
+    const Key& operator[](const Type* ptr) const
     {
         const auto iter = ptr_find(ptr);
         SQASSERT(iter != mItemVector.end(), "");
@@ -185,27 +216,27 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    iterator key_find(TinyString key)
+    iterator key_find(const Key& key)
     {
-        auto predicate = [key](Item& item) { return item.key == key; };
+        auto predicate = [&](const Item& item) { return item.key == key; };
         return algo::find_if(mItemVector, predicate);
     }
 
-    const_iterator key_find(TinyString key) const
+    const_iterator key_find(const Key& key) const
     {
-        auto predicate = [key](const Item& item) { return item.key == key; };
+        auto predicate = [&](const Item& item) { return item.key == key; };
         return algo::find_if(mItemVector, predicate);
     }
 
     const_iterator ptr_find(const Type* ptr) const
     {
-        auto predicate = [ptr](const Item& item) { return item.ptr == ptr; };
+        auto predicate = [&](const Item& item) { return item.ptr == ptr; };
         return algo::find_if(mItemVector, predicate);
     }
 
     //--------------------------------------------------------//
 
-    bool key_exists(TinyString key) const
+    bool key_exists(const Key& key) const
     {
         return key_find(key) != mItemVector.end();
     }
