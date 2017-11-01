@@ -3,6 +3,7 @@
 #include <sqee/redist/imgui/imgui.hpp>
 
 #include <sqee/assert.hpp>
+#include <sqee/macros.hpp>
 
 #include <sqee/gl/Context.hpp>
 #include <sqee/misc/Algorithms.hpp>
