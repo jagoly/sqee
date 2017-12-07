@@ -87,6 +87,7 @@ set(SOURCES
   "include/sqee/maths/Functions.hpp"
   "include/sqee/maths/Matrices.hpp"
   "include/sqee/maths/Quaternion.hpp"
+  "include/sqee/maths/Random.hpp"
   "include/sqee/maths/Scalar.hpp"
   "include/sqee/maths/Vectors.hpp"
   "include/sqee/maths/Volumes.hpp"

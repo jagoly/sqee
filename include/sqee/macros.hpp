@@ -45,4 +45,6 @@ constexpr const char* enum_to_string(Type value) \
 { using EnumType = Type; switch (value) {
 
 #define SQEE_ENUM_TO_STRING_BLOCK_END \
-} throw std::runtime_error("invalid enum"); }
+} /*throw std::runtime_error("invalid enum");*/ }
+
+// the above SHOULD be valid, but doesn't work in GCC

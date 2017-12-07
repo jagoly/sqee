@@ -242,6 +242,40 @@ namespace maths {
 
 //============================================================================//
 
+/// Component-wise a is less than b test.
+template <int S, class T> constexpr
+bool all_less(Vector<S, T> a, Vector<S, T> b)
+{
+    for (int i = 0; i < S; ++i) if (a[i] >= b[i]) return false;
+    return true;
+}
+
+/// Component-wise a is greater than b test.
+template <int S, class T> constexpr
+bool all_greater(Vector<S, T> a, Vector<S, T> b)
+{
+    for (int i = 0; i < S; ++i) if (a[i] <= b[i]) return false;
+    return true;
+}
+
+/// Component-wise a is less than or equal to b test.
+template <int S, class T> constexpr
+bool all_less_equal(Vector<S, T> a, Vector<S, T> b)
+{
+    for (int i = 0; i < S; ++i) if (a[i] > b[i]) return false;
+    return true;
+}
+
+/// Component-wise a is greater than or equal to b test.
+template <int S, class T> constexpr
+bool all_greater_equal(Vector<S, T> a, Vector<S, T> b)
+{
+    for (int i = 0; i < S; ++i) if (a[i] < b[i]) return false;
+    return true;
+}
+
+//============================================================================//
+
 /// Compute the component-wise minimum of two vectors.
 template <int S, class T> constexpr
 Vector<S, T> min(Vector<S, T> a, Vector<S, T> b)
@@ -498,6 +532,22 @@ Vector3<T> rotate_z(Vector3<T> vec, T angle)
     T y = (+vec.x * s) + (+vec.y * c);
     return Vector3<T>(x, y, vec.z);
 }
+
+//============================================================================//
+
+///// Rotate a vector along an arbitary axis.
+//template <class T> constexpr
+//Matrix33<T> rotation(Vector3<T> axis, T angle)
+//{
+//    const T c = std::cos(maths::radians(angle)), s = std::sin(maths::radians(angle));
+//    const Vector3<T> x = axis * axis.x, y = axis * axis.y, z = axis * axis.z;
+
+//    Vector3<T> colA { x.x + (T(1)-x.x) * c, x.y * (T(1)-c) - axis.z * s, x.z * (T(1)-c) + axis.y * s };
+//    Vector3<T> colB { y.x * (T(1)-c) + axis.z * s, y.y + (T(1)-y.y) * c, y.z * (T(1)-c) - axis.x * s };
+//    Vector3<T> colC { z.x * (T(1)-c) - axis.y * s, z.y * (T(1)-c) + axis.x * s, z.z + (T(1)-z.z) * c };
+
+//    return Matrix33<T> { colA, colB, colC };
+//}
 
 //============================================================================//
 

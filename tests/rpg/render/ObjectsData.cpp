@@ -91,9 +91,7 @@ void sqt::refresh_render_stuff(RenderStuff& rstuff, const WorldStuff& wstuff, co
 
         if (skybox->path != newPath)
         {
-            rstuff.skybox->tex.allocate_storage(1024u);
-            skybox->tex.load_directory("textures/" + newPath);
-
+            skybox->tex.load_automatic("textures/" + newPath);
             skybox->path = newPath;
         }
 

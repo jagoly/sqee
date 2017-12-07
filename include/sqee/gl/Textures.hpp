@@ -30,6 +30,9 @@ public: //====================================================//
     /// Load an image, allocate storage and generate mipmaps
     //void load_auto(const string& path, bool mipmaps);
 
+    /// Configure and load texture with a meta.json file.
+    void load_automatic(const string& path);
+
     //--------------------------------------------------------//
 
     /// Load an sq::Texture2D from sqee packages.
@@ -62,8 +65,8 @@ public: //====================================================//
     /// Load a png or jpg image into one face of the texture.
     void load_file(const string& path, uint face);
 
-    /// Load a directory of png or jpg images into the texture.
-    void load_directory(const string& path);
+    /// Configure and load texture with a meta.json file.
+    void load_automatic(const string& path);
 };
 
 //============================================================================//
@@ -91,6 +94,9 @@ public: //====================================================//
 
     /// Load a png or jpg image into one layer of the texture.
     void load_file(const string& path, uint layer);
+
+    /// Configure and load texture with a meta.json file.
+    void load_automatic(const string& path);
 };
 
 //============================================================================//

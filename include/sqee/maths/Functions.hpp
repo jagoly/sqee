@@ -107,6 +107,22 @@ Matrix44<T> transform(Vector3<T> translation, T scale)
 
 //============================================================================//
 
+/// Create a rotation matrix from an axis and angle.
+template <class T> constexpr
+Matrix33<T> rotation(Vector3<T> axis, T angle)
+{
+    const T c = std::cos(maths::radians(angle)), s = std::sin(maths::radians(angle));
+    const Vector3<T> x = axis * axis.x, y = axis * axis.y, z = axis * axis.z;
+
+    Vector3<T> colA { x.x + (T(1)-x.x) * c, x.y * (T(1)-c) - axis.z * s, x.z * (T(1)-c) + axis.y * s };
+    Vector3<T> colB { y.x * (T(1)-c) + axis.z * s, y.y + (T(1)-y.y) * c, y.z * (T(1)-c) - axis.x * s };
+    Vector3<T> colC { z.x * (T(1)-c) - axis.y * s, z.y * (T(1)-c) + axis.x * s, z.z + (T(1)-z.z) * c };
+
+    return Matrix33<T> { colA, colB, colC };
+}
+
+//============================================================================//
+
 /// Create a left-handed view matrix from two points and a direction.
 template <class T> inline
 Matrix44<T> look_at_LH(Vector3<T> eye, Vector3<T> target, Vector3<T> up)
@@ -271,5 +287,7 @@ Matrix33<T> basis_from_z(Vector3<T> zAxis)
 
     return Mat3F ( xAxis, yAxis, zAxis );
 }
+
+//============================================================================//
 
 } // namespace sq::maths
