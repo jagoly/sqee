@@ -123,7 +123,7 @@ TokenisedFile sq::tokenise_file(const string& path)
 
 //============================================================================//
 
-string sq::file_name_from_path(const string& path)
+string sq::file_from_path(const string& path)
 {
     auto iter = std::find(path.rbegin(), path.rend(), '/');
     return string(iter.base(), path.end());

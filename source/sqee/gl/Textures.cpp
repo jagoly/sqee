@@ -348,7 +348,7 @@ void Texture2D::load_file(const string& path)
 void Texture2D::load_automatic(const string& path)
 {
     const auto dirPath = "assets/" + directory_from_path(path);
-    const auto fileName = file_name_from_path(path);
+    const auto fileName = file_from_path(path);
 
     const auto json = parse_json_from_file(dirPath + "meta.json").at(fileName);
 

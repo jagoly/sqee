@@ -16,7 +16,7 @@
 
 //============================================================================//
 
-#define SWITCH(Value) { using SwitchValueT = decltype(Value); switch (Value)
+#define SWITCH(Value) { using SwitchValueT = std::decay_t<decltype(Value)>; switch (Value)
 
 #define SWITCH_END }
 

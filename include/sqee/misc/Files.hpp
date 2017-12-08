@@ -31,11 +31,25 @@ TokenisedFile tokenise_file(const string& path);
 
 //============================================================================//
 
-/// Extract file name portion from a path
-string file_name_from_path(const string& path);
+/// Extract file portion from a path
+string file_from_path(const string& path);
 
 /// Extract directory portion from a path
 string directory_from_path(const string& path);
+
+//============================================================================//
+
+inline string build_path(string path) { return path; }
+
+template <class Arg, class... Args> inline
+string build_path(string path, Arg&& arg, Args&&... args)
+{
+    if (!path.empty() && path.back() != '/') path.push_back('/');
+    return build_path(path.append(arg), args...);
+}
+
+template <class... Args> inline
+string build_path(Args&&... args) { return build_path(string(), args...); }
 
 //============================================================================//
 
