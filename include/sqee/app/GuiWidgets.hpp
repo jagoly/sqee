@@ -296,7 +296,7 @@ inline void display_text(string text)
 
 /// Integer input widget with a label and step buttons.
 ///
-/// @tparam T integer type (int/uint, 8/16/32/64)
+/// @tparam T integer type (int/uint, 8/16/32)
 ///
 /// @param label the string to use for the label
 /// @param labelWidth width to allocate for the label (zero for no label)
@@ -308,11 +308,9 @@ inline void display_text(string text)
 ///
 template <class T> inline
 bool input_int ( string label, float labelWidth, T& ref, int step,
-                 int min = std::numeric_limits<T>::min(), int max = std::numeric_limits<T>::max() )
+                 int min = std::max<long>(INT32_MIN, std::numeric_limits<T>::min()),
+                 int max = std::min<long>(INT32_MAX, std::numeric_limits<T>::max()) )
 {
-    SQASSERT(min >= std::numeric_limits<T>::min(), "");
-    SQASSERT(max <= std::numeric_limits<T>::max(), "");
-
     if (labelWidth != 0.f) detail::display_input_label(label.c_str(), labelWidth);
 
     const string hiddenLabel = "##" + label;
@@ -341,11 +339,9 @@ bool input_int ( string label, float labelWidth, T& ref, int step,
 ///
 template <class T> inline
 bool input_float ( string label, float labelWidth, T& ref, float step, int precision,
-                   float min = std::numeric_limits<T>::min(), float max = std::numeric_limits<T>::max() )
+                   float min = std::numeric_limits<float>::lowest(),
+                   float max = std::numeric_limits<float>::max() )
 {
-    SQASSERT(min >= std::numeric_limits<T>::min(), "");
-    SQASSERT(max <= std::numeric_limits<T>::max(), "");
-
     if (labelWidth != 0.f) detail::display_input_label(label.c_str(), labelWidth);
 
     const string hiddenLabel = "##" + label;
