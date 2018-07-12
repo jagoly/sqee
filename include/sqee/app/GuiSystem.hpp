@@ -53,6 +53,7 @@ private: //===================================================//
 
     // list so we can add or remove during iteration
     std::list<GuiWidget*> mWidgets;
+    std::list<GuiWidget*>::iterator mWidgetIter;
 
     class Implementation;
     friend class Implementation;

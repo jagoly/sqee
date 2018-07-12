@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sqee/setup.hpp>
+#include <sqee/app/Event.hpp>
 
 namespace sq {
 
@@ -21,6 +22,14 @@ public: //====================================================//
 
     /// Call to update and then render the scene.
     void update_and_render(double elapsed);
+
+    //--------------------------------------------------------//
+
+    /// Optionally implement for event handling.
+    virtual void handle_event(Event) {}
+
+    /// Optionally implement for refreshing options.
+    virtual void refresh_options() {}
 
 protected: //=================================================//
 

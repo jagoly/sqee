@@ -22,19 +22,19 @@ inline void parse_tokens(float& out, string_view token) { out = sv_to_f(token); 
 inline optional<int> safe_sv_to_i(string_view sv)
 {
     try { return int(std::stol(string(sv))); }
-    catch (std::invalid_argument) { return std::nullopt; }
+    catch (std::invalid_argument&) { return std::nullopt; }
 }
 
 inline optional<uint> safe_sv_to_u(string_view sv)
 {
     try { return uint(std::stoul(string(sv))); }
-    catch (std::invalid_argument) { return std::nullopt; }
+    catch (std::invalid_argument&) { return std::nullopt; }
 }
 
 inline optional<float> safe_sv_to_f(string_view sv)
 {
     try { return float(std::stof(string(sv))); }
-    catch (std::invalid_argument) { return std::nullopt; }
+    catch (std::invalid_argument&) { return std::nullopt; }
 }
 
 //============================================================================//
@@ -88,5 +88,19 @@ std::vector<string_view> tokenise_string_view(string_view sv, char dlm);
 TokenisedString tokenise_string(string str, char dlm);
 
 //===========================================================================
+
+template <size_t S, class T>
+inline Vector<S, T> from_string(std::string_view sv)
+{
+    const auto tokens = tokenise_string_view(sv, ' ');
+
+    Vector<S, T> result;
+    if constexpr (S == 2) parse_tokens(result, tokens[0], tokens[1]);
+    if constexpr (S == 3) parse_tokens(result, tokens[0], tokens[1], tokens[2]);
+    if constexpr (S == 4) parse_tokens(result, tokens[0], tokens[1], tokens[2], tokens[3]);
+    return result;
+}
+
+//============================================================================//
 
 } // namespace sq

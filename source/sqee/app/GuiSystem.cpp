@@ -160,26 +160,36 @@ GuiSystem::Implementation::Implementation(Window& window, InputDevices& inputDev
 
     auto& style = imgui::GetStyle();
 
-    style.Alpha                 = 1.0f;         // default: 1.0
-    style.WindowPadding         = { 6, 6 };     // default: 8, 8
-    style.WindowMinSize         = { 32, 32 };   // default: 32, 32
-    style.WindowRounding        = 8;            // default: 9
-    style.ChildWindowRounding   = 4;            // default: 0
-    style.FramePadding          = { 6, 6 };     // default: 4, 3
-    style.FrameRounding         = 4;            // default: 0
-    style.ItemSpacing           = { 6, 6 };     // default: 8, 4
-    style.ItemInnerSpacing      = { 6, 6 };     // default: 4, 4
-    style.IndentSpacing         = 24;           // default: 21
-    style.ScrollbarSize         = 16;           // default: 16
-    style.ScrollbarRounding     = 8;            // default: 9
-    style.GrabMinSize           = 8;            // default: 10
-    style.GrabRounding          = 4;            // default: 0
-    style.AntiAliasedLines      = true;         // default: true
+    style.Alpha              = 1.0f;         // default: 1.0
+    style.WindowPadding      = { 6, 6 };     // default: 8, 8
+    style.WindowRounding     = 8;            // default: 7
+    style.WindowBorderSize   = 0;            // default: 0
+    style.WindowMinSize      = { 32, 32 };   // default: 32, 32
+    style.WindowTitleAlign   = { 0.0, 0.5 }; // default: 0.0, 0.5
+    style.ChildRounding      = 4;            // default: 0
+    style.ChildBorderSize    = 0;            // default: 0
+    style.PopupRounding      = 0;            // default: 0
+    style.PopupBorderSize    = 1;            // default: 1
+    style.FramePadding       = { 6, 6 };     // default: 4, 3
+    style.FrameRounding      = 4;            // default: 0
+    style.FrameBorderSize    = 0;            // default: 0
+    style.ItemSpacing        = { 6, 6 };     // default: 8, 4
+    style.ItemInnerSpacing   = { 6, 6 };     // default: 4, 4
+    style.TouchExtraPadding  = { 0, 0 };     // default: 0, 0
+    style.IndentSpacing      = 24;           // default: 21
+    style.ColumnsMinSpacing  = 6;            // default: 6
+    style.ScrollbarSize      = 16;           // default: 16
+    style.ScrollbarRounding  = 8;            // default: 9
+    style.GrabMinSize        = 8;            // default: 10
+    style.GrabRounding       = 4;            // default: 0
+    style.ButtonTextAlign    = { 0.5, 0.5 }; // default: 0.5, 0.5
+    style.AntiAliasedLines   = true;         // default: true
+    style.AntiAliasedFill    = true;         // default: true
 
     style.Colors[ImGuiCol_Text]                  = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
     style.Colors[ImGuiCol_TextDisabled]          = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
     style.Colors[ImGuiCol_WindowBg]              = ImVec4(0.00f, 0.00f, 0.00f, 0.60f);
-    style.Colors[ImGuiCol_ChildWindowBg]         = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+    style.Colors[ImGuiCol_ChildBg]               = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
     style.Colors[ImGuiCol_PopupBg]               = ImVec4(0.05f, 0.05f, 0.10f, 0.90f);
     style.Colors[ImGuiCol_Border]                = ImVec4(0.80f, 0.80f, 0.80f, 0.30f);
     style.Colors[ImGuiCol_BorderShadow]          = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
@@ -187,14 +197,13 @@ GuiSystem::Implementation::Implementation(Window& window, InputDevices& inputDev
     style.Colors[ImGuiCol_FrameBgHovered]        = ImVec4(0.80f, 0.60f, 0.50f, 0.40f);
     style.Colors[ImGuiCol_FrameBgActive]         = ImVec4(0.60f, 0.40f, 0.30f, 0.40f);
     style.Colors[ImGuiCol_TitleBg]               = ImVec4(0.25f, 0.25f, 0.25f, 0.60f);
-    style.Colors[ImGuiCol_TitleBgCollapsed]      = ImVec4(0.30f, 0.30f, 0.30f, 0.40f);
     style.Colors[ImGuiCol_TitleBgActive]         = ImVec4(0.20f, 0.20f, 0.20f, 0.80f);
+    style.Colors[ImGuiCol_TitleBgCollapsed]      = ImVec4(0.30f, 0.30f, 0.30f, 0.40f);
     style.Colors[ImGuiCol_MenuBarBg]             = ImVec4(0.40f, 0.40f, 0.40f, 0.40f);
     style.Colors[ImGuiCol_ScrollbarBg]           = ImVec4(0.40f, 0.40f, 0.40f, 0.40f);
     style.Colors[ImGuiCol_ScrollbarGrab]         = ImVec4(0.60f, 0.60f, 0.60f, 0.40f);
     style.Colors[ImGuiCol_ScrollbarGrabHovered]  = ImVec4(0.70f, 0.70f, 0.70f, 0.40f);
     style.Colors[ImGuiCol_ScrollbarGrabActive]   = ImVec4(0.50f, 0.50f, 0.50f, 0.40f);
-    style.Colors[ImGuiCol_ComboBg]               = ImVec4(0.20f, 0.20f, 0.20f, 0.99f);
     style.Colors[ImGuiCol_CheckMark]             = ImVec4(0.90f, 0.90f, 0.90f, 0.50f);
     style.Colors[ImGuiCol_SliderGrab]            = ImVec4(1.00f, 1.00f, 1.00f, 0.30f);
     style.Colors[ImGuiCol_SliderGrabActive]      = ImVec4(0.80f, 0.50f, 0.50f, 1.00f);
@@ -210,15 +219,15 @@ GuiSystem::Implementation::Implementation(Window& window, InputDevices& inputDev
     style.Colors[ImGuiCol_ResizeGrip]            = ImVec4(0.80f, 0.80f, 0.80f, 0.30f);
     style.Colors[ImGuiCol_ResizeGripHovered]     = ImVec4(0.80f, 0.80f, 0.80f, 0.40f);
     style.Colors[ImGuiCol_ResizeGripActive]      = ImVec4(0.80f, 0.80f, 0.80f, 0.45f);
-    style.Colors[ImGuiCol_CloseButton]           = ImVec4(0.90f, 0.90f, 0.20f, 0.60f);
-    style.Colors[ImGuiCol_CloseButtonHovered]    = ImVec4(1.00f, 1.00f, 0.30f, 0.60f);
-    style.Colors[ImGuiCol_CloseButtonActive]     = ImVec4(0.80f, 0.80f, 0.10f, 0.60f);
     style.Colors[ImGuiCol_PlotLines]             = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
     style.Colors[ImGuiCol_PlotLinesHovered]      = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
     style.Colors[ImGuiCol_PlotHistogram]         = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
     style.Colors[ImGuiCol_PlotHistogramHovered]  = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
     style.Colors[ImGuiCol_TextSelectedBg]        = ImVec4(0.60f, 0.30f, 0.15f, 1.00f);
     style.Colors[ImGuiCol_ModalWindowDarkening]  = ImVec4(0.20f, 0.20f, 0.20f, 0.35f);
+    style.Colors[ImGuiCol_DragDropTarget]        = ImVec4(1.00f, 1.00f, 0.00f, 0.90f);
+    style.Colors[ImGuiCol_NavHighlight]          = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
+    style.Colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
 
     //--------------------------------------------------------//
 
@@ -456,6 +465,8 @@ void GuiSystem::construct(Window& window, InputDevices& inputDevices)
 
     SQASSERT(instance == nullptr, "GuiSystem::construct() already called");
 
+    imgui::CreateContext();
+
     instance = new GuiSystem();
 
     instance->impl = std::make_unique<Implementation>(window, inputDevices);
@@ -469,7 +480,7 @@ void GuiSystem::destruct()
 
     delete instance;
 
-    imgui::Shutdown(); // todo: imgui probably can't be re-started after this
+    imgui::DestroyContext(); // todo: imgui probably can't be re-started after this
 }
 
 //============================================================================//
@@ -482,7 +493,7 @@ void GuiSystem::finish_scene_update(double elapsed) { impl->finish_scene_update(
 
 void GuiSystem::render_gui() { impl->render_gui(); }
 
-void GuiSystem::show_imgui_demo() { imgui::ShowTestWindow(); }
+void GuiSystem::show_imgui_demo() { imgui::ShowDemoWindow(); }
 
 //============================================================================//
 
@@ -496,13 +507,24 @@ void GuiSystem::enable_widget(GuiWidget& widget)
 void GuiSystem::disable_widget(GuiWidget& widget)
 {
     const auto iter = algo::find(mWidgets, &widget);
-    if (iter != mWidgets.end()) mWidgets.erase(iter);
+
+    if (iter != mWidgets.end())
+    {
+        // in case we erase current widget
+        if (iter == mWidgetIter) --mWidgetIter;
+        mWidgets.erase(iter);
+    }
+
     else SQASSERT(false, "");
 }
 
+//============================================================================//
+
 void GuiSystem::draw_widgets()
 {
-    for (const GuiWidget* widget : mWidgets)
-        if (widget->func != nullptr)
-            widget->func();
+    for (mWidgetIter = mWidgets.begin(); mWidgetIter != mWidgets.end(); ++mWidgetIter)
+    {
+        const GuiWidget* widget = *mWidgetIter;
+        if (widget->func != nullptr) widget->func();
+    }
 }

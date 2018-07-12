@@ -46,6 +46,11 @@ public: //====================================================//
         return std::equal(mData, mData + Len, other.mData);
     }
 
+    constexpr bool operator<(const TinyString& other) const noexcept
+    {
+        return std::lexicographical_compare(mData, mData + Len, other.mData, other.mData + Len);
+    }
+
     constexpr bool empty() const noexcept { return mData[0] == '\0'; }
 
     constexpr const char* c_str() const noexcept { return mData; }

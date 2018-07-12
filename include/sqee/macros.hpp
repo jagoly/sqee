@@ -10,12 +10,6 @@
 
 //============================================================================//
 
-#define WITH(Expr) if ([[maybe_unused]] const auto WithVarName = Expr; true)
-
-#define WITH_IF(Expr) if (const auto WithVarName = Expr; bool(WithVarName) == true)
-
-//============================================================================//
-
 #define SWITCH(Value) { using SwitchValueT = std::decay_t<decltype(Value)>; switch (Value)
 
 #define SWITCH_END }
@@ -50,6 +44,4 @@ constexpr const char* enum_to_string(Type value) \
 { using EnumType = Type; switch (value) {
 
 #define SQEE_ENUM_TO_STRING_BLOCK_END \
-} /*throw std::runtime_error("invalid enum");*/ }
-
-// the above SHOULD be valid, but doesn't work in GCC
+default: throw std::runtime_error("invalid enum"); } }
