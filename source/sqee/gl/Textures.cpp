@@ -352,8 +352,8 @@ void Texture2D::load_automatic(const string& path)
 
     const auto json = parse_json_from_file(dirPath + "meta.json").at(fileName);
 
-    const string wrap = json.at("wrap");
-    const string swizzle = json.at("swizzle");
+    const string& wrap = json.at("wrap");
+    const string& swizzle = json.at("swizzle");
 
     set_format(impl_string_to_format(json.at("format")));
     set_wrap_mode(wrap[0], wrap[1]);
@@ -378,8 +378,8 @@ void TextureCube::load_automatic(const string& path)
 {
     const auto json = parse_json_from_file("assets/" + path + "/meta.json");
 
-    const string wrap = json.at("wrap");
-    const string swizzle = json.at("swizzle");
+    const string& wrap = json.at("wrap");
+    const string& swizzle = json.at("swizzle");
 
     set_format(impl_string_to_format(json.at("format")));
     set_wrap_mode(wrap[0], wrap[1]);
@@ -409,8 +409,8 @@ void TextureArray2D::load_automatic(const string& path)
 {
     const auto json = parse_json_from_file("assets/" + path + "/meta.json");
 
-    const string wrap = json.at("wrap");
-    const string swizzle = json.at("swizzle");
+    const string& wrap = json.at("wrap");
+    const string& swizzle = json.at("swizzle");
 
     set_format(impl_string_to_format(json.at("format")));
     set_wrap_mode(wrap[0], wrap[1]);

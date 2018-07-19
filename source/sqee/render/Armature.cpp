@@ -81,6 +81,17 @@ void Armature::load_rest_pose(const string& path)
 
 //============================================================================//
 
+int32_t Armature::get_bone_index(const string& name) const
+{
+    for (uint i = 0u; i < mBoneNames.size(); ++i)
+        if (mBoneNames[i] == name)
+            return int32_t(i);
+
+    return -1;
+}
+
+//============================================================================//
+
 Armature::Pose Armature::make_pose(const string& path) const
 {
     const uint boneCount = uint(mBoneNames.size());

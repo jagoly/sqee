@@ -50,6 +50,11 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
+    /// Get the index of a bone by name, -1 on failure
+    int32_t get_bone_index(const string& name) const;
+
+    //--------------------------------------------------------//
+
     Pose make_pose(const string& path) const;
 
     Animation make_animation(const string& path) const;
