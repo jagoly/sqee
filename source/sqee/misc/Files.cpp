@@ -123,14 +123,25 @@ TokenisedFile sq::tokenise_file(const string& path)
 
 //============================================================================//
 
-string sq::file_from_path(const string& path)
+string_view sq::file_from_path(const string& path)
 {
-    auto iter = std::find(path.rbegin(), path.rend(), '/');
-    return string(iter.base(), path.end());
+    const size_t splitPos = path.rfind('/');
+    if (splitPos == path.size() - 1u) return string_view();
+    return string_view(path.c_str() + splitPos + 1u);
 }
 
-string sq::directory_from_path(const string& path)
+string_view sq::directory_from_path(const string& path)
 {
-    auto iter = std::find(path.rbegin(), path.rend(), '/');
-    return string(path.begin(), iter.base());
+    const size_t splitPos = path.rfind('/');
+    if (splitPos == string::npos) return string_view();
+    return string_view(path.c_str(), splitPos);
+}
+
+string_view sq::extension_from_path(const string& path)
+{
+    const string_view fileName = file_from_path(path);
+    const size_t dotPos = fileName.rfind('.', path.length());
+    if (dotPos == string::npos) return string_view();
+    if (dotPos == 0u) return string_view();
+    return fileName.substr(dotPos);
 }

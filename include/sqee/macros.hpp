@@ -43,5 +43,4 @@
 constexpr const char* enum_to_string(Type value) \
 { using EnumType = Type; switch (value) {
 
-#define SQEE_ENUM_TO_STRING_BLOCK_END \
-default: throw std::runtime_error("invalid enum"); } }
+#define SQEE_ENUM_TO_STRING_BLOCK_END } return "Invalid Enum"; }

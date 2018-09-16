@@ -21,49 +21,49 @@ namespace sqt {
 
 //====== Alias Declarations ==================================================//
 
-using TextureHandle  = sq::Handle<sq::Texture2D>;
-using MeshHandle     = sq::Handle<sq::Mesh>;
-using ArmatureHandle = sq::Handle<sq::Armature>;
-using SoundHandle    = sq::Handle<sq::SoundWave>;
-using MaterialHandle = sq::Handle<sq::Material>;
+using TextureHandle  = sq::Handle<string, sq::Texture2D>;
+using MeshHandle     = sq::Handle<string, sq::Mesh>;
+using ArmatureHandle = sq::Handle<string, sq::Armature>;
+using SoundHandle    = sq::Handle<string, sq::SoundWave>;
+using MaterialHandle = sq::Handle<string, sq::Material>;
 
 //============================================================================//
 
-class TextureCache final : public sq::ResourceCache<sq::Texture2D>
+class TextureCache final : public sq::ResourceCache<string, sq::Texture2D>
 {
-    public:  TextureCache(); ~TextureCache();
+    public:  TextureCache(); ~TextureCache() override;
     private: unique_ptr<sq::Texture2D> create(const string& path) override;
 };
 
 //----------------------------------------------------------------------------//
 
-class MeshCache final : public sq::ResourceCache<sq::Mesh>
+class MeshCache final : public sq::ResourceCache<string, sq::Mesh>
 {
-    public:  MeshCache(); ~MeshCache();
+    public:  MeshCache(); ~MeshCache() override;
     private: unique_ptr<sq::Mesh> create(const string& path) override;
 };
 
 //----------------------------------------------------------------------------//
 
-class ArmatureCache final : public sq::ResourceCache<sq::Armature>
+class ArmatureCache final : public sq::ResourceCache<string, sq::Armature>
 {
-    public:  ArmatureCache(); ~ArmatureCache();
+    public:  ArmatureCache(); ~ArmatureCache() override;
     private: unique_ptr<sq::Armature> create(const string& path) override;
 };
 
 //----------------------------------------------------------------------------//
 
-class SoundCache final : public sq::ResourceCache<sq::SoundWave>
+class SoundCache final : public sq::ResourceCache<string, sq::SoundWave>
 {
-    public:  SoundCache(); ~SoundCache();
+    public:  SoundCache(); ~SoundCache() override;
     private: unique_ptr<sq::SoundWave> create(const string& path) override;
 };
 
 //----------------------------------------------------------------------------//
 
-class MaterialCache final : public sq::ResourceCache<sq::Material>
+class MaterialCache final : public sq::ResourceCache<string, sq::Material>
 {
-    public:  MaterialCache(TextureCache&); ~MaterialCache();
+    public:  MaterialCache(TextureCache&); ~MaterialCache() override;
     private: unique_ptr<sq::Material> create(const string& path) override;
     private: TextureCache& mTextureCache;
 };

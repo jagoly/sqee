@@ -1,5 +1,6 @@
 #include <list>
 
+#include <sqee/helpers.hpp>
 #include <sqee/debug/Logging.hpp>
 #include <sqee/misc/Files.hpp>
 
@@ -46,7 +47,17 @@ void PreProcessor::update_header(const string& key, const string& string)
 
 string PreProcessor::process(const string& path, const string& prelude) const
 {
-    const string fullPath = "shaders/" + path + ".glsl";
+    const string fullPath = [&]()
+    {
+        const bool isAbsolute = ( path.front() == '/' );
+        const bool hasExtension = !extension_from_path(path).empty();
+
+        if (!isAbsolute && !hasExtension) return build_string("shaders/", path, ".glsl");
+        if (!isAbsolute)                  return build_string("shaders/", path);
+        if (!hasExtension)                return build_string(path, ".glsl");
+        return path;
+    }();
+
     const string fullString = get_string_from_file(fullPath);
 
     string source = "#version 330 core\n"
@@ -55,7 +66,7 @@ string PreProcessor::process(const string& path, const string& prelude) const
                     "#extension GL_ARB_gpu_shader5 : enable\n"
                     "#line 0\n";
 
-    source.reserve(fullString.size()); // might still be reallocated
+    source.reserve(source.size() + fullString.size()); // might still be reallocated
 
     source += prelude;
 

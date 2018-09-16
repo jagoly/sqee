@@ -115,4 +115,42 @@ private: //===================================================//
 
 //============================================================================//
 
+struct ProgramKey final
+{
+    string vertexPath, vertexDefines;
+    string fragmentPath, fragmentDefines;
+};
+
+inline bool operator==(const ProgramKey& a, const ProgramKey& b)
+{
+    return a.fragmentDefines == b.fragmentDefines && b.fragmentPath == b.fragmentPath
+        && a.vertexDefines == b.vertexDefines && a.vertexPath == b.vertexPath;
+}
+
+//============================================================================//
+
 } // namespace sq
+
+//============================================================================//
+
+namespace std {
+
+template<> struct hash<sq::ProgramKey>
+{
+    size_t operator()(const sq::ProgramKey& key) const
+    {
+        const auto hash_func = std::hash<std::string>();
+
+        const size_t vp = hash_func(key.vertexPath);
+        const size_t vd = hash_func(key.vertexDefines);
+        const size_t fp = hash_func(key.fragmentPath);
+        const size_t fd = hash_func(key.fragmentDefines);
+
+        const auto combine_func = [](size_t a, size_t b) -> size_t
+        { return a ^ (b + 0x9e3779b9u + (a << 6u) + (a >> 2u)); };
+
+        return combine_func(combine_func(vp, vd), combine_func(fp, fd));
+    }
+};
+
+} // namespace std

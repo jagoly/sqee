@@ -5,6 +5,7 @@
 
 #include <sqee/misc/Files.hpp>
 #include <sqee/misc/Parsing.hpp>
+#include <sqee/helpers.hpp>
 
 #include <sqee/render/Mesh.hpp>
 
@@ -16,7 +17,9 @@ void Mesh::load_from_file(const string& path, bool swapYZ)
 {
     mSwapYZ = swapYZ;
 
-    impl_load_ascii("assets/" + path + ".sqm");
+    if (check_file_exists(path)) impl_load_ascii(path);
+    else if (auto _path = path + ".sqm"; check_file_exists(_path)) impl_load_ascii(_path);
+    else log_error("Failed to find mesh '%s'", path);
 }
 
 //============================================================================//
@@ -315,11 +318,12 @@ unique_ptr<Mesh> Mesh::make_from_package(const string& path)
     const string::size_type splitPos = path.find(':');
     log_assert(splitPos != string::npos, "bad path '%s'", path);
 
-    const string package = path.substr(0u, splitPos);
-    const string name = path.substr(splitPos + 1u);
+    const string_view package ( path.c_str(), splitPos );
+    const char* const name = path.c_str() + splitPos + 1u;
 
     unique_ptr<Mesh> mesh = std::make_unique<Mesh>();
-    mesh->load_from_file("packages/" + package + "/meshes/" + name);
+
+    mesh->load_from_file(build_string("assets/packages/", package, "/meshes/", name, ".sqm"));
 
     return mesh;
 }

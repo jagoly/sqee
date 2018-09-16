@@ -1,16 +1,20 @@
 #include <sqee/gl/Context.hpp>
 
+#include <sqee/debug/Logging.hpp>
+
 using namespace sq;
 
 //============================================================================//
 
 Context::Context()
 {
+    sq::log_info("Creating SQEE Render Context");
     gl::CreateVertexArrays(1, &mDummyVAO);
 }
 
 Context::~Context()
 {
+    sq::log_info("Destroying SQEE Render Context");
     gl::DeleteVertexArrays(1, &mDummyVAO);
 }
 

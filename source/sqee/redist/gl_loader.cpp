@@ -84,6 +84,7 @@ LoadTest var_ARB_texture_storage;
 LoadTest var_ARB_buffer_storage;
 LoadTest var_ARB_direct_state_access;
 LoadTest var_ARB_separate_shader_objects;
+LoadTest var_ARB_program_interface_query;
 
 } // namespace gl::exts
 
@@ -814,8 +815,39 @@ static int Load_ARB_separate_shader_objects()
     return numFailed;
 }
 
+typedef void (MSVC_STDCALL *PFNGETPROGRAMINTERFACEIV)(GLuint, GLenum, GLenum, GLint *);
+PFNGETPROGRAMINTERFACEIV GetProgramInterfaceiv = 0;
+typedef GLuint (MSVC_STDCALL *PFNGETPROGRAMRESOURCEINDEX)(GLuint, GLenum, const GLchar *);
+PFNGETPROGRAMRESOURCEINDEX GetProgramResourceIndex = 0;
+typedef GLint (MSVC_STDCALL *PFNGETPROGRAMRESOURCELOCATION)(GLuint, GLenum, const GLchar *);
+PFNGETPROGRAMRESOURCELOCATION GetProgramResourceLocation = 0;
+typedef GLint (MSVC_STDCALL *PFNGETPROGRAMRESOURCELOCATIONINDEX)(GLuint, GLenum, const GLchar *);
+PFNGETPROGRAMRESOURCELOCATIONINDEX GetProgramResourceLocationIndex = 0;
+typedef void (MSVC_STDCALL *PFNGETPROGRAMRESOURCENAME)(GLuint, GLenum, GLuint, GLsizei, GLsizei *, GLchar *);
+PFNGETPROGRAMRESOURCENAME GetProgramResourceName = 0;
+typedef void (MSVC_STDCALL *PFNGETPROGRAMRESOURCEIV)(GLuint, GLenum, GLuint, GLsizei, const GLenum *, GLsizei, GLsizei *, GLint *);
+PFNGETPROGRAMRESOURCEIV GetProgramResourceiv = 0;
+
+static int Load_ARB_program_interface_query()
+{
+    int numFailed = 0;
+    GetProgramInterfaceiv = reinterpret_cast<PFNGETPROGRAMINTERFACEIV>(IntGetProcAddress("glGetProgramInterfaceiv"));
+    if(!GetProgramInterfaceiv) ++numFailed;
+    GetProgramResourceIndex = reinterpret_cast<PFNGETPROGRAMRESOURCEINDEX>(IntGetProcAddress("glGetProgramResourceIndex"));
+    if(!GetProgramResourceIndex) ++numFailed;
+    GetProgramResourceLocation = reinterpret_cast<PFNGETPROGRAMRESOURCELOCATION>(IntGetProcAddress("glGetProgramResourceLocation"));
+    if(!GetProgramResourceLocation) ++numFailed;
+    GetProgramResourceLocationIndex = reinterpret_cast<PFNGETPROGRAMRESOURCELOCATIONINDEX>(IntGetProcAddress("glGetProgramResourceLocationIndex"));
+    if(!GetProgramResourceLocationIndex) ++numFailed;
+    GetProgramResourceName = reinterpret_cast<PFNGETPROGRAMRESOURCENAME>(IntGetProcAddress("glGetProgramResourceName"));
+    if(!GetProgramResourceName) ++numFailed;
+    GetProgramResourceiv = reinterpret_cast<PFNGETPROGRAMRESOURCEIV>(IntGetProcAddress("glGetProgramResourceiv"));
+    if(!GetProgramResourceiv) ++numFailed;
+    return numFailed;
+}
+
 typedef void (MSVC_STDCALL *PFNBLENDFUNC)(GLenum, GLenum);
-SQEE_API PFNBLENDFUNC BlendFunc = 0;
+PFNBLENDFUNC BlendFunc = 0;
 typedef void (MSVC_STDCALL *PFNCLEAR)(GLbitfield);
 PFNCLEAR Clear = 0;
 typedef void (MSVC_STDCALL *PFNCLEARCOLOR)(GLfloat, GLfloat, GLfloat, GLfloat);
@@ -2253,6 +2285,7 @@ void InitializeMappingTable(std::vector<MapEntry> &table)
     table.push_back(MapEntry("GL_ARB_buffer_storage", &exts::var_ARB_buffer_storage, detail::Load_ARB_buffer_storage));
     table.push_back(MapEntry("GL_ARB_direct_state_access", &exts::var_ARB_direct_state_access, detail::Load_ARB_direct_state_access));
     table.push_back(MapEntry("GL_ARB_separate_shader_objects", &exts::var_ARB_separate_shader_objects, detail::Load_ARB_separate_shader_objects));
+    table.push_back(MapEntry("GL_ARB_program_interface_query", &exts::var_ARB_program_interface_query, detail::Load_ARB_program_interface_query));
 }
 
 void ClearExtensionVars()

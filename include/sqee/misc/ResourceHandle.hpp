@@ -11,21 +11,22 @@ namespace sq {
 //============================================================================//
 
 // Forward Declarations /////
-template <class Type> class Handle;
-template <class Type> class ResourceCache;
+template <class Key, class Type> class Handle;
+template <class Key, class Type> class ResourceCache;
 
 //============================================================================//
 
 /// For internal use within a @ref ResourceCache.
-/// @tparam Type: type of the resource
+/// @tparam Key hashable key type
+/// @tparam Type type of the resource
 
-template <class Type>
+template <class Key, class Type>
 class Resource final : NonCopyable
 {
 protected: //=================================================//
 
-    friend class Handle<Type>;
-    friend class ResourceCache<Type>;
+    friend class Handle<Key, Type>;
+    friend class ResourceCache<Key, Type>;
 
     //--------------------------------------------------------//
 
@@ -37,15 +38,16 @@ protected: //=================================================//
     std::unique_ptr<Type> uptr;
     uint count = 0u;
 
-    std::string path;
+    Key key;
 };
 
 //============================================================================//
 
 /// Provides reference counted access to a @ref Resource.
+/// @tparam Key hashable key type
 /// @tparam Type type of the resource
 
-template <class Type>
+template <class Key, class Type>
 class Handle final
 {
 public: //====================================================//
@@ -72,8 +74,8 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    /// Get the unique path of the resource.
-    const std::string& get_path() const { return mResPtr ? mResPtr->path : ""; }
+    /// Get the unique key of the resource.
+    const Key& get_key() const { return mResPtr ? mResPtr->key : ""; }
 
     //--------------------------------------------------------//
 
@@ -102,11 +104,11 @@ public: //====================================================//
 
 protected: //=================================================//
 
-    friend class ResourceCache<Type>;
+    friend class ResourceCache<Key, Type>;
 
     //--------------------------------------------------------//
 
-    Handle(Resource<Type>& resource)
+    Handle(Resource<Key, Type>& resource)
     {
         mResPtr = &resource;
         ++mResPtr->count;
@@ -114,7 +116,7 @@ protected: //=================================================//
 
     //--------------------------------------------------------//
 
-    Resource<Type>* mResPtr;
+    Resource<Key, Type>* mResPtr;
 };
 
 //============================================================================//

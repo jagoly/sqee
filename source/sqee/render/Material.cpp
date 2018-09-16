@@ -58,7 +58,7 @@ std::optional<string> impl_try_get(const Json& json, const string& key)
 
 } // anonymous namespace
 
-Material::Material(const string& path, ResourceCache<Texture2D>& textures)
+Material::Material(const string& path, ResourceCache<string, Texture2D>& textures)
 {
     const string::size_type splitPos = path.find(':');
     log_assert(splitPos != string::npos, "bad path '%s'", path);

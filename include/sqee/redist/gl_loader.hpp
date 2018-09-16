@@ -92,6 +92,7 @@ extern LoadTest var_ARB_texture_storage;
 extern LoadTest var_ARB_buffer_storage;
 extern LoadTest var_ARB_direct_state_access;
 extern LoadTest var_ARB_separate_shader_objects;
+extern LoadTest var_ARB_program_interface_query;
 
 } // namespace gl::exts
 
@@ -178,6 +179,57 @@ enum : GLenum {
     TESS_CONTROL_SHADER_BIT          = 0x00000008,
     TESS_EVALUATION_SHADER_BIT       = 0x00000010,
     VERTEX_SHADER_BIT                = 0x00000001,
+
+    ACTIVE_RESOURCES                 = 0x92F5,
+    ACTIVE_VARIABLES                 = 0x9305,
+    ARRAY_SIZE                       = 0x92FB,
+    ARRAY_STRIDE                     = 0x92FE,
+    ATOMIC_COUNTER_BUFFER            = 0x92C0,
+    ATOMIC_COUNTER_BUFFER_INDEX      = 0x9301,
+    BLOCK_INDEX                      = 0x92FD,
+    BUFFER_BINDING                   = 0x9302,
+    BUFFER_DATA_SIZE                 = 0x9303,
+    BUFFER_VARIABLE                  = 0x92E5,
+    COMPATIBLE_SUBROUTINES           = 0x8E4B,
+    COMPUTE_SUBROUTINE               = 0x92ED,
+    COMPUTE_SUBROUTINE_UNIFORM       = 0x92F3,
+    FRAGMENT_SUBROUTINE              = 0x92EC,
+    FRAGMENT_SUBROUTINE_UNIFORM      = 0x92F2,
+    GEOMETRY_SUBROUTINE              = 0x92EB,
+    GEOMETRY_SUBROUTINE_UNIFORM      = 0x92F1,
+    IS_PER_PATCH                     = 0x92E7,
+    IS_ROW_MAJOR                     = 0x9300,
+    LOCATION                         = 0x930E,
+    LOCATION_INDEX                   = 0x930F,
+    MATRIX_STRIDE                    = 0x92FF,
+    MAX_NAME_LENGTH                  = 0x92F6,
+    MAX_NUM_ACTIVE_VARIABLES         = 0x92F7,
+    MAX_NUM_COMPATIBLE_SUBROUTINES   = 0x92F8,
+    NAME_LENGTH                      = 0x92F9,
+    NUM_ACTIVE_VARIABLES             = 0x9304,
+    NUM_COMPATIBLE_SUBROUTINES       = 0x8E4A,
+    OFFSET                           = 0x92FC,
+    PROGRAM_INPUT                    = 0x92E3,
+    PROGRAM_OUTPUT                   = 0x92E4,
+    REFERENCED_BY_COMPUTE_SHADER     = 0x930B,
+    REFERENCED_BY_FRAGMENT_SHADER    = 0x930A,
+    REFERENCED_BY_GEOMETRY_SHADER    = 0x9309,
+    REFERENCED_BY_TESS_CONTROL_SHADER = 0x9307,
+    REFERENCED_BY_TESS_EVALUATION_SHADER = 0x9308,
+    REFERENCED_BY_VERTEX_SHADER      = 0x9306,
+    SHADER_STORAGE_BLOCK             = 0x92E6,
+    TESS_CONTROL_SUBROUTINE          = 0x92E9,
+    TESS_CONTROL_SUBROUTINE_UNIFORM  = 0x92EF,
+    TESS_EVALUATION_SUBROUTINE       = 0x92EA,
+    TESS_EVALUATION_SUBROUTINE_UNIFORM = 0x92F0,
+    TOP_LEVEL_ARRAY_SIZE             = 0x930C,
+    TOP_LEVEL_ARRAY_STRIDE           = 0x930D,
+    TRANSFORM_FEEDBACK_VARYING       = 0x92F4,
+    TYPE                             = 0x92FA,
+    UNIFORM                          = 0x92E1,
+    UNIFORM_BLOCK                    = 0x92E2,
+    VERTEX_SUBROUTINE                = 0x92E8,
+    VERTEX_SUBROUTINE_UNIFORM        = 0x92EE,
 
     ALPHA                            = 0x1906,
     ALWAYS                           = 0x0207,
@@ -1192,6 +1244,13 @@ SQEE_API extern void (MSVC_STDCALL *ProgramUniformMatrix4x3fv)(GLuint program, G
 SQEE_API extern void (MSVC_STDCALL *UseProgramStages)(GLuint pipeline, GLbitfield stages, GLuint program);
 SQEE_API extern void (MSVC_STDCALL *ValidateProgramPipeline)(GLuint pipeline);
 
+SQEE_API extern void (MSVC_STDCALL *GetProgramInterfaceiv)(GLuint program, GLenum programInterface, GLenum pname, GLint* params);
+SQEE_API extern GLuint (MSVC_STDCALL *GetProgramResourceIndex)(GLuint program, GLenum programInterface, const GLchar* name);
+SQEE_API extern GLint (MSVC_STDCALL *GetProgramResourceLocation)(GLuint program, GLenum programInterface, const GLchar* name);
+SQEE_API extern GLint (MSVC_STDCALL *GetProgramResourceLocationIndex)(GLuint program, GLenum programInterface, const GLchar* name);
+SQEE_API extern void (MSVC_STDCALL *GetProgramResourceName)(GLuint program, GLenum programInterface, GLuint index, GLsizei bufSize, GLsizei* length, GLchar* name);
+SQEE_API extern void (MSVC_STDCALL *GetProgramResourceiv)(GLuint program, GLenum programInterface, GLuint index, GLsizei propCount, const GLenum* props, GLsizei bufSize, GLsizei* length, GLint* params);
+
 SQEE_API extern void (MSVC_STDCALL *BlendFunc)(GLenum sfactor, GLenum dfactor);
 SQEE_API extern void (MSVC_STDCALL *Clear)(GLbitfield mask);
 SQEE_API extern void (MSVC_STDCALL *ClearColor)(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
@@ -1730,6 +1789,13 @@ inline void ProgramUniformMatrix4x3dv(GLuint program, GLint location, GLsizei co
 inline void ProgramUniformMatrix4x3fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat* value){detail::ProgramUniformMatrix4x3fv(program, location, count, transpose, value);}
 inline void UseProgramStages(GLuint pipeline, GLbitfield stages, GLuint program){detail::UseProgramStages(pipeline, stages, program);}
 inline void ValidateProgramPipeline(GLuint pipeline){detail::ValidateProgramPipeline(pipeline);}
+
+inline void GetProgramInterfaceiv(GLuint program, GLenum programInterface, GLenum pname, GLint* params){detail::GetProgramInterfaceiv(program, programInterface, pname, params);}
+inline GLuint GetProgramResourceIndex(GLuint program, GLenum programInterface, const GLchar* name){return detail::GetProgramResourceIndex(program, programInterface, name);}
+inline GLint GetProgramResourceLocation(GLuint program, GLenum programInterface, const GLchar* name){return detail::GetProgramResourceLocation(program, programInterface, name);}
+inline GLint GetProgramResourceLocationIndex(GLuint program, GLenum programInterface, const GLchar* name){return detail::GetProgramResourceLocationIndex(program, programInterface, name);}
+inline void GetProgramResourceName(GLuint program, GLenum programInterface, GLuint index, GLsizei bufSize, GLsizei* length, GLchar* name){detail::GetProgramResourceName(program, programInterface, index, bufSize, length, name);}
+inline void GetProgramResourceiv(GLuint program, GLenum programInterface, GLuint index, GLsizei propCount, const GLenum* props, GLsizei bufSize, GLsizei* length, GLint* params){detail::GetProgramResourceiv(program, programInterface, index, propCount, props, bufSize, length, params);}
 
 inline void BlendFunc(GLenum sfactor, GLenum dfactor){detail::BlendFunc(sfactor, dfactor);}
 inline void Clear(GLbitfield mask){detail::Clear(mask);}

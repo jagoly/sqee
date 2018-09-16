@@ -32,10 +32,13 @@ TokenisedFile tokenise_file(const string& path);
 //============================================================================//
 
 /// Extract file portion from a path
-string file_from_path(const string& path);
+string_view file_from_path(const string& path);
 
 /// Extract directory portion from a path
-string directory_from_path(const string& path);
+string_view directory_from_path(const string& path);
+
+/// Extract the file extension from a path
+string_view extension_from_path(const string& path);
 
 //============================================================================//
 

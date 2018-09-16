@@ -30,7 +30,7 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    void refresh_options();
+    void refresh_options() override;
 
     void set_input_enabled(bool enable);
 

@@ -60,7 +60,7 @@ Sound::Sound()
     mSound = std::make_unique<sf::Sound>();
 }
 
-void Sound::set_wave(Handle<SoundWave> handle)
+void Sound::set_wave(Handle<string, SoundWave> handle)
 {
     SQASSERT(check_stopped(), "sound must be stopped");
 

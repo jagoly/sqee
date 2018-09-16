@@ -1,5 +1,3 @@
-#include <fstream>
-
 #include <sqee/assert.hpp>
 
 #include <sqee/redist/gl_loader.hpp>
@@ -7,13 +5,13 @@
 
 #include <sqee/debug/Logging.hpp>
 
+#include <sqee/helpers.hpp>
 #include <sqee/misc/Files.hpp>
 #include <sqee/misc/Json.hpp>
 
 #include <sqee/gl/Textures.hpp>
 
 using namespace sq;
-using JsonValue = nlohmann::json;
 
 //============================================================================//
 
@@ -133,30 +131,12 @@ struct Impl_Load_Image : NonCopyable
 
     //--------------------------------------------------------//
 
-    Impl_Load_Image(Texture::Format format, const string& path)
+    Impl_Load_Image(Texture::Format format, string path)
     {
-//        // prepend assets directory to the path
-//        if (path.is_relative()) path = "assets" / path;
-
-//        // automatically add png or jpg file extension
-//        if (path.has_extension() == false)
-//        {
-//            const fs::path pathPNG = path.string() + ".png";
-//            const fs::path pathJPG = path.string() + ".jpg";
-
-//            const bool existsPNG = fs::exists(pathPNG);
-//            const bool existsJPG = fs::exists(pathJPG);
-
-//            if (existsPNG && existsJPG) log_warning("ambiguous image path '%s'", path);
-//            else if (existsPNG) path = pathPNG; else if (existsJPG) path = pathJPG;
-//        }
-
-//        log_assert(fs::exists(path), "file does not exist: %s", fs::absolute(path));
-
-        string fullPath = "assets/" + path;
-        if (check_file_exists(fullPath+".png")) fullPath += ".png";
-        else if (check_file_exists(fullPath+".jpg")) fullPath += ".jpg";
-        else log_error("Failed to find image %s", fullPath);
+        if (check_file_exists(path) == true) {}
+        else if (check_file_exists(path + ".png")) path += ".png";
+        else if (check_file_exists(path + ".jpg")) path += ".jpg";
+        else log_error("Failed to find image '%s'", path);
 
         //--------------------------------------------------------//
 
@@ -169,8 +149,8 @@ struct Impl_Load_Image : NonCopyable
         Vec2I size = { 0, 0 };
         int channels = 0;
 
-        data = stbi_load(fullPath.c_str(), &size.x, &size.y, &channels, 0);
-        log_assert(data != NULL, "Failed to load image from %s", fullPath);
+        data = stbi_load(path.c_str(), &size.x, &size.y, &channels, 0);
+        log_assert(data != NULL, "Failed to load image from %s", path);
 
         SQASSERT(channels == meta.channels, "");
 
@@ -347,10 +327,10 @@ void Texture2D::load_file(const string& path)
 
 void Texture2D::load_automatic(const string& path)
 {
-    const auto dirPath = "assets/" + directory_from_path(path);
-    const auto fileName = file_from_path(path);
+    const auto jsonPath = build_string(directory_from_path(path), "/meta.json");
+    const auto fileName = string(file_from_path(path));
 
-    const auto json = parse_json_from_file(dirPath + "meta.json").at(fileName);
+    const auto json = parse_json_from_file(jsonPath).at(fileName);
 
     const string& wrap = json.at("wrap");
     const string& swizzle = json.at("swizzle");
@@ -376,7 +356,7 @@ void TextureCube::load_file(const string& path, uint face)
 
 void TextureCube::load_automatic(const string& path)
 {
-    const auto json = parse_json_from_file("assets/" + path + "/meta.json");
+    const auto json = parse_json_from_file(build_string(path, "/meta.json"));
 
     const string& wrap = json.at("wrap");
     const string& swizzle = json.at("swizzle");
@@ -407,7 +387,7 @@ void TextureArray2D::load_file(const string& path, uint layer)
 
 void TextureArray2D::load_automatic(const string& path)
 {
-    const auto json = parse_json_from_file("assets/" + path + "/meta.json");
+    const auto json = parse_json_from_file(build_string(path, "/meta.json"));
 
     const string& wrap = json.at("wrap");
     const string& swizzle = json.at("swizzle");
@@ -478,11 +458,11 @@ Texture2D Texture2D::make_from_package(const string& path)
     const string::size_type splitPos = path.find(':');
     log_assert(splitPos != string::npos, "bad path '%s'", path);
 
-    const string package = path.substr(0u, splitPos);
-    const string name = path.substr(splitPos + 1u);
+    const string_view package ( path.c_str(), splitPos );
+    const char* const name = path.c_str() + splitPos + 1u;
 
-    std::ifstream srcFile("assets/packages/" + package + "/textures.json");
-    const auto json = JsonValue::parse(srcFile).at(name);
+    const auto jsonPath = build_string("assets/packages/", package, "/textures.json");
+    const auto json = parse_json_from_file(jsonPath).at(name);
 
     //========================================================//
 
@@ -495,8 +475,9 @@ Texture2D Texture2D::make_from_package(const string& path)
     //========================================================//
 
     const auto format = impl_string_to_format(json.at("format"));
+    const auto imagePath = build_string("assets/packages/", package, "/textures/", name);
 
-    Impl_Load_Image image (format, "packages/" + package + "/textures/" + name);
+    Impl_Load_Image image (format, imagePath);
 
     //========================================================//
 

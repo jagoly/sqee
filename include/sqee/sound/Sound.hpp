@@ -48,7 +48,7 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     /// Set the source SoundWave object.
-    void set_wave(Handle<SoundWave> handle);
+    void set_wave(Handle<string, SoundWave> handle);
 
     //--------------------------------------------------------//
 
@@ -93,7 +93,7 @@ public: //====================================================//
 
 private: //===================================================//
 
-    Handle<SoundWave> mWaveHandle;
+    Handle<string, SoundWave> mWaveHandle;
     unique_ptr<sf::Sound> mSound;
 };
 

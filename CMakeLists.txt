@@ -14,6 +14,8 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build")
 
+set(CMAKE_CXX_STANDARD 17)
+
 ################################################################################
 
 if (CMAKE_SYSTEM_NAME MATCHES "Linux")
@@ -75,7 +77,7 @@ endif ()
 
 if (SQEE_GNU OR SQEE_CLANG)
 
-    string(APPEND CMAKE_CXX_FLAGS " -std=c++17 -Wall -Wextra")
+    string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra")
 
     string(APPEND CMAKE_CXX_FLAGS " -Wno-unused-parameter -Wno-strict-aliasing")
     string(APPEND CMAKE_CXX_FLAGS " -Wno-comment -Wno-misleading-indentation")
@@ -94,9 +96,9 @@ if (SQEE_GNU OR SQEE_CLANG)
         string(APPEND CMAKE_CXX_FLAGS " -mwindows -Wa,-mbig-obj")
     endif ()
 
-#    if (NOT SQEE_STATIC_LIB)
-#        string(APPEND CMAKE_CXX_FLAGS " -fvisibility=hidden")
-#    endif ()
+    if (NOT SQEE_STATIC_LIB)
+        #string(APPEND CMAKE_CXX_FLAGS " -fvisibility=hidden")
+    endif ()
 
 elseif (SQEE_MSVC)
 

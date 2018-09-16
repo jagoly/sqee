@@ -1,6 +1,9 @@
 #pragma once
 
+#include <cstring>
 #include <memory>
+#include <string>
+#include <string_view>
 #include <type_traits>
 
 namespace sq {
@@ -103,6 +106,51 @@ template <class T, class... Ts>
 constexpr auto index_in_pack_v = index_in_pack<T, Ts...>::value;
 
 /// @endcond
+
+//============================================================================//
+
+/// @cond ignore
+
+namespace detail {
+
+template <class> struct StringSize;
+
+template <size_t N> struct StringSize <const char[N]>
+{ static constexpr size_t size(const char(&)[N]) { return N - 1u; } };
+
+template <> struct StringSize <std::string_view>
+{ static constexpr size_t size(const std::string_view& s) { return s.size(); } };
+
+template <> struct StringSize <char>
+{ static constexpr size_t size(char) { return 1; } };
+
+template <> struct StringSize <std::string>
+{ static size_t size(const std::string& s) { return s.size(); } };
+
+template <> struct StringSize <const char*>
+{ static size_t size(const char* s) { return std::strlen(s); } };
+
+template <class T> inline size_t string_size(T&& str)
+{
+    using value_t = std::remove_reference_t<T>;
+    if constexpr (std::is_array_v<value_t>) return StringSize<value_t>::size(str);
+    else return StringSize<std::remove_cv_t<value_t>>::size(str);
+}
+
+} // namespace detail
+
+/// @endcond
+
+//----------------------------------------------------------------------------//
+
+template <class... Args>
+inline std::string build_string(Args&&... args)
+{
+  std::string result;
+  result.reserve((detail::string_size(std::forward<Args>(args)) + ...));
+  (result.append(args), ...);
+  return result;
+}
 
 //============================================================================//
 
