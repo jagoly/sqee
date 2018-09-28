@@ -1,12 +1,17 @@
-#include <list>
-
-#include <sqee/helpers.hpp>
-#include <sqee/debug/Logging.hpp>
-#include <sqee/misc/Files.hpp>
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
 
 #include <sqee/app/PreProcessor.hpp>
 
+#include <list>
+
+#include <sqee/debug/Logging.hpp>
+#include <sqee/misc/Files.hpp>
+
+#include <sqee/helpers.hpp>
+
 using namespace sq;
+using literals::operator""_fmt_;
 
 //============================================================================//
 
@@ -31,23 +36,22 @@ PreProcessor::PreProcessor()
 
 //============================================================================//
 
-void PreProcessor::import_header(const string& path)
+void PreProcessor::import_header(const String& path)
 {
-    const string fullPath = "shaders/" + path + ".glsl";
-    const string header = get_string_from_file(fullPath);
-    mHeaders[path] = tokenise_string(header, '\n');
+    const auto fullPath = build_string("shaders/" + path + ".glsl");
+    mHeaders[path] = tokenise_string(get_string_from_file(fullPath), '\n');
 }
 
-void PreProcessor::update_header(const string& key, const string& string)
+void PreProcessor::update_header(const String& key, const String& string)
 {
     mHeaders[key] = tokenise_string(string, '\n');
 }
 
 //============================================================================//
 
-string PreProcessor::process(const string& path, const string& prelude) const
+String PreProcessor::process(const String& path, const String& prelude) const
 {
-    const string fullPath = [&]()
+    const String fullPath = [&]()
     {
         const bool isAbsolute = ( path.front() == '/' );
         const bool hasExtension = !extension_from_path(path).empty();
@@ -58,13 +62,13 @@ string PreProcessor::process(const string& path, const string& prelude) const
         return path;
     }();
 
-    const string fullString = get_string_from_file(fullPath);
+    const String fullString = get_string_from_file(fullPath);
 
-    string source = "#version 330 core\n"
-                    "#extension GL_ARB_shading_language_420pack : enable\n"
-                    "#extension GL_ARB_explicit_uniform_location : enable\n"
-                    "#extension GL_ARB_gpu_shader5 : enable\n"
-                    "#line 0\n";
+    String source = "#version 330 core\n"
+                         "#extension GL_ARB_shading_language_420pack : enable\n"
+                         "#extension GL_ARB_explicit_uniform_location : enable\n"
+                         "#extension GL_ARB_gpu_shader5 : enable\n"
+                         "#line 0\n";
 
     source.reserve(source.size() + fullString.size()); // might still be reallocated
 
@@ -72,17 +76,17 @@ string PreProcessor::process(const string& path, const string& prelude) const
 
     //--------------------------------------------------------//
 
-    std::vector<std::pair<uint, string>> errorVec;
+    Vector<std::pair<uint, String>> errorVec;
 
     const auto base = tokenise_string_view(fullString, '\n');
 
     //--------------------------------------------------------//
 
-    auto recursive_func = [&](auto&& thisFunc, const std::vector<string_view>& lines) -> void
+    auto recursive_func = [&](auto&& thisFunc, const Vector<StringView>& lines) -> void
     {
         for (size_t lineNum = 0u; lineNum < lines.size(); ++lineNum)
         {
-            const string_view& line = lines[lineNum];
+            const StringView& line = lines[lineNum];
 
             if (line.empty() == true)
             {
@@ -94,7 +98,7 @@ string PreProcessor::process(const string& path, const string& prelude) const
 
                 if (tokens[0] == "#include")
                 {
-                    const auto headerName = string(tokens.back());
+                    const auto headerName = String(tokens.back());
                     const auto headerFind = mHeaders.find(headerName);
 
                     if (tokens.size() == 1u)
@@ -104,11 +108,11 @@ string PreProcessor::process(const string& path, const string& prelude) const
                         errorVec.emplace_back(lineNum, "#include does not support spaces");
 
                     else if (headerFind == mHeaders.end())
-                        errorVec.emplace_back(lineNum, "#include header has not been imported");
+                        errorVec.emplace_back(lineNum, "header '%s' has not been imported"_fmt_(headerName));
 
                     else
                     {
-                        source += tfm::format("#line 0 // begin '%s'\n", headerName);
+                        source += build_string("#line 0 // begin '", headerName, "'\n");
 
                         thisFunc(thisFunc, headerFind->second.tokens);
                     }
@@ -133,9 +137,9 @@ string PreProcessor::process(const string& path, const string& prelude) const
 
     if (errorVec.empty() == false)
     {
-        string errorLines;
-        for (const std::pair<uint, string>& error : errorVec)
-            errorLines += tfm::format("\nLine %d: %s", error.first, error.second);
+        String errorLines;
+        for (const std::pair<uint, String>& error : errorVec)
+            errorLines += "\nLine %d: %s"_fmt_(error.first, error.second);
 
         log_error("Failed to pre-process shader from \"%s\"%s", path, errorLines);
     }
@@ -145,17 +149,17 @@ string PreProcessor::process(const string& path, const string& prelude) const
 
 //============================================================================//
 
-void PreProcessor::load_vertex(Program& program, const string& path, const string& prelude) const
+void PreProcessor::load_vertex(Program& program, const String& path, const String& prelude) const
 {
     program.load_vertex(this->process(path, prelude), path);
 }
 
-void PreProcessor::load_geometry(Program& program, const string& path, const string& prelude) const
+void PreProcessor::load_geometry(Program& program, const String& path, const String& prelude) const
 {
     program.load_geometry(this->process(path, prelude), path);
 }
 
-void PreProcessor::load_fragment(Program& program, const string& path, const string& prelude) const
+void PreProcessor::load_fragment(Program& program, const String& path, const String& prelude) const
 {
     program.load_fragment(this->process(path, prelude), path);
 }

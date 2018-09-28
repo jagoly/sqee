@@ -1,4 +1,4 @@
-#pragma once
+/*#pragma once
 
 #include <sqee/setup.hpp>
 #include <sqee/assert.hpp>
@@ -142,4 +142,4 @@ private: //===================================================//
     void (*mDestructor)(void*);
 };
 
-} // namespace sq
+} // namespace sq*/

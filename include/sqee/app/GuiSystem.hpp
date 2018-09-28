@@ -1,9 +1,12 @@
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
+
 #pragma once
 
 #include <functional>
 #include <list>
 
-#include <sqee/builtins.hpp>
+#include <sqee/misc/Builtins.hpp>
 
 namespace sq {
 
@@ -13,7 +16,7 @@ class Window; class InputDevices; struct GuiWidget; struct Event;
 
 //============================================================================//
 
-class GuiSystem final : NonCopyable
+class SQEE_API GuiSystem final : private NonCopyable
 {
 public: //====================================================//
 
@@ -57,12 +60,12 @@ private: //===================================================//
 
     class Implementation;
     friend class Implementation;
-    unique_ptr<Implementation> impl;
+    UniquePtr<Implementation> impl;
 };
 
 //============================================================================//
 
-struct GuiWidget final : NonCopyable
+struct GuiWidget final : private NonCopyable
 {
     GuiWidget() { GuiSystem::get().enable_widget(*this); }
 

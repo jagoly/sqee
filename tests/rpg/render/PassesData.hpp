@@ -219,8 +219,8 @@ struct LightBaseAmbientPass // data for a single ambient pass
 
 struct LightBasePasses
 {
-    unique_ptr<LightBaseSkyBoxPass> skyboxPass;
-    unique_ptr<LightBaseAmbientPass> ambientPass;
+    UniquePtr<LightBaseSkyBoxPass> skyboxPass;
+    UniquePtr<LightBaseAmbientPass> ambientPass;
 };
 
 
@@ -247,7 +247,7 @@ struct LightAccumStencilPass // data for a single non-cascade light pass
 
 struct LightAccumPasses
 {
-    unique_ptr<LightAccumSkyLightPass> skylightPass;
+    UniquePtr<LightAccumSkyLightPass> skylightPass;
     std::vector<LightAccumStencilPass> orthoPassVec;
     std::vector<LightAccumStencilPass> pointPassVec;
     std::vector<LightAccumStencilPass> spotPassVec;
@@ -278,7 +278,7 @@ struct VolumetricStencilPass // data for a single non-cascade light pass
 
 struct VolumetricPasses
 {
-    unique_ptr<VolumetricSkyLightPass> skylightPass;
+    UniquePtr<VolumetricSkyLightPass> skylightPass;
     std::vector<VolumetricStencilPass> orthoPassVec;
     std::vector<VolumetricStencilPass> pointPassVec;
     std::vector<VolumetricStencilPass> spotPassVec;

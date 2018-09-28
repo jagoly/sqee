@@ -1,23 +1,25 @@
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
+
 #pragma once
 
-#include <sqee/builtins.hpp>
+#include <sqee/misc/Builtins.hpp>
+#include <sqee/maths/Builtins.hpp>
 
 #include <sqee/gl/FixedBuffer.hpp>
 #include <sqee/gl/VertexArray.hpp>
-
-#include <sqee/maths/Vectors.hpp>
 
 namespace sq {
 
 //============================================================================//
 
 /// The SQEE Mesh class.
-class Mesh final : public MoveOnly
+class SQEE_API Mesh final : private MoveOnly
 {
 public: //====================================================//
 
     /// Load the mesh from an SQM file.
-    void load_from_file(const string& path, bool swapYZ = false);
+    void load_from_file(const String& path, bool swapYZ = false);
 
     //--------------------------------------------------------//
 
@@ -66,7 +68,7 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     /// Create a new sq::Mesh from sqee packages.
-    static unique_ptr<Mesh> make_from_package(const string& path);
+    static UniquePtr<Mesh> make_from_package(const String& path);
 
 private: //===================================================//
 
@@ -91,7 +93,7 @@ private: //===================================================//
         uint firstIndex, indexCount;
     };
 
-    std::vector<SubMesh> mSubMeshVec;
+    Vector<SubMesh> mSubMeshVec;
 
     //--------------------------------------------------------//
 
@@ -101,9 +103,9 @@ private: //===================================================//
 
     //--------------------------------------------------------//
 
-    void impl_load_ascii(const string& path);
+    void impl_load_ascii(const String& path);
 
-    void impl_load_final(std::vector<uchar>& vertexData, std::vector<uint>& indexData);
+    void impl_load_final(Vector<std::byte>& vertexData, Vector<uint32_t>& indexData);
 };
 
 //============================================================================//

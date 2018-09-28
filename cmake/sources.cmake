@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.4)
+cmake_minimum_required(VERSION 3.10)
 
 set(SOURCES
 
@@ -28,14 +28,10 @@ set(SOURCES
   "source/sqee/redist/imgui/imgui_demo.cpp"
   "source/sqee/redist/imgui/imgui_draw.cpp"
 
-  "include/sqee/redist/variant.hpp"
-
   #==========================================================#
   # SQEE Source                                              #
   #==========================================================#
 
-  "include/sqee/assert.hpp"
-  "include/sqee/builtins.hpp"
   "include/sqee/export.hpp"
   "include/sqee/helpers.hpp"
   "include/sqee/macros.hpp"
@@ -64,6 +60,8 @@ set(SOURCES
   "include/sqee/debug/OpenGL.hpp"   "source/sqee/debug/OpenGL.cpp"
   "include/sqee/debug/Text.hpp"     "source/sqee/debug/Text.cpp"
 
+  "include/sqee/debug/Assert.hpp"
+
   #----------------------------------------------------------#
 
   "include/sqee/dop/Classes.hpp"    "source/sqee/dop/Classes.cpp"
@@ -75,6 +73,7 @@ set(SOURCES
   "include/sqee/gl/Drawing.hpp"        "source/sqee/gl/Drawing.cpp"
   "include/sqee/gl/FixedBuffer.hpp"    "source/sqee/gl/FixedBuffer.cpp"
   "include/sqee/gl/FrameBuffer.hpp"    "source/sqee/gl/FrameBuffer.cpp"
+  "include/sqee/gl/PipelineState.hpp"  "source/sqee/gl/PipelineState.cpp"
   "include/sqee/gl/Program.hpp"        "source/sqee/gl/Program.cpp"
   "include/sqee/gl/TextureBase.hpp"    "source/sqee/gl/TextureBase.cpp"
   "include/sqee/gl/Textures.hpp"       "source/sqee/gl/Textures.cpp"
@@ -92,6 +91,8 @@ set(SOURCES
   "include/sqee/maths/Vectors.hpp"
   "include/sqee/maths/Volumes.hpp"
 
+  "include/sqee/maths/Builtins.hpp"
+
   #----------------------------------------------------------#
 
   "include/sqee/misc/Files.hpp"       "source/sqee/misc/Files.cpp"
@@ -107,7 +108,10 @@ set(SOURCES
   "include/sqee/misc/ResourceHandle.hpp"
 
   "include/sqee/misc/FlagSet.hpp"
+  "include/sqee/misc/StaticVector.hpp"
   "include/sqee/misc/UniqueAny.hpp"
+
+  "include/sqee/misc/Builtins.hpp"
 
   #----------------------------------------------------------#
 

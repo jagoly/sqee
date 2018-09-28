@@ -82,67 +82,67 @@ namespace { // anonymous
 //----------------------------------------------------------------------------//
 
 template <int S, class T> inline
-void impl_setup_VectorST(chai::Module& m, const string& name)
+void impl_setup_VectorST(chai::Module& m, const String& name)
 {
-    using VecST = Vector<S, T>;
+    using VecST = maths::Vector<S, T>;
 
     m.add(constructor<VecST(const VecST&)>(), name);
     m.add(fun(&VecST::operator=), "=");
 
-    m.add(vector_conversion<std::vector<VecST>>());
-    m.add(type_conversion<VecST, string, string(*)(const VecST&)>(&chai_string));
+    m.add(vector_conversion<Vector<VecST>>());
+    m.add(type_conversion<VecST, String, String(*)(const VecST&)>(&chai_string));
 
-    m.add(fun<VecST, VecST, VecST>(operator+), "+");
-    m.add(fun<VecST, VecST, VecST>(operator-), "-");
-    m.add(fun<VecST, VecST, VecST>(operator*), "*");
-    m.add(fun<VecST, VecST, VecST>(operator/), "/");
+    m.add(fun<VecST, VecST, VecST>(maths::operator+), "+");
+    m.add(fun<VecST, VecST, VecST>(maths::operator-), "-");
+    m.add(fun<VecST, VecST, VecST>(maths::operator*), "*");
+    m.add(fun<VecST, VecST, VecST>(maths::operator/), "/");
 
-    m.add(fun<VecST, VecST, T>(operator+), "+");
-    m.add(fun<VecST, VecST, T>(operator-), "-");
-    m.add(fun<VecST, VecST, T>(operator*), "*");
-    m.add(fun<VecST, VecST, T>(operator/), "/");
+    m.add(fun<VecST, VecST, T>(maths::operator+), "+");
+    m.add(fun<VecST, VecST, T>(maths::operator-), "-");
+    m.add(fun<VecST, VecST, T>(maths::operator*), "*");
+    m.add(fun<VecST, VecST, T>(maths::operator/), "/");
 }
 
 //----------------------------------------------------------------------------//
 
 template <class T> inline
-void impl_setup_Vector2(chai::Module& m, const string& name)
+void impl_setup_Vector2(chai::Module& m, const String& name)
 {
     impl_setup_VectorST<2, T>(m, name);
 
-    m.add(constructor<Vector2<T>(T, T)>(), name);
+    m.add(constructor<maths::Vector2<T>(T, T)>(), name);
 
-    m.add(fun(&Vector2<T>::x), "x");
-    m.add(fun(&Vector2<T>::y), "y");
+    m.add(fun(&maths::Vector2<T>::x), "x");
+    m.add(fun(&maths::Vector2<T>::y), "y");
 }
 
 //----------------------------------------------------------------------------//
 
 template <class T> inline
-void impl_setup_Vector3(chai::Module& m, const string& name)
+void impl_setup_Vector3(chai::Module& m, const String& name)
 {
     impl_setup_VectorST<3, T>(m, name);
 
-    m.add(constructor<Vector3<T>(T, T, T)>(), name);
+    m.add(constructor<maths::Vector3<T>(T, T, T)>(), name);
 
-    m.add(fun(&Vector3<T>::x), "x");
-    m.add(fun(&Vector3<T>::y), "y");
-    m.add(fun(&Vector3<T>::z), "z");
+    m.add(fun(&maths::Vector3<T>::x), "x");
+    m.add(fun(&maths::Vector3<T>::y), "y");
+    m.add(fun(&maths::Vector3<T>::z), "z");
 }
 
 //----------------------------------------------------------------------------//
 
 template <class T> inline
-void impl_setup_Vector4(chai::Module& m, const string& name)
+void impl_setup_Vector4(chai::Module& m, const String& name)
 {
     impl_setup_VectorST<4, T>(m, name);
 
-    m.add(constructor<Vector4<T>(T, T, T, T)>(), name);
+    m.add(constructor<maths::Vector4<T>(T, T, T, T)>(), name);
 
-    m.add(fun(&Vector4<T>::x), "x");
-    m.add(fun(&Vector4<T>::y), "y");
-    m.add(fun(&Vector4<T>::z), "z");
-    m.add(fun(&Vector4<T>::w), "w");
+    m.add(fun(&maths::Vector4<T>::x), "x");
+    m.add(fun(&maths::Vector4<T>::y), "y");
+    m.add(fun(&maths::Vector4<T>::z), "z");
+    m.add(fun(&maths::Vector4<T>::w), "w");
 }
 
 //----------------------------------------------------------------------------//
@@ -176,8 +176,8 @@ void sq::chaiscript_setup_maths(ChaiEngine& engine)
     m->add(constructor<QuatF(float, float, float)>(), "QuatF");
     m->add(fun(&QuatF::operator=), "=");
 
-    m->add(vector_conversion<std::vector<QuatF>>());
-    m->add(type_conversion<QuatF, string, string(*)(const QuatF&)>(&chai_string));;
+    m->add(vector_conversion<Vector<QuatF>>());
+    m->add(type_conversion<QuatF, String, String(*)(const QuatF&)>(&chai_string));;
 
     m->add(fun(&QuatF::x), "x");
     m->add(fun(&QuatF::y), "y");
@@ -186,9 +186,9 @@ void sq::chaiscript_setup_maths(ChaiEngine& engine)
 
     //--------------------------------------------------------//
 
-    m->add(vector_conversion<std::vector<int>>());
-    m->add(vector_conversion<std::vector<uint>>());
-    m->add(vector_conversion<std::vector<float>>());
+    m->add(vector_conversion<Vector<int>>());
+    m->add(vector_conversion<Vector<uint>>());
+    m->add(vector_conversion<Vector<float>>());
 
     //--------------------------------------------------------//
 

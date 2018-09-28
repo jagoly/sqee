@@ -48,7 +48,7 @@ Matrix44<T> transform(Vector3<T> translation, Matrix33<T> rotation, Vector3<T> s
 template <class T> constexpr
 Matrix44<T> transform(Vector3<T> translation, Matrix33<T> rotation, T scale)
 {
-    return maths::transform(translation, rotation, Vec3F(scale));
+    return maths::transform(translation, rotation, Vector3<T>(scale));
 }
 
 /// Create a matrix from a translation, rotation, and scale.
@@ -246,11 +246,11 @@ Matrix44<T> ortho_RH(Vector3<T> min, Vector3<T> max)
 template <class T> inline
 Matrix33<T> basis_from_y(Vector3<T> yAxis)
 {
-    Vec3F zAxis;
+    Vector3<T> zAxis;
 
-    const Vec3F tanX = maths::cross(yAxis, Vec3F(1.f, 0.f, 0.f));
-    const Vec3F tanY = maths::cross(yAxis, Vec3F(0.f, 1.f, 0.f));
-    const Vec3F tanZ = maths::cross(yAxis, Vec3F(0.f, 0.f, 1.f));
+    const Vector3<T> tanX = maths::cross(yAxis, Vector3<T>(1, 0, 0));
+    const Vector3<T> tanY = maths::cross(yAxis, Vector3<T>(0, 1, 0));
+    const Vector3<T> tanZ = maths::cross(yAxis, Vector3<T>(0, 0, 1));
 
     const float lenX = maths::length_squared(tanX);
     const float lenY = maths::length_squared(tanY);
@@ -260,20 +260,20 @@ Matrix33<T> basis_from_y(Vector3<T> yAxis)
     else if (lenY >= lenZ) zAxis = maths::normalize(tanY);
     else zAxis = maths::normalize(tanZ);
 
-    const Vec3F xAxis = maths::cross(yAxis, zAxis);
+    const Vector3<T> xAxis = maths::cross(yAxis, zAxis);
 
-    return Mat3F ( xAxis, yAxis, zAxis );
+    return Matrix33<T> ( xAxis, yAxis, zAxis );
 }
 
 /// Create an orthonormal basis matrix given the z axis.
 template <class T> inline
 Matrix33<T> basis_from_z(Vector3<T> zAxis)
 {
-    Vec3F yAxis;
+    Vector3<T> yAxis;
 
-    const Vec3F tanX = maths::cross(zAxis, Vec3F(1.f, 0.f, 0.f));
-    const Vec3F tanY = maths::cross(zAxis, Vec3F(0.f, 1.f, 0.f));
-    const Vec3F tanZ = maths::cross(zAxis, Vec3F(0.f, 0.f, 1.f));
+    const Vector3<T> tanX = maths::cross(zAxis, Vector3<T>(1, 0, 0));
+    const Vector3<T> tanY = maths::cross(zAxis, Vector3<T>(0, 1, 0));
+    const Vector3<T> tanZ = maths::cross(zAxis, Vector3<T>(0, 0, 1));
 
     const float lenX = maths::length_squared(tanX);
     const float lenY = maths::length_squared(tanY);
@@ -283,9 +283,9 @@ Matrix33<T> basis_from_z(Vector3<T> zAxis)
     else if (lenY >= lenZ) yAxis = maths::normalize(tanY);
     else yAxis = maths::normalize(tanZ);
 
-    const Vec3F xAxis = maths::cross(zAxis, yAxis);
+    const Vector3<T> xAxis = maths::cross(zAxis, yAxis);
 
-    return Mat3F ( xAxis, yAxis, zAxis );
+    return Matrix33<T> ( xAxis, yAxis, zAxis );
 }
 
 //============================================================================//

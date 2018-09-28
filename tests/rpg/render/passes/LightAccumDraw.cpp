@@ -1,6 +1,8 @@
 #include <sqee/gl/Context.hpp>
 #include <sqee/gl/Drawing.hpp>
 
+#include <sqee/redist/gl_loader.hpp>
+
 #include "LightAccumDraw.hpp"
 
 using Context = sq::Context;
@@ -91,7 +93,7 @@ void LightAccumPasses::impl_render_SkyLightPass(const data::LightAccumSkyLightPa
 
     // only render where there is geometry
     context.set_state(Context::Stencil_Test::Keep);
-    context.set_Stencil_Params(gl::EQUAL, 1, 1, 0);
+    context.set_Stencil_Params({gl::EQUAL, 1, 1, 0});
 
     context.bind_Program(PROG_Main_LightCasc);
 
@@ -112,10 +114,10 @@ void LightAccumPasses::impl_render_StencilPass(const data::LightAccumStencilPass
 
     // use two-sided light volume stencil trick
     context.set_state(Context::Stencil_Test::Custom);
-    context.set_Stencil_Custom(gl::KEEP, gl::INVERT, gl::KEEP);
+    context.set_Stencil_Custom({gl::KEEP, gl::INVERT, gl::KEEP});
 
     // only render where there is geometry
-    context.set_Stencil_Params(gl::EQUAL, 1, 1, 2);
+    context.set_Stencil_Params({gl::EQUAL, 1, 1, 2});
 
     // clear light volume stencil bit
     context.clear_Stencil(0, 2);
@@ -133,7 +135,7 @@ void LightAccumPasses::impl_render_StencilPass(const data::LightAccumStencilPass
 
     // only render over the stencil volume bit
     context.set_state(Context::Stencil_Test::Keep);
-    context.set_Stencil_Params(gl::EQUAL, 2, 2, 0);
+    context.set_Stencil_Params({gl::EQUAL, 2, 2, 0});
 
     context.bind_UniformBuffer(light.ubo, 1u);
     context.bind_Texture(light.tex, 8u);

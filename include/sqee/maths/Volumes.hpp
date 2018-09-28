@@ -1,7 +1,6 @@
 #pragma once
 
-#include <sqee/maths/Vectors.hpp>
-#include <sqee/maths/Quaternion.hpp>
+#include <sqee/maths/Builtins.hpp>
 
 namespace sq::maths {
 

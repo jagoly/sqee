@@ -44,7 +44,7 @@ SoundEdit::SoundEdit(ScriptAPI& api, int32_t id)
 
 //============================================================================//
 
-void EntityEdit::set_unique_name(const string& name)
+void EntityEdit::set_unique_name(const String& name)
 {
     auto& entryName = entry->uniqueName;
     auto& nameMap = api.world.uniqueNames;
@@ -111,12 +111,12 @@ void ModelEdit::set_stretch(Vec3F stretch)
     entry->stretch = stretch;
 }
 
-void ModelEdit::add_material(const string& path)
+void ModelEdit::add_material(const String& path)
 {
     entry->materials.push_back(api.caches.materials.acquire(path));
 }
 
-void ModelEdit::set_mesh(const string& path)
+void ModelEdit::set_mesh(const String& path)
 {
     entry->mesh = api.caches.meshes.acquire(path);
 }
@@ -138,7 +138,7 @@ void ModelEdit::enable_decals(bool enable)
 
 //============================================================================//
 
-void SkeletonEdit::set_armature(const string& path)
+void SkeletonEdit::set_armature(const String& path)
 {
     //entry->armature = acquire_Armature(path);
 }

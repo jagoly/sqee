@@ -1,3 +1,6 @@
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
+
 #include <cstring>
 #include <algorithm>
 #include <vector>

@@ -1,18 +1,14 @@
 #pragma once
 
-#include <sqee/setup.hpp>
 #include <sqee/helpers.hpp>
+#include <sqee/setup.hpp>
 
 namespace sq {
 
 //============================================================================//
 
-class Context; // Forward Declaration
-
-//============================================================================//
-
 /// OpenGL Uniform Buffer Object.
-class UniformBuffer final : public MoveOnly
+class SQEE_API UniformBuffer final : private MoveOnly
 {
 public: //====================================================//
 
@@ -59,7 +55,7 @@ public: //====================================================//
 
 private: //===================================================//
 
-    Context& mContext;
+    class Context& mContext;
 
     uint mBufferSize = 0u;
 

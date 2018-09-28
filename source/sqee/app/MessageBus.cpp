@@ -1,8 +1,11 @@
-#ifndef SQEE_MSVC
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
 
-#include <sqee/assert.hpp>
-#include <sqee/misc/Algorithms.hpp>
+#ifndef SQEE_MSVC
 #include <sqee/app/MessageBus.hpp>
+
+#include <sqee/debug/Assert.hpp>
+#include <sqee/misc/Algorithms.hpp>
 
 using namespace sq;
 
@@ -47,7 +50,7 @@ void MessageBus::impl_unsubscribe(ReceiverBase* receiver, std::type_index type)
 
 //============================================================================//
 
-std::vector<ReceiverBase*>& MessageBus::impl_get_subscribers(std::type_index type)
+Vector<ReceiverBase*>& MessageBus::impl_get_subscribers(std::type_index type)
 {
     auto iter = mSubscriberMap.find(type);
     SQASSERT(iter != mSubscriberMap.end(), "message type not registered");

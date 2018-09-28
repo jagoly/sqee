@@ -1,8 +1,7 @@
 #pragma once
 
-#include <sqee/builtins.hpp>
-
-#include <sqee/maths/Vectors.hpp>
+#include <sqee/misc/Builtins.hpp>
+#include <sqee/maths/Builtins.hpp>
 
 #include <sqee/app/Scene.hpp>
 #include <sqee/app/ChaiEngine.hpp>
@@ -50,9 +49,9 @@ private: //===================================================//
 
     //--------------------------------------------------------//
 
-    unique_ptr<WorldStuff> world;
-    unique_ptr<Renderer> renderer;
-    unique_ptr<ScriptAPI> api;
+    UniquePtr<WorldStuff> world;
+    UniquePtr<Renderer> renderer;
+    UniquePtr<ScriptAPI> api;
 
     //--------------------------------------------------------//
 

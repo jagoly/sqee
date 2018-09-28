@@ -12,7 +12,7 @@ SokoApp::~SokoApp() = default;
 
 //============================================================================//
 
-void SokoApp::initialise(std::vector<string> args)
+void SokoApp::initialise(Vector<String> args)
 {
     (void) args;
 

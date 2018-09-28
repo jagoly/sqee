@@ -43,11 +43,11 @@ void display_input_label(const char* label, float width)
     // using imgui provided label for now
     //if (labelWidth != 0.f) detail::display_input_label(label.c_str(), labelWidth);
 
-    //std::unique_ptr<char[]> buffer { new char[bufSize] };
+    //UniquePtr<char[]> buffer { new char[bufSize] };
 
     auto buffer = std::make_unique<char[]>(bufSize);
 
-    //std::array<char, BufSize> buffer;
+    //Array<char, BufSize> buffer;
     ref.copy(buffer.get(), maxChars);
     buffer[ref.size()] = '\0';
 

@@ -4,7 +4,7 @@
 #include <sqee/maths/Vectors.hpp>
 #include <sqee/maths/Matrices.hpp>
 
-namespace sq {
+namespace sq::maths {
 
 //============================================================================//
 
@@ -127,10 +127,6 @@ Quaternion<T> operator-(Quaternion<T> q)
 
 //============================================================================//
 
-namespace maths {
-
-//============================================================================//
-
 // dot product (Quaternion, Quaternion) /////
 
 template <class T> constexpr
@@ -226,6 +222,4 @@ Quaternion<T> slerp(Quaternion<T> a, Quaternion<T> b, T factor)
 
 //============================================================================//
 
-}} // namespace sq::maths
-
-using QuatF = sq::Quaternion<float>;
+} // namespace sq::maths

@@ -3,8 +3,8 @@
 #include <list>
 #include <set>
 
-#include <sqee/builtins.hpp>
-#include <sqee/maths/Vectors.hpp>
+#include <sqee/misc/Builtins.hpp>
+#include <sqee/maths/Builtins.hpp>
 
 namespace sqt {
 

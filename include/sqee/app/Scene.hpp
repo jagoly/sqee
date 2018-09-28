@@ -1,6 +1,8 @@
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
+
 #pragma once
 
-#include <sqee/setup.hpp>
 #include <sqee/app/Event.hpp>
 
 namespace sq {
@@ -8,7 +10,7 @@ namespace sq {
 //============================================================================//
 
 /// The SQEE Scene base class.
-class Scene : NonCopyable
+class SQEE_API Scene : private NonCopyable
 {
 public: //====================================================//
 

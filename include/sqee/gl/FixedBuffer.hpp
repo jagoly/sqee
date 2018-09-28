@@ -1,3 +1,6 @@
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
+
 #pragma once
 
 #include <sqee/setup.hpp>
@@ -7,7 +10,7 @@ namespace sq {
 //============================================================================//
 
 /// OpenGL Buffer Object.
-class FixedBuffer final : public MoveOnly
+class SQEE_API FixedBuffer final : private MoveOnly
 {
 public: //====================================================//
 

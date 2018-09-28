@@ -1,16 +1,15 @@
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
+
 #pragma once
 
-#include <memory>
-#include <string>
-
-#include <sqee/setup.hpp>
-#include <sqee/assert.hpp>
+#include <sqee/debug/Assert.hpp>
+#include <sqee/misc/Builtins.hpp>
 
 namespace sq {
 
-//============================================================================//
+//====== Forward Declarations ================================================//
 
-// Forward Declarations /////
 template <class Key, class Type> class Handle;
 template <class Key, class Type> class ResourceCache;
 
@@ -21,7 +20,7 @@ template <class Key, class Type> class ResourceCache;
 /// @tparam Type type of the resource
 
 template <class Key, class Type>
-class Resource final : NonCopyable
+class Resource final : private NonCopyable
 {
 protected: //=================================================//
 
@@ -35,7 +34,7 @@ protected: //=================================================//
 
     //--------------------------------------------------------//
 
-    std::unique_ptr<Type> uptr;
+    UniquePtr<Type> uptr;
     uint count = 0u;
 
     Key key;

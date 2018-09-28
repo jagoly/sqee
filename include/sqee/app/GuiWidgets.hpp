@@ -1,6 +1,9 @@
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
+
 #pragma once
 
-#include <sqee/builtins.hpp>
+#include <sqee/misc/Builtins.hpp>
 
 #include <sqee/redist/imgui/imgui.hpp>
 
@@ -51,7 +54,7 @@ inline ImGuiStyle get_style() { return imgui::GetStyle(); }
 
 namespace sq::gui::detail {
 
-void display_input_label(const char* label, float width);
+SQEE_API void display_input_label(const char* label, float width);
 
 //bool display_input_text(const char* label, uint maxChars, string& ref, FlagSet<InputText> flags, InputTextCallback callback);
 
@@ -61,7 +64,7 @@ void display_input_label(const char* label, float width);
 
 namespace sq::gui {
 
-inline bool begin_collapse(string label, ImGuiTreeNodeFlags flags = 0)
+inline bool begin_collapse(String label, ImGuiTreeNodeFlags flags = 0)
 {
     return imgui::TreeNodeEx(label.c_str(), flags | ImGuiTreeNodeFlags_CollapsingHeader);
 }
@@ -71,7 +74,7 @@ inline void end_collapse()
     imgui::TreePop();
 }
 
-inline bool begin_window(string name, Vec2F minSize, Vec2F maxSize, Vec2F position, ImGuiWindowFlags flags = 0)
+inline bool begin_window(String name, Vec2F minSize, Vec2F maxSize, Vec2F position, ImGuiWindowFlags flags = 0)
 {
     flags = flags | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove;
 
@@ -143,7 +146,7 @@ struct scope_unindent final
 //============================================================================//
 
 /// Display a simple line of text.
-inline void display_text(string text)
+inline void display_text(String text)
 {
     imgui::TextUnformatted(text.c_str());
 }
@@ -161,11 +164,11 @@ inline void display_text(string text)
 ///
 /// @result was the value just modified
 ///
-template <class T> inline bool input_int(string label, float labelWidth, T& ref, int step = 1)
+template <class T> inline bool input_int(String label, float labelWidth, T& ref, int step = 1)
 {
     if (labelWidth != 0.f) detail::display_input_label(label.c_str(), labelWidth);
 
-    const string hiddenLabel = "##" + label;
+    const String hiddenLabel = "##" + label;
 
     auto asInt32 = static_cast<int>(ref);
     bool changed = imgui::InputInt(hiddenLabel.c_str(), &asInt32, step, 0);
@@ -186,13 +189,13 @@ template <class T> inline bool input_int(string label, float labelWidth, T& ref,
 ///
 /// @result was the value just modified
 ///
-inline bool input_float(string label, float labelWidth, float& ref, float step, int8_t precision)
+inline bool input_float(String label, float labelWidth, float& ref, float step, int8_t precision)
 {
     SQASSERT(precision > 0 && precision < 10, "invalid precision");
 
     if (labelWidth != 0.f) detail::display_input_label(label.c_str(), labelWidth);
 
-    const string hiddenLabel = "##" + label;
+    const String hiddenLabel = "##" + label;
     const char format[5] = {'%', '.', static_cast<char>('0' + precision), 'f', '\0'};
 
     return imgui::InputFloat(hiddenLabel.c_str(), &ref, step, 0.f, format);
@@ -210,11 +213,11 @@ inline bool input_float(string label, float labelWidth, float& ref, float step, 
 ///
 /// @result was the value just modified
 ///
-template <int S> inline bool input_vec_i(string label, float labelWidth, Vector<S,int>& ref)
+template <int S> inline bool input_vec_i(String label, float labelWidth, maths::Vector<S,int>& ref)
 {
     if (labelWidth != 0.f) detail::display_input_label(label.c_str(), labelWidth);
 
-    const string hiddenLabel = "##" + label;
+    const String hiddenLabel = "##" + label;
 
     return imgui::InputScalarN(hiddenLabel.c_str(), ImGuiDataType_S32, ref.data, S, nullptr, nullptr, "%d");
 }
@@ -231,11 +234,11 @@ template <int S> inline bool input_vec_i(string label, float labelWidth, Vector<
 ///
 /// @result was the value just modified
 ///
-template <int S> inline bool input_vec_u(string label, float labelWidth, Vector<S,uint>& ref)
+template <int S> inline bool input_vec_u(String label, float labelWidth, maths::Vector<S,uint>& ref)
 {
     if (labelWidth != 0.f) detail::display_input_label(label.c_str(), labelWidth);
 
-    const string hiddenLabel = "##" + label;
+    const String hiddenLabel = "##" + label;
 
     return imgui::InputScalarN(hiddenLabel.c_str(), ImGuiDataType_U32, ref.data, S, nullptr, nullptr, "%u");
 }
@@ -254,11 +257,11 @@ template <int S> inline bool input_vec_u(string label, float labelWidth, Vector<
 /// @result was the value just modified
 ///
 template <int S> inline
-bool input_vec_f(string label, float labelWidth, Vector<S,float>& ref, int8_t precision)
+bool input_vec_f(String label, float labelWidth, maths::Vector<S,float>& ref, int8_t precision)
 {
     if (labelWidth != 0.f) detail::display_input_label(label.c_str(), labelWidth);
 
-    const string hiddenLabel = "##" + label;
+    const String hiddenLabel = "##" + label;
     const char format[5] = {'%', '.', static_cast<char>('0' + precision), 'f', '\0'};
 
     return imgui::InputScalarN(hiddenLabel.c_str(), ImGuiDataType_Float, ref.data, S, nullptr, nullptr, format);
@@ -299,7 +302,7 @@ bool input_text ( string label, float labelWidth, string& ref, FlagSet<InputText
 
     const string hiddenLabel = "##" + label;
 
-    std::array<char, BufSize> buffer;
+    Array<char, BufSize> buffer;
     ref.copy(buffer.data(), MaxChars);
     buffer[ref.size()] = '\0';
 
@@ -397,7 +400,7 @@ bool input_text_multi ( string label, string& ref, FlagSet<InputText> flags, Inp
     // using imgui provided label for now
     //if (labelWidth != 0.f) detail::display_input_label(label.c_str(), labelWidth);
 
-    std::array<char, BufSize> buffer;
+    Array<char, BufSize> buffer;
     ref.copy(buffer.data(), MaxChars);
     buffer[ref.size()] = '\0';
 
@@ -470,10 +473,10 @@ bool input_text_multi ( string label, string& ref, FlagSet<InputText> flags, Inp
 /// Combo Box widget.
 ///
 template <class IntType, class Getter> inline
-bool input_combo(string label, float labelWidth, IntType& ref, Getter getter, IntType count)
+bool input_combo(String label, float labelWidth, IntType& ref, Getter getter, IntType count)
 {
     detail::display_input_label(label.c_str(), labelWidth);
-    const string hiddenLabel = "##" + label;
+    const String hiddenLabel = "##" + label;
 
     //--------------------------------------------------------//
 
@@ -506,7 +509,7 @@ bool input_combo(string label, float labelWidth, IntType& ref, Getter getter, In
 ///
 /// @result was the button just clicked
 ///
-inline bool button_with_tooltip(string label, string tooltip)
+inline bool button_with_tooltip(String label, String tooltip)
 {
     const bool clicked = imgui::Button(label.c_str());
 

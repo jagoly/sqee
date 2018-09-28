@@ -1,19 +1,20 @@
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
+
 #pragma once
 
 #include <deque>
 
-#include <sqee/builtins.hpp>
+#include <sqee/misc/Builtins.hpp>
 
 #include <sqee/app/Scene.hpp>
-
-//============================================================================//
 
 namespace sq {
 
 //============================================================================//
 
 /// The SQEE Debugging Overlay.
-class DebugOverlay final : public Scene
+class SQEE_API DebugOverlay final : public Scene
 {
 public: //====================================================//
 
@@ -31,7 +32,7 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     /// Display a message in the corner.
-    void notify(const string& message);
+    void notify(String message);
 
 private: //===================================================//
 
@@ -43,7 +44,7 @@ private: //===================================================//
 
     struct Notification
     {
-        string message = "";
+        String message = "";
         uint timeRemaining = 0u;
     };
 

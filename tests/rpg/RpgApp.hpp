@@ -19,13 +19,13 @@ class RpgApp final : public sq::Application
 {
 public: //====================================================//
 
-    RpgApp(); ///< Constructor.
+    RpgApp();
 
-    ~RpgApp(); ///< Destructor.
+    ~RpgApp() override;
 
 private: //===================================================//
 
-    void initialise(std::vector<string> args) override;
+    void initialise(Vector<String> args) override;
 
     void update(double elapsed) override;
 
@@ -41,19 +41,19 @@ private: //===================================================//
 
     //--------------------------------------------------------//
 
-    unique_ptr<sq::ChaiEngine> mChaiEngine;
+    UniquePtr<sq::ChaiEngine> mChaiEngine;
 
-    unique_ptr<sq::Window> mWindow;
+    UniquePtr<sq::Window> mWindow;
 
-    unique_ptr<sq::InputDevices> mInputDevices;
+    UniquePtr<sq::InputDevices> mInputDevices;
 
-    unique_ptr<sq::ChaiConsole> mChaiConsole;
+    UniquePtr<sq::ChaiConsole> mChaiConsole;
 
-    unique_ptr<sq::DebugOverlay> mDebugOverlay;
+    UniquePtr<sq::DebugOverlay> mDebugOverlay;
 
-    unique_ptr<ResourceCaches> mResourceCaches;
+    UniquePtr<ResourceCaches> mResourceCaches;
 
-    unique_ptr<MainScene> mMainScene;
+    UniquePtr<MainScene> mMainScene;
 };
 
 } // namespace sqt

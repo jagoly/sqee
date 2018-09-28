@@ -1,6 +1,9 @@
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee/
+
 #pragma once
 
-#include <sqee/maths/Vectors.hpp>
+#include <sqee/maths/Builtins.hpp>
 
 namespace sq {
 
@@ -49,7 +52,7 @@ enum class Gamepad_Button
 //============================================================================//
 
 /// Access to Keyboard / Mouse / Gamepad state.
-class InputDevices final : NonCopyable
+class SQEE_API InputDevices final : private NonCopyable
 {
 public: //====================================================//
 

@@ -1,6 +1,7 @@
 #pragma once
 
-#include <sqee/builtins.hpp>
+#include <sqee/misc/Builtins.hpp>
+
 #include <sqee/app/MessageBus.hpp>
 #include <sqee/app/PreProcessor.hpp>
 
@@ -54,21 +55,21 @@ private: //===================================================//
 
     //--------------------------------------------------------//
 
-    unique_ptr<RenderStuff> mRenderStuff;
+    UniquePtr<RenderStuff> mRenderStuff;
 
-    unique_ptr<render::StencilVolumes> volumes;
-    unique_ptr<render::TargetTextures> textures;
+    UniquePtr<render::StencilVolumes> volumes;
+    UniquePtr<render::TargetTextures> textures;
 
-    unique_ptr<render::DepthPasses> depthDraw;
-    unique_ptr<render::GbufferPasses> gbufferDraw;
-    unique_ptr<render::ShadowsPasses> shadowsDraw;
-    unique_ptr<render::LightBasePasses> lightBaseDraw;
-    unique_ptr<render::LightAccumPasses> lightAccumDraw;
-    unique_ptr<render::VolumetricPasses> volumetricDraw;
-    unique_ptr<render::CompositePasses> compositeDraw;
-    unique_ptr<render::EffectsPasses> effectsDraw;
+    UniquePtr<render::DepthPasses> depthDraw;
+    UniquePtr<render::GbufferPasses> gbufferDraw;
+    UniquePtr<render::ShadowsPasses> shadowsDraw;
+    UniquePtr<render::LightBasePasses> lightBaseDraw;
+    UniquePtr<render::LightAccumPasses> lightAccumDraw;
+    UniquePtr<render::VolumetricPasses> volumetricDraw;
+    UniquePtr<render::CompositePasses> compositeDraw;
+    UniquePtr<render::EffectsPasses> effectsDraw;
 
-    unique_ptr<render::PassesData> mPassesData;
+    UniquePtr<render::PassesData> mPassesData;
 
 };
 

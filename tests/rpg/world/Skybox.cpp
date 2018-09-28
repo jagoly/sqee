@@ -4,7 +4,7 @@ using namespace sqt::world;
 
 //============================================================================//
 
-void Skybox::set_texture(const string& texture) { mTexture = texture; }
+void Skybox::set_texture(const String& texture) { mTexture = texture; }
 
 void Skybox::set_saturation(float saturation) { mSaturation = saturation; }
 

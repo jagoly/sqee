@@ -1,5 +1,11 @@
-#include <sqee/gl/Context.hpp>
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
+
 #include <sqee/gl/VertexArray.hpp>
+
+#include <sqee/gl/Context.hpp>
+
+#include <sqee/redist/gl_loader.hpp>
 
 using namespace sq;
 

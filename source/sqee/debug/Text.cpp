@@ -1,18 +1,21 @@
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
+
+#include <sqee/debug/Text.hpp>
+
 #include <algorithm>
 
-#include <sqee/assert.hpp>
-
+#include <sqee/debug/Assert.hpp>
 #include <sqee/gl/Context.hpp>
 #include <sqee/gl/FixedBuffer.hpp>
 #include <sqee/gl/Program.hpp>
 #include <sqee/gl/Textures.hpp>
 #include <sqee/gl/VertexArray.hpp>
-
-#include <sqee/debug/Text.hpp>
+#include <sqee/redist/gl_loader.hpp>
 
 using namespace sq;
 
-//============================================================================//
+//====String=============================================================//
 
 extern "C" const uchar data_TextFont[256*256];
 extern "C" const uchar data_TextGlow[256*256];
@@ -113,7 +116,7 @@ struct TextBasicStuff
 
 //============================================================================//
 
-void sq::render_text_basic(const string& text, Vec2I flow, Vec2I align, Vec2F scale, Vec4F colour, bool shadow)
+void sq::render_text_basic(const String& text, Vec2I flow, Vec2I align, Vec2F scale, Vec4F colour, bool shadow)
 {
     SQASSERT(flow.x == -1 || flow.x == +1, "invalid horizontal flow");
     SQASSERT(flow.y == -1 || flow.y == +1, "invalid vertical flow");
@@ -135,7 +138,7 @@ void sq::render_text_basic(const string& text, Vec2I flow, Vec2I align, Vec2F sc
 
     //--------------------------------------------------------//
 
-    std::vector<string> lines = { "" };
+    Vector<String> lines = { "" };
 
     for (uint i = 0u; i < text.size(); i++)
     {
@@ -171,11 +174,11 @@ void sq::render_text_basic(const string& text, Vec2I flow, Vec2I align, Vec2F sc
 
     //--------------------------------------------------------//
 
-    std::vector<std::array<Vec3F, 6>> glyphs;
+    Vector<Array<Vec3F, 6>> glyphs;
 
     float currentY = origin.y;
 
-    for (const string& line : lines)
+    for (const String& line : lines)
     {
         float currentX = origin.x;
 

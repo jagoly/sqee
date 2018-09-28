@@ -4,8 +4,6 @@
 #include <chaiscript/dispatchkit/dispatchkit.hpp>
 #include <chaiscript/utility/utility.hpp>
 
-#include <sqee/builtins.hpp>
-
 #include <sqee/app/MessageBus.hpp>
 
 using chai::fun;
@@ -20,7 +18,7 @@ namespace sq {
 //============================================================================//
 
 template <class Message, class... Args> inline
-void chai_add_message_type(chai::Module& m, const string& name)
+void chai_add_message_type(chai::Module& m, const String& name)
 {
     constexpr auto construct = [](Args... args) { return Message { args... }; };
 

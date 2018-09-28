@@ -1,5 +1,4 @@
 #include <fstream>
-#include <optional>
 
 #include <sqee/redist/gl_loader.hpp>
 #include <sqee/redist/nl_json.hpp>
@@ -16,7 +15,7 @@ using Json = nlohmann::json;
 
 namespace { // anonymous
 
-std::optional<Vec3F> impl_as_Vec3F(const string& str)
+Optional<Vec3F> impl_as_Vec3F(const String& str)
 {
     SQASSERT(str.size() >= 11u, "");
     SQASSERT(str.front() != ' ', "");
@@ -28,8 +27,8 @@ std::optional<Vec3F> impl_as_Vec3F(const string& str)
     const auto startZ = str.find_first_not_of(' ', endY);
 
     // if str has less or more than three words
-    if (startZ == string::npos) return {};
-    if (str.find(' ', startZ) != string::npos) return {};
+    if (startZ == String::npos) return {};
+    if (str.find(' ', startZ) != String::npos) return {};
 
     const char* strX = str.c_str() + 0u;
     const char* strY = str.c_str() + startY;
@@ -49,22 +48,22 @@ std::optional<Vec3F> impl_as_Vec3F(const string& str)
     return result;
 }
 
-std::optional<string> impl_try_get(const Json& json, const string& key)
+Optional<String> impl_try_get(const Json& json, const String& key)
 {
     const auto iter = json.find(key);
     if (iter == json.end()) return {};
-    return iter->get<string>();
+    return iter->get<String>();
 }
 
 } // anonymous namespace
 
-Material::Material(const string& path, ResourceCache<string, Texture2D>& textures)
+Material::Material(const String& path, ResourceCache<String, Texture2D>& textures)
 {
-    const string::size_type splitPos = path.find(':');
-    log_assert(splitPos != string::npos, "bad path '%s'", path);
+    const String::size_type splitPos = path.find(':');
+    log_assert(splitPos != String::npos, "bad path '%s'", path);
 
-    const string package = path.substr(0u, splitPos);
-    const string name = path.substr(splitPos + 1u);
+    const String package = path.substr(0u, splitPos);
+    const String name = path.substr(splitPos + 1u);
 
     std::ifstream srcFile("assets/packages/" + package + "/materials.json");
     const auto json = Json::parse(srcFile).at(name);

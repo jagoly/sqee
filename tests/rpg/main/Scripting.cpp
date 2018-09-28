@@ -78,7 +78,7 @@ void sqt::chaiscript_setup_api(sq::ChaiEngine& engine)
 
     //--------------------------------------------------------//
 
-    m->add(vector_conversion<std::vector<string>>());
+    m->add(vector_conversion<Vector<String>>());
 
     m->add(user_type<sqt::ScriptAPI>(), "ScriptAPI");
 

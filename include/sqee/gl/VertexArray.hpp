@@ -1,18 +1,13 @@
 #pragma once
 
-#include <sqee/setup.hpp>
 #include <sqee/gl/FixedBuffer.hpp>
 
 namespace sq {
 
 //============================================================================//
 
-class Context; // Forward Declaration
-
-//============================================================================//
-
 /// OpenGL Vertex Array Object.
-class VertexArray final : public MoveOnly
+class SQEE_API VertexArray final : private MoveOnly
 {
 public: //====================================================//
 
@@ -62,7 +57,7 @@ public: //====================================================//
 
 private: //===================================================//
 
-    Context& mContext;
+    class Context& mContext;
 
     GLuint mHandle = 0u;
 };

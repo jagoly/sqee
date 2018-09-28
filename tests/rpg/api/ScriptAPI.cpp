@@ -20,7 +20,7 @@ ScriptAPI::ScriptAPI(ResourceCaches& caches, WorldStuff& world)
 
 void ScriptAPI::impl_add_components(Int32 id, const StringVec& components)
 {
-    for (const string& name : components)
+    for (const String& name : components)
     {
         if      (name == "Transform")  world.tables.transform  .insert(id, {});
         else if (name == "Model")      world.tables.model      .insert(id, {});
@@ -90,7 +90,7 @@ void ScriptAPI::delete_entity(Int32 id)
 
 //============================================================================//
 
-void ScriptAPI::impl_play_sound(const string& path, uint group)
+void ScriptAPI::impl_play_sound(const String& path, uint group)
 {
     sys::SoundData data { sq::Sound(), uint8_t(group), -1, 100.f };
     data.sound.set_volume(100.f * world.soundGroupVolumes[group]);
@@ -101,7 +101,7 @@ void ScriptAPI::impl_play_sound(const string& path, uint group)
     world.soundTable.back()->sound.play();
 }
 
-api::SoundEdit ScriptAPI::play_sound_global(const string& path, uint group)
+api::SoundEdit ScriptAPI::play_sound_global(const String& path, uint group)
 {
     sq::log_info("playing global sound %s", path);
 
@@ -113,7 +113,7 @@ api::SoundEdit ScriptAPI::play_sound_global(const string& path, uint group)
     return api::SoundEdit(*this, entry.id);
 }
 
-api::SoundEdit ScriptAPI::play_sound_position(const string& path, uint group, Vec3F position)
+api::SoundEdit ScriptAPI::play_sound_position(const String& path, uint group, Vec3F position)
 {
     sq::log_info("playing local sound %s", path);
 
@@ -126,7 +126,7 @@ api::SoundEdit ScriptAPI::play_sound_position(const string& path, uint group, Ve
     return api::SoundEdit(*this, entry.id);
 }
 
-api::SoundEdit ScriptAPI::play_sound_entity(const string& path, uint group, Int32 entity)
+api::SoundEdit ScriptAPI::play_sound_entity(const String& path, uint group, Int32 entity)
 {
     sq::log_info("playing entity sound %s", path);
 

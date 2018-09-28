@@ -8,6 +8,7 @@
 //============================================================================//
 
 using std::literals::operator""s;
+using std::string;
 
 struct Object : public sq::Receiver<int, string>
 {

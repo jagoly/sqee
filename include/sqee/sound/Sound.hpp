@@ -3,10 +3,8 @@
 #include <SFML/Audio/Sound.hpp>
 #include <SFML/Audio/SoundBuffer.hpp>
 
-#include <sqee/builtins.hpp>
-
-#include <sqee/maths/Vectors.hpp>
-#include <sqee/maths/Quaternion.hpp>
+#include <sqee/misc/Builtins.hpp>
+#include <sqee/maths/Builtins.hpp>
 
 #include <sqee/misc/ResourceHandle.hpp>
 
@@ -14,7 +12,7 @@ namespace sq {
 
 //============================================================================//
 
-struct Listener
+struct SQEE_API Listener
 {
     static void set_position(Vec3F position);
     static void set_rotation(QuatF rotation);
@@ -23,11 +21,11 @@ struct Listener
 //============================================================================//
 
 /// Wrapper for sf::SoundBuffer.
-class SoundWave final : NonCopyable
+class SQEE_API SoundWave final : NonCopyable
 {
 public: //====================================================//
 
-    SoundWave(const string& path);
+    SoundWave(const String& path);
 
 private: //===================================================//
 
@@ -38,7 +36,7 @@ private: //===================================================//
 //============================================================================//
 
 /// Wrapper for sf::Sound.
-class Sound final : public MoveOnly
+class SQEE_API Sound final : private MoveOnly
 {
 public: //====================================================//
 
@@ -48,7 +46,7 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     /// Set the source SoundWave object.
-    void set_wave(Handle<string, SoundWave> handle);
+    void set_wave(Handle<String, SoundWave> handle);
 
     //--------------------------------------------------------//
 
@@ -93,8 +91,8 @@ public: //====================================================//
 
 private: //===================================================//
 
-    Handle<string, SoundWave> mWaveHandle;
-    unique_ptr<sf::Sound> mSound;
+    Handle<String, SoundWave> mWaveHandle;
+    UniquePtr<sf::Sound> mSound;
 };
 
 //============================================================================//

@@ -1,8 +1,9 @@
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
+
 #pragma once
 
-#include <memory>
-
-#include <sqee/setup.hpp>
+#include <sqee/misc/Builtins.hpp>
 
 //============================================================================//
 
@@ -17,10 +18,10 @@ namespace sq {
 //============================================================================//
 
 /// Alias for chai::ChaiScript.
-using ChaiEngine = chai::ChaiScript;
+using ChaiEngine = chaiscript::ChaiScript;
 
 /// Create a ChaiEngine instance.
-std::unique_ptr<ChaiEngine> create_ChaiEngine();
+SQEE_API UniquePtr<ChaiEngine> create_ChaiEngine();
 
 //============================================================================//
 

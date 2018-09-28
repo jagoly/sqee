@@ -1,5 +1,7 @@
 #include <sqee/gl/Context.hpp>
 
+#include <sqee/redist/gl_loader.hpp>
+
 #include "DepthDraw.hpp"
 
 using Context = sq::Context;
@@ -51,7 +53,7 @@ void DepthPasses::render(const data::DepthPasses& data)
 
     // always write the stencil buffer geometry bit
     context.set_state(Context::Stencil_Test::Replace);
-    context.set_Stencil_Params(gl::ALWAYS, 1, 0, 1);
+    context.set_Stencil_Params({gl::ALWAYS, 1, 0, 1});
 
     // perform sub passes
     impl_render_ModelSimplePass(data.modelSimplePass);

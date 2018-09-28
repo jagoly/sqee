@@ -9,13 +9,8 @@ namespace sq::dop {
 
 //============================================================================//
 
-#ifndef SQEE_MSVC
 template <class In, class Out>
 using transfer_const_type = std::conditional_t<std::is_const_v<In>, const Out, Out>;
-#else
-template <class In, class Out>
-using transfer_const_type = typename std::conditional<std::is_const<In>::value, const Out, Out>::type;
-#endif
 
 template <class Table_>
 using table_data_type = transfer_const_type<Table_, typename Table_::data_type>;
@@ -24,12 +19,12 @@ template <class... Tables>
 using join_entry_type = std::tuple<int32_t, table_data_type<Tables>&...>;
 
 template <class... Tables>
-using join_vector_type = std::vector<join_entry_type<Tables...>>;
+using join_vector_type = Vector<join_entry_type<Tables...>>;
 
 //============================================================================//
 
 /// Performs an insertion sort on an id vector.
-void impl_insertion_sort(std::vector<int32_t>& ids);
+SQEE_API void impl_insertion_sort(Vector<int32_t>& ids);
 
 //============================================================================//
 
@@ -59,11 +54,11 @@ inline void sort(const Table<Type>& table)
     auto& mutTable = const_cast<Table<Type>&>(table);
 
     // create a sorted copy of the id vector
-    std::vector<int32_t> sortedIds = table.mIds;
+    Vector<int32_t> sortedIds = table.mIds;
     impl_insertion_sort(sortedIds);
 
     // create and reserve new data vector
-    std::vector<Type> sortedData;
+    Vector<Type> sortedData;
     sortedData.reserve(sortedIds.size());
 
     for (const int32_t id : sortedIds)
@@ -78,13 +73,13 @@ inline void sort(const Table<Type>& table)
 //============================================================================//
 
 /// Intersection of two groups (A ∩ B).
-Group reduce(const Group& a, const Group& b);
+SQEE_API Group reduce(const Group& a, const Group& b);
 
 /// Intersection of three groups (A ∩ B ∩ C).
-Group reduce(const Group& a, const Group& b, const Group& c);
+SQEE_API Group reduce(const Group& a, const Group& b, const Group& c);
 
 /// Intersection of four groups (A ∩ B ∩ C ∩ D).
-Group reduce(const Group& a, const Group& b, const Group& c, const Group& d);
+SQEE_API Group reduce(const Group& a, const Group& b, const Group& c, const Group& d);
 
 //============================================================================//
 

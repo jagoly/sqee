@@ -20,7 +20,7 @@ void Options::validate() const
     sq::log_assert(SSAO_Quality   <= 2u,    "SSAO_Quality too high");
     sq::log_assert(FSAA_Quality   <= 2u,    "FSAA_Quality too high");
 
-    static const std::unordered_set<string> validDebugTextures
+    static const std::unordered_set<String> validDebugTextures
     {
         "", "diffuse", "surface", "normals", "specular", "lighting", "volumetric", "ssao", "bloom"
     };

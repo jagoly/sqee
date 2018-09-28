@@ -1,3 +1,6 @@
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
+
 extern const char data_glsl_misc_screen[];
 extern const char data_glsl_funcs_position[];
 extern const char data_glsl_funcs_depth[];

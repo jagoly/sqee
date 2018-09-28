@@ -6,10 +6,10 @@
 
 #pragma once
 
-#include <sqee/export.hpp>
-#include <sqee/assert.hpp>
+#include <sqee/debug/Assert.hpp>
+#include <sqee/maths/Builtins.hpp>
 
-#include <sqee/maths/Vectors.hpp>
+#include <sqee/export.hpp>
 
 //---- Define assertion handler. Defaults to calling assert().
 
@@ -31,9 +31,9 @@
 //---- Define constructor and implicit cast operators to convert back<>forth from your math types and ImVec2/ImVec4.
 
 #define IM_VEC2_CLASS_EXTRA \
-    ImVec2(Vec2F v) : x(v.x), y(v.y) {} \
-    operator Vec2F() const { return { x, y }; }
+    ImVec2(sq::Vec2F v) : x(v.x), y(v.y) {} \
+    operator sq::Vec2F() const { return { x, y }; }
 
 #define IM_VEC4_CLASS_EXTRA \
-    ImVec4(Vec4F v) : x(v.x), y(v.y), z(v.z), w(v.w) {} \
-    operator Vec4F() const { return { x, y, z, w }; }
+    ImVec4(sq::Vec4F v) : x(v.x), y(v.y), z(v.z), w(v.w) {} \
+    operator sq::Vec4F() const { return { x, y, z, w }; }

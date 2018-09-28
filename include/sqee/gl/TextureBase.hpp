@@ -1,18 +1,17 @@
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
+
 #pragma once
 
-#include <sqee/builtins.hpp>
-#include <sqee/maths/Vectors.hpp>
+#include <sqee/misc/Builtins.hpp>
+#include <sqee/maths/Builtins.hpp>
 
 namespace sq {
 
 //============================================================================//
 
-class Context; // Forward Declaration
-
-//============================================================================//
-
 /// OpenGL Texture base class.
-class Texture : public MoveOnly
+class SQEE_API Texture : private MoveOnly
 {
 public: //====================================================//
 
@@ -115,7 +114,7 @@ private: //===================================================//
 
     //--------------------------------------------------------//
 
-    Context& mContext;
+    class Context& mContext;
 
     const GLenum mTarget;
 
@@ -131,8 +130,8 @@ private: //===================================================//
 
     //--------------------------------------------------------//
 
-    std::array<char, 2> mWrap {{ 'C', 'C' }};
-    std::array<char, 4> mSwizzle {{ 'R', 'G', 'B', 'A' }};
+    Array<char, 2> mWrap {{ 'C', 'C' }};
+    Array<char, 4> mSwizzle {{ 'R', 'G', 'B', 'A' }};
 
     //--------------------------------------------------------//
 
@@ -145,7 +144,7 @@ private: //===================================================//
 
     //--------------------------------------------------------//
 
-    static Format impl_string_to_format(std::string arg);
+    static Format impl_string_to_format(const String& arg);
 };
 
 //============================================================================//

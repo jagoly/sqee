@@ -1,6 +1,8 @@
 #include <sqee/gl/Context.hpp>
 #include <sqee/gl/Drawing.hpp>
 
+#include <sqee/redist/gl_loader.hpp>
+
 #include "VolumetricDraw.hpp"
 
 using Context = sq::Context;
@@ -115,14 +117,14 @@ void VolumetricPasses::impl_render_StencilPass(const data::VolumetricStencilPass
         context.set_state(Context::Cull_Face::Back);
         context.set_state(Context::Depth_Test::Keep);
         context.set_state(Context::Stencil_Test::Replace);
-        context.set_Stencil_Params(gl::ALWAYS, 2, 0, 2);
+        context.set_Stencil_Params({gl::ALWAYS, 2, 0, 2});
 
         volume.bind_and_draw(context);
 
         context.set_state(Context::Depth_Clamp::Disable);
 
         context.set_state(Context::Stencil_Test::Keep);
-        context.set_Stencil_Params(gl::EQUAL, 2, 2, 0);
+        context.set_Stencil_Params({gl::EQUAL, 2, 2, 0});
     }
     else context.set_state(Context::Stencil_Test::Disable);
 

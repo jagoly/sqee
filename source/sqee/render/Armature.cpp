@@ -1,15 +1,16 @@
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
+
+#include <sqee/render/Armature.hpp>
+
 #include <numeric>
 
-#include <sqee/assert.hpp>
+#include <sqee/debug/Assert.hpp>
 #include <sqee/debug/Logging.hpp>
-
 #include <sqee/maths/Functions.hpp>
-
 #include <sqee/misc/Algorithms.hpp>
 #include <sqee/misc/Files.hpp>
 #include <sqee/misc/Parsing.hpp>
-
-#include <sqee/render/Armature.hpp>
 
 using namespace sq;
 
@@ -32,7 +33,7 @@ inline void impl_swap_pose_yz(Armature::Pose& pose)
 
 //============================================================================//
 
-void Armature::load_bones(const string& path, bool swapYZ)
+void Armature::load_bones(const String& path, bool swapYZ)
 {
     mSwapYZ = swapYZ;
 
@@ -42,7 +43,7 @@ void Armature::load_bones(const string& path, bool swapYZ)
     {
         SQASSERT(line.size() <= 2u, "");
 
-        mBoneNames.push_back(string(line[0]));
+        mBoneNames.push_back(String(line[0]));
 
         if (line.size() == 2u)
         {
@@ -56,7 +57,7 @@ void Armature::load_bones(const string& path, bool swapYZ)
 
 //============================================================================//
 
-void Armature::load_rest_pose(const string& path)
+void Armature::load_rest_pose(const String& path)
 {
     mRestPose = make_pose(path);
 
@@ -81,7 +82,7 @@ void Armature::load_rest_pose(const string& path)
 
 //============================================================================//
 
-int32_t Armature::get_bone_index(const string& name) const
+int32_t Armature::get_bone_index(const String& name) const
 {
     for (uint i = 0u; i < mBoneNames.size(); ++i)
         if (mBoneNames[i] == name)
@@ -92,7 +93,7 @@ int32_t Armature::get_bone_index(const string& name) const
 
 //============================================================================//
 
-Armature::Pose Armature::make_pose(const string& path) const
+Armature::Pose Armature::make_pose(const String& path) const
 {
     const uint boneCount = uint(mBoneNames.size());
 
@@ -129,7 +130,7 @@ Armature::Pose Armature::make_pose(const string& path) const
 
 //============================================================================//
 
-Armature::Animation Armature::make_animation(const string& path) const
+Armature::Animation Armature::make_animation(const String& path) const
 {
     enum class Section { None, Header, Poses };
     Section section = Section::None;
@@ -328,14 +329,25 @@ Armature::Pose Armature::compute_pose(const Animation& animation, float time) co
 
 //============================================================================//
 
-std::vector<Mat34F> Armature::compute_ubo_data(const Pose& pose) const
+Vector<Mat34F> Armature::compute_ubo_data(const Pose& pose) const
+{
+    Vector<Mat34F> result;
+    result.resize(pose.size());
+
+    compute_ubo_data(pose, result.data(), pose.size());
+
+    return result;
+}
+
+void Armature::compute_ubo_data(const Pose& pose, Mat34F* out, uint len) const
 {
     const uint boneCount = uint(mRestPose.size());
 
     SQASSERT(boneCount == pose.size(), "bone count mismatch");
+    SQASSERT(boneCount <= len, "too many bones for output buffer");
 
-    std::vector<Mat4F> localMats;
-    std::vector<Mat4F> finalMats;
+    Vector<Mat4F> localMats; localMats.reserve(boneCount);
+    Vector<Mat4F> finalMats; finalMats.reserve(boneCount);
 
     for (uint i = 0u; i < boneCount; ++i)
     {
@@ -356,18 +368,13 @@ std::vector<Mat34F> Armature::compute_ubo_data(const Pose& pose) const
         }
     }
 
-    std::vector<Mat34F> result;
-    result.reserve(boneCount);
-
-    for (const Mat4F& mat : finalMats)
-        result.push_back(Mat34F(maths::transpose(mat)));
-
-    return result;
+    for (uint i = 0u; i < boneCount; ++i)
+        out[i] = Mat34F(maths::transpose(finalMats[i]));
 }
 
 //============================================================================//
 
-Mat4F Armature::compute_transform(const Pose& pose, const string& name) const
+Mat4F Armature::compute_transform(const Pose& pose, const String& name) const
 {
     const uint boneCount = uint(mRestPose.size());
 

@@ -1,19 +1,22 @@
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
+
+#include <sqee/app/Window.hpp>
+
 #include <SFML/Window/Window.hpp>
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/Keyboard.hpp>
 #include <SFML/Window/Mouse.hpp>
 #include <SFML/Window/Joystick.hpp>
 
-#include <sqee/redist/gl_loader.hpp>
-
-#include <sqee/assert.hpp>
-#include <sqee/macros.hpp>
-
+#include <sqee/app/InputDevices.hpp>
+#include <sqee/debug/Assert.hpp>
 #include <sqee/debug/Logging.hpp>
 #include <sqee/debug/OpenGL.hpp>
 
-#include <sqee/app/InputDevices.hpp>
-#include <sqee/app/Window.hpp>
+#include <sqee/redist/gl_loader.hpp>
+
+#include <sqee/macros.hpp>
 
 using namespace sq;
 
@@ -190,7 +193,7 @@ static constexpr Gamepad_Button conv_sfml_gamepad_button[]
 
 struct Window::Implementation
 {
-    string windowTitle = "";
+    String windowTitle = "";
     bool vsyncEnabled = false;
     bool cursorHidden = false;
     bool keyRepeat = true;
@@ -199,7 +202,7 @@ struct Window::Implementation
 
 //============================================================================//
 
-Window::Window(string title, Vec2U size)
+Window::Window(String title, Vec2U size)
 
     : impl(std::make_unique<Implementation>())
     , mSystemWindowPtr(&impl->sfmlWindow)
@@ -248,7 +251,7 @@ Window::~Window() = default;
 
 //============================================================================//
 
-void Window::set_window_title(string title)
+void Window::set_window_title(String title)
 {
     impl->windowTitle = title;
     impl->sfmlWindow.setTitle(title);
@@ -280,7 +283,7 @@ void Window::set_key_repeat(bool repeat)
 
 //============================================================================//
 
-string Window::get_window_title() const
+String Window::get_window_title() const
 {
     return impl->windowTitle;
 }
@@ -308,9 +311,9 @@ bool Window::get_key_repeat() const
 
 //============================================================================//
 
-std::vector<Event> Window::fetch_events()
+Vector<Event> Window::fetch_events()
 {
-    std::vector<Event> result;
+    Vector<Event> result;
     sf::Event sfe;
 
     //--------------------------------------------------------//

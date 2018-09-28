@@ -31,7 +31,7 @@ namespace sqt::sys {
 
 struct EntityData
 {
-    string uniqueName = "";
+    String uniqueName = "";
     int32_t parent = -1;
 
     sq::dop::Group children;
@@ -181,7 +181,7 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    std::unordered_map<string, int32_t> uniqueNames;
+    std::unordered_map<String, int32_t> uniqueNames;
 
     sq::dop::Group deletedEntities;
 
@@ -218,9 +218,9 @@ public: //====================================================//
 
     world::Camera camera;
 
-    unique_ptr<world::Skybox> skybox;
-    unique_ptr<world::Ambient> ambient;
-    unique_ptr<world::Skylight> skylight;
+    UniquePtr<world::Skybox> skybox;
+    UniquePtr<world::Ambient> ambient;
+    UniquePtr<world::Skylight> skylight;
 };
 
 //============================================================================//

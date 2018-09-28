@@ -32,11 +32,11 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    api::SoundEdit play_sound_global(const string& path, uint group);
+    api::SoundEdit play_sound_global(const String& path, uint group);
 
-    api::SoundEdit play_sound_position(const string& path, uint group, Vec3F position);
+    api::SoundEdit play_sound_position(const String& path, uint group, Vec3F position);
 
-    api::SoundEdit play_sound_entity(const string& path, uint group, Int32 entity);
+    api::SoundEdit play_sound_entity(const String& path, uint group, Int32 entity);
 
     void set_sound_group_volume(uint group, float volume);
 
@@ -83,7 +83,7 @@ private: //===================================================//
 
     void impl_add_components(Int32 id, const StringVec& components);
 
-    void impl_play_sound(const string& path, uint group);
+    void impl_play_sound(const String& path, uint group);
 };
 
 } // namespace sqt

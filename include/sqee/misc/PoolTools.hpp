@@ -2,10 +2,9 @@
 
 #include <algorithm>
 
-#include <sqee/builtins.hpp>
-#include <sqee/assert.hpp>
-
+#include <sqee/debug/Assert.hpp>
 #include <sqee/misc/Algorithms.hpp>
+#include <sqee/misc/Builtins.hpp>
 
 namespace sq {
 
@@ -28,7 +27,7 @@ public: //====================================================//
 
     constexpr TinyString(const char* str) noexcept
     {
-        const auto sv = string_view(str);
+        const auto sv = StringView(str);
         SQASSERT(sv.length() <= Len, "string literal too long");
         std::copy_n(str, sv.length(), mData);
     }
@@ -57,11 +56,11 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    TinyString(const string& str) noexcept : TinyString(str.data(), str.size()) {}
+    TinyString(const String& str) noexcept : TinyString(str.data(), str.size()) {}
 
-    TinyString(const string_view& sv) noexcept : TinyString(sv.data(), sv.size()) {}
+    TinyString(const StringView& sv) noexcept : TinyString(sv.data(), sv.size()) {}
 
-    operator string() const { return string(mData); }
+    operator String() const { return String(mData); }
 
 private: //===================================================//
 
@@ -72,7 +71,7 @@ private: //===================================================//
 
 /// A Simple Pool Allocator.
 template <class Type>
-class PoolAllocator final : sq::NonCopyable
+class PoolAllocator final : private NonCopyable
 {
 public: //====================================================//
 
@@ -131,7 +130,7 @@ private: //===================================================//
         uchar _padding[Size - 8u];
     };
 
-    unique_ptr<FreeSlot[]> storage;
+    UniquePtr<FreeSlot[]> storage;
 
     FreeSlot* nextFreeSlot;
     FreeSlot* finalSlot;
@@ -139,17 +138,17 @@ private: //===================================================//
 
 //============================================================================//
 
-/// Bidirectional map of items to pointer map into a pool.
+/// Bidirectional map of items in a pool.
 template <class Key, class Type>
-class TinyPoolMap final : sq::NonCopyable
+class TinyPoolMap final : private NonCopyable
 {
 public: //====================================================//
 
     struct Item { Key key; Type* ptr; };
     using Allocator = PoolAllocator<Type>;
 
-    using iterator = typename std::vector<Item>::iterator;
-    using const_iterator = typename std::vector<Item>::const_iterator;
+    using iterator = typename Vector<Item>::iterator;
+    using const_iterator = typename Vector<Item>::const_iterator;
     using value_type = Item;
 
     //--------------------------------------------------------//
@@ -253,7 +252,7 @@ public: //====================================================//
 
 private: //===================================================//
 
-    std::vector<Item> mItemVector;
+    Vector<Item> mItemVector;
 
     Allocator& mAllocator;
 };

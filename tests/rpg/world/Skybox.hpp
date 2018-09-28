@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sqee/builtins.hpp>
+#include <sqee/misc/Builtins.hpp>
 
 namespace sqt::world {
 
@@ -11,7 +11,7 @@ class Skybox final : sq::NonCopyable
 public: //====================================================//
 
     /// Set the cubemap texture to use.
-    void set_texture(const string& texture);
+    void set_texture(const String& texture);
 
     /// Set the shader saturation paramater.
     void set_saturation(float saturation);
@@ -28,7 +28,7 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     /// Get the cubemap texture being used.
-    const string& get_texture() const { return mTexture; }
+    const String& get_texture() const { return mTexture; }
 
     /// Get the shader saturation paramater.
     float get_saturation() const { return mSaturation; }
@@ -44,7 +44,7 @@ public: //====================================================//
 
 private: //===================================================//
 
-    string mTexture    = "";
+    String mTexture    = "";
     float  mSaturation = 1.f;
     float  mBrightness = 0.f;
     float  mContrast   = 1.f;

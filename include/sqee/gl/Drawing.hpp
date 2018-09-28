@@ -1,3 +1,6 @@
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
+
 #pragma once
 
 #include <sqee/setup.hpp>
@@ -5,9 +8,9 @@
 namespace sq {
 
 /// Draw a point with no attributes
-void draw_nothing();
+SQEE_API void draw_nothing();
 
 /// Draw a quad to the screen
-void draw_screen_quad();
+SQEE_API void draw_screen_quad();
 
 } // namespace sq

@@ -1,58 +1,61 @@
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
+
 #pragma once
 
-#include <sqee/builtins.hpp>
+#include <sqee/misc/Builtins.hpp>
 
 namespace sq {
 
 //============================================================================//
 
 /// Check if a file exists
-bool check_file_exists(const string& path);
+SQEE_API bool check_file_exists(const String& path);
 
 /// Load a file into a simple string
-string get_string_from_file(const string& path);
+SQEE_API String get_string_from_file(const String& path);
 
 /// Load a file into a vector of bytes
-std::vector<uchar> get_bytes_from_file(const string& path);
+SQEE_API Vector<std::byte> get_bytes_from_file(const String& path);
 
 //============================================================================//
 
-struct TokenisedFile : sq::MoveOnly
+struct TokenisedFile : private sq::MoveOnly
 {
-    using Tokens = std::vector<string_view>;
+    using Tokens = Vector<StringView>;
     struct Line { Tokens tokens; size_t num; };
 
-    string fullString;
-    std::vector<Line> lines;
+    String fullString;
+    Vector<Line> lines;
 };
 
 /// Load a text file into an easy to parse structure.
-TokenisedFile tokenise_file(const string& path);
+SQEE_API TokenisedFile tokenise_file(const String& path);
 
 //============================================================================//
 
 /// Extract file portion from a path
-string_view file_from_path(const string& path);
+SQEE_API StringView file_from_path(const String& path);
 
 /// Extract directory portion from a path
-string_view directory_from_path(const string& path);
+SQEE_API StringView directory_from_path(const String& path);
 
 /// Extract the file extension from a path
-string_view extension_from_path(const string& path);
+SQEE_API StringView extension_from_path(const String& path);
 
 //============================================================================//
 
-inline string build_path(string path) { return path; }
+inline String build_path(String path) { return path; }
 
 template <class Arg, class... Args> inline
-string build_path(string path, Arg&& arg, Args&&... args)
+String build_path(String path, Arg&& arg, Args&&... args)
 {
     if (!path.empty() && path.back() != '/') path.push_back('/');
     return build_path(path.append(arg), args...);
 }
 
 template <class... Args> inline
-string build_path(Args&&... args) { return build_path(string(), args...); }
+String build_path(Args&&... args) { return build_path(String(), args...); }
 
 //============================================================================//
 

@@ -2,7 +2,7 @@
 
 #include <sqee/maths/Scalar.hpp>
 
-namespace sq {
+namespace sq::maths {
 
 //============================================================================//
 
@@ -23,6 +23,9 @@ template <class T> struct Vector<2, T>
     constexpr Vector(T x, T y) : data { x, y } {}
 
     constexpr explicit Vector(T s) : Vector(s, s) {}
+
+    // Uninitialise Constructor
+    constexpr Vector(std::nullptr_t) {}
 
     // Copy Constructors
     constexpr Vector(const Vector<2, T>& v) = default;
@@ -48,6 +51,9 @@ template <class T> struct Vector<3, T>
 
     constexpr explicit Vector(T s) : Vector(s, s, s) {}
 
+    // Uninitialise Constructor
+    constexpr Vector(std::nullptr_t) {}
+
     // Copy Constructors
     constexpr Vector(const Vector<3, T>& v) = default;
     template<class U> explicit Vector(Vector3<U> v) : Vector(T(v.x), T(v.y), T(v.z)) {}
@@ -72,6 +78,9 @@ template <class T> struct Vector<4, T>
     constexpr Vector(T x, T y, T z, T w) : data { x, y, z, w } {}
 
     constexpr explicit Vector(T s) : Vector(s, s, s, s) {}
+
+    // Uninitialise Constructor
+    constexpr Vector(std::nullptr_t) {}
 
     // Copy Constructors
     constexpr Vector(const Vector<4, T>& v) = default;
@@ -235,10 +244,6 @@ Vector<S, T> operator-(Vector<S, T> vec)
 
     return Vector<S, T>() - vec;
 }
-
-//============================================================================//
-
-namespace maths {
 
 //============================================================================//
 
@@ -551,14 +556,4 @@ Vector3<T> rotate_z(Vector3<T> vec, T angle)
 
 //============================================================================//
 
-}} // namespace sq::maths
-
-using Vec2I = sq::Vector<2, int>;
-using Vec3I = sq::Vector<3, int>;
-using Vec4I = sq::Vector<4, int>;
-using Vec2U = sq::Vector<2, uint>;
-using Vec3U = sq::Vector<3, uint>;
-using Vec4U = sq::Vector<4, uint>;
-using Vec2F = sq::Vector<2, float>;
-using Vec3F = sq::Vector<3, float>;
-using Vec4F = sq::Vector<4, float>;
+} // namespace sq::maths

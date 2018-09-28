@@ -1,18 +1,21 @@
-#include <sqee/redist/gl_loader.hpp>
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
+
+#include <sqee/debug/OpenGL.hpp>
 
 #include <sqee/debug/Logging.hpp>
-#include <sqee/debug/OpenGL.hpp>
+#include <sqee/redist/gl_loader.hpp>
 
 //============================================================================//
 
 void MSVC_STDCALL sq::debug_callback(GLenum _source, GLenum _type, GLuint id, GLenum _severity,
                                      GLsizei, const GLchar* message, const void*)
 {
-    string source, type, severity;
+    String source, type, severity;
 
     if (_source == gl::DEBUG_SOURCE_API)             source = "API";
     if (_source == gl::DEBUG_SOURCE_WINDOW_SYSTEM)   source = "WINDOW_SYSTEM";
-    if (_source == gl::DEBUG_SOURCE_SHADER_COMPILER) source = "SHADER_COMPILER";
+    if (_source == gl::DEBUG_SOURCE_SHADER_COMPILER) return; //source = "SHADER_COMPILER";
     if (_source == gl::DEBUG_SOURCE_THIRD_PARTY)     source = "THIRD_PARTY";
     if (_source == gl::DEBUG_SOURCE_APPLICATION)     source = "APPLICATION";
     if (_source == gl::DEBUG_SOURCE_OTHER)           source = "OTHER";
@@ -40,7 +43,7 @@ void MSVC_STDCALL sq::debug_callback(GLenum _source, GLenum _type, GLuint id, GL
 
 //============================================================================//
 
-void sq::debug_message(const string& message)
+void sq::debug_message(const String& message)
 {
     gl::DebugMessageInsert(gl::DEBUG_SOURCE_APPLICATION, gl::DEBUG_TYPE_MARKER, 0u,
                            gl::DEBUG_SEVERITY_NOTIFICATION, GLsizei(message.size()), message.c_str());

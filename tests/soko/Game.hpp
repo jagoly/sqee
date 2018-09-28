@@ -1,8 +1,9 @@
 #pragma once
 
-#include <sqee/builtins.hpp>
+#include <sqee/misc/Builtins.hpp>
+#include <sqee/maths/Builtins.hpp>
+
 #include <sqee/app/Scene.hpp>
-#include <sqee/maths/Vectors.hpp>
 
 #include <sqee/app/Event.hpp>
 #include <sqee/app/PreProcessor.hpp>
@@ -45,7 +46,7 @@ private: //===================================================//
 
     sq::UniformBuffer ubo;
 
-    unique_ptr<Level> level;
+    UniquePtr<Level> level;
 
     sq::Program PROG_Object;
 

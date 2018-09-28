@@ -1,7 +1,12 @@
-#include <sqee/debug/Logging.hpp>
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
 
-#include <sqee/gl/Context.hpp>
 #include <sqee/gl/Program.hpp>
+
+#include <sqee/debug/Logging.hpp>
+#include <sqee/gl/Context.hpp>
+
+#include <sqee/redist/gl_loader.hpp>
 
 using namespace sq;
 
@@ -9,7 +14,7 @@ using namespace sq;
 
 namespace { // anonymous
 
-void impl_load_shader(GLuint& shader, GLenum stage, const string& source, const string& path)
+void impl_load_shader(GLuint& shader, GLenum stage, const String& source, const String& path)
 {
     if (shader != 0u) gl::DeleteShader(shader);
     shader = gl::CreateShader(stage);
@@ -26,7 +31,7 @@ void impl_load_shader(GLuint& shader, GLenum stage, const string& source, const 
 
     if (length > 0)
     {
-        string logStr(log); logStr.erase(logStr.rfind('\n'));
+        String logStr(log); logStr.erase(logStr.rfind('\n'));
         log_warning("Problem compiling shader from \"%s\"\n%s", path, logStr);
     }
 }
@@ -71,17 +76,17 @@ Program::~Program()
 
 //============================================================================//
 
-void Program::load_vertex(const string& source, const string& path)
+void Program::load_vertex(const String& source, const String& path)
 {
     impl_load_shader(mVertexShader, gl::VERTEX_SHADER, source, path);
 }
 
-void Program::load_geometry(const string& source, const string& path)
+void Program::load_geometry(const String& source, const String& path)
 {
     impl_load_shader(mGeometryShader, gl::GEOMETRY_SHADER, source, path);
 }
 
-void Program::load_fragment(const string& source, const string& path)
+void Program::load_fragment(const String& source, const String& path)
 {
     impl_load_shader(mFragmentShader, gl::FRAGMENT_SHADER, source, path);
 }
@@ -106,14 +111,15 @@ void Program::link_program_stages()
 
     if (length > 0)
     {
-        string logStr(log); logStr.erase(logStr.rfind('\n'));
+        StringView logStr(log);
+        while (!logStr.empty() && logStr.back() == '\n') logStr.remove_suffix(1);
         log_error("Failed to link shader\n%s", logStr);
     }
 }
 
 //============================================================================//
 
-void Program::create(const string& vertex, const string& fragment)
+void Program::create(const String& vertex, const String& fragment)
 {
     load_vertex(vertex);
     load_fragment(fragment);

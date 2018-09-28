@@ -1,6 +1,8 @@
 #include <sqee/gl/Context.hpp>
 #include <sqee/gl/Drawing.hpp>
 
+#include <sqee/redist/gl_loader.hpp>
+
 #include "CompositeDraw.hpp"
 
 using Context = sq::Context;

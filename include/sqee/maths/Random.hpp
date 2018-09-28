@@ -1,9 +1,9 @@
 #pragma once
 
-#include <array>
 #include <random>
 
-#include <sqee/maths/Vectors.hpp>
+#include <sqee/misc/Builtins.hpp>
+#include <sqee/maths/Builtins.hpp>
 
 namespace sq::maths {
 

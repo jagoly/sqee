@@ -5,9 +5,7 @@
 #include <sqee/dop/Classes.hpp>
 #include <sqee/dop/Functions.hpp>
 
-#include <sqee/maths/Vectors.hpp>
-#include <sqee/maths/Matrices.hpp>
-#include <sqee/maths/Quaternion.hpp>
+#include <sqee/maths/Builtins.hpp>
 
 #include <sqee/misc/StringCast.hpp>
 

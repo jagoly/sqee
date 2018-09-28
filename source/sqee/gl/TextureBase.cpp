@@ -1,9 +1,14 @@
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
+
+#include <sqee/gl/TextureBase.hpp>
+
 #include <map>
 
-#include <sqee/assert.hpp>
-
+#include <sqee/debug/Assert.hpp>
 #include <sqee/gl/Context.hpp>
-#include <sqee/gl/Textures.hpp>
+
+#include <sqee/redist/gl_loader.hpp>
 
 using namespace sq;
 
@@ -172,9 +177,9 @@ void Texture::impl_update_paramaters()
 
 //============================================================================//
 
-Texture::Format Texture::impl_string_to_format(string arg)
+Texture::Format Texture::impl_string_to_format(const String& arg)
 {
-    static const std::map<string, Format> map
+    static const std::map<String, Format> map
     {
         { "R8_UN", Format::R8_UN },
         { "RG8_UN", Format::RG8_UN },

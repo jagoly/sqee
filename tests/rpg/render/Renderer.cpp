@@ -66,7 +66,7 @@ Renderer::Renderer(const Options& options) : options(options)
 
 void Renderer::refresh_options()
 {
-    string headerStr = "\n// set of constants and defines added at runtime\n";
+    String headerStr = "\n// set of constants and defines added at runtime\n";
 
     headerStr += "const uint  OPTION_WinWidth  = " + std::to_string(options.Window_Size.x) + ";\n";
     headerStr += "const uint  OPTION_WinHeight = " + std::to_string(options.Window_Size.y) + ";\n";

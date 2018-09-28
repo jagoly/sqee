@@ -46,7 +46,7 @@ public: //====================================================//
 
     struct SkyboxData
     {
-        string path;
+        String path;
         sq::TextureCube tex;
         Vec4F params;
     };
@@ -146,9 +146,9 @@ public: //====================================================//
 
     CameraData camera;
 
-    unique_ptr<SkyboxData> skybox;
-    unique_ptr<AmbientData> ambient;
-    unique_ptr<SkylightData> skylight;
+    UniquePtr<SkyboxData> skybox;
+    UniquePtr<AmbientData> ambient;
+    UniquePtr<SkylightData> skylight;
 
     //--------------------------------------------------------//
 

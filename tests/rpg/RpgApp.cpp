@@ -19,7 +19,7 @@ RpgApp::~RpgApp() = default;
 
 //============================================================================//
 
-void RpgApp::initialise(std::vector<string> args)
+void RpgApp::initialise(Vector<String> args)
 {
     (void) args;
 
@@ -156,7 +156,7 @@ void RpgApp::handle_event(sq::Event event)
 
     //--------------------------------------------------------//
 
-    auto notify = [this](uint value, const string& message, std::vector<string> options)
+    auto notify = [this](uint value, const String& message, Vector<String> options)
     { this->mDebugOverlay->notify(message + options[value]); };
 
     if (type == Type::Keyboard_Press)

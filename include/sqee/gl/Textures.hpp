@@ -1,3 +1,6 @@
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
+
 #pragma once
 
 #include <sqee/gl/TextureBase.hpp>
@@ -7,7 +10,7 @@ namespace sq {
 //============================================================================//
 
 /// GL_TEXTURE_2D Object.
-class Texture2D final : public Texture
+class SQEE_API Texture2D final : public Texture
 {
 public: //====================================================//
 
@@ -25,24 +28,24 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     /// Load a png or jpg image into the texture.
-    void load_file(const string& path);
+    void load_file(const String& path);
 
     /// Load an image, allocate storage and generate mipmaps
-    //void load_auto(const string& path, bool mipmaps);
+    //void load_auto(const String& path, bool mipmaps);
 
     /// Configure and load texture with a meta.json file.
-    void load_automatic(const string& path);
+    void load_automatic(const String& path);
 
     //--------------------------------------------------------//
 
     /// Load an sq::Texture2D from sqee packages.
-    static Texture2D make_from_package(const string& path);
+    static Texture2D make_from_package(const String& path);
 };
 
 //============================================================================//
 
 /// GL_TEXTURE_CUBE_MAP Object.
-class TextureCube final : public Texture
+class SQEE_API TextureCube final : public Texture
 {
 public: //====================================================//
 
@@ -63,16 +66,16 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     /// Load a png or jpg image into one face of the texture.
-    void load_file(const string& path, uint face);
+    void load_file(const String& path, uint face);
 
     /// Configure and load texture with a meta.json file.
-    void load_automatic(const string& path);
+    void load_automatic(const String& path);
 };
 
 //============================================================================//
 
 /// GL_TEXTURE_2D_ARRAY Object.
-class TextureArray2D final : public Texture
+class SQEE_API TextureArray2D final : public Texture
 {
 public: //====================================================//
 
@@ -93,16 +96,16 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     /// Load a png or jpg image into one layer of the texture.
-    void load_file(const string& path, uint layer);
+    void load_file(const String& path, uint layer);
 
     /// Configure and load texture with a meta.json file.
-    void load_automatic(const string& path);
+    void load_automatic(const String& path);
 };
 
 //============================================================================//
 
 ///// GL_TEXTURE_CUBE_MAP_ARRAY Object.
-//class TextureArrayCube final : public Texture
+//class SQEE_API TextureArrayCube final : public Texture
 //{
 //public: //====================================================//
 
@@ -127,7 +130,7 @@ public: //====================================================//
 //============================================================================//
 
 /// GL_TEXTURE_3D Object.
-class TextureVolume final : public Texture
+class SQEE_API TextureVolume final : public Texture
 {
 public: //====================================================//
 
@@ -144,7 +147,7 @@ public: //====================================================//
 //============================================================================//
 
 /// GL_TEXTURE_2D_MULTISAMPLE Object.
-class TextureMulti final : public Texture
+class SQEE_API TextureMulti final : public Texture
 {
 public: //====================================================//
 

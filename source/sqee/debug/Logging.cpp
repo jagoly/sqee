@@ -1,10 +1,12 @@
-#include <ctime>
-
 #include <sqee/debug/Logging.hpp>
+
+#include <ctime>
 
 using namespace sq;
 
-string sq::get_time_string()
+//============================================================================//
+
+String sq::get_time_string()
 {
     auto now = std::time(nullptr);
     auto local = *std::localtime(&now);

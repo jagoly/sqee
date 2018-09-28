@@ -7,7 +7,7 @@ using namespace sq;
 
 //============================================================================//
 
-JsonValue sq::parse_json_from_file(const string& path)
+JsonValue sq::parse_json_from_file(const String& path)
 {
     auto src = std::ifstream(path);
 

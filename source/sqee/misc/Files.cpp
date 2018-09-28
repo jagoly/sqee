@@ -1,23 +1,26 @@
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
+
+#include <sqee/misc/Files.hpp>
+
 #include <fstream>
 #include <sstream>
 
-#include <sqee/assert.hpp>
-
+#include <sqee/debug/Assert.hpp>
 #include <sqee/debug/Logging.hpp>
-#include <sqee/misc/Files.hpp>
 
 using namespace sq;
 
 //============================================================================//
 
-bool sq::check_file_exists(const string& path)
+bool sq::check_file_exists(const String& path)
 {
     return std::ifstream(path).good();
 }
 
 //============================================================================//
 
-string sq::get_string_from_file(const string& path)
+String sq::get_string_from_file(const String& path)
 {
     auto src = std::ifstream(path);
 
@@ -29,14 +32,14 @@ string sq::get_string_from_file(const string& path)
 
     std::stringstream stream;
     stream << src.rdbuf();
-    return string(stream.str());
+    return String(stream.str());
 }
 
 //============================================================================//
 
-std::vector<uchar> sq::get_bytes_from_file(const string& path)
+Vector<std::byte> sq::get_bytes_from_file(const String& path)
 {
-    using unsigned_ifstream = std::basic_ifstream<uchar>;
+    using unsigned_ifstream = std::basic_ifstream<std::byte>;
     unsigned_ifstream src(path, std::ios::binary | std::ios::ate);
 
     if (src.good() == false)
@@ -47,7 +50,7 @@ std::vector<uchar> sq::get_bytes_from_file(const string& path)
 
     const auto fileSize = src.tellg();
 
-    std::vector<uchar> result;
+    Vector<std::byte> result;
     result.resize(uint(fileSize));
 
     src.seekg(0, src.beg);
@@ -58,12 +61,12 @@ std::vector<uchar> sq::get_bytes_from_file(const string& path)
 
 //============================================================================//
 
-TokenisedFile sq::tokenise_file(const string& path)
+TokenisedFile sq::tokenise_file(const String& path)
 {
     TokenisedFile result;
 
     result.fullString = get_string_from_file(path);
-    const string& str = result.fullString;
+    const String& str = result.fullString;
 
     if (str.empty()) return result;
 
@@ -73,7 +76,7 @@ TokenisedFile sq::tokenise_file(const string& path)
 
     result.lines.push_back({ {}, 1u });
 
-    while (nextLine != string::npos || nextSpace != string::npos)
+    while (nextLine != String::npos || nextSpace != String::npos)
     {
         if (nextSpace < nextLine)
         {
@@ -123,25 +126,25 @@ TokenisedFile sq::tokenise_file(const string& path)
 
 //============================================================================//
 
-string_view sq::file_from_path(const string& path)
+StringView sq::file_from_path(const String& path)
 {
     const size_t splitPos = path.rfind('/');
-    if (splitPos == path.size() - 1u) return string_view();
-    return string_view(path.c_str() + splitPos + 1u);
+    if (splitPos == path.size() - 1u) return StringView();
+    return StringView(path.c_str() + splitPos + 1u);
 }
 
-string_view sq::directory_from_path(const string& path)
+StringView sq::directory_from_path(const String& path)
 {
     const size_t splitPos = path.rfind('/');
-    if (splitPos == string::npos) return string_view();
-    return string_view(path.c_str(), splitPos);
+    if (splitPos == String::npos) return StringView();
+    return StringView(path.c_str(), splitPos);
 }
 
-string_view sq::extension_from_path(const string& path)
+StringView sq::extension_from_path(const String& path)
 {
-    const string_view fileName = file_from_path(path);
+    const StringView fileName = file_from_path(path);
     const size_t dotPos = fileName.rfind('.', path.length());
-    if (dotPos == string::npos) return string_view();
-    if (dotPos == 0u) return string_view();
+    if (dotPos == String::npos) return StringView();
+    if (dotPos == 0u) return StringView();
     return fileName.substr(dotPos);
 }

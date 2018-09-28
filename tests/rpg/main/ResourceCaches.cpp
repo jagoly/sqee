@@ -34,28 +34,28 @@ MaterialCache::~MaterialCache() = default;
 
 //============================================================================//
 
-unique_ptr<sq::Texture2D> TextureCache::create(const string& path)
+UniquePtr<sq::Texture2D> TextureCache::create(const String& path)
 {
     auto texture = sq::Texture2D::make_from_package(path);
     return std::make_unique<sq::Texture2D>(std::move(texture));
 }
 
-unique_ptr<sq::Mesh> MeshCache::create(const string& path)
+UniquePtr<sq::Mesh> MeshCache::create(const String& path)
 {
     return sq::Mesh::make_from_package(path);
 }
 
-unique_ptr<sq::Armature> ArmatureCache::create(const string& path)
+UniquePtr<sq::Armature> ArmatureCache::create(const String& path)
 {
     return {};
 }
 
-unique_ptr<sq::SoundWave> SoundCache::create(const string& path)
+UniquePtr<sq::SoundWave> SoundCache::create(const String& path)
 {
     return std::make_unique<sq::SoundWave>(path);
 }
 
-unique_ptr<sq::Material> MaterialCache::create(const string& path)
+UniquePtr<sq::Material> MaterialCache::create(const String& path)
 {
     return std::make_unique<sq::Material>(path, mTextureCache);
 }

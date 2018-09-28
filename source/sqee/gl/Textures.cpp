@@ -1,15 +1,17 @@
-#include <sqee/assert.hpp>
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
+
+#include <sqee/gl/Textures.hpp>
+
+#include <sqee/debug/Assert.hpp>
+#include <sqee/debug/Logging.hpp>
+#include <sqee/misc/Files.hpp>
+#include <sqee/misc/Json.hpp>
 
 #include <sqee/redist/gl_loader.hpp>
 #include <sqee/redist/stb_image.hpp>
 
-#include <sqee/debug/Logging.hpp>
-
 #include <sqee/helpers.hpp>
-#include <sqee/misc/Files.hpp>
-#include <sqee/misc/Json.hpp>
-
-#include <sqee/gl/Textures.hpp>
 
 using namespace sq;
 
@@ -131,7 +133,7 @@ struct Impl_Load_Image : NonCopyable
 
     //--------------------------------------------------------//
 
-    Impl_Load_Image(Texture::Format format, string path)
+    Impl_Load_Image(Texture::Format format, String path)
     {
         if (check_file_exists(path) == true) {}
         else if (check_file_exists(path + ".png")) path += ".png";
@@ -318,22 +320,22 @@ void TextureVolume::load_memory(const void* data, Vec3U offset, Vec3U size)
 
 // File Loading Methods /////
 
-void Texture2D::load_file(const string& path)
+void Texture2D::load_file(const String& path)
 {
     Impl_Load_Image image (mFormat, path);
     SQASSERT(image.size == Vec2U(mSize), "");
     load_memory(image.data);
 }
 
-void Texture2D::load_automatic(const string& path)
+void Texture2D::load_automatic(const String& path)
 {
     const auto jsonPath = build_string(directory_from_path(path), "/meta.json");
-    const auto fileName = string(file_from_path(path));
+    const auto fileName = String(file_from_path(path));
 
     const auto json = parse_json_from_file(jsonPath).at(fileName);
 
-    const string& wrap = json.at("wrap");
-    const string& swizzle = json.at("swizzle");
+    const String& wrap = json.at("wrap");
+    const String& swizzle = json.at("swizzle");
 
     set_format(impl_string_to_format(json.at("format")));
     set_wrap_mode(wrap[0], wrap[1]);
@@ -347,19 +349,19 @@ void Texture2D::load_automatic(const string& path)
     if (mMipmaps) generate_auto_mipmaps();
 }
 
-void TextureCube::load_file(const string& path, uint face)
+void TextureCube::load_file(const String& path, uint face)
 {
     Impl_Load_Image image (mFormat, path);
     SQASSERT(image.size == Vec2U(mSize), "");
     load_memory(image.data, face);
 }
 
-void TextureCube::load_automatic(const string& path)
+void TextureCube::load_automatic(const String& path)
 {
     const auto json = parse_json_from_file(build_string(path, "/meta.json"));
 
-    const string& wrap = json.at("wrap");
-    const string& swizzle = json.at("swizzle");
+    const String& wrap = json.at("wrap");
+    const String& swizzle = json.at("swizzle");
 
     set_format(impl_string_to_format(json.at("format")));
     set_wrap_mode(wrap[0], wrap[1]);
@@ -378,19 +380,19 @@ void TextureCube::load_automatic(const string& path)
     if (mMipmaps) generate_auto_mipmaps();
 }
 
-void TextureArray2D::load_file(const string& path, uint layer)
+void TextureArray2D::load_file(const String& path, uint layer)
 {
     Impl_Load_Image image (mFormat, path);
     SQASSERT(image.size == Vec2U(mSize), "");
     load_memory(image.data, layer);
 }
 
-void TextureArray2D::load_automatic(const string& path)
+void TextureArray2D::load_automatic(const String& path)
 {
     const auto json = parse_json_from_file(build_string(path, "/meta.json"));
 
-    const string& wrap = json.at("wrap");
-    const string& swizzle = json.at("swizzle");
+    const String& wrap = json.at("wrap");
+    const String& swizzle = json.at("swizzle");
 
     set_format(impl_string_to_format(json.at("format")));
     set_wrap_mode(wrap[0], wrap[1]);
@@ -403,7 +405,7 @@ void TextureArray2D::load_automatic(const string& path)
 
     for (uint layer = 0u; layer < mSize.z; ++layer)
     {
-        string fileName = std::to_string(layer);
+        String fileName = std::to_string(layer);
         fileName.insert(0u, digits - fileName.size(), '0');
 
         Impl_Load_Image image (mFormat, path + '/' + fileName);
@@ -453,12 +455,12 @@ void TextureCubeArray::allocate_storage(Vec2U _size, bool _mipmaps) {
 
 //============================================================================//
 
-Texture2D Texture2D::make_from_package(const string& path)
+Texture2D Texture2D::make_from_package(const String& path)
 {
-    const string::size_type splitPos = path.find(':');
-    log_assert(splitPos != string::npos, "bad path '%s'", path);
+    const String::size_type splitPos = path.find(':');
+    log_assert(splitPos != String::npos, "bad path '%s'", path);
 
-    const string_view package ( path.c_str(), splitPos );
+    const StringView package ( path.c_str(), splitPos );
     const char* const name = path.c_str() + splitPos + 1u;
 
     const auto jsonPath = build_string("assets/packages/", package, "/textures.json");
@@ -466,8 +468,8 @@ Texture2D Texture2D::make_from_package(const string& path)
 
     //========================================================//
 
-    const string wrap = json.at("wrap");
-    const string swizzle = json.at("swizzle");
+    const String wrap = json.at("wrap");
+    const String swizzle = json.at("swizzle");
 
     SQASSERT(wrap.size() == 2u, "");
     SQASSERT(swizzle.size() == 4u, "");

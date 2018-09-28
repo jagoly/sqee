@@ -1,19 +1,22 @@
-#include <sqee/redist/gl_loader.hpp>
-
-#include <sqee/assert.hpp>
-#include <sqee/debug/Logging.hpp>
-
-#include <sqee/misc/Files.hpp>
-#include <sqee/misc/Parsing.hpp>
-#include <sqee/helpers.hpp>
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
 
 #include <sqee/render/Mesh.hpp>
+
+#include <sqee/debug/Assert.hpp>
+#include <sqee/debug/Logging.hpp>
+#include <sqee/misc/Files.hpp>
+#include <sqee/misc/Parsing.hpp>
+
+#include <sqee/redist/gl_loader.hpp>
+
+#include <sqee/helpers.hpp>
 
 using namespace sq;
 
 //============================================================================//
 
-void Mesh::load_from_file(const string& path, bool swapYZ)
+void Mesh::load_from_file(const String& path, bool swapYZ)
 {
     mSwapYZ = swapYZ;
 
@@ -49,28 +52,28 @@ using GL_SNorm16 = GLshort;
 using GL_UNorm8 = GLubyte;
 using GL_SInt8 = GLbyte;
 
-inline void impl_ascii_append_Float32(uchar*& ptr, string_view sv)
+inline void impl_ascii_append_Float32(std::byte*& ptr, StringView sv)
 {
     const auto value = GL_Float32(sv_to_f(sv));
     reinterpret_cast<GL_Float32&>(*ptr) = value;
     std::advance(ptr, sizeof(GL_Float32));
 }
 
-inline void impl_ascii_append_SNorm16(uchar*& ptr, string_view sv)
+inline void impl_ascii_append_SNorm16(std::byte*& ptr, StringView sv)
 {
     const auto value = GL_SNorm16(sv_to_f(sv) * 32767.f);
     reinterpret_cast<GL_SNorm16&>(*ptr) = value;
     std::advance(ptr, sizeof(GL_SNorm16));
 }
 
-inline void impl_ascii_append_UNorm8(uchar*& ptr, string_view sv)
+inline void impl_ascii_append_UNorm8(std::byte*& ptr, StringView sv)
 {
     const auto value = GL_UNorm8(sv_to_f(sv) * 255.f);
     reinterpret_cast<GL_UNorm8&>(*ptr) = value;
     std::advance(ptr, sizeof(GL_UNorm8));
 }
 
-inline void impl_ascii_append_SInt8(uchar*& ptr, string_view sv)
+inline void impl_ascii_append_SInt8(std::byte*& ptr, StringView sv)
 {
     const auto value = GL_SInt8(sv_to_i(sv));
     reinterpret_cast<GL_SInt8&>(*ptr) = value;
@@ -78,7 +81,7 @@ inline void impl_ascii_append_SInt8(uchar*& ptr, string_view sv)
 }
 
 template <class Type>
-inline void impl_swap_attr_yz(uchar* vertexPtr, uint attrOffset)
+inline void impl_swap_attr_yz(std::byte* vertexPtr, uint attrOffset)
 {
     Type* attrPtr = reinterpret_cast<Type*>(vertexPtr + attrOffset);
     std::swap(*std::next(attrPtr, 1), *std::next(attrPtr, 2));
@@ -88,19 +91,19 @@ inline void impl_swap_attr_yz(uchar* vertexPtr, uint attrOffset)
 
 //============================================================================//
 
-void Mesh::impl_load_ascii(const string& path)
+void Mesh::impl_load_ascii(const String& path)
 {
     enum class Section { None, Header, Vertices, Indices };
     Section section = Section::None;
 
-    std::vector<uchar> vertexData;
-    std::vector<uint> indexData;
+    Vector<std::byte> vertexData;
+    Vector<uint32_t> indexData;
 
     bool allocatedVertices = false;
     bool allocatedIndices = false;
 
-    uchar* vertexPtr = nullptr;
-    uint* indexPtr = nullptr;
+    std::byte* vertexPtr = nullptr;
+    uint32_t* indexPtr = nullptr;
 
     //========================================================//
 
@@ -261,7 +264,7 @@ void Mesh::impl_load_ascii(const string& path)
 
 //============================================================================//
 
-void Mesh::impl_load_final(std::vector<uchar>& vertexData, std::vector<uint>& indexData)
+void Mesh::impl_load_final(Vector<std::byte>& vertexData, Vector<uint32_t>& indexData)
 {
     const uint sizeTCRD = sizeof(GL_Float32[2]) * has_TCRD();
     const uint sizeNORM = sizeof(GL_SNorm16[3]) * has_NORM();
@@ -313,15 +316,15 @@ void Mesh::impl_load_final(std::vector<uchar>& vertexData, std::vector<uint>& in
 
 //============================================================================//
 
-unique_ptr<Mesh> Mesh::make_from_package(const string& path)
+UniquePtr<Mesh> Mesh::make_from_package(const String& path)
 {
-    const string::size_type splitPos = path.find(':');
-    log_assert(splitPos != string::npos, "bad path '%s'", path);
+    const String::size_type splitPos = path.find(':');
+    log_assert(splitPos != String::npos, "bad path '%s'", path);
 
-    const string_view package ( path.c_str(), splitPos );
+    const StringView package ( path.c_str(), splitPos );
     const char* const name = path.c_str() + splitPos + 1u;
 
-    unique_ptr<Mesh> mesh = std::make_unique<Mesh>();
+    UniquePtr<Mesh> mesh = std::make_unique<Mesh>();
 
     mesh->load_from_file(build_string("assets/packages/", package, "/meshes/", name, ".sqm"));
 

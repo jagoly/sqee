@@ -1,8 +1,9 @@
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
+
 #pragma once
 
 #include <unordered_map>
-
-#include <sqee/builtins.hpp>
 
 #include <sqee/misc/ResourceHandle.hpp>
 
@@ -15,13 +16,9 @@ namespace sq {
 /// @tparam Type type of the resource
 
 template <class Key, class Type>
-class ResourceCache : sq::NonCopyable
+class ResourceCache : private NonCopyable
 {
 public: //====================================================//
-
-    using HandleT = Handle<Key, Type>;
-
-    //--------------------------------------------------------//
 
     /// Virtual Destructor.
     virtual ~ResourceCache() = default;
@@ -31,7 +28,7 @@ public: //====================================================//
     /// Acquire a handle to a resource, loading it if needed.
     /// @param path the path of the resource to acquire
 
-    HandleT acquire(const Key& key)
+    Handle<Key, Type> acquire(const Key& key)
     {
         auto& resource = mResourceMap[key];
 
@@ -44,12 +41,21 @@ public: //====================================================//
         return resource;
     }
 
+    //--------------------------------------------------------//
+
+    /// Reload all cached resources.
+    void reload_resources()
+    {
+        for (auto& [key, resource] : mResourceMap)
+            resource.uptr = create(key);
+    }
+
 protected: //=================================================//
 
     /// Implement to load a new resource.
-    /// @param key the key of the resource to acquire
+    /// @param key the key of the resource to load
 
-    virtual unique_ptr<Type> create(const Key& key) = 0;
+    virtual UniquePtr<Type> create(const Key& key) = 0;
 
     //--------------------------------------------------------//
 

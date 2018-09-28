@@ -1,7 +1,11 @@
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
+
+#include <sqee/app/ChaiConsole.hpp>
+
 #include <chaiscript/chaiscript.hpp>
 
 #include <sqee/debug/Text.hpp>
-#include <sqee/app/ChaiConsole.hpp>
 
 using namespace sq;
 
@@ -25,13 +29,13 @@ void ChaiConsole::render(double)
 {
     if (mActive == true)
     {
-        string outStr = ">>> " + mInput;
-        string::size_type pos = 0u;
+        String outStr = ">>> " + mInput;
+        String::size_type pos = 0u;
 
         const char cursor = mCursorVisible ? char(5) : ' ';
         outStr.insert(outStr.begin() + mCursorPos + 4u, cursor);
 
-        while ((pos = outStr.find("\n", pos)) != string::npos)
+        while ((pos = outStr.find("\n", pos)) != String::npos)
         { outStr.replace(pos, 1u, "\n--> "); pos += 4u; }
 
         for (const auto& str : mOutput) outStr.append('\n' + str);
@@ -170,13 +174,13 @@ void ChaiConsole::clear()
 
 void ChaiConsole::history()
 {
-    for (const string& command : mHistory)
+    for (const String& command : mHistory)
     {
         mOutput.emplace_front("> " + command);
     }
 }
 
-void ChaiConsole::print(const string& arg)
+void ChaiConsole::print(String arg)
 {
     mOutput.emplace_front(arg);
 }

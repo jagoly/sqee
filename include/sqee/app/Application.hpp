@@ -1,13 +1,16 @@
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
+
 #pragma once
 
-#include <sqee/builtins.hpp>
+#include <sqee/misc/Builtins.hpp>
 
 namespace sq {
 
 //============================================================================//
 
 /// The SQEE Application base class.
-class Application : NonCopyable
+class SQEE_API Application : private NonCopyable
 {
 public: //====================================================//
 
@@ -25,7 +28,7 @@ public: //====================================================//
 protected: //=================================================//
 
     /// Called once before the main loop starts.
-    virtual void initialise(std::vector<string> args) = 0;
+    virtual void initialise(Vector<String> args) = 0;
 
     /// Called continuously while running.
     virtual void update(double elapsed) = 0;

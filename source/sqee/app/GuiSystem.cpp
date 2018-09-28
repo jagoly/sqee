@@ -1,18 +1,22 @@
-#include <cstring> // strcpy
-
-#include <sqee/redist/imgui/imgui.hpp>
-
-#include <sqee/assert.hpp>
-#include <sqee/macros.hpp>
-
-#include <sqee/gl/Context.hpp>
-#include <sqee/misc/Algorithms.hpp>
-
-#include <sqee/app/Window.hpp>
-#include <sqee/app/InputDevices.hpp>
-#include <sqee/app/Event.hpp>
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
 
 #include <sqee/app/GuiSystem.hpp>
+
+#include <sqee/app/Event.hpp>
+#include <sqee/app/InputDevices.hpp>
+#include <sqee/app/Window.hpp>
+#include <sqee/debug/Assert.hpp>
+#include <sqee/gl/Context.hpp>
+#include <sqee/gl/Program.hpp>
+#include <sqee/gl/Textures.hpp>
+#include <sqee/gl/VertexArray.hpp>
+#include <sqee/misc/Algorithms.hpp>
+
+#include <sqee/redist/gl_loader.hpp>
+#include <sqee/redist/imgui/imgui.hpp>
+
+#include <sqee/macros.hpp>
 
 using namespace sq;
 
@@ -249,16 +253,16 @@ void GuiSystem::Implementation::create_fonts()
 
     constexpr size_t MaxNameLen = sizeof(ImFontConfig::Name);
 
-    string_view("Ubuntu Regular").copy(fontConfig.Name, MaxNameLen);
+    StringView("Ubuntu Regular").copy(fontConfig.Name, MaxNameLen);
     io.Fonts->AddFontFromMemoryCompressedTTF(data_UbuntuRegular, data_UbuntuRegular_size, 16.f, &fontConfig);
 
-    string_view("Ubuntu Bold").copy(fontConfig.Name, MaxNameLen);
+    StringView("Ubuntu Bold").copy(fontConfig.Name, MaxNameLen);
     io.Fonts->AddFontFromMemoryCompressedTTF(data_UbuntuBold, data_UbuntuBold_size, 16.f, &fontConfig);
 
-    string_view("Ubuntu Italic").copy(fontConfig.Name, MaxNameLen);
+    StringView("Ubuntu Italic").copy(fontConfig.Name, MaxNameLen);
     io.Fonts->AddFontFromMemoryCompressedTTF(data_UbuntuItalic, data_UbuntuItalic_size, 16.f, &fontConfig);
 
-    string_view("Ubuntu Mono Regular").copy(fontConfig.Name, MaxNameLen);
+    StringView("Ubuntu Mono Regular").copy(fontConfig.Name, MaxNameLen);
     io.Fonts->AddFontFromMemoryCompressedTTF(data_UbuntuMonoRegular, data_UbuntuMonoRegular_size, 16.f, &fontConfig);
 }
 
@@ -438,7 +442,7 @@ void GuiSystem::Implementation::render_gui()
                 const uint clipW = uint(cmd.ClipRect.z - cmd.ClipRect.x);
                 const uint clipH = uint(cmd.ClipRect.w - cmd.ClipRect.y);
 
-                context.set_Scissor_Params(clipX, clipY, clipW, clipH);
+                context.set_Scissor_Params({clipX, clipY, clipW, clipH});
 
                 gl::DrawElements(gl::TRIANGLES, int(cmd.ElemCount), gl::UNSIGNED_SHORT, indexBufferOffset);
             }

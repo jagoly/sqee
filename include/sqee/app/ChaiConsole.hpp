@@ -1,21 +1,21 @@
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
+
 #pragma once
 
 #include <forward_list>
 
-#include <sqee/builtins.hpp>
+#include <sqee/misc/Builtins.hpp>
 
-#include <sqee/app/Scene.hpp>
 #include <sqee/app/ChaiEngine.hpp>
-#include <sqee/app/Event.hpp>
-
-//============================================================================//
+#include <sqee/app/Scene.hpp>
 
 namespace sq {
 
 //============================================================================//
 
 /// The SQEE ChaiScript Console.
-class ChaiConsole final : public Scene
+class SQEE_API ChaiConsole final : public Scene
 {
 public: //====================================================//
 
@@ -44,7 +44,7 @@ public: //====================================================//
     void history();
 
     /// Print to the console.
-    void print(const string& arg);
+    void print(String arg);
 
 private: //===================================================//
 
@@ -58,10 +58,10 @@ private: //===================================================//
 
     //--------------------------------------------------------//
 
-    string mInput;
+    String mInput;
 
-    std::forward_list<string> mOutput;
-    std::vector<string> mHistory;
+    std::forward_list<String> mOutput;
+    Vector<String> mHistory;
 
     int mHistoryIndex = -1;
     uint mCursorPos = 0u;

@@ -1,69 +1,24 @@
-################################################################################
-
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build/tests/rpg")
+project(SQEE_RPG)
 
 ################################################################################
 
-set(SOURCES
+file(GLOB_RECURSE HEADERS "${PROJECT_SOURCE_DIR}/*.hpp")
+file(GLOB_RECURSE SOURCES "${PROJECT_SOURCE_DIR}/*.cpp")
 
-    "main.cpp"
+add_executable(sqee-rpg ${HEADERS} ${SOURCES})
 
-    "RpgApp.hpp"  "RpgApp.cpp"
+target_compile_definitions(sqee-rpg PRIVATE SQEE_GLOBAL_BUILTINS)
 
-    "api/editors.hpp"    "api/editors.cpp"
-    "api/other.hpp"      "api/other.cpp"
-    "api/ScriptAPI.hpp"  "api/ScriptAPI.cpp"
-
-    "main/MainScene.hpp"       "main/MainScene.cpp"
-    "main/Options.hpp"         "main/Options.cpp"
-    "main/ResourceCaches.hpp"  "main/ResourceCaches.cpp"
-    "main/Scripting.hpp"       "main/Scripting.cpp"
-
-    "components/BodyStatic.hpp"   "components/BodyStatic.cpp"
-    "components/BodyDynamic.hpp"  "components/BodyDynamic.cpp"
-
-    "systems/Animation.hpp"   "systems/Animation.cpp"
-    "systems/Transform.hpp"   "systems/Transform.cpp"
-    "systems/Render.hpp"      "systems/Render.cpp"
-    "systems/Culling.hpp"     "systems/Culling.cpp"
-    "systems/Sound.hpp"       "systems/Sound.cpp"
-    "systems/WorldStuff.hpp"  "systems/WorldStuff.cpp"
-
-    "world/Camera.hpp"    "world/Camera.cpp"
-    "world/Skybox.hpp"    "world/Skybox.cpp"
-    "world/Ambient.hpp"   "world/Ambient.cpp"
-    "world/Skylight.hpp"  "world/Skylight.cpp"
-
-    "render/ObjectsData.hpp"  "render/ObjectsData.cpp"
-    "render/SharedStuff.hpp"  "render/SharedStuff.cpp"
-    "render/PassesData.hpp"   "render/PassesData.cpp"
-    "render/Renderer.hpp"     "render/Renderer.cpp"
-
-    "render/entity/DecalBasic.hpp"  "render/entity/DecalBasic.cpp"
-
-    "render/passes/DepthDraw.hpp"       "render/passes/DepthDraw.cpp"
-    "render/passes/GbufferDraw.hpp"     "render/passes/GbufferDraw.cpp"
-    "render/passes/ShadowsDraw.hpp"     "render/passes/ShadowsDraw.cpp"
-    "render/passes/LightBaseDraw.hpp"   "render/passes/LightBaseDraw.cpp"
-    "render/passes/LightAccumDraw.hpp"  "render/passes/LightAccumDraw.cpp"
-    "render/passes/VolumetricDraw.hpp"  "render/passes/VolumetricDraw.cpp"
-    "render/passes/CompositeDraw.hpp"   "render/passes/CompositeDraw.cpp"
-    "render/passes/EffectsDraw.hpp"     "render/passes/EffectsDraw.cpp"
-)
+target_link_libraries(sqee-rpg PRIVATE sqee)
 
 ################################################################################
 
-#file(GLOB_RECURSE SHADERS "shaders/*.glsl")
-#file(GLOB_RECURSE SCRIPTS "assets/*.chai")
+set_property(TARGET sqee-rpg PROPERTY CXX_STANDARD 17)
 
-################################################################################
+set_property(TARGET sqee-rpg PROPERTY RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/rpg")
 
-#add_executable(sqee_rpg ${SOURCES} ${SHADERS} ${SCRIPTS})
-add_executable(sqee_rpg ${SOURCES})
+add_custom_command(TARGET sqee-rpg POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink
+    "${PROJECT_SOURCE_DIR}/assets" "${CMAKE_BINARY_DIR}/rpg/assets")
 
-target_link_libraries(sqee_rpg sqee)
-
-################################################################################
-
-file(COPY "assets" DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-file(COPY "shaders" DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+add_custom_command(TARGET sqee-rpg POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink
+    "${PROJECT_SOURCE_DIR}/shaders" "${CMAKE_BINARY_DIR}/rpg/shaders")

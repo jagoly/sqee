@@ -1,7 +1,10 @@
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
+
 #pragma once
 
-#include <sqee/builtins.hpp>
-#include <sqee/maths/Vectors.hpp>
+#include <sqee/misc/Builtins.hpp>
+
 #include <sqee/app/Event.hpp>
 
 namespace sq {
@@ -9,12 +12,12 @@ namespace sq {
 //============================================================================//
 
 /// The SQEE Window class.
-class Window final : NonCopyable
+class SQEE_API Window final : private NonCopyable
 {
 public: //====================================================//
 
     /// Constructor.
-    Window(string title, Vec2U size);
+    Window(String title, Vec2U size);
 
     /// Destructor.
     ~Window();
@@ -22,7 +25,7 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     /// Set the title of the Window.
-    void set_window_title(string title);
+    void set_window_title(String title);
 
     /// Set the size of the Window.
     void set_window_size(Vec2U size);
@@ -39,7 +42,7 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     /// Fetch any new events.
-    std::vector<Event> fetch_events();
+    Vector<Event> fetch_events();
 
     /// Display the newly rendered frame.
     void swap_buffers();
@@ -47,7 +50,7 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     /// Get the current title of the Window.
-    string get_window_title() const;
+    String get_window_title() const;
 
     /// Get the current size of the Window.
     Vec2U get_window_size() const;
@@ -65,7 +68,7 @@ private: //===================================================//
 
     struct Implementation;
     friend struct Implementation;
-    unique_ptr<Implementation> impl;
+    UniquePtr<Implementation> impl;
 
     //--------------------------------------------------------//
 

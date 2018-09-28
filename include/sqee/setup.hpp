@@ -6,6 +6,8 @@
 
 #include <utility>
 
+#include <sqee/export.hpp>
+
 //============================================================================//
 
 typedef unsigned char  uchar;

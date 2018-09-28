@@ -3,7 +3,7 @@
 #include <sqee/maths/Scalar.hpp>
 #include <sqee/maths/Vectors.hpp>
 
-namespace sq {
+namespace sq::maths {
 
 //============================================================================//
 
@@ -27,6 +27,9 @@ template <class T> struct Matrix<3, 3, T>
     // Default and Copy Constructors
     constexpr Matrix() : mCols { {1,0,0}, {0,1,0}, {0,0,1} } {}
     constexpr Matrix(const Matrix& m) : mCols { m[0], m[1], m[2] } {}
+
+    // Uninitialise Constructor
+    constexpr Matrix(std::nullptr_t) : mCols { nullptr, nullptr, nullptr } {}
 
     // Scalar and Vector Constructors
     constexpr explicit Matrix(T s) : mCols { {s,0,0}, {0,s,0}, {0,0,s} } {}
@@ -59,6 +62,9 @@ template <class T> struct Matrix<3, 4, T>
     constexpr Matrix() : mCols { {1,0,0,0}, {0,1,0,0}, {0,0,1,0} } {}
     constexpr Matrix(const Matrix& m) : mCols { m[0], m[1], m[2] } {}
 
+    // Uninitialise Constructor
+    constexpr Matrix(std::nullptr_t) : mCols { nullptr, nullptr, nullptr } {}
+
     // Scalar and Vector Constructors
     constexpr explicit Matrix(T s) : mCols { {s,0,0,0}, {0,s,0,0}, {0,0,s,0} } {}
     constexpr explicit Matrix(ColT a, ColT b, ColT c) : mCols { a, b, c } {}
@@ -87,6 +93,9 @@ template <class T> struct Matrix<4, 4, T>
     // Default and Copy Constructors
     constexpr Matrix() : mCols { {1,0,0,0}, {0,1,0,0}, {0,0,1,0}, {0,0,0,1} } {}
     constexpr Matrix(const Matrix& m) : mCols { m[0], m[1], m[2], m[3] } {}
+
+    // Uninitialise Constructor
+    constexpr Matrix(std::nullptr_t) : mCols { nullptr, nullptr, nullptr, nullptr } {}
 
     // Scalar and Vector Constructors
     constexpr explicit Matrix(T s) : mCols { {s,0,0,0}, {0,s,0,0}, {0,0,s,0}, {0,0,0,s} } {}
@@ -152,10 +161,6 @@ Vector4<T> operator*(Matrix44<T> m, Vector4<T> v)
     T w = m[0][3]*v[0] + m[1][3]*v[1] + m[2][3]*v[2] + m[3][3]*v[3];
     return Vector4<T> { x, y, z, w };
 }
-
-//============================================================================//
-
-namespace maths {
 
 //============================================================================//
 
@@ -317,8 +322,4 @@ Matrix33<T> normal_matrix(Matrix44<T> modelView)
 
 //============================================================================//
 
-}} // namespace sq::maths
-
-using Mat3F  = sq::Matrix<3, 3, float>;
-using Mat34F = sq::Matrix<3, 4, float>;
-using Mat4F  = sq::Matrix<4, 4, float>;
+} // namespace sq::maths

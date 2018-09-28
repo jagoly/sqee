@@ -1,19 +1,17 @@
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
+
 #pragma once
 
-#include <sqee/builtins.hpp>
-#include <sqee/maths/Vectors.hpp>
-#include <sqee/maths/Matrices.hpp>
+#include <sqee/misc/Builtins.hpp>
+#include <sqee/maths/Builtins.hpp>
 
 namespace sq {
 
 //============================================================================//
 
-class Context; // Forward Declaration
-
-//============================================================================//
-
 /// OpenGL Shader Program Object.
-class Program final : public MoveOnly
+class SQEE_API Program final : private MoveOnly
 {
 public: //====================================================//
 
@@ -28,19 +26,19 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     /// Load the vertex shader stage from a string.
-    void load_vertex(const string& source, const string& path = "");
+    void load_vertex(const String& source, const String& path = "");
 
     /// Load the geometry shader stage from a string.
-    void load_geometry(const string& source, const string& path = "");
+    void load_geometry(const String& source, const String& path = "");
 
     /// Load the fragment shader stage from a string.
-    void load_fragment(const string& source, const string& path = "");
+    void load_fragment(const String& source, const String& path = "");
 
     /// Link shader stages together, preparing the program for use.
     void link_program_stages();
 
     /// Create a program from vertex and fragment sources.
-    void create(const string& vertex, const string& fragment);
+    void create(const String& vertex, const String& fragment);
 
     //--------------------------------------------------------//
 
@@ -104,7 +102,7 @@ public: //====================================================//
 
 private: //===================================================//
 
-    Context& mContext;
+    class Context& mContext;
 
     GLuint mVertexShader = 0u;
     GLuint mGeometryShader = 0u;
@@ -117,8 +115,8 @@ private: //===================================================//
 
 struct ProgramKey final
 {
-    string vertexPath, vertexDefines;
-    string fragmentPath, fragmentDefines;
+    String vertexPath, vertexDefines;
+    String fragmentPath, fragmentDefines;
 };
 
 inline bool operator==(const ProgramKey& a, const ProgramKey& b)

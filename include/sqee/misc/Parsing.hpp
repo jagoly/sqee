@@ -1,9 +1,10 @@
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
+
 #pragma once
 
-#include <sqee/maths/Vectors.hpp>
-#include <sqee/maths/Quaternion.hpp>
-
-#include <sqee/builtins.hpp>
+#include <sqee/misc/Builtins.hpp>
+#include <sqee/maths/Builtins.hpp>
 
 namespace sq {
 
@@ -11,63 +12,63 @@ namespace sq {
 
 // todo: make this all use std::from_chars once compiler support is better
 
-inline int sv_to_i(string_view sv) { return int(std::stol(string(sv))); }
-inline uint sv_to_u(string_view sv) { return uint(std::stoul(string(sv))); }
-inline float sv_to_f(string_view sv) { return float(std::stof(string(sv))); }
+inline int sv_to_i(StringView sv) { return int(std::stol(String(sv))); }
+inline uint sv_to_u(StringView sv) { return uint(std::stoul(String(sv))); }
+inline float sv_to_f(StringView sv) { return float(std::stof(String(sv))); }
 
-inline void parse_tokens(int& out, string_view token) { out = sv_to_i(token); }
-inline void parse_tokens(uint& out, string_view token) { out = sv_to_u(token); }
-inline void parse_tokens(float& out, string_view token) { out = sv_to_f(token); }
+inline void parse_tokens(int& out, StringView token) { out = sv_to_i(token); }
+inline void parse_tokens(uint& out, StringView token) { out = sv_to_u(token); }
+inline void parse_tokens(float& out, StringView token) { out = sv_to_f(token); }
 
-inline optional<int> safe_sv_to_i(string_view sv)
+inline Optional<int> safe_sv_to_i(StringView sv)
 {
-    try { return int(std::stol(string(sv))); }
+    try { return int(std::stol(String(sv))); }
     catch (std::invalid_argument&) { return std::nullopt; }
 }
 
-inline optional<uint> safe_sv_to_u(string_view sv)
+inline Optional<uint> safe_sv_to_u(StringView sv)
 {
-    try { return uint(std::stoul(string(sv))); }
+    try { return uint(std::stoul(String(sv))); }
     catch (std::invalid_argument&) { return std::nullopt; }
 }
 
-inline optional<float> safe_sv_to_f(string_view sv)
+inline Optional<float> safe_sv_to_f(StringView sv)
 {
-    try { return float(std::stof(string(sv))); }
+    try { return float(std::stof(String(sv))); }
     catch (std::invalid_argument&) { return std::nullopt; }
 }
 
 //============================================================================//
 
 template <class T>
-inline void parse_tokens(Vector2<T>& out, string_view x, string_view y)
+inline void parse_tokens(maths::Vector2<T>& out, StringView x, StringView y)
 { parse_tokens(out.x, x); parse_tokens(out.y, y); }
 
 template <class T>
-inline void parse_tokens(Vector3<T>& out, string_view x, string_view y, string_view z)
+inline void parse_tokens(maths::Vector3<T>& out, StringView x, StringView y, StringView z)
 { parse_tokens(out.x, x); parse_tokens(out.y, y); parse_tokens(out.z, z); }
 
 template <class T>
-inline void parse_tokens(Vector4<T>& out, string_view x, string_view y, string_view z, string_view w)
+inline void parse_tokens(maths::Vector4<T>& out, StringView x, StringView y, StringView z, StringView w)
 { parse_tokens(out.x, x); parse_tokens(out.y, y); parse_tokens(out.z, z); parse_tokens(out.w, w); }
 
 template <class T>
-inline void parse_tokens(Quaternion<T>& out, string_view x, string_view y, string_view z, string_view w)
+inline void parse_tokens(maths::Quaternion<T>& out, StringView x, StringView y, StringView z, StringView w)
 { parse_tokens(out.x, x); parse_tokens(out.y, y); parse_tokens(out.z, z); parse_tokens(out.w, w); }
 
 //============================================================================//
 
-/// Count the number of tokens in a string_view.
-inline size_t count_tokens_in_string(string_view sv, char dlm)
+/// Count the number of tokens in a StringView.
+inline size_t count_tokens_in_string(StringView sv, char dlm)
 {
     size_t result = 0u;
     size_t begin = 0u, end = 0u;
 
     while (true)
     {
-        if ((begin = sv.find_first_not_of(dlm, end)) == string_view::npos) break;
+        if ((begin = sv.find_first_not_of(dlm, end)) == StringView::npos) break;
         ++result;
-        if ((end = sv.find_first_of(dlm, begin)) == string_view::npos) break;
+        if ((end = sv.find_first_of(dlm, begin)) == StringView::npos) break;
     }
 
     return result;
@@ -77,24 +78,24 @@ inline size_t count_tokens_in_string(string_view sv, char dlm)
 
 struct TokenisedString : sq::MoveOnly
 {
-    string fullString;
-    std::vector<string_view> tokens;
+    String fullString;
+    Vector<StringView> tokens;
 };
 
-/// Split a string_view into a vector of tokens.
-std::vector<string_view> tokenise_string_view(string_view sv, char dlm);
+/// Split a StringView into a vector of tokens.
+SQEE_API Vector<StringView> tokenise_string_view(StringView sv, char dlm);
 
 /// Split a string into a vector of tokens.
-TokenisedString tokenise_string(string str, char dlm);
+SQEE_API TokenisedString tokenise_string(String str, char dlm);
 
 //===========================================================================
 
 template <size_t S, class T>
-inline Vector<S, T> from_string(std::string_view sv)
+inline maths::Vector<S, T> from_string(StringView sv)
 {
     const auto tokens = tokenise_string_view(sv, ' ');
 
-    Vector<S, T> result;
+    maths::Vector<S, T> result;
     if constexpr (S == 2) parse_tokens(result, tokens[0], tokens[1]);
     if constexpr (S == 3) parse_tokens(result, tokens[0], tokens[1], tokens[2]);
     if constexpr (S == 4) parse_tokens(result, tokens[0], tokens[1], tokens[2], tokens[3]);

@@ -1,5 +1,7 @@
 #include <sqee/gl/Context.hpp>
 
+#include <sqee/redist/gl_loader.hpp>
+
 #include "GbufferDraw.hpp"
 
 using Context = sq::Context;

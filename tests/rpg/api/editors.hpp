@@ -21,7 +21,7 @@ struct EntityEdit
 
     //--------------------------------------------------------//
 
-    void set_unique_name(const string& name);
+    void set_unique_name(const String& name);
     void adopt_child(int32_t child);
 };
 
@@ -68,8 +68,8 @@ struct ModelEdit
 
     void set_stretch(Vec3F stretch);
 
-    void add_material(const string& path);
-    void set_mesh(const string& path);
+    void add_material(const String& path);
+    void set_mesh(const String& path);
 
     void enable_render(bool enable);
     void enable_shadow(bool enable);
@@ -87,7 +87,7 @@ struct SkeletonEdit
 
     //--------------------------------------------------------//
 
-    void set_armature(const string& path);
+    void set_armature(const String& path);
 };
 
 //============================================================================//

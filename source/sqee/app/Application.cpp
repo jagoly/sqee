@@ -1,6 +1,9 @@
-#include <chrono>
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
 
 #include <sqee/app/Application.hpp>
+
+#include <chrono>
 
 using namespace sq;
 
@@ -8,7 +11,7 @@ using namespace sq;
 
 int Application::run(int argc, char** argv)
 {
-    std::vector<string> args;
+    Vector<String> args;
     args.reserve(size_t(argc));
 
     for (int i = 0; i < argc; ++i)

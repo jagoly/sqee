@@ -1,5 +1,11 @@
-#include <sqee/gl/Context.hpp>
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
+
 #include <sqee/gl/Drawing.hpp>
+
+#include <sqee/gl/Context.hpp>
+
+#include <sqee/redist/gl_loader.hpp>
 
 using namespace sq;
 
@@ -7,9 +13,7 @@ using namespace sq;
 
 void sq::draw_nothing()
 {
-    static auto& context = Context::get();
-
-    context.bind_VertexArray_dummy();
+    Context::get().bind_VertexArray_dummy();
 
     gl::DrawArrays(gl::POINTS, 0, 1);
 }
@@ -18,9 +22,7 @@ void sq::draw_nothing()
 
 void sq::draw_screen_quad()
 {
-    static auto& context = Context::get();
-
-    context.bind_VertexArray_dummy();
+    Context::get().bind_VertexArray_dummy();
 
     gl::DrawArrays(gl::TRIANGLE_STRIP, 0, 4);
 }

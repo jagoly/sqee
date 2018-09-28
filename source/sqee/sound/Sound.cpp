@@ -25,7 +25,7 @@ void Listener::set_rotation(QuatF rotation)
 
 //============================================================================//
 
-SoundWave::SoundWave(const string& path)
+SoundWave::SoundWave(const String& path)
 {
 //    // prepend assets directory to the path
 //    if (path.is_relative()) path = "assets/sounds" / path;
@@ -45,7 +45,7 @@ SoundWave::SoundWave(const string& path)
 
 //    log_assert(fs::exists(path), "file does not exist: %s", fs::absolute(path));
 
-    string fullPath = "assets/sounds/" + path;
+    String fullPath = "assets/sounds/" + path;
     if (check_file_exists(fullPath + ".flac")) fullPath += ".flac";
     else if (check_file_exists(fullPath + ".ogg")) fullPath += ".ogg";
     else log_error("Failed to find sound file '%s'", fullPath);
@@ -60,7 +60,7 @@ Sound::Sound()
     mSound = std::make_unique<sf::Sound>();
 }
 
-void Sound::set_wave(Handle<string, SoundWave> handle)
+void Sound::set_wave(Handle<String, SoundWave> handle)
 {
     SQASSERT(check_stopped(), "sound must be stopped");
 

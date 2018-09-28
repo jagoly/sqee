@@ -1,6 +1,9 @@
-#include <sqee/debug/Text.hpp>
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
 
 #include <sqee/app/DebugOverlay.hpp>
+
+#include <sqee/debug/Text.hpp>
 
 using namespace sq;
 
@@ -43,7 +46,7 @@ void DebugOverlay::render(double elapsed)
 
         for (const auto& [message, timeRemaining] : mNotifications)
         {
-            const string offsetMessage = string(--lineNumber, '\n') + message;
+            const auto offsetMessage = String(--lineNumber, '\n') + message;
             const float alpha = timeRemaining == 1u ? 1.f - float(mAccumulation) * 8.f : 1.f;
 
             // display notifications in the bottom right corner
@@ -54,7 +57,7 @@ void DebugOverlay::render(double elapsed)
 
 //============================================================================//
 
-void DebugOverlay::notify(const string& message)
+void DebugOverlay::notify(String message)
 {
     if (mActive == true)
     {

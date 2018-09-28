@@ -1,4 +1,6 @@
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build/testing")
+project(SQEE_TESTING)
+
+################################################################################
 
 set(SOURCES
     "main.cpp"
@@ -19,6 +21,16 @@ set(SOURCES
     "tests/dop/reduce.cpp"
 )
 
-add_executable(sqee_testing ${SOURCES})
-target_link_libraries(sqee_testing sqee)
-include_directories("${PROJECT_SOURCE_DIR}/include")
+################################################################################
+
+add_executable(sqee-testing ${SOURCES})
+
+target_compile_definitions(sqee-testing PRIVATE SQEE_GLOBAL_BUILTINS)
+
+target_link_libraries(sqee-testing PRIVATE sqee)
+
+################################################################################
+
+set_property(TARGET sqee-testing PROPERTY CXX_STANDARD 17)
+
+set_property(TARGET sqee-testing PROPERTY RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/testing")

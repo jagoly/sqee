@@ -1,16 +1,19 @@
-#include <chaiscript/chaiscript.hpp>
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
 
 #include <sqee/app/ChaiEngine.hpp>
+
+#include <chaiscript/chaiscript.hpp>
 
 using namespace sq;
 
 //============================================================================//
 
-std::unique_ptr<ChaiEngine> sq::create_ChaiEngine()
+UniquePtr<ChaiEngine> sq::create_ChaiEngine()
 {
-    const std::vector<std::string> modulePaths = {};
-    const std::vector<std::string> usePaths = {};
-    const auto chaiOptions = chai::default_options();
+    const Vector<String> modulePaths = {};
+    const Vector<String> usePaths = {};
+    const auto chaiOptions = chaiscript::default_options();
 
     return std::make_unique<ChaiEngine>(modulePaths, usePaths, chaiOptions);
 }

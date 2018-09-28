@@ -1,10 +1,8 @@
 #pragma once
 
-#include <sqee/builtins.hpp>
+#include <sqee/misc/Builtins.hpp>
+#include <sqee/maths/Builtins.hpp>
 
-#include <sqee/maths/Vectors.hpp>
-#include <sqee/maths/Quaternion.hpp>
-#include <sqee/maths/Matrices.hpp>
 #include <sqee/maths/Volumes.hpp>
 
 #include "Camera.hpp"

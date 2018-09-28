@@ -1,3 +1,6 @@
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
+
 #pragma once
 
 // fold expressions not supported on msvc
@@ -9,7 +12,8 @@
 #include <map>
 #include <typeindex>
 
-#include <sqee/builtins.hpp>
+#include <sqee/misc/Builtins.hpp>
+
 #include <sqee/helpers.hpp>
 
 namespace sq {
@@ -38,7 +42,7 @@ protected: //=================================================//
 //============================================================================//
 
 template <class... Messages>
-class Receiver : NonCopyable, public ReceiverMethod<Messages>...
+class Receiver : private NonCopyable, public ReceiverMethod<Messages>...
 {
 public: //====================================================//
 
@@ -48,7 +52,7 @@ public: //====================================================//
 
 protected: //=================================================//
 
-    std::array<bool, sizeof...(Messages)> mSubscribed;
+    Array<bool, sizeof...(Messages)> mSubscribed;
     MessageBus& mBus;
 
     friend class MessageBus;
@@ -57,7 +61,7 @@ protected: //=================================================//
 //============================================================================//
 
 /// The SQEE MessageBus Class
-class MessageBus final : NonCopyable
+class SQEE_API MessageBus final : private NonCopyable
 {
 public: //====================================================//
 
@@ -163,11 +167,11 @@ private: //===================================================//
 
     //--------------------------------------------------------//
 
-    std::vector<ReceiverBase*>& impl_get_subscribers(std::type_index type);
+    Vector<ReceiverBase*>& impl_get_subscribers(std::type_index type);
 
     //--------------------------------------------------------//
 
-    std::map<std::type_index, std::vector<ReceiverBase*>> mSubscriberMap;
+    std::map<std::type_index, Vector<ReceiverBase*>> mSubscriberMap;
 };
 
 //============================================================================//

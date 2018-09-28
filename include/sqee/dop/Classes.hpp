@@ -1,16 +1,15 @@
 #pragma once
 
-#include <vector>
-
-#include <sqee/assert.hpp>
+#include <sqee/debug/Assert.hpp>
 #include <sqee/misc/Algorithms.hpp>
+#include <sqee/misc/Builtins.hpp>
 
 namespace sq::dop {
 
 //============================================================================//
 
 /// Set of unique ids.
-class Group : public MoveOnly
+class SQEE_API Group : private MoveOnly
 {
 public: //====================================================//
 
@@ -41,7 +40,7 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    std::vector<int32_t> mIds;
+    Vector<int32_t> mIds;
 
     bool mIsSorted = true;
 };
@@ -72,7 +71,7 @@ struct Entry
 /// @tparam Type the type of the table data
 
 template <class Type>
-class Table : public MoveOnly
+class Table : private MoveOnly
 {
 public: //====================================================//
 
@@ -154,8 +153,8 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    std::vector<int32_t> mIds;
-    std::vector<Type> mData;
+    Vector<int32_t> mIds;
+    Vector<Type> mData;
 
     bool mIsSorted = true;
 };

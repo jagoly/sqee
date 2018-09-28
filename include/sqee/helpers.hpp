@@ -90,6 +90,15 @@ template<class... Elements> Structure(const Elements&...) -> Structure<Elements.
 
 //============================================================================//
 
+template <class RealType>
+struct alignas(RealType) UnitialisedType
+{
+    RealType* operator->() { return reinterpret_cast<RealType*>(_bytes); }
+    std::byte _bytes[sizeof(RealType)];
+};
+
+//============================================================================//
+
 template <class...> struct index_in_pack;
 
 //----------------------------------------------------------------------------//

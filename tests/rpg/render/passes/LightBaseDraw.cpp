@@ -1,6 +1,8 @@
 #include <sqee/gl/Context.hpp>
 #include <sqee/gl/Drawing.hpp>
 
+#include <sqee/redist/gl_loader.hpp>
+
 #include "LightBaseDraw.hpp"
 
 using Context = sq::Context;
@@ -68,7 +70,7 @@ void LightBasePasses::render(const data::LightBasePasses& data)
 void LightBasePasses::impl_render_SkyBoxPass(const data::LightBaseSkyBoxPass& data)
 {
     // only render where there is no geometry
-    context.set_Stencil_Params(gl::EQUAL, 0, 1, 0);
+    context.set_Stencil_Params({gl::EQUAL, 0, 1, 0});
 
     context.bind_Program(PROG_Main_Skybox);
 
@@ -87,7 +89,7 @@ void LightBasePasses::impl_render_SkyBoxPass(const data::LightBaseSkyBoxPass& da
 void LightBasePasses::impl_render_AmbientPass(const data::LightBaseAmbientPass& data)
 {
     // only render where there is geometry
-    context.set_Stencil_Params(gl::EQUAL, 1, 1, 0);
+    context.set_Stencil_Params({gl::EQUAL, 1, 1, 0});
 
     context.bind_Program(PROG_Main_Ambient);
 

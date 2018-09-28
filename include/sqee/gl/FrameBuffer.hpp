@@ -1,15 +1,17 @@
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
+
 #pragma once
 
-#include <sqee/setup.hpp>
-#include <sqee/maths/Vectors.hpp>
 #include <sqee/gl/Textures.hpp>
+#include <sqee/maths/Builtins.hpp>
 
 namespace sq {
 
 //============================================================================//
 
 /// OpenGL Frame Buffer Object.
-class FrameBuffer final : public MoveOnly
+class SQEE_API FrameBuffer final : private MoveOnly
 {
 public: //====================================================//
 

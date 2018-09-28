@@ -8,7 +8,7 @@ namespace algo = sq::algo;
 
 //============================================================================//
 
-void dop::impl_insertion_sort(std::vector<int32_t>& ids)
+void dop::impl_insertion_sort(Vector<int32_t>& ids)
 {
     for (auto iter = ids.begin(); iter != ids.end(); ++iter)
     {

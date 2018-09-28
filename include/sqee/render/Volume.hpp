@@ -1,16 +1,18 @@
+// Copyright(c) 2018 James Gangur
+// Part of https://github.com/jagoly/sqee
+
 #pragma once
 
-#include <sqee/maths/Vectors.hpp>
-
-#include <sqee/gl/VertexArray.hpp>
 #include <sqee/gl/FixedBuffer.hpp>
+#include <sqee/gl/VertexArray.hpp>
+#include <sqee/maths/Vectors.hpp>
 
 namespace sq {
 
 //============================================================================//
 
 /// Tiny position-only mesh object.
-class Volume final : public MoveOnly
+class SQEE_API Volume final : private MoveOnly
 {
 public: //====================================================//
 
