@@ -1,3 +1,5 @@
+#pragma once
+
 // based on https://github.com/gnzlbg/static_vector/blob/master/include/experimental/fixed_capacity_vector
 
 #include <sqee/debug/Assert.hpp>
@@ -8,6 +10,9 @@
 #include <iterator>     // for reverse_iterator and iterator traits
 #include <stdexcept>    // for length_error
 
+namespace sq {
+
+//============================================================================//
 
 /// Dynamically-resizable fixed-capacity vector.
 template <class T, size_t Capacity>
@@ -205,3 +210,7 @@ public: //====================================================//
         return *this;
     }
 };
+
+//============================================================================//
+
+} // namespace sq

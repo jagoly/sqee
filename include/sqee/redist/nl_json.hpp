@@ -9876,32 +9876,54 @@ class serializer
 
                 if (pretty_print)
                 {
-                    o->write_characters("[\n", 2);
-
-                    // variable to hold indentation for recursive calls
-                    const auto new_indent = current_indent + indent_step;
-                    if (JSON_UNLIKELY(indent_string.size() < new_indent))
+                    if ( (val.front().is_number_float() && val.back().is_number_float()) ||
+                         (val.front().is_number_integer() && val.back().is_number_integer()) )
                     {
-                        indent_string.resize(indent_string.size() * 2, ' ');
+                        o->write_characters("[ ", 2);
+
+                        // first n-1 elements
+                        for (auto i = val.m_value.array->cbegin();
+                                i != val.m_value.array->cend() - 1; ++i)
+                        {
+                            dump(*i, true, ensure_ascii, indent_step, 0);
+                            o->write_characters(", ", 2);
+                        }
+
+                        // last element
+                        assert(not val.m_value.array->empty());
+                        dump(val.m_value.array->back(), true, ensure_ascii, indent_step, 0);
+
+                        o->write_characters(" ]", 2);
                     }
-
-                    // first n-1 elements
-                    for (auto i = val.m_value.array->cbegin();
-                            i != val.m_value.array->cend() - 1; ++i)
+                    else
                     {
+                        o->write_characters("[\n", 2);
+
+                        // variable to hold indentation for recursive calls
+                        const auto new_indent = current_indent + indent_step;
+                        if (JSON_UNLIKELY(indent_string.size() < new_indent))
+                        {
+                            indent_string.resize(indent_string.size() * 2, ' ');
+                        }
+
+                        // first n-1 elements
+                        for (auto i = val.m_value.array->cbegin();
+                                i != val.m_value.array->cend() - 1; ++i)
+                        {
+                            o->write_characters(indent_string.c_str(), new_indent);
+                            dump(*i, true, ensure_ascii, indent_step, new_indent);
+                            o->write_characters(",\n", 2);
+                        }
+
+                        // last element
+                        assert(not val.m_value.array->empty());
                         o->write_characters(indent_string.c_str(), new_indent);
-                        dump(*i, true, ensure_ascii, indent_step, new_indent);
-                        o->write_characters(",\n", 2);
+                        dump(val.m_value.array->back(), true, ensure_ascii, indent_step, new_indent);
+
+                        o->write_character('\n');
+                        o->write_characters(indent_string.c_str(), current_indent);
+                        o->write_character(']');
                     }
-
-                    // last element
-                    assert(not val.m_value.array->empty());
-                    o->write_characters(indent_string.c_str(), new_indent);
-                    dump(val.m_value.array->back(), true, ensure_ascii, indent_step, new_indent);
-
-                    o->write_character('\n');
-                    o->write_characters(indent_string.c_str(), current_indent);
-                    o->write_character(']');
                 }
                 else
                 {
@@ -10203,9 +10225,9 @@ class serializer
         // guaranteed to round-trip, using strtof and strtod, resp.
         //
         // NB: The test below works if <long double> == <double>.
-        static constexpr bool is_ieee_single_or_double
-            = (std::numeric_limits<number_float_t>::is_iec559 and std::numeric_limits<number_float_t>::digits == 24 and std::numeric_limits<number_float_t>::max_exponent == 128) or
-              (std::numeric_limits<number_float_t>::is_iec559 and std::numeric_limits<number_float_t>::digits == 53 and std::numeric_limits<number_float_t>::max_exponent == 1024);
+        static constexpr bool is_ieee_single_or_double = false;
+            //= (std::numeric_limits<number_float_t>::is_iec559 and std::numeric_limits<number_float_t>::digits == 24 and std::numeric_limits<number_float_t>::max_exponent == 128) or
+            //  (std::numeric_limits<number_float_t>::is_iec559 and std::numeric_limits<number_float_t>::digits == 53 and std::numeric_limits<number_float_t>::max_exponent == 1024);
 
         dump_float(x, std::integral_constant<bool, is_ieee_single_or_double>());
     }
@@ -10221,7 +10243,7 @@ class serializer
     void dump_float(number_float_t x, std::false_type /*is_ieee_single_or_double*/)
     {
         // get number of digits for a float -> text -> float round-trip
-        static constexpr auto d = std::numeric_limits<number_float_t>::max_digits10;
+        static constexpr auto d = 4;//std::numeric_limits<number_float_t>::max_digits10;
 
         // the actual conversion
         std::ptrdiff_t len = snprintf(number_buffer.data(), number_buffer.size(), "%.*g", d, x);
