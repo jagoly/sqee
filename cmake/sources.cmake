@@ -20,13 +20,14 @@ set(SOURCES
   "include/sqee/redist/imgui/imgui.hpp"
   "include/sqee/redist/imgui/imgui_internal.hpp"
 
-  "include/sqee/redist/imgui/stb_rect_pack.hpp"
-  "include/sqee/redist/imgui/stb_textedit.hpp"
-  "include/sqee/redist/imgui/stb_truetype.hpp"
+  "include/sqee/redist/imgui/imstb_rectpack.hpp"
+  "include/sqee/redist/imgui/imstb_textedit.hpp"
+  "include/sqee/redist/imgui/imstb_truetype.hpp"
 
   "source/sqee/redist/imgui/imgui.cpp"
   "source/sqee/redist/imgui/imgui_demo.cpp"
   "source/sqee/redist/imgui/imgui_draw.cpp"
+  "source/sqee/redist/imgui/imgui_widgets.cpp"
 
   #==========================================================#
   # SQEE Source                                              #
@@ -109,6 +110,7 @@ set(SOURCES
 
   "include/sqee/misc/FlagSet.hpp"
   "include/sqee/misc/StaticVector.hpp"
+  "include/sqee/misc/TinyString.hpp"
   "include/sqee/misc/UniqueAny.hpp"
 
   "include/sqee/misc/Builtins.hpp"

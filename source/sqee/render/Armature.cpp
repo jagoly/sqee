@@ -82,11 +82,19 @@ void Armature::load_rest_pose(const String& path)
 
 //============================================================================//
 
-int32_t Armature::get_bone_index(const String& name) const
+TinyString Armature::get_bone_name(int8_t index) const
 {
-    for (uint i = 0u; i < mBoneNames.size(); ++i)
+    if (index < 0 || size_t(index) >= mBoneNames.size())
+        return TinyString();
+
+    return mBoneNames[size_t(index)];
+}
+
+int8_t Armature::get_bone_index(TinyString name) const
+{
+    for (size_t i = 0u; i < mBoneNames.size(); ++i)
         if (mBoneNames[i] == name)
-            return int32_t(i);
+            return int8_t(i);
 
     return -1;
 }

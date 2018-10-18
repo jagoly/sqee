@@ -540,20 +540,4 @@ Vector3<T> rotate_z(Vector3<T> vec, T angle)
 
 //============================================================================//
 
-///// Rotate a vector along an arbitary axis.
-//template <class T> constexpr
-//Matrix33<T> rotation(Vector3<T> axis, T angle)
-//{
-//    const T c = std::cos(maths::radians(angle)), s = std::sin(maths::radians(angle));
-//    const Vector3<T> x = axis * axis.x, y = axis * axis.y, z = axis * axis.z;
-
-//    Vector3<T> colA { x.x + (T(1)-x.x) * c, x.y * (T(1)-c) - axis.z * s, x.z * (T(1)-c) + axis.y * s };
-//    Vector3<T> colB { y.x * (T(1)-c) + axis.z * s, y.y + (T(1)-y.y) * c, y.z * (T(1)-c) - axis.x * s };
-//    Vector3<T> colC { z.x * (T(1)-c) - axis.y * s, z.y * (T(1)-c) + axis.x * s, z.z + (T(1)-z.z) * c };
-
-//    return Matrix33<T> { colA, colB, colC };
-//}
-
-//============================================================================//
-
 } // namespace sq::maths

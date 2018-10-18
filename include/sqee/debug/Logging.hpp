@@ -98,9 +98,8 @@ inline void log_assert(bool condition, const char* fmt, const Args&... args)
 /// Log a block of WARNING messages.
 inline void log_warning_block(const String& heading, const Vector<String>& lines)
 {
-    std::cout << '\n' << get_time_string() << " WARNING: " << heading << '\n';
-    for (const String& line : lines) std::cout << "  > " << line << '\n';
-    std::cout << std::endl;
+    std::cout << get_time_string() << " WARNING: " << heading << '\n';
+    for (const String& line : lines) std::cout << "  > " << line << std::endl;
 }
 
 //============================================================================//

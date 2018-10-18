@@ -11,7 +11,7 @@
 #include <sqee/helpers.hpp>
 
 using namespace sq;
-using literals::operator""_fmt_;
+using sq::literals::operator""_fmt_;
 
 //============================================================================//
 
@@ -65,10 +65,10 @@ String PreProcessor::process(const String& path, const String& prelude) const
     const String fullString = get_string_from_file(fullPath);
 
     String source = "#version 330 core\n"
-                         "#extension GL_ARB_shading_language_420pack : enable\n"
-                         "#extension GL_ARB_explicit_uniform_location : enable\n"
-                         "#extension GL_ARB_gpu_shader5 : enable\n"
-                         "#line 0\n";
+                    "#extension GL_ARB_shading_language_420pack : enable\n"
+                    "#extension GL_ARB_explicit_uniform_location : enable\n"
+                    "#extension GL_ARB_gpu_shader5 : enable\n"
+                    "#line 0\n";
 
     source.reserve(source.size() + fullString.size()); // might still be reallocated
 
@@ -112,7 +112,7 @@ String PreProcessor::process(const String& path, const String& prelude) const
 
                     else
                     {
-                        source += build_string("#line 0 // begin '", headerName, "'\n");
+                        ((source += "#line 0 // begin '") += headerName) += "'\n";
 
                         thisFunc(thisFunc, headerFind->second.tokens);
                     }

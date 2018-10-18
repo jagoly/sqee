@@ -180,7 +180,7 @@ GuiSystem::Implementation::Implementation(Window& window, InputDevices& inputDev
     style.ItemSpacing        = { 6, 6 };     // default: 8, 4
     style.ItemInnerSpacing   = { 6, 6 };     // default: 4, 4
     style.TouchExtraPadding  = { 0, 0 };     // default: 0, 0
-    style.IndentSpacing      = 24;           // default: 21
+    style.IndentSpacing      = 20;           // default: 21
     style.ColumnsMinSpacing  = 6;            // default: 6
     style.ScrollbarSize      = 16;           // default: 16
     style.ScrollbarRounding  = 8;            // default: 9
@@ -190,48 +190,49 @@ GuiSystem::Implementation::Implementation(Window& window, InputDevices& inputDev
     style.AntiAliasedLines   = true;         // default: true
     style.AntiAliasedFill    = true;         // default: true
 
-    style.Colors[ImGuiCol_Text]                  = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
-    style.Colors[ImGuiCol_TextDisabled]          = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
-    style.Colors[ImGuiCol_WindowBg]              = ImVec4(0.00f, 0.00f, 0.00f, 0.60f);
-    style.Colors[ImGuiCol_ChildBg]               = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-    style.Colors[ImGuiCol_PopupBg]               = ImVec4(0.05f, 0.05f, 0.10f, 0.90f);
-    style.Colors[ImGuiCol_Border]                = ImVec4(0.80f, 0.80f, 0.80f, 0.30f);
-    style.Colors[ImGuiCol_BorderShadow]          = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-    style.Colors[ImGuiCol_FrameBg]               = ImVec4(0.70f, 0.50f, 0.40f, 0.40f);
-    style.Colors[ImGuiCol_FrameBgHovered]        = ImVec4(0.80f, 0.60f, 0.50f, 0.40f);
-    style.Colors[ImGuiCol_FrameBgActive]         = ImVec4(0.60f, 0.40f, 0.30f, 0.40f);
-    style.Colors[ImGuiCol_TitleBg]               = ImVec4(0.25f, 0.25f, 0.25f, 0.60f);
-    style.Colors[ImGuiCol_TitleBgActive]         = ImVec4(0.20f, 0.20f, 0.20f, 0.80f);
-    style.Colors[ImGuiCol_TitleBgCollapsed]      = ImVec4(0.30f, 0.30f, 0.30f, 0.40f);
-    style.Colors[ImGuiCol_MenuBarBg]             = ImVec4(0.40f, 0.40f, 0.40f, 0.40f);
-    style.Colors[ImGuiCol_ScrollbarBg]           = ImVec4(0.40f, 0.40f, 0.40f, 0.40f);
-    style.Colors[ImGuiCol_ScrollbarGrab]         = ImVec4(0.60f, 0.60f, 0.60f, 0.40f);
-    style.Colors[ImGuiCol_ScrollbarGrabHovered]  = ImVec4(0.70f, 0.70f, 0.70f, 0.40f);
-    style.Colors[ImGuiCol_ScrollbarGrabActive]   = ImVec4(0.50f, 0.50f, 0.50f, 0.40f);
-    style.Colors[ImGuiCol_CheckMark]             = ImVec4(0.90f, 0.90f, 0.90f, 0.50f);
-    style.Colors[ImGuiCol_SliderGrab]            = ImVec4(1.00f, 1.00f, 1.00f, 0.30f);
-    style.Colors[ImGuiCol_SliderGrabActive]      = ImVec4(0.80f, 0.50f, 0.50f, 1.00f);
-    style.Colors[ImGuiCol_Button]                = ImVec4(0.80f, 0.50f, 0.30f, 0.60f);
-    style.Colors[ImGuiCol_ButtonHovered]         = ImVec4(0.90f, 0.60f, 0.40f, 0.60f);
-    style.Colors[ImGuiCol_ButtonActive]          = ImVec4(0.70f, 0.40f, 0.20f, 0.60f);
-    style.Colors[ImGuiCol_Header]                = ImVec4(0.90f, 0.50f, 0.20f, 0.60f);
-    style.Colors[ImGuiCol_HeaderHovered]         = ImVec4(1.00f, 0.60f, 0.30f, 0.60f);
-    style.Colors[ImGuiCol_HeaderActive]          = ImVec4(0.80f, 0.40f, 0.10f, 0.60f);
-    style.Colors[ImGuiCol_Separator]             = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
-    style.Colors[ImGuiCol_SeparatorHovered]      = ImVec4(0.60f, 0.60f, 0.70f, 1.00f);
-    style.Colors[ImGuiCol_SeparatorActive]       = ImVec4(0.70f, 0.70f, 0.90f, 1.00f);
-    style.Colors[ImGuiCol_ResizeGrip]            = ImVec4(0.80f, 0.80f, 0.80f, 0.30f);
-    style.Colors[ImGuiCol_ResizeGripHovered]     = ImVec4(0.80f, 0.80f, 0.80f, 0.40f);
-    style.Colors[ImGuiCol_ResizeGripActive]      = ImVec4(0.80f, 0.80f, 0.80f, 0.45f);
-    style.Colors[ImGuiCol_PlotLines]             = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
-    style.Colors[ImGuiCol_PlotLinesHovered]      = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
-    style.Colors[ImGuiCol_PlotHistogram]         = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
-    style.Colors[ImGuiCol_PlotHistogramHovered]  = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
-    style.Colors[ImGuiCol_TextSelectedBg]        = ImVec4(0.60f, 0.30f, 0.15f, 1.00f);
-    style.Colors[ImGuiCol_ModalWindowDarkening]  = ImVec4(0.20f, 0.20f, 0.20f, 0.35f);
-    style.Colors[ImGuiCol_DragDropTarget]        = ImVec4(1.00f, 1.00f, 0.00f, 0.90f);
-    style.Colors[ImGuiCol_NavHighlight]          = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
-    style.Colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
+    style.Colors[ImGuiCol_Text]                  = { 1.00f, 1.00f, 1.00f, 1.00f }; // 1.00f, 1.00f, 1.00f, 1.00f
+    style.Colors[ImGuiCol_TextDisabled]          = { 0.50f, 0.50f, 0.50f, 1.00f }; // 0.50f, 0.50f, 0.50f, 1.00f
+    style.Colors[ImGuiCol_WindowBg]              = { 0.10f, 0.10f, 0.10f, 0.75f }; // 0.06f, 0.06f, 0.06f, 0.94f
+    style.Colors[ImGuiCol_ChildBg]               = { 0.00f, 0.00f, 0.00f, 0.00f }; // 1.00f, 1.00f, 1.00f, 0.00f
+    style.Colors[ImGuiCol_PopupBg]               = { 0.15f, 0.15f, 0.15f, 0.75f }; // 0.08f, 0.08f, 0.08f, 0.94f
+    style.Colors[ImGuiCol_Border]                = { 0.80f, 0.80f, 0.80f, 0.50f }; // 0.43f, 0.43f, 0.50f, 0.50f
+    style.Colors[ImGuiCol_BorderShadow]          = { 0.00f, 0.00f, 0.00f, 0.00f }; // 0.00f, 0.00f, 0.00f, 0.00f
+    style.Colors[ImGuiCol_FrameBg]               = { 0.70f, 0.50f, 0.40f, 0.40f }; // 0.16f, 0.29f, 0.48f, 0.54f
+    style.Colors[ImGuiCol_FrameBgHovered]        = { 0.80f, 0.60f, 0.50f, 0.40f }; // 0.26f, 0.59f, 0.98f, 0.40f
+    style.Colors[ImGuiCol_FrameBgActive]         = { 0.60f, 0.40f, 0.30f, 0.40f }; // 0.26f, 0.59f, 0.98f, 0.67f
+    style.Colors[ImGuiCol_TitleBg]               = { 0.30f, 0.30f, 0.30f, 0.60f }; // 0.04f, 0.04f, 0.04f, 1.00f
+    style.Colors[ImGuiCol_TitleBgActive]         = { 0.25f, 0.25f, 0.25f, 0.80f }; // 0.16f, 0.29f, 0.48f, 1.00f
+    style.Colors[ImGuiCol_TitleBgCollapsed]      = { 0.35f, 0.35f, 0.35f, 0.40f }; // 0.00f, 0.00f, 0.00f, 0.51f
+    style.Colors[ImGuiCol_MenuBarBg]             = { 0.40f, 0.40f, 0.40f, 0.40f }; // 0.14f, 0.14f, 0.14f, 1.00f
+    style.Colors[ImGuiCol_ScrollbarBg]           = { 0.40f, 0.40f, 0.40f, 0.40f }; // 0.02f, 0.02f, 0.02f, 0.53f
+    style.Colors[ImGuiCol_ScrollbarGrab]         = { 0.60f, 0.60f, 0.60f, 0.40f }; // 0.31f, 0.31f, 0.31f, 1.00f
+    style.Colors[ImGuiCol_ScrollbarGrabHovered]  = { 0.70f, 0.70f, 0.70f, 0.40f }; // 0.41f, 0.41f, 0.41f, 1.00f
+    style.Colors[ImGuiCol_ScrollbarGrabActive]   = { 0.50f, 0.50f, 0.50f, 0.40f }; // 0.51f, 0.51f, 0.51f, 1.00f
+    style.Colors[ImGuiCol_CheckMark]             = { 0.90f, 0.90f, 0.90f, 0.50f }; // 0.26f, 0.59f, 0.98f, 1.00f
+    style.Colors[ImGuiCol_SliderGrab]            = { 1.00f, 1.00f, 1.00f, 0.30f }; // 0.24f, 0.52f, 0.88f, 1.00f
+    style.Colors[ImGuiCol_SliderGrabActive]      = { 0.80f, 0.50f, 0.50f, 1.00f }; // 0.26f, 0.59f, 0.98f, 1.00f
+    style.Colors[ImGuiCol_Button]                = { 0.80f, 0.50f, 0.30f, 0.60f }; // 0.26f, 0.59f, 0.98f, 0.40f
+    style.Colors[ImGuiCol_ButtonHovered]         = { 0.90f, 0.60f, 0.40f, 0.60f }; // 0.26f, 0.59f, 0.98f, 1.00f
+    style.Colors[ImGuiCol_ButtonActive]          = { 0.70f, 0.40f, 0.20f, 0.60f }; // 0.06f, 0.53f, 0.98f, 1.00f
+    style.Colors[ImGuiCol_Header]                = { 0.90f, 0.50f, 0.20f, 0.60f }; // 0.26f, 0.59f, 0.98f, 0.31f
+    style.Colors[ImGuiCol_HeaderHovered]         = { 1.00f, 0.60f, 0.30f, 0.60f }; // 0.26f, 0.59f, 0.98f, 0.80f
+    style.Colors[ImGuiCol_HeaderActive]          = { 0.80f, 0.40f, 0.10f, 0.60f }; // 0.26f, 0.59f, 0.98f, 1.00f
+    style.Colors[ImGuiCol_Separator]             = { 0.80f, 0.80f, 0.80f, 0.50f }; // 0.43f, 0.43f, 0.50f, 0.50f
+    style.Colors[ImGuiCol_SeparatorHovered]      = { 0.90f, 0.90f, 0.90f, 0.50f }; // 0.10f, 0.40f, 0.75f, 0.78f
+    style.Colors[ImGuiCol_SeparatorActive]       = { 0.70f, 0.70f, 0.70f, 0.50f }; // 0.10f, 0.40f, 0.75f, 1.00f
+    style.Colors[ImGuiCol_ResizeGrip]            = { 0.80f, 0.80f, 0.80f, 0.30f }; // 0.26f, 0.59f, 0.98f, 0.25f
+    style.Colors[ImGuiCol_ResizeGripHovered]     = { 0.80f, 0.80f, 0.80f, 0.40f }; // 0.26f, 0.59f, 0.98f, 0.67f
+    style.Colors[ImGuiCol_ResizeGripActive]      = { 0.80f, 0.80f, 0.80f, 0.45f }; // 0.26f, 0.59f, 0.98f, 0.95f
+    style.Colors[ImGuiCol_PlotLines]             = { 0.61f, 0.61f, 0.61f, 1.00f }; // 0.61f, 0.61f, 0.61f, 1.00f
+    style.Colors[ImGuiCol_PlotLinesHovered]      = { 1.00f, 0.43f, 0.35f, 1.00f }; // 1.00f, 0.43f, 0.35f, 1.00f
+    style.Colors[ImGuiCol_PlotHistogram]         = { 0.90f, 0.70f, 0.00f, 1.00f }; // 0.90f, 0.70f, 0.00f, 1.00f
+    style.Colors[ImGuiCol_PlotHistogramHovered]  = { 1.00f, 0.60f, 0.00f, 1.00f }; // 1.00f, 0.60f, 0.00f, 1.00f
+    style.Colors[ImGuiCol_TextSelectedBg]        = { 0.30f, 0.50f, 0.70f, 0.40f }; // 0.26f, 0.59f, 0.98f, 0.35f
+    style.Colors[ImGuiCol_DragDropTarget]        = { 1.00f, 1.00f, 0.00f, 0.90f }; // 1.00f, 1.00f, 0.00f, 0.90f
+    style.Colors[ImGuiCol_NavHighlight]          = { 0.26f, 0.59f, 0.98f, 1.00f }; // 0.26f, 0.59f, 0.98f, 1.00f
+    style.Colors[ImGuiCol_NavWindowingHighlight] = { 1.00f, 1.00f, 1.00f, 0.70f }; // 1.00f, 1.00f, 1.00f, 0.70f
+    style.Colors[ImGuiCol_NavWindowingDimBg]     = { 0.80f, 0.80f, 0.80f, 0.20f }; // 0.80f, 0.80f, 0.80f, 0.20f
+    style.Colors[ImGuiCol_ModalWindowDimBg]      = { 0.80f, 0.80f, 0.80f, 0.35f }; // 0.80f, 0.80f, 0.80f, 0.35f
 
     //--------------------------------------------------------//
 
@@ -251,18 +252,18 @@ void GuiSystem::Implementation::create_fonts()
     fontConfig.OversampleH = 2;
     fontConfig.OversampleV = 2;
 
-    constexpr size_t MaxNameLen = sizeof(ImFontConfig::Name);
+    constexpr const size_t MaxNameLen = sizeof(ImFontConfig::Name);
 
-    StringView("Ubuntu Regular").copy(fontConfig.Name, MaxNameLen);
+    fontConfig.Name[StringView("Ubuntu Regular").copy(fontConfig.Name, MaxNameLen-1)] = '\0';
     io.Fonts->AddFontFromMemoryCompressedTTF(data_UbuntuRegular, data_UbuntuRegular_size, 16.f, &fontConfig);
 
-    StringView("Ubuntu Bold").copy(fontConfig.Name, MaxNameLen);
+    fontConfig.Name[StringView("Ubuntu Bold").copy(fontConfig.Name, MaxNameLen-1)] = '\0';
     io.Fonts->AddFontFromMemoryCompressedTTF(data_UbuntuBold, data_UbuntuBold_size, 16.f, &fontConfig);
 
-    StringView("Ubuntu Italic").copy(fontConfig.Name, MaxNameLen);
+    fontConfig.Name[StringView("Ubuntu Italic").copy(fontConfig.Name, MaxNameLen-1)] = '\0';
     io.Fonts->AddFontFromMemoryCompressedTTF(data_UbuntuItalic, data_UbuntuItalic_size, 16.f, &fontConfig);
 
-    StringView("Ubuntu Mono Regular").copy(fontConfig.Name, MaxNameLen);
+    fontConfig.Name[StringView("Ubuntu Mono Regular").copy(fontConfig.Name, MaxNameLen-1)] = '\0';
     io.Fonts->AddFontFromMemoryCompressedTTF(data_UbuntuMonoRegular, data_UbuntuMonoRegular_size, 16.f, &fontConfig);
 }
 
@@ -285,9 +286,10 @@ void GuiSystem::Implementation::create_gl_objects()
     mVAO.add_float_attribute(2u, 4u, gl::UNSIGNED_BYTE, true, 16u);
 
     uchar* pixels; int width, height;
-    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+    io.Fonts->GetTexDataAsAlpha8(&pixels, &width, &height);
 
-    mTexture.set_format(sq::Texture::Format::RGBA8_UN);
+    mTexture.set_format(sq::Texture::Format::R8_UN);
+    mTexture.set_swizzle_mode('1', '1', '1', 'R');
     mTexture.set_filter_mode(true);
     mTexture.allocate_storage({uint(width), uint(height)});
     mTexture.load_memory(pixels);
@@ -304,6 +306,8 @@ bool GuiSystem::Implementation::handle_event(Event event)
         CASE ( Mouse_Scroll )
         {
             io.MouseWheel += event.data.scroll.delta;
+
+            return io.WantCaptureMouse;
         }
 
         CASE ( Mouse_Press )
@@ -313,6 +317,8 @@ bool GuiSystem::Implementation::handle_event(Event event)
             io.MouseDown[0] |= (button == Mouse_Button::Left);
             io.MouseDown[1] |= (button == Mouse_Button::Right);
             io.MouseDown[2] |= (button == Mouse_Button::Middle);
+
+            return io.WantCaptureMouse;
         }
 
         CASE ( Text_Entry )
@@ -321,6 +327,8 @@ bool GuiSystem::Implementation::handle_event(Event event)
 
             if (code < 128u && std::isprint(char(code)))
                 io.AddInputCharacter(static_cast<ImWchar>(code));
+
+            return io.WantTextInput;
         }
 
         CASE ( Keyboard_Press, Keyboard_Release )
@@ -331,6 +339,8 @@ bool GuiSystem::Implementation::handle_event(Event event)
 
             io.KeyShift = data.shift; io.KeyCtrl = data.ctrl;
             io.KeyAlt = data.alt; io.KeySuper = data.super;
+
+            return io.WantCaptureKeyboard;
         }
 
         CASE_DEFAULT { return false; }
@@ -339,7 +349,7 @@ bool GuiSystem::Implementation::handle_event(Event event)
 
     //--------------------------------------------------------//
 
-    return true;
+    return false;
 }
 
 //============================================================================//

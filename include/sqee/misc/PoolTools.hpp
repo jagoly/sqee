@@ -1,71 +1,10 @@
 #pragma once
 
-#include <algorithm>
-
 #include <sqee/debug/Assert.hpp>
 #include <sqee/misc/Algorithms.hpp>
 #include <sqee/misc/Builtins.hpp>
 
 namespace sq {
-
-//============================================================================//
-
-/// Fast static size string type. Useful for keys.
-///
-/// @tparam Len maximum number of characters, sans null termination.
-///
-template <size_t Len>
-class TinyString final
-{
-public: //====================================================//
-
-    constexpr TinyString() noexcept = default;
-
-    constexpr TinyString(const TinyString& other) noexcept = default;
-
-    //--------------------------------------------------------//
-
-    constexpr TinyString(const char* str) noexcept
-    {
-        const auto sv = StringView(str);
-        SQASSERT(sv.length() <= Len, "string literal too long");
-        std::copy_n(str, sv.length(), mData);
-    }
-
-    constexpr TinyString(const char* str, size_t len) noexcept
-    {
-        SQASSERT(len <= Len, "string or string_view too long");
-        std::copy_n(str, len, mData);
-    }
-
-    //--------------------------------------------------------//
-
-    constexpr bool operator==(const TinyString& other) const noexcept
-    {
-        return std::equal(mData, mData + Len, other.mData);
-    }
-
-    constexpr bool operator<(const TinyString& other) const noexcept
-    {
-        return std::lexicographical_compare(mData, mData + Len, other.mData, other.mData + Len);
-    }
-
-    constexpr bool empty() const noexcept { return mData[0] == '\0'; }
-
-    constexpr const char* c_str() const noexcept { return mData; }
-
-    //--------------------------------------------------------//
-
-    TinyString(const String& str) noexcept : TinyString(str.data(), str.size()) {}
-
-    TinyString(const StringView& sv) noexcept : TinyString(sv.data(), sv.size()) {}
-
-    operator String() const { return String(mData); }
-
-private: //===================================================//
-
-    char mData[Len + 1] {};
-};
 
 //============================================================================//
 

@@ -4,6 +4,7 @@
 #pragma once
 
 #include <sqee/misc/Builtins.hpp>
+#include <sqee/misc/TinyString.hpp>
 #include <sqee/maths/Builtins.hpp>
 
 namespace sq {
@@ -48,12 +49,15 @@ public: //====================================================//
 
     const Pose& get_rest_pose() const { return mRestPose; }
 
-    const Vector<String>& get_bone_names() const { return mBoneNames; }
+    const Vector<TinyString>& get_bone_names() const { return mBoneNames; }
 
     //--------------------------------------------------------//
 
+    /// Get the name of a bone by index, empty str on failure
+    TinyString get_bone_name(int8_t index) const;
+
     /// Get the index of a bone by name, -1 on failure
-    int32_t get_bone_index(const String& name) const;
+    int8_t get_bone_index(TinyString name) const;
 
     //--------------------------------------------------------//
 
@@ -76,7 +80,7 @@ public: //====================================================//
 
 private: //===================================================//
 
-    Vector<String> mBoneNames;
+    Vector<TinyString> mBoneNames;
     Vector<int32_t> mBoneParents;
 
     Vector<Mat4F> mBaseMats;

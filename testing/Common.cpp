@@ -38,6 +38,21 @@ template<> bool operator==(QuatF a, Approx<QuatF> b)
     return (std::abs(dist - 2.0f) < EPSILON) || (dist <= EPSILON * (1.f + maxLength));
 }
 
+template<> bool operator==(Mat3F a, Approx<Mat3F> b)
+{
+    return a[0] == Approx(b.value[0]) && a[1] == Approx(b.value[1]) && a[2] == Approx(b.value[2]);
+}
+
+template<> bool operator==(Mat34F a, Approx<Mat34F> b)
+{
+    return a[0] == Approx(b.value[0]) && a[1] == Approx(b.value[1]) && a[2] == Approx(b.value[2]);
+}
+
+template<> bool operator==(Mat4F a, Approx<Mat4F> b)
+{
+    return a[0] == Approx(b.value[0]) && a[1] == Approx(b.value[1]) && a[2] == Approx(b.value[2]) && a[3] == Approx(b.value[3]);
+}
+
 //============================================================================//
 
 template<> bool operator==(Approx<Vec2F> a, Vec2F b) { return operator==(b, a); }
@@ -55,3 +70,15 @@ template<> bool operator!=(Approx<Vec4F> a, Vec4F b) { return !operator==(b, a);
 template<> bool operator==(Approx<QuatF> a, QuatF b) { return operator==(b, a); }
 template<> bool operator!=(QuatF a, Approx<QuatF> b) { return !operator==(a, b); }
 template<> bool operator!=(Approx<QuatF> a, QuatF b) { return !operator==(b, a); }
+
+template<> bool operator==(Approx<Mat3F> a, Mat3F b) { return operator==(b, a); }
+template<> bool operator!=(Mat3F a, Approx<Mat3F> b) { return !operator==(a, b); }
+template<> bool operator!=(Approx<Mat3F> a, Mat3F b) { return !operator==(b, a); }
+
+template<> bool operator==(Approx<Mat34F> a, Mat34F b) { return operator==(b, a); }
+template<> bool operator!=(Mat34F a, Approx<Mat34F> b) { return !operator==(a, b); }
+template<> bool operator!=(Approx<Mat34F> a, Mat34F b) { return !operator==(b, a); }
+
+template<> bool operator==(Approx<Mat4F> a, Mat4F b) { return operator==(b, a); }
+template<> bool operator!=(Mat4F a, Approx<Mat4F> b) { return !operator==(a, b); }
+template<> bool operator!=(Approx<Mat4F> a, Mat4F b) { return !operator==(b, a); }

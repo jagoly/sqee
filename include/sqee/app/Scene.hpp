@@ -43,7 +43,7 @@ protected: //=================================================//
 
     //--------------------------------------------------------//
 
-    const double mTickTime;
+    double mTickTime;
 
     double mAccumulation;
 };

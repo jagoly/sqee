@@ -44,23 +44,23 @@ SQEE_API String glsl_string(const QuatF& arg);
 
 namespace maths {
 
-inline std::ostream& operator<<(std::ostream& os, const Vec2I& arg) { return os << sq::chai_string(arg); }
-inline std::ostream& operator<<(std::ostream& os, const Vec2U& arg) { return os << sq::chai_string(arg); }
-inline std::ostream& operator<<(std::ostream& os, const Vec2F& arg) { return os << sq::chai_string(arg); }
+inline std::ostream& operator<<(std::ostream& os, const Vec2I& arg) { return os << chai_string(arg); }
+inline std::ostream& operator<<(std::ostream& os, const Vec2U& arg) { return os << chai_string(arg); }
+inline std::ostream& operator<<(std::ostream& os, const Vec2F& arg) { return os << chai_string(arg); }
 
-inline std::ostream& operator<<(std::ostream& os, const Vec3I& arg) { return os << sq::chai_string(arg); }
-inline std::ostream& operator<<(std::ostream& os, const Vec3U& arg) { return os << sq::chai_string(arg); }
-inline std::ostream& operator<<(std::ostream& os, const Vec3F& arg) { return os << sq::chai_string(arg); }
+inline std::ostream& operator<<(std::ostream& os, const Vec3I& arg) { return os << chai_string(arg); }
+inline std::ostream& operator<<(std::ostream& os, const Vec3U& arg) { return os << chai_string(arg); }
+inline std::ostream& operator<<(std::ostream& os, const Vec3F& arg) { return os << chai_string(arg); }
 
-inline std::ostream& operator<<(std::ostream& os, const Vec4I& arg) { return os << sq::chai_string(arg); }
-inline std::ostream& operator<<(std::ostream& os, const Vec4U& arg) { return os << sq::chai_string(arg); }
-inline std::ostream& operator<<(std::ostream& os, const Vec4F& arg) { return os << sq::chai_string(arg); }
+inline std::ostream& operator<<(std::ostream& os, const Vec4I& arg) { return os << chai_string(arg); }
+inline std::ostream& operator<<(std::ostream& os, const Vec4U& arg) { return os << chai_string(arg); }
+inline std::ostream& operator<<(std::ostream& os, const Vec4F& arg) { return os << chai_string(arg); }
 
-inline std::ostream& operator<<(std::ostream& os, const Mat3F& arg) { return os << sq::chai_string(arg); }
-inline std::ostream& operator<<(std::ostream& os, const Mat34F& arg) { return os << sq::chai_string(arg); }
-inline std::ostream& operator<<(std::ostream& os, const Mat4F& arg) { return os << sq::chai_string(arg); }
+inline std::ostream& operator<<(std::ostream& os, const Mat3F& arg) { return os << chai_string(arg); }
+inline std::ostream& operator<<(std::ostream& os, const Mat34F& arg) { return os << chai_string(arg); }
+inline std::ostream& operator<<(std::ostream& os, const Mat4F& arg) { return os << chai_string(arg); }
 
-inline std::ostream& operator<<(std::ostream& os, const QuatF& arg) { return os << sq::chai_string(arg); }
+inline std::ostream& operator<<(std::ostream& os, const QuatF& arg) { return os << chai_string(arg); }
 
 } // namespace maths
 
