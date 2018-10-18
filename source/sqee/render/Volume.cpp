@@ -19,8 +19,8 @@ Volume::Volume ( const float* vertices, const uchar* indices,
     constexpr uint vertexSize = sizeof(GLfloat[3]);
     constexpr uint indexSize = sizeof(GLubyte);
 
-    mVertexBuffer.allocate_constant(vertexCount * vertexSize, vertices);
-    mIndexBuffer.allocate_constant(indexCount * indexSize, indices);
+    mVertexBuffer.allocate_constant(mVertexCount * vertexSize, vertices);
+    mIndexBuffer.allocate_constant(mIndexCount * indexSize, indices);
 
     mVertexArray.set_vertex_buffer(mVertexBuffer, vertexSize);
     mVertexArray.set_index_buffer(mIndexBuffer);

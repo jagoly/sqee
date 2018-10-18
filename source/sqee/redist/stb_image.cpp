@@ -1,5 +1,10 @@
 #include "sqee/redist/stb_image.hpp"
 
+#ifdef SQEE_GNU
+#pragma GCC diagnostic ignored "-Wmisleading-indentation"
+#pragma GCC diagnostic ignored "-Wshift-negative-value"
+#endif
+
 #define STBI_ONLY_JPEG
 #define STBI_ONLY_PNG
 

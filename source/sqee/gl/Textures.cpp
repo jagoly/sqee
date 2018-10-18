@@ -115,14 +115,14 @@ inline void impl_to_signed_norm_8(uint8_t* data, int count)
     }
 }
 
-inline void impl_to_signed_norm_16(uint16_t* data, int count)
-{
-    for (int i = 0; i < count; ++i)
-    {
-        int16_t& cast = reinterpret_cast<int16_t&>(data[i]);
-        if (cast >= 0) cast -= 32768; else cast += 32768;
-    }
-}
+//inline void impl_to_signed_norm_16(uint16_t* data, int count)
+//{
+//    for (int i = 0; i < count; ++i)
+//    {
+//        int16_t& cast = reinterpret_cast<int16_t&>(data[i]);
+//        if (cast >= 0) cast -= 32768; else cast += 32768;
+//    }
+//}
 
 //============================================================================//
 
