@@ -1,4 +1,4 @@
-// dear imgui, v1.66 WIP
+// dear imgui, v1.66
 // (main code and documentation)
 
 // Call and read ImGui::ShowDemoWindow() in imgui_demo.cpp for demo code.
@@ -37,7 +37,7 @@ DOCUMENTATION
   - How can I tell whether to dispatch mouse/keyboard to imgui or to my application?
   - How can I display an image? What is ImTextureID, how does it works?
   - How can I have multiple widgets with the same label or without a label? A primer on labels and the ID Stack.
-  - How can I use my own math types instead of ImVec2/ImVec4? 
+  - How can I use my own math types instead of ImVec2/ImVec4?
   - How can I load a different font than the default?
   - How can I easily use icons in my application?
   - How can I load multiple fonts?
@@ -47,7 +47,7 @@ DOCUMENTATION
   - I integrated Dear ImGui in my engine and some elements are clipping or disappearing when I move windows around..
   - How can I help?
 
-CODE 
+CODE
 (search for "[SECTION]" in the code to find them)
 
 // [SECTION] FORWARD DECLARATIONS
@@ -129,13 +129,15 @@ CODE
 
  - Read the FAQ below this section!
  - Your code creates the UI, if your code doesn't run the UI is gone! The UI can be highly dynamic, there are no construction
-   or destruction steps, less data retention on your side, less state duplication, less state synchronization, less bugs.
+   or destruction steps, less superfluous data retention on your side, less state duplication, less state synchronization, less bugs.
  - Call and read ImGui::ShowDemoWindow() for demo code demonstrating most features.
- - You can learn about immediate-mode gui principles at http://www.johno.se/book/imgui.html or watch http://mollyrocket.com/861
+ - You can learn about immediate-mode GUI principles at http://www.johno.se/book/imgui.html or watch http://mollyrocket.com/861
+   See README.md for more links describing the IMGUI paradigm. Dear ImGui is an implementation of the IMGUI paradigm.
 
  HOW TO UPDATE TO A NEWER VERSION OF DEAR IMGUI
 
  - Overwrite all the sources files except for imconfig.h (if you have made modification to your copy of imconfig.h)
+ - Or maintain your own branch where you have imconfig.h modified.
  - Read the "API BREAKING CHANGES" section (below). This is where we list occasional API breaking changes.
    If a function/type has been renamed / or marked obsolete, try to fix the name in your code before it is permanently removed
    from the public API. If you have a problem with a missing function/symbols, search for its name in the code, there will
@@ -144,24 +146,24 @@ CODE
 
  GETTING STARTED WITH INTEGRATING DEAR IMGUI IN YOUR CODE/ENGINE
 
- - Run and study the examples and demo to get acquainted with the library.
+ - Run and study the examples and demo in imgui_demo.cpp to get acquainted with the library.
  - Add the Dear ImGui source files to your projects or using your preferred build system.
-   It is recommended you build the .cpp files as part of your project and not as a library.
- - You can later customize the imconfig.h file to tweak some compilation time behavior, such as integrating imgui types with your own maths types.
- - You may be able to grab and copy a ready made imgui_impl_*** file from the examples/ folder.
+   It is recommended you build and statically link the .cpp files as part of your project and not as shared library (DLL).
+ - You can later customize the imconfig.h file to tweak some compile-time behavior, such as integrating imgui types with your own maths types.
  - When using Dear ImGui, your programming IDE is your friend: follow the declaration of variables, functions and types to find comments about them.
  - Dear ImGui never touches or knows about your GPU state. The only function that knows about GPU is the draw function that you provide.
    Effectively it means you can create widgets at any time in your code, regardless of considerations of being in "update" vs "render"
    phases of your own application. All rendering informatioe are stored into command-lists that you will retrieve after calling ImGui::Render().
  - Refer to the bindings and demo applications in the examples/ folder for instruction on how to setup your code.
+ - If you are running over a standard OS with a common graphics API, you should be able to use unmodified imgui_impl_*** files from the examples/ folder.
 
- THIS IS HOW A SIMPLE APPLICATION MAY LOOK LIKE
+ HOW A SIMPLE APPLICATION MAY LOOK LIKE
  EXHIBIT 1: USING THE EXAMPLE BINDINGS (imgui_impl_XXX.cpp files from the examples/ folder)
 
      // Application init: create a dear imgui context, setup some options, load fonts
      ImGui::CreateContext();
      ImGuiIO& io = ImGui::GetIO();
-     // TODO: Set optional io.ConfigFlags values, e.g. 'io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard' to enable keyboard controls
+     // TODO: Set optional io.ConfigFlags values, e.g. 'io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard' to enable keyboard controls.
      // TODO: Fill optional fields of the io structure later.
      // TODO: Load TTF/OTF fonts if you don't want to use the default font.
 
@@ -185,19 +187,19 @@ CODE
          ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
          g_pSwapChain->Present(1, 0);
      }
-     
+
      // Shutdown
      ImGui_ImplDX11_Shutdown();
      ImGui_ImplWin32_Shutdown();
      ImGui::DestroyContext();
 
- THIS IS HOW A SIMPLE APPLICATION MAY LOOK LIKE
+ HOW A SIMPLE APPLICATION MAY LOOK LIKE
  EXHIBIT 2: IMPLEMENTING CUSTOM BINDING / CUSTOM ENGINE
 
      // Application init: create a dear imgui context, setup some options, load fonts
      ImGui::CreateContext();
      ImGuiIO& io = ImGui::GetIO();
-     // TODO: Set optional io.ConfigFlags values, e.g. 'io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard' to enable keyboard controls
+     // TODO: Set optional io.ConfigFlags values, e.g. 'io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard' to enable keyboard controls.
      // TODO: Fill optional fields of the io structure later.
      // TODO: Load TTF/OTF fonts if you don't want to use the default font.
 
@@ -246,7 +248,7 @@ CODE
      // Shutdown
      ImGui::DestroyContext();
 
- THIS HOW A SIMPLE RENDERING FUNCTION MAY LOOK LIKE
+ HOW A SIMPLE RENDERING FUNCTION MAY LOOK LIKE
 
     void void MyImGuiRenderFunction(ImDrawData* draw_data)
     {
@@ -268,22 +270,22 @@ CODE
              else
              {
                  // The texture for the draw call is specified by pcmd->TextureId.
-                 // The vast majority of draw calls with use the imgui texture atlas, which value you have set yourself during initialization.
-                 MyEngineBindTexture(pcmd->TextureId);
+                 // The vast majority of draw calls will use the imgui texture atlas, which value you have set yourself during initialization.
+                 MyEngineBindTexture((MyTexture*)pcmd->TextureId);
 
                  // We are using scissoring to clip some objects. All low-level graphics API should supports it.
                  // - If your engine doesn't support scissoring yet, you may ignore this at first. You will get some small glitches
-                 //   (some elements visible outside their bounds) but you can fix that once everywhere else works!
+                 //   (some elements visible outside their bounds) but you can fix that once everything else works!
                  // - Clipping coordinates are provided in imgui coordinates space (from draw_data->DisplayPos to draw_data->DisplayPos + draw_data->DisplaySize)
                  //   In a single viewport application, draw_data->DisplayPos will always be (0,0) and draw_data->DisplaySize will always be == io.DisplaySize.
-                 //   However, in the interest of supporting multi-viewport applications in the future, always subtract draw_data->DisplayPos from
-                 //   clipping bounds to convert them to your viewport space.
+                 //   However, in the interest of supporting multi-viewport applications in the future (see 'viewport' branch on github),
+                 //   always subtract draw_data->DisplayPos from clipping bounds to convert them to your viewport space.
                  // - Note that pcmd->ClipRect contains Min+Max bounds. Some graphics API may use Min+Max, other may use Min+Size (size being Max-Min)
                  ImVec2 pos = draw_data->DisplayPos;
                  MyEngineScissor((int)(pcmd->ClipRect.x - pos.x), (int)(pcmd->ClipRect.y - pos.y), (int)(pcmd->ClipRect.z - pos.x), (int)(pcmd->ClipRect.w - pos.y));
 
                  // Render 'pcmd->ElemCount/3' indexed triangles.
-                 // By default the indices ImDrawIdx are 16-bits, you can change them to 32-bits if your engine doesn't support 16-bits indices.
+                 // By default the indices ImDrawIdx are 16-bits, you can change them to 32-bits in imconfig.h if your engine doesn't support 16-bits indices.
                  MyEngineDrawIndexedTriangles(pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, idx_buffer, vtx_buffer);
              }
              idx_buffer += pcmd->ElemCount;
@@ -291,15 +293,16 @@ CODE
        }
     }
 
- - The examples/ folders contains many functional implementation of the pseudo-code above.
+ - The examples/ folders contains many actual implementation of the pseudo-codes above.
  - When calling NewFrame(), the 'io.WantCaptureMouse', 'io.WantCaptureKeyboard' and 'io.WantTextInput' flags are updated.
-   They tell you if ImGui intends to use your inputs. When a flag is set you want to hide the corresponding inputs from the rest of your application.
-   In both cases you need to pass on the inputs to imgui. Read the FAQ below for more information about those flags.
- - Please read the FAQ above. Amusingly, it is called a FAQ because people frequently have the same issues!
+   They tell you if Dear ImGui intends to use your inputs. When a flag is set you want to hide the corresponding inputs
+   from the rest of your application. In every cases you need to pass on the inputs to imgui. Refer to the FAQ for more information.
+ - Please read the FAQ below!. Amusingly, it is called a FAQ because people frequently run into the same issues!
 
  USING GAMEPAD/KEYBOARD NAVIGATION CONTROLS
 
- - The gamepad/keyboard navigation is fairly functional and keeps being improved. 
+ - The gamepad/keyboard navigation is fairly functional and keeps being improved.
+ - Gamepad support is particularly useful to use dear imgui on a console system (e.g. PS4, Switch, XB1) without a mouse!
  - You can ask questions and report issues at https://github.com/ocornut/imgui/issues/787
  - The initial focus was to support game controllers, but keyboard is becoming increasingly and decently usable.
  - Gamepad:
@@ -344,7 +347,7 @@ CODE
 
  - 2018/10/12 (1.66) - Renamed misc/stl/imgui_stl.* to misc/cpp/imgui_stdlib.* in prevision for other C++ helper files.
  - 2018/09/28 (1.66) - renamed SetScrollHere() to SetScrollHereY(). Kept redirection function (will obsolete).
- - 2018/09/06 (1.65) - renamed stb_truetype.h to imstb_truetype.h, stb_textedit.h to imstb_textedit.h, and stb_rect_pack.h to imstb_rectpack.h. 
+ - 2018/09/06 (1.65) - renamed stb_truetype.h to imstb_truetype.h, stb_textedit.h to imstb_textedit.h, and stb_rect_pack.h to imstb_rectpack.h.
                        If you were conveniently using the imgui copy of those STB headers in your project you will have to update your include paths.
  - 2018/09/05 (1.65) - renamed io.OptCursorBlink/io.ConfigCursorBlink to io.ConfigInputTextCursorBlink. (#1427)
  - 2018/08/31 (1.64) - added imgui_widgets.cpp file, extracted and moved widgets code out of imgui.cpp into imgui_widgets.cpp. Re-ordered some of the code remaining in imgui.cpp.
@@ -358,7 +361,7 @@ CODE
  - 2018/07/22 (1.63) - changed ImGui::GetTime() return value from float to double to avoid accumulating floating point imprecisions over time.
  - 2018/07/08 (1.63) - style: renamed ImGuiCol_ModalWindowDarkening to ImGuiCol_ModalWindowDimBg for consistency with other features. Kept redirection enum (will obsolete).
  - 2018/06/06 (1.62) - renamed GetGlyphRangesChinese() to GetGlyphRangesChineseFull() to distinguish other variants and discourage using the full set.
- - 2018/06/06 (1.62) - TreeNodeEx()/TreeNodeBehavior(): the ImGuiTreeNodeFlags_CollapsingHeader helper now include the ImGuiTreeNodeFlags_NoTreePushOnOpen flag. See Changelog for details. 
+ - 2018/06/06 (1.62) - TreeNodeEx()/TreeNodeBehavior(): the ImGuiTreeNodeFlags_CollapsingHeader helper now include the ImGuiTreeNodeFlags_NoTreePushOnOpen flag. See Changelog for details.
  - 2018/05/03 (1.61) - DragInt(): the default compile-time format string has been changed from "%.0f" to "%d", as we are not using integers internally any more.
                        If you used DragInt() with custom format strings, make sure you change them to use %d or an integer-compatible format.
                        To honor backward-compatibility, the DragInt() code will currently parse and modify format strings to replace %*f with %d, giving time to users to upgrade their code.
@@ -524,7 +527,7 @@ CODE
     - When 'io.WantCaptureKeyboard' is set, imgui wants to use your keyboard state, and you may want to discard/hide the inputs from the rest of your application.
     - When 'io.WantTextInput' is set to may want to notify your OS to popup an on-screen keyboard, if available (e.g. on a mobile phone, or console OS).
     Note: you should always pass your mouse/keyboard inputs to imgui, even when the io.WantCaptureXXX flag are set false.
-     This is because imgui needs to detect that you clicked in the void to unfocus its windows.
+     This is because imgui needs to detect that you clicked in the void to unfocus its own windows.
     Note: The 'io.WantCaptureMouse' is more accurate that any attempt to "check if the mouse is hovering a window" (don't do that!).
      It handle mouse dragging correctly (both dragging that started over your application or over an imgui window) and handle e.g. modal windows blocking inputs.
      Those flags are updated by ImGui::NewFrame(). Preferably read the flags after calling NewFrame() if you can afford it, but reading them before is also
@@ -536,8 +539,8 @@ CODE
  Q: How can I display an image? What is ImTextureID, how does it works?
  A: Short explanation:
     - You may use functions such as ImGui::Image(), ImGui::ImageButton() or lower-level ImDrawList::AddImage() to emit draw calls that will use your own textures.
-    - Actual textures are identified in a way that is up to the user/engine.
-    - Loading image files from the disk and turning them into a texture is not within the scope of Dear ImGui (for a good reason). 
+    - Actual textures are identified in a way that is up to the user/engine. Those identifiers are stored and passed as ImTextureID (void*) value.
+    - Loading image files from the disk and turning them into a texture is not within the scope of Dear ImGui (for a good reason).
       Please read documentations or tutorials on your graphics API to understand how to display textures on the screen before moving onward.
 
     Long explanation:
@@ -545,10 +548,10 @@ CODE
       At the end of the frame those meshes (ImDrawList) will be displayed by your rendering function. They are made up of textured polygons and the code
       to render them is generally fairly short (a few dozen lines). In the examples/ folder we provide functions for popular graphics API (OpenGL, DirectX, etc.).
     - Each rendering function decides on a data type to represent "textures". The concept of what is a "texture" is entirely tied to your underlying engine/graphics API.
-      We carry the information to identify a "texture" in the ImTextureID type. 
+      We carry the information to identify a "texture" in the ImTextureID type.
       ImTextureID is nothing more that a void*, aka 4/8 bytes worth of data: just enough to store 1 pointer or 1 integer of your choice.
       Dear ImGui doesn't know or understand what you are storing in ImTextureID, it merely pass ImTextureID values until they reach your rendering function.
-    - In the examples/ bindings, for each graphics API binding we decided on a type that is likely to be a good representation for specifying 
+    - In the examples/ bindings, for each graphics API binding we decided on a type that is likely to be a good representation for specifying
       an image from the end-user perspective. This is what the _examples_ rendering functions are using:
 
          OpenGL:     ImTextureID = GLuint                       (see ImGui_ImplGlfwGL3_RenderDrawData() function in imgui_impl_glfw_gl3.cpp)
@@ -556,13 +559,13 @@ CODE
          DirectX11:  ImTextureID = ID3D11ShaderResourceView*    (see ImGui_ImplDX11_RenderDrawData()    function in imgui_impl_dx11.cpp)
          DirectX12:  ImTextureID = D3D12_GPU_DESCRIPTOR_HANDLE  (see ImGui_ImplDX12_RenderDrawData()    function in imgui_impl_dx12.cpp)
 
-      For example, in the OpenGL example binding we store raw OpenGL texture identifier (GLuint) inside ImTextureID. 
-      Whereas in the DirectX11 example binding we store a pointer to ID3D11ShaderResourceView inside ImTextureID, which is a higher-level structure 
+      For example, in the OpenGL example binding we store raw OpenGL texture identifier (GLuint) inside ImTextureID.
+      Whereas in the DirectX11 example binding we store a pointer to ID3D11ShaderResourceView inside ImTextureID, which is a higher-level structure
       tying together both the texture and information about its format and how to read it.
     - If you have a custom engine built over e.g. OpenGL, instead of passing GLuint around you may decide to use a high-level data type to carry information about
       the texture as well as how to display it (shaders, etc.). The decision of what to use as ImTextureID can always be made better knowing how your codebase
       is designed. If your engine has high-level data types for "textures" and "material" then you may want to use them.
-      If you are starting with OpenGL or DirectX or Vulkan and haven't built much of a rendering engine over them, keeping the default ImTextureID 
+      If you are starting with OpenGL or DirectX or Vulkan and haven't built much of a rendering engine over them, keeping the default ImTextureID
       representation suggested by the example bindings is probably the best choice.
       (Advanced users may also decide to keep a low-level type in ImTextureID, and use ImDrawList callback and pass information to their renderer)
 
@@ -570,7 +573,7 @@ CODE
 
         // Cast our texture type to ImTextureID / void*
         MyTexture* texture = g_CoffeeTableTexture;
-        ImGui::Image((void*)texture, ImVec2(texture->Width, texture->Height)); 
+        ImGui::Image((void*)texture, ImVec2(texture->Width, texture->Height));
 
     The renderer function called after ImGui::Render() will receive that same value that the user code passed:
 
@@ -595,13 +598,15 @@ CODE
         GLuint my_opengl_texture;
         glGenTextures(1, &my_opengl_texture);
         glBindTexture(GL_TEXTURE_2D, my_opengl_texture);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_width, image_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
 
         // Now that we have an OpenGL texture, assuming our imgui rendering function (imgui_impl_xxx.cpp file) takes GLuint as ImTextureID, we can display it:
         ImGui::Image((void*)(intptr_t)my_opengl_texture, ImVec2(my_image_width, my_image_height));
 
-    C/C++ tip: a void* is pointer-sized storage. You may safely store any pointer or integer into it by casting your value to ImTexture / void*, and vice-versa. 
+    C/C++ tip: a void* is pointer-sized storage. You may safely store any pointer or integer into it by casting your value to ImTexture / void*, and vice-versa.
     Because both end-points (user code and rendering function) are under your control, you know exactly what is stored inside the ImTexture / void*.
     Examples:
 
@@ -623,7 +628,7 @@ CODE
 
     Dear ImGui internally need to uniquely identify UI elements.
     Elements that are typically not clickable (such as calls to the Text functions) don't need an ID.
-    Interactive widgets (such as calls to Button buttons) need a unique ID. 
+    Interactive widgets (such as calls to Button buttons) need a unique ID.
     Unique ID are used internally to track active widgets and occasionally associate state to widgets.
     Unique ID are implicitly built from the hash of multiple elements that identify the "path" to the UI element.
 
@@ -661,7 +666,7 @@ CODE
 
    - If you want to completely hide the label, but still need an ID:
 
-       Checkbox("##On", &b);  // Label = "",       ID = hash of (..., "##On")   // No visible label!
+       Checkbox("##On", &b);  // Label = "",       ID = hash of (..., "##On")   // No visible label, just a checkbox!
 
    - Occasionally/rarely you might want change a label while preserving a constant ID. This allows
      you to animate labels. For example you may want to include varying information in a window title bar,
@@ -671,7 +676,7 @@ CODE
        Button("World###ID";   // Label = "World",  ID = hash of (..., "ID")     // Same as above, even though the label looks different
 
        sprintf(buf, "My game (%f FPS)###MyGame", fps);
-       Begin(buf);            // Variable label,   ID = hash of "MyGame"
+       Begin(buf);            // Variable title,   ID = hash of "MyGame"
 
    - Solving ID conflict in a more general manner:
      Use PushID() / PopID() to create scopes and manipulate the ID stack, as to avoid ID conflicts
@@ -729,7 +734,7 @@ CODE
       e.g. when displaying a list of objects, using indices or pointers as ID will preserve the
        node open/closed state differently. See what makes more sense in your situation!
 
- Q: How can I use my own math types instead of ImVec2/ImVec4? 
+ Q: How can I use my own math types instead of ImVec2/ImVec4?
  A: You can edit imconfig.h and setup the IM_VEC2_CLASS_EXTRA/IM_VEC4_CLASS_EXTRA macros to add implicit type conversions.
     This way you'll be able to use your own types everywhere, e.g. passsing glm::vec2 to ImGui functions instead of ImVec2.
 
@@ -738,7 +743,8 @@ CODE
       ImGuiIO& io = ImGui::GetIO();
       io.Fonts->AddFontFromFileTTF("myfontfile.ttf", size_in_pixels);
       io.Fonts->GetTexDataAsRGBA32() or GetTexDataAsAlpha8()
-    (default is ProggyClean.ttf, rendered at size 13, embedded in dear imgui's source code)
+    Default is ProggyClean.ttf, rendered at size 13, embedded in dear imgui's source code.
+    (Read the 'misc/fonts/README.txt' file for more details about font loading.)
 
     New programmers: remember that in C/C++ and most programming languages if you want to use a
     backslash \ within a string literal, you need to write it double backslash "\\":
@@ -748,12 +754,12 @@ CODE
 
  Q: How can I easily use icons in my application?
  A: The most convenient and practical way is to merge an icon font such as FontAwesome inside you
-    main font. Then you can refer to icons within your strings. Read 'How can I load multiple fonts?'
-    and the file 'misc/fonts/README.txt' for instructions and useful header files.
+    main font. Then you can refer to icons within your strings.
+    (Read the 'misc/fonts/README.txt' file for more details about icons font loading.)
 
  Q: How can I load multiple fonts?
  A: Use the font atlas to pack them into a single texture:
-    (Read misc/fonts/README.txt and the code in ImFontAtlas for more details.)
+    (Read the 'misc/fonts/README.txt' file and the code in ImFontAtlas for more details.)
 
       ImGuiIO& io = ImGui::GetIO();
       ImFont* font0 = io.Fonts->AddFontDefault();
@@ -769,15 +775,15 @@ CODE
       config.OversampleV = 1;
       config.GlyphOffset.y -= 2.0f;      // Move everything by 2 pixels up
       config.GlyphExtraSpacing.x = 1.0f; // Increase spacing between characters
-      io.Fonts->LoadFromFileTTF("myfontfile.ttf", size_pixels, &config);
+      io.Fonts->AddFontFromFileTTF("myfontfile.ttf", size_pixels, &config);
 
       // Combine multiple fonts into one (e.g. for icon fonts)
-      ImWchar ranges[] = { 0xf000, 0xf3ff, 0 };
+      static ImWchar ranges[] = { 0xf000, 0xf3ff, 0 };
       ImFontConfig config;
       config.MergeMode = true;
       io.Fonts->AddFontDefault();
-      io.Fonts->LoadFromFileTTF("fontawesome-webfont.ttf", 16.0f, &config, ranges); // Merge icon font
-      io.Fonts->LoadFromFileTTF("myfontfile.ttf", size_pixels, NULL, &config, io.Fonts->GetGlyphRangesJapanese()); // Merge japanese glyphs
+      io.Fonts->AddFontFromFileTTF("fontawesome-webfont.ttf", 16.0f, &config, ranges); // Merge icon font
+      io.Fonts->AddFontFromFileTTF("myfontfile.ttf", size_pixels, NULL, &config, io.Fonts->GetGlyphRangesJapanese()); // Merge japanese glyphs
 
  Q: How can I display and input non-Latin characters such as Chinese, Japanese, Korean, Cyrillic?
  A: When loading a font, pass custom Unicode ranges to specify the glyphs to load.
@@ -799,18 +805,20 @@ CODE
     (such as CP-923 for Japanese or CP-1251 for Cyrillic) will NOT work!
     Otherwise you can convert yourself to UTF-8 or load text data from file already saved as UTF-8.
 
-    Text input: it is up to your application to pass the right character code by calling io.AddInputCharacter(). 
-    The applications in examples/ are doing that. 
+    Text input: it is up to your application to pass the right character code by calling io.AddInputCharacter().
+    The applications in examples/ are doing that.
     Windows: you can use the WM_CHAR or WM_UNICHAR or WM_IME_CHAR message (depending if your app is built using Unicode or MultiByte mode).
     You may also use MultiByteToWideChar() or ToUnicode() to retrieve Unicode codepoints from MultiByte characters or keyboard state.
-    Windows: if your language is relying on an Input Method Editor (IME), you copy the HWND of your window to io.ImeWindowHandle in order for 
+    Windows: if your language is relying on an Input Method Editor (IME), you copy the HWND of your window to io.ImeWindowHandle in order for
     the default implementation of io.ImeSetInputScreenPosFn() to set your Microsoft IME position correctly.
 
  Q: How can I use the drawing facilities without an ImGui window? (using ImDrawList API)
- A: - You can create a dummy window. Call SetNextWindowBgAlpha(0.0f), call Begin() with NoTitleBar|NoResize|NoMove|NoScrollbar|NoSavedSettings|NoInputs flags.
+ A: - You can create a dummy window. Call Begin() with the NoBackground | NoDecoration | NoSavedSettings | NoInputs flags.
+      (The ImGuiWindowFlags_NoDecoration flag itself is a shortcut for NoTitleBar | NoResize | NoScrollbar | NoCollapse)
       Then you can retrieve the ImDrawList* via GetWindowDrawList() and draw to it in any way you like.
     - You can call ImGui::GetOverlayDrawList() and use this draw list to display contents over every other imgui windows.
-    - You can create your own ImDrawList instance. You'll need to initialize them ImGui::GetDrawListSharedData(), or create your own ImDrawListSharedData.
+    - You can create your own ImDrawList instance. You'll need to initialize them ImGui::GetDrawListSharedData(), or create your own ImDrawListSharedData,
+      and then call your rendered code with your own ImDrawList or ImDrawData data.
 
  Q: I integrated Dear ImGui in my engine and the text or lines are blurry..
  A: In your Render function, try translating your projection matrix by (0.5f,0.5f) or (0.375f,0.375f).
@@ -822,7 +830,7 @@ CODE
 
  Q: How can I help?
  A: - If you are experienced with Dear ImGui and C++, look at the github issues, or docs/TODO.txt and see how you want/can help!
-    - Convince your company to fund development time! Individual users: you can also become a Patron (patreon.com/imgui) or donate on PayPal! See README.
+    - Convince your company to sponsor/fund development! Individual users: you can also become a Patron (patreon.com/imgui) or donate on PayPal! See README.
     - Disclose your usage of dear imgui via a dev blog post, a tweet, a screenshot, a mention somewhere etc.
       You may post screenshot or links in the gallery threads (github.com/ocornut/imgui/issues/1269). Visuals are ideal as they inspire other programmers.
       But even without visuals, disclosing your use of dear imgui help the library grow credibility, and help other teams and programmers with taking decisions.
@@ -961,7 +969,7 @@ extern void             ImGuiTestEngineHook_ItemAdd(const ImRect& bb, ImGuiID id
 // [SECTION] CONTEXT AND MEMORY ALLOCATORS
 //-----------------------------------------------------------------------------
 
-// Current context pointer. Implicitly used by all ImGui functions. Always assumed to be != NULL.
+// Current context pointer. Implicitly used by all Dear ImGui functions. Always assumed to be != NULL.
 // CreateContext() will automatically set this pointer if it is NULL. Change to a different context by calling ImGui::SetCurrentContext().
 // If you use DLL hotreloading you might need to call SetCurrentContext() after reloading code from this file.
 // ImGui functions are not thread-safe because of this pointer. If you want thread-safety to allow N threads to access N different contexts, you can:
@@ -2289,7 +2297,7 @@ void ImGui::RenderNavHighlight(const ImRect& bb, ImGuiID id, ImGuiNavHighlightFl
         return;
     if (g.NavDisableHighlight && !(flags & ImGuiNavHighlightFlags_AlwaysDraw))
         return;
-    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    ImGuiWindow* window = g.CurrentWindow;
     if (window->DC.NavHideHighlightOneFrame)
         return;
 
@@ -2511,7 +2519,7 @@ void ImGui::SetHoveredID(ImGuiID id)
     g.HoveredId = id;
     g.HoveredIdAllowOverlap = false;
     if (id != 0 && g.HoveredIdPreviousFrame != id)
-        g.HoveredIdTimer = 0.0f;
+        g.HoveredIdTimer = g.HoveredIdNotActiveTimer = 0.0f;
 }
 
 ImGuiID ImGui::GetHoveredID()
@@ -2778,7 +2786,7 @@ void* ImGui::MemAlloc(size_t size)
 
 void ImGui::MemFree(void* ptr)
 {
-    if (ptr) 
+    if (ptr)
         if (ImGuiContext* ctx = GImGui)
             ctx->IO.MetricsActiveAllocations--;
     return GImAllocatorFreeFunc(ptr, GImAllocatorUserData);
@@ -2885,6 +2893,12 @@ int ImGui::GetFrameCount()
     return GImGui->FrameCount;
 }
 
+static ImDrawList* GetOverlayDrawList(ImGuiWindow*)
+{
+    // This seemingly unnecessary wrapper simplifies compatibility between the 'master' and 'viewport' branches.
+    return &GImGui->OverlayDrawList;
+}
+
 ImDrawList* ImGui::GetOverlayDrawList()
 {
     return &GImGui->OverlayDrawList;
@@ -2958,7 +2972,7 @@ static void ImGui::UpdateMouseInputs()
 
     // Round mouse position to avoid spreading non-rounded position (e.g. UpdateManualResize doesn't support them well)
     if (IsMousePosValid(&g.IO.MousePos))
-        g.IO.MousePos = ImFloor(g.IO.MousePos);
+        g.IO.MousePos = g.LastValidMousePos = ImFloor(g.IO.MousePos);
 
     // If mouse just appeared or disappeared (usually denoted by -FLT_MAX components) we cancel out movement in MouseDelta
     if (IsMousePosValid(&g.IO.MousePos) && IsMousePosValid(&g.IO.MousePosPrev))
@@ -3017,9 +3031,9 @@ void ImGui::UpdateMouseWheel()
     // If a child window has the ImGuiWindowFlags_NoScrollWithMouse flag, we give a chance to scroll its parent (unless either ImGuiWindowFlags_NoInputs or ImGuiWindowFlags_NoScrollbar are also set).
     ImGuiWindow* window = g.HoveredWindow;
     ImGuiWindow* scroll_window = window;
-    while ((scroll_window->Flags & ImGuiWindowFlags_ChildWindow) && (scroll_window->Flags & ImGuiWindowFlags_NoScrollWithMouse) && !(scroll_window->Flags & ImGuiWindowFlags_NoScrollbar) && !(scroll_window->Flags & ImGuiWindowFlags_NoInputs) && scroll_window->ParentWindow)
+    while ((scroll_window->Flags & ImGuiWindowFlags_ChildWindow) && (scroll_window->Flags & ImGuiWindowFlags_NoScrollWithMouse) && !(scroll_window->Flags & ImGuiWindowFlags_NoScrollbar) && !(scroll_window->Flags & ImGuiWindowFlags_NoMouseInputs) && scroll_window->ParentWindow)
         scroll_window = scroll_window->ParentWindow;
-    const bool scroll_allowed = !(scroll_window->Flags & ImGuiWindowFlags_NoScrollWithMouse) && !(scroll_window->Flags & ImGuiWindowFlags_NoInputs);
+    const bool scroll_allowed = !(scroll_window->Flags & ImGuiWindowFlags_NoScrollWithMouse) && !(scroll_window->Flags & ImGuiWindowFlags_NoMouseInputs);
 
     if (g.IO.MouseWheel != 0.0f)
     {
@@ -3191,8 +3205,12 @@ void ImGui::NewFrame()
     // Clear reference to active widget if the widget isn't alive anymore
     if (!g.HoveredIdPreviousFrame)
         g.HoveredIdTimer = 0.0f;
+    if (!g.HoveredIdPreviousFrame || (g.HoveredId && g.ActiveId == g.HoveredId))
+        g.HoveredIdNotActiveTimer = 0.0f;
     if (g.HoveredId)
         g.HoveredIdTimer += g.IO.DeltaTime;
+    if (g.HoveredId && g.ActiveId != g.HoveredId)
+        g.HoveredIdNotActiveTimer += g.IO.DeltaTime;
     g.HoveredIdPreviousFrame = g.HoveredId;
     g.HoveredId = 0;
     g.HoveredIdAllowOverlap = false;
@@ -3620,7 +3638,7 @@ void ImGui::Render()
     IM_ASSERT(g.Initialized);
 
     if (g.FrameCountEnded != g.FrameCount)
-        ImGui::EndFrame();
+        EndFrame();
     g.FrameCountRendered = g.FrameCount;
 
     // Gather ImDrawList to render (for each active window)
@@ -3729,15 +3747,15 @@ void ImGui::CalcListClipping(int items_count, float items_height, int* out_items
 }
 
 // Find window given position, search front-to-back
-// FIXME: Note that we have an inconsequential lag here: OuterRectClipped is updated in Begin(), so windows moved programatically 
-// with SetWindowPos() and not SetNextWindowPos() will have that rectangle lagging by a frame at the time FindHoveredWindow() is 
+// FIXME: Note that we have an inconsequential lag here: OuterRectClipped is updated in Begin(), so windows moved programatically
+// with SetWindowPos() and not SetNextWindowPos() will have that rectangle lagging by a frame at the time FindHoveredWindow() is
 // called, aka before the next Begin(). Moving window isn't affected.
 static void FindHoveredWindow()
 {
     ImGuiContext& g = *GImGui;
 
     ImGuiWindow* hovered_window = NULL;
-    if (g.MovingWindow && !(g.MovingWindow->Flags & ImGuiWindowFlags_NoInputs))
+    if (g.MovingWindow && !(g.MovingWindow->Flags & ImGuiWindowFlags_NoMouseInputs))
         hovered_window = g.MovingWindow;
 
     ImVec2 padding_regular = g.Style.TouchExtraPadding;
@@ -3747,7 +3765,7 @@ static void FindHoveredWindow()
         ImGuiWindow* window = g.Windows[i];
         if (!window->Active || window->Hidden)
             continue;
-        if (window->Flags & ImGuiWindowFlags_NoInputs)
+        if (window->Flags & ImGuiWindowFlags_NoMouseInputs)
             continue;
 
         // Using the clipped AABB, a child window will typically be clipped by its parent (not always)
@@ -4208,11 +4226,16 @@ static void SetWindowConditionAllowFlags(ImGuiWindow* window, ImGuiCond flags, b
     window->SetWindowCollapsedAllowFlags = enabled ? (window->SetWindowCollapsedAllowFlags | flags) : (window->SetWindowCollapsedAllowFlags & ~flags);
 }
 
-ImGuiWindow* ImGui::FindWindowByName(const char* name)
+ImGuiWindow* ImGui::FindWindowByID(ImGuiID id)
 {
     ImGuiContext& g = *GImGui;
-    ImGuiID id = ImHash(name, 0);
     return (ImGuiWindow*)g.WindowsById.GetVoidPtr(id);
+}
+
+ImGuiWindow* ImGui::FindWindowByName(const char* name)
+{
+    ImGuiID id = ImHash(name, 0);
+    return FindWindowByID(id);
 }
 
 static ImGuiWindow* CreateNewWindow(const char* name, ImVec2 size, ImGuiWindowFlags flags)
@@ -4455,7 +4478,7 @@ static void ImGui::UpdateManualResize(ImGuiWindow* window, const ImVec2& size_au
         if (resize_rect.Min.y > resize_rect.Max.y) ImSwap(resize_rect.Min.y, resize_rect.Max.y);
         bool hovered, held;
         ButtonBehavior(resize_rect, window->GetID((void*)(intptr_t)resize_grip_n), &hovered, &held, ImGuiButtonFlags_FlattenChildren | ImGuiButtonFlags_NoNavFocus);
-        //GetOverlayDrawList()->AddRect(resize_rect.Min, resize_rect.Max, IM_COL32(255, 255, 0, 255));
+        //GetOverlayDrawList(window)->AddRect(resize_rect.Min, resize_rect.Max, IM_COL32(255, 255, 0, 255));
         if (hovered || held)
             g.MouseCursor = (resize_grip_n & 1) ? ImGuiMouseCursor_ResizeNESW : ImGuiMouseCursor_ResizeNWSE;
 
@@ -4480,7 +4503,7 @@ static void ImGui::UpdateManualResize(ImGuiWindow* window, const ImVec2& size_au
         bool hovered, held;
         ImRect border_rect = GetResizeBorderRect(window, border_n, grip_hover_inner_size, RESIZE_WINDOWS_FROM_EDGES_HALF_THICKNESS);
         ButtonBehavior(border_rect, window->GetID((void*)(intptr_t)(border_n + 4)), &hovered, &held, ImGuiButtonFlags_FlattenChildren);
-        //GetOverlayDrawList()->AddRect(border_rect.Min, border_rect.Max, IM_COL32(255, 255, 0, 255));
+        //GetOverlayDrawList(window)->AddRect(border_rect.Min, border_rect.Max, IM_COL32(255, 255, 0, 255));
         if ((hovered && g.HoveredIdTimer > RESIZE_WINDOWS_FROM_EDGES_FEEDBACK_TIMER) || held)
         {
             g.MouseCursor = (border_n & 1) ? ImGuiMouseCursor_ResizeEW : ImGuiMouseCursor_ResizeNS;
@@ -4571,7 +4594,7 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
     }
 
     // Automatically disable manual moving/resizing when NoInputs is set
-    if (flags & ImGuiWindowFlags_NoInputs)
+    if ((flags & ImGuiWindowFlags_NoInputs) == ImGuiWindowFlags_NoInputs)
         flags |= ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
 
     if (flags & ImGuiWindowFlags_NavFlattened)
@@ -4901,13 +4924,14 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
         else
         {
             // Window background
-            ImU32 bg_col = GetColorU32(GetWindowBgColorIdxFromFlags(flags));
-            if (g.NextWindowData.BgAlphaCond != 0)
+            if (!(flags & ImGuiWindowFlags_NoBackground))
             {
-                bg_col = (bg_col & ~IM_COL32_A_MASK) | (IM_F32_TO_INT8_SAT(g.NextWindowData.BgAlphaVal) << IM_COL32_A_SHIFT);
-                g.NextWindowData.BgAlphaCond = 0;
+                ImU32 bg_col = GetColorU32(GetWindowBgColorIdxFromFlags(flags));
+                if (g.NextWindowData.BgAlphaCond != 0)
+                    bg_col = (bg_col & ~IM_COL32_A_MASK) | (IM_F32_TO_INT8_SAT(g.NextWindowData.BgAlphaVal) << IM_COL32_A_SHIFT);
+                window->DrawList->AddRectFilled(window->Pos + ImVec2(0, window->TitleBarHeight()), window->Pos + window->Size, bg_col, window_rounding, (flags & ImGuiWindowFlags_NoTitleBar) ? ImDrawCornerFlags_All : ImDrawCornerFlags_Bot);
             }
-            window->DrawList->AddRectFilled(window->Pos + ImVec2(0, window->TitleBarHeight()), window->Pos + window->Size, bg_col, window_rounding, (flags & ImGuiWindowFlags_NoTitleBar) ? ImDrawCornerFlags_All : ImDrawCornerFlags_Bot);
+            g.NextWindowData.BgAlphaCond = 0;
 
             // Title bar
             ImU32 title_bar_col = GetColorU32(window->Collapsed ? ImGuiCol_TitleBgCollapsed : title_bar_is_highlight ? ImGuiCol_TitleBgActive : ImGuiCol_TitleBg);
@@ -4945,7 +4969,7 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
             }
 
             // Borders
-            if (window_border_size > 0.0f)
+            if (window_border_size > 0.0f && !(flags & ImGuiWindowFlags_NoBackground))
                 window->DrawList->AddRect(window->Pos, window->Pos + window->Size, GetColorU32(ImGuiCol_Border), window_rounding, ImDrawCornerFlags_All, window_border_size);
             if (border_held != -1)
             {
@@ -5082,7 +5106,7 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
         /*
         if (g.ActiveId == move_id)
             if (g.IO.KeyCtrl && IsKeyPressedMap(ImGuiKey_C))
-                ImGui::LogToClipboard();
+                LogToClipboard();
         */
 
         // Inner rectangle
@@ -5150,13 +5174,13 @@ bool ImGui::Begin(const char* name, bool* p_open, const ImVec2& size_first_use, 
 {
     // Old API feature: we could pass the initial window size as a parameter. This was misleading because it only had an effect if the window didn't have data in the .ini file.
     if (size_first_use.x != 0.0f || size_first_use.y != 0.0f)
-        ImGui::SetNextWindowSize(size_first_use, ImGuiCond_FirstUseEver);
+        SetNextWindowSize(size_first_use, ImGuiCond_FirstUseEver);
 
     // Old API feature: override the window background alpha with a parameter.
     if (bg_alpha_override >= 0.0f)
-        ImGui::SetNextWindowBgAlpha(bg_alpha_override);
+        SetNextWindowBgAlpha(bg_alpha_override);
 
-    return ImGui::Begin(name, p_open, flags);
+    return Begin(name, p_open, flags);
 }
 #endif // IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 
@@ -5629,11 +5653,11 @@ bool ImGui::IsWindowHovered(ImGuiHoveredFlags flags)
 bool ImGui::IsWindowFocused(ImGuiFocusedFlags flags)
 {
     ImGuiContext& g = *GImGui;
-    IM_ASSERT(g.CurrentWindow);     // Not inside a Begin()/End()
 
     if (flags & ImGuiFocusedFlags_AnyWindow)
         return g.NavWindow != NULL;
 
+    IM_ASSERT(g.CurrentWindow);     // Not inside a Begin()/End()
     switch (flags & (ImGuiFocusedFlags_RootWindow | ImGuiFocusedFlags_ChildWindows))
     {
     case ImGuiFocusedFlags_RootWindow | ImGuiFocusedFlags_ChildWindows:
@@ -6326,7 +6350,7 @@ void ImGui::BeginTooltipEx(ImGuiWindowFlags extra_flags, bool override_previous_
                 window->HiddenFramesRegular = 1;
                 ImFormatString(window_name, IM_ARRAYSIZE(window_name), "##Tooltip_%02d", ++g.TooltipOverrideCount);
             }
-    ImGuiWindowFlags flags = ImGuiWindowFlags_Tooltip|ImGuiWindowFlags_NoInputs|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoSavedSettings|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoNav;
+    ImGuiWindowFlags flags = ImGuiWindowFlags_Tooltip|ImGuiWindowFlags_NoInputs|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoSavedSettings|ImGuiWindowFlags_AlwaysAutoResize;
     Begin(window_name, NULL, flags | extra_flags);
 }
 
@@ -6402,8 +6426,8 @@ void ImGui::OpenPopupEx(ImGuiID id)
     popup_ref.ParentWindow = parent_window;
     popup_ref.OpenFrameCount = g.FrameCount;
     popup_ref.OpenParentId = parent_window->IDStack.back();
-    popup_ref.OpenMousePos = g.IO.MousePos;
     popup_ref.OpenPopupPos = NavCalcPreferredRefPos();
+    popup_ref.OpenMousePos = IsMousePosValid(&g.IO.MousePos) ? g.IO.MousePos : popup_ref.OpenPopupPos;
 
     //printf("[%05d] OpenPopupEx(0x%08X)\n", g.FrameCount, id);
     if (g.OpenPopupStack.Size < current_stack_size + 1)
@@ -6823,7 +6847,7 @@ static bool NavScoreItem(ImGuiNavMoveResult* result, ImRect cand)
     if (ImGui::IsMouseHoveringRect(cand.Min, cand.Max))
     {
         ImFormatString(buf, IM_ARRAYSIZE(buf), "dbox (%.2f,%.2f->%.4f)\ndcen (%.2f,%.2f->%.4f)\nd (%.2f,%.2f->%.4f)\nnav %c, quadrant %c", dbx, dby, dist_box, dcx, dcy, dist_center, dax, day, dist_axial, "WENS"[g.NavMoveDir], "WENS"[quadrant]);
-        ImDrawList* draw_list = ImGui::GetOverlayDrawList();
+        ImDrawList* draw_list = GetOverlayDrawList(window);
         draw_list->AddRect(curr.Min, curr.Max, IM_COL32(255,200,0,100));
         draw_list->AddRect(cand.Min, cand.Max, IM_COL32(255,255,0,200));
         draw_list->AddRectFilled(cand.Max-ImVec2(4,4), cand.Max+ImGui::CalcTextSize(buf)+ImVec2(4,4), IM_COL32(40,0,0,150));
@@ -6831,11 +6855,11 @@ static bool NavScoreItem(ImGuiNavMoveResult* result, ImRect cand)
     }
     else if (g.IO.KeyCtrl) // Hold to preview score in matching quadrant. Press C to rotate.
     {
-        if (IsKeyPressedMap(ImGuiKey_C)) { g.NavMoveDirLast = (ImGuiDir)((g.NavMoveDirLast + 1) & 3); g.IO.KeysDownDuration[g.IO.KeyMap[ImGuiKey_C]] = 0.01f; }
+        if (ImGui::IsKeyPressedMap(ImGuiKey_C)) { g.NavMoveDirLast = (ImGuiDir)((g.NavMoveDirLast + 1) & 3); g.IO.KeysDownDuration[g.IO.KeyMap[ImGuiKey_C]] = 0.01f; }
         if (quadrant == g.NavMoveDir)
         {
             ImFormatString(buf, IM_ARRAYSIZE(buf), "%.0f/%.0f", dist_box, dist_center);
-            ImDrawList* draw_list = ImGui::GetOverlayDrawList();
+            ImDrawList* draw_list = GetOverlayDrawList(window);
             draw_list->AddRectFilled(cand.Min, cand.Max, IM_COL32(255, 0, 0, 200));
             draw_list->AddText(g.IO.FontDefault, 13.0f, cand.Min, IM_COL32(255, 255, 255, 255), buf);
         }
@@ -7080,13 +7104,20 @@ static ImVec2 ImGui::NavCalcPreferredRefPos()
 {
     ImGuiContext& g = *GImGui;
     if (g.NavDisableHighlight || !g.NavDisableMouseHover || !g.NavWindow)
-        return ImFloor(g.IO.MousePos);
-
-    // When navigation is active and mouse is disabled, decide on an arbitrary position around the bottom left of the currently navigated item
-    const ImRect& rect_rel = g.NavWindow->NavRectRel[g.NavLayer];
-    ImVec2 pos = g.NavWindow->Pos + ImVec2(rect_rel.Min.x + ImMin(g.Style.FramePadding.x*4, rect_rel.GetWidth()), rect_rel.Max.y - ImMin(g.Style.FramePadding.y, rect_rel.GetHeight()));
-    ImRect visible_rect = GetViewportRect();
-    return ImFloor(ImClamp(pos, visible_rect.Min, visible_rect.Max));   // ImFloor() is important because non-integer mouse position application in back-end might be lossy and result in undesirable non-zero delta.
+    {
+        // Mouse (we need a fallback in case the mouse becomes invalid after being used)
+        if (IsMousePosValid(&g.IO.MousePos))
+            return g.IO.MousePos;
+        return g.LastValidMousePos;
+    }
+    else
+    {
+        // When navigation is active and mouse is disabled, decide on an arbitrary position around the bottom left of the currently navigated item.
+        const ImRect& rect_rel = g.NavWindow->NavRectRel[g.NavLayer];
+        ImVec2 pos = g.NavWindow->Pos + ImVec2(rect_rel.Min.x + ImMin(g.Style.FramePadding.x * 4, rect_rel.GetWidth()), rect_rel.Max.y - ImMin(g.Style.FramePadding.y, rect_rel.GetHeight()));
+        ImRect visible_rect = GetViewportRect();
+        return ImFloor(ImClamp(pos, visible_rect.Min, visible_rect.Max));   // ImFloor() is important because non-integer mouse position application in back-end might be lossy and result in undesirable non-zero delta.
+    }
 }
 
 float ImGui::GetNavInputAmount(ImGuiNavInput n, ImGuiInputReadMode mode)
@@ -7211,7 +7242,7 @@ static void ImGui::NavUpdate()
     g.NavJustMovedToId = 0;
 
     // Process navigation move request
-    if (g.NavMoveRequest && (g.NavMoveResultLocal.ID != 0 || g.NavMoveResultOther.ID != 0))
+    if (g.NavMoveRequest)
         NavUpdateMoveResult();
 
     // When a forwarded move request failed, we restore the highlight that we disabled during the forward frame
@@ -7421,15 +7452,27 @@ static void ImGui::NavUpdate()
     //g.OverlayDrawList.AddRect(g.NavScoringRectScreen.Min, g.NavScoringRectScreen.Max, IM_COL32(255,200,0,255)); // [DEBUG]
     g.NavScoringCount = 0;
 #if IMGUI_DEBUG_NAV_RECTS
-    if (g.NavWindow) { for (int layer = 0; layer < 2; layer++) GetOverlayDrawList()->AddRect(g.NavWindow->Pos + g.NavWindow->NavRectRel[layer].Min, g.NavWindow->Pos + g.NavWindow->NavRectRel[layer].Max, IM_COL32(255,200,0,255)); } // [DEBUG]
-    if (g.NavWindow) { ImU32 col = (g.NavWindow->HiddenFrames == 0) ? IM_COL32(255,0,255,255) : IM_COL32(255,0,0,255); ImVec2 p = NavCalcPreferredRefPos(); char buf[32]; ImFormatString(buf, 32, "%d", g.NavLayer); g.OverlayDrawList.AddCircleFilled(p, 3.0f, col); g.OverlayDrawList.AddText(NULL, 13.0f, p + ImVec2(8,-4), col, buf); }
+    if (g.NavWindow) { for (int layer = 0; layer < 2; layer++) GetOverlayDrawList(g.NavWindow)->AddRect(g.NavWindow->Pos + g.NavWindow->NavRectRel[layer].Min, g.NavWindow->Pos + g.NavWindow->NavRectRel[layer].Max, IM_COL32(255,200,0,255)); } // [DEBUG]
+    if (g.NavWindow) { ImU32 col = (!g.NavWindow->Hidden) ? IM_COL32(255,0,255,255) : IM_COL32(255,0,0,255); ImVec2 p = NavCalcPreferredRefPos(); char buf[32]; ImFormatString(buf, 32, "%d", g.NavLayer); GetOverlayDrawList(g.NavWindow)->AddCircleFilled(p, 3.0f, col); GetOverlayDrawList(g.NavWindow)->AddText(NULL, 13.0f, p + ImVec2(8,-4), col, buf); }
 #endif
 }
 
+// Apply result from previous frame navigation directional move request
 static void ImGui::NavUpdateMoveResult()
 {
-    // Select which result to use
     ImGuiContext& g = *GImGui;
+    if (g.NavMoveResultLocal.ID == 0 && g.NavMoveResultOther.ID == 0)
+    {
+        // In a situation when there is no results but NavId != 0, re-enable the Navigation highlight (because g.NavId is not considered as a possible result)
+        if (g.NavId != 0)
+        {
+            g.NavDisableHighlight = false;
+            g.NavDisableMouseHover = true;
+        }
+        return;
+    }
+
+    // Select which result to use
     ImGuiNavMoveResult* result = (g.NavMoveResultLocal.ID != 0) ? &g.NavMoveResultLocal : &g.NavMoveResultOther;
 
     // PageUp/PageDown behavior first jumps to the bottom/top mostly visible item, _otherwise_ use the result from the previous/next page.
@@ -7459,7 +7502,6 @@ static void ImGui::NavUpdateMoveResult()
             NavScrollToBringItemIntoView(result->Window->ParentWindow, ImRect(rect_abs.Min + delta_scroll, rect_abs.Max + delta_scroll));
     }
 
-    // Apply result from previous frame navigation directional move request
     ClearActiveID();
     g.NavWindow = result->Window;
     SetNavIDWithRectRel(result->ID, g.NavLayer, result->RectRel);
@@ -7702,7 +7744,7 @@ void ImGui::NavUpdateWindowingList()
     SetNextWindowSizeConstraints(ImVec2(g.IO.DisplaySize.x * 0.20f, g.IO.DisplaySize.y * 0.20f), ImVec2(FLT_MAX, FLT_MAX));
     SetNextWindowPos(g.IO.DisplaySize * 0.5f, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     PushStyleVar(ImGuiStyleVar_WindowPadding, g.Style.WindowPadding * 2.0f);
-    Begin("###NavWindowingList", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings);
+    Begin("###NavWindowingList", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings);
     for (int n = g.WindowsFocusOrder.Size - 1; n >= 0; n--)
     {
         ImGuiWindow* window = g.WindowsFocusOrder[n];
@@ -8140,7 +8182,7 @@ bool ImGui::BeginDragDropSource(ImGuiDragDropFlags flags)
         if (!(flags & ImGuiDragDropFlags_SourceNoPreviewTooltip))
         {
             // Target can request the Source to not display its tooltip (we use a dedicated flag to make this request explicit)
-            // We unfortunately can't just modify the source flags and skip the call to BeginTooltip, as caller may be emitting contents. 
+            // We unfortunately can't just modify the source flags and skip the call to BeginTooltip, as caller may be emitting contents.
             BeginTooltip();
             if (g.DragDropActive && g.DragDropAcceptIdPrev && (g.DragDropAcceptFlags & ImGuiDragDropFlags_AcceptNoPreviewTooltip))
             {
@@ -8717,7 +8759,7 @@ static void SettingsHandlerWindow_WriteAll(ImGuiContext* imgui_ctx, ImGuiSetting
 // [SECTION] PLATFORM DEPENDENT HELPERS
 //-----------------------------------------------------------------------------
 
-#if defined(_WIN32) && !defined(_WINDOWS_) && (!defined(IMGUI_DISABLE_WIN32_DEFAULT_CLIPBOARD_FUNCTIONS) || !defined(IMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCTIONS))
+#if defined(_WIN32) && !defined(_WINDOWS_) && !defined(IMGUI_DISABLE_WIN32_FUNCTIONS) && (!defined(IMGUI_DISABLE_WIN32_DEFAULT_CLIPBOARD_FUNCTIONS) || !defined(IMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCTIONS))
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
@@ -8729,7 +8771,7 @@ static void SettingsHandlerWindow_WriteAll(ImGuiContext* imgui_ctx, ImGuiSetting
 #endif
 
 // Win32 API clipboard implementation
-#if defined(_WIN32) && !defined(IMGUI_DISABLE_WIN32_DEFAULT_CLIPBOARD_FUNCTIONS)
+#if defined(_WIN32) && !defined(IMGUI_DISABLE_WIN32_FUNCTIONS) && !defined(IMGUI_DISABLE_WIN32_DEFAULT_CLIPBOARD_FUNCTIONS)
 
 #ifdef _MSC_VER
 #pragma comment(lib, "user32")
@@ -8866,7 +8908,7 @@ void ImGui::ShowMetricsWindow(bool* p_open)
                 return;
             }
 
-            ImDrawList* overlay_draw_list = GetOverlayDrawList(); // Render additional visuals into the top-most draw list
+            ImDrawList* overlay_draw_list = GetOverlayDrawList(window); // Render additional visuals into the top-most draw list
             if (window && IsItemHovered())
                 overlay_draw_list->AddRect(window->Pos, window->Pos + window->Size, IM_COL32(255, 255, 0, 255));
             if (!node_open)
@@ -8940,10 +8982,10 @@ void ImGui::ShowMetricsWindow(bool* p_open)
             ImGuiWindowFlags flags = window->Flags;
             NodeDrawList(window, window->DrawList, "DrawList");
             ImGui::BulletText("Pos: (%.1f,%.1f), Size: (%.1f,%.1f), SizeContents (%.1f,%.1f)", window->Pos.x, window->Pos.y, window->Size.x, window->Size.y, window->SizeContents.x, window->SizeContents.y);
-            ImGui::BulletText("Flags: 0x%08X (%s%s%s%s%s%s%s%s..)", flags,
-                (flags & ImGuiWindowFlags_ChildWindow) ? "Child " : "", (flags & ImGuiWindowFlags_Tooltip)   ? "Tooltip "   : "", (flags & ImGuiWindowFlags_Popup) ? "Popup " : "",
-                (flags & ImGuiWindowFlags_Modal)       ? "Modal " : "", (flags & ImGuiWindowFlags_ChildMenu) ? "ChildMenu " : "", (flags & ImGuiWindowFlags_NoSavedSettings) ? "NoSavedSettings " : "",
-                (flags & ImGuiWindowFlags_NoInputs)    ? "NoInputs":"", (flags & ImGuiWindowFlags_AlwaysAutoResize) ? "AlwaysAutoResize" : "");
+            ImGui::BulletText("Flags: 0x%08X (%s%s%s%s%s%s%s%s%s..)", flags,
+                (flags & ImGuiWindowFlags_ChildWindow)  ? "Child " : "",      (flags & ImGuiWindowFlags_Tooltip)     ? "Tooltip "   : "",  (flags & ImGuiWindowFlags_Popup) ? "Popup " : "",
+                (flags & ImGuiWindowFlags_Modal)        ? "Modal " : "",      (flags & ImGuiWindowFlags_ChildMenu)   ? "ChildMenu " : "",  (flags & ImGuiWindowFlags_NoSavedSettings) ? "NoSavedSettings " : "",
+                (flags & ImGuiWindowFlags_NoMouseInputs)? "NoMouseInputs":"", (flags & ImGuiWindowFlags_NoNavInputs) ? "NoNavInputs" : "", (flags & ImGuiWindowFlags_AlwaysAutoResize) ? "AlwaysAutoResize" : "");
             ImGui::BulletText("Scroll: (%.2f/%.2f,%.2f/%.2f)", window->Scroll.x, GetWindowScrollMaxX(window), window->Scroll.y, GetWindowScrollMaxY(window));
             ImGui::BulletText("Active: %d/%d, WriteAccessed: %d, BeginOrderWithinContext: %d", window->Active, window->WasActive, window->WriteAccessed, (window->Active || window->WasActive) ? window->BeginOrderWithinContext : -1);
             ImGui::BulletText("Appearing: %d, Hidden: %d (Reg %d Resize %d), SkipItems: %d", window->Appearing, window->Hidden, window->HiddenFramesRegular, window->HiddenFramesForResize, window->SkipItems);
@@ -9025,7 +9067,7 @@ void ImGui::ShowMetricsWindow(bool* p_open)
             char buf[32];
             ImFormatString(buf, IM_ARRAYSIZE(buf), "%d", window->BeginOrderWithinContext);
             float font_size = ImGui::GetFontSize() * 2;
-            ImDrawList* overlay_draw_list = GetOverlayDrawList();
+            ImDrawList* overlay_draw_list = GetOverlayDrawList(window);
             overlay_draw_list->AddRectFilled(window->Pos, window->Pos + ImVec2(font_size, font_size), IM_COL32(200, 100, 100, 255));
             overlay_draw_list->AddText(NULL, font_size, window->Pos, IM_COL32(255, 255, 255, 255), buf);
         }

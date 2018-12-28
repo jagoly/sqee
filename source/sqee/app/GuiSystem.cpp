@@ -91,6 +91,10 @@ void main()
 
 //============================================================================//
 
+GuiSystem* gGuiSystemPtr = nullptr;
+
+//============================================================================//
+
 } // anonymous namespace
 
 //============================================================================//
@@ -306,6 +310,7 @@ bool GuiSystem::Implementation::handle_event(Event event)
         CASE ( Mouse_Scroll )
         {
             io.MouseWheel += event.data.scroll.delta;
+            io.MouseWheelH += event.data.scroll.delta;
 
             return io.WantCaptureMouse;
         }
@@ -357,7 +362,7 @@ bool GuiSystem::Implementation::handle_event(Event event)
 void GuiSystem::Implementation::finish_handle_events()
 {
     io.DisplaySize = Vec2F(window.get_window_size());
-    io.MousePos = Vec2F(input.get_cursor_location());
+    io.MousePos = Vec2F(input.get_cursor_location(false));
 
     io.MouseDown[0] |= input.is_pressed(Mouse_Button::Left);
     io.MouseDown[1] |= input.is_pressed(Mouse_Button::Right);
@@ -467,32 +472,28 @@ void GuiSystem::Implementation::render_gui()
 
 //============================================================================//
 
-GuiSystem*& GuiSystem::impl_get_ptr_ref()
+GuiSystem& GuiSystem::get()
 {
-    static GuiSystem* instance = nullptr;
-    return instance;
+    SQASSERT(gGuiSystemPtr != nullptr, "GuiSystem not constructed");
+    return *gGuiSystemPtr;
 }
 
 void GuiSystem::construct(Window& window, InputDevices& inputDevices)
 {
-    auto& instance = GuiSystem::impl_get_ptr_ref();
-
-    SQASSERT(instance == nullptr, "GuiSystem::construct() already called");
+    SQASSERT(gGuiSystemPtr == nullptr, "GuiSystem::construct() already called");
 
     imgui::CreateContext();
 
-    instance = new GuiSystem();
+    gGuiSystemPtr = new GuiSystem();
 
-    instance->impl = std::make_unique<Implementation>(window, inputDevices);
+    gGuiSystemPtr->impl = std::make_unique<Implementation>(window, inputDevices);
 }
 
 void GuiSystem::destruct()
 {
-    auto& instance = GuiSystem::impl_get_ptr_ref();
+    SQASSERT(gGuiSystemPtr != nullptr, "GuiSystem::destruct() already called");
 
-    SQASSERT(instance != nullptr, "GuiSystem::destruct() already called");
-
-    delete instance;
+    delete gGuiSystemPtr;
 
     imgui::DestroyContext(); // todo: imgui probably can't be re-started after this
 }
@@ -514,7 +515,10 @@ void GuiSystem::show_imgui_demo() { imgui::ShowDemoWindow(); }
 void GuiSystem::enable_widget(GuiWidget& widget)
 {
     const auto iter = algo::find(mWidgets, &widget);
-    if (iter == mWidgets.end()) mWidgets.push_front(&widget);
+
+    if (iter == mWidgets.end())
+        mWidgets.push_front(&widget);
+
     else SQASSERT(false, "");
 }
 

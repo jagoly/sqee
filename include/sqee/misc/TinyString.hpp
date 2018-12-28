@@ -67,11 +67,15 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    constexpr bool empty() const noexcept { return *mData == '\0'; }
+    constexpr bool empty() const noexcept { return mData[0] == '\0'; }
+
+    constexpr void clear() noexcept { mData[0] = '\0'; }
 
     constexpr size_t length() const noexcept { return Traits::length(mData); }
 
     constexpr const char* c_str() const noexcept { return mData; }
+
+    constexpr char* data() noexcept { return mData; }
 
     //--------------------------------------------------------//
 
@@ -85,6 +89,8 @@ private: //===================================================//
 
     char mData[16u] {};
 };
+
+inline std::ostream& operator<<(std::ostream& os, const TinyString& arg) { return os << arg.c_str(); }
 
 namespace builtins { using sq::TinyString; }
 

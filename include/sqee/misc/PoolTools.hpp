@@ -93,6 +93,8 @@ public: //====================================================//
 
     TinyPoolMap(Allocator& allocator) : mAllocator(allocator) {}
 
+    ~TinyPoolMap() { clear(); }
+
     //--------------------------------------------------------//
 
     iterator begin() { return mItemVector.begin(); }
@@ -109,9 +111,9 @@ public: //====================================================//
     template <class... Args>
     Type* emplace(Key key, Args&&... args)
     {
-        SQASSERT(key_exists(key) == false, "");
+        SQASSERT(contains(key) == false, "");
 
-        Type* ptr = mAllocator.allocate(std::forward(args)...);
+        Type* ptr = mAllocator.allocate(std::forward<Args>(args)...);
         mItemVector.push_back({ key, ptr });
 
         return ptr;
@@ -119,7 +121,7 @@ public: //====================================================//
 
     void erase(const Key& key)
     {
-        const auto iter = key_find(key);
+        const auto iter = find(key);
         SQASSERT(iter != mItemVector.end(), "");
         mAllocator.deallocate(iter->ptr);
         mItemVector.erase(iter);
@@ -135,16 +137,26 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
+    void modify_key(const Key& oldKey, const Key& newKey)
+    {
+        const auto iter = find(oldKey);
+        SQASSERT(iter != mItemVector.end(), "");
+        SQASSERT(contains(newKey) == false, "");
+        iter->key = newKey;
+    }
+
+    //--------------------------------------------------------//
+
     Type* operator[](const Key& key)
     {
-        const auto iter = key_find(key);
+        const auto iter = find(key);
         SQASSERT(iter != mItemVector.end(), "");
         return iter->ptr;
     }
 
     const Type* operator[](const Key& key) const
     {
-        const auto iter = key_find(key);
+        const auto iter = find(key);
         SQASSERT(iter != mItemVector.end(), "");
         return iter->ptr;
     }
@@ -158,13 +170,38 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    iterator key_find(const Key& key)
+    bool operator==(const TinyPoolMap& other) const
+    {
+        if (mItemVector.size() != other.mItemVector.size())
+            return false;
+
+        auto iterA = mItemVector.begin();
+        auto iterB = other.mItemVector.begin();
+
+        while (iterA != mItemVector.end())
+        {
+            if (!(iterA->key == iterB->key)) return false;
+            if (!(*iterA->ptr == *iterB->ptr)) return false;
+            ++iterA; ++iterB;
+        }
+
+        return true;
+    }
+
+    bool operator!=(const TinyPoolMap& other) const
+    {
+        return !(*this == other);
+    }
+
+    //--------------------------------------------------------//
+
+    iterator find(const Key& key)
     {
         auto predicate = [&](const Item& item) { return item.key == key; };
         return algo::find_if(mItemVector, predicate);
     }
 
-    const_iterator key_find(const Key& key) const
+    const_iterator find(const Key& key) const
     {
         auto predicate = [&](const Item& item) { return item.key == key; };
         return algo::find_if(mItemVector, predicate);
@@ -178,9 +215,9 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    bool key_exists(const Key& key) const
+    bool contains(const Key& key) const
     {
-        return key_find(key) != mItemVector.end();
+        return find(key) != mItemVector.end();
     }
 
     bool ptr_exists(const Type* ptr) const

@@ -113,7 +113,7 @@ void Program::link_program_stages()
     {
         StringView logStr(log);
         while (!logStr.empty() && logStr.back() == '\n') logStr.remove_suffix(1);
-        log_error("Failed to link shader\n%s", logStr);
+        log_warning("Failed to link shader\n%s", logStr);
     }
 }
 

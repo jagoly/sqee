@@ -1,10 +1,15 @@
 #include <sqee/misc/Json.hpp>
 
-#include <fstream>
-
 #include <sqee/debug/Logging.hpp>
 
+#include <fstream>
+
 using namespace sq;
+
+//============================================================================//
+
+#define SQEE_FROM_JSON_INVALID_ARGUMENT(Type) \
+throw std::invalid_argument(sq::build_string("from_json: ", j.dump(), " -> "#Type));
 
 //============================================================================//
 
@@ -102,3 +107,7 @@ void sq::to_json(JsonValue& j, const TinyString& str)
 {
     j = String(str);
 }
+
+//============================================================================//
+
+#undef SQEE_FROM_JSON_INVALID_ARGUMENT

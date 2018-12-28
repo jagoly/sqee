@@ -1,5 +1,26 @@
 #pragma once
 
+#include <sqee/setup.hpp>
+#include <sqee/helpers.hpp>
+
+//============================================================================//
+
+#ifndef SQEE_MSVC
+
+#define DISABLE_WARNING_FLOAT_EQUALITY \
+_Pragma("GCC diagnostic push") \
+_Pragma("GCC diagnostic ignored \"-Wfloat-equal\"")
+
+#define ENABLE_WARNING_FLOAT_EQUALITY \
+_Pragma("GCC diagnostic pop")
+
+#else
+
+#define DISABLE_FLOAT_EQUALITY_WARNING
+#define ENABLE_FLOAT_EQUALITY_WARNING
+
+#endif
+
 //============================================================================//
 
 #define SQEE_MACRO_OVERLOAD(_01, _02, _03, _04, _05, _06, _07, _08, _09, _10, \
@@ -7,6 +28,8 @@
                             _21, _22, _23, _24, _25, _26, _27, _28, _29, _30, \
                             _31, _32, _33, _34, _35, _36, _37, _38, _39, _40, \
                             Name, ...) Name
+
+//============================================================================//
 
 #define SQEE_FOR_EACH_01(Functor, Arg) Functor(Arg)
 #define SQEE_FOR_EACH_02(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_01(Functor, __VA_ARGS__)
@@ -77,15 +100,27 @@
 
 #define SQEE_ENUM_TO_STRING_INNER(Case) case EnumType::Case: return #Case;
 
-#define SQEE_ENUM_TO_STRING(Type, ...) \
-constexpr const char* enum_to_string(Type value) \
+#define SQEE_ENUM_FROM_STRING_INNER(Case) if (str == #Case) return EnumType::Case;
+
+#define SQEE_ENUM_COUNT_INNER(Case) BaseType(EnumType::Case),
+
+#define SQEE_ENUM_JSON_CONVERSION_DEFINITIONS_INNER(Case) \
+    if (ref == #Case) { e = EnumType::Case; return; }
+
+#define SQEE_ENUM_HELPER(Type, ...) \
+template<> struct sq::EnumHelper<Type> \
 { \
     using EnumType = Type; \
-    switch (value) { \
-        SQEE_FOR_EACH(SQEE_ENUM_TO_STRING_INNER, __VA_ARGS__) \
+    using BaseType = std::underlying_type_t<Type>; \
+    static const char* to_string(Type value) \
+    { \
+        switch (value) { SQEE_FOR_EACH(SQEE_ENUM_TO_STRING_INNER, __VA_ARGS__) } \
+        throw std::invalid_argument(build_string("enum ", #Type, " to string")); \
     } \
-    return "Invalid Enum!"; \
-}
-
-#define SQEE_ENUM_TO_STRING_STREAM_OPERATOR(Type) \
-inline std::ostream& operator<<(std::ostream& os, const Type& arg) { return os << enum_to_string(arg); }
+    static Type from_string(std::string_view str) \
+    { \
+        SQEE_FOR_EACH(SQEE_ENUM_FROM_STRING_INNER, __VA_ARGS__) \
+        throw std::invalid_argument(build_string("enum ", #Type, " from string '", str, "'")); \
+    } \
+    static constexpr BaseType count = va_max(SQEE_FOR_EACH(SQEE_ENUM_COUNT_INNER, __VA_ARGS__) BaseType(0)) + 1; \
+};

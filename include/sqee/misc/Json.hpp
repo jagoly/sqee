@@ -17,7 +17,8 @@ namespace sq {
 
 //============================================================================//
 
-using JsonValue = nlohmann::json;
+// the primary purpose for this is to use float instead of double
+using JsonValue = nlohmann::basic_json<std::map, std::vector, std::string, bool, int32_t, uint32_t, float>;
 
 namespace builtins { using sq::JsonValue; }
 
@@ -57,25 +58,15 @@ SQEE_API void to_json(JsonValue&, const TinyString&);
 
 //============================================================================//
 
-#define SQEE_FROM_JSON_INVALID_ARGUMENT(Type) \
-    throw std::invalid_argument(sq::build_string("from_json: ", j.dump(), " -> "#Type));
-
-#define SQEE_ENUM_JSON_CONVERSION_DECLARATIONS(Type) \
-void from_json(const JsonValue&, Type&); \
-void to_json(JsonValue&, const Type&);
-
-#define SQEE_ENUM_JSON_CONVERSION_DEFINITIONS_INNER(Case) \
-    if (ref == #Case) { e = EnumType::Case; return; }
-
-#define SQEE_ENUM_JSON_CONVERSION_DEFINITIONS(NameSpace, Type, ...) \
-void NameSpace::from_json(const JsonValue& j, Type& e) \
+#define SQEE_ENUM_JSON_CONVERSIONS(Type) \
+template<> struct nlohmann::adl_serializer<Type> \
 { \
-    SWITCH(e) { CASE(__VA_ARGS__) {} } SWITCH_END; \
-    using EnumType = Type; \
-    if (j.is_string() == false) \
-        SQEE_FROM_JSON_INVALID_ARGUMENT(Type) \
-    const String& ref = j; \
-    SQEE_FOR_EACH(SQEE_ENUM_JSON_CONVERSION_DEFINITIONS_INNER, __VA_ARGS__) \
-    SQEE_FROM_JSON_INVALID_ARGUMENT(Type) \
-} \
-void NameSpace::to_json(JsonValue& j, const Type& e) { j = enum_to_string(e); }
+    static void to_json(sq::JsonValue& j, const Type& e) \
+    { \
+        j = sq::enum_to_string(e); \
+    } \
+    static void from_json(const sq::JsonValue& j, Type& e) \
+    { \
+        sq::enum_from_string(j, e); \
+    } \
+};

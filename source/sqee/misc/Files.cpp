@@ -37,6 +37,21 @@ String sq::get_string_from_file(const String& path)
 
 //============================================================================//
 
+void sq::save_string_to_file(const String& path, const String& str)
+{
+    auto dest = std::ofstream(path);
+
+    if (dest.good() == false)
+    {
+        log_warning("could not open file for writing '%s'", path);
+        return;
+    }
+
+    dest << str;
+}
+
+//============================================================================//
+
 Vector<std::byte> sq::get_bytes_from_file(const String& path)
 {
     using unsigned_ifstream = std::basic_ifstream<std::byte>;

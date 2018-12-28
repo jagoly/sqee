@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <unordered_map>
-
 #include <sqee/misc/ResourceHandle.hpp>
+
+#include <unordered_map>
 
 namespace sq {
 

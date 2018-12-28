@@ -20,10 +20,10 @@ namespace sq {
 template <class Message, class... Args> inline
 void chai_add_message_type(chai::Module& m, const String& name)
 {
-    constexpr auto construct = [](Args... args) { return Message { args... }; };
+//    constexpr auto construct = [](Args... args) { return Message { args... }; };
 
-    m.add(fun(construct), "MSG_" + name);
-    m.add(fun(&MessageBus::publish<Message>), "publish");
+//    m.add(fun(construct), "MSG_" + name);
+//    m.add(fun(&MessageBus::publish<Message>), "publish");
 }
 
 //============================================================================//

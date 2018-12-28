@@ -5,6 +5,9 @@
 
 #include <sqee/debug/Text.hpp>
 
+#include <algorithm>
+#include <numeric>
+
 using namespace sq;
 
 //============================================================================//
@@ -33,12 +36,27 @@ void DebugOverlay::render(double elapsed)
 
     //--------------------------------------------------------//
 
+    mFrameTimes[mFrameTimeIndex] = elapsed;
+
+    if (++mFrameTimeIndex == 60u) mFrameTimeIndex = 0u;
+
+    //--------------------------------------------------------//
+
     if (mActive == true)
     {
         char fpsString[8]; std::snprintf(fpsString, 8, "%.2f", 1.0 / mFrameTime);
 
         // display frame rate in the bottom left corner
         render_text_basic(fpsString, {+1, +1}, {-1, -1}, {40.f, 50.f}, {1.f, 1.f, 1.f, 1.f}, true);
+
+//        const auto [min, max] = std::minmax_element(mFrameTimes.begin(), mFrameTimes.end());
+
+//        const double average = std::accumulate(mFrameTimes.begin(), mFrameTimes.end(), 0.0) / 60.0;
+
+//        char ftString[48];
+//        std::snprintf(ftString, 48, "fps: %0.4f\nmin: %0.5fms\nmax: %0.5fms", 1.0/average, *min*1000.0, *max*1000.0);
+
+//        render_text_basic(ftString, {+1, -1}, {-1, -1}, {32.f, 32.f}, {1.f, 1.f, 1.f, 1.f}, true);
 
         //--------------------------------------------------------//
 

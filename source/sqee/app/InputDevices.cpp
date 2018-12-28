@@ -142,19 +142,16 @@ bool InputDevices::is_pressed(Keyboard_Key key) const
 
 //============================================================================//
 
-Vec2U InputDevices::get_cursor_location(bool flipY) const
+Vec2I InputDevices::get_cursor_location(bool flipY) const
 {
     auto window = static_cast<const sf::Window*>(mSystemWindowPtr);
 
-    sf::Vector2i size ( window->getSize() );
+    const sf::Vector2i size ( window->getSize() );
     sf::Vector2i position = sf::Mouse::getPosition(*window);
 
     if (flipY) position.y = size.y - position.y;
 
-    uint clampedX = uint(maths::clamp(position.x, 0, size.x));
-    uint clampedY = uint(maths::clamp(position.y, 0, size.y));
-
-    return { clampedX, clampedY };
+    return { position.x, position.y };
 }
 
 bool InputDevices::is_pressed(Mouse_Button button) const

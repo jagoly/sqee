@@ -3,59 +3,63 @@
 
 #pragma once
 
-// fold expressions not supported on msvc
-// luckily the message bus is still not used,
-// so we can just not compile it at all
-
-#ifndef SQEE_MSVC
-
-#include <map>
-#include <typeindex>
-
 #include <sqee/misc/Builtins.hpp>
 
-#include <sqee/helpers.hpp>
+#include <functional>
+#include <map>
+#include <typeindex>
 
 namespace sq {
 
 //============================================================================//
 
-class MessageBus;
-
-class ReceiverBase {};
-
-//============================================================================//
-
 template <class Message>
-class ReceiverMethod : ReceiverBase
+struct MessageReceiverSingle : private NonCopyable
 {
-    static_assert(std::is_copy_constructible_v<Message>);
-    static_assert(std::is_move_constructible_v<Message>);
+    std::function<void(const Message&)> func = nullptr;
+};
 
-protected: //=================================================//
+template <class... Messages>
+class MessageReceiver final : public MessageReceiverSingle<Messages>...
+{
+public: //================================================//
 
-    virtual void handle_message(Message message) = 0;
+    inline void subscribe(class MessageBus& messageBus);
 
-    friend class MessageBus;
+    inline ~MessageReceiver();
+
+    template <class Message, class Callable>
+    void assign(Callable&& callable)
+    {
+        auto base = static_cast<MessageReceiverSingle<Message>*>(this);
+        base->func = callable;
+    }
+
+private: //===============================================//
+
+    class MessageBus* mMessageBus = nullptr;
 };
 
 //============================================================================//
 
-template <class... Messages>
-class Receiver : private NonCopyable, public ReceiverMethod<Messages>...
+struct MessageSourceBase : private NonCopyable
 {
-public: //====================================================//
+    virtual ~MessageSourceBase() = default;
 
-    inline Receiver(MessageBus& bus);
+    Vector<void*> subscribers;
+};
 
-    inline virtual ~Receiver();
-
-protected: //=================================================//
-
-    Array<bool, sizeof...(Messages)> mSubscribed;
-    MessageBus& mBus;
-
-    friend class MessageBus;
+template <class Message>
+struct MessageSource final : public MessageSourceBase
+{
+    void publish(const Message& message)
+    {
+        for (void* ptr : subscribers)
+        {
+            auto receiver = static_cast<MessageReceiver<Message>*>(ptr);
+            if (receiver->func != nullptr) receiver->func(message);
+        }
+    }
 };
 
 //============================================================================//
@@ -65,125 +69,86 @@ class SQEE_API MessageBus final : private NonCopyable
 {
 public: //====================================================//
 
-    /// Subscribe a @ref Receiver to one message type.
-    /// @tparam Message type of message to subscribe to
-    /// @param receiver the message receiver object
-
-    template <class Message, class... Messages>
-    void subscribe(Receiver<Messages...>& receiver)
+    template <class Message>
+    MessageSource<Message>& get_message_source()
     {
-        static_assert((std::is_same_v<Message, Messages> || ...));
-        constexpr size_t index = index_in_pack_v<Message, Messages...>;
-
-        if (receiver.mSubscribed[index] == false)
-        {
-            ReceiverMethod<Message>* base = &receiver;
-            impl_subscribe(base, std::type_index(typeid(Message)));
-            receiver.mSubscribed[index] = true;
-        }
+        auto& messageSource = impl_get_message_source(std::type_index(typeid(Message)));
+        return static_cast<MessageSource<Message>&>(messageSource);
     }
 
     //--------------------------------------------------------//
 
-    /// Subscribe a @ref Receiver to all message types.
-    /// @param receiver the message receiver object
-
-    template <class... Messages>
-    void subscribe_all(Receiver<Messages...>& receiver)
+    template <class Message> void add_message_source()
     {
-        ( subscribe<Messages>(receiver) , ... );
+        auto source = std::make_unique<MessageSource<Message>>();
+        impl_add_message_source(std::type_index(typeid(Message)), std::move(source));
+    }
+
+    template <class Message> void remove_message_source()
+    {
+        impl_remove_message_source(std::type_index(typeid(Message)));
     }
 
     //--------------------------------------------------------//
-
-    /// Unsubscribe a @ref Receiver from one message type.
-    /// @tparam Message type of message to unsubscribe from
-    /// @param receiver the message receiver object
-
-    template <class Message, class... Messages>
-    void unsubscribe(Receiver<Messages...>& receiver)
-    {
-        static_assert((std::is_same_v<Message, Messages> || ...));
-        constexpr size_t index = index_in_pack_v<Message, Messages...>;
-
-        if (receiver.mSubscribed[index] == true)
-        {
-            ReceiverMethod<Message>* base = &receiver;
-            impl_unsubscribe(base, std::type_index(typeid(Message)));
-            receiver.mSubscribed[index] = false;
-        }
-    }
-
-    //--------------------------------------------------------//
-
-    /// Unsubscribe a @ref Receiver from all message types.
-    /// @param receiver the message receiver object
-
-    template <class... Messages>
-    void unsubscribe_all(Receiver<Messages...>& receiver)
-    {
-        ( unsubscribe<Messages>(receiver) , ... );
-    }
-
-    //--------------------------------------------------------//
-
-    /// Register a new message type.
-    /// @tparam Message type of message to register
-
-    template <class Message> void register_type()
-    { impl_register_type(std::type_index(typeid(Message))); }
-
-    //--------------------------------------------------------//
-
-    /// Unregister an existing message type.
-    /// @tparam Message type of message to unregister
-
-    template <class Message> void unregister_type()
-    { impl_unregister_type(std::type_index(typeid(Message))); }
-
-    //--------------------------------------------------------//
-
-    /// Send a message to all subscribed receivers.
-    /// @param message the message to publish
 
     template <class Message>
-    void publish(Message message)
+    void subscribe(MessageReceiverSingle<Message>& receiver)
     {
-        for (auto base : impl_get_subscribers(std::type_index(typeid(Message))))
-            static_cast<ReceiverMethod<Message>*>(base)->handle_message(message);
+        impl_subscribe(&receiver, get_message_source<Message>().subscribers);
+    }
+
+    template <class Message>
+    void unsubscribe(MessageReceiverSingle<Message>& receiver)
+    {
+        impl_unsubscribe(&receiver, get_message_source<Message>().subscribers);
     }
 
 private: //===================================================//
 
-    void impl_register_type(std::type_index type);
-
-    void impl_unregister_type(std::type_index type);
+    MessageSourceBase& impl_get_message_source(std::type_index type);
 
     //--------------------------------------------------------//
 
-    void impl_subscribe(ReceiverBase* receiver, std::type_index type);
+    void impl_add_message_source(std::type_index type, UniquePtr<MessageSourceBase>&& source);
 
-    void impl_unsubscribe(ReceiverBase* receiver, std::type_index type);
-
-    //--------------------------------------------------------//
-
-    Vector<ReceiverBase*>& impl_get_subscribers(std::type_index type);
+    void impl_remove_message_source(std::type_index type);
 
     //--------------------------------------------------------//
 
-    std::map<std::type_index, Vector<ReceiverBase*>> mSubscriberMap;
+    void impl_subscribe(void* receiver, Vector<void*>& receivers);
+
+    void impl_unsubscribe(void* receiver, Vector<void*>& receivers);
+
+    //--------------------------------------------------------//
+
+    std::map<std::type_index, std::unique_ptr<MessageSourceBase>> mMessageSources;
 };
 
 //============================================================================//
 
 template <class... Messages>
-Receiver<Messages...>::Receiver(MessageBus& bus) : mBus(bus) {}
+void MessageReceiver<Messages...>::subscribe(MessageBus& messageBus)
+{
+    mMessageBus = &messageBus;
+    ( mMessageBus->subscribe(static_cast<MessageReceiverSingle<Messages>&>(*this)), ... );
+}
 
 template <class... Messages>
-Receiver<Messages...>::~Receiver() { mBus.unsubscribe_all(*this); }
+MessageReceiver<Messages...>::~MessageReceiver()
+{
+    if (mMessageBus != nullptr)
+    {
+        ( mMessageBus->unsubscribe(static_cast<MessageReceiverSingle<Messages>&>(*this)), ... );
+    }
+}
+
+//============================================================================//
+
+// macros are nicer than a heap of annoying wrapper lambdas
+
+#define SQEE_MB_BIND_METHOD(Receiver, Type, Method) \
+Receiver.assign<Type>([this](const Type& msg) { Method(msg); })
 
 //============================================================================//
 
 } // namespace sq
-
-#endif // !SQEE_MSVC

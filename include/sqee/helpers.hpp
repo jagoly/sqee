@@ -41,11 +41,26 @@ constexpr uint64_t operator ""_u64(unsigned long long v)
 
 //============================================================================//
 
-template <class EnumType>
-std::underlying_type_t<EnumType>& underlying_reference(EnumType& ref)
+/// Template class for the SQEE_ENUM_HELPER macro.
+template <class Type> struct EnumHelper;
+
+/// Convert an enum to a string.
+template <class Type>
+const char* enum_to_string(Type value)
 {
-    return reinterpret_cast<std::underlying_type_t<EnumType>&>(ref);
+    return EnumHelper<Type>::to_string(value);
 }
+
+/// Convert a string to an enum.
+template <class Type>
+void enum_from_string(std::string_view str, Type& result)
+{
+    result = EnumHelper<Type>::from_string(str);
+}
+
+/// The value of the last enum plus one.
+template <class Type>
+constexpr const auto enum_count_v = EnumHelper<Type>::count;
 
 //----------------------------------------------------------------------------//
 
@@ -97,6 +112,23 @@ struct alignas(RealType) UnitialisedType
     RealType* operator->() { return reinterpret_cast<RealType*>(_bytes); }
     std::byte _bytes[sizeof(RealType)];
 };
+
+//============================================================================//
+
+template <class T> constexpr T va_min(T value) { return value; }
+template <class T> constexpr T va_max(T value) { return value; }
+
+template <class T, class... Ts> constexpr T va_min(T lhs, T rhs, Ts... others)
+{
+    static_assert(std::is_trivial_v<T>, "only use this for trivial types");
+    return va_min(lhs < rhs ? lhs : rhs, others...);
+}
+
+template <class T, class... Ts> constexpr T va_max(T lhs, T rhs, Ts... others)
+{
+    static_assert(std::is_trivial_v<T>, "only use this for trivial types");
+    return va_max(lhs > rhs ? lhs : rhs, others...);
+}
 
 //============================================================================//
 
@@ -165,3 +197,12 @@ inline std::string build_string(Args&&... args)
 //============================================================================//
 
 } // namespace sq
+
+//============================================================================//
+
+/// Write an enum as a string to a stream.
+template <class Type, size_t = sizeof(sq::EnumHelper<Type>)>
+std::ostream& operator<<(std::ostream& os, const Type& arg)
+{
+    return os << sq::EnumHelper<Type>::to_string(arg);
+}

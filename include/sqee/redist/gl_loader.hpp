@@ -2162,10 +2162,10 @@ inline void VertexAttribP4uiv(GLuint index, GLenum type, GLboolean normalized, c
 
 namespace gl::sys {
 
-exts::LoadTest LoadFunctions();
+SQEE_API exts::LoadTest LoadFunctions();
 
-int GetMinorVersion();
-int GetMajorVersion();
-bool IsVersionGEQ(int majorVersion, int minorVersion);
+SQEE_API int GetMinorVersion();
+SQEE_API int GetMajorVersion();
+SQEE_API bool IsVersionGEQ(int majorVersion, int minorVersion);
 
 } // namespace gl::sys

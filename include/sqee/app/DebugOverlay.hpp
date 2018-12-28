@@ -52,6 +52,9 @@ private: //===================================================//
 
     double mFrameTime = 0.0;
 
+    size_t mFrameTimeIndex = 0u;
+    Array<double, 60u> mFrameTimes;
+
     bool mActive = true;
 };
 

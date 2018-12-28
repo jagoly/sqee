@@ -67,7 +67,7 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     /// Get the location of the cursor.
-    Vec2U get_cursor_location(bool flipY = false) const;
+    Vec2I get_cursor_location(bool flipY) const;
 
     /// Check if the given button is pressed.
     bool is_pressed(Mouse_Button button) const;

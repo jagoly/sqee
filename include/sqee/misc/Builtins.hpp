@@ -4,6 +4,7 @@
 #pragma once
 
 #include <sqee/setup.hpp>
+#include <sqee/helpers.hpp>
 
 #include <array>
 #include <vector>
@@ -13,6 +14,9 @@
 #include <string_view>
 
 namespace sq {
+
+template <class... Ts> using Tuple = std::tuple<Ts...>;
+template <class A, class B> using Pair = std::pair<A, B>;
 
 template <class T, size_t N> using Array = std::array<T, N>;
 
@@ -25,7 +29,7 @@ using StringView = std::string_view;
 
 namespace builtins {
 
-using sq::Array, sq::Vector, sq::Optional, sq::UniquePtr, sq::String, sq::StringView;
+using sq::Tuple, sq::Pair, sq::Array, sq::Vector, sq::Optional, sq::UniquePtr, sq::String, sq::StringView;
 
 }} // namespace sq::builtins
 

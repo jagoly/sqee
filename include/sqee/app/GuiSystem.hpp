@@ -20,7 +20,7 @@ class SQEE_API GuiSystem final : private NonCopyable
 {
 public: //====================================================//
 
-    static GuiSystem& get() { return *impl_get_ptr_ref(); }
+    static GuiSystem& get();
 
     static void construct(Window& window, InputDevices& inputDevices);
 
@@ -51,8 +51,6 @@ private: //===================================================//
 
     GuiSystem() = default;
     ~GuiSystem() = default;
-
-    static GuiSystem*& impl_get_ptr_ref();
 
     // list so we can add or remove during iteration
     std::list<GuiWidget*> mWidgets;

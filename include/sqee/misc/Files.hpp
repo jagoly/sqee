@@ -12,8 +12,11 @@ namespace sq {
 /// Check if a file exists
 SQEE_API bool check_file_exists(const String& path);
 
-/// Load a file into a simple string
+/// Load a file into a string
 SQEE_API String get_string_from_file(const String& path);
+
+/// Save a string to a file
+SQEE_API void save_string_to_file(const String& path, const String& str);
 
 /// Load a file into a vector of bytes
 SQEE_API Vector<std::byte> get_bytes_from_file(const String& path);
@@ -29,7 +32,7 @@ struct TokenisedFile : private sq::MoveOnly
     Vector<Line> lines;
 };
 
-/// Load a text file into an easy to parse structure.
+/// Load a text file into an easy to parse structure
 SQEE_API TokenisedFile tokenise_file(const String& path);
 
 //============================================================================//
