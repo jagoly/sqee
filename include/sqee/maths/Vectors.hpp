@@ -6,10 +6,7 @@ namespace sq::maths {
 
 //============================================================================//
 
-template <int S, class T> struct Vector
-{
-    static_assert(std::is_arithmetic_v<T>);
-};
+template <int S, class T> struct Vector;
 
 template <class T> using Vector2 = Vector<2, T>;
 template <class T> using Vector3 = Vector<3, T>;
@@ -541,3 +538,31 @@ Vector3<T> rotate_z(Vector3<T> vec, T angle)
 //============================================================================//
 
 } // namespace sq::maths
+
+//============================================================================//
+
+namespace sq::traits {
+
+template <class VecST> struct impl_VecTraits;
+
+template <int S, class T>
+struct impl_VecTraits<maths::Vector<S, T>>
+{
+    constexpr static const int Size = S;
+    using Type = T;
+};
+
+template <class VecST> using VecType = typename impl_VecTraits<VecST>::Type;
+template <class VecST> constexpr const int VecSize = impl_VecTraits<VecST>::Size;
+
+template <> constexpr const char* TypeName<maths::Vector<2, int>> = "Vec2I";
+template <> constexpr const char* TypeName<maths::Vector<2, uint>> = "Vec2U";
+template <> constexpr const char* TypeName<maths::Vector<2, float>> = "Vec2F";
+template <> constexpr const char* TypeName<maths::Vector<3, int>> = "Vec3I";
+template <> constexpr const char* TypeName<maths::Vector<3, uint>> = "Vec3U";
+template <> constexpr const char* TypeName<maths::Vector<3, float>> = "Vec3F";
+template <> constexpr const char* TypeName<maths::Vector<4, int>> = "Vec4I";
+template <> constexpr const char* TypeName<maths::Vector<4, uint>> = "Vec4U";
+template <> constexpr const char* TypeName<maths::Vector<4, float>> = "Vec4F";
+
+} // namespace sq::traits

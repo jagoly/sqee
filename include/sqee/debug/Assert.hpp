@@ -17,6 +17,6 @@
 
 #else
 
-#define SQASSERT(condition, message) do {} while (false)
+#define SQASSERT(condition, message) do {} while (void(condition), false)
 
 #endif

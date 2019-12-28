@@ -109,19 +109,24 @@ if (SQEE_WINDOWS AND NOT SFML_ROOT)
     set(SFML_ROOT "${PROJECT_SOURCE_DIR}/extlibs/sfml")
 endif ()
 
-find_package(SFML 2.4 COMPONENTS audio window system REQUIRED)
+find_package(SFML 2.5 COMPONENTS audio window system REQUIRED)
 
 target_include_directories(sqee PRIVATE ${SFML_INCLUDE_DIR})
 
 # need to refactor sq::Sound so that I can keep SFML internal
-target_link_libraries(sqee PUBLIC ${SFML_LIBRARIES})
-target_link_libraries(sqee PRIVATE ${SFML_DEPENDENCIES})
+target_link_libraries(sqee PUBLIC sfml-audio sfml-window sfml-system)
 
 ################################################################################
 
+set(OpenGL_GL_PREFERENCE "GLVND")
+
 find_package(OpenGL REQUIRED)
 
-target_link_libraries(sqee PUBLIC ${OPENGL_gl_LIBRARY})
+target_link_libraries(sqee PUBLIC GL GLX)
+
+if (SQEE_LINUX AND SQEE_STATIC_LIB)
+    target_link_libraries(sqee PUBLIC pthread dl) # for ChaiScript
+endif ()
 
 ################################################################################
 

@@ -41,6 +41,11 @@ constexpr uint64_t operator ""_u64(unsigned long long v)
 
 //============================================================================//
 
+inline const char* to_c_string(const std::string& arg) { return arg.c_str(); }
+inline const char* to_c_string(const char* arg) { return arg; }
+
+//============================================================================//
+
 /// Template class for the SQEE_ENUM_HELPER macro.
 template <class Type> struct EnumHelper;
 
@@ -58,6 +63,13 @@ void enum_from_string(std::string_view str, Type& result)
     result = EnumHelper<Type>::from_string(str);
 }
 
+/// SFINAE overload for converting SQEE enums to c strings
+template <class Type, class = typename EnumHelper<Type>::BaseType>
+const char* to_c_string(Type arg)
+{
+    return EnumHelper<Type>::to_string(arg);
+}
+
 /// The value of the last enum plus one.
 template <class Type>
 constexpr const auto enum_count_v = EnumHelper<Type>::count;
@@ -67,11 +79,7 @@ constexpr const auto enum_count_v = EnumHelper<Type>::count;
 template <class Type, class... Args>
 std::unique_ptr<Type> make_unique_aggregate(Args&&... args)
 {
-    // todo: not yet supported with clang + libstdc++
-    #ifndef SQEE_CLANG
     static_assert(std::is_aggregate_v<Type> == true);
-    #endif
-
     return std::unique_ptr<Type>(new Type{std::forward<Args>(args)...});
 }
 
@@ -97,10 +105,7 @@ template <class Element, class... Others> struct Structure<Element, Others...>
     Element element; Structure<Others...> others;
 };
 
-// MSVC doesn't support class template deduction yet
-#ifndef SQEE_MSVC
 template<class... Elements> Structure(const Elements&...) -> Structure<Elements...>;
-#endif
 
 /// @endcond
 
@@ -188,10 +193,12 @@ template <class T> inline size_t string_size(T&& str)
 template <class... Args>
 inline std::string build_string(Args&&... args)
 {
-  std::string result;
-  result.reserve((detail::string_size(std::forward<Args>(args)) + ...));
-  (result.append(args), ...);
-  return result;
+    // todo: append doesn't have an overload for a single char
+    // need to refactor to use push_back for chars
+    std::string result;
+    result.reserve((detail::string_size(std::forward<Args>(args)) + ...));
+    (result.append(args), ...);
+    return result;
 }
 
 //============================================================================//

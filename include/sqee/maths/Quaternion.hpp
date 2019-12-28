@@ -17,6 +17,7 @@ template <class T> struct Quaternion
     constexpr Quaternion() : data { T(0.0), T(0.0), T(0.0), T(1.0) } {}
     constexpr Quaternion(T x, T y, T z, T w) : data { x, y, z, w } {}
     constexpr Quaternion(const Quaternion& q) : data { q.x, q.y, q.z, q.w } {}
+    constexpr Quaternion& operator=(const Quaternion& q) = default;
 
     //--------------------------------------------------------//
 

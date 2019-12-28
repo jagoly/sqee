@@ -19,7 +19,7 @@ Matrix33<T> scale(Matrix33<T> m, Vector3<T> v)
 template <class T> constexpr
 Matrix44<T> scale(Matrix44<T> m, Vector3<T> v)
 {
-    return Matrix44<T> ( m[0]*v.x, m[1]*v.y, m[2]*v.z, m[3] );
+    return Matrix44<T> ( m[0]*v[0], m[1]*v[1], m[2]*v[2], m[3] );
 }
 
 //============================================================================//
@@ -286,6 +286,30 @@ Matrix33<T> basis_from_z(Vector3<T> zAxis)
     const Vector3<T> xAxis = maths::cross(zAxis, yAxis);
 
     return Matrix33<T> ( xAxis, yAxis, zAxis );
+}
+
+//============================================================================//
+
+/// Convert an HSV value to RGB, all values in the range 0:1
+template <class T> constexpr
+Vector3<T> hsv_to_rgb(Vector3<T> hsv)
+{
+    static_assert(std::is_floating_point_v<T>);
+
+    const int i = int(hsv[0] * T(6));
+    const T f = hsv[0] * T(6) - T(i);
+    const T p = hsv[2] * (T(1) - hsv[1]);
+    const T q = hsv[2] * (T(1) - f * hsv[1]);
+    const T t = hsv[2] * (T(1) - (T(1) - f) * hsv[1]);
+
+    const int j = i % 6;
+
+    if (j == 0) return { hsv.z, t, p };
+    if (j == 1) return { q, hsv.z, p };
+    if (j == 2) return { p, hsv.z, t };
+    if (j == 3) return { p, q, hsv.z };
+    if (j == 4) return { t, p, hsv.z };
+    if (j == 5) return { hsv.z, p, q };
 }
 
 //============================================================================//

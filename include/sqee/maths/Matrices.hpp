@@ -27,6 +27,7 @@ template <class T> struct Matrix<3, 3, T>
     // Default and Copy Constructors
     constexpr Matrix() : mCols { {1,0,0}, {0,1,0}, {0,0,1} } {}
     constexpr Matrix(const Matrix& m) : mCols { m[0], m[1], m[2] } {}
+    constexpr Matrix& operator=(const Matrix& m) = default;
 
     // Uninitialise Constructor
     constexpr Matrix(std::nullptr_t) : mCols { nullptr, nullptr, nullptr } {}
@@ -61,6 +62,7 @@ template <class T> struct Matrix<3, 4, T>
     // Default and Copy Constructors
     constexpr Matrix() : mCols { {1,0,0,0}, {0,1,0,0}, {0,0,1,0} } {}
     constexpr Matrix(const Matrix& m) : mCols { m[0], m[1], m[2] } {}
+    constexpr Matrix& operator=(const Matrix& m) = default;
 
     // Uninitialise Constructor
     constexpr Matrix(std::nullptr_t) : mCols { nullptr, nullptr, nullptr } {}
@@ -93,6 +95,7 @@ template <class T> struct Matrix<4, 4, T>
     // Default and Copy Constructors
     constexpr Matrix() : mCols { {1,0,0,0}, {0,1,0,0}, {0,0,1,0}, {0,0,0,1} } {}
     constexpr Matrix(const Matrix& m) : mCols { m[0], m[1], m[2], m[3] } {}
+    constexpr Matrix& operator=(const Matrix& m) = default;
 
     // Uninitialise Constructor
     constexpr Matrix(std::nullptr_t) : mCols { nullptr, nullptr, nullptr, nullptr } {}

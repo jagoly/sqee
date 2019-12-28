@@ -67,6 +67,25 @@ struct MoveOnly
     MoveOnly& operator=(MoveOnly&&) = default;
 };
 
+//----------------------------------------------------------------------------//
+
+namespace traits {
+
+template <class T> const char* TypeName;
+
+template <> constexpr const char* TypeName<int8_t> = "Int8";
+template <> constexpr const char* TypeName<uint8_t> = "UInt8";
+template <> constexpr const char* TypeName<int16_t> = "Int16";
+template <> constexpr const char* TypeName<uint16_t> = "UInt16";
+template <> constexpr const char* TypeName<int32_t> = "Int32";
+template <> constexpr const char* TypeName<uint32_t> = "UInt32";
+template <> constexpr const char* TypeName<int64_t> = "Int64";
+template <> constexpr const char* TypeName<uint64_t> = "UInt64";
+template <> constexpr const char* TypeName<float> = "Float";
+template <> constexpr const char* TypeName<double> = "Double";
+
+} // namespace traits
+
 //============================================================================//
 
 } // namespace sq

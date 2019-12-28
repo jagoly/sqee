@@ -354,46 +354,44 @@ void Armature::compute_ubo_data(const Pose& pose, Mat34F* out, uint len) const
     SQASSERT(boneCount == pose.size(), "bone count mismatch");
     SQASSERT(boneCount <= len, "too many bones for output buffer");
 
-    Vector<Mat4F> localMats; localMats.reserve(boneCount);
-    Vector<Mat4F> finalMats; finalMats.reserve(boneCount);
+    Vector<Mat4F> absMatrices;
+    absMatrices.reserve(boneCount);
 
     for (uint i = 0u; i < boneCount; ++i)
     {
         const Bone& bone = pose[i];
         const int32_t parentIndex = mBoneParents[i];
 
-        localMats.push_back(maths::transform(bone.offset, bone.rotation, bone.scale));
+        const Mat4F relMatrix = maths::transform(bone.offset, bone.rotation, bone.scale);
 
-        if (parentIndex >= 0)
-        {
-            localMats.back() = mBaseMats[uint(parentIndex)] * localMats.back() * mInverseMats[i];
-            finalMats.push_back(finalMats[uint(parentIndex)] * localMats.back());
-        }
-        else
-        {
-            localMats.back() = localMats.back() * mInverseMats[i];
-            finalMats.push_back(localMats.back());
-        }
+        if (parentIndex < 0) absMatrices.push_back(relMatrix);
+        else absMatrices.push_back(absMatrices[parentIndex] * relMatrix);
     }
 
     for (uint i = 0u; i < boneCount; ++i)
-        out[i] = Mat34F(maths::transpose(finalMats[i]));
+    {
+        const Mat4F skinMatrix = absMatrices[i] * mInverseMats[i];
+        out[i] = Mat34F(maths::transpose(skinMatrix));
+    }
 }
 
 //============================================================================//
 
-Mat4F Armature::compute_transform(const Pose& pose, const String& name) const
+Mat4F Armature::compute_transform(const Pose& pose, uint index) const
 {
-    const uint boneCount = uint(mRestPose.size());
-
-    SQASSERT(boneCount == pose.size(), "bone count mismatch");
-
-    const auto iter = algo::find(mBoneNames, name);
-    SQASSERT(iter != mBoneNames.end(), "invalid bone name");
-    const uint index = uint(std::distance(mBoneNames.begin(), iter));
+    SQASSERT(get_bone_count() == pose.size(), "bone count mismatch");
+    SQASSERT(index < pose.size(), "invalid bone index");
 
     const Bone& bone = pose[index];
-    const Mat4F local = maths::transform(bone.offset, bone.rotation, bone.scale);
+    const Mat4F localMat = maths::transform(bone.offset, bone.rotation, bone.scale);
 
-    return mBaseMats[index] * local;
+    return mBaseMats[index] * localMat;
+}
+
+Mat4F Armature::compute_transform(const Pose& pose, TinyString name) const
+{
+    const int8_t boneIndex = get_bone_index(name);
+    SQASSERT(boneIndex >= 0, "invalid bone name");
+
+    return compute_transform(pose, uint(boneIndex));
 }

@@ -7,6 +7,8 @@
 
 #ifndef SQEE_MSVC
 
+// sometimes, I really do want to know if floats are equal
+
 #define DISABLE_WARNING_FLOAT_EQUALITY \
 _Pragma("GCC diagnostic push") \
 _Pragma("GCC diagnostic ignored \"-Wfloat-equal\"")
@@ -14,10 +16,22 @@ _Pragma("GCC diagnostic ignored \"-Wfloat-equal\"")
 #define ENABLE_WARNING_FLOAT_EQUALITY \
 _Pragma("GCC diagnostic pop")
 
+// imgui colour macros use old style casts, I like this warning otherwise
+
+#define DISABLE_WARNING_OLD_STYLE_CAST \
+_Pragma("GCC diagnostic push") \
+_Pragma("GCC diagnostic ignored \"-Wold-style-cast\"")
+
+#define ENABLE_WARNING_OLD_STYLE_CAST \
+_Pragma("GCC diagnostic pop")
+
 #else
 
-#define DISABLE_FLOAT_EQUALITY_WARNING
-#define ENABLE_FLOAT_EQUALITY_WARNING
+#define DISABLE_WARNING_FLOAT_EQUALITY
+#define ENABLE_WARNING_FLOAT_EQUALITY
+
+#define DISABLE_WARNING_OLD_STYLE_CAST
+#define ENABLE_WARNING_OLD_STYLE_CAST
 
 #endif
 
@@ -86,9 +100,9 @@ _Pragma("GCC diagnostic pop")
 
 //============================================================================//
 
-#define SWITCH(Value) { using SwitchValueT = std::decay_t<decltype(Value)>; switch (Value)
+#define SWITCH(Value) do { using SwitchValueT = std::decay_t<decltype(Value)>; switch (Value)
 
-#define SWITCH_END }
+#define SWITCH_END } while (false)
 
 #define SQEE_CASE_INNER(Case) case SwitchValueT::Case:
 
@@ -102,25 +116,28 @@ _Pragma("GCC diagnostic pop")
 
 #define SQEE_ENUM_FROM_STRING_INNER(Case) if (str == #Case) return EnumType::Case;
 
-#define SQEE_ENUM_COUNT_INNER(Case) BaseType(EnumType::Case),
+#define SQEE_ENUM_LAST_VALUE_INNER(Case) ,BaseType(EnumType::Case)
 
 #define SQEE_ENUM_JSON_CONVERSION_DEFINITIONS_INNER(Case) \
     if (ref == #Case) { e = EnumType::Case; return; }
 
-#define SQEE_ENUM_HELPER(Type, ...) \
+#define SQEE_ENUM_HELPER(Type, First, ...) \
 template<> struct sq::EnumHelper<Type> \
 { \
     using EnumType = Type; \
     using BaseType = std::underlying_type_t<Type>; \
     static const char* to_string(Type value) \
     { \
-        switch (value) { SQEE_FOR_EACH(SQEE_ENUM_TO_STRING_INNER, __VA_ARGS__) } \
+        switch (value) { SQEE_FOR_EACH(SQEE_ENUM_TO_STRING_INNER, First, __VA_ARGS__) } \
         throw std::invalid_argument(build_string("enum ", #Type, " to string")); \
     } \
     static Type from_string(std::string_view str) \
     { \
-        SQEE_FOR_EACH(SQEE_ENUM_FROM_STRING_INNER, __VA_ARGS__) \
+        SQEE_FOR_EACH(SQEE_ENUM_FROM_STRING_INNER, First, __VA_ARGS__) \
         throw std::invalid_argument(build_string("enum ", #Type, " from string '", str, "'")); \
     } \
-    static constexpr BaseType count = va_max(SQEE_FOR_EACH(SQEE_ENUM_COUNT_INNER, __VA_ARGS__) BaseType(0)) + 1; \
+    static constexpr BaseType begin() { return BaseType(Type::First); } \
+    static constexpr BaseType end() { return (0 SQEE_FOR_EACH(SQEE_ENUM_LAST_VALUE_INNER, __VA_ARGS__)) + 1; } \
 };
+
+// todo: make EnumHelper properly iterable, so we can do (Type value : sq::EnumHelper<Type>())

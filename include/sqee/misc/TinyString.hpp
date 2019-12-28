@@ -48,9 +48,19 @@ public: //====================================================//
         return Traits::compare(mData, other.mData, 16u) == 0;
     }
 
+    constexpr bool operator!=(const TinyString& other) const noexcept
+    {
+        return Traits::compare(mData, other.mData, 16u) != 0;
+    }
+
     constexpr bool operator<(const TinyString& other) const noexcept
     {
         return Traits::compare(mData, other.mData, 16u) == -1;
+    }
+
+    constexpr bool operator>(const TinyString& other) const noexcept
+    {
+        return Traits::compare(mData, other.mData, 16u) == +1;
     }
 
     //--------------------------------------------------------//
@@ -60,9 +70,19 @@ public: //====================================================//
         return other.compare(mData) == 0;
     }
 
+    bool operator!=(const String& other) const noexcept
+    {
+        return other.compare(mData) != 0;
+    }
+
     bool operator<(const String& other) const noexcept
     {
         return other.compare(mData) == -1;
+    }
+
+    bool operator>(const String& other) const noexcept
+    {
+        return other.compare(mData) == +1;
     }
 
     //--------------------------------------------------------//
@@ -89,6 +109,11 @@ private: //===================================================//
 
     char mData[16u] {};
 };
+
+inline const char* to_c_string(const TinyString& arg)
+{
+    return arg.c_str();
+}
 
 inline std::ostream& operator<<(std::ostream& os, const TinyString& arg) { return os << arg.c_str(); }
 

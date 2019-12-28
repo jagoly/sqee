@@ -60,21 +60,21 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    constexpr iterator begin() noexcept { return data();
-                                        }
+    constexpr iterator begin() noexcept { return data(); }
+
     constexpr const_iterator begin() const noexcept { return data(); }
 
     constexpr iterator end() noexcept { return data() + size(); }
 
     constexpr const_iterator end() const noexcept { return data() + size(); }
 
-    reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
+    constexpr reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
 
-    const_reverse_iterator rbegin() const noexcept { return const_reverse_iterator(end()); }
+    constexpr const_reverse_iterator rbegin() const noexcept { return const_reverse_iterator(end()); }
 
-    reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
+    constexpr reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
 
-    const_reverse_iterator rend() const noexcept { return const_reverse_iterator(begin()); }
+    constexpr const_reverse_iterator rend() const noexcept { return const_reverse_iterator(begin()); }
 
     constexpr const_iterator cbegin() const noexcept { return begin(); }
 
@@ -83,7 +83,7 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     template <class... Args>
-    void emplace_back(Args&&... args)
+    constexpr void emplace_back(Args&&... args)
     {
         SQASSERT(!full(), "vector is full");
         new (end()) T(std::forward<Args>(args)...);
@@ -97,11 +97,30 @@ public: //====================================================//
         emplace_back(std::forward<U>(value));
     }
 
-    void pop_back()
+    constexpr void pop_back()
     {
         SQASSERT(!empty(), "vector is empty");
         std::prev(end())->~T();
         --mSize;
+    }
+
+    template <class U>
+    constexpr iterator insert(iterator iter, U&& value)
+    {
+        SQASSERT(!full(), "vector is full");
+        SQASSERT(iter >= begin() && iter <= end(), "iter out of range");
+        std::move_backward(iter, end(), end()+1);
+        new (iter) T(std::forward<U>(value));
+        ++mSize;
+        return iter;
+    }
+
+    constexpr iterator erase(iterator iter)
+    {
+        SQASSERT(iter >= begin() && iter < end(), "iter out of range");
+        std::rotate(iter, iter + 1, end());
+        pop_back();
+        return iter;
     }
 
     constexpr void clear() noexcept
@@ -154,13 +173,13 @@ public: //====================================================//
     {
 
         SQASSERT(!empty(), "calling back on an empty vector");
-        return data()(size() - 1u);
+        return data()[size() - 1u];
     }
 
     constexpr const T& back() const noexcept
     {
         SQASSERT(!empty(), "calling back on an empty vector");
-        return data()(size() - 1u);
+        return data()[size() - 1u];
     }
 
     //--------------------------------------------------------//
@@ -186,8 +205,8 @@ public: //====================================================//
     {
         static_assert(std::is_convertible_v<U, T>);
         SQASSERT(il.size() <= Capacity, "init list exceeds capacity");
-        for (size_t i = 0; i < il.size(); ++i)
-            emplace_back(index(il, i));
+        for (const U& elem : il)
+            emplace_back(elem);
     }
 
     //--------------------------------------------------------//
@@ -208,6 +227,18 @@ public: //====================================================//
         for (size_type i = 0u; i < other.size(); ++i)
             emplace_back(std::move(other[i]));
         return *this;
+    }
+
+    //--------------------------------------------------------//
+
+    constexpr bool operator==(const StaticVector& other) const
+    {
+        return std::equal(begin(), end(), other.begin(), other.end());
+    }
+
+    constexpr bool operator!=(const StaticVector& other) const
+    {
+        return !std::equal(begin(), end(), other.begin(), other.end());
     }
 };
 

@@ -76,12 +76,16 @@ public: //====================================================//
 
     void compute_ubo_data(const Pose& pose, Mat34F* out, uint len) const;
 
-    Mat4F compute_transform(const Pose& pose, const String& name) const;
+    /// Compute the transform of a bone given it's index
+    Mat4F compute_transform(const Pose& pose, uint index) const;
+
+    /// Compute the transform of a bone given it's name
+    Mat4F compute_transform(const Pose& pose, TinyString name) const;
 
 private: //===================================================//
 
     Vector<TinyString> mBoneNames;
-    Vector<int32_t> mBoneParents;
+    Vector<int8_t> mBoneParents;
 
     Vector<Mat4F> mBaseMats;
     Vector<Mat4F> mInverseMats;

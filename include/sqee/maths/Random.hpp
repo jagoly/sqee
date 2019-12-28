@@ -4,54 +4,83 @@
 
 #include <sqee/misc/Builtins.hpp>
 #include <sqee/maths/Builtins.hpp>
+#include <sqee/misc/StaticVector.hpp>
 
 namespace sq::maths {
 
 //============================================================================//
 
-template <class T> struct RandomScalar
+/// Vector version of std::uniform_int_distribution / std::uniform_real_distribution
+template <class VecST>
+struct UniformVectorDistribution
 {
-    static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>);
+    constexpr static const int Size = traits::VecSize<VecST>;
+    using Type = traits::VecType<VecST>;
 
-    using DistType = std::conditional_t < std::is_integral_v<T>,
-                     std::uniform_int_distribution<T>, std::uniform_real_distribution<T> >;
+    using DistType =
+        std::conditional_t<std::is_integral_v<Type>, std::uniform_int_distribution<Type>,
+        std::conditional_t<std::is_floating_point_v<Type>, std::uniform_real_distribution<Type>,
+    void>>;
 
-    RandomScalar(T min, T max) : min(min), max(max)
-    { SQASSERT(min <= max, ""); }
-
-    template <class Generator>
-    T operator()(Generator& gen) { return DistType(min, max)(gen); }
-
-    const T min, max;
-};
-
-template<class T> RandomScalar(T, T) -> RandomScalar<T>;
-
-//============================================================================//
-
-template <int S, class T> struct RandomVector
-{
-    static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>);
-
-    using DistType = std::conditional_t < std::is_integral_v<T>,
-                     std::uniform_int_distribution<T>, std::uniform_real_distribution<T> >;
-
-    RandomVector(Vector<S, T> min, Vector<S, T> max) : min(min), max(max)
-    { SQASSERT(maths::all_less_equal(min, max), ""); }
-
-    template <class Generator>
-    Vector<S, T> operator()(Generator& gen)
+    UniformVectorDistribution()
     {
-        Vector<S, T> result;
-        for (int i = 0; i < S; ++i)
-            result[i] = DistType(min[i], max[i])(gen);
+        for (int i = 0; i < Size; ++i)
+            distros[i] = DistType(Type(0), Type(1));
+    }
+
+    UniformVectorDistribution(const VecST& min, const VecST& max)
+    {
+        for (int i = 0; i < Size; ++i)
+            distros[i] = DistType(min[i], max[i]);
+    }
+
+    template <class Generator>
+    VecST operator()(Generator& gen)
+    {
+        VecST result(nullptr);
+        for (int i = 0; i < Size; ++i)
+            result[i] = distros[i](gen);
         return result;
     }
 
-    const Vector<S, T> min, max;
+    DistType distros[Size];
 };
 
-template<int S, class T> RandomVector(Vector<S, T>, Vector<S, T>) -> RandomVector<S, T>;
+//============================================================================//
+
+/// Callable object for generating random values within a range.
+template <class T>
+struct RandomRange
+{
+    using DistType =
+        std::conditional_t<std::is_integral_v<T>, std::uniform_int_distribution<T>,
+        std::conditional_t<std::is_floating_point_v<T>, std::uniform_real_distribution<T>,
+        UniformVectorDistribution<T>
+    >>;
+
+    RandomRange() : data { T(0), T(0) } {}
+
+    RandomRange(T min, T max) : min(min), max(max) {}
+
+    template <class Generator> T operator()(Generator& gen)
+    {
+        return DistType(min, max)(gen);
+    }
+
+    constexpr bool operator==(const RandomRange& other) const
+    {
+        return min == other.min && max == other.max;
+    }
+
+    constexpr bool operator!=(const RandomRange& other) const
+    {
+        return min != other.min || max != other.max;
+    }
+
+    union { T data[2]; struct { T min, max; }; };
+};
+
+template<class T> RandomRange(T, T) -> RandomRange<T>;
 
 //============================================================================//
 

@@ -1,4 +1,4 @@
-// Copyright(c) 2018 James Gangur
+﻿// Copyright(c) 2018 James Gangur
 // Part of https://github.com/jagoly/sqee
 
 #pragma once
@@ -12,6 +12,11 @@
 namespace ImGui {
 
 //============================================================================//
+
+// Like DragIntRange2 or DragFloatRange2, but supporting other types
+SQEE_API bool DragScalarRange2(const char* label, ImGuiDataType data_type, void* p_current_min, void* p_current_max, float v_speed, const void* p_min, const void* p_max, const char* format = NULL, float power = 1.0f);
+
+//----------------------------------------------------------------------------//
 
 constexpr const int FONT_REGULAR = 0;
 constexpr const int FONT_BOLD    = 1;
@@ -37,17 +42,17 @@ inline void HoverTooltip(const char* text)
 
 inline float FromScreenRight(float offset)
 {
-    return GetIO().DisplaySize.x - offset;
+    return ImGui::GetIO().DisplaySize.x - offset;
 }
 
 inline float FromScreenBottom(float offset)
 {
-    return GetIO().DisplaySize.y - offset;
+    return ImGui::GetIO().DisplaySize.y - offset;
 }
 
 inline void Text(const std::string& text)
 {
-    TextUnformatted(text.c_str());
+    ImGui::TextUnformatted(text.c_str());
 }
 
 //----------------------------------------------------------------------------//
@@ -66,89 +71,123 @@ SQEE_API DialogResult DialogConfirmation(const char* title, const char* message)
 /// Show a little button with a cross on it. TODO: actually show the label
 SQEE_API bool CloseButton(const char* label);
 
-//----------------------------------------------------------------------------//
-
-#define DEFINE_IMGUI_INPUT_FUNCS_INT(Type, Suffix, Format) \
-inline bool InputValue(const char* label, Type& ref, Type step) { \
-    return InputScalar(label, ImGuiDataType_##Suffix, &ref, step > 0 ? &step : nullptr, nullptr, Format); }
-
-#define DEFINE_IMGUI_INPUT_FUNCS_FLOAT(Type, Suffix) \
-inline bool InputValue(const char* label, Type& ref, Type step, char precision) { \
-    const char format[5] = { '%', '.', precision, 'f', 0 }; \
-    return InputScalar(label, ImGuiDataType_##Suffix, &ref, step > 0 ? &step : nullptr, nullptr, format); }
-
-#define DEFINE_IMGUI_INPUT_FUNCS_SMALL_INT(Type) \
-inline bool InputValue(const char* label, Type& ref, Type step) { \
-    int32_t temp = static_cast<int32_t>(ref); \
-    const bool result = InputValue(label, temp, step); \
-    ref = static_cast<Type>(temp); \
-    return result; }
-
-#define DEFINE_IMGUI_INPUT_FUNCS_VEC_INT(Size, Type, Suffix, Format) \
-inline bool InputVector(const char* label, sq::maths::Vector<Size, Type>& ref) { \
-    return InputScalarN(label, ImGuiDataType_##Suffix, ref.data, Size, nullptr, nullptr, Format); }
-
-#define DEFINE_IMGUI_INPUT_FUNCS_VEC_FLOAT(Size, Type, Suffix) \
-inline bool InputVector(const char* label, sq::maths::Vector<Size, Type>& ref, char precision) { \
-    const char format[5] = { '%', '.', precision, 'f', 0 }; \
-    return InputScalarN(label, ImGuiDataType_##Suffix, ref.data, Size, nullptr, nullptr, format); }
-
-DEFINE_IMGUI_INPUT_FUNCS_INT(int32_t, S32, "%d")
-DEFINE_IMGUI_INPUT_FUNCS_INT(uint32_t, U32, "%u")
-
-DEFINE_IMGUI_INPUT_FUNCS_INT(int64_t, S64, "%lld")
-DEFINE_IMGUI_INPUT_FUNCS_INT(uint64_t, U64, "%llu")
-
-DEFINE_IMGUI_INPUT_FUNCS_FLOAT(float, Float)
-DEFINE_IMGUI_INPUT_FUNCS_FLOAT(double, Double)
-
-DEFINE_IMGUI_INPUT_FUNCS_SMALL_INT(int8_t)
-DEFINE_IMGUI_INPUT_FUNCS_SMALL_INT(uint8_t)
-
-DEFINE_IMGUI_INPUT_FUNCS_SMALL_INT(int16_t)
-DEFINE_IMGUI_INPUT_FUNCS_SMALL_INT(uint16_t)
-
-DEFINE_IMGUI_INPUT_FUNCS_VEC_INT(2, int, S32, "%d")
-DEFINE_IMGUI_INPUT_FUNCS_VEC_INT(3, int, S32, "%d")
-DEFINE_IMGUI_INPUT_FUNCS_VEC_INT(4, int, S32, "%d")
-
-DEFINE_IMGUI_INPUT_FUNCS_VEC_INT(2, uint, U32, "%u")
-DEFINE_IMGUI_INPUT_FUNCS_VEC_INT(3, uint, U32, "%u")
-DEFINE_IMGUI_INPUT_FUNCS_VEC_INT(4, uint, U32, "%u")
-
-DEFINE_IMGUI_INPUT_FUNCS_VEC_FLOAT(2, float, Float)
-DEFINE_IMGUI_INPUT_FUNCS_VEC_FLOAT(3, float, Float)
-DEFINE_IMGUI_INPUT_FUNCS_VEC_FLOAT(4, float, Float)
-
-#undef DEFINE_IMGUI_INPUT_FUNCS_INT
-#undef DEFINE_IMGUI_INPUT_FUNCS_FLOAT
-#undef DEFINE_IMGUI_INPUT_FUNCS_SMALL_INT
-#undef DEFINE_IMGUI_INPUT_FUNCS_VEC_INT
-#undef DEFINE_IMGUI_INPUT_FUNCS_VEC_FLOAT
+/// Input for a minimum and maximum hue.
+SQEE_API bool InputRangeHue(const char* label, float& min, float& max);
 
 //----------------------------------------------------------------------------//
 
-template <class EnumType>
-inline bool InputSqeeEnumCombo(const char* label, EnumType& ref, ImGuiComboFlags flags)
+template <class Type>
+constexpr inline ImGuiDataType_ impl_get_data_type()
 {
-    bool result = false;
+    if (std::is_same_v<Type, int8_t>)   return ImGuiDataType_S8;
+    if (std::is_same_v<Type, uint8_t>)  return ImGuiDataType_U8;
+    if (std::is_same_v<Type, int16_t>)  return ImGuiDataType_S16;
+    if (std::is_same_v<Type, uint16_t>) return ImGuiDataType_U16;
+    if (std::is_same_v<Type, int32_t>)  return ImGuiDataType_S32;
+    if (std::is_same_v<Type, uint32_t>) return ImGuiDataType_U32;
+    if (std::is_same_v<Type, int64_t>)  return ImGuiDataType_S64;
+    if (std::is_same_v<Type, uint64_t>) return ImGuiDataType_U64;
+    if (std::is_same_v<Type, float>)    return ImGuiDataType_Float;
+    if (std::is_same_v<Type, double>)   return ImGuiDataType_Double;
+}
 
-    if (ImGui::BeginCombo(label, sq::enum_to_string(ref), flags))
+template <class Type>
+SQEE_API bool InputValue(const char* label, Type& ref, decltype(Type()) step = 0, const char* format = nullptr);
+
+//template <class Type>
+//SQEE_API bool InputValue(const char* label, Type& ref, decltype(Type()) min, decltype(Type()) max, decltype(Type()) step = 0, const char* format = nullptr);
+
+//template <class Type>
+//SQEE_API bool DragValue(const char* label, Type& ref, float speed, const char* format = nullptr);
+
+template <class Type>
+SQEE_API bool DragValue(const char* label, Type& ref, decltype(Type()) min, decltype(Type()) max, float speed, const char* format = nullptr);
+
+template <class Type>
+SQEE_API bool SliderValue(const char* label, Type& ref, decltype(Type()) min, decltype(Type()) max, const char* format = nullptr);
+
+template <class Type>
+SQEE_API bool InputValueRange2(const char* label, Type& refMin, Type& refMax, decltype(Type()) step = 0, const char* format = nullptr);
+
+//template <class Type>
+//SQEE_API bool InputValueRange2(const char* label, Type& refMin, Type& refMax, decltype(Type()) min, decltype(Type()) max, decltype(Type()) step = 0, const char* format = nullptr);
+
+//template <class Type>
+//SQEE_API bool DragValueRange2(const char* label, Type& refMin, Type& refMax, float speed, const char* format = nullptr);
+
+template <class Type>
+SQEE_API bool DragValueRange2(const char* label, Type& refMin, Type& refMax, decltype(Type()) min, decltype(Type()) max, float speed, const char* format = nullptr);
+
+template <class Type>
+SQEE_API bool SliderValueRange2(const char* label, Type& refMin, Type& refMax, decltype(Type()) min, decltype(Type()) max, const char* format = nullptr);
+
+template <int Size, class Type>
+inline bool InputVector(const char* label, sq::maths::Vector<Size, Type>& ref, decltype(Type()) step = 0, const char* format = nullptr)
+{
+    constexpr const auto dataType = impl_get_data_type<Type>();
+    auto temp = ref;
+    ImGui::InputScalarN(label, dataType, temp.data, Size, step > 0 ? &step : nullptr, nullptr, format);
+    const bool changed = IsItemDeactivatedAfterEdit();
+    if (changed) ref = temp;
+    return changed;
+}
+
+//----------------------------------------------------------------------------//
+
+/// C++ style API for combo boxes. If none is given, it will be listed as index -1.
+/// sq::to_c_string(Container::value_type) must be defined.
+template <class Container, class Index>
+inline bool ComboPlus(const char* label, const Container& container, Index& ref, const char* none = nullptr, ImGuiComboFlags flags = 0)
+{
+    // todo: unsigned types would be fine if none is not given
+    static_assert (std::is_signed_v<Index>, "index type must be signed");
+
+    const Index oldValue = ref;
+
+    const auto currentItem = ref == -1 ? none : sq::to_c_string(*std::next(container.begin(), ref));
+    if (ImGui::BeginCombo(label, currentItem, flags))
     {
-        for (int i = 0; i < sq::enum_count_v<EnumType>; ++i)
-            if (ImGui::Selectable(sq::enum_to_string(EnumType(i))))
-                ref = EnumType(i), result = true;
+        if (none != nullptr && ImGui::Selectable(none))
+            ref = -1;
+
+        Index index = 0;
+        for (auto iter = container.begin(); iter != container.end(); ++iter, ++index)
+            if (ImGui::Selectable(sq::to_c_string(*iter)))
+                ref = index;
 
         ImGui::EndCombo();
     }
 
-    return result;
+    // only return true if new selection has changed, unlike ImGui::Combo
+    return ref != oldValue;
 }
 
+/// Combo box for an enum value. For use with the SQEE_ENUM_HELPER macro.
+template <class EnumType>
+inline bool ComboEnum(const char* label, EnumType& ref, ImGuiComboFlags flags = 0)
+{
+    const EnumType oldValue = ref;
+
+    if (ImGui::BeginCombo(label, sq::enum_to_string(ref), flags))
+    {
+        for (auto i = sq::EnumHelper<EnumType>::begin(); i != sq::EnumHelper<EnumType>::end(); ++i)
+            if (ImGui::Selectable(sq::enum_to_string(EnumType(i))))
+                ref = EnumType(i);
+
+        ImGui::EndCombo();
+    }
+
+    // only return true if new selection is different, unlike ImGui::Combo
+    return ref != oldValue;
+}
+
+//----------------------------------------------------------------------------//
+
+/// Assign ref to value when pressed.
 template <class Type>
 inline bool RadioButton(const char* label, Type& ref, Type value)
 {
-    const bool pressed = RadioButton(label, ref == value);
+    const bool pressed = ImGui::RadioButton(label, ref == value);
     if (pressed == true) ref = value;
 
     return pressed;
