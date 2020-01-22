@@ -19,18 +19,19 @@ FrameBuffer::FrameBuffer() : mContext(Context::get())
 
 //============================================================================//
 
-FrameBuffer::FrameBuffer(FrameBuffer&& other) : mContext(other.mContext)
+FrameBuffer::FrameBuffer(FrameBuffer&& other) noexcept
+    : mContext(other.mContext)
 {
     mContext.impl_reset_FrameBuffer(&other, this);
     mHandle = other.mHandle; other.mHandle = 0u;
 }
 
-FrameBuffer& FrameBuffer::operator=(FrameBuffer&& other)
+FrameBuffer& FrameBuffer::operator=(FrameBuffer&& other) noexcept
 { std::swap(*this, other); return *this; }
 
 //============================================================================//
 
-FrameBuffer::~FrameBuffer()
+FrameBuffer::~FrameBuffer() noexcept
 {
     mContext.impl_reset_FrameBuffer(this);
     gl::DeleteFramebuffers(1, &mHandle);

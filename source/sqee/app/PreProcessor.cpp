@@ -51,18 +51,10 @@ void PreProcessor::update_header(const String& key, const String& string)
 
 String PreProcessor::process(const String& path, const String& prelude) const
 {
-    const String fullPath = [&]()
-    {
-        const bool isAbsolute = ( path.front() == '/' );
-        const bool hasExtension = !extension_from_path(path).empty();
+    const auto fullPath = compute_resource_path("shaders/", path, {"glsl"});
+    if (!fullPath.has_value()) log_error("Failed to find shader '%s'", path);
 
-        if (!isAbsolute && !hasExtension) return build_string("shaders/", path, ".glsl");
-        if (!isAbsolute)                  return build_string("shaders/", path);
-        if (!hasExtension)                return build_string(path, ".glsl");
-        return path;
-    }();
-
-    const String fullString = get_string_from_file(fullPath);
+    const String fullString = get_string_from_file(*fullPath);
 
     String source = "#version 330 core\n"
                     "#extension GL_ARB_shading_language_420pack : enable\n"

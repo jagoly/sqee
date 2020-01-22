@@ -140,6 +140,9 @@ struct Impl_Load_Image : NonCopyable
         else if (check_file_exists(path + ".jpg")) path += ".jpg";
         else log_error("Failed to find image '%s'", path);
 
+        //const auto fullPath = compute_resource_path("assets/", path, {".png", ".jpg"});
+        //if (!fullPath.has_value()) log_error("Failed to find texture '%s'", path);
+
         //--------------------------------------------------------//
 
         const auto& meta = impl_Format_Meta[uint8_t(format)];
@@ -152,7 +155,9 @@ struct Impl_Load_Image : NonCopyable
         int channels = 0;
 
         data = stbi_load(path.c_str(), &size.x, &size.y, &channels, 0);
-        log_assert(data != NULL, "Failed to load image from %s", path);
+        log_assert(data != NULL, "Error loading image from '%s'", path);
+        //data = stbi_load(fullPath->c_str(), &size.x, &size.y, &channels, 0);
+        //log_assert(data != NULL, "Error loading image from '%s'", *fullPath);
 
         SQASSERT(channels == meta.channels, "");
 

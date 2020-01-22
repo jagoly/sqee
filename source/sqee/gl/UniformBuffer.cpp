@@ -16,7 +16,8 @@ UniformBuffer::UniformBuffer() : mContext(Context::get()) {}
 
 //============================================================================//
 
-UniformBuffer::UniformBuffer(UniformBuffer&& other) : mContext(other.mContext)
+UniformBuffer::UniformBuffer(UniformBuffer&& other) noexcept
+    : mContext(other.mContext)
 {
     mContext.impl_reset_UniformBuffer(&other, this);
 
@@ -27,12 +28,12 @@ UniformBuffer::UniformBuffer(UniformBuffer&& other) : mContext(other.mContext)
     other.mHandle = 0u;
 }
 
-UniformBuffer& UniformBuffer::operator=(UniformBuffer&& other)
+UniformBuffer& UniformBuffer::operator=(UniformBuffer&& other) noexcept
 { std::swap(*this, other); return *this; }
 
 //============================================================================//
 
-UniformBuffer::~UniformBuffer()
+UniformBuffer::~UniformBuffer() noexcept
 {
     mContext.impl_reset_UniformBuffer(this);
 

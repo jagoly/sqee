@@ -30,6 +30,7 @@ protected: //=================================================//
     //--------------------------------------------------------//
 
     void decrement() { if (--count == 0u) uptr.reset(); }
+
     bool loaded() const { return uptr != nullptr; }
 
     //--------------------------------------------------------//
@@ -51,17 +52,19 @@ class Handle final
 {
 public: //====================================================//
 
+    static_assert(std::is_nothrow_destructible_v<Type>);
+
     /// Default Constructor.
-    Handle() : mResPtr(nullptr) {}
+    Handle() noexcept : mResPtr(nullptr) {}
 
     /// Copy Constructor.
-    Handle(const Handle& other) { if ((mResPtr = other.mResPtr)) ++mResPtr->count; }
+    Handle(const Handle& other) noexcept { if ((mResPtr = other.mResPtr)) ++mResPtr->count; }
 
     /// Assignment Operator.
-    Handle& operator=(Handle other) { std::swap(mResPtr, other.mResPtr); return *this; }
+    Handle& operator=(Handle other) noexcept { std::swap(mResPtr, other.mResPtr); return *this; }
 
     /// Destructor.
-    ~Handle() { if (mResPtr != nullptr) mResPtr->decrement(); }
+    ~Handle() noexcept { if (mResPtr != nullptr) mResPtr->decrement(); }
 
     //--------------------------------------------------------//
 

@@ -17,11 +17,11 @@ public: //====================================================//
 
     Program(); ///< Constructor.
 
-    Program(Program&& other); ///< Move Constructor.
+    Program(Program&& other) noexcept; ///< Move Constructor.
 
-    Program& operator=(Program&& other); ///< Move Assignment.
+    Program& operator=(Program&& other) noexcept; ///< Move Assignment.
 
-    ~Program(); ///< Destructor.
+    ~Program() noexcept; ///< Destructor.
 
     //--------------------------------------------------------//
 

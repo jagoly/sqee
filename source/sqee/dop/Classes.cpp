@@ -25,7 +25,7 @@ void dop::Group::clear()
 
 void dop::Group::insert(int32_t id)
 {
-    SQASSERT(!algo::exists(mIds, id), "id already used");
+    SQASSERT(algo::none_of(mIds, algo::pred_equal_to(id)), "id already used");
 
     if (mIsSorted == true && size() != 0u)
         mIsSorted = mIds.back() < id;

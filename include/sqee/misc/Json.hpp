@@ -64,9 +64,20 @@ void to_json(JsonValue& j, const RandomRange<Type>& rr)
 
 } // namespace maths
 
-SQEE_API void from_json(const JsonValue&, TinyString&);
+template <size_t Capacity>
+void from_json(const JsonValue& j, FixedCapacityString<Capacity>& str)
+{
+    if (j.is_string() == false || j.size() > TinyString::capacity())
+        std::invalid_argument(sq::build_string("from_json: ", j.dump(), " -> TinyString"));
 
-SQEE_API void to_json(JsonValue&, const TinyString&);
+    str = j.get_ref<const String&>();
+}
+
+template <size_t Capacity>
+void to_json(JsonValue& j, const FixedCapacityString<Capacity>& str)
+{
+    j = String(str);
+}
 
 //============================================================================//
 

@@ -48,11 +48,11 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    Texture(Texture&& other); ///< Move Constructor.
+    Texture(Texture&& other) noexcept; ///< Move Constructor.
 
-    Texture& operator=(Texture&& other); ///< Move Assignment.
+    Texture& operator=(Texture&& other) noexcept; ///< Move Assignment.
 
-    ~Texture() { delete_object(); } ///< Destructor.
+    ~Texture() noexcept { delete_object(); } ///< Destructor.
 
     //--------------------------------------------------------//
 

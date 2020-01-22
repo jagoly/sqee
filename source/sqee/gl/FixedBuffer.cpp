@@ -18,7 +18,7 @@ FixedBuffer::FixedBuffer()
 
 //============================================================================//
 
-FixedBuffer::FixedBuffer(FixedBuffer&& other)
+FixedBuffer::FixedBuffer(FixedBuffer&& other) noexcept
 {
     mBufferSize = other.mBufferSize;
     mHandle = other.mHandle;
@@ -27,12 +27,12 @@ FixedBuffer::FixedBuffer(FixedBuffer&& other)
     other.mHandle = 0u;
 }
 
-FixedBuffer& FixedBuffer::operator=(FixedBuffer&& other)
+FixedBuffer& FixedBuffer::operator=(FixedBuffer&& other) noexcept
 { std::swap(*this, other); return *this; }
 
 //============================================================================//
 
-FixedBuffer::~FixedBuffer()
+FixedBuffer::~FixedBuffer() noexcept
 {
     gl::DeleteBuffers(1, &mHandle);
 }

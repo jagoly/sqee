@@ -23,6 +23,11 @@ void Mesh::load_from_file(const String& path, bool swapYZ)
     if (check_file_exists(path)) impl_load_ascii(path);
     else if (auto _path = path + ".sqm"; check_file_exists(_path)) impl_load_ascii(_path);
     else log_error("Failed to find mesh '%s'", path);
+
+    //const auto fullPath = compute_resource_path("assets/", path, {"sqm"});
+    //if (!fullPath.has_value()) log_error("Failed to find mesh '%s'", path);
+
+    //impl_load_ascii(*fullPath);
 }
 
 //============================================================================//

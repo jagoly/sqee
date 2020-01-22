@@ -85,7 +85,10 @@ struct TokenisedString : sq::MoveOnly
 /// Split a StringView into a vector of tokens.
 SQEE_API Vector<StringView> tokenise_string_view(StringView sv, char dlm);
 
-/// Split a string into a vector of tokens.
+/// Split a StringView into a vector of lineNum, line pairs.
+SQEE_API Vector<Pair<uint, StringView>> tokenise_string_view_lines(StringView sv);
+
+/// Split a String into a vector of tokens.
 SQEE_API TokenisedString tokenise_string(String str, char dlm);
 
 //===========================================================================

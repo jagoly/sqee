@@ -14,17 +14,13 @@ class SQEE_API FixedBuffer final : private MoveOnly
 {
 public: //====================================================//
 
-    /// Constructor.
-    FixedBuffer();
+    FixedBuffer(); ///< Constructor.
 
-    /// Move Constructor.
-    FixedBuffer(FixedBuffer&& other);
+    FixedBuffer(FixedBuffer&& other) noexcept; ///< Move Constructor.
 
-    /// Move Assignment.
-    FixedBuffer& operator=(FixedBuffer&& other);
+    FixedBuffer& operator=(FixedBuffer&& other) noexcept; ///< Move Assignment.
 
-    /// Destructor.
-    ~FixedBuffer();
+    ~FixedBuffer() noexcept; ///< Destructor.
 
     //--------------------------------------------------------//
 

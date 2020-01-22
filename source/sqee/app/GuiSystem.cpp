@@ -155,10 +155,13 @@ GuiSystem::Implementation::Implementation(Window& window, InputDevices& inputDev
     io.KeyMap[ImGuiKey_PageDown]    = int(Keyboard_Key::PageDown);
     io.KeyMap[ImGuiKey_Home]        = int(Keyboard_Key::Home);
     io.KeyMap[ImGuiKey_End]         = int(Keyboard_Key::End);
+    io.KeyMap[ImGuiKey_Insert]      = int(Keyboard_Key::Insert);
     io.KeyMap[ImGuiKey_Delete]      = int(Keyboard_Key::Delete);
     io.KeyMap[ImGuiKey_Backspace]   = int(Keyboard_Key::BackSpace);
+    io.KeyMap[ImGuiKey_Space]       = int(Keyboard_Key::Space);
     io.KeyMap[ImGuiKey_Enter]       = int(Keyboard_Key::Return);
     io.KeyMap[ImGuiKey_Escape]      = int(Keyboard_Key::Escape);
+    //io.KeyMap[ImGuiKey_KeyPadEnter] = int(Keyboard_Key::);
     io.KeyMap[ImGuiKey_A]           = int(Keyboard_Key::A);
     io.KeyMap[ImGuiKey_C]           = int(Keyboard_Key::C);
     io.KeyMap[ImGuiKey_V]           = int(Keyboard_Key::V);
@@ -166,77 +169,125 @@ GuiSystem::Implementation::Implementation(Window& window, InputDevices& inputDev
     io.KeyMap[ImGuiKey_Y]           = int(Keyboard_Key::Y);
     io.KeyMap[ImGuiKey_Z]           = int(Keyboard_Key::Z);
 
-    auto& style = imgui::GetStyle();
+    //--------------------------------------------------------//
 
-    style.Alpha              = 1.0f;         // default: 1.0
-    style.WindowPadding      = { 6, 6 };     // default: 8, 8
-    style.WindowRounding     = 8;            // default: 7
-    style.WindowBorderSize   = 0;            // default: 0
-    style.WindowMinSize      = { 32, 32 };   // default: 32, 32
-    style.WindowTitleAlign   = { 0.0, 0.5 }; // default: 0.0, 0.5
-    style.ChildRounding      = 4;            // default: 0
-    style.ChildBorderSize    = 0;            // default: 0
-    style.PopupRounding      = 0;            // default: 0
-    style.PopupBorderSize    = 1;            // default: 1
-    style.FramePadding       = { 6, 6 };     // default: 4, 3
-    style.FrameRounding      = 4;            // default: 0
-    style.FrameBorderSize    = 0;            // default: 0
-    style.ItemSpacing        = { 6, 6 };     // default: 8, 4
-    style.ItemInnerSpacing   = { 6, 6 };     // default: 4, 4
-    style.TouchExtraPadding  = { 0, 0 };     // default: 0, 0
-    style.IndentSpacing      = 20;           // default: 21
-    style.ColumnsMinSpacing  = 6;            // default: 6
-    style.ScrollbarSize      = 16;           // default: 16
-    style.ScrollbarRounding  = 8;            // default: 9
-    style.GrabMinSize        = 8;            // default: 10
-    style.GrabRounding       = 4;            // default: 0
-    style.ButtonTextAlign    = { 0.5, 0.5 }; // default: 0.5, 0.5
-    style.AntiAliasedLines   = true;         // default: true
-    style.AntiAliasedFill    = true;         // default: true
+    auto& style = ImGui::GetStyle();
 
-    style.Colors[ImGuiCol_Text]                  = { 1.00f, 1.00f, 1.00f, 1.00f }; // 1.00f, 1.00f, 1.00f, 1.00f
-    style.Colors[ImGuiCol_TextDisabled]          = { 0.50f, 0.50f, 0.50f, 1.00f }; // 0.50f, 0.50f, 0.50f, 1.00f
-    style.Colors[ImGuiCol_WindowBg]              = { 0.10f, 0.10f, 0.10f, 0.75f }; // 0.06f, 0.06f, 0.06f, 0.94f
-    style.Colors[ImGuiCol_ChildBg]               = { 0.00f, 0.00f, 0.00f, 0.00f }; // 1.00f, 1.00f, 1.00f, 0.00f
-    style.Colors[ImGuiCol_PopupBg]               = { 0.15f, 0.15f, 0.15f, 0.75f }; // 0.08f, 0.08f, 0.08f, 0.94f
-    style.Colors[ImGuiCol_Border]                = { 0.80f, 0.80f, 0.80f, 0.50f }; // 0.43f, 0.43f, 0.50f, 0.50f
-    style.Colors[ImGuiCol_BorderShadow]          = { 0.00f, 0.00f, 0.00f, 0.00f }; // 0.00f, 0.00f, 0.00f, 0.00f
-    style.Colors[ImGuiCol_FrameBg]               = { 0.70f, 0.50f, 0.40f, 0.40f }; // 0.16f, 0.29f, 0.48f, 0.54f
-    style.Colors[ImGuiCol_FrameBgHovered]        = { 0.80f, 0.60f, 0.50f, 0.40f }; // 0.26f, 0.59f, 0.98f, 0.40f
-    style.Colors[ImGuiCol_FrameBgActive]         = { 0.60f, 0.40f, 0.30f, 0.40f }; // 0.26f, 0.59f, 0.98f, 0.67f
-    style.Colors[ImGuiCol_TitleBg]               = { 0.30f, 0.30f, 0.30f, 0.60f }; // 0.04f, 0.04f, 0.04f, 1.00f
-    style.Colors[ImGuiCol_TitleBgActive]         = { 0.25f, 0.25f, 0.25f, 0.80f }; // 0.16f, 0.29f, 0.48f, 1.00f
-    style.Colors[ImGuiCol_TitleBgCollapsed]      = { 0.35f, 0.35f, 0.35f, 0.40f }; // 0.00f, 0.00f, 0.00f, 0.51f
-    style.Colors[ImGuiCol_MenuBarBg]             = { 0.40f, 0.40f, 0.40f, 0.40f }; // 0.14f, 0.14f, 0.14f, 1.00f
-    style.Colors[ImGuiCol_ScrollbarBg]           = { 0.40f, 0.40f, 0.40f, 0.40f }; // 0.02f, 0.02f, 0.02f, 0.53f
-    style.Colors[ImGuiCol_ScrollbarGrab]         = { 0.60f, 0.60f, 0.60f, 0.40f }; // 0.31f, 0.31f, 0.31f, 1.00f
-    style.Colors[ImGuiCol_ScrollbarGrabHovered]  = { 0.70f, 0.70f, 0.70f, 0.40f }; // 0.41f, 0.41f, 0.41f, 1.00f
-    style.Colors[ImGuiCol_ScrollbarGrabActive]   = { 0.50f, 0.50f, 0.50f, 0.40f }; // 0.51f, 0.51f, 0.51f, 1.00f
-    style.Colors[ImGuiCol_CheckMark]             = { 0.90f, 0.90f, 0.90f, 0.50f }; // 0.26f, 0.59f, 0.98f, 1.00f
-    style.Colors[ImGuiCol_SliderGrab]            = { 1.00f, 1.00f, 1.00f, 0.30f }; // 0.24f, 0.52f, 0.88f, 1.00f
-    style.Colors[ImGuiCol_SliderGrabActive]      = { 0.80f, 0.50f, 0.50f, 1.00f }; // 0.26f, 0.59f, 0.98f, 1.00f
-    style.Colors[ImGuiCol_Button]                = { 0.80f, 0.50f, 0.30f, 0.60f }; // 0.26f, 0.59f, 0.98f, 0.40f
-    style.Colors[ImGuiCol_ButtonHovered]         = { 0.90f, 0.60f, 0.40f, 0.60f }; // 0.26f, 0.59f, 0.98f, 1.00f
-    style.Colors[ImGuiCol_ButtonActive]          = { 0.70f, 0.40f, 0.20f, 0.60f }; // 0.06f, 0.53f, 0.98f, 1.00f
-    style.Colors[ImGuiCol_Header]                = { 0.90f, 0.50f, 0.20f, 0.60f }; // 0.26f, 0.59f, 0.98f, 0.31f
-    style.Colors[ImGuiCol_HeaderHovered]         = { 1.00f, 0.60f, 0.30f, 0.60f }; // 0.26f, 0.59f, 0.98f, 0.80f
-    style.Colors[ImGuiCol_HeaderActive]          = { 0.80f, 0.40f, 0.10f, 0.60f }; // 0.26f, 0.59f, 0.98f, 1.00f
-    style.Colors[ImGuiCol_Separator]             = { 0.80f, 0.80f, 0.80f, 0.50f }; // 0.43f, 0.43f, 0.50f, 0.50f
-    style.Colors[ImGuiCol_SeparatorHovered]      = { 0.90f, 0.90f, 0.90f, 0.50f }; // 0.10f, 0.40f, 0.75f, 0.78f
-    style.Colors[ImGuiCol_SeparatorActive]       = { 0.70f, 0.70f, 0.70f, 0.50f }; // 0.10f, 0.40f, 0.75f, 1.00f
-    style.Colors[ImGuiCol_ResizeGrip]            = { 0.80f, 0.80f, 0.80f, 0.30f }; // 0.26f, 0.59f, 0.98f, 0.25f
-    style.Colors[ImGuiCol_ResizeGripHovered]     = { 0.80f, 0.80f, 0.80f, 0.40f }; // 0.26f, 0.59f, 0.98f, 0.67f
-    style.Colors[ImGuiCol_ResizeGripActive]      = { 0.80f, 0.80f, 0.80f, 0.45f }; // 0.26f, 0.59f, 0.98f, 0.95f
-    style.Colors[ImGuiCol_PlotLines]             = { 0.61f, 0.61f, 0.61f, 1.00f }; // 0.61f, 0.61f, 0.61f, 1.00f
-    style.Colors[ImGuiCol_PlotLinesHovered]      = { 1.00f, 0.43f, 0.35f, 1.00f }; // 1.00f, 0.43f, 0.35f, 1.00f
-    style.Colors[ImGuiCol_PlotHistogram]         = { 0.90f, 0.70f, 0.00f, 1.00f }; // 0.90f, 0.70f, 0.00f, 1.00f
-    style.Colors[ImGuiCol_PlotHistogramHovered]  = { 1.00f, 0.60f, 0.00f, 1.00f }; // 1.00f, 0.60f, 0.00f, 1.00f
-    style.Colors[ImGuiCol_TextSelectedBg]        = { 0.30f, 0.50f, 0.70f, 0.40f }; // 0.26f, 0.59f, 0.98f, 0.35f
-    style.Colors[ImGuiCol_DragDropTarget]        = { 1.00f, 1.00f, 0.00f, 0.90f }; // 1.00f, 1.00f, 0.00f, 0.90f
-    style.Colors[ImGuiCol_NavHighlight]          = { 0.26f, 0.59f, 0.98f, 1.00f }; // 0.26f, 0.59f, 0.98f, 1.00f
-    style.Colors[ImGuiCol_NavWindowingHighlight] = { 1.00f, 1.00f, 1.00f, 0.70f }; // 1.00f, 1.00f, 1.00f, 0.70f
-    style.Colors[ImGuiCol_NavWindowingDimBg]     = { 0.80f, 0.80f, 0.80f, 0.20f }; // 0.80f, 0.80f, 0.80f, 0.20f
-    style.Colors[ImGuiCol_ModalWindowDimBg]      = { 0.80f, 0.80f, 0.80f, 0.35f }; // 0.80f, 0.80f, 0.80f, 0.35f
+    // all of these values are floats, but any values written as ints here represent pixels
+
+    style.Alpha                    = 1.0;            // 1.0
+    style.WindowPadding            = { 6, 6 };       // 8, 8
+    style.WindowRounding           = 8;              // 7.0
+    style.WindowBorderSize         = 0;              // 1
+    style.WindowMinSize            = { 32, 32 };     // 32, 32
+    style.WindowTitleAlign         = { 0.0, 0.5 };   // 0.0, 0.5
+    style.WindowMenuButtonPosition = ImGuiDir_Left;  // ImGuiDir_Left
+    style.ChildRounding            = 4;              // 0
+    style.ChildBorderSize          = 0;              // 1
+    style.PopupRounding            = 0;              // 0
+    style.PopupBorderSize          = 1;              // 1
+    style.FramePadding             = { 6, 6 };       // 4, 3
+    style.FrameRounding            = 4;              // 0
+    style.FrameBorderSize          = 0;              // 0
+    style.ItemSpacing              = { 6, 6 };       // 8, 4
+    style.ItemInnerSpacing         = { 6, 6 };       // 4, 4
+    style.TouchExtraPadding        = { 0, 0 };       // 0, 0
+    style.IndentSpacing            = 20;             // 21
+    style.ColumnsMinSpacing        = 6;              // 6
+    style.ScrollbarSize            = 16;             // 14
+    style.ScrollbarRounding        = 8;              // 9
+    style.GrabMinSize              = 8;              // 10
+    style.GrabRounding             = 4;              // 0
+    style.TabRounding              = 4;              // 4
+    style.TabBorderSize            = 0;              // 0
+    style.ColorButtonPosition      = ImGuiDir_Right; // ImGuiDir_Right
+    style.ButtonTextAlign          = { 0.5, 0.5 }; // 0.5, 0.5
+    style.SelectableTextAlign      = { 0.0, 0.0 };   // 0.0, 0.0
+    style.DisplayWindowPadding     = { 20, 20 };     // 19, 19
+    style.DisplaySafeAreaPadding   = { 4, 4 };       // 3, 3
+    style.MouseCursorScale         = 1.0;            // 1.0
+    style.AntiAliasedLines         = true;           // true
+    style.AntiAliasedFill          = true;           // true
+    style.CurveTessellationTol     = 1.25;           // 1.25
+
+    //--------------------------------------------------------//
+
+    const auto get_style_colour = [](ImGuiCol_ colour) -> ImVec4
+    {
+        // by using a switch, we get warnings when ImGui adds a new enum
+
+        switch (colour) {
+
+        case ImGuiCol_Text:                  return { 1.0,  1.0,  1.0,  1.0  }; // 1.00, 1.00, 1.00, 1.00
+        case ImGuiCol_TextDisabled:          return { 0.5,  0.5,  0.5,  1.0  }; // 0.50, 0.50, 0.50, 1.00
+        case ImGuiCol_WindowBg:              return { 0.1,  0.1,  0.1,  0.75 }; // 0.06, 0.06, 0.06, 0.94
+        case ImGuiCol_ChildBg:               return { 0.0,  0.0,  0.0,  0.0  }; // 1.00, 1.00, 1.00, 0.00
+        case ImGuiCol_PopupBg:               return { 0.15, 0.15, 0.15, 0.75 }; // 0.08, 0.08, 0.08, 0.94
+        case ImGuiCol_Border:                return { 0.8,  0.8,  0.8,  0.5  }; // 0.43, 0.43, 0.50, 0.50
+        case ImGuiCol_BorderShadow:          return { 0.0,  0.0,  0.0,  0.0  }; // 0.00, 0.00, 0.00, 0.00
+        case ImGuiCol_FrameBg:               return { 0.7,  0.5,  0.4,  0.4  }; // 0.16, 0.29, 0.48, 0.54
+        case ImGuiCol_FrameBgHovered:        return { 0.8,  0.6,  0.5,  0.4  }; // 0.26, 0.59, 0.98, 0.40
+        case ImGuiCol_FrameBgActive:         return { 0.6,  0.4,  0.3,  0.4  }; // 0.26, 0.59, 0.98, 0.67
+        case ImGuiCol_TitleBg:               return { 0.2,  0.2,  0.2,  1.0  }; // 0.04, 0.04, 0.04, 1.00
+        case ImGuiCol_TitleBgActive:         return { 0.3,  0.2,  0.3,  1.0  }; // 0.16, 0.29, 0.48, 1.00
+        case ImGuiCol_TitleBgCollapsed:      return { 0.3,  0.3,  0.3,  0.4  }; // 0.00, 0.00, 0.00, 0.51
+        case ImGuiCol_MenuBarBg:             return { 0.2,  0.2,  0.2,  1.0  }; // 0.14, 0.14, 0.14, 1.00
+        case ImGuiCol_ScrollbarBg:           return { 0.4,  0.4,  0.4,  0.4  }; // 0.02, 0.02, 0.02, 0.53
+        case ImGuiCol_ScrollbarGrab:         return { 0.6,  0.6,  0.6,  0.4  }; // 0.31, 0.31, 0.31, 1.00
+        case ImGuiCol_ScrollbarGrabHovered:  return { 0.7,  0.7,  0.7,  0.4  }; // 0.41, 0.41, 0.41, 1.00
+        case ImGuiCol_ScrollbarGrabActive:   return { 0.5,  0.5,  0.5,  0.4  }; // 0.51, 0.51, 0.51, 1.00
+        case ImGuiCol_CheckMark:             return { 0.9,  0.9,  0.9,  0.5  }; // 0.26, 0.59, 0.98, 1.00
+        case ImGuiCol_SliderGrab:            return { 1.0,  1.0,  1.0,  0.3  }; // 0.24, 0.52, 0.88, 1.00
+        case ImGuiCol_SliderGrabActive:      return { 0.8,  0.5,  0.5,  1.0  }; // 0.26, 0.59, 0.98, 1.00
+        case ImGuiCol_Button:                return { 0.8,  0.5,  0.3,  0.6  }; // 0.26, 0.59, 0.98, 0.40
+        case ImGuiCol_ButtonHovered:         return { 0.9,  0.6,  0.4,  0.6  }; // 0.26, 0.59, 0.98, 1.00
+        case ImGuiCol_ButtonActive:          return { 0.7,  0.4,  0.2,  0.6  }; // 0.06, 0.53, 0.98, 1.00
+        case ImGuiCol_Header:                return { 0.9,  0.5,  0.2,  0.6  }; // 0.26, 0.59, 0.98, 0.31
+        case ImGuiCol_HeaderHovered:         return { 1.0,  0.6,  0.3,  0.6  }; // 0.26, 0.59, 0.98, 0.80
+        case ImGuiCol_HeaderActive:          return { 0.8,  0.4,  0.1,  0.6  }; // 0.26, 0.59, 0.98, 1.00
+        case ImGuiCol_Separator:             return { 0.8,  0.8,  0.8,  0.5  }; // 0.43, 0.43, 0.50, 0.50
+        case ImGuiCol_SeparatorHovered:      return { 0.9,  0.9,  0.9,  0.5  }; // 0.10, 0.40, 0.75, 0.78
+        case ImGuiCol_SeparatorActive:       return { 0.7,  0.7,  0.7,  0.5  }; // 0.10, 0.40, 0.75, 1.00
+        case ImGuiCol_ResizeGrip:            return { 0.8,  0.8,  0.8,  0.3  }; // 0.26, 0.59, 0.98, 0.25
+        case ImGuiCol_ResizeGripHovered:     return { 0.8,  0.8,  0.8,  0.4  }; // 0.26, 0.59, 0.98, 0.67
+        case ImGuiCol_ResizeGripActive:      return { 0.8,  0.8,  0.8,  0.5  }; // 0.26, 0.59, 0.98, 0.95
+        case ImGuiCol_Tab:                   return { 0.9,  0.5 , 0.2,  0.6  }; // 0.18, 0.35, 0.58, 0.86
+        case ImGuiCol_TabHovered:            return { 1.0,  0.6,  0.3,  0.6  }; // 0.26, 0.59, 0.98, 0.80
+        case ImGuiCol_TabActive:             return { 0.8,  0.4,  0.1,  0.6  }; // 0.20, 0.41, 0.68, 1.00
+        case ImGuiCol_TabUnfocused:          return { 0.7,  0.5,  0.35, 0.6  }; // 0.07, 0.10, 0.15, 0.97
+        case ImGuiCol_TabUnfocusedActive:    return { 0.6,  0.4,  0.25, 0.6  }; // 0.14, 0.26, 0.42, 1.00
+        case ImGuiCol_DockingPreview:        return { 0.8,  0.4,  0.1,  0.5  }; // 0.26, 0.59, 0.98, 0.70
+        case ImGuiCol_DockingEmptyBg:        return { 0.1,  0.1,  0.1,  0.75 }; // 0.20, 0.20, 0.20, 1.00
+        case ImGuiCol_PlotLines:             return { 0.61, 0.61, 0.61, 1.0  }; // 0.61, 0.61, 0.61, 1.00
+        case ImGuiCol_PlotLinesHovered:      return { 1.0,  0.43, 0.35, 1.0  }; // 1.00, 0.43, 0.35, 1.00
+        case ImGuiCol_PlotHistogram:         return { 0.9,  0.7,  0.0,  1.0  }; // 0.90, 0.70, 0.00, 1.00
+        case ImGuiCol_PlotHistogramHovered:  return { 1.0,  0.6,  0.0,  1.0  }; // 1.00, 0.60, 0.00, 1.00
+        case ImGuiCol_TextSelectedBg:        return { 0.3,  0.5,  0.7,  0.4  }; // 0.26, 0.59, 0.98, 0.35
+        case ImGuiCol_DragDropTarget:        return { 1.0,  1.0,  0.0,  0.9  }; // 1.00, 1.00, 0.00, 0.90
+        case ImGuiCol_NavHighlight:          return { 0.26, 0.59, 0.98, 1.0  }; // 0.26, 0.59, 0.98, 1.00
+        case ImGuiCol_NavWindowingHighlight: return { 1.0,  1.0,  1.0,  0.7  }; // 1.00, 1.00, 1.00, 0.70
+        case ImGuiCol_NavWindowingDimBg:     return { 0.8,  0.8,  0.8,  0.2  }; // 0.80, 0.80, 0.80, 0.20
+        case ImGuiCol_ModalWindowDimBg:      return { 0.8,  0.8,  0.8,  0.35 }; // 0.80, 0.80, 0.80, 0.35
+
+        case ImGuiCol_COUNT: {}
+
+        } // switch (colour)
+
+        return {};
+    };
+
+    for (int i = 0; i < ImGuiCol_COUNT; ++i)
+        style.Colors[i] = get_style_colour(ImGuiCol_(i));
+
+    //--------------------------------------------------------//
+
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    io.BackendFlags = ImGuiBackendFlags_HasMouseCursors;
+
+    io.MouseDrawCursor = true;
+    io.ConfigWindowsResizeFromEdges = true;
+
+    window.set_cursor_hidden(true);
 
     //--------------------------------------------------------//
 
@@ -309,8 +360,11 @@ bool GuiSystem::Implementation::handle_event(Event event)
 
         CASE ( Mouse_Scroll )
         {
-            io.MouseWheel += event.data.scroll.delta;
-            io.MouseWheelH += event.data.scroll.delta;
+            if (event.data.scroll.wheel == Mouse_Wheel::Vertical)
+                io.MouseWheel += event.data.scroll.delta;
+
+            if (event.data.scroll.wheel == Mouse_Wheel::Horizontal)
+                io.MouseWheelH += event.data.scroll.delta;
 
             return io.WantCaptureMouse;
         }
@@ -382,14 +436,14 @@ void GuiSystem::Implementation::finish_handle_events()
 
     //--------------------------------------------------------//
 
-    imgui::NewFrame();
+    ImGui::NewFrame();
 }
 
 //============================================================================//
 
 void GuiSystem::Implementation::finish_scene_update(double elapsed)
 {
-    imgui::Render();
+    ImGui::Render();
 
     //--------------------------------------------------------//
 
@@ -406,11 +460,11 @@ void GuiSystem::Implementation::finish_scene_update(double elapsed)
 
 void GuiSystem::Implementation::render_gui()
 {
-    SQASSERT(imgui::GetDrawData(), "imgui NewFrame() -> Render() sequence probably wrong");
+    SQASSERT(ImGui::GetDrawData(), "imgui NewFrame() -> Render() sequence probably wrong");
 
     //--------------------------------------------------------//
 
-    const ImDrawData& drawData = *imgui::GetDrawData();
+    const ImDrawData& drawData = *ImGui::GetDrawData();
 
     const Vec2U vp = context.get_ViewPort();
 
@@ -482,7 +536,7 @@ void GuiSystem::construct(Window& window, InputDevices& inputDevices)
 {
     SQASSERT(gGuiSystemPtr == nullptr, "GuiSystem::construct() already called");
 
-    imgui::CreateContext();
+    ImGui::CreateContext();
 
     gGuiSystemPtr = new GuiSystem();
 
@@ -495,7 +549,7 @@ void GuiSystem::destruct()
 
     delete gGuiSystemPtr;
 
-    imgui::DestroyContext(); // todo: imgui probably can't be re-started after this
+    ImGui::DestroyContext(); // todo: imgui probably can't be re-started after this
 }
 
 //============================================================================//
@@ -508,7 +562,7 @@ void GuiSystem::finish_scene_update(double elapsed) { impl->finish_scene_update(
 
 void GuiSystem::render_gui() { impl->render_gui(); }
 
-void GuiSystem::show_imgui_demo() { imgui::ShowDemoWindow(); }
+void GuiSystem::show_imgui_demo() { ImGui::ShowDemoWindow(); }
 
 //============================================================================//
 
@@ -517,7 +571,7 @@ void GuiSystem::enable_widget(GuiWidget& widget)
     const auto iter = algo::find(mWidgets, &widget);
 
     if (iter == mWidgets.end())
-        mWidgets.push_front(&widget);
+        mWidgets.push_back(&widget);
 
     else SQASSERT(false, "");
 }

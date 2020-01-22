@@ -14,11 +14,11 @@ public: //====================================================//
 
     UniformBuffer(); ///< Constructor
 
-    UniformBuffer(UniformBuffer&& other); ///< Move Constructor
+    UniformBuffer(UniformBuffer&& other) noexcept; ///< Move Constructor
 
-    UniformBuffer& operator=(UniformBuffer&& other); ///< Move Assignment
+    UniformBuffer& operator=(UniformBuffer&& other) noexcept; ///< Move Assignment
 
-    ~UniformBuffer(); ///< Destructor
+    ~UniformBuffer() noexcept; ///< Destructor
 
     //--------------------------------------------------------//
 

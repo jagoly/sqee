@@ -5,164 +5,90 @@
 
 #include <sqee/setup.hpp>
 
+#include <functional>
+
 namespace sq::algo {
 
 //============================================================================//
 
-/// Try to find a matching value within a range.
-///
-/// @param begin iterator to range start
-/// @param end iterator to range end
-/// @param value the value to search for
-///
-/// @result iterator to the element, or end
-
-template <class Iter, class Value> constexpr
-Iter find(Iter begin, Iter end, const Value& value)
+template <class Value>
+constexpr auto pred_equal_to(const Value& value)
 {
-    while (begin != end && !(*begin == value)) ++begin;
-    return begin;
+    return [&value](const Value& item) { return item == value; };
 }
 
-//----------------------------------------------------------------------------//
-
-/// Try to find a non-matching value within a range.
-///
-/// @param begin iterator to range start
-/// @param end iterator to range end
-/// @param value the value to search for
-///
-/// @result iterator to the element, or end
-
-template <class Iter, class Value> constexpr
-Iter find_not(Iter begin, Iter end, const Value& value)
+template <class Value>
+constexpr auto pred_not_equal_to(const Value& value)
 {
-    while (begin != end && (*begin == value)) ++begin;
-    return begin;
+    return [&value](const Value& item) { return item != value; };
 }
 
-//----------------------------------------------------------------------------//
-
-/// Try to find a value satisfying a predicate within a range.
-///
-/// @param begin iterator to range start
-/// @param end iterator to range end
-/// @param pred unary predicate callable
-///
-/// @result iterator to the element, or end
-
-template <class Iter, class Predicate> constexpr
-Iter find_if(Iter begin, Iter end, const Predicate& pred)
+template <class Value>
+constexpr auto pred_greater(const Value& value)
 {
-    while (begin != end && !pred(*begin)) ++begin;
-    return begin;
+    return [&value](const Value& item) { return item > value; };
 }
 
-//----------------------------------------------------------------------------//
-
-/// Check if a matching value exists within a range.
-///
-/// @param begin iterator to range start
-/// @param end iterator to range end
-/// @param value the value to search for
-///
-/// @result true if found, otherwise false
-
-template <class Iter, class Value> constexpr
-bool exists(Iter begin, Iter end, const Value& value)
+template <class Value>
+constexpr auto pred_less(const Value& value)
 {
-    return algo::find(begin, end, value) != end;
+    return [&value](const Value& item) { return item < value; };
 }
 
-//----------------------------------------------------------------------------//
-
-/// Check if a non-matching value exists within a range.
-///
-/// @param begin iterator to range start
-/// @param end iterator to range end
-/// @param value the value to search for
-///
-/// @result true if found, otherwise false
-
-template <class Iter, class Value> constexpr
-bool exists_not(Iter begin, Iter end, const Value& value)
+template <class Value>
+constexpr auto pred_greater_equal(const Value& value)
 {
-    return algo::find_not(begin, end, value) != end;
+    return [&value](const Value& item) { return item >= value; };
+}
+
+template <class Value>
+constexpr auto pred_less_equal(const Value& value)
+{
+    return [&value](const Value& item) { return item <= value; };
 }
 
 //============================================================================//
 
-/// Try to find a matching value in a container.
-///
-/// @param container an iterable container object
-/// @param value the value to search for
-///
-/// @result iterator to the element, or end
-
-template <class Container, class Value> constexpr
-auto find(Container& container, const Value& value)
+template <class Container, class Value>
+constexpr auto find(Container& container, const Value& value)
 {
-    return algo::find(container.begin(), container.end(), value);
+    return std::find(std::begin(container), std::end(container), value);
 }
 
-//----------------------------------------------------------------------------//
-
-/// Try to find a non-matching value in a container.
-///
-/// @param container an iterable container object
-/// @param value the value to search for
-///
-/// @result iterator to the element, or end
-
-template <class Container, class Value> constexpr
-auto find_not(Container& container, const Value& value)
+template <class Container, class Predicate>
+constexpr auto find_if(Container& container, const Predicate& pred)
 {
-    return algo::find_not(container.begin(), container.end(), value);
+    return std::find_if(std::begin(container), std::end(container), pred);
 }
 
-//----------------------------------------------------------------------------//
-
-/// Try to find a value satisfying a predicate in a container.
-///
-/// @param container an iterable container object
-/// @param pred unary predicate callable
-///
-/// @result iterator to the element, or end
-
-template <class Container, class Predicate> constexpr
-auto find_if(Container& container, const Predicate& pred)
+template <class Container, class Value>
+constexpr auto count(Container& container, const Value& value)
 {
-    return algo::find_if(container.begin(), container.end(), pred);
+    return std::count(std::begin(container), std::end(container), value);
 }
 
-//----------------------------------------------------------------------------//
-
-/// Check if a matching value exists in a container.
-///
-/// @param container an iterable container object
-/// @param value the value to search for
-///
-/// @result true if found, otherwise false
-
-template <class Container, class Value> constexpr
-bool exists(Container& container, const Value& value)
+template <class Container, class Predicate>
+constexpr auto count_if(Container& container, const Predicate& pred)
 {
-    return algo::find(container, value) != container.end();
+    return std::count_if(std::begin(container), std::end(container), pred);
 }
 
-//----------------------------------------------------------------------------//
-
-/// Check if a non-matching value exists in a container.
-///
-/// @param container an iterable container object
-/// @param value the value to search for
-///
-/// @result true if found, otherwise false
-
-template <class Container, class Value> constexpr
-bool exists_not(Container& container, const Value& value)
+template <class Container, class Predicate>
+constexpr bool all_of(Container& container, const Predicate& pred)
 {
-    return algo::find_not(container, value) != container.end();
+    return std::all_of(std::begin(container), std::end(container), pred);
+}
+
+template <class Container, class Predicate>
+constexpr bool any_of(Container& container, const Predicate& pred)
+{
+    return std::any_of(std::begin(container), std::end(container), pred);
+}
+
+template <class Container, class Predicate>
+constexpr bool none_of(Container& container, const Predicate& pred)
+{
+    return std::none_of(std::begin(container), std::end(container), pred);
 }
 
 //============================================================================//

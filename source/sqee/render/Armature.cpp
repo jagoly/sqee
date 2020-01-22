@@ -43,7 +43,7 @@ void Armature::load_bones(const String& path, bool swapYZ)
     {
         SQASSERT(line.size() <= 2u, "");
 
-        mBoneNames.push_back(String(line[0]));
+        mBoneNames.emplace_back(line[0]);
 
         if (line.size() == 2u)
         {

@@ -41,6 +41,7 @@ _Pragma("GCC diagnostic pop")
                             _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, \
                             _21, _22, _23, _24, _25, _26, _27, _28, _29, _30, \
                             _31, _32, _33, _34, _35, _36, _37, _38, _39, _40, \
+                            _41, _42, _43, _44, _45, _46, _47, _48, _49, _50, \
                             Name, ...) Name
 
 //============================================================================//
@@ -85,9 +86,21 @@ _Pragma("GCC diagnostic pop")
 #define SQEE_FOR_EACH_38(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_37(Functor, __VA_ARGS__)
 #define SQEE_FOR_EACH_39(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_38(Functor, __VA_ARGS__)
 #define SQEE_FOR_EACH_40(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_39(Functor, __VA_ARGS__)
+#define SQEE_FOR_EACH_41(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_40(Functor, __VA_ARGS__)
+#define SQEE_FOR_EACH_42(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_41(Functor, __VA_ARGS__)
+#define SQEE_FOR_EACH_43(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_42(Functor, __VA_ARGS__)
+#define SQEE_FOR_EACH_44(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_43(Functor, __VA_ARGS__)
+#define SQEE_FOR_EACH_45(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_44(Functor, __VA_ARGS__)
+#define SQEE_FOR_EACH_46(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_45(Functor, __VA_ARGS__)
+#define SQEE_FOR_EACH_47(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_46(Functor, __VA_ARGS__)
+#define SQEE_FOR_EACH_48(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_47(Functor, __VA_ARGS__)
+#define SQEE_FOR_EACH_49(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_48(Functor, __VA_ARGS__)
+#define SQEE_FOR_EACH_50(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_49(Functor, __VA_ARGS__)
 
 #define SQEE_FOR_EACH(Functor, ...) \
     SQEE_MACRO_OVERLOAD ( __VA_ARGS__, \
+        SQEE_FOR_EACH_50, SQEE_FOR_EACH_49, SQEE_FOR_EACH_48, SQEE_FOR_EACH_47, SQEE_FOR_EACH_46, \
+        SQEE_FOR_EACH_45, SQEE_FOR_EACH_44, SQEE_FOR_EACH_43, SQEE_FOR_EACH_42, SQEE_FOR_EACH_41, \
         SQEE_FOR_EACH_40, SQEE_FOR_EACH_39, SQEE_FOR_EACH_38, SQEE_FOR_EACH_37, SQEE_FOR_EACH_36, \
         SQEE_FOR_EACH_35, SQEE_FOR_EACH_34, SQEE_FOR_EACH_33, SQEE_FOR_EACH_32, SQEE_FOR_EACH_31, \
         SQEE_FOR_EACH_30, SQEE_FOR_EACH_29, SQEE_FOR_EACH_28, SQEE_FOR_EACH_27, SQEE_FOR_EACH_26, \
@@ -118,6 +131,8 @@ _Pragma("GCC diagnostic pop")
 
 #define SQEE_ENUM_LAST_VALUE_INNER(Case) ,BaseType(EnumType::Case)
 
+#define SQEE_ENUM_ITEMS_INNER(Case) ,EnumType::Case
+
 #define SQEE_ENUM_JSON_CONVERSION_DEFINITIONS_INNER(Case) \
     if (ref == #Case) { e = EnumType::Case; return; }
 
@@ -136,8 +151,8 @@ template<> struct sq::EnumHelper<Type> \
         SQEE_FOR_EACH(SQEE_ENUM_FROM_STRING_INNER, First, __VA_ARGS__) \
         throw std::invalid_argument(build_string("enum ", #Type, " from string '", str, "'")); \
     } \
-    static constexpr BaseType begin() { return BaseType(Type::First); } \
-    static constexpr BaseType end() { return (0 SQEE_FOR_EACH(SQEE_ENUM_LAST_VALUE_INNER, __VA_ARGS__)) + 1; } \
+    static constexpr BaseType count() { return (0 SQEE_FOR_EACH(SQEE_ENUM_LAST_VALUE_INNER, __VA_ARGS__)) + 1; } \
+    static constexpr auto items() { return std::array { Type::First SQEE_FOR_EACH(SQEE_ENUM_ITEMS_INNER, __VA_ARGS__) }; } \
 };
 
 // todo: make EnumHelper properly iterable, so we can do (Type value : sq::EnumHelper<Type>())

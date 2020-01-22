@@ -188,7 +188,7 @@ void Table<Type>::clear()
 template <class Type> inline
 bool Table<Type>::exists(int32_t id) const
 {
-    return algo::exists(mIds, id);
+    return algo::any_of(mIds, algo::pred_equal_to(id));
 }
 
 template <class Type> inline

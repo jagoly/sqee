@@ -19,7 +19,7 @@ Texture::Texture(GLenum target, Format format)
 
 //============================================================================//
 
-Texture::Texture(Texture&& other)
+Texture::Texture(Texture&& other) noexcept
     : mContext(other.mContext), mTarget(other.mTarget), mFormat(other.mFormat)
 {
     mContext.impl_reset_Texture(&other, this);
@@ -35,7 +35,7 @@ Texture::Texture(Texture&& other)
     other.mHandle = 0u;
 }
 
-Texture& Texture::operator=(Texture&& other)
+Texture& Texture::operator=(Texture&& other) noexcept
 { std::swap(*this, other); return *this; }
 
 //============================================================================//

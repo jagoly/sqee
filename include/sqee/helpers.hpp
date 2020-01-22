@@ -11,36 +11,6 @@ namespace sq {
 
 //============================================================================//
 
-namespace literals {
-
-constexpr int8_t operator ""_i8(unsigned long long v)
-{ return static_cast<int8_t>(v); }
-
-constexpr uint8_t operator ""_u8(unsigned long long v)
-{ return static_cast<uint8_t>(v); }
-
-constexpr int16_t operator ""_i16(unsigned long long v)
-{ return static_cast<int16_t>(v); }
-
-constexpr uint16_t operator ""_u16(unsigned long long v)
-{ return static_cast<uint16_t>(v); }
-
-constexpr int32_t operator ""_i32(unsigned long long v)
-{ return static_cast<int32_t>(v); }
-
-constexpr uint32_t operator ""_u32(unsigned long long v)
-{ return static_cast<uint32_t>(v); }
-
-constexpr int64_t operator ""_i64(unsigned long long v)
-{ return static_cast<int64_t>(v); }
-
-constexpr uint64_t operator ""_u64(unsigned long long v)
-{ return static_cast<uint64_t>(v); }
-
-} // namespace literals
-
-//============================================================================//
-
 inline const char* to_c_string(const std::string& arg) { return arg.c_str(); }
 inline const char* to_c_string(const char* arg) { return arg; }
 
@@ -70,9 +40,13 @@ const char* to_c_string(Type arg)
     return EnumHelper<Type>::to_string(arg);
 }
 
-/// The value of the last enum plus one.
+/// The value of the last enum plus one. Only useful for enums with consecutive values.
 template <class Type>
-constexpr const auto enum_count_v = EnumHelper<Type>::count;
+constexpr const auto enum_count_v = EnumHelper<Type>::count();
+
+/// An iterable containing all enumeration values.
+template <class Type>
+constexpr const auto enum_items_v = EnumHelper<Type>::items();
 
 //----------------------------------------------------------------------------//
 
@@ -193,11 +167,9 @@ template <class T> inline size_t string_size(T&& str)
 template <class... Args>
 inline std::string build_string(Args&&... args)
 {
-    // todo: append doesn't have an overload for a single char
-    // need to refactor to use push_back for chars
     std::string result;
     result.reserve((detail::string_size(std::forward<Args>(args)) + ...));
-    (result.append(args), ...);
+    ((result += args), ...);
     return result;
 }
 

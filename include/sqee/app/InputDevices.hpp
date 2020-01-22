@@ -36,10 +36,10 @@ enum class Mouse_Button
     ExtraA, ExtraB
 };
 
-enum class Gamepad_Stick
+enum class Mouse_Wheel
 {
     Unknown = -1,
-    Left, Right
+    Vertical, Horizontal
 };
 
 enum class Gamepad_Button
@@ -47,6 +47,12 @@ enum class Gamepad_Button
     Unknown = -1,
     A, B, X, Y, L1, R1,
     Select, Start, Home
+};
+
+enum class Gamepad_Stick
+{
+    Unknown = -1,
+    Left, Right
 };
 
 //============================================================================//

@@ -20,7 +20,30 @@ Vector<StringView> sq::tokenise_string_view(StringView sv, char dlm)
         const auto end = sv.find_first_of(dlm);
         if (end == StringView::npos) { result.push_back(sv); break; }
         result.push_back({sv.data(), end});
-        sv.remove_prefix(end);
+        sv.remove_prefix(end + 1u);
+    }
+
+    return result;
+}
+
+//============================================================================//
+
+Vector<Pair<uint, StringView>> sq::tokenise_string_view_lines(StringView sv)
+{
+    Vector<Pair<uint, StringView>> result;
+
+    // line counting usually starts from one
+    for (uint line = 1u;; ++line)
+    {
+        const auto begin = sv.find_first_not_of('\n');
+        if (begin == StringView::npos) { break; }
+        line += uint(begin);
+        sv.remove_prefix(begin);
+
+        const auto end = sv.find_first_of('\n');
+        if (end == StringView::npos) { result.emplace_back(line, sv); break; }
+        result.emplace_back(line, StringView{sv.data(), end});
+        sv.remove_prefix(end + 1u);
     }
 
     return result;

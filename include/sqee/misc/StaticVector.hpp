@@ -4,33 +4,33 @@
 
 #include <sqee/debug/Assert.hpp>
 
-#include <cstddef>      // for size_t
-#include <cstdint>      // for fixed-width integer types
-#include <functional>   // for less and equal_to
-#include <iterator>     // for reverse_iterator and iterator traits
-#include <stdexcept>    // for length_error
+#include <cstdint>    // fixed-width integer types
+#include <algorithm>  // equal
+#include <functional> // less, equal_to
+#include <iterator>   // reverse_iterator, iterator traits
+#include <stdexcept>  // length_error
 
 namespace sq {
 
 //============================================================================//
 
 /// Dynamically-resizable fixed-capacity vector.
-template <class T, size_t Capacity>
+template <class Type, size_t Capacity>
 struct StaticVector final
 {
 public: //====================================================//
 
-    static_assert(std::is_nothrow_destructible_v<T>, "T must be nothrow destructible");
+    static_assert(std::is_nothrow_destructible_v<Type>, "make sure Type is defined in this context");
     static_assert(Capacity != 0, "Capacity must be non-zero.");
 
-    using value_type       = T;
+    using value_type       = Type;
     using difference_type  = ptrdiff_t;
-    using reference        = T&;
-    using const_reference  = const T&;
-    using pointer          = T*;
-    using const_pointer    = const T*;
-    using iterator         = T*;
-    using const_iterator   = const T*;
+    using reference        = Type&;
+    using const_reference  = const Type&;
+    using pointer          = Type*;
+    using const_pointer    = const Type*;
+    using iterator         = Type*;
+    using const_iterator   = const Type*;
 
     // 255 because the past the end index must also be valid
     using size_type = std::conditional_t<Capacity < 255u, uint8_t, size_t>;
@@ -38,110 +38,115 @@ public: //====================================================//
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-private: //===================================================//
+    //--------------------------------------------------------//
 
-    alignas(T) std::byte mData[sizeof(T) * Capacity] {};
+    Type* data() noexcept { return reinterpret_cast<Type*>(mData); }
 
-    size_type mSize = 0u;
+    const Type* data() const noexcept { return reinterpret_cast<const Type*>(mData); }
 
-public: //====================================================//
+    size_type size() const noexcept { return mSize; }
 
-    constexpr T* data() noexcept { return reinterpret_cast<T*>(mData); }
+    static size_type capacity() noexcept { return Capacity; }
 
-    constexpr const T* data() const noexcept { return reinterpret_cast<const T*>(mData); }
+    bool empty() const noexcept { return size() == 0u; }
 
-    constexpr size_type size() const noexcept { return mSize; }
-
-    static constexpr size_type capacity() noexcept { return Capacity; }
-
-    constexpr bool empty() const noexcept { return size() == 0u; }
-
-    constexpr bool full() const noexcept { return size() == Capacity; }
+    bool full() const noexcept { return size() == Capacity; }
 
     //--------------------------------------------------------//
 
-    constexpr iterator begin() noexcept { return data(); }
+    iterator begin() noexcept { return data(); }
 
-    constexpr const_iterator begin() const noexcept { return data(); }
+    const_iterator begin() const noexcept { return data(); }
 
-    constexpr iterator end() noexcept { return data() + size(); }
+    iterator end() noexcept { return data() + size(); }
 
-    constexpr const_iterator end() const noexcept { return data() + size(); }
+    const_iterator end() const noexcept { return data() + size(); }
 
-    constexpr reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
+    reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
 
-    constexpr const_reverse_iterator rbegin() const noexcept { return const_reverse_iterator(end()); }
+    const_reverse_iterator rbegin() const noexcept { return const_reverse_iterator(end()); }
 
-    constexpr reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
+    reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
 
-    constexpr const_reverse_iterator rend() const noexcept { return const_reverse_iterator(begin()); }
+    const_reverse_iterator rend() const noexcept { return const_reverse_iterator(begin()); }
 
-    constexpr const_iterator cbegin() const noexcept { return begin(); }
+    const_iterator cbegin() const noexcept { return begin(); }
 
-    constexpr const_iterator cend() const noexcept { return end(); }
+    const_iterator cend() const noexcept { return end(); }
 
     //--------------------------------------------------------//
 
     template <class... Args>
-    constexpr void emplace_back(Args&&... args)
+    void emplace_back(Args&&... args)
     {
         SQASSERT(!full(), "vector is full");
-        new (end()) T(std::forward<Args>(args)...);
+        if constexpr (std::is_trivially_destructible_v<Type>)
+            *end() = Type(std::forward<Args>(args)...);
+        else new (end()) Type(std::forward<Args>(args)...);
         ++mSize;
     }
 
-    template <class U>
-    constexpr void push_back(U&& value)
+    template <class Other>
+    void push_back(Other&& value)
     {
-        static_assert(std::is_convertible_v<U&&, T&>);
-        emplace_back(std::forward<U>(value));
+        static_assert(std::is_convertible_v<Other&&, Type&>);
+        emplace_back(std::forward<Other>(value));
     }
 
-    constexpr void pop_back()
+    void pop_back()
     {
         SQASSERT(!empty(), "vector is empty");
-        std::prev(end())->~T();
+        std::destroy_at(end()-1);
         --mSize;
     }
 
-    template <class U>
-    constexpr iterator insert(iterator iter, U&& value)
+    template <class Other>
+    iterator insert(iterator iter, Other&& value)
     {
         SQASSERT(!full(), "vector is full");
         SQASSERT(iter >= begin() && iter <= end(), "iter out of range");
         std::move_backward(iter, end(), end()+1);
-        new (iter) T(std::forward<U>(value));
+        new (iter) Type(std::forward<Other>(value));
         ++mSize;
         return iter;
     }
 
-    constexpr iterator erase(iterator iter)
+    iterator erase(iterator iter)
     {
         SQASSERT(iter >= begin() && iter < end(), "iter out of range");
-        std::rotate(iter, iter + 1, end());
+        std::move(iter+1, end(), iter);
         pop_back();
         return iter;
     }
 
-    constexpr void clear() noexcept
+    iterator erase(iterator first, iterator last)
     {
-        while (size() != 0u)
-            pop_back();
+        SQASSERT(first >= begin() && last < end() && first <= last, "invalid range");
+        auto newEnd = std::move(last, end(), first);
+        std::destroy(newEnd, end());
+        mSize = std::distance(begin(), newEnd);
+        return first;
+    }
+
+    void clear() noexcept
+    {
+        std::destroy(begin(), end());
+        mSize = 0u;
     }
 
     //--------------------------------------------------------//
 
-    constexpr T& operator[](size_type pos) noexcept
+    Type& operator[](size_type pos) noexcept
     {
         return data()[pos];
     }
 
-    constexpr const T& operator[](size_type pos) const noexcept
+    const Type& operator[](size_type pos) const noexcept
     {
         return data()[pos];
     }
 
-    constexpr T& at(size_type pos)
+    Type& at(size_type pos)
     {
         if (pos >= size())
             throw std::out_of_range("StaticVector::at");
@@ -149,7 +154,7 @@ public: //====================================================//
         return data()[pos];
     }
 
-    constexpr const T& at(size_type pos) const
+    const Type& at(size_type pos) const
     {
         if (pos >= size())
             throw std::out_of_range("StaticVector::at");
@@ -157,26 +162,26 @@ public: //====================================================//
         return data()[pos];
     }
 
-    constexpr T& front() noexcept
+    Type& front() noexcept
     {
         SQASSERT(!empty(), "calling front on an empty vector");
         return data()[0];
     }
 
-    constexpr const T& front() const noexcept
+    const Type& front() const noexcept
     {
         SQASSERT(!empty(), "calling front on an empty vector");
         return data()[0];
     }
 
-    constexpr T& back() noexcept
+    Type& back() noexcept
     {
 
         SQASSERT(!empty(), "calling back on an empty vector");
         return data()[size() - 1u];
     }
 
-    constexpr const T& back() const noexcept
+    const Type& back() const noexcept
     {
         SQASSERT(!empty(), "calling back on an empty vector");
         return data()[size() - 1u];
@@ -184,45 +189,45 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    constexpr StaticVector() = default;
+    StaticVector() = default;
 
-    constexpr StaticVector(const StaticVector& other)
+    StaticVector(const StaticVector& other)
     {
-        static_assert(std::is_copy_constructible_v<T>);
+        static_assert(std::is_copy_constructible_v<Type>);
         for (size_type i = 0u; i < other.size(); ++i)
             emplace_back(other[i]);
     }
 
-    constexpr StaticVector(StaticVector&& other)
+    StaticVector(StaticVector&& other) noexcept
     {
-        static_assert(std::is_move_constructible_v<T>);
+        static_assert(std::is_nothrow_move_constructible_v<Type>);
         for (size_type i = 0u; i < other.size(); ++i)
             emplace_back(std::move(other[i]));
     }
 
-    template <class U>
-    constexpr StaticVector(std::initializer_list<U> il)
+    template <class Other>
+    StaticVector(std::initializer_list<Other> il)
     {
-        static_assert(std::is_convertible_v<U, T>);
+        static_assert(std::is_convertible_v<Other, Type>);
         SQASSERT(il.size() <= Capacity, "init list exceeds capacity");
-        for (const U& elem : il)
+        for (const Other& elem : il)
             emplace_back(elem);
     }
 
     //--------------------------------------------------------//
 
-    constexpr StaticVector& operator=(const StaticVector& other)
+    StaticVector& operator=(const StaticVector& other)
     {
-        static_assert(std::is_copy_constructible_v<T>);
+        static_assert(std::is_copy_constructible_v<Type>);
         clear();
         for (size_type i = 0u; i < other.size(); ++i)
             emplace_back(other[i]);
         return *this;
     }
 
-    constexpr StaticVector& operator=(StaticVector&& other)
+    StaticVector& operator=(StaticVector&& other) noexcept
     {
-        static_assert(std::is_move_constructible_v<T>);
+        static_assert(std::is_nothrow_move_constructible_v<Type>);
         clear();
         for (size_type i = 0u; i < other.size(); ++i)
             emplace_back(std::move(other[i]));
@@ -231,15 +236,21 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    constexpr bool operator==(const StaticVector& other) const
+    bool operator==(const StaticVector& other) const
     {
         return std::equal(begin(), end(), other.begin(), other.end());
     }
 
-    constexpr bool operator!=(const StaticVector& other) const
+    bool operator!=(const StaticVector& other) const
     {
         return !std::equal(begin(), end(), other.begin(), other.end());
     }
+
+private: //===================================================//
+
+    std::aligned_storage_t<sizeof(Type), alignof(Type)> mData[Capacity] {};
+
+    size_type mSize = 0u;
 };
 
 //============================================================================//

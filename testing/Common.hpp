@@ -8,6 +8,7 @@
 #include <sqee/maths/Builtins.hpp>
 
 #include <sqee/misc/StringCast.hpp>
+#include <sqee/misc/TinyString.hpp>
 
 //============================================================================//
 

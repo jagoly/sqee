@@ -26,9 +26,9 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    void refresh_options();
+    void refresh_options() override;
 
-    void handle_event(sq::Event event);
+    void handle_event(sq::Event event) override;
 
 private: //===================================================//
 

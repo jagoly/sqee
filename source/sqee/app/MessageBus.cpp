@@ -39,7 +39,7 @@ void MessageBus::impl_remove_message_source(std::type_index type)
 
 void MessageBus::impl_subscribe(void* receiver, Vector<void*>& receivers)
 {
-    SQASSERT(!algo::exists(receivers, receiver), "receiver already subscribed");
+    SQASSERT(algo::none_of(receivers, algo::pred_equal_to(receiver)), "receiver already subscribed");
     receivers.push_back(receiver);
 }
 

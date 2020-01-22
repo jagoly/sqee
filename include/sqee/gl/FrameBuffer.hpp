@@ -17,11 +17,11 @@ public: //====================================================//
 
     FrameBuffer(); ///< Constructor.
 
-    FrameBuffer(FrameBuffer&& other); ///< Move Constructor.
+    FrameBuffer(FrameBuffer&& other) noexcept; ///< Move Constructor.
 
-    FrameBuffer& operator=(FrameBuffer&& other); ///< Move Assignment.
+    FrameBuffer& operator=(FrameBuffer&& other) noexcept; ///< Move Assignment.
 
-    ~FrameBuffer(); ///< Destructor.
+    ~FrameBuffer() noexcept; ///< Destructor.
 
     //--------------------------------------------------------//
 

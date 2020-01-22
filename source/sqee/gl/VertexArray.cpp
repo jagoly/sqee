@@ -18,18 +18,19 @@ VertexArray::VertexArray() : mContext(Context::get())
 
 //============================================================================//
 
-VertexArray::VertexArray(VertexArray&& other) : mContext(other.mContext)
+VertexArray::VertexArray(VertexArray&& other) noexcept
+    : mContext(other.mContext)
 {
     mContext.impl_reset_VertexArray(&other, this);
     mHandle = other.mHandle; other.mHandle = 0u;
 }
 
-VertexArray& VertexArray::operator=(VertexArray&& other)
+VertexArray& VertexArray::operator=(VertexArray&& other) noexcept
 { std::swap(*this, other); return *this; }
 
 //============================================================================//
 
-VertexArray::~VertexArray()
+VertexArray::~VertexArray() noexcept
 {
     mContext.impl_reset_VertexArray(this);
     gl::DeleteVertexArrays(1, &mHandle);

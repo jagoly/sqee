@@ -35,7 +35,7 @@ struct Event final
         struct { Keyboard_Key key; bool shift, ctrl, alt, super; } keyboard;
         struct { Mouse_Button button; Vec2I position; }            mouse;
         struct { int32_t port; Gamepad_Button button; }            gamepad;
-        struct { float delta; }                                    scroll;
+        struct { Mouse_Wheel wheel; float delta; }                 scroll;
         struct { uint32_t unicode; }                               text;
     };
 

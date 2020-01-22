@@ -13,11 +13,11 @@ public: //====================================================//
 
     VertexArray(); ///< Constructor.
 
-    VertexArray(VertexArray&& other); ///< Move Constructor.
+    VertexArray(VertexArray&& other) noexcept; ///< Move Constructor.
 
-    VertexArray& operator=(VertexArray&& other); ///< Move Assignment.
+    VertexArray& operator=(VertexArray&& other) noexcept; ///< Move Assignment.
 
-    ~VertexArray(); ///< Destructor.
+    ~VertexArray() noexcept; ///< Destructor.
 
     //--------------------------------------------------------//
 

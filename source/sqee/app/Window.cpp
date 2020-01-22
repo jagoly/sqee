@@ -169,6 +169,14 @@ static constexpr Mouse_Button conv_sfml_mouse_button[]
 
 //============================================================================//
 
+static constexpr Mouse_Wheel conv_sfml_mouse_wheel[]
+{
+    Mouse_Wheel::Vertical,   // Vertical
+    Mouse_Wheel::Horizontal, // Horizontal
+};
+
+//============================================================================//
+
 static constexpr Gamepad_Button conv_sfml_gamepad_button[]
 {
     Gamepad_Button::A,       //  0 - A
@@ -247,7 +255,7 @@ Window::Window(String title, Vec2U size)
 
 //============================================================================//
 
-Window::~Window() = default;
+Window::~Window() noexcept = default;
 
 //============================================================================//
 
@@ -363,10 +371,11 @@ Vector<Event> Window::fetch_events()
 
         CASE ( Mouse_Scroll )
         {
-            if (sfe.mouseWheelScroll.wheel != sf::Mouse::Wheel::VerticalWheel)
-                continue; // ignore horizontal scrolling for now
-
-            event.data.scroll = { sfe.mouseWheelScroll.delta };
+            event.data.scroll =
+            {
+                conv_sfml_mouse_wheel[sfe.mouseWheelScroll.wheel],
+                sfe.mouseWheelScroll.delta
+            };
         }
 
         CASE ( Text_Entry )

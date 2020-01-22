@@ -38,13 +38,16 @@ SQEE_API TokenisedFile tokenise_file(const String& path);
 //============================================================================//
 
 /// Extract file portion from a path
-SQEE_API StringView file_from_path(const String& path);
+SQEE_API StringView file_from_path(StringView path);
 
 /// Extract directory portion from a path
-SQEE_API StringView directory_from_path(const String& path);
+SQEE_API StringView directory_from_path(StringView path);
 
 /// Extract the file extension from a path
-SQEE_API StringView extension_from_path(const String& path);
+SQEE_API StringView extension_from_path(StringView path);
+
+/// Compute the full path to an existing file, nullopt if none found
+SQEE_API Optional<String> compute_resource_path(StringView base, StringView path, Vector<StringView> extensions);
 
 //============================================================================//
 

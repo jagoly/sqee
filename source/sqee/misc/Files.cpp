@@ -141,25 +141,48 @@ TokenisedFile sq::tokenise_file(const String& path)
 
 //============================================================================//
 
-StringView sq::file_from_path(const String& path)
+StringView sq::file_from_path(StringView path)
 {
     const size_t splitPos = path.rfind('/');
     if (splitPos == path.size() - 1u) return StringView();
-    return StringView(path.c_str() + splitPos + 1u);
+    return path.substr(splitPos + 1u);
 }
 
-StringView sq::directory_from_path(const String& path)
+StringView sq::directory_from_path(StringView path)
 {
     const size_t splitPos = path.rfind('/');
-    if (splitPos == String::npos) return StringView();
-    return StringView(path.c_str(), splitPos);
+    if (splitPos == StringView::npos) return StringView();
+    return path.substr(0u, splitPos + 1u);
 }
 
-StringView sq::extension_from_path(const String& path)
+StringView sq::extension_from_path(StringView path)
 {
     const StringView fileName = file_from_path(path);
-    const size_t dotPos = fileName.rfind('.', path.length());
-    if (dotPos == String::npos) return StringView();
+    const size_t dotPos = fileName.rfind('.');
+    if (dotPos == StringView::npos) return StringView();
     if (dotPos == 0u) return StringView();
     return fileName.substr(dotPos);
+}
+
+//============================================================================//
+
+Optional<String> sq::compute_resource_path(StringView base, StringView path, Vector<StringView> extensions)
+{
+    const bool isAbsolute = ( path.front() == '/' );
+    const bool hasExtension = !extension_from_path(path).empty();
+
+    const String basePath = isAbsolute ? String(path) : build_string(base, path);
+
+    if (hasExtension == false)
+    {
+        for (const StringView& extension : extensions)
+        {
+            String result = build_string(basePath, '.', extension);
+            if (check_file_exists(result)) return result;
+        }
+    }
+
+    if (check_file_exists(basePath)) return basePath;
+
+    return std::nullopt;
 }

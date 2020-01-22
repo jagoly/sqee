@@ -44,7 +44,8 @@ Program::Program() : mContext(Context::get()) {}
 
 //============================================================================//
 
-Program::Program(Program&& other) : mContext(other.mContext)
+Program::Program(Program&& other) noexcept
+    : mContext(other.mContext)
 {
     mContext.impl_reset_Program(&other, this);
 
@@ -59,12 +60,12 @@ Program::Program(Program&& other) : mContext(other.mContext)
     other.mHandle = 0u;
 }
 
-Program& Program::operator=(Program&& other)
+Program& Program::operator=(Program&& other) noexcept
 { std::swap(*this, other); return *this; }
 
 //============================================================================//
 
-Program::~Program()
+Program::~Program() noexcept
 {
     mContext.impl_reset_Program(this);
 

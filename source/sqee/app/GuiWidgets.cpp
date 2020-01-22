@@ -137,38 +137,51 @@ bool ImGui::DragScalarRange2(const char* label, ImGuiDataType data_type, void* p
 
 //----------------------------------------------------------------------------//
 
-bool ImGui::InputString(const char* label, std::string& str, ImGuiInputTextFlags flags,
-                        ImGuiInputTextCallback callback, void* userData)
+bool ImPlus::InputString(CStrView label, std::string& str, ImGuiInputTextFlags flags,
+                         ImGuiInputTextCallback callback, void* userData)
 {
     IM_ASSERT((flags & ImGuiInputTextFlags_CallbackResize) == 0);
     flags |= ImGuiInputTextFlags_CallbackResize;
 
     impl_InputTextCallbackUserData cbUserData = { str, callback, userData };
-    return InputText(label, str.data(), str.capacity() + 1, flags, impl_input_text_callback, &cbUserData);
+    return ImGui::InputText(label, str.data(), str.capacity() + 1, flags, impl_input_text_callback, &cbUserData);
 }
 
-bool ImGui::InputStringMultiline(const char* label, std::string& str, ImVec2 size, ImGuiInputTextFlags flags,
-                                 ImGuiInputTextCallback callback, void* userData)
+bool ImPlus::InputStringMultiline(CStrView label, std::string& str, ImVec2 size, ImGuiInputTextFlags flags,
+                                  ImGuiInputTextCallback callback, void* userData)
 {
     IM_ASSERT((flags & ImGuiInputTextFlags_CallbackResize) == 0);
     flags |= ImGuiInputTextFlags_CallbackResize;
 
     impl_InputTextCallbackUserData cbUserData = { str, callback, userData };
-    return InputTextMultiline(label, str.data(), str.capacity() + 1, size, flags, impl_input_text_callback, &cbUserData);
+    return ImGui::InputTextMultiline(label, str.data(), str.capacity() + 1, size, flags, impl_input_text_callback, &cbUserData);
 }
 
 //----------------------------------------------------------------------------//
 
-ImGui::DialogResult ImGui::DialogConfirmation(const char* title, const char* message)
+ImPlus::DialogResult ImPlus::DialogConfirmation(CStrView title, CStrView message)
 {
+    const ImGuiID id = GImGui->CurrentWindow->GetID(title);
+    if (!ImGui::IsPopupOpen(id)) ImGui::OpenPopupEx(id);
+
     DialogResult result = DialogResult::None;
 
-    if (ImGui::BeginPopupModal(title, nullptr, ImGuiWindowFlags_AlwaysAutoResize) == true)
+    if (ImGui::BeginPopupModal(title, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
     {
-        ImGui::TextUnformatted(message);
-        if (ImGui::Button("Confirm")) { result = DialogResult::Confirm; ImGui::CloseCurrentPopup(); }
+        if (message != nullptr) ImGui::TextUnformatted(message);
+
+        if (ImGui::Button("Confirm") || ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Enter)))
+        {
+            result = DialogResult::Confirm;
+            ImGui::CloseCurrentPopup();
+        }
         ImGui::SameLine();
-        if (ImGui::Button("Cancel")) { result = DialogResult::Cancel; ImGui::CloseCurrentPopup(); }
+        if (ImGui::Button("Cancel") || ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape)))
+        {
+            result = DialogResult::Cancel;
+            ImGui::CloseCurrentPopup();
+        }
+
         ImGui::EndPopup();
     }
     else result = DialogResult::Cancel;
@@ -178,31 +191,31 @@ ImGui::DialogResult ImGui::DialogConfirmation(const char* title, const char* mes
 
 //----------------------------------------------------------------------------//
 
-bool ImGui::CloseButton(const char* label)
+bool ImPlus::CloseButton(CStrView label)
 {
-    ImGuiWindow* window = GetCurrentWindow();
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
     if (window->SkipItems == true)
         return false;
 
     const ImGuiContext& g = *GImGui;
     const ImGuiID id = window->GetID(label);
 
-    const float frameHeight = GetFrameHeight();
+    const float frameHeight = ImGui::GetFrameHeight();
     const ImRect bbox = { window->DC.CursorPos, ImVec2(window->DC.CursorPos.x + frameHeight, window->DC.CursorPos.y + frameHeight) };
 
-    ItemSize(bbox, 0.0f);
-    if (ItemAdd(bbox, id) == false)
+    ImGui::ItemSize(bbox, 0.0f);
+    if (ImGui::ItemAdd(bbox, id) == false)
         return false;
 
     bool hovered, held;
-    const bool pressed = ButtonBehavior(bbox, id, &hovered, &held);
+    const bool pressed = ImGui::ButtonBehavior(bbox, id, &hovered, &held);
 
-    const ImU32 frameColour = GetColorU32((held) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
-    RenderFrame(bbox.Min, bbox.Max, frameColour, true, g.Style.FrameRounding);
+    const ImU32 frameColour = ImGui::GetColorU32((held) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
+    ImGui::RenderFrame(bbox.Min, bbox.Max, frameColour, true, g.Style.FrameRounding);
 
     const ImVec2 centre = bbox.GetCenter();
     const float extent = (frameHeight - g.Style.FramePadding.y) * 0.25f;
-    const ImU32 crossColour = GetColorU32(ImGuiCol_Text);
+    const ImU32 crossColour = ImGui::GetColorU32(ImGuiCol_Text);
     window->DrawList->AddLine({ centre.x + extent, centre.y + extent }, { centre.x - extent, centre.y - extent }, crossColour);
     window->DrawList->AddLine({ centre.x + extent, centre.y - extent }, { centre.x - extent, centre.y + extent }, crossColour);
 
@@ -211,48 +224,131 @@ bool ImGui::CloseButton(const char* label)
 
 //----------------------------------------------------------------------------//
 
+void ImPlus::TextColored(ImVec4 col, std::string_view text)
+{
+    ImGui::PushStyleColor(ImGuiCol_Text, col);
+    ImGui::TextUnformatted(text.begin(), text.end());
+    ImGui::PopStyleColor();
+}
+
+void ImPlus::TextDisabled(std::string_view text)
+{
+    ImGui::PushStyleColor(ImGuiCol_Text, GImGui->Style.Colors[ImGuiCol_TextDisabled]);
+    ImGui::TextUnformatted(text.begin(), text.end());
+    ImGui::PopStyleColor();
+}
+
+void ImPlus::TextWrapped(std::string_view text)
+{
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    bool need_backup = (window->DC.TextWrapPos < 0.0f);
+    if (need_backup)
+        ImGui::PushTextWrapPos(0.0f);
+    ImGui::TextUnformatted(text.begin(), text.end());
+    if (need_backup)
+        ImGui::PopTextWrapPos();
+}
+
+void ImPlus::LabelText(std::string_view label, std::string_view text)
+{
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    if (window->SkipItems)
+        return;
+
+    ImGuiContext& g = *GImGui;
+    const ImGuiStyle& style = g.Style;
+    const float w = ImGui::CalcItemWidth();
+
+    const ImVec2 label_size = ImGui::CalcTextSize(label.begin(), label.end(), true);
+    const ImRect value_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y*2));
+    const ImRect total_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w + (label_size.x > 0.0f ? style.ItemInnerSpacing.x : 0.0f), style.FramePadding.y*2) + label_size);
+    ImGui::ItemSize(total_bb, style.FramePadding.y);
+    if (!ImGui::ItemAdd(total_bb, 0))
+        return;
+
+    ImGui::RenderTextClipped(value_bb.Min, value_bb.Max, text.begin(), text.end(), nullptr, ImVec2(0.0f,0.5f));
+    if (label_size.x > 0.0f)
+        ImGui::RenderText(ImVec2(value_bb.Max.x + style.ItemInnerSpacing.x, value_bb.Min.y + style.FramePadding.y), label.begin(), label.end());
+}
+
+void ImPlus::BulletText(std::string_view text)
+{
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    if (window->SkipItems)
+        return;
+
+    ImGuiContext& g = *GImGui;
+    const ImGuiStyle& style = g.Style;
+
+    const ImVec2 label_size = ImGui::CalcTextSize(text.begin(), text.end(), false);
+    const ImVec2 total_size = ImVec2(g.FontSize + (label_size.x > 0.0f ? (label_size.x + style.FramePadding.x * 2) : 0.0f), label_size.y);
+    ImVec2 pos = window->DC.CursorPos;
+    pos.y += window->DC.CurrLineTextBaseOffset;
+    ImGui::ItemSize(total_size, 0.0f);
+    const ImRect bb(pos, pos + total_size);
+    if (!ImGui::ItemAdd(bb, 0))
+        return;
+
+    ImU32 text_col = ImGui::GetColorU32(ImGuiCol_Text);
+    ImGui::RenderBullet(window->DrawList, bb.Min + ImVec2(style.FramePadding.x + g.FontSize*0.5f, g.FontSize*0.5f), text_col);
+    ImGui::RenderText(bb.Min + ImVec2(g.FontSize + style.FramePadding.x * 2, 0.0f), text.begin(), text.end(), false);
+}
+
+void ImPlus::SetTooltip(std::string_view text)
+{
+    ImGuiContext& g = *GImGui;
+    if (g.DragDropWithinSourceOrTarget)
+        ImGui::BeginTooltip();
+    else
+        ImGui::BeginTooltipEx(0, true);
+    ImGui::TextUnformatted(text.begin(), text.end());
+    ImGui::EndTooltip();
+}
+
+//----------------------------------------------------------------------------//
+
 template <class Type> inline
-bool ImGui::InputValue(const char* label, Type& ref, decltype(Type()) step, const char* format)
+bool ImPlus::InputValue(CStrView label, Type& ref, decltype(Type()) step, const char* format)
 {
     constexpr const auto dataType = impl_get_data_type<Type>();
     auto temp = ref;
-    InputScalar(label, dataType, &temp, step > 0 ? &step : nullptr, nullptr, format);
-    const bool changed = IsItemDeactivatedAfterEdit();
+    ImGui::InputScalar(label, dataType, &temp, step > 0 ? &step : nullptr, nullptr, format);
+    const bool changed = ImGui::IsItemDeactivatedAfterEdit();
     if (changed) ref = temp;
     return changed;
 }
 
 template <class Type>
-bool ImGui::DragValue(const char* label, Type& ref, decltype(Type()) min, decltype(Type()) max, float speed, const char* format)
+bool ImPlus::DragValue(CStrView label, Type& ref, decltype(Type()) min, decltype(Type()) max, float speed, const char* format)
 {
     constexpr const auto dataType = impl_get_data_type<Type>();
     auto temp = ref;
-    const bool tempInputTextActive = GImGui->TempInputTextId != 0 && TempInputTextIsActive(GImGui->CurrentWindow->GetID(label));
-    bool changed = DragScalar(label, dataType, &temp, speed, &min, &max, format);
-    changed = tempInputTextActive ? IsItemDeactivatedAfterEdit() : changed;
+    const bool tempInputTextActive = GImGui->TempInputTextId != 0 && ImGui::TempInputTextIsActive(GImGui->CurrentWindow->GetID(label));
+    bool changed = ImGui::DragScalar(label, dataType, &temp, speed, &min, &max, format);
+    if (tempInputTextActive) changed = ImGui::IsItemDeactivatedAfterEdit();
     if (changed) ref = sq::maths::clamp(temp, min, max);
     return changed;
 }
 
 template <class Type>
-bool ImGui::SliderValue(const char* label, Type& ref, decltype(Type()) min, decltype(Type()) max, const char* format)
+bool ImPlus::SliderValue(CStrView label, Type& ref, decltype(Type()) min, decltype(Type()) max, const char* format)
 {
     constexpr const auto dataType = impl_get_data_type<Type>();
     auto temp = ref;
-    const bool tempInputTextActive = GImGui->TempInputTextId != 0 && TempInputTextIsActive(GImGui->CurrentWindow->GetID(label));
-    bool changed = SliderScalar(label, dataType, &temp, &min, &max, format);
-    changed = tempInputTextActive ? IsItemDeactivatedAfterEdit() : changed;
+    const bool tempInputTextActive = GImGui->TempInputTextId != 0 && ImGui::TempInputTextIsActive(GImGui->CurrentWindow->GetID(label));
+    bool changed = ImGui::SliderScalar(label, dataType, &temp, &min, &max, format);
+    if (tempInputTextActive) changed = ImGui::IsItemDeactivatedAfterEdit();
     if (changed) ref = sq::maths::clamp(temp, min, max);
     return changed;
 }
 
 template <class Type>
-bool ImGui::InputValueRange2(const char* label, Type& refMin, Type& refMax, decltype(Type()) step, const char* format)
+bool ImPlus::InputValueRange2(CStrView label, Type& refMin, Type& refMax, decltype(Type()) step, const char* format)
 {
     constexpr const auto dataType = impl_get_data_type<Type>();
     Type temp[2] = { refMin, refMax };
-    InputScalarN(label, dataType, temp, 2, step > 0 ? &step : nullptr, nullptr, format);
-    if (IsItemDeactivatedAfterEdit())
+    ImGui::InputScalarN(label, dataType, temp, 2, step > 0 ? &step : nullptr, nullptr, format);
+    if (ImGui::IsItemDeactivatedAfterEdit())
     {
         const bool overlap = temp[0] > temp[1];
         if (overlap && temp[0] != refMin) temp[1] = temp[0];
@@ -264,12 +360,12 @@ bool ImGui::InputValueRange2(const char* label, Type& refMin, Type& refMax, decl
 }
 
 template <class Type>
-bool ImGui::DragValueRange2(const char* label, Type& refMin, Type& refMax, decltype(Type()) min, decltype(Type()) max, float speed, const char* format)
+bool ImPlus::DragValueRange2(CStrView label, Type& refMin, Type& refMax, decltype(Type()) min, decltype(Type()) max, float speed, const char* format)
 {
     constexpr const auto dataType = impl_get_data_type<Type>();
     Type temp[2] = { refMin, refMax };
     const bool changed = ImGui::DragScalarN(label, dataType, temp, 2, speed, &min, &max, format);
-    if (changed && (GImGui->TempInputTextId == 0 || IsItemDeactivatedAfterEdit()))
+    if (changed && (GImGui->TempInputTextId == 0 || ImGui::IsItemDeactivatedAfterEdit()))
     {
         const bool overlap = temp[0] > temp[1];
         if (overlap && temp[0] != refMin) temp[0] = temp[1];
@@ -282,12 +378,12 @@ bool ImGui::DragValueRange2(const char* label, Type& refMin, Type& refMax, declt
 }
 
 template <class Type>
-bool ImGui::SliderValueRange2(const char* label, Type& refMin, Type& refMax, decltype(Type()) min, decltype(Type()) max, const char* format)
+bool ImPlus::SliderValueRange2(CStrView label, Type& refMin, Type& refMax, decltype(Type()) min, decltype(Type()) max, const char* format)
 {
     constexpr const auto dataType = impl_get_data_type<Type>();
     Type temp[2] = { refMin, refMax };
     const bool changed = ImGui::SliderScalarN(label, dataType, temp, 2, &min, &max, format);
-    if (changed && (GImGui->TempInputTextId == 0 || IsItemDeactivatedAfterEdit()))
+    if (changed && (GImGui->TempInputTextId == 0 || ImGui::IsItemDeactivatedAfterEdit()))
     {
         const bool overlap = temp[0] > temp[1];
         if (overlap && temp[0] != refMin) temp[0] = temp[1];
@@ -302,12 +398,12 @@ bool ImGui::SliderValueRange2(const char* label, Type& refMin, Type& refMax, dec
 //----------------------------------------------------------------------------//
 
 #define SQEE_IMGUI_INPUT_TEMPLATE_DEFINITIONS(Type) \
-template bool ImGui::InputValue(const char* label, Type& ref, Type step = 0, const char* format = nullptr); \
-template bool ImGui::DragValue(const char* label, Type& ref, Type min, Type max, float speed, const char* format = nullptr); \
-template bool ImGui::SliderValue(const char* label, Type& ref, Type min, Type max, const char* format = nullptr); \
-template bool ImGui::InputValueRange2(const char* label, Type& refMin, Type& refMax, Type step = 0, const char* format = nullptr); \
-template bool ImGui::DragValueRange2(const char* label, Type& refMin, Type& refMax, Type min, Type max, float speed, const char* format = nullptr); \
-template bool ImGui::SliderValueRange2(const char* label, Type& refMin, Type& refMax, Type min, Type max, const char* format = nullptr);
+template bool ImPlus::InputValue(CStrView label, Type& ref, Type step = 0, const char* format = nullptr); \
+template bool ImPlus::DragValue(CStrView label, Type& ref, Type min, Type max, float speed, const char* format = nullptr); \
+template bool ImPlus::SliderValue(CStrView label, Type& ref, Type min, Type max, const char* format = nullptr); \
+template bool ImPlus::InputValueRange2(CStrView label, Type& refMin, Type& refMax, Type step = 0, const char* format = nullptr); \
+template bool ImPlus::DragValueRange2(CStrView label, Type& refMin, Type& refMax, Type min, Type max, float speed, const char* format = nullptr); \
+template bool ImPlus::SliderValueRange2(CStrView label, Type& refMin, Type& refMax, Type min, Type max, const char* format = nullptr);
 
 SQEE_IMGUI_INPUT_TEMPLATE_DEFINITIONS(int8_t);
 SQEE_IMGUI_INPUT_TEMPLATE_DEFINITIONS(uint8_t);

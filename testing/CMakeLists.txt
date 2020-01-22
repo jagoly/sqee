@@ -19,6 +19,9 @@ set(SOURCES
     "tests/dop/entries.cpp"
     "tests/dop/joined.cpp"
     "tests/dop/reduce.cpp"
+
+    "tests/misc/pooltools.cpp"
+    "tests/misc/tinystring.cpp"
 )
 
 ################################################################################
