@@ -80,7 +80,7 @@ template <class T> constexpr T clamp_magnitude(T value, T magnitude)
 {
     static_assert(std::is_arithmetic_v<T>);
 
-    return maths::clamp(value, -magnitude, +magnitude);
+    return maths::clamp(value, -std::abs(magnitude), +std::abs(magnitude));
 }
 
 //============================================================================//

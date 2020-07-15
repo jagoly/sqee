@@ -15,6 +15,7 @@ set(SOURCES
   "include/sqee/redist/lmccop.hpp"
   "include/sqee/redist/nl_json.hpp"
   "include/sqee/redist/tinyformat.hpp"
+  "include/sqee/redist/sol.hpp"
 
   "include/sqee/redist/imgui/imconfig.hpp"
   "include/sqee/redist/imgui/imgui.hpp"

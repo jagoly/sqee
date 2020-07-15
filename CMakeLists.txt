@@ -33,9 +33,6 @@ target_include_directories(sqee PUBLIC "${PROJECT_SOURCE_DIR}/include")
 set_property(TARGET sqee PROPERTY CXX_STANDARD 17)
 set_property(TARGET sqee PROPERTY CXX_STANDARD_REQUIRED True)
 
-set_property(TARGET sqee PROPERTY LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-set_property(TARGET sqee PROPERTY ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-
 ################################################################################
 
 if (CMAKE_BUILD_TYPE MATCHES "Debug")
@@ -118,6 +115,23 @@ target_link_libraries(sqee PUBLIC sfml-audio sfml-window sfml-system)
 
 ################################################################################
 
+if (SQEE_STATIC_LINK)
+    set(LUA54CPP_STATIC_LIB True)
+endif ()
+
+add_subdirectory(lua54cpp)
+
+target_include_directories(sqee PUBLIC "lua54cpp/src")
+
+target_link_libraries(sqee PUBLIC lua54cpp)
+
+target_compile_definitions(sqee PUBLIC SOL_ALL_SAFETIES_ON=1)
+target_compile_definitions(sqee PUBLIC SOL_USING_CXX_LUA=1)
+target_compile_definitions(sqee PUBLIC SOL_PRINT_ERRORS=0)
+#target_compile_definitions(sqee PUBLIC SOL_EXCEPTIONS_ALWAYS_UNSAFE=1)
+
+################################################################################
+
 set(OpenGL_GL_PREFERENCE "GLVND")
 
 find_package(OpenGL REQUIRED)
@@ -130,7 +144,7 @@ endif ()
 
 ################################################################################
 
-export(TARGETS sqee FILE sqee-exports.cmake)
+export(TARGETS sqee lua54cpp FILE sqee-exports.cmake)
 
 ################################################################################
 

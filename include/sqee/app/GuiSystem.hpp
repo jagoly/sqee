@@ -30,7 +30,7 @@ public: //====================================================//
 
     bool handle_event(Event event);
 
-    void finish_handle_events();
+    void finish_handle_events(bool focus);
 
     void finish_scene_update(double elapsed);
 

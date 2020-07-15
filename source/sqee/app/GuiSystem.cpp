@@ -117,7 +117,7 @@ public: //====================================================//
 
     bool handle_event(Event event);
 
-    void finish_handle_events();
+    void finish_handle_events(bool focus);
 
     void finish_scene_update(double elapsed);
 
@@ -413,26 +413,29 @@ bool GuiSystem::Implementation::handle_event(Event event)
 
 //============================================================================//
 
-void GuiSystem::Implementation::finish_handle_events()
+void GuiSystem::Implementation::finish_handle_events(bool focus)
 {
     io.DisplaySize = Vec2F(window.get_window_size());
     io.MousePos = Vec2F(input.get_cursor_location(false));
 
-    io.MouseDown[0] |= input.is_pressed(Mouse_Button::Left);
-    io.MouseDown[1] |= input.is_pressed(Mouse_Button::Right);
-    io.MouseDown[2] |= input.is_pressed(Mouse_Button::Middle);
+    if (focus == true)
+    {
+        io.MouseDown[0] |= input.is_pressed(Mouse_Button::Left);
+        io.MouseDown[1] |= input.is_pressed(Mouse_Button::Right);
+        io.MouseDown[2] |= input.is_pressed(Mouse_Button::Middle);
 
-    io.KeyShift |= input.is_pressed(Keyboard_Key::Shift_L);
-    io.KeyShift |= input.is_pressed(Keyboard_Key::Shift_R);
+        io.KeyShift |= input.is_pressed(Keyboard_Key::Shift_L);
+        io.KeyShift |= input.is_pressed(Keyboard_Key::Shift_R);
 
-    io.KeyCtrl |= input.is_pressed(Keyboard_Key::Control_L);
-    io.KeyCtrl |= input.is_pressed(Keyboard_Key::Control_R);
+        io.KeyCtrl |= input.is_pressed(Keyboard_Key::Control_L);
+        io.KeyCtrl |= input.is_pressed(Keyboard_Key::Control_R);
 
-    io.KeyAlt |= input.is_pressed(Keyboard_Key::Alt_L);
-    io.KeyAlt |= input.is_pressed(Keyboard_Key::Alt_R);
+        io.KeyAlt |= input.is_pressed(Keyboard_Key::Alt_L);
+        io.KeyAlt |= input.is_pressed(Keyboard_Key::Alt_R);
 
-    io.KeySuper |= input.is_pressed(Keyboard_Key::Super_L);
-    io.KeySuper |= input.is_pressed(Keyboard_Key::Super_R);
+        io.KeySuper |= input.is_pressed(Keyboard_Key::Super_L);
+        io.KeySuper |= input.is_pressed(Keyboard_Key::Super_R);
+    }
 
     //--------------------------------------------------------//
 
@@ -556,7 +559,7 @@ void GuiSystem::destruct()
 
 bool GuiSystem::handle_event(Event event) { return impl->handle_event(event); }
 
-void GuiSystem::finish_handle_events() { impl->finish_handle_events(); }
+void GuiSystem::finish_handle_events(bool focus) { impl->finish_handle_events(focus); }
 
 void GuiSystem::finish_scene_update(double elapsed) { impl->finish_scene_update(elapsed); }
 

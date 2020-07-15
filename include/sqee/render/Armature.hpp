@@ -19,8 +19,8 @@ public: //====================================================//
     struct Bone
     {
         Vec3F offset   = {};
-        float scale    = 1.f;
         QuatF rotation = {};
+        Vec3F scale    = {};
     };
 
     using Pose = Vector<Bone>;
@@ -33,6 +33,8 @@ public: //====================================================//
 
         Vector<uint32_t> times;
         Vector<Pose> poses;
+
+        bool looping() const { return times.back() != 0u; }
     };
 
     //--------------------------------------------------------//
@@ -59,28 +61,37 @@ public: //====================================================//
     /// Get the index of a bone by name, -1 on failure
     int8_t get_bone_index(TinyString name) const;
 
+    /// Get the index of a bone's parent, -1 on failure
+    int8_t get_bone_parent(int8_t index) const;
+
     //--------------------------------------------------------//
 
     Pose make_pose(const String& path) const;
 
     Animation make_animation(const String& path) const;
 
+    Animation make_null_animation(uint length, bool loop) const;
+
     //--------------------------------------------------------//
 
     Pose blend_poses(const Pose& a, const Pose& b, float factor) const;
 
-    Pose compute_pose(const Animation& animation, float time) const;
+    Pose compute_pose_continuous(const Animation& animation, float time) const;
+
+    Pose compute_pose_discrete(const Animation& animation, uint time) const;
 
      [[deprecated]]
     Vector<Mat34F> compute_ubo_data(const Pose& pose) const;
 
     void compute_ubo_data(const Pose& pose, Mat34F* out, uint len) const;
 
-    /// Compute the transform of a bone given it's index
-    Mat4F compute_transform(const Pose& pose, uint index) const;
+    //--------------------------------------------------------//
 
-    /// Compute the transform of a bone given it's name
-    Mat4F compute_transform(const Pose& pose, TinyString name) const;
+    /// Compute the absolute transform of a bone
+    Mat4F compute_bone_matrix(const Pose& pose, int8_t index) const;
+
+    /// Compute the absolute transforms for a pose
+    Vector<Mat4F> compute_skeleton_matrices(const Pose& pose) const;
 
 private: //===================================================//
 

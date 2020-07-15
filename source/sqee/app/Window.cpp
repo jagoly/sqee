@@ -319,6 +319,13 @@ bool Window::get_key_repeat() const
 
 //============================================================================//
 
+bool Window::has_focus() const
+{
+    return impl->sfmlWindow.hasFocus();
+}
+
+//============================================================================//
+
 Vector<Event> Window::fetch_events()
 {
     Vector<Event> result;

@@ -64,6 +64,11 @@ public: //====================================================//
     /// Check if key repeat is enabled.
     bool get_key_repeat() const;
 
+    //--------------------------------------------------------//
+
+    /// Check if the window has input focus.
+    bool has_focus() const;
+
 private: //===================================================//
 
     struct Implementation;
