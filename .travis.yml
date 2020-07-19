@@ -12,9 +12,9 @@ addons:
 
 before_script:
 
-  - wget https://github.com/ChaiScript/ChaiScript/archive/develop.zip -O /tmp/chaiscript.zip
+  - wget https://github.com/ChaiScript/ChaiScript/archive/v6.1.0.zip -O /tmp/chaiscript.zip
   - unzip -q /tmp/chaiscript.zip
-  - sudo cp -r ChaiScript-develop/include /usr/
+  - sudo cp -r ChaiScript-6.1.0/include /usr/
 
 script:
   - CXX=/usr/bin/g++ CC=/usr/bin/gcc cmake .
