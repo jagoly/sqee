@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 3.10)
-project(SQEE)
+cmake_minimum_required(VERSION 3.16)
+project(SQEE CXX C) # todo: change all source to use c++ linkage
 
 ################################################################################
 
@@ -77,11 +77,11 @@ endif ()
 if (SQEE_GNU OR SQEE_CLANG)
 
     target_compile_options(sqee PUBLIC -Wall -Wextra)
-    #target_compile_options(sqee PRIVATE -Wno-unused-parameter -Wno-strict-aliasing)
-    #target_compile_options(sqee PRIVATE -Wno-comment -Wno-misleading-indentation)
 
     if (SQEE_WINDOWS)
-        # todo: actually test this
+        # todo: make this less hacky so other people can use it
+        set(CMAKE_PREFIX_PATH APPEND "/storage/Projects/SQEE/mingw-deps/SFML-2.5.1/")
+        target_compile_definitions(sqee PUBLIC CHAISCRIPT_NO_THREADS)
         target_compile_options(sqee PRIVATE -mwindows -Wa,-mbig-obj)
     endif ()
 
@@ -102,10 +102,6 @@ if (SQEE_STATIC_LINK)
     set(SFML_STATIC_LIBRARIES True)
 endif ()
 
-if (SQEE_WINDOWS AND NOT SFML_ROOT)
-    set(SFML_ROOT "${PROJECT_SOURCE_DIR}/extlibs/sfml")
-endif ()
-
 find_package(SFML 2.5 COMPONENTS audio window system REQUIRED)
 
 target_include_directories(sqee PRIVATE ${SFML_INCLUDE_DIR})
@@ -119,6 +115,10 @@ if (SQEE_STATIC_LINK)
     set(LUA54CPP_STATIC_LIB True)
 endif ()
 
+if (SQEE_LINUX)
+    set(LUA54CPP_USE_POSIX True)
+endif ()
+
 add_subdirectory(lua54cpp)
 
 target_include_directories(sqee PUBLIC "lua54cpp/src")
@@ -128,7 +128,6 @@ target_link_libraries(sqee PUBLIC lua54cpp)
 target_compile_definitions(sqee PUBLIC SOL_ALL_SAFETIES_ON=1)
 target_compile_definitions(sqee PUBLIC SOL_USING_CXX_LUA=1)
 target_compile_definitions(sqee PUBLIC SOL_PRINT_ERRORS=0)
-#target_compile_definitions(sqee PUBLIC SOL_EXCEPTIONS_ALWAYS_UNSAFE=1)
 
 ################################################################################
 
@@ -136,7 +135,11 @@ set(OpenGL_GL_PREFERENCE "GLVND")
 
 find_package(OpenGL REQUIRED)
 
-target_link_libraries(sqee PUBLIC GL GLX)
+if (SQEE_LINUX)
+    target_link_libraries(sqee PUBLIC GL GLX)
+elseif (SQEE_WINDOWS)
+    target_link_libraries(sqee PUBLIC opengl32)
+endif ()
 
 if (SQEE_LINUX AND SQEE_STATIC_LIB)
     target_link_libraries(sqee PUBLIC pthread dl) # for ChaiScript

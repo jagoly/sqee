@@ -1,7 +1,10 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 project(Lua54CPP CXX)
 
-# todo: support msvc
+# platform notes:
+# linux assumes clang/gcc
+# windows assumes msvc
+# BSD/OSX aren't supported yet
 
 option(LUA54CPP_STATIC_LIB "Build Lua54CPP as a static library" False)
 
@@ -62,8 +65,12 @@ endif ()
 
 target_include_directories(lua54cpp PUBLIC "${PROJECT_SOURCE_DIR}/src")
 
-target_compile_options(lua54cpp PUBLIC -Wall -Wextra)
-target_compile_definitions(lua54cpp PUBLIC LUA_USE_POSIX)
-
 set_property(TARGET lua54cpp PROPERTY CXX_STANDARD 17)
 set_property(TARGET lua54cpp PROPERTY CXX_STANDARD_REQUIRED True)
+
+if (CMAKE_SYSTEM_NAME MATCHES "Linux")
+    target_compile_options(lua54cpp PUBLIC -Wall -Wextra)
+    target_compile_definitions(lua54cpp PUBLIC LUA_USE_POSIX)
+elseif (CMAKE_SYSTEM_NAME MATCHES "Windows")
+    # todo
+endif ()

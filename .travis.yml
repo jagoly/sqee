@@ -1,31 +1,21 @@
-dist: trusty
+dist: focal
 sudo: required
 language: cpp
 
 addons:
   apt:
     sources:
-      - ubuntu-toolchain-r-test
     packages:
-      - g++-7
+      - libsfml-system2.5
+      - libsfml-window2.5
+      - libsfml-audio2.5
 
 before_script:
-
-  - wget https://www.sfml-dev.org/files/SFML-2.4.2-linux-gcc-64-bit.tar.gz -O /tmp/sfml.tar.gz
-  - tar -xf /tmp/sfml.tar.gz
-  - sudo cp -r SFML-2.4.2/* /usr/
-  - sudo apt build-dep libsfml -y -q
 
   - wget https://github.com/ChaiScript/ChaiScript/archive/develop.zip -O /tmp/chaiscript.zip
   - unzip -q /tmp/chaiscript.zip
   - sudo cp -r ChaiScript-develop/include /usr/
 
-  - mkdir $HOME/usr
-  - export PATH="$HOME/usr/bin:$PATH"
-  - wget https://cmake.org/files/v3.5/cmake-3.5.2-Linux-x86_64.sh
-  - chmod +x cmake-3.5.2-Linux-x86_64.sh
-  - ./cmake-3.5.2-Linux-x86_64.sh --prefix=$HOME/usr --exclude-subdir --skip-license
-
 script:
-  - CXX=/usr/bin/g++-7 CC=/usr/bin/gcc-7 cmake .
+  - CXX=/usr/bin/g++ CC=/usr/bin/gcc cmake .
   - cmake --build . --
