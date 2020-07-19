@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.12)
 project(SQEE CXX C) # todo: change all source to use c++ linkage
 
 ################################################################################
