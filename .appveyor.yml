@@ -1,5 +1,5 @@
 image:
-  - Visual Studio 2017
+  - Visual Studio 2019
 
 
 before_build:
@@ -7,13 +7,13 @@ before_build:
   - mkdir extlibs
   - cd extlibs
 
-  - curl -fsSL -o sfml.zip https://www.sfml-dev.org/files/SFML-2.4.2-windows-vc14-64-bit.zip
+  - curl -fsSL -o sfml.zip https://www.sfml-dev.org/files/SFML-2.5.1-windows-vc15-64-bit.zip
   - 7z x sfml.zip
-  - rename SFML-2.4.2 sfml
+  - rename SFML-2.5.1 sfml
 
-  - curl -fsSL -o chaiscript.zip https://github.com/ChaiScript/ChaiScript/archive/develop.zip
+  - curl -fsSL -o chaiscript.zip https://github.com/ChaiScript/ChaiScript/archive/v6.1.0.zip
   - 7z x chaiscript.zip
-  - rename Chaiscript-develop chai
+  - rename Chaiscript-6.1.0 chaiscript
 
   - cd ..
 
@@ -23,7 +23,7 @@ build_script:
   - mkdir build
   - cd build
 
-  - xcopy /E c:\projects\sqee\extlibs\chai\include\chaiscript c:\projects\sqee\include\chaiscript\
+  - xcopy /E c:\projects\sqee\extlibs\chaiscript\include\chaiscript c:\projects\sqee\include\chaiscript\
 
-  - cmake c:/projects/sqee -DSFML_ROOT=c:/projects/sqee/extlibs/sfml -G "Visual Studio 15 2017 Win64"
-  - cmake --build . --target sqee_testing
+  - cmake c:/projects/sqee -DCMAKE_PREFIX_PATH=c:/projects/sqee/extlibs/sfml -G "Visual Studio 16 2019" -A x64
+  - cmake --build .
