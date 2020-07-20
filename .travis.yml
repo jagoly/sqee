@@ -10,9 +10,6 @@ addons:
       - libsfml-audio2.5
       - libsfml-dev
 
-before_script:
-  - \# nothing to do here
-
 script:
   - CXX=/usr/bin/g++ CC=/usr/bin/gcc cmake .
   - cmake --build . --
