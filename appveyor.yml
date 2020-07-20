@@ -11,10 +11,6 @@ before_build:
   - 7z x sfml.zip
   - rename SFML-2.5.1 sfml
 
-  - curl -fsSL -o chaiscript.zip https://github.com/ChaiScript/ChaiScript/archive/VS_2019_fixes.zip
-  - 7z x chaiscript.zip
-  - rename ChaiScript-VS_2019_fixes chaiscript
-
   - cd ..
 
 
@@ -23,7 +19,5 @@ build_script:
   - mkdir build
   - cd build
 
-  - xcopy /E c:\projects\sqee\extlibs\chaiscript\include\chaiscript c:\projects\sqee\include\chaiscript\
-
   - cmake c:/projects/sqee -DCMAKE_PREFIX_PATH=c:/projects/sqee/extlibs/sfml -G "Visual Studio 16 2019" -A x64
-  - cmake --build . --target sqee
+  - cmake --build .

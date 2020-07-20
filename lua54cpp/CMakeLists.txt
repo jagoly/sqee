@@ -86,8 +86,10 @@ endif ()
 
 ################################################################################
 
+# lua is pretty warning-y, so we use relaxed settings compared to sqee
+
 if (SQEE_GNU OR SQEE_CLANG)
-    target_compile_options(lua54cpp PRIVATE -Wall -Wextra)
+    target_compile_options(lua54cpp PRIVATE -Wall)
 elseif (SQEE_MSVC)
-    target_compile_options(lua54cpp PRIVATE /W3)
+    target_compile_options(lua54cpp PRIVATE /W2)
 endif ()
