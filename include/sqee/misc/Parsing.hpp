@@ -6,6 +6,8 @@
 #include <sqee/misc/Builtins.hpp>
 #include <sqee/maths/Builtins.hpp>
 
+#include <stdexcept>
+
 namespace sq {
 
 //============================================================================//

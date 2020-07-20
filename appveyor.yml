@@ -26,4 +26,4 @@ build_script:
   - xcopy /E c:\projects\sqee\extlibs\chaiscript\include\chaiscript c:\projects\sqee\include\chaiscript\
 
   - cmake c:/projects/sqee -DCMAKE_PREFIX_PATH=c:/projects/sqee/extlibs/sfml -G "Visual Studio 16 2019" -A x64
-  - cmake --build .
+  - cmake --build . sqee

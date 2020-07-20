@@ -174,6 +174,7 @@ GuiSystem::Implementation::Implementation(Window& window, InputDevices& inputDev
     auto& style = ImGui::GetStyle();
 
     // all of these values are floats, but any values written as ints here represent pixels
+    DISABLE_WARNING_NARROWING_CONSTRUCTOR;
 
     style.Alpha                    = 1.0;            // 1.0
     style.WindowPadding            = { 6, 6 };       // 8, 8
@@ -275,6 +276,8 @@ GuiSystem::Implementation::Implementation(Window& window, InputDevices& inputDev
 
         return {};
     };
+
+    ENABLE_WARNING_NARROWING_CONSTRUCTOR;
 
     for (int i = 0; i < ImGuiCol_COUNT; ++i)
         style.Colors[i] = get_style_colour(ImGuiCol_(i));

@@ -25,6 +25,11 @@ _Pragma("GCC diagnostic ignored \"-Wold-style-cast\"")
 #define ENABLE_WARNING_OLD_STYLE_CAST \
 _Pragma("GCC diagnostic pop")
 
+// msvc warns when I don't feel like adding .f to a bunch of literals
+
+#define DISABLE_WARNING_NARROWING_CONSTRUCTOR
+#define ENABLE_WARNING_NARROWING_CONSTRUCTOR
+
 #else
 
 #define DISABLE_WARNING_FLOAT_EQUALITY
@@ -33,9 +38,18 @@ _Pragma("GCC diagnostic pop")
 #define DISABLE_WARNING_OLD_STYLE_CAST
 #define ENABLE_WARNING_OLD_STYLE_CAST
 
+#define DISABLE_WARNING_NARROWING_CONSTRUCTOR \
+#pragma warning(push) \
+#pragma warning(disable : 4305)
+
+#define DISABLE_WARNING_NARROWING_CONSTRUCTOR \
+#pragma warning(pop)
+
 #endif
 
 //============================================================================//
+
+#define SQEE_EXPAND(Arg) Arg // needed to work around an MSVC bug
 
 #define SQEE_MACRO_OVERLOAD(_01, _02, _03, _04, _05, _06, _07, _08, _09, _10, \
                             _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, \
@@ -98,7 +112,7 @@ _Pragma("GCC diagnostic pop")
 #define SQEE_FOR_EACH_50(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_49(Functor, __VA_ARGS__)
 
 #define SQEE_FOR_EACH(Functor, ...) \
-    SQEE_MACRO_OVERLOAD ( __VA_ARGS__, \
+    SQEE_EXPAND ( SQEE_MACRO_OVERLOAD ( __VA_ARGS__, \
         SQEE_FOR_EACH_50, SQEE_FOR_EACH_49, SQEE_FOR_EACH_48, SQEE_FOR_EACH_47, SQEE_FOR_EACH_46, \
         SQEE_FOR_EACH_45, SQEE_FOR_EACH_44, SQEE_FOR_EACH_43, SQEE_FOR_EACH_42, SQEE_FOR_EACH_41, \
         SQEE_FOR_EACH_40, SQEE_FOR_EACH_39, SQEE_FOR_EACH_38, SQEE_FOR_EACH_37, SQEE_FOR_EACH_36, \
@@ -109,7 +123,7 @@ _Pragma("GCC diagnostic pop")
         SQEE_FOR_EACH_15, SQEE_FOR_EACH_14, SQEE_FOR_EACH_13, SQEE_FOR_EACH_12, SQEE_FOR_EACH_11, \
         SQEE_FOR_EACH_10, SQEE_FOR_EACH_09, SQEE_FOR_EACH_08, SQEE_FOR_EACH_07, SQEE_FOR_EACH_06, \
         SQEE_FOR_EACH_05, SQEE_FOR_EACH_04, SQEE_FOR_EACH_03, SQEE_FOR_EACH_02, SQEE_FOR_EACH_01, \
-    ) ( Functor, __VA_ARGS__ )
+    ) ( Functor, __VA_ARGS__ ) )
 
 //============================================================================//
 

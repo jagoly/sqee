@@ -227,14 +227,14 @@ bool ImPlus::CloseButton(CStrView label)
 void ImPlus::TextColored(ImVec4 col, std::string_view text)
 {
     ImGui::PushStyleColor(ImGuiCol_Text, col);
-    ImGui::TextUnformatted(text.begin(), text.end());
+    ImGui::TextUnformatted(&*text.begin(), &*text.end());
     ImGui::PopStyleColor();
 }
 
 void ImPlus::TextDisabled(std::string_view text)
 {
     ImGui::PushStyleColor(ImGuiCol_Text, GImGui->Style.Colors[ImGuiCol_TextDisabled]);
-    ImGui::TextUnformatted(text.begin(), text.end());
+    ImGui::TextUnformatted(&*text.begin(), &*text.end());
     ImGui::PopStyleColor();
 }
 
@@ -244,7 +244,7 @@ void ImPlus::TextWrapped(std::string_view text)
     bool need_backup = (window->DC.TextWrapPos < 0.0f);
     if (need_backup)
         ImGui::PushTextWrapPos(0.0f);
-    ImGui::TextUnformatted(text.begin(), text.end());
+    ImGui::TextUnformatted(&*text.begin(), &*text.end());
     if (need_backup)
         ImGui::PopTextWrapPos();
 }
@@ -259,16 +259,16 @@ void ImPlus::LabelText(std::string_view label, std::string_view text)
     const ImGuiStyle& style = g.Style;
     const float w = ImGui::CalcItemWidth();
 
-    const ImVec2 label_size = ImGui::CalcTextSize(label.begin(), label.end(), true);
+    const ImVec2 label_size = ImGui::CalcTextSize(&*label.begin(), &*label.end(), true);
     const ImRect value_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y*2));
     const ImRect total_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w + (label_size.x > 0.0f ? style.ItemInnerSpacing.x : 0.0f), style.FramePadding.y*2) + label_size);
     ImGui::ItemSize(total_bb, style.FramePadding.y);
     if (!ImGui::ItemAdd(total_bb, 0))
         return;
 
-    ImGui::RenderTextClipped(value_bb.Min, value_bb.Max, text.begin(), text.end(), nullptr, ImVec2(0.0f,0.5f));
+    ImGui::RenderTextClipped(value_bb.Min, value_bb.Max, &*text.begin(), &*text.end(), nullptr, ImVec2(0.0f,0.5f));
     if (label_size.x > 0.0f)
-        ImGui::RenderText(ImVec2(value_bb.Max.x + style.ItemInnerSpacing.x, value_bb.Min.y + style.FramePadding.y), label.begin(), label.end());
+        ImGui::RenderText(ImVec2(value_bb.Max.x + style.ItemInnerSpacing.x, value_bb.Min.y + style.FramePadding.y), &*label.begin(), &*label.end());
 }
 
 void ImPlus::BulletText(std::string_view text)
@@ -280,7 +280,7 @@ void ImPlus::BulletText(std::string_view text)
     ImGuiContext& g = *GImGui;
     const ImGuiStyle& style = g.Style;
 
-    const ImVec2 label_size = ImGui::CalcTextSize(text.begin(), text.end(), false);
+    const ImVec2 label_size = ImGui::CalcTextSize(&*text.begin(), &*text.end(), false);
     const ImVec2 total_size = ImVec2(g.FontSize + (label_size.x > 0.0f ? (label_size.x + style.FramePadding.x * 2) : 0.0f), label_size.y);
     ImVec2 pos = window->DC.CursorPos;
     pos.y += window->DC.CurrLineTextBaseOffset;
@@ -291,7 +291,7 @@ void ImPlus::BulletText(std::string_view text)
 
     ImU32 text_col = ImGui::GetColorU32(ImGuiCol_Text);
     ImGui::RenderBullet(window->DrawList, bb.Min + ImVec2(style.FramePadding.x + g.FontSize*0.5f, g.FontSize*0.5f), text_col);
-    ImGui::RenderText(bb.Min + ImVec2(g.FontSize + style.FramePadding.x * 2, 0.0f), text.begin(), text.end(), false);
+    ImGui::RenderText(bb.Min + ImVec2(g.FontSize + style.FramePadding.x * 2, 0.0f), &*text.begin(), &*text.end(), false);
 }
 
 void ImPlus::SetTooltip(std::string_view text)
@@ -301,13 +301,13 @@ void ImPlus::SetTooltip(std::string_view text)
         ImGui::BeginTooltip();
     else
         ImGui::BeginTooltipEx(0, true);
-    ImGui::TextUnformatted(text.begin(), text.end());
+    ImGui::TextUnformatted(&*text.begin(), &*text.end());
     ImGui::EndTooltip();
 }
 
 //----------------------------------------------------------------------------//
 
-template <class Type> inline
+template <class Type>
 bool ImPlus::InputValue(CStrView label, Type& ref, decltype(Type()) step, const char* format)
 {
     constexpr const auto dataType = impl_get_data_type<Type>();
