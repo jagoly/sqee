@@ -229,8 +229,8 @@ constexpr inline ImGuiDataType_ impl_get_data_type()
     if (std::is_same_v<Type, double>)   return ImGuiDataType_Double;
 }
 
-template <class Type>
-SQEE_API bool InputValue(CStrView label, Type& ref, decltype(Type()) step = 0, const char* format = nullptr);
+#define IMPLUS_INPUT_VALUE_DECLARATION(Type) \
+SQEE_API bool InputValue(CStrView label, Type& ref, Type step = 0, const char* format = nullptr);
 
 //template <class Type>
 //SQEE_API bool InputValue(const char* label, Type& ref, decltype(Type()) min, decltype(Type()) max, decltype(Type()) step = 0, const char* format = nullptr);
@@ -238,14 +238,14 @@ SQEE_API bool InputValue(CStrView label, Type& ref, decltype(Type()) step = 0, c
 //template <class Type>
 //SQEE_API bool DragValue(const char* label, Type& ref, float speed, const char* format = nullptr);
 
-template <class Type>
-SQEE_API bool DragValue(CStrView label, Type& ref, decltype(Type()) min, decltype(Type()) max, float speed, const char* format = nullptr);
+#define IMPLUS_DRAG_VALUE_DECLARATION(Type) \
+SQEE_API bool DragValue(CStrView label, Type& ref, Type min, Type max, float speed, const char* format = nullptr);
 
-template <class Type>
-SQEE_API bool SliderValue(CStrView label, Type& ref, decltype(Type()) min, decltype(Type()) max, const char* format = nullptr);
+#define IMPLUS_SLIDER_VALUE_DECLARATION(Type) \
+SQEE_API bool SliderValue(CStrView label, Type& ref, Type min, Type max, const char* format = nullptr);
 
-template <class Type>
-SQEE_API bool InputValueRange2(CStrView label, Type& refMin, Type& refMax, decltype(Type()) step = 0, const char* format = nullptr);
+#define IMPLUS_INPUT_VALUE_RANGE2_DECLARATION(Type) \
+SQEE_API bool InputValueRange2(CStrView label, Type& refMin, Type& refMax, Type step = 0, const char* format = nullptr);
 
 //template <class Type>
 //SQEE_API bool InputValueRange2(CStrView label, Type& refMin, Type& refMax, decltype(Type()) min, decltype(Type()) max, decltype(Type()) step = 0, const char* format = nullptr);
@@ -253,11 +253,41 @@ SQEE_API bool InputValueRange2(CStrView label, Type& refMin, Type& refMax, declt
 //template <class Type>
 //SQEE_API bool DragValueRange2(CStrView label, Type& refMin, Type& refMax, float speed, const char* format = nullptr);
 
-template <class Type>
-SQEE_API bool DragValueRange2(CStrView label, Type& refMin, Type& refMax, decltype(Type()) min, decltype(Type()) max, float speed, const char* format = nullptr);
+#define IMPLUS_DRAG_VALUE_RANGE2_DECLARATION(Type) \
+SQEE_API bool DragValueRange2(CStrView label, Type& refMin, Type& refMax, Type min, Type max, float speed, const char* format = nullptr);
 
-template <class Type>
-SQEE_API bool SliderValueRange2(CStrView label, Type& refMin, Type& refMax, decltype(Type()) min, decltype(Type()) max, const char* format = nullptr);
+#define IMPLUS_SLIDER_VALUE_RANGE2_DECLARATION(Type) \
+SQEE_API bool SliderValueRange2(CStrView label, Type& refMin, Type& refMax, Type min, Type max, const char* format = nullptr);
+
+//----------------------------------------------------------------------------//
+
+#define IMPLUS_INPUT_FUNCTION_DECLARATIONS(Type) \
+IMPLUS_INPUT_VALUE_DECLARATION(Type) \
+IMPLUS_DRAG_VALUE_DECLARATION(Type) \
+IMPLUS_SLIDER_VALUE_DECLARATION(Type) \
+IMPLUS_INPUT_VALUE_RANGE2_DECLARATION(Type) \
+IMPLUS_DRAG_VALUE_RANGE2_DECLARATION(Type) \
+IMPLUS_SLIDER_VALUE_RANGE2_DECLARATION(Type)
+
+IMPLUS_INPUT_FUNCTION_DECLARATIONS(int8_t)
+IMPLUS_INPUT_FUNCTION_DECLARATIONS(uint8_t)
+IMPLUS_INPUT_FUNCTION_DECLARATIONS(int16_t)
+IMPLUS_INPUT_FUNCTION_DECLARATIONS(uint16_t)
+IMPLUS_INPUT_FUNCTION_DECLARATIONS(int32_t)
+IMPLUS_INPUT_FUNCTION_DECLARATIONS(uint32_t)
+IMPLUS_INPUT_FUNCTION_DECLARATIONS(int64_t)
+IMPLUS_INPUT_FUNCTION_DECLARATIONS(uint64_t)
+IMPLUS_INPUT_FUNCTION_DECLARATIONS(float)
+IMPLUS_INPUT_FUNCTION_DECLARATIONS(double)
+
+#undef IMPLUS_INPUT_VALUE_DECLARATION
+#undef IMPLUS_DRAG_VALUE_DECLARATION
+#undef IMPLUS_SLIDER_VALUE_DECLARATION
+#undef IMPLUS_INPUT_VALUE_RANGE2_DECLARATION
+#undef IMPLUS_DRAG_VALUE_RANGE2_DECLARATION
+#undef IMPLUS_SLIDER_VALUE_RANGE2_DECLARATION
+
+//----------------------------------------------------------------------------//
 
 template <int Size, class Type>
 inline bool InputVector(CStrView label, sq::maths::Vector<Size, Type>& ref, decltype(Type()) step = 0, const char* format = nullptr)

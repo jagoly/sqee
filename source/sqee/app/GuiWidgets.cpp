@@ -308,7 +308,7 @@ void ImPlus::SetTooltip(std::string_view text)
 //----------------------------------------------------------------------------//
 
 template <class Type>
-bool ImPlus::InputValue(CStrView label, Type& ref, decltype(Type()) step, const char* format)
+static bool impl_InputValue(ImPlus::CStrView label, Type& ref, Type step, const char* format)
 {
     constexpr const auto dataType = impl_get_data_type<Type>();
     auto temp = ref;
@@ -319,7 +319,7 @@ bool ImPlus::InputValue(CStrView label, Type& ref, decltype(Type()) step, const 
 }
 
 template <class Type>
-bool ImPlus::DragValue(CStrView label, Type& ref, decltype(Type()) min, decltype(Type()) max, float speed, const char* format)
+static bool impl_DragValue(ImPlus::CStrView label, Type& ref, Type min, Type max, float speed, const char* format)
 {
     constexpr const auto dataType = impl_get_data_type<Type>();
     auto temp = ref;
@@ -331,7 +331,7 @@ bool ImPlus::DragValue(CStrView label, Type& ref, decltype(Type()) min, decltype
 }
 
 template <class Type>
-bool ImPlus::SliderValue(CStrView label, Type& ref, decltype(Type()) min, decltype(Type()) max, const char* format)
+static bool impl_SliderValue(ImPlus::CStrView label, Type& ref, Type min, Type max, const char* format)
 {
     constexpr const auto dataType = impl_get_data_type<Type>();
     auto temp = ref;
@@ -343,7 +343,7 @@ bool ImPlus::SliderValue(CStrView label, Type& ref, decltype(Type()) min, declty
 }
 
 template <class Type>
-bool ImPlus::InputValueRange2(CStrView label, Type& refMin, Type& refMax, decltype(Type()) step, const char* format)
+static bool impl_InputValueRange2(ImPlus::CStrView label, Type& refMin, Type& refMax, Type step, const char* format)
 {
     constexpr const auto dataType = impl_get_data_type<Type>();
     Type temp[2] = { refMin, refMax };
@@ -360,7 +360,7 @@ bool ImPlus::InputValueRange2(CStrView label, Type& refMin, Type& refMax, declty
 }
 
 template <class Type>
-bool ImPlus::DragValueRange2(CStrView label, Type& refMin, Type& refMax, decltype(Type()) min, decltype(Type()) max, float speed, const char* format)
+static bool impl_DragValueRange2(ImPlus::CStrView label, Type& refMin, Type& refMax, Type min, Type max, float speed, const char* format)
 {
     constexpr const auto dataType = impl_get_data_type<Type>();
     Type temp[2] = { refMin, refMax };
@@ -378,7 +378,7 @@ bool ImPlus::DragValueRange2(CStrView label, Type& refMin, Type& refMax, decltyp
 }
 
 template <class Type>
-bool ImPlus::SliderValueRange2(CStrView label, Type& refMin, Type& refMax, decltype(Type()) min, decltype(Type()) max, const char* format)
+static bool impl_SliderValueRange2(ImPlus::CStrView label, Type& refMin, Type& refMax, Type min, Type max, const char* format)
 {
     constexpr const auto dataType = impl_get_data_type<Type>();
     Type temp[2] = { refMin, refMax };
@@ -397,23 +397,47 @@ bool ImPlus::SliderValueRange2(CStrView label, Type& refMin, Type& refMax, declt
 
 //----------------------------------------------------------------------------//
 
-#define SQEE_IMGUI_INPUT_TEMPLATE_DEFINITIONS(Type) \
-template bool ImPlus::InputValue(CStrView label, Type& ref, Type step, const char* format); \
-template bool ImPlus::DragValue(CStrView label, Type& ref, Type min, Type max, float speed, const char* format); \
-template bool ImPlus::SliderValue(CStrView label, Type& ref, Type min, Type max, const char* format); \
-template bool ImPlus::InputValueRange2(CStrView label, Type& refMin, Type& refMax, Type step, const char* format); \
-template bool ImPlus::DragValueRange2(CStrView label, Type& refMin, Type& refMax, Type min, Type max, float speed, const char* format); \
-template bool ImPlus::SliderValueRange2(CStrView label, Type& refMin, Type& refMax, Type min, Type max, const char* format);
+#define IMPLUS_INPUT_VALUE_DEFINITION(Type) \
+bool ImPlus::InputValue(CStrView label, Type& ref, Type step, const char* format) \
+{ return impl_InputValue(label, ref, step, format); }
 
-SQEE_IMGUI_INPUT_TEMPLATE_DEFINITIONS(int8_t);
-SQEE_IMGUI_INPUT_TEMPLATE_DEFINITIONS(uint8_t);
-SQEE_IMGUI_INPUT_TEMPLATE_DEFINITIONS(int16_t);
-SQEE_IMGUI_INPUT_TEMPLATE_DEFINITIONS(uint16_t);
-SQEE_IMGUI_INPUT_TEMPLATE_DEFINITIONS(int32_t);
-SQEE_IMGUI_INPUT_TEMPLATE_DEFINITIONS(uint32_t);
-SQEE_IMGUI_INPUT_TEMPLATE_DEFINITIONS(int64_t);
-SQEE_IMGUI_INPUT_TEMPLATE_DEFINITIONS(uint64_t);
-SQEE_IMGUI_INPUT_TEMPLATE_DEFINITIONS(float);
-SQEE_IMGUI_INPUT_TEMPLATE_DEFINITIONS(double);
+#define IMPLUS_DRAG_VALUE_DEFINITION(Type) \
+bool ImPlus::DragValue(CStrView label, Type& ref, Type min, Type max, float speed, const char* format) \
+{ return impl_DragValue(label, ref, min, max, speed, format); }
 
-#undef SQEE_IMGUI_INPUT_TEMPLATE_DEFINITIONS
+#define IMPLUS_SLIDER_VALUE_DEFINITION(Type) \
+bool ImPlus::SliderValue(CStrView label, Type& ref, Type min, Type max, const char* format) \
+{ return impl_SliderValue(label, ref, min, max, format); }
+
+#define IMPLUS_INPUT_VALUE_RANGE2_DEFINITION(Type) \
+bool ImPlus::InputValueRange2(CStrView label, Type& refMin, Type& refMax, Type step, const char* format) \
+{ return impl_InputValueRange2(label, refMin, refMax, step, format); }
+
+#define IMPLUS_DRAG_VALUE_RANGE2_DEFINITION(Type) \
+bool ImPlus::DragValueRange2(CStrView label, Type& refMin, Type& refMax, Type min, Type max, float speed, const char* format) \
+{ return impl_DragValueRange2(label, refMin, refMax, min, max, speed, format); }
+
+#define IMPLUS_SLIDER_VALUE_RANGE2_DEFINITION(Type) \
+bool ImPlus::SliderValueRange2(CStrView label, Type& refMin, Type& refMax, Type min, Type max, const char* format) \
+{ return impl_SliderValueRange2(label, refMin, refMax, min, max, format); }
+
+//----------------------------------------------------------------------------//
+
+#define IMPLUS_INPUT_FUNCTION_DEFINITIONS(Type) \
+IMPLUS_INPUT_VALUE_DEFINITION(Type) \
+IMPLUS_DRAG_VALUE_DEFINITION(Type) \
+IMPLUS_SLIDER_VALUE_DEFINITION(Type) \
+IMPLUS_INPUT_VALUE_RANGE2_DEFINITION(Type) \
+IMPLUS_DRAG_VALUE_RANGE2_DEFINITION(Type) \
+IMPLUS_SLIDER_VALUE_RANGE2_DEFINITION(Type)
+
+IMPLUS_INPUT_FUNCTION_DEFINITIONS(int8_t)
+IMPLUS_INPUT_FUNCTION_DEFINITIONS(uint8_t)
+IMPLUS_INPUT_FUNCTION_DEFINITIONS(int16_t)
+IMPLUS_INPUT_FUNCTION_DEFINITIONS(uint16_t)
+IMPLUS_INPUT_FUNCTION_DEFINITIONS(int32_t)
+IMPLUS_INPUT_FUNCTION_DEFINITIONS(uint32_t)
+IMPLUS_INPUT_FUNCTION_DEFINITIONS(int64_t)
+IMPLUS_INPUT_FUNCTION_DEFINITIONS(uint64_t)
+IMPLUS_INPUT_FUNCTION_DEFINITIONS(float)
+IMPLUS_INPUT_FUNCTION_DEFINITIONS(double)
