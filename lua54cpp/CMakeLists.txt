@@ -1,15 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
 project(Lua54CPP CXX)
 
-# platform notes:
-# linux assumes clang/gcc
-# windows assumes msvc
-# bsd/macos aren't supported yet
-
-################################################################################
-
-option(LUA54CPP_STATIC_LIB "Build Lua54CPP as a static library" False)
-
 ################################################################################
 
 set(LUA_SOURCES
@@ -60,10 +51,12 @@ set(LUA_SOURCES
 
 ################################################################################
 
-if (LUA54CPP_STATIC_LIB)
+if (SQEE_STATIC_LIB)
     add_library(lua54cpp STATIC ${LUA_SOURCES})
+    target_compile_definitions(lua54cpp PRIVATE SQEE_STATIC_LIB)
 else ()
     add_library(lua54cpp SHARED ${LUA_SOURCES})
+    target_compile_definitions(lua54cpp PRIVATE SQEE_EXPORT_LIB)
 endif ()
 
 target_include_directories(lua54cpp PUBLIC "${PROJECT_SOURCE_DIR}/src")
@@ -73,13 +66,28 @@ set_property(TARGET lua54cpp PROPERTY CXX_STANDARD_REQUIRED True)
 
 ################################################################################
 
-if (CMAKE_SYSTEM_NAME MATCHES "Linux")
+if (SQEE_LINUX)
+    target_compile_definitions(lua54cpp PRIVATE SQEE_LINUX)
+elseif (SQEE_WINDOWS)
+    target_compile_definitions(lua54cpp PRIVATE SQEE_WINDOWS)
+else ()
+    message(FATAL_ERROR "could not detect platform")
+endif ()
 
+if (SQEE_GNU)
+    target_compile_definitions(lua54cpp PRIVATE SQEE_GNU)
+elseif (SQEE_CLANG)
+    target_compile_definitions(lua54cpp PRIVATE SQEE_CLANG)
+elseif (SQEE_MSVC)
+    target_compile_definitions(lua54cpp PRIVATE SQEE_MSVC)
+else ()
+    message(FATAL_ERROR "could not detect compiler")
+endif ()
+
+################################################################################
+
+if (SQEE_GNU OR SQEE_CLANG)
     target_compile_options(lua54cpp PRIVATE -Wall -Wextra)
-    target_compile_definitions(lua54cpp PUBLIC LUA_USE_POSIX)
-
-elseif (CMAKE_SYSTEM_NAME MATCHES "Windows")
-
+elseif (SQEE_MSVC)
     target_compile_options(lua54cpp PRIVATE /W3)
-
 endif ()

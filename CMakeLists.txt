@@ -3,7 +3,6 @@ project(SQEE CXX)
 
 ################################################################################
 
-option(SQEE_STATIC_LINK "Link dependencies to SQEE statically" False)
 option(SQEE_STATIC_LIB "Build SQEE as a static library" False)
 
 ################################################################################
@@ -92,7 +91,7 @@ endif ()
 
 ################################################################################
 
-if (SQEE_STATIC_LINK)
+if (SQEE_STATIC_LIB)
     set(SFML_STATIC_LIBRARIES True)
 endif ()
 
@@ -116,10 +115,6 @@ elseif (SQEE_WINDOWS)
 endif ()
 
 ################################################################################
-
-if (SQEE_STATIC_LINK)
-    set(LUA54CPP_STATIC_LIB True)
-endif ()
 
 add_subdirectory(lua54cpp)
 

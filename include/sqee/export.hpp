@@ -40,4 +40,8 @@
         #define SQEE_API __declspec(dllimport)
     #endif
 
+#else
+
+    #error "unsupported platform/compiler combo"
+
 #endif
