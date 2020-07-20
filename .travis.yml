@@ -1,5 +1,5 @@
+os: linux
 dist: focal
-sudo: required
 language: cpp
 
 addons:
@@ -11,10 +11,7 @@ addons:
       - libsfml-dev
 
 before_script:
-
-  - wget https://github.com/ChaiScript/ChaiScript/archive/v6.1.0.zip -O /tmp/chaiscript.zip
-  - unzip -q /tmp/chaiscript.zip
-  - sudo cp -r ChaiScript-6.1.0/include /usr/
+  - \# nothing to do here
 
 script:
   - CXX=/usr/bin/g++ CC=/usr/bin/gcc cmake .
