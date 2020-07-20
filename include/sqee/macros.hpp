@@ -39,11 +39,11 @@ _Pragma("GCC diagnostic pop")
 #define ENABLE_WARNING_OLD_STYLE_CAST
 
 #define DISABLE_WARNING_NARROWING_CONSTRUCTOR \
-#pragma warning(push) \
-#pragma warning(disable : 4305)
+__pragma(warning(push)) \
+__pragma(warning(disable : 4305))
 
 #define ENABLE_WARNING_NARROWING_CONSTRUCTOR \
-#pragma warning(pop)
+__pragma(warning(pop))
 
 #endif
 
