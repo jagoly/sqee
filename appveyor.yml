@@ -11,9 +11,9 @@ before_build:
   - 7z x sfml.zip
   - rename SFML-2.5.1 sfml
 
-  - curl -fsSL -o chaiscript.zip https://github.com/ChaiScript/ChaiScript/archive/v6.1.0.zip
+  - curl -fsSL -o chaiscript.zip https://github.com/ChaiScript/ChaiScript/archive/VS_2019_fixes.zip
   - 7z x chaiscript.zip
-  - rename Chaiscript-6.1.0 chaiscript
+  - rename ChaiScript-VS_2019_fixes chaiscript
 
   - cd ..
 
