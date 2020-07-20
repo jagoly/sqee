@@ -61,7 +61,7 @@ String PreProcessor::process(const String& path, const String& prelude) const
 
     //--------------------------------------------------------//
 
-    Vector<std::pair<uint, String>> errorVec;
+    Vector<Pair<size_t, String>> errorVec;
 
     const auto base = tokenise_string_view(fullString, '\n');
 
@@ -123,7 +123,7 @@ String PreProcessor::process(const String& path, const String& prelude) const
     if (errorVec.empty() == false)
     {
         String errorLines;
-        for (const std::pair<uint, String>& error : errorVec)
+        for (const auto& error : errorVec)
             errorLines += "\nLine %d: %s"_fmt_(error.first, error.second);
 
         log_error("Failed to pre-process shader from \"%s\"%s", path, errorLines);

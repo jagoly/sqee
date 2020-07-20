@@ -426,7 +426,7 @@ Vector<Mat34F> Armature::compute_ubo_data(const Pose& pose) const
     Vector<Mat34F> result;
     result.resize(pose.size());
 
-    compute_ubo_data(pose, result.data(), pose.size());
+    compute_ubo_data(pose, result.data(), uint(pose.size()));
 
     return result;
 }

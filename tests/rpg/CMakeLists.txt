@@ -13,7 +13,7 @@ set_property(TARGET sqee-rpg PROPERTY CXX_STANDARD_REQUIRED True)
 if (SQEE_GNU OR SQEE_CLANG)
     target_compile_options(sqee-rpg PRIVATE -Wall -Wextra)
 elseif (SQEE_MSVC)
-    target_compile_options(sqee-rpg PRIVATE /W3 /wd4201)
+    target_compile_options(sqee-rpg PRIVATE /W3 /wd4251)
 endif ()
 
 target_compile_definitions(sqee-rpg PRIVATE SQEE_GLOBAL_BUILTINS)

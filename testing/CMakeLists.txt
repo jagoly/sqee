@@ -13,7 +13,7 @@ set_property(TARGET sqee-testing PROPERTY CXX_STANDARD_REQUIRED True)
 if (SQEE_GNU OR SQEE_CLANG)
     target_compile_options(sqee-testing PRIVATE -Wall -Wextra)
 elseif (SQEE_MSVC)
-    target_compile_options(sqee-testing PRIVATE /W3 /wd4201)
+    target_compile_options(sqee-testing PRIVATE /W3 /wd4251)
 endif ()
 
 target_compile_definitions(sqee-testing PRIVATE SQEE_GLOBAL_BUILTINS)

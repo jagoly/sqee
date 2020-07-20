@@ -30,6 +30,11 @@ _Pragma("GCC diagnostic pop")
 #define DISABLE_WARNING_NARROWING_CONSTRUCTOR
 #define ENABLE_WARNING_NARROWING_CONSTRUCTOR
 
+// currently just used to for std::localtime on windows
+
+#define DISABLE_WARNING_MSVC_DEPRECIATED
+#define ENABLE_WARNING_MSVC_DEPRECIATED
+
 #else
 
 #define DISABLE_WARNING_FLOAT_EQUALITY
@@ -43,6 +48,13 @@ __pragma(warning(push)) \
 __pragma(warning(disable : 4305))
 
 #define ENABLE_WARNING_NARROWING_CONSTRUCTOR \
+__pragma(warning(pop))
+
+#define DISABLE_WARNING_MSVC_DEPRECIATED \
+__pragma(warning(push)) \
+__pragma(warning(disable : 4996))
+
+#define ENABLE_WARNING_MSVC_DEPRECIATED \
 __pragma(warning(pop))
 
 #endif
