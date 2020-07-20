@@ -398,12 +398,12 @@ bool ImPlus::SliderValueRange2(CStrView label, Type& refMin, Type& refMax, declt
 //----------------------------------------------------------------------------//
 
 #define SQEE_IMGUI_INPUT_TEMPLATE_DEFINITIONS(Type) \
-template bool ImPlus::InputValue(CStrView label, Type& ref, Type step = 0, const char* format = nullptr); \
-template bool ImPlus::DragValue(CStrView label, Type& ref, Type min, Type max, float speed, const char* format = nullptr); \
-template bool ImPlus::SliderValue(CStrView label, Type& ref, Type min, Type max, const char* format = nullptr); \
-template bool ImPlus::InputValueRange2(CStrView label, Type& refMin, Type& refMax, Type step = 0, const char* format = nullptr); \
-template bool ImPlus::DragValueRange2(CStrView label, Type& refMin, Type& refMax, Type min, Type max, float speed, const char* format = nullptr); \
-template bool ImPlus::SliderValueRange2(CStrView label, Type& refMin, Type& refMax, Type min, Type max, const char* format = nullptr);
+template bool ImPlus::InputValue(CStrView label, Type& ref, Type step, const char* format); \
+template bool ImPlus::DragValue(CStrView label, Type& ref, Type min, Type max, float speed, const char* format); \
+template bool ImPlus::SliderValue(CStrView label, Type& ref, Type min, Type max, const char* format); \
+template bool ImPlus::InputValueRange2(CStrView label, Type& refMin, Type& refMax, Type step, const char* format); \
+template bool ImPlus::DragValueRange2(CStrView label, Type& refMin, Type& refMax, Type min, Type max, float speed, const char* format); \
+template bool ImPlus::SliderValueRange2(CStrView label, Type& refMin, Type& refMax, Type min, Type max, const char* format);
 
 SQEE_IMGUI_INPUT_TEMPLATE_DEFINITIONS(int8_t);
 SQEE_IMGUI_INPUT_TEMPLATE_DEFINITIONS(uint8_t);
