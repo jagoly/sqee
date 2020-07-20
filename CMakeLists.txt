@@ -16,12 +16,12 @@ file(GLOB_RECURSE SOURCES "${PROJECT_SOURCE_DIR}/source/sqee/*.cpp")
 
 if (SQEE_STATIC_LIB)
 
-    add_library(sqee STATIC ${SOURCES})
+    add_library(sqee STATIC ${HEADERS} ${SOURCES})
     target_compile_definitions(sqee PUBLIC SQEE_STATIC_LIB)
 
 else ()
 
-    add_library(sqee SHARED ${SOURCES})
+    add_library(sqee SHARED ${HEADERS} ${SOURCES})
     target_compile_definitions(sqee PRIVATE SQEE_EXPORT_LIB)
 
 endif ()
