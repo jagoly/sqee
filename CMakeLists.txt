@@ -85,7 +85,7 @@ if (SQEE_GNU OR SQEE_CLANG)
 elseif (SQEE_MSVC)
 
     target_compile_options(sqee PRIVATE /bigobj)
-    target_compile_options(sqee PRIVATE /W3 /wd4201)
+    target_compile_options(sqee PRIVATE /W3 /wd4251)
 
 endif ()
 
