@@ -4,13 +4,17 @@ project(Lua54CPP CXX)
 # platform notes:
 # linux assumes clang/gcc
 # windows assumes msvc
-# BSD/OSX aren't supported yet
+# bsd/macos aren't supported yet
+
+################################################################################
 
 option(LUA54CPP_STATIC_LIB "Build Lua54CPP as a static library" False)
 
+################################################################################
+
 set(LUA_SOURCES
 
-    "src/lua.h" # do not use lua.hpp
+    "src/lua.h" # note that we do not use lua.hpp
 
     "src/ljumptab.h"
     "src/llimits.h"
@@ -52,10 +56,9 @@ set(LUA_SOURCES
     "src/lundump.h"   "src/lundump.cpp"
     "src/lvm.h"       "src/lvm.cpp"
     "src/lzio.h"      "src/lzio.cpp"
-
-    #"src/lua.cpp"
-    #"src/luac.cpp"
 )
+
+################################################################################
 
 if (LUA54CPP_STATIC_LIB)
     add_library(lua54cpp STATIC ${LUA_SOURCES})
@@ -68,9 +71,15 @@ target_include_directories(lua54cpp PUBLIC "${PROJECT_SOURCE_DIR}/src")
 set_property(TARGET lua54cpp PROPERTY CXX_STANDARD 17)
 set_property(TARGET lua54cpp PROPERTY CXX_STANDARD_REQUIRED True)
 
+################################################################################
+
 if (CMAKE_SYSTEM_NAME MATCHES "Linux")
-    target_compile_options(lua54cpp PUBLIC -Wall -Wextra)
+
+    target_compile_options(lua54cpp PRIVATE -Wall -Wextra)
     target_compile_definitions(lua54cpp PUBLIC LUA_USE_POSIX)
+
 elseif (CMAKE_SYSTEM_NAME MATCHES "Windows")
-    # todo
+
+    target_compile_options(lua54cpp PRIVATE /W3)
+
 endif ()

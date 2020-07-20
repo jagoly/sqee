@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
-project(SQEE CXX C) # todo: change all source to use c++ linkage
+project(SQEE CXX)
 
 ################################################################################
 
@@ -12,7 +12,8 @@ set(CMAKE_MODULE_PATH APPEND "${PROJECT_SOURCE_DIR}/cmake/modules")
 
 ################################################################################
 
-include("cmake/sources.cmake")
+file(GLOB_RECURSE HEADERS "${PROJECT_SOURCE_DIR}/include/sqee/*.hpp")
+file(GLOB_RECURSE SOURCES "${PROJECT_SOURCE_DIR}/source/sqee/*.cpp")
 
 if (SQEE_STATIC_LIB)
 
@@ -76,14 +77,7 @@ endif ()
 
 if (SQEE_GNU OR SQEE_CLANG)
 
-    target_compile_options(sqee PUBLIC -Wall -Wextra)
-
-    if (SQEE_WINDOWS)
-        # todo: make this less hacky so other people can use it
-        set(CMAKE_PREFIX_PATH APPEND "/storage/Projects/SQEE/mingw-deps/SFML-2.5.1/")
-        target_compile_definitions(sqee PUBLIC CHAISCRIPT_NO_THREADS)
-        target_compile_options(sqee PRIVATE -mwindows -Wa,-mbig-obj)
-    endif ()
+    target_compile_options(sqee PRIVATE -Wall -Wextra)
 
     if (NOT SQEE_STATIC_LIB)
         target_compile_options(sqee PRIVATE -fvisibility=hidden)
@@ -91,8 +85,8 @@ if (SQEE_GNU OR SQEE_CLANG)
 
 elseif (SQEE_MSVC)
 
-    target_compile_options(sqee PRIVATE /bigobj /W3)
-    target_compile_options(sqee PRIVATE /wd4201)
+    target_compile_options(sqee PRIVATE /bigobj)
+    target_compile_options(sqee PRIVATE /W3 /wd4201)
 
 endif ()
 
@@ -104,30 +98,10 @@ endif ()
 
 find_package(SFML 2.5 COMPONENTS audio window system REQUIRED)
 
-target_include_directories(sqee PRIVATE ${SFML_INCLUDE_DIR})
+# need to refactor sq::Sound so that I can make SFML private
 
-# need to refactor sq::Sound so that I can keep SFML internal
+target_include_directories(sqee PUBLIC ${SFML_INCLUDE_DIR})
 target_link_libraries(sqee PUBLIC sfml-audio sfml-window sfml-system)
-
-################################################################################
-
-if (SQEE_STATIC_LINK)
-    set(LUA54CPP_STATIC_LIB True)
-endif ()
-
-if (SQEE_LINUX)
-    set(LUA54CPP_USE_POSIX True)
-endif ()
-
-add_subdirectory(lua54cpp)
-
-target_include_directories(sqee PUBLIC "lua54cpp/src")
-
-target_link_libraries(sqee PUBLIC lua54cpp)
-
-target_compile_definitions(sqee PUBLIC SOL_ALL_SAFETIES_ON=1)
-target_compile_definitions(sqee PUBLIC SOL_USING_CXX_LUA=1)
-target_compile_definitions(sqee PUBLIC SOL_PRINT_ERRORS=0)
 
 ################################################################################
 
@@ -141,9 +115,20 @@ elseif (SQEE_WINDOWS)
     target_link_libraries(sqee PUBLIC opengl32)
 endif ()
 
-if (SQEE_LINUX AND SQEE_STATIC_LIB)
-    target_link_libraries(sqee PUBLIC pthread dl) # for ChaiScript
+################################################################################
+
+if (SQEE_STATIC_LINK)
+    set(LUA54CPP_STATIC_LIB True)
 endif ()
+
+add_subdirectory(lua54cpp)
+
+target_include_directories(sqee PUBLIC "lua54cpp/src")
+target_link_libraries(sqee PUBLIC lua54cpp)
+
+target_compile_definitions(sqee PUBLIC SOL_ALL_SAFETIES_ON=1)
+target_compile_definitions(sqee PUBLIC SOL_USING_CXX_LUA=1)
+target_compile_definitions(sqee PUBLIC SOL_PRINT_ERRORS=0)
 
 ################################################################################
 

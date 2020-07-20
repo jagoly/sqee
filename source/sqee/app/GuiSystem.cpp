@@ -16,23 +16,11 @@
 #include <sqee/redist/gl_loader.hpp>
 #include <sqee/redist/imgui/imgui.hpp>
 
+#include <sqee/data/UbuntuMinimal.hpp>
+
 #include <sqee/macros.hpp>
 
 using namespace sq;
-
-//============================================================================//
-
-extern const int32_t data_UbuntuRegular_size;
-extern const uint64_t data_UbuntuRegular[];
-
-extern const int32_t data_UbuntuBold_size;
-extern const uint64_t data_UbuntuBold[];
-
-extern const int32_t data_UbuntuItalic_size;
-extern const uint64_t data_UbuntuItalic[];
-
-extern const int32_t data_UbuntuMonoRegular_size;
-extern const uint64_t data_UbuntuMonoRegular[];
 
 //============================================================================//
 
@@ -313,16 +301,16 @@ void GuiSystem::Implementation::create_fonts()
     constexpr const size_t MaxNameLen = sizeof(ImFontConfig::Name);
 
     fontConfig.Name[StringView("Ubuntu Regular").copy(fontConfig.Name, MaxNameLen-1)] = '\0';
-    io.Fonts->AddFontFromMemoryCompressedTTF(data_UbuntuRegular, data_UbuntuRegular_size, 16.f, &fontConfig);
+    io.Fonts->AddFontFromMemoryCompressedTTF(sqee_UbuntuRegular, sqee_UbuntuRegular_size, 16.f, &fontConfig);
 
     fontConfig.Name[StringView("Ubuntu Bold").copy(fontConfig.Name, MaxNameLen-1)] = '\0';
-    io.Fonts->AddFontFromMemoryCompressedTTF(data_UbuntuBold, data_UbuntuBold_size, 16.f, &fontConfig);
+    io.Fonts->AddFontFromMemoryCompressedTTF(sqee_UbuntuBold, sqee_UbuntuBold_size, 16.f, &fontConfig);
 
     fontConfig.Name[StringView("Ubuntu Italic").copy(fontConfig.Name, MaxNameLen-1)] = '\0';
-    io.Fonts->AddFontFromMemoryCompressedTTF(data_UbuntuItalic, data_UbuntuItalic_size, 16.f, &fontConfig);
+    io.Fonts->AddFontFromMemoryCompressedTTF(sqee_UbuntuItalic, sqee_UbuntuItalic_size, 16.f, &fontConfig);
 
     fontConfig.Name[StringView("Ubuntu Mono Regular").copy(fontConfig.Name, MaxNameLen-1)] = '\0';
-    io.Fonts->AddFontFromMemoryCompressedTTF(data_UbuntuMonoRegular, data_UbuntuMonoRegular_size, 16.f, &fontConfig);
+    io.Fonts->AddFontFromMemoryCompressedTTF(sqee_UbuntuMonoRegular, sqee_UbuntuMonoRegular_size, 16.f, &fontConfig);
 }
 
 //============================================================================//

@@ -1,6 +1,4 @@
-#include <chaiscript/chaiscript.hpp>
-
-#include <sqee/scripts/BasicSetup.hpp>
+#include <sqee/app/LuaSetup.hpp>
 
 #include <sqee/debug/Logging.hpp>
 #include <sqee/debug/Misc.hpp>
@@ -25,13 +23,13 @@ void RpgApp::initialise(Vector<String> args)
 
     //--------------------------------------------------------//
 
-    mChaiEngine = sq::create_ChaiEngine();
+    mLuaState = std::make_unique<sol::state>();
 
     mWindow = std::make_unique<sq::Window>("SQEE RPG", Vec2U(1280, 720));
 
     mInputDevices = std::make_unique<sq::InputDevices>(*mWindow);
 
-    mChaiConsole = std::make_unique<sq::ChaiConsole>(*mChaiEngine);
+    mLuaConsole = std::make_unique<LuaConsole>(*mLuaState);
 
     mDebugOverlay = std::make_unique<sq::DebugOverlay>();
 
@@ -39,33 +37,33 @@ void RpgApp::initialise(Vector<String> args)
 
     mResourceCaches = std::make_unique<ResourceCaches>();
 
-    mMainScene = std::make_unique<MainScene>(mOptions, *mChaiEngine, *mInputDevices, *mResourceCaches);
+    mMainScene = std::make_unique<MainScene>(mOptions, *mLuaState, *mInputDevices, *mResourceCaches);
 
     //--------------------------------------------------------//
 
     mWindow->set_cursor_hidden(true);
 
-    sq::chaiscript_setup_maths(*mChaiEngine);
+    sq::lua_setup_maths(*mLuaState);
 
     //--------------------------------------------------------//
 
-    mChaiEngine->add(chai::fun(&sq::ChaiConsole::clear, mChaiConsole.get()), "console_clear");
-    mChaiEngine->add(chai::fun(&sq::ChaiConsole::history, mChaiConsole.get()), "console_history");
-    mChaiEngine->add(chai::fun(&sq::ChaiConsole::print, mChaiConsole.get()), "console_print");
-    mChaiEngine->add(chai::fun(&sq::DebugOverlay::notify, mDebugOverlay.get()), "overlay_notify");
+//    mChaiEngine->add(chai::fun(&sq::ChaiConsole::clear, mChaiConsole.get()), "console_clear");
+//    mChaiEngine->add(chai::fun(&sq::ChaiConsole::history, mChaiConsole.get()), "console_history");
+//    mChaiEngine->add(chai::fun(&sq::ChaiConsole::print, mChaiConsole.get()), "console_print");
+//    mChaiEngine->add(chai::fun(&sq::DebugOverlay::notify, mDebugOverlay.get()), "overlay_notify");
 
     //--------------------------------------------------------//
 
-    chaiscript_setup_world(*mChaiEngine);
-    chaiscript_setup_api(*mChaiEngine);
+    lua_setup_world(*mLuaState);
+    lua_setup_api(*mLuaState);
 
     //--------------------------------------------------------//
 
     this->refresh_options();
 
-    try { mChaiEngine->eval_file("assets/test_init.chai"); }
-    catch (const chai::exception::eval_error& error)
-    { sq::log_error(error.pretty_print()); }
+//    try { mChaiEngine->eval_file("assets/test_init.chai"); }
+//    catch (const chai::exception::eval_error& error)
+//    { sq::log_error(error.pretty_print()); }
 }
 
 void RpgApp::update(double elapsed)
@@ -81,7 +79,7 @@ void RpgApp::update(double elapsed)
 
     //-- update and render the console and overlay -----------//
 
-    mChaiConsole->update_and_render(elapsed);
+    mLuaConsole->update_and_render(elapsed);
     mDebugOverlay->update_and_render(elapsed);
 
     //-- swap da bufaz ---------------------------------------//
@@ -129,10 +127,10 @@ void RpgApp::handle_event(sq::Event event)
     {
         if (event.data.keyboard.ctrl == true)
         {
-            mWindow->set_cursor_hidden(mChaiConsole->check_active());
-            mMainScene->set_input_enabled(mChaiConsole->check_active());
+            mWindow->set_cursor_hidden(mLuaConsole->check_active());
+            mMainScene->set_input_enabled(mLuaConsole->check_active());
 
-            mChaiConsole->toggle_active();
+            mLuaConsole->toggle_active();
         }
 
         else mDebugOverlay->toggle_active();
@@ -142,13 +140,13 @@ void RpgApp::handle_event(sq::Event event)
 
     //--------------------------------------------------------//
 
-    if (mChaiConsole->check_active() == true)
+    if (mLuaConsole->check_active() == true)
     {
         if ( type == Type::Keyboard_Press || type == Type::Keyboard_Release ||
              type == Type::Mouse_Press || type == Type::Mouse_Release ||
              type == Type::Text_Entry )
         {
-            mChaiConsole->handle_event(event);
+            mLuaConsole->handle_event(event);
         }
 
         return; // munch events

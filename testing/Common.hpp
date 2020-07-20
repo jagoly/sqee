@@ -58,7 +58,7 @@ template <class T> Approx<T> approx(T arg) { return Approx<T>(arg); }
 template <class T> inline
 std::ostream& operator<<(std::ostream& os, const Approx<T>& arg)
 {
-    return os << "Approx(" << sq::chai_string(arg.value) << ")";
+    return os << "Approx(" << sq::to_string(arg.value) << ")";
 }
 
 template <> inline

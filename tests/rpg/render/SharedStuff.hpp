@@ -6,16 +6,9 @@
 #include <sqee/gl/Program.hpp>
 #include <sqee/gl/Textures.hpp>
 
+#include <sqee/data/VolumeMeshes.hpp>
+
 #include "../main/Options.hpp"
-
-//====== Data Declarations ===================================================//
-
-extern "C" const float data_CubeVertices [8*3];
-extern "C" const uchar data_CubeIndices  [12*3];
-extern "C" const float data_SphereVertices [42*3];
-extern "C" const uchar data_SphereIndices  [80*3];
-extern "C" const float data_ConeVertices [26*3];
-extern "C" const uchar data_ConeIndices  [48*3];
 
 //============================================================================//
 
@@ -25,11 +18,11 @@ namespace sqt::render {
 
 struct StencilVolumes : sq::NonCopyable
 {
-    sq::Volume Unit_Cube { data_CubeVertices, data_CubeIndices, 8u, 36u };
+    sq::Volume Unit_Cube { sqee_CubeVertices, sqee_CubeIndices, 8u, 36u };
 
-    sq::Volume Light_Ortho { data_CubeVertices, data_CubeIndices, 8u, 36u };
-    sq::Volume Light_Point { data_SphereVertices, data_SphereIndices, 42u, 240u };
-    sq::Volume Light_Spot { data_ConeVertices, data_ConeIndices, 26u, 144u };
+    sq::Volume Light_Ortho { sqee_CubeVertices, sqee_CubeIndices, 8u, 36u };
+    sq::Volume Light_Point { sqee_SphereVertices, sqee_SphereIndices, 42u, 240u };
+    sq::Volume Light_Spot { sqee_ConeVertices, sqee_ConeIndices, 26u, 144u };
 };
 
 //============================================================================//

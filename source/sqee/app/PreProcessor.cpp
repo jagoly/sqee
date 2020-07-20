@@ -8,6 +8,8 @@
 #include <sqee/debug/Logging.hpp>
 #include <sqee/misc/Files.hpp>
 
+#include <sqee/data/ShaderHeaders.hpp>
+
 #include <sqee/helpers.hpp>
 
 using namespace sq;
@@ -15,23 +17,14 @@ using sq::literals::operator""_fmt_;
 
 //============================================================================//
 
-extern const char data_glsl_misc_screen[];
-extern const char data_glsl_funcs_position[];
-extern const char data_glsl_funcs_depth[];
-extern const char data_glsl_funcs_random[];
-extern const char data_glsl_funcs_colour[];
-extern const char data_glsl_misc_disks[];
-
-//============================================================================//
-
 PreProcessor::PreProcessor()
 {
-    mHeaders.emplace("builtin/misc/screen", tokenise_string(data_glsl_misc_screen, '\n'));
-    mHeaders.emplace("builtin/funcs/position", tokenise_string(data_glsl_funcs_position, '\n'));
-    mHeaders.emplace("builtin/funcs/depth", tokenise_string(data_glsl_funcs_depth, '\n'));
-    mHeaders.emplace("builtin/funcs/random", tokenise_string(data_glsl_funcs_random, '\n'));
-    mHeaders.emplace("builtin/funcs/colour", tokenise_string(data_glsl_funcs_colour, '\n'));
-    mHeaders.emplace("builtin/misc/disks", tokenise_string(data_glsl_misc_disks, '\n'));
+    mHeaders.emplace("builtin/misc/screen", tokenise_string(sqee_glsl_misc_screen, '\n'));
+    mHeaders.emplace("builtin/funcs/position", tokenise_string(sqee_glsl_funcs_position, '\n'));
+    mHeaders.emplace("builtin/funcs/depth", tokenise_string(sqee_glsl_funcs_depth, '\n'));
+    mHeaders.emplace("builtin/funcs/random", tokenise_string(sqee_glsl_funcs_random, '\n'));
+    mHeaders.emplace("builtin/funcs/colour", tokenise_string(sqee_glsl_funcs_colour, '\n'));
+    mHeaders.emplace("builtin/misc/disks", tokenise_string(sqee_glsl_misc_disks, '\n'));
 }
 
 //============================================================================//

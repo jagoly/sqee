@@ -4,8 +4,9 @@
 #include <sqee/maths/Builtins.hpp>
 
 #include <sqee/app/Scene.hpp>
-#include <sqee/app/ChaiEngine.hpp>
 #include <sqee/app/InputDevices.hpp>
+
+#include <sqee/redist/sol.hpp>
 
 #include "Options.hpp"
 #include "ResourceCaches.hpp"
@@ -22,7 +23,7 @@ class MainScene final : public sq::Scene
 {
 public: //====================================================//
 
-    MainScene ( const Options& options, sq::ChaiEngine& engine,
+    MainScene ( const Options& options, sol::state& luaState,
                 sq::InputDevices& input, ResourceCaches& caches );
 
     ~MainScene();
@@ -43,7 +44,7 @@ private: //===================================================//
 
     const Options& options;
 
-    sq::ChaiEngine& mEngine;
+    sol::state& mLuaState;
     sq::InputDevices& mInput;
     ResourceCaches& mCaches;
 

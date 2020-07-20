@@ -1,13 +1,14 @@
 #pragma once
 
-#include <sqee/app/ChaiEngine.hpp>
+#include <sqee/redist/sol.hpp>
+#include <sqee/export.hpp>
 
 namespace sq {
 
 //============================================================================//
 
-SQEE_API void chaiscript_setup_physics(ChaiEngine& engine);
-SQEE_API void chaiscript_setup_maths(ChaiEngine& engine);
+SQEE_API void lua_setup_physics(sol::state& lua);
+SQEE_API void lua_setup_maths(sol::state& lua);
 
 //============================================================================//
 
