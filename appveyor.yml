@@ -21,3 +21,9 @@ build_script:
 
   - cmake c:/projects/sqee -DCMAKE_PREFIX_PATH=c:/projects/sqee/extlibs/sfml -G "Visual Studio 16 2019" -A x64
   - cmake --build .
+  
+
+artifacts:
+  - path: build
+    name: build.zip
+    type: zip
