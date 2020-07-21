@@ -1,21 +1,17 @@
-// Copyright(c) 2018 James Gangur
-// Part of https://github.com/jagoly/sqee
-
-#include <sqee/app/ChaiConsole.hpp>
-
-#include <chaiscript/chaiscript.hpp>
 
 #include <sqee/debug/Text.hpp>
 
-using namespace sq;
+#include "LuaConsole.hpp"
+
+using namespace sqt;
 
 //============================================================================//
 
-ChaiConsole::ChaiConsole(ChaiEngine& engine) : Scene(0.5), mEngine(engine) {}
+LuaConsole::LuaConsole(sol::state& lua) : sq::Scene(0.5), mLua(lua) {}
 
 //============================================================================//
 
-void ChaiConsole::update()
+void LuaConsole::update()
 {
     mCursorVisible = !mCursorVisible;
     mCursorVisible |= mCursorDelay;
@@ -25,7 +21,7 @@ void ChaiConsole::update()
 
 //============================================================================//
 
-void ChaiConsole::render(double)
+void LuaConsole::render(double)
 {
     if (mActive == true)
     {
@@ -41,16 +37,16 @@ void ChaiConsole::render(double)
         for (const auto& str : mOutput) outStr.append('\n' + str);
 
         // render output text to the top-left of the view port
-        render_text_basic(outStr, Vec2I(+1, -1), Vec2I(-1, +1), Vec2F(24, 30), Vec4F(1, 1, 1, 1), true);
+        sq::render_text_basic(outStr, Vec2I(+1, -1), Vec2I(-1, +1), Vec2F(24, 30), Vec4F(1, 1, 1, 1), true);
     }
 }
 
 //============================================================================//
 
-void ChaiConsole::handle_event(Event event)
+void LuaConsole::handle_event(sq::Event event)
 {
-    using Type = Event::Type;
-    using Key = Keyboard_Key;
+    using Type = sq::Event::Type;
+    using Key = sq::Keyboard_Key;
 
     //--------------------------------------------------------//
 
@@ -97,9 +93,9 @@ void ChaiConsole::handle_event(Event event)
                 mHistoryIndex = -1;
             }
 
-            try { mEngine.eval(mInput); }
-            catch (const chai::exception::eval_error& error)
-            { mOutput.emplace_front(error.what()); }
+//            try { mEngine.eval(mInput); }
+//            catch (const chai::exception::eval_error& error)
+//            { mOutput.emplace_front(error.what()); }
 
             mCursorPos = 0u;
             mInput.clear();
@@ -167,12 +163,12 @@ void ChaiConsole::handle_event(Event event)
 
 //============================================================================//
 
-void ChaiConsole::clear()
+void LuaConsole::clear()
 {
     mOutput.clear();
 }
 
-void ChaiConsole::history()
+void LuaConsole::history()
 {
     for (const String& command : mHistory)
     {
@@ -180,7 +176,7 @@ void ChaiConsole::history()
     }
 }
 
-void ChaiConsole::print(String arg)
+void LuaConsole::print(String arg)
 {
     mOutput.emplace_front(arg);
 }

@@ -1,13 +1,13 @@
 #pragma once
 
-#include <sqee/app/ChaiEngine.hpp>
+#include <sqee/redist/sol.hpp>
 
 //============================================================================//
 
 namespace sqt {
 
-void chaiscript_setup_world(sq::ChaiEngine& engine);
+void lua_setup_world(sol::state& lua);
 
-void chaiscript_setup_api(sq::ChaiEngine& engine);
+void lua_setup_api(sol::state& lua);
 
 } // namespace sqt

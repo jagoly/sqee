@@ -65,8 +65,8 @@ enum class DialogResult { None, Confirm, Cancel };
 
 
 // ID stack/scopes
-inline void PushID(std::string_view id) { ImGui::PushID(id.begin(), id.end()); }
-inline ImGuiID GetID(std::string_view id) { return ImGui::GetID(id.begin(), id.end()); }
+inline void PushID(std::string_view id) { ImGui::PushID(&*id.begin(), &*id.end()); }
+inline ImGuiID GetID(std::string_view id) { return ImGui::GetID(&*id.begin(), &*id.end()); }
 
 // Prefer using SetNextXXX functions (before Begin) rather that SetXXX functions (after Begin).
 //inline void SetWindowPos(CStrView name, ImVec2 pos, ImGuiCond cond = 0) { ImGui::SetWindowPos(name, pos, cond); }
@@ -75,7 +75,7 @@ inline ImGuiID GetID(std::string_view id) { return ImGui::GetID(id.begin(), id.e
 //inline void SetWindowFocus(CStrView name) { ImGui::SetWindowFocus(name); }
 
 // Widgets: Text
-inline void Text(std::string_view text) { ImGui::TextUnformatted(text.begin(), text.end()); }
+inline void Text(std::string_view text) { ImGui::TextUnformatted(&*text.begin(), &*text.end()); }
 SQEE_API void TextColored(ImVec4 col, std::string_view text);
 SQEE_API void TextDisabled(std::string_view text);
 SQEE_API void TextWrapped(std::string_view text);
@@ -160,7 +160,7 @@ inline const ImGuiPayload* AcceptDragDropPayload(CStrView type, ImGuiDragDropFla
 
 // Miscellaneous Utilities
 //inline CStrView GetStyleColorName(ImGuiCol idx) { return ImGui::GetStyleColorName(idx); }
-inline ImVec2 CalcTextSize(std::string_view text, bool hide_text_after_double_hash = false, float wrap_width = -1.0f) { return ImGui::CalcTextSize(text.begin(), text.end(), hide_text_after_double_hash, wrap_width); }
+inline ImVec2 CalcTextSize(std::string_view text, bool hide_text_after_double_hash = false, float wrap_width = -1.0f) { return ImGui::CalcTextSize(&*text.begin(), &*text.end(), hide_text_after_double_hash, wrap_width); }
 
 // Clipboard Utilities (also see the LogToClipboard() function to capture or output text data to the clipboard)
 //inline CStrView GetClipboardText() { return ImGui::GetClipboardText(); }
@@ -229,8 +229,8 @@ constexpr inline ImGuiDataType_ impl_get_data_type()
     if (std::is_same_v<Type, double>)   return ImGuiDataType_Double;
 }
 
-template <class Type>
-SQEE_API bool InputValue(CStrView label, Type& ref, decltype(Type()) step = 0, const char* format = nullptr);
+#define IMPLUS_INPUT_VALUE_DECLARATION(Type) \
+SQEE_API bool InputValue(CStrView label, Type& ref, Type step = 0, const char* format = nullptr);
 
 //template <class Type>
 //SQEE_API bool InputValue(const char* label, Type& ref, decltype(Type()) min, decltype(Type()) max, decltype(Type()) step = 0, const char* format = nullptr);
@@ -238,14 +238,14 @@ SQEE_API bool InputValue(CStrView label, Type& ref, decltype(Type()) step = 0, c
 //template <class Type>
 //SQEE_API bool DragValue(const char* label, Type& ref, float speed, const char* format = nullptr);
 
-template <class Type>
-SQEE_API bool DragValue(CStrView label, Type& ref, decltype(Type()) min, decltype(Type()) max, float speed, const char* format = nullptr);
+#define IMPLUS_DRAG_VALUE_DECLARATION(Type) \
+SQEE_API bool DragValue(CStrView label, Type& ref, Type min, Type max, float speed, const char* format = nullptr);
 
-template <class Type>
-SQEE_API bool SliderValue(CStrView label, Type& ref, decltype(Type()) min, decltype(Type()) max, const char* format = nullptr);
+#define IMPLUS_SLIDER_VALUE_DECLARATION(Type) \
+SQEE_API bool SliderValue(CStrView label, Type& ref, Type min, Type max, const char* format = nullptr);
 
-template <class Type>
-SQEE_API bool InputValueRange2(CStrView label, Type& refMin, Type& refMax, decltype(Type()) step = 0, const char* format = nullptr);
+#define IMPLUS_INPUT_VALUE_RANGE2_DECLARATION(Type) \
+SQEE_API bool InputValueRange2(CStrView label, Type& refMin, Type& refMax, Type step = 0, const char* format = nullptr);
 
 //template <class Type>
 //SQEE_API bool InputValueRange2(CStrView label, Type& refMin, Type& refMax, decltype(Type()) min, decltype(Type()) max, decltype(Type()) step = 0, const char* format = nullptr);
@@ -253,11 +253,41 @@ SQEE_API bool InputValueRange2(CStrView label, Type& refMin, Type& refMax, declt
 //template <class Type>
 //SQEE_API bool DragValueRange2(CStrView label, Type& refMin, Type& refMax, float speed, const char* format = nullptr);
 
-template <class Type>
-SQEE_API bool DragValueRange2(CStrView label, Type& refMin, Type& refMax, decltype(Type()) min, decltype(Type()) max, float speed, const char* format = nullptr);
+#define IMPLUS_DRAG_VALUE_RANGE2_DECLARATION(Type) \
+SQEE_API bool DragValueRange2(CStrView label, Type& refMin, Type& refMax, Type min, Type max, float speed, const char* format = nullptr);
 
-template <class Type>
-SQEE_API bool SliderValueRange2(CStrView label, Type& refMin, Type& refMax, decltype(Type()) min, decltype(Type()) max, const char* format = nullptr);
+#define IMPLUS_SLIDER_VALUE_RANGE2_DECLARATION(Type) \
+SQEE_API bool SliderValueRange2(CStrView label, Type& refMin, Type& refMax, Type min, Type max, const char* format = nullptr);
+
+//----------------------------------------------------------------------------//
+
+#define IMPLUS_INPUT_FUNCTION_DECLARATIONS(Type) \
+IMPLUS_INPUT_VALUE_DECLARATION(Type) \
+IMPLUS_DRAG_VALUE_DECLARATION(Type) \
+IMPLUS_SLIDER_VALUE_DECLARATION(Type) \
+IMPLUS_INPUT_VALUE_RANGE2_DECLARATION(Type) \
+IMPLUS_DRAG_VALUE_RANGE2_DECLARATION(Type) \
+IMPLUS_SLIDER_VALUE_RANGE2_DECLARATION(Type)
+
+IMPLUS_INPUT_FUNCTION_DECLARATIONS(int8_t)
+IMPLUS_INPUT_FUNCTION_DECLARATIONS(uint8_t)
+IMPLUS_INPUT_FUNCTION_DECLARATIONS(int16_t)
+IMPLUS_INPUT_FUNCTION_DECLARATIONS(uint16_t)
+IMPLUS_INPUT_FUNCTION_DECLARATIONS(int32_t)
+IMPLUS_INPUT_FUNCTION_DECLARATIONS(uint32_t)
+IMPLUS_INPUT_FUNCTION_DECLARATIONS(int64_t)
+IMPLUS_INPUT_FUNCTION_DECLARATIONS(uint64_t)
+IMPLUS_INPUT_FUNCTION_DECLARATIONS(float)
+IMPLUS_INPUT_FUNCTION_DECLARATIONS(double)
+
+#undef IMPLUS_INPUT_VALUE_DECLARATION
+#undef IMPLUS_DRAG_VALUE_DECLARATION
+#undef IMPLUS_SLIDER_VALUE_DECLARATION
+#undef IMPLUS_INPUT_VALUE_RANGE2_DECLARATION
+#undef IMPLUS_DRAG_VALUE_RANGE2_DECLARATION
+#undef IMPLUS_SLIDER_VALUE_RANGE2_DECLARATION
+
+//----------------------------------------------------------------------------//
 
 template <int Size, class Type>
 inline bool InputVector(CStrView label, sq::maths::Vector<Size, Type>& ref, decltype(Type()) step = 0, const char* format = nullptr)

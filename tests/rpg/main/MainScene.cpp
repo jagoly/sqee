@@ -1,5 +1,3 @@
-#include <chaiscript/chaiscript.hpp>
-
 #include <sqee/sound/Sound.hpp>
 #include <sqee/debug/Misc.hpp>
 
@@ -22,10 +20,10 @@ namespace maths = sq::maths;
 
 //============================================================================//
 
-MainScene::MainScene ( const Options& options, sq::ChaiEngine& engine,
+MainScene::MainScene ( const Options& options, sol::state& luaState,
                        sq::InputDevices& input, ResourceCaches& caches )
     : Scene(1.0 / 24.0)
-    , options(options), mEngine(engine)
+    , options(options), mLuaState(luaState)
     , mInput(input), mCaches(caches)
 {
     world = std::make_unique<WorldStuff>();
@@ -35,7 +33,7 @@ MainScene::MainScene ( const Options& options, sq::ChaiEngine& engine,
 
     mPosCrnt = mPosNext = world->camera.get_position();
 
-    mEngine.add_global(chai::var(api.get()), "api");
+    //mEngine.add_global(chai::var(api.get()), "api");
 }
 
 MainScene::~MainScene() = default;

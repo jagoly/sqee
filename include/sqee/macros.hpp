@@ -25,6 +25,16 @@ _Pragma("GCC diagnostic ignored \"-Wold-style-cast\"")
 #define ENABLE_WARNING_OLD_STYLE_CAST \
 _Pragma("GCC diagnostic pop")
 
+// msvc warns when I don't feel like adding .f to a bunch of literals
+
+#define DISABLE_WARNING_NARROWING_CONSTRUCTOR
+#define ENABLE_WARNING_NARROWING_CONSTRUCTOR
+
+// currently just used to for std::localtime on windows
+
+#define DISABLE_WARNING_MSVC_DEPRECIATED
+#define ENABLE_WARNING_MSVC_DEPRECIATED
+
 #else
 
 #define DISABLE_WARNING_FLOAT_EQUALITY
@@ -33,9 +43,25 @@ _Pragma("GCC diagnostic pop")
 #define DISABLE_WARNING_OLD_STYLE_CAST
 #define ENABLE_WARNING_OLD_STYLE_CAST
 
+#define DISABLE_WARNING_NARROWING_CONSTRUCTOR \
+__pragma(warning(push)) \
+__pragma(warning(disable : 4305))
+
+#define ENABLE_WARNING_NARROWING_CONSTRUCTOR \
+__pragma(warning(pop))
+
+#define DISABLE_WARNING_MSVC_DEPRECIATED \
+__pragma(warning(push)) \
+__pragma(warning(disable : 4996))
+
+#define ENABLE_WARNING_MSVC_DEPRECIATED \
+__pragma(warning(pop))
+
 #endif
 
 //============================================================================//
+
+#define SQEE_EXPAND(Arg) Arg // needed to work around an MSVC bug
 
 #define SQEE_MACRO_OVERLOAD(_01, _02, _03, _04, _05, _06, _07, _08, _09, _10, \
                             _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, \
@@ -47,58 +73,58 @@ _Pragma("GCC diagnostic pop")
 //============================================================================//
 
 #define SQEE_FOR_EACH_01(Functor, Arg) Functor(Arg)
-#define SQEE_FOR_EACH_02(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_01(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_03(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_02(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_04(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_03(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_05(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_04(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_06(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_05(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_07(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_06(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_08(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_07(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_09(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_08(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_10(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_09(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_11(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_10(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_12(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_11(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_13(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_12(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_14(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_13(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_15(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_14(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_16(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_15(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_17(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_16(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_18(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_17(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_19(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_18(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_20(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_19(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_21(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_20(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_22(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_21(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_23(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_22(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_24(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_23(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_25(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_24(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_26(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_25(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_27(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_26(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_28(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_27(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_29(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_28(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_30(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_29(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_31(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_30(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_32(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_31(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_33(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_32(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_34(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_33(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_35(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_34(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_36(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_35(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_37(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_36(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_38(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_37(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_39(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_38(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_40(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_39(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_41(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_40(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_42(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_41(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_43(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_42(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_44(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_43(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_45(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_44(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_46(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_45(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_47(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_46(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_48(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_47(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_49(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_48(Functor, __VA_ARGS__)
-#define SQEE_FOR_EACH_50(Functor, Arg, ...) Functor(Arg) SQEE_FOR_EACH_49(Functor, __VA_ARGS__)
+#define SQEE_FOR_EACH_02(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_01(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_03(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_02(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_04(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_03(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_05(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_04(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_06(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_05(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_07(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_06(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_08(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_07(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_09(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_08(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_10(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_09(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_11(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_10(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_12(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_11(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_13(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_12(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_14(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_13(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_15(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_14(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_16(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_15(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_17(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_16(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_18(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_17(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_19(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_18(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_20(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_19(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_21(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_20(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_22(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_21(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_23(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_22(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_24(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_23(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_25(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_24(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_26(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_25(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_27(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_26(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_28(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_27(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_29(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_28(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_30(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_29(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_31(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_30(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_32(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_31(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_33(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_32(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_34(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_33(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_35(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_34(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_36(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_35(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_37(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_36(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_38(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_37(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_39(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_38(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_40(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_39(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_41(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_40(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_42(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_41(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_43(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_42(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_44(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_43(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_45(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_44(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_46(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_45(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_47(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_46(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_48(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_47(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_49(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_48(Functor, __VA_ARGS__))
+#define SQEE_FOR_EACH_50(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_49(Functor, __VA_ARGS__))
 
 #define SQEE_FOR_EACH(Functor, ...) \
-    SQEE_MACRO_OVERLOAD ( __VA_ARGS__, \
+    SQEE_EXPAND ( SQEE_MACRO_OVERLOAD ( __VA_ARGS__, \
         SQEE_FOR_EACH_50, SQEE_FOR_EACH_49, SQEE_FOR_EACH_48, SQEE_FOR_EACH_47, SQEE_FOR_EACH_46, \
         SQEE_FOR_EACH_45, SQEE_FOR_EACH_44, SQEE_FOR_EACH_43, SQEE_FOR_EACH_42, SQEE_FOR_EACH_41, \
         SQEE_FOR_EACH_40, SQEE_FOR_EACH_39, SQEE_FOR_EACH_38, SQEE_FOR_EACH_37, SQEE_FOR_EACH_36, \
@@ -109,7 +135,7 @@ _Pragma("GCC diagnostic pop")
         SQEE_FOR_EACH_15, SQEE_FOR_EACH_14, SQEE_FOR_EACH_13, SQEE_FOR_EACH_12, SQEE_FOR_EACH_11, \
         SQEE_FOR_EACH_10, SQEE_FOR_EACH_09, SQEE_FOR_EACH_08, SQEE_FOR_EACH_07, SQEE_FOR_EACH_06, \
         SQEE_FOR_EACH_05, SQEE_FOR_EACH_04, SQEE_FOR_EACH_03, SQEE_FOR_EACH_02, SQEE_FOR_EACH_01, \
-    ) ( Functor, __VA_ARGS__ )
+    ) ( Functor, __VA_ARGS__ ) )
 
 //============================================================================//
 

@@ -1,25 +1,10 @@
-static_assert(sizeof(int) == 4u);
-static_assert(sizeof(unsigned long) == 8u);
-
-//============================================================================//
-
-extern const int data_UbuntuRegular_size;
-extern const unsigned long data_UbuntuRegular[];
-
-extern const int data_UbuntuBold_size;
-extern const unsigned long data_UbuntuBold[];
-
-extern const int data_UbuntuItalic_size;
-extern const unsigned long data_UbuntuItalic[];
-
-extern const int data_UbuntuMonoRegular_size;
-extern const unsigned long data_UbuntuMonoRegular[];
+#include <sqee/data/UbuntuMinimal.hpp>
 
 //============================================================================//
 
 // 'UbuntuMinimal-R.ttf' (176064 bytes)
-const int data_UbuntuRegular_size = 92184;
-const unsigned long data_UbuntuRegular[92184 / 8] =
+const int32_t sqee_UbuntuRegular_size = 92184;
+const uint64_t sqee_UbuntuRegular[11523] =
 {
     0x000000000000bc57, 0x00000400c0af0200, 0x8212000000010025, 0x5446462000042e04, 0xaf0200ee1a04744d, 0x4544471c2c1582a4, 0x4801004621891c46, 0x4f504756380f8258,
     0x7a010032625f6053, 0x555347ac340100f8, 0x301f8271eb900b42, 0x2f534f48320000b0, 0x010000adf9368932, 0x616d63603b2f82a8, 0x150000c6d8597470, 0x747663be040000d0,
@@ -1467,8 +1452,8 @@ const unsigned long data_UbuntuRegular[92184 / 8] =
 //============================================================================//
 
 // 'UbuntuMinimal-B.ttf' (175640 bytes)
-const int data_UbuntuBold_size = 94699;
-const unsigned long data_UbuntuBold[94704 / 8] =
+const int32_t sqee_UbuntuBold_size = 94699;
+const uint64_t sqee_UbuntuBold[11838] =
 {
     0x000000000000bc57, 0x0000040018ae0200, 0x8212000000010025, 0x5446462000042e04, 0xad02008a1b04744d, 0x4544471c2c1582fc, 0x4201004621891c46, 0x4f504756380f8270,
     0x7501005bb5d75753, 0x555347ea38010010, 0x301f8271eb900b42, 0x2f534f48320000c8, 0x010000e4fc628a32, 0x6d636038082f82a8, 0x0000c6d859747061, 0x7663be040000d015,
@@ -2955,8 +2940,8 @@ const unsigned long data_UbuntuBold[94704 / 8] =
 //============================================================================//
 
 // 'UbuntuMinimal-I.ttf' (181032 bytes)
-const int data_UbuntuItalic_size = 98290;
-const unsigned long data_UbuntuItalic[98296 / 8] =
+const int32_t sqee_UbuntuItalic_size = 98290;
+const uint64_t sqee_UbuntuItalic[12287] =
 {
     0x000000000000bc57, 0x0000040028c30200, 0x8212000000010025, 0x5446462000042e04, 0xc302004b1b04744d, 0x4544471c2c15820c, 0x5901004b21891c46, 0x4f504756380f8298,
     0x8c01001bb5a39f53, 0x555347de3601002c, 0x301f821371eb8e42, 0x2f534f3c320000f0, 0x01000064f9368932, 0x6d636038082f82a8, 0x0000c6d859747061, 0x7663be040000e415,
@@ -4499,8 +4484,8 @@ const unsigned long data_UbuntuItalic[98296 / 8] =
 //============================================================================//
 
 // 'UbuntuMonoMinimal-R.ttf' (100488 bytes)
-const int data_UbuntuMonoRegular_size = 66263;
-const unsigned long data_UbuntuMonoRegular[66264 / 8] =
+const int32_t sqee_UbuntuMonoRegular_size = 66263;
+const uint64_t sqee_UbuntuMonoRegular[8283] =
 {
     0x000000000000bc57, 0x0000040088880100, 0x8212000000010025, 0x5446462000042e04, 0x880100f9225f744d, 0x4544471c2b15826c, 0x63010062187f1346, 0x4f50474a00290e82,
     0x201f82b04ece3553, 0x555347402810822c, 0x301f829236cd1942, 0x2f534fe02400004c, 0x010000d2fdc98832, 0x6d63603c081f82a8, 0x0000fa3d18727061, 0x766326050000380c,

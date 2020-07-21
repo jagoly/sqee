@@ -13,12 +13,9 @@
 #include <sqee/gl/VertexArray.hpp>
 #include <sqee/redist/gl_loader.hpp>
 
+#include <sqee/data/BasicFont.hpp>
+
 using namespace sq;
-
-//====String=============================================================//
-
-extern "C" const uchar data_TextFont[256*256];
-extern "C" const uchar data_TextGlow[256*256];
 
 //============================================================================//
 
@@ -101,10 +98,10 @@ struct TextBasicStuff
         vao.add_float_attribute(0u, 3u, gl::FLOAT, false, 0u);
 
         texFont.allocate_storage({16u, 16u, 256u});
-        texFont.load_memory(data_TextFont);
+        texFont.load_memory(sqee_BasicFontMain);
 
         texGlow.allocate_storage({16u, 16u, 256u});
-        texGlow.load_memory(data_TextGlow);
+        texGlow.load_memory(sqee_BasicFontGlow);
 
         program.create(vertexSource, fragmentSource);
     }

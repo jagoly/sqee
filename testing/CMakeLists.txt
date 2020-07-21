@@ -1,39 +1,21 @@
-project(SQEE_TESTING)
+project(SQEE_TESTING CXX)
 
 ################################################################################
 
-set(SOURCES
-    "main.cpp"
-    "catch.hpp"
+file(GLOB_RECURSE HEADERS "${PROJECT_SOURCE_DIR}/*.hpp")
+file(GLOB_RECURSE SOURCES "${PROJECT_SOURCE_DIR}/*.cpp")
 
-    "Common.hpp"
-    "Common.cpp"
+add_executable(sqee-testing ${HEADERS} ${SOURCES})
 
-    "tests/messages.cpp"
+set_property(TARGET sqee-testing PROPERTY CXX_STANDARD 17)
+set_property(TARGET sqee-testing PROPERTY CXX_STANDARD_REQUIRED True)
 
-    "tests/maths/scalars.cpp"
-    "tests/maths/vectors.cpp"
-    "tests/maths/matrices.cpp"
-    "tests/maths/quaternion.cpp"
-
-    "tests/dop/entries.cpp"
-    "tests/dop/joined.cpp"
-    "tests/dop/reduce.cpp"
-
-    "tests/misc/pooltools.cpp"
-    "tests/misc/tinystring.cpp"
-)
-
-################################################################################
-
-add_executable(sqee-testing ${SOURCES})
+if (SQEE_GNU OR SQEE_CLANG)
+    target_compile_options(sqee-testing PRIVATE -Wall -Wextra)
+elseif (SQEE_MSVC)
+    target_compile_options(sqee-testing PRIVATE /W3 /wd4251)
+endif ()
 
 target_compile_definitions(sqee-testing PRIVATE SQEE_GLOBAL_BUILTINS)
 
 target_link_libraries(sqee-testing PRIVATE sqee)
-
-################################################################################
-
-set_property(TARGET sqee-testing PROPERTY CXX_STANDARD 17)
-
-set_property(TARGET sqee-testing PROPERTY RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/testing")

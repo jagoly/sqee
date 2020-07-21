@@ -51,39 +51,21 @@
 #endif
 
 
-/*
-@@ LUA_USE_C89 controls the use of non-ISO-C89 features.
-** Define it if you want Lua to avoid the use of a few C99 features
-** or Windows-specific features on Windows.
-*/
-/* #define LUA_USE_C89 */
+//============================================================================//
 
-
-/*
-** By default, Lua on Windows use (some) specific Windows features
-*/
-#if !defined(LUA_USE_C89) && defined(_WIN32) && !defined(_WIN32_WCE)
-#define LUA_USE_WINDOWS  /* enable goodies for regular Windows */
-#endif
-
-
-#if defined(LUA_USE_WINDOWS)
-#define LUA_DL_DLL	/* enable support for DLL */
-#define LUA_USE_C89	/* broadly, Windows is C89 */
-#endif
-
-
-#if defined(LUA_USE_LINUX)
+#ifdef SQEE_LINUX
+#define LUA_USE_LINUX
 #define LUA_USE_POSIX
-#define LUA_USE_DLOPEN		/* needs an extra library: -ldl */
+//#define LUA_USE_DLOPEN
 #endif
 
-
-#if defined(LUA_USE_MACOSX)
-#define LUA_USE_POSIX
-#define LUA_USE_DLOPEN		/* MacOS does not need -ldl */
+#ifdef SQEE_WINDOWS
+#define LUA_USE_WINDOWS
+#define LUA_USE_C89
+//#define LUA_DL_DLL
 #endif
 
+//============================================================================//
 
 /*
 @@ LUAI_IS32INT is true iff 'int' has (at least) 32 bits.
@@ -103,7 +85,7 @@
 /*
 @@ LUA_32BITS enables Lua with 32-bit integers and 32-bit floats.
 */
-/* #define LUA_32BITS */
+#define LUA_32BITS // SQEE
 
 
 /*
@@ -261,71 +243,44 @@
 
 #endif
 
-/* }================================================================== */
 
+//============================================================================//
 
-/*
-** {==================================================================
-** Marks for exported symbols in the C code
-** ===================================================================
-*/
+#ifdef SQEE_STATIC_LIB
+    #define LUA_API
+#elif defined(SQEE_LINUX) && defined(SQEE_GNU)
+    #define LUA_API __attribute__((visibility("default")))
+#elif defined(SQEE_LINUX) && defined(SQEE_CLANG)
+    #define LUA_API __attribute__((visibility("default")))
+#elif defined(SQEE_WINDOWS) && defined(SQEE_GNU)
+    #ifdef SQEE_EXPORT_LIB
+        #define LUA_API __attribute__((dllexport))
+    #else
+        #define LUA_API __attribute__((dllimport))
+    #endif
+#elif defined(SQEE_WINDOWS) && defined(SQEE_MSVC)
+    #ifdef SQEE_EXPORT_LIB
+        #define LUA_API __declspec(dllexport)
+    #else
+        #define LUA_API __declspec(dllimport)
+    #endif
+#else
+    #error "unsupported platform/compiler combo"
+#endif
 
-/*
-@@ LUA_API is a mark for all core API functions.
-@@ LUALIB_API is a mark for all auxiliary library functions.
-@@ LUAMOD_API is a mark for all standard library opening functions.
-** CHANGE them if you need to define those functions in some special way.
-** For instance, if you want to create one Windows DLL with the core and
-** the libraries, you may want to use the following definition (define
-** LUA_BUILD_AS_DLL to get it).
-*/
-#if defined(LUA_BUILD_AS_DLL)	/* { */
+#define LUALIB_API LUA_API
+#define LUAMOD_API LUA_API
 
-#if defined(LUA_CORE) || defined(LUA_LIB)	/* { */
-#define LUA_API __declspec(dllexport)
-#else						/* }{ */
-#define LUA_API __declspec(dllimport)
-#endif						/* } */
-
-#else				/* }{ */
-
-#define LUA_API		extern
-
-#endif				/* } */
-
-
-/*
-** More often than not the libs go together with the core.
-*/
-#define LUALIB_API	LUA_API
-#define LUAMOD_API	LUA_API
-
-
-/*
-@@ LUAI_FUNC is a mark for all extern functions that are not to be
-** exported to outside modules.
-@@ LUAI_DDEF and LUAI_DDEC are marks for all extern (const) variables,
-** none of which to be exported to outside modules (LUAI_DDEF for
-** definitions and LUAI_DDEC for declarations).
-** CHANGE them if you need to mark them in some special way. Elf/gcc
-** (versions 3.2 and later) mark them as "hidden" to optimize access
-** when Lua is compiled as a shared library. Not all elf targets support
-** this attribute. Unfortunately, gcc does not offer a way to check
-** whether the target offers that support, and those without support
-** give a warning about it. To avoid these warnings, change to the
-** default definition.
-*/
-#if defined(__GNUC__) && ((__GNUC__*100 + __GNUC_MINOR__) >= 302) && \
-    defined(__ELF__)		/* { */
-#define LUAI_FUNC	__attribute__((visibility("internal"))) extern
-#else				/* }{ */
-#define LUAI_FUNC	extern
-#endif				/* } */
+#ifdef SQEE_LINUX
+    #define LUAI_FUNC __attribute__((visibility("internal"))) extern
+#else
+    #define LUAI_FUNC extern
+#endif
 
 #define LUAI_DDEC(dec)	LUAI_FUNC dec
-#define LUAI_DDEF	/* empty */
+#define LUAI_DDEF
 
-/* }================================================================== */
+//============================================================================//
 
 
 /*
@@ -414,7 +369,7 @@
 #define l_floor(x)		(l_mathop(floor)(x))
 
 #define lua_number2str(s,sz,n)  \
-	l_sprintf((s), sz, LUA_NUMBER_FMT, (LUAI_UACNUMBER)(n))
+    l_sprintf((s), sz, LUA_NUMBER_FMT, (LUAI_UACNUMBER)(n))
 
 /*
 @@ lua_numbertointeger converts a float number with an integral value
@@ -769,8 +724,4 @@
 */
 
 
-
-
-
 #endif
-

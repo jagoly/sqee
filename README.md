@@ -1,14 +1,14 @@
 # SQEE Readme
 
 [![Travis Status](https://travis-ci.org/jagoly/sqee.svg?branch=master)](https://travis-ci.org/jagoly/sqee)
-[![AppVeyor Status](https://ci.appveyor.com/api/projects/status/r4ty4yf7g1g66cwt?svg=true)](https://ci.appveyor.com/project/jagoly/sqee)
+[![AppVeyor Status](https://ci.appveyor.com/api/projects/status/7ha0l295301mfgvr?branch=master&svg=true)](https://ci.appveyor.com/project/jagoly/sqee)
 
 ##### About LibSQEE
 LibSQEE is library containing all sorts of useful stuff for 3D applications, particularly games. Features include C++ wrappers for various OpenGL components, a simple text rendering system, some nice classes for Windows and Scenes, a scripting console, loaders for custom model, material and animation formats, a generic resource manager, sound system, simple event handling system, physics bodies and more. LibSQEE intergrates a few third party libraries, namely:
 
- * [SFML](http://www.sfml-dev.org/)
- * [ChaiScript](http://chaiscript.com)
- * [ReactPhysics3D](http://reactphysics3d.com)
+ * [SFML](https://www.sfml-dev.org/)
+ * [Lua 5.4](https://www.lua.org/)
+ * [Sol3](https://github.com/ThePhD/sol2)
  * [STB_Image](https://github.com/nothings/stb)
  * [GLLoadGen](https://bitbucket.org/alfonse/glloadgen)
  * [Option Parser](http://optionparser.sourceforge.net/)
@@ -23,22 +23,19 @@ SQEE Sokoban is, along with SQEE RPG, an example application for LibSQEE. It is 
 
 ### Building SQEE
 
-To build SQEE, you will need SFML ([>= 2.4.2](http://www.sfml-dev.org/download.php)), ChaiScript ([develop](https://github.com/ChaiScript/ChaiScript/tree/develop/)), and ReactPhysics3D* ([my fork](https://github.com/jagoly/reactphysics3d/)). On linux, you may be able to grab one or more of them from your distro's repos, if available and up to date. Otherwise, you can build and/or install them manually from the links above.
+To build SQEE, you will need [SFML >= 2.5.1](https://www.sfml-dev.org/download.php). Everything else is included in the repo. On linux, you can grab SFML from your distro's repos, if available and up to date. Otherwise, you can build and/or install it manually from the links above.
 
-A C++ 17 capable compiler is required. This means GCC 7.x or clang 4.x. You also need a matching libstdc++ or libc++. If you are running Fedora 26+ or Arch, you should be good. For Ubuntu, you can use [this ppa](https://launchpad.net/~jonathonf/+archive/ubuntu/gcc-7.1).
-
-\* *you don't need ReactPhysics3D at the moment, but it will return in the future*
+A C++ 17 capable compiler is required. SQEE is primarily tested with GCC and Clang, but should build with MSVC as well (see [appveyor](https://ci.appveyor.com/project/jagoly/sqee)).
 
 
 
 ##### SQEE CMake options:
- * `SQEE_STATIC_LINK` - Link with static versions of dependencies, if available. Otherwise, use shared versions. Defaults to `False`.
- * `SQEE_STATIC_LIB` - Build LibSQEE as a static library. Otherwise, build as shared. Defaults to `False`.
+ * `SQEE_STATIC_LIB` - Build LibSQEE and Lua as a static library. Otherwise, build as shared. Defaults to `False`.
 
 ### Licence Information
 
 ##### SQEE Licences
-The SQEE Project is Copyright (c) 2017 James Gangur (jagoly). All code created by me in the repository is released under the GNU GPL Version 3, which can be read [here](http://www.gnu.org/licenses/gpl.html). Any assets created by me in this repository are released under the Creative Commons CC-BY-SA licence, which can be read [here](https://creativecommons.org/licenses/by-sa/2.0).
+The SQEE Project is Copyright (c) 2020 James Gangur (jagoly). All code created by me in the repository is released under the GNU GPL Version 3, which can be read [here](http://www.gnu.org/licenses/gpl.html). Any assets created by me in this repository are released under the Creative Commons CC-BY-SA licence, which can be read [here](https://creativecommons.org/licenses/by-sa/2.0).
 
 ##### Bundled Source Licences
-The bundled STB-Image source, by Sean T. Barrett, is released Public Domain. The bundled TinyFormat source, by Chris Foster, is released under Boost Software Licence 1.0. The bundled Lean Mean C++ Option Parser source, by Matthias S. Benkmann, is released under the MIT Licence. The bundled Nlohmann-JSON source, by Niels Lohmann, is released under the MIT Licence.
+The bundled STB-Image source, by Sean T. Barrett, is released Public Domain. The bundled TinyFormat source, by Chris Foster, is released under Boost Software Licence 1.0. The bundled Lean Mean C++ Option Parser source, by Matthias S. Benkmann, is released under the MIT Licence. The bundled Nlohmann-JSON source, by Niels Lohmann, is released under the MIT Licence. todo: update other licences

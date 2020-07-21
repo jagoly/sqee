@@ -1,15 +1,16 @@
 #pragma once
 
 #include <sqee/app/Application.hpp>
-#include <sqee/app/ChaiEngine.hpp>
 #include <sqee/app/Window.hpp>
 #include <sqee/app/InputDevices.hpp>
-#include <sqee/app/ChaiConsole.hpp>
 #include <sqee/app/DebugOverlay.hpp>
+
+#include <sqee/redist/sol.hpp>
 
 #include "main/MainScene.hpp"
 #include "main/Options.hpp"
 #include "main/ResourceCaches.hpp"
+#include "main/LuaConsole.hpp"
 
 //============================================================================//
 
@@ -41,13 +42,13 @@ private: //===================================================//
 
     //--------------------------------------------------------//
 
-    UniquePtr<sq::ChaiEngine> mChaiEngine;
+    UniquePtr<sol::state> mLuaState;
 
     UniquePtr<sq::Window> mWindow;
 
     UniquePtr<sq::InputDevices> mInputDevices;
 
-    UniquePtr<sq::ChaiConsole> mChaiConsole;
+    UniquePtr<LuaConsole> mLuaConsole;
 
     UniquePtr<sq::DebugOverlay> mDebugOverlay;
 

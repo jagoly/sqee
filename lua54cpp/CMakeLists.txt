@@ -1,13 +1,11 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.12)
 project(Lua54CPP CXX)
 
-# todo: support msvc
-
-option(LUA54CPP_STATIC_LIB "Build Lua54CPP as a static library" False)
+################################################################################
 
 set(LUA_SOURCES
 
-    "src/lua.h" # do not use lua.hpp
+    "src/lua.h" # note that we do not use lua.hpp
 
     "src/ljumptab.h"
     "src/llimits.h"
@@ -49,21 +47,49 @@ set(LUA_SOURCES
     "src/lundump.h"   "src/lundump.cpp"
     "src/lvm.h"       "src/lvm.cpp"
     "src/lzio.h"      "src/lzio.cpp"
-
-    #"src/lua.cpp"
-    #"src/luac.cpp"
 )
 
-if (LUA54CPP_STATIC_LIB)
+################################################################################
+
+if (SQEE_STATIC_LIB)
     add_library(lua54cpp STATIC ${LUA_SOURCES})
+    target_compile_definitions(lua54cpp PRIVATE SQEE_STATIC_LIB)
 else ()
     add_library(lua54cpp SHARED ${LUA_SOURCES})
+    target_compile_definitions(lua54cpp PRIVATE SQEE_EXPORT_LIB)
 endif ()
 
 target_include_directories(lua54cpp PUBLIC "${PROJECT_SOURCE_DIR}/src")
 
-target_compile_options(lua54cpp PUBLIC -Wall -Wextra)
-target_compile_definitions(lua54cpp PUBLIC LUA_USE_POSIX)
-
 set_property(TARGET lua54cpp PROPERTY CXX_STANDARD 17)
 set_property(TARGET lua54cpp PROPERTY CXX_STANDARD_REQUIRED True)
+
+################################################################################
+
+if (SQEE_LINUX)
+    target_compile_definitions(lua54cpp PRIVATE SQEE_LINUX)
+elseif (SQEE_WINDOWS)
+    target_compile_definitions(lua54cpp PRIVATE SQEE_WINDOWS)
+else ()
+    message(FATAL_ERROR "could not detect platform")
+endif ()
+
+if (SQEE_GNU)
+    target_compile_definitions(lua54cpp PRIVATE SQEE_GNU)
+elseif (SQEE_CLANG)
+    target_compile_definitions(lua54cpp PRIVATE SQEE_CLANG)
+elseif (SQEE_MSVC)
+    target_compile_definitions(lua54cpp PRIVATE SQEE_MSVC)
+else ()
+    message(FATAL_ERROR "could not detect compiler")
+endif ()
+
+################################################################################
+
+# lua is pretty warning-y, so we use relaxed settings compared to sqee
+
+if (SQEE_GNU OR SQEE_CLANG)
+    target_compile_options(lua54cpp PRIVATE -Wall)
+elseif (SQEE_MSVC)
+    target_compile_options(lua54cpp PRIVATE /W2)
+endif ()

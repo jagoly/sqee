@@ -1,9 +1,8 @@
-cmake_minimum_required(VERSION 3.10)
-project(SQEE)
+cmake_minimum_required(VERSION 3.12)
+project(SQEE CXX)
 
 ################################################################################
 
-option(SQEE_STATIC_LINK "Link dependencies to SQEE statically" False)
 option(SQEE_STATIC_LIB "Build SQEE as a static library" False)
 
 ################################################################################
@@ -12,16 +11,17 @@ set(CMAKE_MODULE_PATH APPEND "${PROJECT_SOURCE_DIR}/cmake/modules")
 
 ################################################################################
 
-include("cmake/sources.cmake")
+file(GLOB_RECURSE HEADERS "${PROJECT_SOURCE_DIR}/include/sqee/*.hpp")
+file(GLOB_RECURSE SOURCES "${PROJECT_SOURCE_DIR}/source/sqee/*.cpp")
 
 if (SQEE_STATIC_LIB)
 
-    add_library(sqee STATIC ${SOURCES})
+    add_library(sqee STATIC ${HEADERS} ${SOURCES})
     target_compile_definitions(sqee PUBLIC SQEE_STATIC_LIB)
 
 else ()
 
-    add_library(sqee SHARED ${SOURCES})
+    add_library(sqee SHARED ${HEADERS} ${SOURCES})
     target_compile_definitions(sqee PRIVATE SQEE_EXPORT_LIB)
 
 endif ()
@@ -76,14 +76,7 @@ endif ()
 
 if (SQEE_GNU OR SQEE_CLANG)
 
-    target_compile_options(sqee PUBLIC -Wall -Wextra)
-    #target_compile_options(sqee PRIVATE -Wno-unused-parameter -Wno-strict-aliasing)
-    #target_compile_options(sqee PRIVATE -Wno-comment -Wno-misleading-indentation)
-
-    if (SQEE_WINDOWS)
-        # todo: actually test this
-        target_compile_options(sqee PRIVATE -mwindows -Wa,-mbig-obj)
-    endif ()
+    target_compile_options(sqee PRIVATE -Wall -Wextra)
 
     if (NOT SQEE_STATIC_LIB)
         target_compile_options(sqee PRIVATE -fvisibility=hidden)
@@ -91,44 +84,23 @@ if (SQEE_GNU OR SQEE_CLANG)
 
 elseif (SQEE_MSVC)
 
-    target_compile_options(sqee PRIVATE /bigobj /W3)
-    target_compile_options(sqee PRIVATE /wd4201)
+    target_compile_options(sqee PRIVATE /bigobj)
+    target_compile_options(sqee PRIVATE /W3 /wd4251)
 
 endif ()
 
 ################################################################################
 
-if (SQEE_STATIC_LINK)
+if (SQEE_STATIC_LIB)
     set(SFML_STATIC_LIBRARIES True)
-endif ()
-
-if (SQEE_WINDOWS AND NOT SFML_ROOT)
-    set(SFML_ROOT "${PROJECT_SOURCE_DIR}/extlibs/sfml")
 endif ()
 
 find_package(SFML 2.5 COMPONENTS audio window system REQUIRED)
 
-target_include_directories(sqee PRIVATE ${SFML_INCLUDE_DIR})
+# need to refactor sq::Sound so that I can make SFML private
 
-# need to refactor sq::Sound so that I can keep SFML internal
+target_include_directories(sqee PUBLIC ${SFML_INCLUDE_DIR})
 target_link_libraries(sqee PUBLIC sfml-audio sfml-window sfml-system)
-
-################################################################################
-
-if (SQEE_STATIC_LINK)
-    set(LUA54CPP_STATIC_LIB True)
-endif ()
-
-add_subdirectory(lua54cpp)
-
-target_include_directories(sqee PUBLIC "lua54cpp/src")
-
-target_link_libraries(sqee PUBLIC lua54cpp)
-
-target_compile_definitions(sqee PUBLIC SOL_ALL_SAFETIES_ON=1)
-target_compile_definitions(sqee PUBLIC SOL_USING_CXX_LUA=1)
-target_compile_definitions(sqee PUBLIC SOL_PRINT_ERRORS=0)
-#target_compile_definitions(sqee PUBLIC SOL_EXCEPTIONS_ALWAYS_UNSAFE=1)
 
 ################################################################################
 
@@ -136,11 +108,22 @@ set(OpenGL_GL_PREFERENCE "GLVND")
 
 find_package(OpenGL REQUIRED)
 
-target_link_libraries(sqee PUBLIC GL GLX)
-
-if (SQEE_LINUX AND SQEE_STATIC_LIB)
-    target_link_libraries(sqee PUBLIC pthread dl) # for ChaiScript
+if (SQEE_LINUX)
+    target_link_libraries(sqee PUBLIC GL GLX)
+elseif (SQEE_WINDOWS)
+    target_link_libraries(sqee PUBLIC opengl32)
 endif ()
+
+################################################################################
+
+add_subdirectory(lua54cpp)
+
+target_include_directories(sqee PUBLIC "lua54cpp/src")
+target_link_libraries(sqee PUBLIC lua54cpp)
+
+target_compile_definitions(sqee PUBLIC SOL_ALL_SAFETIES_ON=1)
+target_compile_definitions(sqee PUBLIC SOL_USING_CXX_LUA=1)
+target_compile_definitions(sqee PUBLIC SOL_PRINT_ERRORS=0)
 
 ################################################################################
 

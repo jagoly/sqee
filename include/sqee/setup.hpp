@@ -27,16 +27,6 @@ typedef unsigned int ImGuiID;
 
 //============================================================================//
 
-/// @cond ignore
-namespace chaiscript {}
-namespace reactphysics3d {}
-/// @endcond
-
-namespace chai = chaiscript;
-namespace rp3d = reactphysics3d;
-
-//============================================================================//
-
 namespace sq {
 
 //============================================================================//

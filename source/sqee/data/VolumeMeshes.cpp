@@ -1,13 +1,8 @@
-// Copyright(c) 2018 James Gangur
-// Part of https://github.com/jagoly/sqee
-
-#include <sqee/export.hpp>
+#include <sqee/data/VolumeMeshes.hpp>
 
 //============================================================================//
 
-// scale = 1.00864
-
-SQEE_API const float data_ConeVertices[26*3] =
+const float sqee_ConeVertices[26*3] =
 {
      0.00000f,  0.00000f, -1.00000f,  0.00000f, +1.00864f, -1.00000f, +0.26106f, +0.97427f, -1.00000f,
      0.00000f,  0.00000f,  0.00000f, +0.50432f, +0.87351f, -1.00000f, +0.71322f, +0.71322f, -1.00000f,
@@ -20,9 +15,8 @@ SQEE_API const float data_ConeVertices[26*3] =
     -0.50432f, +0.87351f, -1.00000f, -0.26106f, +0.97427f, -1.00000f
 };
 
-SQEE_API const unsigned char data_ConeIndices[48*3] =
+const uint8_t sqee_ConeIndices[48*3] =
 {
-
      0,  1,  2,  1,  3,  2,  0,  2,  4,  2,  3,  4,  0,  4,  5,  4,  3,  5,  0,  5,  6,  5,  3,  6,
      0,  6,  7,  6,  3,  7,  0,  7,  8,  7,  3,  8,  0,  8,  9,  8,  3,  9,  0,  9, 10,  9,  3, 10,
      0, 10, 11, 10,  3, 11,  0, 11, 12, 11,  3, 12,  0, 12, 13, 12,  3, 13,  0, 13, 14, 13,  3, 14,
@@ -33,9 +27,7 @@ SQEE_API const unsigned char data_ConeIndices[48*3] =
 
 //============================================================================//
 
-// scale = 1.05146
-
-SQEE_API const float data_SphereVertices[42*3] =
+const float sqee_SphereVertices[42*3] =
 {
      0.00000f,  0.00000f, -1.05146f, +0.44721f, -0.32491f, -0.89443f, -0.17082f, -0.52573f, -0.89443f,
     +0.76084f, -0.55278f, -0.47023f, +0.89442f,  0.00000f, -0.55279f, -0.55278f,  0.00000f, -0.89443f,
@@ -53,7 +45,7 @@ SQEE_API const float data_SphereVertices[42*3] =
     +0.72360f, +0.52573f, +0.55279f, +0.55278f,  0.00000f, +0.89443f,  0.00000f,  0.00000f, +1.05146f
 };
 
-SQEE_API const unsigned char data_SphereIndices[80*3] =
+const uint8_t sqee_SphereIndices[80*3] =
 {
      0,  1,  2,  3,  1,  4,  0,  2,  5,  0,  5,  6,  0,  6,  7,  3,  4,  8,  9, 10, 11, 12, 13, 14,
     15, 16, 17, 18, 19, 20,  3,  8, 21,  9, 11, 22, 12, 14, 23, 15, 17, 24, 18, 20, 25, 26, 27, 28,
@@ -69,7 +61,7 @@ SQEE_API const unsigned char data_SphereIndices[80*3] =
 
 //============================================================================//
 
-SQEE_API const float data_CubeVertices[8*3] =
+const float sqee_CubeVertices[8*3] =
 {
     -1.f, +1.f, -1.f,   -1.f, +1.f, +1.f,
     -1.f, -1.f, -1.f,   +1.f, +1.f, +1.f,
@@ -77,7 +69,7 @@ SQEE_API const float data_CubeVertices[8*3] =
     +1.f, -1.f, -1.f,   -1.f, -1.f, +1.f
 };
 
-SQEE_API const unsigned char data_CubeIndices[12*3] =
+const uint8_t sqee_CubeIndices[12*3] =
 {
     1, 0, 2,   3, 4, 0,   5, 6, 4,   7, 2, 6,
     0, 4, 6,   3, 1, 7,   7, 1, 2,   1, 3, 0,

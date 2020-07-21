@@ -162,6 +162,65 @@ static_assert (std::is_nothrow_destructible_v<PoolAllocator<float>>);
 
 //============================================================================//
 
+template <class Key, class Type>
+struct PoolMapIterator
+{
+    using value_type = std::pair<const Key, Type>;
+    using difference_type = ptrdiff_t;
+    using reference = value_type&;
+    using pointer = value_type*;
+    using iterator_category = std::bidirectional_iterator_tag;
+
+    using BaseIter = typename std::vector<value_type*>::iterator;
+
+    PoolMapIterator(BaseIter _base) : base(_base) {}
+
+    value_type& operator*() const { return *(*base); }
+    value_type* operator->() const { return *base; }
+
+    bool operator==(PoolMapIterator other) const { return base == other.base; }
+    bool operator!=(PoolMapIterator other) const { return base != other.base; }
+    bool operator<=(PoolMapIterator other) const { return base <= other.base; }
+    bool operator>=(PoolMapIterator other) const { return base >= other.base; }
+    bool operator<(PoolMapIterator other) const { return base < other.base; }
+    bool operator>(PoolMapIterator other) const { return base > other.base; }
+
+    PoolMapIterator& operator--() { --base; return *this; }
+    PoolMapIterator& operator++() { ++base; return *this; }
+
+    BaseIter base;
+};
+
+template <class Key, class Type>
+struct PoolMapConstIterator
+{
+    using value_type = std::pair<const Key, Type>;
+    using difference_type = ptrdiff_t;
+    using reference = const value_type&;
+    using pointer = const value_type*;
+    using iterator_category = std::bidirectional_iterator_tag;
+
+    using BaseIter = typename std::vector<value_type*>::const_iterator;
+
+    PoolMapConstIterator(BaseIter _base) : base(_base) {}
+    PoolMapConstIterator(PoolMapIterator<Key, Type> nonConst) : base(nonConst.base) {}
+
+    const value_type& operator*() const { return *(*base); }
+    const value_type* operator->() const { return *base; }
+
+    bool operator==(PoolMapConstIterator other) const { return base == other.base; }
+    bool operator!=(PoolMapConstIterator other) const { return base != other.base; }
+    bool operator<=(PoolMapConstIterator other) const { return base <= other.base; }
+    bool operator>=(PoolMapConstIterator other) const { return base >= other.base; }
+    bool operator<(PoolMapConstIterator other) const { return base < other.base; }
+    bool operator>(PoolMapConstIterator other) const { return base > other.base; }
+
+    PoolMapConstIterator& operator--() { --base; return *this; }
+    PoolMapConstIterator& operator++() { ++base; return *this; }
+
+    BaseIter base;
+};
+
 /// Map for items allocated from a pool. It makes use of a simple hash table.
 ///
 /// Pointers to items are never invalidated.
@@ -184,24 +243,8 @@ public: //====================================================//
 
     using allocator_type = PoolAllocator<value_type>;
 
-    //--------------------------------------------------------//
-
-    struct iterator : public std::vector<value_type*>::iterator
-    {
-        using BaseIter = typename std::vector<value_type*>::iterator;
-        iterator(BaseIter base) : BaseIter(base) {}
-        value_type& operator*() const { return *(BaseIter::operator*()); }
-        value_type* operator->() const { return BaseIter::operator*(); }
-    };
-
-    struct const_iterator : public std::vector<value_type*>::const_iterator
-    {
-        using BaseIter = typename std::vector<value_type*>::const_iterator;
-        const_iterator(BaseIter base) : BaseIter(base) {}
-        const_iterator(iterator nonConst) : BaseIter(nonConst) {}
-        const value_type& operator*() const { return *(BaseIter::operator*()); }
-        const value_type* operator->() const { return BaseIter::operator*(); }
-    };
+    using iterator       = PoolMapIterator<Key, Type>;
+    using const_iterator = PoolMapConstIterator<Key, Type>;
 
     //--------------------------------------------------------//
 
@@ -318,7 +361,7 @@ public: //====================================================//
         value_type* ptr = mAllocator.allocate(1u);
         mAllocator.construct(ptr, std::piecewise_construct, std::forward_as_tuple(key),
                              std::forward_as_tuple(std::forward<Args>(args)...));
-        iterator iter = mItemVector.emplace(impl_find_insert_pos(key), ptr);
+        iterator iter = mItemVector.emplace(impl_find_insert_pos(key).base, ptr);
         impl_hash_table_regenerate();
         return { iter, true };
     }
@@ -328,7 +371,7 @@ public: //====================================================//
         SQASSERT(iter >= begin() && iter < end(), "iter out of range");
         mAllocator.destroy(&*iter);
         mAllocator.deallocate(&*iter, 1u);
-        mItemVector.erase(iter);
+        mItemVector.erase(iter.base);
         impl_hash_table_regenerate();
         return iter;
     }
@@ -350,7 +393,7 @@ public: //====================================================//
     {
         SQASSERT(node.empty() == false, "cannot insert empty node");
         SQASSERT(find(node.key()) == end(), "key already exists");
-        iterator iter = mItemVector.emplace(impl_find_insert_pos(node.key()), node.mPtr);
+        iterator iter = mItemVector.emplace(impl_find_insert_pos(node.key()).base, node.mPtr);
         node.mPtr = nullptr;
         impl_hash_table_regenerate();
         return iter;
@@ -360,7 +403,7 @@ public: //====================================================//
     {
         SQASSERT(iter >= begin() && iter < end(), "iter out of range");
         node_type result { mAllocator, &*iter };
-        mItemVector.erase(iter);
+        mItemVector.erase(iter.base);
         impl_hash_table_regenerate();
         return result;
     }
