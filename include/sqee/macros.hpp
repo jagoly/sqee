@@ -3,6 +3,8 @@
 #include <sqee/setup.hpp>
 #include <sqee/helpers.hpp>
 
+#include <stdexcept>
+
 //============================================================================//
 
 #ifndef SQEE_MSVC

@@ -173,7 +173,7 @@ struct PoolMapIterator
 
     using BaseIter = typename std::vector<value_type*>::iterator;
 
-    PoolMapIterator(BaseIter _base) : base(_base) {}
+    explicit PoolMapIterator(BaseIter _base) : base(_base) {}
 
     value_type& operator*() const { return *(*base); }
     value_type* operator->() const { return *base; }
@@ -202,7 +202,7 @@ struct PoolMapConstIterator
 
     using BaseIter = typename std::vector<value_type*>::const_iterator;
 
-    PoolMapConstIterator(BaseIter _base) : base(_base) {}
+    explicit PoolMapConstIterator(BaseIter _base) : base(_base) {}
     PoolMapConstIterator(PoolMapIterator<Key, Type> nonConst) : base(nonConst.base) {}
 
     const value_type& operator*() const { return *(*base); }
@@ -311,6 +311,7 @@ public: //====================================================//
             mItemVector.emplace_back(ptr);
         }
         impl_hash_table_regenerate();
+        return *this;
     }
 
     /// Move Assignment
@@ -320,6 +321,7 @@ public: //====================================================//
         clear();
         mItemVector = std::move(other.mItemVector);
         mHashTable = std::move(other.mHashTable);
+        return *this;
     }
 
     /// Destructor
@@ -361,9 +363,9 @@ public: //====================================================//
         value_type* ptr = mAllocator.allocate(1u);
         mAllocator.construct(ptr, std::piecewise_construct, std::forward_as_tuple(key),
                              std::forward_as_tuple(std::forward<Args>(args)...));
-        iterator iter = mItemVector.emplace(impl_find_insert_pos(key).base, ptr);
+        auto iter = mItemVector.emplace(impl_find_insert_pos(key), ptr);
         impl_hash_table_regenerate();
-        return { iter, true };
+        return { iterator(iter), true };
     }
 
     iterator erase(iterator iter)
@@ -393,10 +395,10 @@ public: //====================================================//
     {
         SQASSERT(node.empty() == false, "cannot insert empty node");
         SQASSERT(find(node.key()) == end(), "key already exists");
-        iterator iter = mItemVector.emplace(impl_find_insert_pos(node.key()).base, node.mPtr);
+        auto iter = mItemVector.emplace(impl_find_insert_pos(node.key()), node.mPtr);
         node.mPtr = nullptr;
         impl_hash_table_regenerate();
-        return iter;
+        return iterator(iter);
     }
 
     node_type extract(iterator iter)
@@ -492,7 +494,7 @@ private: //===================================================//
         return mHashTable.end();
     }
 
-    iterator impl_find_insert_pos(const Key& key)
+    auto impl_find_insert_pos(const Key& key)
     {
         const auto compare = [](auto& item, auto& key) { return item->first < key; };
         return std::lower_bound(mItemVector.begin(), mItemVector.end(), key, compare);

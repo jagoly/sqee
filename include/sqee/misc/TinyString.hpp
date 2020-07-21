@@ -121,7 +121,8 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    operator std::string() const { return std::string(mData); }
+    // not having this overload is annoying, but MSVC has trouble disambiguating it
+    //operator std::string() const { return std::string(mData); }
 
     constexpr operator const char*() const noexcept { return mData; }
 

@@ -1,7 +1,7 @@
 #include <fstream>
 
 #include <sqee/redist/gl_loader.hpp>
-#include <sqee/redist/nl_json.hpp>
+#include <sqee/redist/json.hpp>
 
 #include <sqee/debug/Logging.hpp>
 #include <sqee/gl/Textures.hpp>

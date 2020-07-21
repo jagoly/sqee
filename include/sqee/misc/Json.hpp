@@ -13,7 +13,8 @@
 #include <sqee/maths/Builtins.hpp>
 #include <sqee/misc/TinyString.hpp>
 
-#include <sqee/redist/nl_json.hpp>
+#include <sqee/redist/tinyformat.hpp>
+#include <sqee/redist/json.hpp>
 
 namespace sq {
 
@@ -36,7 +37,7 @@ template <int Size, class Type>
 void from_json(const JsonValue& j, Vector<Size, Type>& vec)
 {
     if (j.is_array() == false || j.size() != Size)
-        throw std::invalid_argument(build_string("from_json: ", j.dump(), " -> ", traits::TypeName<Vector<Size, Type>>));
+        throw std::invalid_argument(tfm::format("from_json: %s -> %s", j.dump(), traits::TypeName<Vector<Size, Type>>));
     for (int i = 0; i < Size; ++i) j[i].get_to(vec[i]);
 }
 
@@ -52,7 +53,7 @@ template <class Type>
 void from_json(const JsonValue& j, RandomRange<Type>& rr)
 {
     if (j.is_array() == false || j.size() != 2)
-        throw std::invalid_argument(build_string("from_json: ", j.dump(), " -> RandomRange<", traits::TypeName<Type>, ">"));
+        throw std::invalid_argument(tfm::format("from_json: %s -> RandomRange<%s>", j.dump(), traits::TypeName<Type>));
     j[0].get_to(rr.min); j[1].get_to(rr.max);
 }
 
@@ -64,12 +65,13 @@ void to_json(JsonValue& j, const RandomRange<Type>& rr)
 
 } // namespace maths
 
+//============================================================================//
+
 template <size_t Capacity>
 void from_json(const JsonValue& j, FixedCapacityString<Capacity>& str)
 {
     if (j.is_string() == false || j.size() > TinyString::capacity())
-        std::invalid_argument(sq::build_string("from_json: ", j.dump(), " -> TinyString"));
-
+        throw std::invalid_argument(tfm::format("from_json: %s -> FixedCapacityString<%d>", j.dump(), Capacity));
     str = j.get_ref<const String&>();
 }
 
@@ -94,6 +96,6 @@ template<> struct nlohmann::adl_serializer<Type> \
     } \
     static void from_json(const sq::JsonValue& j, Type& e) \
     { \
-        sq::enum_from_string(j, e); \
+        sq::enum_from_string(j.get_ref<const std::string&>(), e); \
     } \
 };

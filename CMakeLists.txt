@@ -35,40 +35,48 @@ set_property(TARGET sqee PROPERTY CXX_STANDARD_REQUIRED True)
 
 ################################################################################
 
-if (CMAKE_BUILD_TYPE MATCHES "Debug")
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_compile_definitions(sqee PUBLIC SQEE_DEBUG)
 endif ()
 
 ################################################################################
 
-if (CMAKE_SYSTEM_NAME MATCHES "Linux")
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
 
     set(SQEE_LINUX True)
     target_compile_definitions(sqee PUBLIC SQEE_LINUX)
 
-elseif (CMAKE_SYSTEM_NAME MATCHES "Windows")
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
 
     set(SQEE_WINDOWS True)
     target_compile_definitions(sqee PUBLIC SQEE_WINDOWS)
+
+else ()
+
+    message(FATAL_ERROR "unsupported platform '${CMAKE_SYSTEM_NAME}'")
 
 endif ()
 
 ################################################################################
 
-if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 
     set(SQEE_GNU True)
     target_compile_definitions(sqee PUBLIC SQEE_GNU)
 
-elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 
     set(SQEE_CLANG True)
     target_compile_definitions(sqee PUBLIC SQEE_CLANG)
 
-elseif (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 
     set(SQEE_MSVC True)
     target_compile_definitions(sqee PUBLIC SQEE_MSVC)
+
+else ()
+
+    message(FATAL_ERROR "unsupported compiler '${CMAKE_CXX_COMPILER_ID}'")
 
 endif ()
 
