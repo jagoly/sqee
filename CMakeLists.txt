@@ -105,10 +105,8 @@ endif ()
 
 find_package(SFML 2.5 COMPONENTS audio window system REQUIRED)
 
-# need to refactor sq::Sound so that I can make SFML private
-
-target_include_directories(sqee PUBLIC ${SFML_INCLUDE_DIR})
-target_link_libraries(sqee PUBLIC sfml-audio sfml-window sfml-system)
+target_include_directories(sqee PRIVATE ${SFML_INCLUDE_DIR})
+target_link_libraries(sqee PRIVATE sfml-audio sfml-window sfml-system)
 
 ################################################################################
 

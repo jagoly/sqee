@@ -1,3 +1,5 @@
+#include <SFML/Audio/Sound.hpp>
+#include <SFML/Audio/SoundBuffer.hpp>
 #include <SFML/Audio/Listener.hpp>
 
 #include <sqee/debug/Logging.hpp>
@@ -50,33 +52,33 @@ SoundWave::SoundWave(const String& path)
     else if (check_file_exists(fullPath + ".ogg")) fullPath += ".ogg";
     else log_error("Failed to find sound file '%s'", fullPath);
 
-    mBuffer.loadFromFile(fullPath);
+    //mBuffer.loadFromFile(fullPath);
 }
 
 //============================================================================//
 
 Sound::Sound()
 {
-    mSound = std::make_unique<sf::Sound>();
+    //mSound = std::make_unique<sf::Sound>();
 }
 
 void Sound::set_wave(Handle<String, SoundWave> handle)
 {
     SQASSERT(check_stopped(), "sound must be stopped");
 
-    if (handle.check() == false) mSound->resetBuffer();
-    else mSound->setBuffer(handle->mBuffer);
+    //if (handle.check() == false) mSound->resetBuffer();
+    //else mSound->setBuffer(handle->mBuffer);
 
     mWaveHandle = handle;
 }
 
-void Sound::set_position(Vec3F position)
+void Sound::set_position(Vec3F /*position*/)
 {
-    mSound->setPosition(position.x, position.y, position.z);
+    //mSound->setPosition(position.x, position.y, position.z);
 }
 
-void Sound::set_attenuation(float start, float factor)
+void Sound::set_attenuation(float /*start*/, float /*factor*/)
 {
-    mSound->setMinDistance(start);
-    mSound->setAttenuation(factor);
+    //mSound->setMinDistance(start);
+    //mSound->setAttenuation(factor);
 }

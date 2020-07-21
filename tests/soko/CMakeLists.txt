@@ -1,5 +1,9 @@
 project(SQEE_SOKO CXX)
 
+# todo: geeze soko is very old and broken
+# if I can't bother to fix it, maybe port my space invaders game from splashkit?
+# it's good to have a simpler game than rpg included as an example, but this old code is really bad
+
 ################################################################################
 
 file(GLOB_RECURSE HEADERS "${PROJECT_SOURCE_DIR}/*.hpp")

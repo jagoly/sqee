@@ -1,5 +1,8 @@
 project(SQEE_RPG CXX)
 
+# todo: RPG really needs to be moved to it's own repo, it's far too complex to
+# function as an example, and it makes the repo much bigger because of assets
+
 ################################################################################
 
 file(GLOB_RECURSE HEADERS "${PROJECT_SOURCE_DIR}/*.hpp")

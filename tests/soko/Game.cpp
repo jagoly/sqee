@@ -1,5 +1,3 @@
-#include <SFML/Window/Event.hpp>
-
 #include <sqee/maths/Functions.hpp>
 
 #include <sqee/debug/Logging.hpp>
@@ -140,10 +138,10 @@ void GameScene::update()
 
         //----------------------------------------------------//
 
-        bool keyLeft = sf::Keyboard::isKeyPressed(sf::Keyboard::Left);
-        bool keyRight = sf::Keyboard::isKeyPressed(sf::Keyboard::Right);
-        bool keyDown = sf::Keyboard::isKeyPressed(sf::Keyboard::Down);
-        bool keyUp = sf::Keyboard::isKeyPressed(sf::Keyboard::Up);
+        bool keyLeft = mInput.is_pressed(sq::Keyboard_Key::Arrow_Left);
+        bool keyRight = mInput.is_pressed(sq::Keyboard_Key::Arrow_Right);
+        bool keyDown = mInput.is_pressed(sq::Keyboard_Key::Arrow_Down);
+        bool keyUp = mInput.is_pressed(sq::Keyboard_Key::Arrow_Up);
 
         bool moveLeft = keyLeft && !keyRight && !keyDown && !keyUp;
         bool moveRight = !keyLeft && keyRight && !keyDown && !keyUp;
@@ -247,9 +245,6 @@ void GameScene::render(double)
 
     for (const Wall& wall : level->wallList)
     {
-        const sq::Mesh* mesh = nullptr;
-        mesh = &MESH_Wall;
-
         Mat4F modelMat = maths::translate(Mat4F(), Vec3F(Vec2F(wall.position), 0.f));
         Mat3F normMat = maths::normal_matrix(viewMat * modelMat);
         PROG_Object.update(0, modelMat);
@@ -271,6 +266,6 @@ void GameScene::render(double)
 }
 
 
-void GameScene::handle_event(sq::Event event)
+void GameScene::handle_event(sq::Event /*event*/)
 {
 }

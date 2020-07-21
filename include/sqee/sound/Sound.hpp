@@ -1,12 +1,15 @@
 #pragma once
 
-#include <SFML/Audio/Sound.hpp>
-#include <SFML/Audio/SoundBuffer.hpp>
+//#include <SFML/Audio/Sound.hpp>
+//#include <SFML/Audio/SoundBuffer.hpp>
 
 #include <sqee/misc/Builtins.hpp>
 #include <sqee/maths/Builtins.hpp>
 
 #include <sqee/misc/ResourceHandle.hpp>
+
+// did a super quick hack job to stop exposing SFML
+// this class is ancient and needs to be rewritten once STS needs sound
 
 namespace sq {
 
@@ -29,7 +32,7 @@ public: //====================================================//
 
 private: //===================================================//
 
-    sf::SoundBuffer mBuffer;
+    //sf::SoundBuffer mBuffer;
     friend class Sound;
 };
 
@@ -51,35 +54,35 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     /// Play the sound.
-    void play() { mSound->play(); }
+    void play() { /*mSound->play();*/ }
 
     /// Pause the sound.
-    void pause() { mSound->pause(); }
+    void pause() { /*mSound->pause();*/ }
 
     /// Stop the sound.
-    void stop() { mSound->stop(); }
+    void stop() { /*mSound->stop();*/ }
 
     //--------------------------------------------------------//
 
     /// Check if the sound is playing.
-    bool check_playing() const { return mSound->getStatus() == sf::Sound::Playing; }
+    bool check_playing() const { return false;/*mSound->getStatus() == sf::Sound::Playing;*/ }
 
     /// Check if the sound is paused.
-    bool check_paused() const { return mSound->getStatus() == sf::Sound::Paused; }
+    bool check_paused() const { return false;/*mSound->getStatus() == sf::Sound::Paused;*/ }
 
     /// Check if the sound is stopped.
-    bool check_stopped() const { return mSound->getStatus() == sf::Sound::Stopped; }
+    bool check_stopped() const { return false;/*mSound->getStatus() == sf::Sound::Stopped;*/ }
 
     //--------------------------------------------------------//
 
     /// Set the volume of the sound.
-    void set_volume(float volume) { mSound->setVolume(volume); }
+    void set_volume(float /*volume*/) { /*mSound->setVolume(volume);*/ }
 
     /// Set whether the sound's origin is relative to the listener.
-    void set_relative(bool relative) { mSound->setRelativeToListener(relative); }
+    void set_relative(bool /*relative*/) { /*mSound->setRelativeToListener(relative);*/ }
 
     /// Set whether the sound should loop.
-    void set_loop(bool loop) { mSound->setLoop(loop); }
+    void set_loop(bool /*loop*/) { /*mSound->setLoop(loop);*/ }
 
     //--------------------------------------------------------//
 
@@ -92,7 +95,7 @@ public: //====================================================//
 private: //===================================================//
 
     Handle<String, SoundWave> mWaveHandle;
-    UniquePtr<sf::Sound> mSound;
+    //UniquePtr<sf::Sound> mSound;
 };
 
 //============================================================================//
