@@ -565,7 +565,7 @@ void GuiSystem::enable_widget(GuiWidget& widget)
     const auto iter = algo::find(mWidgets, &widget);
 
     if (iter == mWidgets.end())
-        mWidgets.push_back(&widget);
+        mWidgets.push_front(&widget);
 
     else SQASSERT(false, "");
 }
@@ -575,11 +575,7 @@ void GuiSystem::disable_widget(GuiWidget& widget)
     const auto iter = algo::find(mWidgets, &widget);
 
     if (iter != mWidgets.end())
-    {
-        // in case we erase current widget
-        if (iter == mWidgetIter) --mWidgetIter;
-        mWidgets.erase(iter);
-    }
+        *iter = nullptr;
 
     else SQASSERT(false, "");
 }
@@ -590,7 +586,10 @@ void GuiSystem::draw_widgets()
 {
     for (mWidgetIter = mWidgets.begin(); mWidgetIter != mWidgets.end(); ++mWidgetIter)
     {
-        const GuiWidget* widget = *mWidgetIter;
-        if (widget->func != nullptr) widget->func();
+        if (*mWidgetIter == nullptr)
+            mWidgetIter = mWidgets.erase(mWidgetIter);
+
+        else if ((*mWidgetIter)->func != nullptr)
+            (*mWidgetIter)->func();
     }
 }
