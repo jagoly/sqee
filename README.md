@@ -1,13 +1,13 @@
 # SQEE Readme
 
 [![Travis Status](https://travis-ci.org/jagoly/sqee.svg?branch=master)](https://travis-ci.org/jagoly/sqee)
-[![AppVeyor Status](https://ci.appveyor.com/api/projects/status/7ha0l295301mfgvr?svg=true)](https://ci.appveyor.com/project/jagoly/sqee)
+[![AppVeyor Status](https://ci.appveyor.com/api/projects/status/7ha0l295301mfgvr?branch=master&svg=true)](https://ci.appveyor.com/project/jagoly/sqee)
 
 ##### About LibSQEE
 LibSQEE is library containing all sorts of useful stuff for 3D applications, particularly games. Features include C++ wrappers for various OpenGL components, a simple text rendering system, some nice classes for Windows and Scenes, a scripting console, loaders for custom model, material and animation formats, a generic resource manager, sound system, simple event handling system, physics bodies and more. LibSQEE intergrates a few third party libraries, namely:
 
  * [SFML](https://www.sfml-dev.org/)
- * [Lua](https://www.lua.org/)
+ * [Lua 5.4](https://www.lua.org/)
  * [Sol3](https://github.com/ThePhD/sol2)
  * [STB_Image](https://github.com/nothings/stb)
  * [GLLoadGen](https://bitbucket.org/alfonse/glloadgen)
@@ -23,9 +23,9 @@ SQEE Sokoban is, along with SQEE RPG, an example application for LibSQEE. It is 
 
 ### Building SQEE
 
-To build SQEE, you will need SFML [>= 2.5.1](https://www.sfml-dev.org/download.php). Everything else is included in the Repo. On linux, you grab SFML from your distro's repos, if available and up to date. Otherwise, you can build and/or install it manually from the links above.
+To build SQEE, you will need [SFML >= 2.5.1](https://www.sfml-dev.org/download.php). Everything else is included in the repo. On linux, you can grab SFML from your distro's repos, if available and up to date. Otherwise, you can build and/or install it manually from the links above.
 
-A C++ 17 capable compiler is required. SQEE is primarily tested with GCC and Clang, but should build with MSVC as well (see appveyor(https://ci.appveyor.com/project/jagoly/sqee)).
+A C++ 17 capable compiler is required. SQEE is primarily tested with GCC and Clang, but should build with MSVC as well (see [appveyor](https://ci.appveyor.com/project/jagoly/sqee)).
 
 
 
