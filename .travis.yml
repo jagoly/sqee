@@ -11,5 +11,6 @@ addons:
       - libsfml-dev
 
 script:
-  - CXX=/usr/bin/g++ CC=/usr/bin/gcc cmake .
-  - cmake --build . --
+  - cd /home/travis/build/jagoly/sqee
+  - cmake .
+  - cmake --build .

@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <sqee/misc/Builtins.hpp>
+#include <sqee/helpers.hpp>
 
 #include <sqee/redist/imgui/imgui.hpp>
 
@@ -65,8 +65,8 @@ enum class DialogResult { None, Confirm, Cancel };
 
 
 // ID stack/scopes
-inline void PushID(std::string_view id) { ImGui::PushID(&*id.begin(), &*id.end()); }
-inline ImGuiID GetID(std::string_view id) { return ImGui::GetID(&*id.begin(), &*id.end()); }
+inline void PushID(std::string_view id) { ImGui::PushID(id.data(), id.data() + id.length()); }
+inline ImGuiID GetID(std::string_view id) { return ImGui::GetID(id.data(), id.data() + id.length()); }
 
 // Prefer using SetNextXXX functions (before Begin) rather that SetXXX functions (after Begin).
 //inline void SetWindowPos(CStrView name, ImVec2 pos, ImGuiCond cond = 0) { ImGui::SetWindowPos(name, pos, cond); }
@@ -75,7 +75,7 @@ inline ImGuiID GetID(std::string_view id) { return ImGui::GetID(&*id.begin(), &*
 //inline void SetWindowFocus(CStrView name) { ImGui::SetWindowFocus(name); }
 
 // Widgets: Text
-inline void Text(std::string_view text) { ImGui::TextUnformatted(&*text.begin(), &*text.end()); }
+inline void Text(std::string_view text) { ImGui::TextUnformatted(text.data(), text.data() + text.length()); }
 SQEE_API void TextColored(ImVec4 col, std::string_view text);
 SQEE_API void TextDisabled(std::string_view text);
 SQEE_API void TextWrapped(std::string_view text);
@@ -160,7 +160,7 @@ inline const ImGuiPayload* AcceptDragDropPayload(CStrView type, ImGuiDragDropFla
 
 // Miscellaneous Utilities
 //inline CStrView GetStyleColorName(ImGuiCol idx) { return ImGui::GetStyleColorName(idx); }
-inline ImVec2 CalcTextSize(std::string_view text, bool hide_text_after_double_hash = false, float wrap_width = -1.0f) { return ImGui::CalcTextSize(&*text.begin(), &*text.end(), hide_text_after_double_hash, wrap_width); }
+inline ImVec2 CalcTextSize(std::string_view text, bool hide_text_after_double_hash = false, float wrap_width = -1.0f) { return ImGui::CalcTextSize(text.data(), text.data() + text.length(), hide_text_after_double_hash, wrap_width); }
 
 // Clipboard Utilities (also see the LogToClipboard() function to capture or output text data to the clipboard)
 //inline CStrView GetClipboardText() { return ImGui::GetClipboardText(); }

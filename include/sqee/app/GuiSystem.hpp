@@ -4,7 +4,6 @@
 #pragma once
 
 #include <functional>
-#include <list>
 
 #include <sqee/misc/Builtins.hpp>
 
@@ -12,7 +11,7 @@ namespace sq {
 
 //====== Forward Declarations ================================================//
 
-class Window; class InputDevices; struct GuiWidget; struct Event;
+class Window; class InputDevices; struct Event;
 
 //============================================================================//
 
@@ -40,36 +39,14 @@ public: //====================================================//
 
     void show_imgui_demo();
 
-    //--------------------------------------------------------//
-
-    void enable_widget(GuiWidget& widget);
-    void disable_widget(GuiWidget& widget);
-
-    void draw_widgets();
-
 private: //===================================================//
 
     GuiSystem() = default;
     ~GuiSystem() = default;
 
-    // list so we can add or remove during iteration
-    std::list<GuiWidget*> mWidgets;
-    std::list<GuiWidget*>::iterator mWidgetIter;
-
     class Implementation;
     friend class Implementation;
     UniquePtr<Implementation> impl;
-};
-
-//============================================================================//
-
-struct GuiWidget final : private NonCopyable
-{
-    GuiWidget() { GuiSystem::get().enable_widget(*this); }
-
-    ~GuiWidget() { GuiSystem::get().disable_widget(*this); }
-
-    std::function<void()> func = nullptr;
 };
 
 //============================================================================//
