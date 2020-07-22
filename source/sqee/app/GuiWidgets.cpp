@@ -2,6 +2,7 @@
 // Part of https://github.com/jagoly/sqee
 
 #include <climits>
+#include <array>
 
 #include <sqee/app/GuiWidgets.hpp>
 
