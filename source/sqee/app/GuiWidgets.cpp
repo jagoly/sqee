@@ -104,6 +104,94 @@ std::array<impl_UnionValue, 4> impl_scalar_range_2_get_ranges(ImGuiDataType data
     return result;
 }
 
+template <class Type>
+static bool impl_InputValue(ImPlus::CStrView label, Type& ref, Type step, const char* format)
+{
+    constexpr const auto dataType = impl_get_data_type<Type>();
+    auto temp = ref;
+    ImGui::InputScalar(label, dataType, &temp, step > 0 ? &step : nullptr, nullptr, format);
+    const bool changed = ImGui::IsItemDeactivatedAfterEdit();
+    if (changed) ref = temp;
+    return changed;
+}
+
+template <class Type>
+static bool impl_DragValue(ImPlus::CStrView label, Type& ref, Type min, Type max, float speed, const char* format)
+{
+    constexpr const auto dataType = impl_get_data_type<Type>();
+    auto temp = ref;
+    const bool tempInputTextActive = GImGui->TempInputTextId != 0 && ImGui::TempInputTextIsActive(GImGui->CurrentWindow->GetID(label));
+    bool changed = ImGui::DragScalar(label, dataType, &temp, speed, &min, &max, format);
+    if (tempInputTextActive) changed = ImGui::IsItemDeactivatedAfterEdit();
+    if (changed) ref = sq::maths::clamp(temp, min, max);
+    return changed;
+}
+
+template <class Type>
+static bool impl_SliderValue(ImPlus::CStrView label, Type& ref, Type min, Type max, const char* format)
+{
+    constexpr const auto dataType = impl_get_data_type<Type>();
+    auto temp = ref;
+    const bool tempInputTextActive = GImGui->TempInputTextId != 0 && ImGui::TempInputTextIsActive(GImGui->CurrentWindow->GetID(label));
+    bool changed = ImGui::SliderScalar(label, dataType, &temp, &min, &max, format);
+    if (tempInputTextActive) changed = ImGui::IsItemDeactivatedAfterEdit();
+    if (changed) ref = sq::maths::clamp(temp, min, max);
+    return changed;
+}
+
+template <class Type>
+static bool impl_InputValueRange2(ImPlus::CStrView label, Type& refMin, Type& refMax, Type step, const char* format)
+{
+    constexpr const auto dataType = impl_get_data_type<Type>();
+    Type temp[2] = { refMin, refMax };
+    ImGui::InputScalarN(label, dataType, temp, 2, step > 0 ? &step : nullptr, nullptr, format);
+    if (ImGui::IsItemDeactivatedAfterEdit())
+    {
+        const bool overlap = temp[0] > temp[1];
+        if (overlap && temp[0] != refMin) temp[1] = temp[0];
+        else if (overlap && temp[1] != refMax) temp[0] = temp[1];
+        refMin = temp[0]; refMax = temp[1];
+        return true;
+    }
+    return false;
+}
+
+template <class Type>
+static bool impl_DragValueRange2(ImPlus::CStrView label, Type& refMin, Type& refMax, Type min, Type max, float speed, const char* format)
+{
+    constexpr const auto dataType = impl_get_data_type<Type>();
+    Type temp[2] = { refMin, refMax };
+    const bool changed = ImGui::DragScalarN(label, dataType, temp, 2, speed, &min, &max, format);
+    if (changed && (GImGui->TempInputTextId == 0 || ImGui::IsItemDeactivatedAfterEdit()))
+    {
+        const bool overlap = temp[0] > temp[1];
+        if (overlap && temp[0] != refMin) temp[0] = temp[1];
+        else if (overlap && temp[1] != refMax) temp[1] = temp[0];
+        refMin = sq::maths::clamp(temp[0], min, max);
+        refMax = sq::maths::clamp(temp[1], min, max);
+        return true;
+    }
+    return false;
+}
+
+template <class Type>
+static bool impl_SliderValueRange2(ImPlus::CStrView label, Type& refMin, Type& refMax, Type min, Type max, const char* format)
+{
+    constexpr const auto dataType = impl_get_data_type<Type>();
+    Type temp[2] = { refMin, refMax };
+    const bool changed = ImGui::SliderScalarN(label, dataType, temp, 2, &min, &max, format);
+    if (changed && (GImGui->TempInputTextId == 0 || ImGui::IsItemDeactivatedAfterEdit()))
+    {
+        const bool overlap = temp[0] > temp[1];
+        if (overlap && temp[0] != refMin) temp[0] = temp[1];
+        else if (overlap && temp[1] != refMax) temp[1] = temp[0];
+        refMin = sq::maths::clamp(temp[0], min, max);
+        refMax = sq::maths::clamp(temp[1], min, max);
+        return true;
+    }
+    return false;
+}
+
 } // anonymous namespace
 
 //============================================================================//
@@ -227,14 +315,14 @@ bool ImPlus::CloseButton(CStrView label)
 void ImPlus::TextColored(ImVec4 col, std::string_view text)
 {
     ImGui::PushStyleColor(ImGuiCol_Text, col);
-    ImGui::TextUnformatted(&*text.begin(), &*text.end());
+    ImGui::TextUnformatted(text.data(), text.data() + text.length());
     ImGui::PopStyleColor();
 }
 
 void ImPlus::TextDisabled(std::string_view text)
 {
     ImGui::PushStyleColor(ImGuiCol_Text, GImGui->Style.Colors[ImGuiCol_TextDisabled]);
-    ImGui::TextUnformatted(&*text.begin(), &*text.end());
+    ImGui::TextUnformatted(text.data(), text.data() + text.length());
     ImGui::PopStyleColor();
 }
 
@@ -244,7 +332,7 @@ void ImPlus::TextWrapped(std::string_view text)
     bool need_backup = (window->DC.TextWrapPos < 0.0f);
     if (need_backup)
         ImGui::PushTextWrapPos(0.0f);
-    ImGui::TextUnformatted(&*text.begin(), &*text.end());
+    ImGui::TextUnformatted(text.data(), text.data() + text.length());
     if (need_backup)
         ImGui::PopTextWrapPos();
 }
@@ -259,16 +347,16 @@ void ImPlus::LabelText(std::string_view label, std::string_view text)
     const ImGuiStyle& style = g.Style;
     const float w = ImGui::CalcItemWidth();
 
-    const ImVec2 label_size = ImGui::CalcTextSize(&*label.begin(), &*label.end(), true);
+    const ImVec2 label_size = ImGui::CalcTextSize(label.data(), label.data() + label.length(), true);
     const ImRect value_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y*2));
     const ImRect total_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w + (label_size.x > 0.0f ? style.ItemInnerSpacing.x : 0.0f), style.FramePadding.y*2) + label_size);
     ImGui::ItemSize(total_bb, style.FramePadding.y);
     if (!ImGui::ItemAdd(total_bb, 0))
         return;
 
-    ImGui::RenderTextClipped(value_bb.Min, value_bb.Max, &*text.begin(), &*text.end(), nullptr, ImVec2(0.0f,0.5f));
+    ImGui::RenderTextClipped(value_bb.Min, value_bb.Max, text.data(), text.data() + text.length(), nullptr, ImVec2(0.0f,0.5f));
     if (label_size.x > 0.0f)
-        ImGui::RenderText(ImVec2(value_bb.Max.x + style.ItemInnerSpacing.x, value_bb.Min.y + style.FramePadding.y), &*label.begin(), &*label.end());
+        ImGui::RenderText(ImVec2(value_bb.Max.x + style.ItemInnerSpacing.x, value_bb.Min.y + style.FramePadding.y), label.data(), label.data() + label.length());
 }
 
 void ImPlus::BulletText(std::string_view text)
@@ -280,7 +368,7 @@ void ImPlus::BulletText(std::string_view text)
     ImGuiContext& g = *GImGui;
     const ImGuiStyle& style = g.Style;
 
-    const ImVec2 label_size = ImGui::CalcTextSize(&*text.begin(), &*text.end(), false);
+    const ImVec2 label_size = ImGui::CalcTextSize(text.data(), text.data() + text.length(), false);
     const ImVec2 total_size = ImVec2(g.FontSize + (label_size.x > 0.0f ? (label_size.x + style.FramePadding.x * 2) : 0.0f), label_size.y);
     ImVec2 pos = window->DC.CursorPos;
     pos.y += window->DC.CurrLineTextBaseOffset;
@@ -291,7 +379,7 @@ void ImPlus::BulletText(std::string_view text)
 
     ImU32 text_col = ImGui::GetColorU32(ImGuiCol_Text);
     ImGui::RenderBullet(window->DrawList, bb.Min + ImVec2(style.FramePadding.x + g.FontSize*0.5f, g.FontSize*0.5f), text_col);
-    ImGui::RenderText(bb.Min + ImVec2(g.FontSize + style.FramePadding.x * 2, 0.0f), &*text.begin(), &*text.end(), false);
+    ImGui::RenderText(bb.Min + ImVec2(g.FontSize + style.FramePadding.x * 2, 0.0f), text.data(), text.data() + text.length(), false);
 }
 
 void ImPlus::SetTooltip(std::string_view text)
@@ -301,98 +389,8 @@ void ImPlus::SetTooltip(std::string_view text)
         ImGui::BeginTooltip();
     else
         ImGui::BeginTooltipEx(0, true);
-    ImGui::TextUnformatted(&*text.begin(), &*text.end());
+    ImGui::TextUnformatted(text.data(), text.data() + text.length());
     ImGui::EndTooltip();
-}
-
-//----------------------------------------------------------------------------//
-
-template <class Type>
-static bool impl_InputValue(ImPlus::CStrView label, Type& ref, Type step, const char* format)
-{
-    constexpr const auto dataType = impl_get_data_type<Type>();
-    auto temp = ref;
-    ImGui::InputScalar(label, dataType, &temp, step > 0 ? &step : nullptr, nullptr, format);
-    const bool changed = ImGui::IsItemDeactivatedAfterEdit();
-    if (changed) ref = temp;
-    return changed;
-}
-
-template <class Type>
-static bool impl_DragValue(ImPlus::CStrView label, Type& ref, Type min, Type max, float speed, const char* format)
-{
-    constexpr const auto dataType = impl_get_data_type<Type>();
-    auto temp = ref;
-    const bool tempInputTextActive = GImGui->TempInputTextId != 0 && ImGui::TempInputTextIsActive(GImGui->CurrentWindow->GetID(label));
-    bool changed = ImGui::DragScalar(label, dataType, &temp, speed, &min, &max, format);
-    if (tempInputTextActive) changed = ImGui::IsItemDeactivatedAfterEdit();
-    if (changed) ref = sq::maths::clamp(temp, min, max);
-    return changed;
-}
-
-template <class Type>
-static bool impl_SliderValue(ImPlus::CStrView label, Type& ref, Type min, Type max, const char* format)
-{
-    constexpr const auto dataType = impl_get_data_type<Type>();
-    auto temp = ref;
-    const bool tempInputTextActive = GImGui->TempInputTextId != 0 && ImGui::TempInputTextIsActive(GImGui->CurrentWindow->GetID(label));
-    bool changed = ImGui::SliderScalar(label, dataType, &temp, &min, &max, format);
-    if (tempInputTextActive) changed = ImGui::IsItemDeactivatedAfterEdit();
-    if (changed) ref = sq::maths::clamp(temp, min, max);
-    return changed;
-}
-
-template <class Type>
-static bool impl_InputValueRange2(ImPlus::CStrView label, Type& refMin, Type& refMax, Type step, const char* format)
-{
-    constexpr const auto dataType = impl_get_data_type<Type>();
-    Type temp[2] = { refMin, refMax };
-    ImGui::InputScalarN(label, dataType, temp, 2, step > 0 ? &step : nullptr, nullptr, format);
-    if (ImGui::IsItemDeactivatedAfterEdit())
-    {
-        const bool overlap = temp[0] > temp[1];
-        if (overlap && temp[0] != refMin) temp[1] = temp[0];
-        else if (overlap && temp[1] != refMax) temp[0] = temp[1];
-        refMin = temp[0]; refMax = temp[1];
-        return true;
-    }
-    return false;
-}
-
-template <class Type>
-static bool impl_DragValueRange2(ImPlus::CStrView label, Type& refMin, Type& refMax, Type min, Type max, float speed, const char* format)
-{
-    constexpr const auto dataType = impl_get_data_type<Type>();
-    Type temp[2] = { refMin, refMax };
-    const bool changed = ImGui::DragScalarN(label, dataType, temp, 2, speed, &min, &max, format);
-    if (changed && (GImGui->TempInputTextId == 0 || ImGui::IsItemDeactivatedAfterEdit()))
-    {
-        const bool overlap = temp[0] > temp[1];
-        if (overlap && temp[0] != refMin) temp[0] = temp[1];
-        else if (overlap && temp[1] != refMax) temp[1] = temp[0];
-        refMin = sq::maths::clamp(temp[0], min, max);
-        refMax = sq::maths::clamp(temp[1], min, max);
-        return true;
-    }
-    return false;
-}
-
-template <class Type>
-static bool impl_SliderValueRange2(ImPlus::CStrView label, Type& refMin, Type& refMax, Type min, Type max, const char* format)
-{
-    constexpr const auto dataType = impl_get_data_type<Type>();
-    Type temp[2] = { refMin, refMax };
-    const bool changed = ImGui::SliderScalarN(label, dataType, temp, 2, &min, &max, format);
-    if (changed && (GImGui->TempInputTextId == 0 || ImGui::IsItemDeactivatedAfterEdit()))
-    {
-        const bool overlap = temp[0] > temp[1];
-        if (overlap && temp[0] != refMin) temp[0] = temp[1];
-        else if (overlap && temp[1] != refMax) temp[1] = temp[0];
-        refMin = sq::maths::clamp(temp[0], min, max);
-        refMax = sq::maths::clamp(temp[1], min, max);
-        return true;
-    }
-    return false;
 }
 
 //----------------------------------------------------------------------------//

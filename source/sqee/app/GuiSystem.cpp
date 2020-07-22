@@ -557,39 +557,3 @@ void GuiSystem::finish_scene_update(double elapsed) { impl->finish_scene_update(
 void GuiSystem::render_gui() { impl->render_gui(); }
 
 void GuiSystem::show_imgui_demo() { ImGui::ShowDemoWindow(); }
-
-//============================================================================//
-
-void GuiSystem::enable_widget(GuiWidget& widget)
-{
-    const auto iter = algo::find(mWidgets, &widget);
-
-    if (iter == mWidgets.end())
-        mWidgets.push_front(&widget);
-
-    else SQASSERT(false, "");
-}
-
-void GuiSystem::disable_widget(GuiWidget& widget)
-{
-    const auto iter = algo::find(mWidgets, &widget);
-
-    if (iter != mWidgets.end())
-        *iter = nullptr;
-
-    else SQASSERT(false, "");
-}
-
-//============================================================================//
-
-void GuiSystem::draw_widgets()
-{
-    for (mWidgetIter = mWidgets.begin(); mWidgetIter != mWidgets.end(); ++mWidgetIter)
-    {
-        if (*mWidgetIter == nullptr)
-            mWidgetIter = mWidgets.erase(mWidgetIter);
-
-        else if ((*mWidgetIter)->func != nullptr)
-            (*mWidgetIter)->func();
-    }
-}

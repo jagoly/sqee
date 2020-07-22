@@ -33,6 +33,9 @@ public: //====================================================//
     /// Optionally implement for refreshing options.
     virtual void refresh_options() {}
 
+    /// Optionally implement for ImGui widgets.
+    virtual void show_imgui_widgets() {}
+
 protected: //=================================================//
 
     /// Implement to simulate one tick.
