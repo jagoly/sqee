@@ -32,12 +32,12 @@ void sq::detail::log_time_debug()
 
 //============================================================================//
 
-void sq::detail::log_multiline(StringView str)
+void sq::detail::log_multiline(std::string_view str)
 {
     size_t lineEnd = str.find('\n', 0u);
 
     #ifdef SQEE_DEBUG
-    if (lineEnd == 0u || lineEnd == StringView::npos)
+    if (lineEnd == 0u || lineEnd == std::string_view::npos)
         log_error("invalid multiline string");
     #endif
 
@@ -52,7 +52,7 @@ void sq::detail::log_multiline(StringView str)
         auto line = str.substr(lineStart, lineEnd - lineStart);
         std::fwrite(line.data(), 1u, line.size(), stdout);
 
-        if (lineEnd == StringView::npos) break;
+        if (lineEnd == std::string_view::npos) break;
         lineStart = lineEnd + 1u;
     }
 

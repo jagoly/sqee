@@ -5,6 +5,7 @@
 
 #include <sqee/setup.hpp>
 
+#include <sqee/maths/Scalar.hpp>
 #include <sqee/misc/DopClasses.hpp>
 
 namespace sq::dop {
