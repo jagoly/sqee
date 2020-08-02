@@ -1,10 +1,6 @@
-#include <sqee/misc/StringCast.hpp>
-
-#include <sqee/maths/Vectors.hpp>
-#include <sqee/maths/Matrices.hpp>
-#include <sqee/maths/Quaternion.hpp>
-
 #include <sqee/app/LuaSetup.hpp>
+
+#include <sqee/core/Types.hpp>
 
 using namespace sq;
 

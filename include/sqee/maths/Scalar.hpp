@@ -1,11 +1,11 @@
+// Copyright(c) 2020 James Gangur
+// Part of https://github.com/jagoly/sqee
+
 #pragma once
 
-#include <limits>
+#include <type_traits>
 
-#include <sqee/setup.hpp>
-
-#undef min
-#undef max
+#include <cmath>
 
 namespace sq::maths {
 

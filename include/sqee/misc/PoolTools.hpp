@@ -1,3 +1,6 @@
+// Copyright(c) 2020 James Gangur
+// Part of https://github.com/jagoly/sqee
+
 #pragma once
 
 #include <sqee/debug/Assert.hpp>
@@ -231,7 +234,8 @@ class PoolMap final
 {
 public: //====================================================//
 
-    static_assert(std::is_nothrow_destructible_v<Type>, "make sure Type is defined in this context");
+    // todo: how to do this assertion, while still allowing forward declaration?
+    //static_assert(std::is_nothrow_destructible_v<Type>, "make sure Type is defined in this context");
 
     using value_type = std::pair<const Key, Type>;
 
@@ -470,6 +474,8 @@ public: //====================================================//
     }
 
 private: //===================================================//
+
+    // the reason for the indirection here is to allow sorting the items
 
     std::vector<value_type*> mItemVector;
 

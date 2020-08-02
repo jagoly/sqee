@@ -1,15 +1,10 @@
-// Copyright(c) 2018 James Gangur
-// Part of https://github.com/jagoly/sqee
-
-#include <climits>
-#include <array>
-
 #include <sqee/app/GuiWidgets.hpp>
 
-#include <sqee/macros.hpp>
+#include <sqee/core/Macros.hpp>
 
 #define IMGUI_DEFINE_MATH_OPERATORS
-#include <sqee/redist/imgui/imgui_internal.hpp>
+#include <dearimgui/imgui_internal.h>
+#include <dearimgui/imgui.h>
 
 DISABLE_WARNING_OLD_STYLE_CAST;
 
@@ -121,7 +116,7 @@ static bool impl_DragValue(ImPlus::CStrView label, Type& ref, Type min, Type max
 {
     constexpr const auto dataType = impl_get_data_type<Type>();
     auto temp = ref;
-    const bool tempInputTextActive = GImGui->TempInputTextId != 0 && ImGui::TempInputTextIsActive(GImGui->CurrentWindow->GetID(label));
+    const bool tempInputTextActive = GImGui->TempInputId != 0 && ImGui::TempInputIsActive(GImGui->CurrentWindow->GetID(label));
     bool changed = ImGui::DragScalar(label, dataType, &temp, speed, &min, &max, format);
     if (tempInputTextActive) changed = ImGui::IsItemDeactivatedAfterEdit();
     if (changed) ref = sq::maths::clamp(temp, min, max);
@@ -133,9 +128,9 @@ static bool impl_SliderValue(ImPlus::CStrView label, Type& ref, Type min, Type m
 {
     constexpr const auto dataType = impl_get_data_type<Type>();
     auto temp = ref;
-    const bool tempInputTextActive = GImGui->TempInputTextId != 0 && ImGui::TempInputTextIsActive(GImGui->CurrentWindow->GetID(label));
+    const bool tempInputActive = GImGui->TempInputId != 0 && ImGui::TempInputIsActive(GImGui->CurrentWindow->GetID(label));
     bool changed = ImGui::SliderScalar(label, dataType, &temp, &min, &max, format);
-    if (tempInputTextActive) changed = ImGui::IsItemDeactivatedAfterEdit();
+    if (tempInputActive) changed = ImGui::IsItemDeactivatedAfterEdit();
     if (changed) ref = sq::maths::clamp(temp, min, max);
     return changed;
 }
@@ -163,7 +158,7 @@ static bool impl_DragValueRange2(ImPlus::CStrView label, Type& refMin, Type& ref
     constexpr const auto dataType = impl_get_data_type<Type>();
     Type temp[2] = { refMin, refMax };
     const bool changed = ImGui::DragScalarN(label, dataType, temp, 2, speed, &min, &max, format);
-    if (changed && (GImGui->TempInputTextId == 0 || ImGui::IsItemDeactivatedAfterEdit()))
+    if (changed && (GImGui->TempInputId == 0 || ImGui::IsItemDeactivatedAfterEdit()))
     {
         const bool overlap = temp[0] > temp[1];
         if (overlap && temp[0] != refMin) temp[0] = temp[1];
@@ -181,7 +176,7 @@ static bool impl_SliderValueRange2(ImPlus::CStrView label, Type& refMin, Type& r
     constexpr const auto dataType = impl_get_data_type<Type>();
     Type temp[2] = { refMin, refMax };
     const bool changed = ImGui::SliderScalarN(label, dataType, temp, 2, &min, &max, format);
-    if (changed && (GImGui->TempInputTextId == 0 || ImGui::IsItemDeactivatedAfterEdit()))
+    if (changed && (GImGui->TempInputId == 0 || ImGui::IsItemDeactivatedAfterEdit()))
     {
         const bool overlap = temp[0] > temp[1];
         if (overlap && temp[0] != refMin) temp[0] = temp[1];
@@ -251,7 +246,7 @@ bool ImPlus::InputStringMultiline(CStrView label, std::string& str, ImVec2 size,
 ImPlus::DialogResult ImPlus::DialogConfirmation(CStrView title, CStrView message)
 {
     const ImGuiID id = GImGui->CurrentWindow->GetID(title);
-    if (!ImGui::IsPopupOpen(id)) ImGui::OpenPopupEx(id);
+    if (!ImGui::IsPopupOpen(id, ImGuiPopupFlags_None)) ImGui::OpenPopupEx(id);
 
     DialogResult result = DialogResult::None;
 
@@ -338,7 +333,7 @@ void ImPlus::TextWrapped(std::string_view text)
         ImGui::PopTextWrapPos();
 }
 
-void ImPlus::LabelText(std::string_view label, std::string_view text)
+void ImPlus::LabelText(CStrView label, std::string_view text)
 {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     if (window->SkipItems)
@@ -348,16 +343,16 @@ void ImPlus::LabelText(std::string_view label, std::string_view text)
     const ImGuiStyle& style = g.Style;
     const float w = ImGui::CalcItemWidth();
 
-    const ImVec2 label_size = ImGui::CalcTextSize(label.data(), label.data() + label.length(), true);
-    const ImRect value_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y*2));
-    const ImRect total_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w + (label_size.x > 0.0f ? style.ItemInnerSpacing.x : 0.0f), style.FramePadding.y*2) + label_size);
+    const ImVec2 label_size = ImGui::CalcTextSize(label, nullptr, true);
+    const ImRect value_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 2));
+    const ImRect total_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w + (label_size.x > 0.0f ? style.ItemInnerSpacing.x : 0.0f), style.FramePadding.y * 2) + label_size);
     ImGui::ItemSize(total_bb, style.FramePadding.y);
     if (!ImGui::ItemAdd(total_bb, 0))
         return;
 
-    ImGui::RenderTextClipped(value_bb.Min, value_bb.Max, text.data(), text.data() + text.length(), nullptr, ImVec2(0.0f,0.5f));
+    ImGui::RenderTextClipped(value_bb.Min, value_bb.Max, text.data(), text.data() + text.length(), nullptr, ImVec2(0.0f, 0.5f));
     if (label_size.x > 0.0f)
-        ImGui::RenderText(ImVec2(value_bb.Max.x + style.ItemInnerSpacing.x, value_bb.Min.y + style.FramePadding.y), label.data(), label.data() + label.length());
+        ImGui::RenderText(ImVec2(value_bb.Max.x + style.ItemInnerSpacing.x, value_bb.Min.y + style.FramePadding.y), label);
 }
 
 void ImPlus::BulletText(std::string_view text)
@@ -369,7 +364,7 @@ void ImPlus::BulletText(std::string_view text)
     ImGuiContext& g = *GImGui;
     const ImGuiStyle& style = g.Style;
 
-    const ImVec2 label_size = ImGui::CalcTextSize(text.data(), text.data() + text.length(), false);
+    const ImVec2 label_size = CalcTextSize(text.data(), text.data() + text.length(), false);
     const ImVec2 total_size = ImVec2(g.FontSize + (label_size.x > 0.0f ? (label_size.x + style.FramePadding.x * 2) : 0.0f), label_size.y);
     ImVec2 pos = window->DC.CursorPos;
     pos.y += window->DC.CurrLineTextBaseOffset;
@@ -379,17 +374,13 @@ void ImPlus::BulletText(std::string_view text)
         return;
 
     ImU32 text_col = ImGui::GetColorU32(ImGuiCol_Text);
-    ImGui::RenderBullet(window->DrawList, bb.Min + ImVec2(style.FramePadding.x + g.FontSize*0.5f, g.FontSize*0.5f), text_col);
+    ImGui::RenderBullet(window->DrawList, bb.Min + ImVec2(style.FramePadding.x + g.FontSize * 0.5f, g.FontSize * 0.5f), text_col);
     ImGui::RenderText(bb.Min + ImVec2(g.FontSize + style.FramePadding.x * 2, 0.0f), text.data(), text.data() + text.length(), false);
 }
 
 void ImPlus::SetTooltip(std::string_view text)
 {
-    ImGuiContext& g = *GImGui;
-    if (g.DragDropWithinSourceOrTarget)
-        ImGui::BeginTooltip();
-    else
-        ImGui::BeginTooltipEx(0, true);
+    ImGui::BeginTooltipEx(0, ImGuiTooltipFlags_OverridePreviousTooltip);
     ImGui::TextUnformatted(text.data(), text.data() + text.length());
     ImGui::EndTooltip();
 }

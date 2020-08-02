@@ -1,13 +1,12 @@
-// Copyright(c) 2018 James Gangur
+// Copyright(c) 2020 James Gangur
 // Part of https://github.com/jagoly/sqee
 
 #pragma once
 
-#include <deque>
-
-#include <sqee/misc/Builtins.hpp>
+#include <sqee/setup.hpp>
 
 #include <sqee/app/Scene.hpp>
+#include <sqee/core/Types.hpp>
 
 namespace sq {
 
@@ -42,18 +41,18 @@ private: //===================================================//
 
     //--------------------------------------------------------//
 
-    struct Notification
+    struct Notification : MoveOnly
     {
         String message = "";
         uint timeRemaining = 0u;
     };
 
-    std::deque<Notification> mNotifications;
+    std::vector<Notification> mNotifications;
 
     double mFrameTime = 0.0;
 
     size_t mFrameTimeIndex = 0u;
-    Array<double, 60u> mFrameTimes;
+    std::array<double, 60u> mFrameTimes;
 
     bool mActive = true;
 };

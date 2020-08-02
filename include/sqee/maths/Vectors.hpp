@@ -1,12 +1,17 @@
+// Copyright(c) 2020 James Gangur
+// Part of https://github.com/jagoly/sqee
+
 #pragma once
 
 #include <sqee/maths/Scalar.hpp>
 
-namespace sq::maths {
+#include <fmt/format.h>
+
+namespace sq { namespace maths {
 
 //============================================================================//
 
-template <int S, class T> struct Vector;
+template <int S, class T> struct Vector {};
 
 template <class T> using Vector2 = Vector<2, T>;
 template <class T> using Vector3 = Vector<3, T>;
@@ -25,7 +30,7 @@ template <class T> struct Vector<2, T>
     constexpr Vector(std::nullptr_t) {}
 
     // Copy Constructors
-    constexpr Vector(const Vector<2, T>& v) = default;
+    constexpr Vector(const Vector& v) = default;
     template<class U> explicit Vector(Vector2<U> v) : Vector(T(v.x), T(v.y)) {}
 
     // Swizzle Constructors
@@ -52,7 +57,7 @@ template <class T> struct Vector<3, T>
     constexpr Vector(std::nullptr_t) {}
 
     // Copy Constructors
-    constexpr Vector(const Vector<3, T>& v) = default;
+    constexpr Vector(const Vector& v) = default;
     template<class U> explicit Vector(Vector3<U> v) : Vector(T(v.x), T(v.y), T(v.z)) {}
 
     // Swizzle Constructors
@@ -80,7 +85,7 @@ template <class T> struct Vector<4, T>
     constexpr Vector(std::nullptr_t) {}
 
     // Copy Constructors
-    constexpr Vector(const Vector<4, T>& v) = default;
+    constexpr Vector(const Vector& v) = default;
     template<class U> explicit Vector(Vector4<U> v) : Vector(T(v.x), T(v.y), T(v.z), T(v.w)) {}
 
     // Swizzle Constructors
@@ -537,32 +542,66 @@ Vector3<T> rotate_z(Vector3<T> vec, T angle)
 
 //============================================================================//
 
-} // namespace sq::maths
+} // namespace maths
+
+template <int S, class T>
+constexpr const char* type_to_string(maths::Vector<S, T>)
+{
+    if constexpr (S == 2 && std::is_same_v<T, int>) return "Vec2I";
+    if constexpr (S == 3 && std::is_same_v<T, int>) return "Vec3I";
+    if constexpr (S == 4 && std::is_same_v<T, int>) return "Vec4I";
+    if constexpr (S == 2 && std::is_same_v<T, uint>) return "Vec2U";
+    if constexpr (S == 3 && std::is_same_v<T, uint>) return "Vec3U";
+    if constexpr (S == 4 && std::is_same_v<T, uint>) return "Vec4U";
+    if constexpr (S == 2 && std::is_same_v<T, float>) return "Vec2F";
+    if constexpr (S == 3 && std::is_same_v<T, float>) return "Vec3F";
+    if constexpr (S == 4 && std::is_same_v<T, float>) return "Vec4F";
+    return "Vector<S, T>";
+}
 
 //============================================================================//
 
-namespace sq::traits {
+namespace detail {
 
-template <class VecST> struct VecTypeTraits;
-
-template <int S, class T>
-struct VecTypeTraits<maths::Vector<S, T>>
+template <class T> struct VectorTraits
 {
-    constexpr static const int Size = S;
-    using Type = T;
+    static constexpr bool value = false;
 };
 
-template <class VecST> using VecType = typename VecTypeTraits<VecST>::Type;
-template <class VecST> constexpr const int VecSize = VecTypeTraits<VecST>::Size;
+template <int S, class T>
+struct VectorTraits<maths::Vector<S, T>>
+{
+    static constexpr bool value = true;
+    static constexpr int size = S;
+    using type = T;
+};
 
-template <> inline const char* const TypeName<maths::Vector<2, int>> = "Vec2I";
-template <> inline const char* const TypeName<maths::Vector<2, uint>> = "Vec2U";
-template <> inline const char* const TypeName<maths::Vector<2, float>> = "Vec2F";
-template <> inline const char* const TypeName<maths::Vector<3, int>> = "Vec3I";
-template <> inline const char* const TypeName<maths::Vector<3, uint>> = "Vec3U";
-template <> inline const char* const TypeName<maths::Vector<3, float>> = "Vec3F";
-template <> inline const char* const TypeName<maths::Vector<4, int>> = "Vec4I";
-template <> inline const char* const TypeName<maths::Vector<4, uint>> = "Vec4U";
-template <> inline const char* const TypeName<maths::Vector<4, float>> = "Vec4F";
+template <class T> constexpr auto is_vector_v = VectorTraits<T>::value;
+template <class T> constexpr auto vector_size_v = VectorTraits<T>::size;
+template <class T> using vector_type_t = typename VectorTraits<T>::type;
 
-} // namespace sq::traits
+} // namespace detail
+
+//============================================================================//
+
+} // namespace sq
+
+//============================================================================//
+
+template <int S, class T>
+struct fmt::formatter<sq::maths::Vector<S, T>> : fmt::formatter<T>
+{
+      template <class FormatContext>
+      auto format(const sq::maths::Vector<S, T>& vec, FormatContext& ctx)
+      {
+          fmt::format_to(ctx.out(), "{}(", sq::type_to_string(sq::maths::Vector<S, T>()));
+          formatter<T>::format(vec.x, ctx);
+          fmt::format_to(ctx.out(), ", ");
+          formatter<T>::format(vec.y, ctx);
+          if constexpr (S >= 3) fmt::format_to(ctx.out(), ", ");
+          if constexpr (S >= 3) formatter<T>::format(vec.z, ctx);
+          if constexpr (S == 4) fmt::format_to(ctx.out(), ", ");
+          if constexpr (S == 4) formatter<T>::format(vec.w, ctx);
+          return fmt::format_to(ctx.out(), ")");
+      }
+};

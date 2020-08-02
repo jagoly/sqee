@@ -1,150 +1,154 @@
-// Copyright(c) 2018 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 #include <sqee/app/PreProcessor.hpp>
 
-#include <list>
-
-#include <sqee/debug/Logging.hpp>
-#include <sqee/misc/Files.hpp>
-
+#include <sqee/core/Utilities.hpp>
 #include <sqee/data/ShaderHeaders.hpp>
+#include <sqee/debug/Logging.hpp>
+#include <sqee/gl/Program.hpp>
+#include <sqee/misc/Files.hpp>
+#include <sqee/misc/Parsing.hpp>
 
-#include <sqee/helpers.hpp>
+#include <fmt/format.h>
+
+using namespace fmt::literals;
 
 using namespace sq;
-using sq::literals::operator""_fmt_;
+
+//============================================================================//
+
+static constexpr const StringView SHADER_PRELUDE =
+"#version 330 core\n"
+"#extension GL_ARB_shading_language_420pack : enable\n"
+"#extension GL_ARB_explicit_uniform_location : enable\n"
+"#extension GL_ARB_gpu_shader5 : enable\n";
 
 //============================================================================//
 
 PreProcessor::PreProcessor()
 {
-    mHeaders.emplace("builtin/misc/screen", tokenise_string(sqee_glsl_misc_screen, '\n'));
-    mHeaders.emplace("builtin/funcs/position", tokenise_string(sqee_glsl_funcs_position, '\n'));
-    mHeaders.emplace("builtin/funcs/depth", tokenise_string(sqee_glsl_funcs_depth, '\n'));
-    mHeaders.emplace("builtin/funcs/random", tokenise_string(sqee_glsl_funcs_random, '\n'));
-    mHeaders.emplace("builtin/funcs/colour", tokenise_string(sqee_glsl_funcs_colour, '\n'));
-    mHeaders.emplace("builtin/misc/disks", tokenise_string(sqee_glsl_misc_disks, '\n'));
+    update_header("builtin/misc/screen", sqee_glsl_misc_screen);
+    update_header("builtin/funcs/position", sqee_glsl_funcs_position);
+    update_header("builtin/funcs/depth", sqee_glsl_funcs_depth);
+    update_header("builtin/funcs/random", sqee_glsl_funcs_random);
+    update_header("builtin/funcs/colour", sqee_glsl_funcs_colour);
+    update_header("builtin/misc/disks", sqee_glsl_misc_disks);
 }
 
 //============================================================================//
 
-void PreProcessor::import_header(const String& path)
+void PreProcessor::import_header(String path)
 {
-    const auto fullPath = build_string("shaders/" + path + ".glsl");
-    mHeaders[path] = tokenise_string(get_string_from_file(fullPath), '\n');
+    const auto fullPath = build_string("shaders/", path, ".glsl");
+    TokenisedHeader& header = mHeaders[std::move(path)];
+    header.source = get_string_from_file(fullPath);
+    header.lines = tokenise_string_lines(header.source);
 }
 
-void PreProcessor::update_header(const String& key, const String& string)
+void PreProcessor::update_header(String path, String source)
 {
-    mHeaders[key] = tokenise_string(string, '\n');
+    TokenisedHeader& header = mHeaders[std::move(path)];
+    header.source = std::move(source);
+    header.lines = tokenise_string_lines(header.source);
 }
 
 //============================================================================//
 
-String PreProcessor::process(const String& path, const String& prelude) const
+String PreProcessor::process(StringView path, StringView prelude) const
 {
     const auto fullPath = compute_resource_path("shaders/", path, {"glsl"});
-    if (!fullPath.has_value()) log_error("Failed to find shader '%s'", path);
+    if (fullPath == std::nullopt) log_error("Failed to find shader '{}'", path);
 
-    const String fullString = get_string_from_file(*fullPath);
+    const String source = get_string_from_file(*fullPath);
 
-    String source = "#version 330 core\n"
-                    "#extension GL_ARB_shading_language_420pack : enable\n"
-                    "#extension GL_ARB_explicit_uniform_location : enable\n"
-                    "#extension GL_ARB_gpu_shader5 : enable\n"
-                    "#line 0\n";
+    String result;
 
-    source.reserve(source.size() + fullString.size()); // might still be reallocated
+    // just a starting size, may still be reallocated due to headers
+    result.reserve(SHADER_PRELUDE.size() + prelude.size() + source.size());
 
-    source += prelude;
+    result += SHADER_PRELUDE;
+    result += prelude;
 
-    //--------------------------------------------------------//
+    const auto sourceLines = tokenise_string_lines(source);
 
-    Vector<Pair<size_t, String>> errorVec;
-
-    const auto base = tokenise_string_view(fullString, '\n');
+    String errors;
 
     //--------------------------------------------------------//
 
-    auto recursive_func = [&](auto&& thisFunc, const Vector<StringView>& lines) -> void
+    auto recursive_func = [this](auto thisFunc, const auto& lines, String& result, String& errors) -> void
     {
-        for (size_t lineNum = 0u; lineNum < lines.size(); ++lineNum)
-        {
-            const StringView& line = lines[lineNum];
+        result += "#line 1\n";
 
-            if (line.empty() == true)
-            {
-                source += '\n';
-            }
+        for (size_t lineIndex = 0u; lineIndex != lines.size(); ++lineIndex)
+        {
+            const size_t lineNum = lineIndex + 1u;
+            const StringView line = lines[lineIndex];
+
+            // keep empty lines around for readability in tools like renderdoc
+            if (line.empty() == true) result += '\n';
+
             else if (line.front() == '#')
             {
-                const auto tokens = tokenise_string_view(line, ' ');
+                const auto tokens = tokenise_string(line, ' ');
 
                 if (tokens[0] == "#include")
                 {
-                    const auto headerName = String(tokens.back());
-                    const auto headerFind = mHeaders.find(headerName);
-
                     if (tokens.size() == 1u)
-                        errorVec.emplace_back(lineNum, "#include missing a header path");
+                        errors += "\nLine {}: #include missing a header path"_format(lineNum);
 
                     else if (tokens.size() > 2u)
-                        errorVec.emplace_back(lineNum, "#include does not support spaces");
-
-                    else if (headerFind == mHeaders.end())
-                        errorVec.emplace_back(lineNum, "header '%s' has not been imported"_fmt_(headerName));
+                        errors += "\nLine {}: #include does not support spaces"_format(lineNum);
 
                     else
                     {
-                        ((source += "#line 0 // begin '") += headerName) += "'\n";
+                        const auto headerName = String(tokens.back());
 
-                        thisFunc(thisFunc, headerFind->second.tokens);
+                        if (const auto findIter = mHeaders.find(headerName); findIter != mHeaders.end())
+                        {
+                            thisFunc(thisFunc, findIter->second.lines, result, errors);
+                            result += "#line {}\n"_format(lineNum+1u);
+                        }
+                        else errors += "\nLine {}: header '{}' has not been imported"_format(lineNum, headerName);
                     }
                 }
 
                 else if (tokens[0] == "#version")
-                    errorVec.emplace_back(lineNum, "#version is added automatically");
+                    errors += "\nLine {}: #version is added automatically"_format(lineNum);
 
                 else if (tokens[0] == "#extension")
-                    errorVec.emplace_back(lineNum, "extensions are added automatically");
+                    errors += "\nLine {}: extensions are added automatically"_format(lineNum);
 
-                else { source += line; source += '\n'; } // #define, #ifdef, etc.
+                else if (tokens[0] == "#line")
+                    errors += "\nLine {}: #line is reserved for preprocessing"_format(lineNum);
+
+                else { result += line; result += '\n'; } // #define, #ifdef, etc.
             }
 
-            else { source += line; source += '\n'; }
+            else { result += line; result += '\n'; }
         }
     };
 
-    recursive_func(recursive_func, base);
-
     //--------------------------------------------------------//
 
-    if (errorVec.empty() == false)
-    {
-        String errorLines;
-        for (const auto& error : errorVec)
-            errorLines += "\nLine %d: %s"_fmt_(error.first, error.second);
+    recursive_func(recursive_func, sourceLines, result, errors);
 
-        log_error("Failed to pre-process shader from \"%s\"%s", path, errorLines);
-    }
+    if (errors.empty() == false)
+        log_error_multiline("Failed to pre-process shader from '{}'{}", path, errors);
 
-    return source;
+    return result;
 }
 
 //============================================================================//
 
-void PreProcessor::load_vertex(Program& program, const String& path, const String& prelude) const
+void PreProcessor::load_vertex(Program& program, StringView path, StringView prelude) const
 {
-    program.load_vertex(this->process(path, prelude), path);
+    program.load_vertex(process(path, prelude), path);
 }
 
-void PreProcessor::load_geometry(Program& program, const String& path, const String& prelude) const
+void PreProcessor::load_geometry(Program& program, StringView path, StringView prelude) const
 {
-    program.load_geometry(this->process(path, prelude), path);
+    program.load_geometry(process(path, prelude), path);
 }
 
-void PreProcessor::load_fragment(Program& program, const String& path, const String& prelude) const
+void PreProcessor::load_fragment(Program& program, StringView path, StringView prelude) const
 {
-    program.load_fragment(this->process(path, prelude), path);
+    program.load_fragment(process(path, prelude), path);
 }

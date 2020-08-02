@@ -1,16 +1,11 @@
-// Copyright(c) 2018 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 #include <sqee/gl/Context.hpp>
 
 #include <sqee/debug/Logging.hpp>
 #include <sqee/gl/FrameBuffer.hpp>
-#include <sqee/gl/PipelineState.hpp>
 #include <sqee/gl/Program.hpp>
-#include <sqee/gl/TextureBase.hpp>
+#include <sqee/gl/Textures.hpp>
 #include <sqee/gl/UniformBuffer.hpp>
 #include <sqee/gl/VertexArray.hpp>
-
 #include <sqee/redist/gl_loader.hpp>
 
 using namespace sq;
@@ -261,21 +256,6 @@ void Context::bind_UniformBuffer(const UniformBuffer& ubo, uint8_t index, uint o
     if (impl_check_modify(mUniformBufferBindings[index], binding)) return;
 
     gl::BindBufferRange(gl::UNIFORM_BUFFER, index, ubo.get_handle(), offset, size);
-}
-
-//============================================================================//
-
-void Context::activate_PipelineState(const PipelineState& state)
-{
-    if (state.clip_distance) set_state(state.clip_distance.value());
-    if (state.depth_clamp)   set_state(state.depth_clamp.value());
-    if (state.cull_face)     set_state(state.cull_face.value());
-    if (state.depth_test)    set_state(state.depth_test.value());
-    if (state.stencil_test)  set_state(state.stencil_test.value());
-    if (state.blend_mode)    set_state(state.blend_mode.value());
-    if (state.depth_compare) set_state(state.depth_compare.value());
-
-    if (state.scissor_params) set_Scissor_Params(state.scissor_params.value());
 }
 
 //============================================================================//

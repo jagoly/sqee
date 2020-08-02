@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sqee/export.hpp>
+#include <sqee/setup.hpp>
 
 #ifdef SQEE_DEBUG
 

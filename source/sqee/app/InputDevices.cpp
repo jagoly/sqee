@@ -1,15 +1,14 @@
-// Copyright(c) 2018 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 #include <sqee/app/InputDevices.hpp>
+
+#include <sqee/app/Event.hpp>
+#include <sqee/app/Window.hpp>
+#include <sqee/debug/Assert.hpp>
 
 #include <SFML/Window/Keyboard.hpp>
 #include <SFML/Window/Mouse.hpp>
 #include <SFML/Window/Joystick.hpp>
 #include <SFML/Window/Window.hpp>
-
-#include <sqee/app/Window.hpp>
-#include <sqee/debug/Assert.hpp>
+#include <SFML/System/Vector2.hpp>
 
 using namespace sq;
 

@@ -1,12 +1,22 @@
-// Copyright(c) 2018 James Gangur
+// Copyright(c) 2020 James Gangur
 // Part of https://github.com/jagoly/sqee
 
 #pragma once
 
-#include <sqee/gl/Textures.hpp>
-#include <sqee/maths/Builtins.hpp>
+#include <sqee/setup.hpp>
+
+#include <sqee/core/Types.hpp>
 
 namespace sq {
+
+//====== Forward Declarations ================================================//
+
+class Context;
+class Texture2D;
+class TextureCube;
+class TextureArray2D;
+//class TextureArrayCube;
+class TextureMulti;
 
 //============================================================================//
 

@@ -1,13 +1,18 @@
-// Copyright(c) 2018 James Gangur
+// Copyright(c) 2020 James Gangur
 // Part of https://github.com/jagoly/sqee
 
 #pragma once
 
-#include <sqee/misc/Builtins.hpp>
+#include <sqee/setup.hpp>
 
-#include <sqee/app/Event.hpp>
+#include <sqee/core/Types.hpp>
 
 namespace sq {
+
+//====== Forward Declarations ================================================//
+
+class InputDevices;
+struct Event;
 
 //============================================================================//
 
@@ -42,7 +47,7 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     /// Fetch any new events.
-    Vector<Event> fetch_events();
+    const std::vector<Event>& fetch_events();
 
     /// Display the newly rendered frame.
     void swap_buffers();
@@ -50,7 +55,7 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     /// Get the current title of the Window.
-    String get_window_title() const;
+    const String& get_window_title() const;
 
     /// Get the current size of the Window.
     Vec2U get_window_size() const;
@@ -72,13 +77,12 @@ public: //====================================================//
 private: //===================================================//
 
     struct Implementation;
-    friend struct Implementation;
-    UniquePtr<Implementation> impl;
+    std::unique_ptr<Implementation> impl;
 
-    //--------------------------------------------------------//
-
-    friend class InputDevices;
     void* const mSystemWindowPtr;
+
+    friend Implementation;
+    friend InputDevices;
 };
 
 //============================================================================//

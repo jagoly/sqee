@@ -1,17 +1,17 @@
-// Copyright(c) 2018 James Gangur
+// Copyright(c) 2020 James Gangur
 // Part of https://github.com/jagoly/sqee
 
 #pragma once
 
-#include <functional>
-
-#include <sqee/misc/Builtins.hpp>
+#include <sqee/setup.hpp>
 
 namespace sq {
 
 //====== Forward Declarations ================================================//
 
-class Window; class InputDevices; struct Event;
+class InputDevices;
+class Window;
+struct Event;
 
 //============================================================================//
 
@@ -24,6 +24,16 @@ public: //====================================================//
     static void construct(Window& window, InputDevices& inputDevices);
 
     static void destruct();
+
+    //--------------------------------------------------------//
+
+    void set_style_widgets_default();
+    void set_style_widgets_supertux();
+
+    void set_style_colours_classic();
+    void set_style_colours_dark();
+    void set_style_colours_light();
+    void set_style_colours_supertux();
 
     //--------------------------------------------------------//
 
@@ -45,8 +55,9 @@ private: //===================================================//
     ~GuiSystem() = default;
 
     class Implementation;
-    friend class Implementation;
-    UniquePtr<Implementation> impl;
+    std::unique_ptr<Implementation> impl;
+
+    friend Implementation;
 };
 
 //============================================================================//

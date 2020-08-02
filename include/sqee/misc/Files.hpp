@@ -1,9 +1,11 @@
-// Copyright(c) 2018 James Gangur
+// Copyright(c) 2020 James Gangur
 // Part of https://github.com/jagoly/sqee
 
 #pragma once
 
-#include <sqee/misc/Builtins.hpp>
+#include <sqee/setup.hpp>
+
+#include <sqee/core/Types.hpp>
 
 namespace sq {
 
@@ -16,20 +18,20 @@ SQEE_API bool check_file_exists(const String& path);
 SQEE_API String get_string_from_file(const String& path);
 
 /// Save a string to a file
-SQEE_API void save_string_to_file(const String& path, const String& str);
+SQEE_API void save_string_to_file(const String& path, StringView str);
 
 /// Load a file into a vector of bytes
-SQEE_API Vector<std::byte> get_bytes_from_file(const String& path);
+SQEE_API std::vector<std::byte> get_bytes_from_file(const String& path);
 
 //============================================================================//
 
 struct TokenisedFile : private sq::MoveOnly
 {
-    using Tokens = Vector<StringView>;
+    using Tokens = std::vector<StringView>;
     struct Line { Tokens tokens; size_t num; };
 
     String fullString;
-    Vector<Line> lines;
+    std::vector<Line> lines;
 };
 
 /// Load a text file into an easy to parse structure
@@ -47,7 +49,7 @@ SQEE_API StringView directory_from_path(StringView path);
 SQEE_API StringView extension_from_path(StringView path);
 
 /// Compute the full path to an existing file, nullopt if none found
-SQEE_API Optional<String> compute_resource_path(StringView base, StringView path, Vector<StringView> extensions);
+SQEE_API std::optional<String> compute_resource_path(StringView base, StringView path, std::vector<StringView> extensions);
 
 //============================================================================//
 

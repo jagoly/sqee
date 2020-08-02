@@ -1,10 +1,6 @@
-﻿// Copyright(c) 2018 James Gangur
-// Part of https://github.com/jagoly/sqee
-
-#include <sqee/gl/FixedBuffer.hpp>
+﻿#include <sqee/gl/FixedBuffer.hpp>
 
 #include <sqee/debug/Assert.hpp>
-
 #include <sqee/redist/gl_loader.hpp>
 
 using namespace sq;

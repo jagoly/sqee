@@ -1,27 +1,61 @@
+// Copyright(c) 2020 James Gangur
+// Part of https://github.com/jagoly/sqee
+
 #pragma once
 
-#include <cstddef>
-#include <cstdint>
-#include <cmath>
+#include <sqee/export.hpp> // IWYU pragma: export
 
-#include <utility>
+#include <cctype> // IWYU pragma: export
+#include <cfloat> // IWYU pragma: export
+#include <climits> // IWYU pragma: export
+#include <cmath> // IWYU pragma: export
+#include <cstddef> // IWYU pragma: export
+#include <cstdint> // IWYU pragma: export
+#include <cstdio> // IWYU pragma: export
+#include <cstdlib> // IWYU pragma: export
+#include <cstring> // IWYU pragma: export
 
-#include <sqee/export.hpp>
+#include <array> // IWYU pragma: export
+#include <exception> // IWYU pragma: export
+#include <functional> // IWYU pragma: export
+#include <initializer_list> // IWYU pragma: export
+#include <iterator> // IWYU pragma: export
+#include <limits> // IWYU pragma: export
+#include <map> // IWYU pragma: export
+#include <memory> // IWYU pragma: export
+#include <numeric> // IWYU pragma: export
+#include <optional> // IWYU pragma: export
+#include <stdexcept> // IWYU pragma: export
+#include <tuple> // IWYU pragma: export
+#include <type_traits> // IWYU pragma: export
+#include <typeindex> // IWYU pragma: export
+#include <unordered_map> // IWYU pragma: export
+#include <utility> // IWYU pragma: export
+#include <vector> // IWYU pragma: export
 
 //============================================================================//
 
-typedef unsigned char  uchar;
-typedef unsigned short ushort;
-typedef unsigned int   uint;
+// without these, IWYU sometimes reccomends stddef.h
+typedef std::ptrdiff_t ptrdiff_t;
+typedef std::size_t size_t;
 
-typedef signed int    GLint;
-typedef unsigned int  GLuint;
-typedef float         GLfloat;
-typedef double        GLdouble;
-typedef unsigned int  GLbitfield;
-typedef signed int    GLsizei;
-typedef unsigned int  GLenum;
-typedef char          GLchar;
+// sqee shouldn't make these assumptions, but right now it does
+static_assert(sizeof(int)    == 4);
+static_assert(sizeof(size_t) == 8);
+
+// these are not standard c++ so make sure they are defined
+typedef unsigned char uchar;
+typedef unsigned int  uint;
+
+// define the OpenGL types here so they are always available
+typedef signed int   GLint;
+typedef unsigned int GLuint;
+typedef float        GLfloat;
+typedef double       GLdouble;
+typedef unsigned int GLbitfield;
+typedef signed int   GLsizei;
+typedef unsigned int GLenum;
+typedef char         GLchar;
 
 typedef unsigned int ImGuiID;
 
@@ -59,22 +93,7 @@ struct MoveOnly
 
 //----------------------------------------------------------------------------//
 
-namespace traits {
-
-template <class T> constexpr const char* const TypeName = nullptr;
-
-template <> inline const char* const TypeName<int8_t> = "Int8";
-template <> inline const char* const TypeName<uint8_t> = "UInt8";
-template <> inline const char* const TypeName<int16_t> = "Int16";
-template <> inline const char* const TypeName<uint16_t> = "UInt16";
-template <> inline const char* const TypeName<int32_t> = "Int32";
-template <> inline const char* const TypeName<uint32_t> = "UInt32";
-template <> inline const char* const TypeName<int64_t> = "Int64";
-template <> inline const char* const TypeName<uint64_t> = "UInt64";
-template <> inline const char* const TypeName<float> = "Float";
-template <> inline const char* const TypeName<double> = "Double";
-
-} // namespace traits
+namespace coretypes {}
 
 //============================================================================//
 
@@ -94,5 +113,5 @@ template <> inline const char* const TypeName<double> = "Double";
 /// @namespace sq::maths
 /// @brief Mathematical classes and functions.
 
-/// @namespace sq::traits
-/// @brief Helper traits for various types.
+/// @namespace sq::coretypes
+/// @brief A namespace containing a set of core types.

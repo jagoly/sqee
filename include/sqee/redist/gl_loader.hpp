@@ -1,19 +1,11 @@
-// Copyright(c) 2018 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 #pragma once
+
+#include <sqee/export.hpp>
 
 #include <cstddef>
 #include <cstdint>
 
-#include <sqee/export.hpp>
-
 //============================================================================//
-
-// This code block is duplicated in glxext.h, so it must be protected.
-
-//#ifndef GLEXT_64_TYPES_DEFINED
-//#define GLEXT_64_TYPES_DEFINED
 
 typedef unsigned int GLenum;
 typedef unsigned char GLboolean;
@@ -32,8 +24,6 @@ typedef double GLdouble;
 typedef double GLclampd;
 typedef char GLchar;
 typedef char GLcharARB;
-
-//#endif
 
 //============================================================================//
 
@@ -57,8 +47,8 @@ typedef ptrdiff_t GLsizeiptrARB;
 typedef int64_t GLint64EXT;
 typedef uint64_t GLuint64EXT;
 typedef struct __GLsync *GLsync;
-struct _cl_context;
-struct _cl_event;
+//struct _cl_context;
+//struct _cl_event;
 typedef void (MSVC_STDCALL *GLDEBUGPROC)(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);
 typedef unsigned short GLhalfNV;
 typedef GLintptr GLvdpauSurfaceNV;

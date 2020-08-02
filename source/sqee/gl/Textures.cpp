@@ -1,19 +1,175 @@
-// Copyright(c) 2018 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 #include <sqee/gl/Textures.hpp>
 
+#include <sqee/core/Utilities.hpp>
 #include <sqee/debug/Assert.hpp>
 #include <sqee/debug/Logging.hpp>
+#include <sqee/gl/Context.hpp>
 #include <sqee/misc/Files.hpp>
 #include <sqee/misc/Json.hpp>
-
 #include <sqee/redist/gl_loader.hpp>
 #include <sqee/redist/stb_image.hpp>
 
-#include <sqee/helpers.hpp>
-
 using namespace sq;
+
+//============================================================================//
+
+Texture::Texture(GLenum target, Format format)
+    : mContext(Context::get()), mTarget(target), mFormat(format) {}
+
+Texture::Texture(Texture&& other) noexcept
+    : mContext(other.mContext), mTarget(other.mTarget), mFormat(other.mFormat)
+{
+    mContext.impl_reset_Texture(&other, this);
+
+    mFilter = other.mFilter;
+    mMipmaps = other.mMipmaps;
+    mShadow = other.mShadow;
+    mWrap = other.mWrap;
+    mSwizzle = other.mSwizzle;
+    mSize = other.mSize;
+
+    mHandle = other.mHandle;
+    other.mHandle = 0u;
+}
+
+Texture& Texture::operator=(Texture&& other) noexcept
+{
+    std::swap(*this, other);
+    return *this;
+}
+
+//============================================================================//
+
+void Texture::delete_object()
+{
+    if (mHandle != 0u)
+    {
+        mContext.impl_reset_Texture(this);
+        gl::DeleteTextures(1, &mHandle);
+        mHandle = 0u;
+    }
+
+    mSize = { 0u, 0u, 0u };
+}
+
+void Texture::set_format(Format format)
+{
+    SQASSERT(mHandle == 0u, "texture already created");
+
+    mFormat = format;
+}
+
+void Texture::generate_auto_mipmaps()
+{
+    gl::GenerateTextureMipmap(mHandle);
+}
+
+//============================================================================//
+
+void Texture::set_filter_mode(bool enable)
+{
+    mFilter = enable;
+    impl_update_paramaters();
+}
+
+void Texture::set_mipmaps_mode(bool enable)
+{
+    mMipmaps = enable;
+    impl_update_paramaters();
+}
+
+void Texture::set_shadow_mode(bool enable)
+{
+    mShadow = enable;
+    impl_update_paramaters();
+}
+
+//============================================================================//
+
+void Texture::set_wrap_mode(char x, char y)
+{
+    mWrap = {{ x, y }};
+    impl_update_paramaters();
+}
+
+void Texture::set_swizzle_mode(char r, char g, char b, char a)
+{
+    mSwizzle = {{ r, g, b, a }};
+    impl_update_paramaters();
+}
+
+//============================================================================//
+
+void Texture::impl_create_object()
+{
+    SQASSERT(mFormat != Format::Undefined, "format not set");
+
+    delete_object();
+    gl::CreateTextures(mTarget, 1, &mHandle);
+}
+
+//============================================================================//
+
+void Texture::impl_update_paramaters()
+{
+    // do nothing if texture not created
+    if (mHandle == 0u) return;
+
+    //--------------------------------------------------------//
+
+    if (mTarget != gl::TEXTURE_2D_MULTISAMPLE)
+    {
+        if (!mFilter && !mMipmaps) gl::TextureParameteri(mHandle, gl::TEXTURE_MIN_FILTER, gl::NEAREST);
+        if (!mFilter &&  mMipmaps) gl::TextureParameteri(mHandle, gl::TEXTURE_MIN_FILTER, gl::NEAREST_MIPMAP_NEAREST);
+        if ( mFilter && !mMipmaps) gl::TextureParameteri(mHandle, gl::TEXTURE_MIN_FILTER, gl::LINEAR);
+        if ( mFilter &&  mMipmaps) gl::TextureParameteri(mHandle, gl::TEXTURE_MIN_FILTER, gl::LINEAR_MIPMAP_LINEAR);
+
+        gl::TextureParameteri(mHandle, gl::TEXTURE_MAG_FILTER, mFilter ? gl::LINEAR : gl::NEAREST);
+    }
+
+    //--------------------------------------------------------//
+
+    const auto set_wrap_param = [this](GLenum pname, char param)
+    {
+        switch (param) {
+        case 'C': gl::TextureParameteri(mHandle, pname, gl::CLAMP_TO_EDGE);   break;
+        case 'R': gl::TextureParameteri(mHandle, pname, gl::REPEAT);          break;
+        case 'M': gl::TextureParameteri(mHandle, pname, gl::MIRRORED_REPEAT); break;
+        default: SQASSERT(false, "invalid wrap paramater"); }
+    };
+
+    if (mTarget != gl::TEXTURE_2D_MULTISAMPLE)
+    {
+        set_wrap_param(gl::TEXTURE_WRAP_S, mWrap[0]);
+        set_wrap_param(gl::TEXTURE_WRAP_T, mWrap[1]);
+    }
+
+    //--------------------------------------------------------//
+
+    const auto set_swizzle_param = [this](GLenum pname, char param)
+    {
+        switch (param) {
+        case '0': gl::TextureParameteri(mHandle, pname, gl::ZERO);  break;
+        case '1': gl::TextureParameteri(mHandle, pname, gl::ONE);   break;
+        case 'R': gl::TextureParameteri(mHandle, pname, gl::RED);   break;
+        case 'G': gl::TextureParameteri(mHandle, pname, gl::GREEN); break;
+        case 'B': gl::TextureParameteri(mHandle, pname, gl::BLUE);  break;
+        case 'A': gl::TextureParameteri(mHandle, pname, gl::ALPHA); break;
+        default: SQASSERT(false, "invalid swizzle paramater"); }
+    };
+
+    set_swizzle_param(gl::TEXTURE_SWIZZLE_R, mSwizzle[0]);
+    set_swizzle_param(gl::TEXTURE_SWIZZLE_G, mSwizzle[1]);
+    set_swizzle_param(gl::TEXTURE_SWIZZLE_B, mSwizzle[2]);
+    set_swizzle_param(gl::TEXTURE_SWIZZLE_A, mSwizzle[3]);
+
+    //--------------------------------------------------------//
+
+    if (mShadow == true)
+    {
+        gl::TextureParameteri(mHandle, gl::TEXTURE_COMPARE_MODE, gl::COMPARE_REF_TO_TEXTURE);
+    }
+}
 
 //============================================================================//
 
@@ -126,57 +282,61 @@ inline void impl_to_signed_norm_8(uint8_t* data, int count)
 
 //============================================================================//
 
+inline Texture::Format impl_string_to_format(const String& arg)
+{
+    if (arg == "R8_UN") return Texture::Format::R8_UN;
+    if (arg == "RG8_UN") return Texture::Format::RG8_UN;
+    if (arg == "RGB8_UN") return Texture::Format::RGB8_UN;
+    if (arg == "RGBA8_UN") return Texture::Format::RGBA8_UN;
+    if (arg == "R8_SN") return Texture::Format::R8_SN;
+    if (arg == "RG8_SN") return Texture::Format::RG8_SN;
+    if (arg == "RGB8_SN") return Texture::Format::RGB8_SN;
+    if (arg == "RGBA8_SN") return Texture::Format::RGBA8_SN;
+
+    log_warning("invalid texture format '%s'", arg);
+
+    return Texture::Format::RGBA8_UN;
+}
+
+//============================================================================//
+
 struct Impl_Load_Image : NonCopyable
 {
     void* data = nullptr;
     Vec2U size = { 0u, 0u };
-
-    //--------------------------------------------------------//
 
     Impl_Load_Image(Texture::Format format, String path)
     {
         if (check_file_exists(path) == true) {}
         else if (check_file_exists(path + ".png")) path += ".png";
         else if (check_file_exists(path + ".jpg")) path += ".jpg";
-        else log_error("Failed to find image '%s'", path);
-
-        //const auto fullPath = compute_resource_path("assets/", path, {".png", ".jpg"});
-        //if (!fullPath.has_value()) log_error("Failed to find texture '%s'", path);
-
-        //--------------------------------------------------------//
+        else log_error("Failed to find image '{}'", path);
 
         const auto& meta = impl_Format_Meta[uint8_t(format)];
 
         SQASSERT(meta.group == 0 || meta.group == 2, "fixme");
 
-        //--------------------------------------------------------//
-
-        Vec2I size = { 0, 0 };
+        Vec2I sizeS = { 0, 0 };
         int channels = 0;
 
-        data = stbi_load(path.c_str(), &size.x, &size.y, &channels, 0);
-        log_assert(data != NULL, "Error loading image from '%s'", path);
-        //data = stbi_load(fullPath->c_str(), &size.x, &size.y, &channels, 0);
-        //log_assert(data != NULL, "Error loading image from '%s'", *fullPath);
+        data = stbi_load(path.c_str(), &sizeS.x, &sizeS.y, &channels, 0);
+        if (data == NULL) log_error("Error loading image from '{}'", path);
 
         SQASSERT(channels == meta.channels, "");
 
         if (meta.group == 2)
         {
             uint8_t* const unormPtr = static_cast<uint8_t*>(data);
-            impl_to_signed_norm_8(unormPtr, size.x * size.y * channels);
+            impl_to_signed_norm_8(unormPtr, sizeS.x * sizeS.y * channels);
         }
 
-        //--------------------------------------------------------//
-
-        this->size = Vec2U(size);
+        size = Vec2U(sizeS);
     }
-
-    //--------------------------------------------------------//
 
     ~Impl_Load_Image()
     {
-        if (data != nullptr) free(data);
+        if (data != nullptr)
+            free(data);
     }
 };
 
@@ -325,14 +485,14 @@ void TextureVolume::load_memory(const void* data, Vec3U offset, Vec3U size)
 
 // File Loading Methods /////
 
-void Texture2D::load_file(const String& path)
+void Texture2D::load_file(StringView path)
 {
-    Impl_Load_Image image (mFormat, path);
+    Impl_Load_Image image ( mFormat, String(path) );
     SQASSERT(image.size == Vec2U(mSize), "");
     load_memory(image.data);
 }
 
-void Texture2D::load_automatic(const String& path)
+void Texture2D::load_automatic(StringView path)
 {
     const auto jsonPath = build_string(directory_from_path(path), "/meta.json");
     const auto fileName = String(file_from_path(path));
@@ -348,20 +508,20 @@ void Texture2D::load_automatic(const String& path)
     set_filter_mode(json.at("filter"));
     set_mipmaps_mode(json.at("mipmaps"));
 
-    Impl_Load_Image image (mFormat, path);
+    Impl_Load_Image image ( mFormat, String(path) );
     allocate_storage(image.size);
     load_memory(image.data);
-    if (mMipmaps) generate_auto_mipmaps();
+    if (mMipmaps == true) generate_auto_mipmaps();
 }
 
-void TextureCube::load_file(const String& path, uint face)
+void TextureCube::load_file(StringView path, uint face)
 {
-    Impl_Load_Image image (mFormat, path);
+    Impl_Load_Image image ( mFormat, String(path) );
     SQASSERT(image.size == Vec2U(mSize), "");
     load_memory(image.data, face);
 }
 
-void TextureCube::load_automatic(const String& path)
+void TextureCube::load_automatic(StringView path)
 {
     const auto json = parse_json_from_file(build_string(path, "/meta.json"));
 
@@ -375,24 +535,24 @@ void TextureCube::load_automatic(const String& path)
     set_mipmaps_mode(json.at("mipmaps"));
     allocate_storage(json.at("size"));
 
-    load_file(path + "/0_right",   0u);
-    load_file(path + "/1_left",    1u);
-    load_file(path + "/2_forward", 2u);
-    load_file(path + "/3_back",    3u);
-    load_file(path + "/4_up",      4u);
-    load_file(path + "/5_down",    5u);
+    load_file(build_string(path, "/0_right"),   0u);
+    load_file(build_string(path, "/1_left"),    1u);
+    load_file(build_string(path, "/2_forward"), 2u);
+    load_file(build_string(path, "/3_back"),    3u);
+    load_file(build_string(path, "/4_up"),      4u);
+    load_file(build_string(path, "/5_down"),    5u);
 
-    if (mMipmaps) generate_auto_mipmaps();
+    if (mMipmaps == true) generate_auto_mipmaps();
 }
 
-void TextureArray2D::load_file(const String& path, uint layer)
+void TextureArray2D::load_file(StringView path, uint layer)
 {
-    Impl_Load_Image image (mFormat, path);
+    Impl_Load_Image image ( mFormat, String(path) );
     SQASSERT(image.size == Vec2U(mSize), "");
     load_memory(image.data, layer);
 }
 
-void TextureArray2D::load_automatic(const String& path)
+void TextureArray2D::load_automatic(StringView path)
 {
     const auto json = parse_json_from_file(build_string(path, "/meta.json"));
 
@@ -410,16 +570,15 @@ void TextureArray2D::load_automatic(const String& path)
 
     for (uint layer = 0u; layer < mSize.z; ++layer)
     {
-        String fileName = std::to_string(layer);
-        fileName.insert(0u, digits - fileName.size(), '0');
+        const auto filePath = fmt::format("{}/{:0>{}}", path, layer, digits);
 
-        Impl_Load_Image image (mFormat, path + '/' + fileName);
+        Impl_Load_Image image ( mFormat, filePath );
         SQASSERT(image.size == Vec2U(mSize), "");
 
         load_memory(image.data, layer);
     }
 
-    if (mMipmaps) generate_auto_mipmaps();
+    if (mMipmaps == true) generate_auto_mipmaps();
 }
 
 //============================================================================//
@@ -462,8 +621,8 @@ void TextureCubeArray::allocate_storage(Vec2U _size, bool _mipmaps) {
 
 Texture2D Texture2D::make_from_package(const String& path)
 {
-    const String::size_type splitPos = path.find(':');
-    log_assert(splitPos != String::npos, "bad path '%s'", path);
+    const size_t splitPos = path.find(':');
+    if (splitPos == String::npos) log_error("bad path '{}'", path);
 
     const StringView package ( path.c_str(), splitPos );
     const char* const name = path.c_str() + splitPos + 1u;
@@ -473,8 +632,8 @@ Texture2D Texture2D::make_from_package(const String& path)
 
     //========================================================//
 
-    const String wrap = json.at("wrap");
-    const String swizzle = json.at("swizzle");
+    const String& wrap = json.at("wrap");
+    const String& swizzle = json.at("swizzle");
 
     SQASSERT(wrap.size() == 2u, "");
     SQASSERT(swizzle.size() == 4u, "");
@@ -484,7 +643,7 @@ Texture2D Texture2D::make_from_package(const String& path)
     const auto format = impl_string_to_format(json.at("format"));
     const auto imagePath = build_string("assets/packages/", package, "/textures/", name);
 
-    Impl_Load_Image image (format, imagePath);
+    Impl_Load_Image image ( format, imagePath );
 
     //========================================================//
 

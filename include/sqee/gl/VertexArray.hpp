@@ -1,8 +1,16 @@
+// Copyright(c) 2020 James Gangur
+// Part of https://github.com/jagoly/sqee
+
 #pragma once
 
-#include <sqee/gl/FixedBuffer.hpp>
+#include <sqee/setup.hpp>
 
 namespace sq {
+
+//====== Forward Declarations ================================================//
+
+class Context;
+class FixedBuffer;
 
 //============================================================================//
 
@@ -57,7 +65,7 @@ public: //====================================================//
 
 private: //===================================================//
 
-    class Context& mContext;
+    Context& mContext;
 
     GLuint mHandle = 0u;
 };

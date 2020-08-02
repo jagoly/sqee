@@ -1,9 +1,11 @@
-// Copyright(c) 2018 James Gangur
+// Copyright(c) 2020 James Gangur
 // Part of https://github.com/jagoly/sqee
 
 #pragma once
 
-#include <sqee/misc/Builtins.hpp>
+#include <sqee/setup.hpp>
+
+#include <sqee/core/Types.hpp>
 
 namespace sq {
 
@@ -28,7 +30,7 @@ public: //====================================================//
 protected: //=================================================//
 
     /// Called once before the main loop starts.
-    virtual void initialise(Vector<String> args) = 0;
+    virtual void initialise(std::vector<String> args) = 0;
 
     /// Called continuously while running.
     virtual void update(double elapsed) = 0;

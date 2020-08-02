@@ -15,43 +15,43 @@ struct ObjectA
 
         // binding option one: macro
         SQEE_MB_BIND_METHOD(receivers, int, handle_message);
-        SQEE_MB_BIND_METHOD(receivers, String, handle_message);
+        SQEE_MB_BIND_METHOD(receivers, std::string, handle_message);
     }
 
-    sq::MessageReceiver<int, String> receivers;
+    sq::MessageReceiver<int, std::string> receivers;
 
     sq::MessageSource<int>& intSender;
 
     void handle_message(const int& message) { intSum += message; }
-    void handle_message(const String& message) { stringSum += message; }
+    void handle_message(const std::string& message) { stringSum += message; }
 
     int intSum = 0;
-    String stringSum = "";
+    std::string stringSum = "";
 };
 
 void foo(std::function<void(const int&)>&&) {}
-void foo(std::function<void(const String&)>&&) {}
+void foo(std::function<void(const std::string&)>&&) {}
 
 struct ObjectB
 {
-    ObjectB(sq::MessageBus& mbus) : stringSender(mbus.get_message_source<String>())
+    ObjectB(sq::MessageBus& mbus) : stringSender(mbus.get_message_source<std::string>())
     {
         receivers.subscribe(mbus);
 
         // binding option two: lambda
         receivers.assign<int>([this](const auto& msg) { handle_message(msg); });
-        receivers.assign<String>([this](const auto& msg) { handle_message(msg); });
+        receivers.assign<std::string>([this](const auto& msg) { handle_message(msg); });
     }
 
-    sq::MessageReceiver<int, String> receivers;
+    sq::MessageReceiver<int, std::string> receivers;
 
-    sq::MessageSource<String>& stringSender;
+    sq::MessageSource<std::string>& stringSender;
 
     void handle_message(const int& message) { intSum += message; }
-    void handle_message(const String& message) { stringSum += message; }
+    void handle_message(const std::string& message) { stringSum += message; }
 
     int intSum = 0;
-    String stringSum = "";
+    std::string stringSum = "";
 };
 
 //============================================================================//
@@ -61,7 +61,7 @@ TEST_CASE("message bus / receiver tests", "[]")
     sq::MessageBus mbus;
 
     mbus.add_message_source<int>();
-    mbus.add_message_source<String>();
+    mbus.add_message_source<std::string>();
     mbus.add_message_source<float>();
 
     ObjectA objectA(mbus);

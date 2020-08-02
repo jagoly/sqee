@@ -1,22 +1,18 @@
-// Copyright(c) 2018 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 #include <sqee/app/Window.hpp>
 
-#include <SFML/Window/Window.hpp>
-#include <SFML/Window/Event.hpp>
-#include <SFML/Window/Keyboard.hpp>
-#include <SFML/Window/Mouse.hpp>
-#include <SFML/Window/Joystick.hpp>
-
-#include <sqee/app/InputDevices.hpp>
-#include <sqee/debug/Assert.hpp>
+#include <sqee/app/Event.hpp>
+#include <sqee/core/Macros.hpp>
 #include <sqee/debug/Logging.hpp>
 #include <sqee/debug/OpenGL.hpp>
-
 #include <sqee/redist/gl_loader.hpp>
 
-#include <sqee/macros.hpp>
+#include <SFML/Config.hpp>
+#include <SFML/System/Vector2.hpp>
+#include <SFML/Window/ContextSettings.hpp>
+#include <SFML/Window/Event.hpp>
+#include <SFML/Window/VideoMode.hpp>
+#include <SFML/Window/Window.hpp>
+#include <SFML/Window/WindowStyle.hpp>
 
 using namespace sq;
 
@@ -206,6 +202,7 @@ struct Window::Implementation
     bool cursorHidden = false;
     bool keyRepeat = true;
     sf::Window sfmlWindow;
+    std::vector<Event> events;
 };
 
 //============================================================================//
@@ -217,18 +214,18 @@ Window::Window(String title, Vec2U size)
 {
     //--------------------------------------------------------//
 
-    impl->windowTitle = title;
-
     sf::VideoMode mode { size.x, size.y, 32u };
     sf::Uint32 style = sf::Style::Default;
     sf::ContextSettings settings { 24u, 8u, 0u, 3u, 3u, sf::ContextSettings::Core };
 
     impl->sfmlWindow.create(mode, title, style, settings);
 
+    impl->windowTitle = std::move(title);
+
     //--------------------------------------------------------//
 
     const int numMissing = gl::sys::LoadFunctions().GetNumMissing();
-    if (numMissing) sq::log_warning("gl functions missing: %d", numMissing);
+    if (numMissing != 0) log_warning("OpenGL functions missing: {}", numMissing);
 
     //--------------------------------------------------------//
 
@@ -236,8 +233,8 @@ Window::Window(String title, Vec2U size)
 
     const GLubyte* renderer = gl::GetString(gl::RENDERER);
     const GLubyte* version = gl::GetString(gl::VERSION);
-    log_info("Renderer: %s", reinterpret_cast<const char*>(renderer));
-    log_info("Version: %s", reinterpret_cast<const char*>(version));
+    log_info("Renderer: {}", reinterpret_cast<const char*>(renderer));
+    log_info("Version: {}", reinterpret_cast<const char*>(version));
 
     gl::Enable(gl::DEBUG_OUTPUT);
     gl::Enable(gl::DEBUG_OUTPUT_SYNCHRONOUS);
@@ -291,7 +288,7 @@ void Window::set_key_repeat(bool repeat)
 
 //============================================================================//
 
-String Window::get_window_title() const
+const String& Window::get_window_title() const
 {
     return impl->windowTitle;
 }
@@ -326,12 +323,11 @@ bool Window::has_focus() const
 
 //============================================================================//
 
-Vector<Event> Window::fetch_events()
+const std::vector<Event>& Window::fetch_events()
 {
-    Vector<Event> result;
-    sf::Event sfe;
+    impl->events.clear();
 
-    //--------------------------------------------------------//
+    sf::Event sfe;
 
     while (impl->sfmlWindow.pollEvent(sfe))
     {
@@ -392,13 +388,10 @@ Vector<Event> Window::fetch_events()
 
         } SWITCH_END;
 
-        result.push_back(event);
+        impl->events.push_back(event);
     }
 
-    //--------------------------------------------------------//
-
-    result.shrink_to_fit();
-    return result;
+    return impl->events;
 }
 
 //============================================================================//
