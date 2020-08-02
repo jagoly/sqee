@@ -28,8 +28,8 @@ target_link_libraries(sqee-soko PRIVATE sqee)
 
 #set_property(TARGET sqee-soko PROPERTY RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/soko")
 
-add_custom_command(TARGET sqee-soko POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink
-    "${PROJECT_SOURCE_DIR}/assets" "${CMAKE_BINARY_DIR}/tests/soko/assets")
+#add_custom_command(TARGET sqee-soko POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink
+#    "${PROJECT_SOURCE_DIR}/assets" "${CMAKE_BINARY_DIR}/tests/soko/assets")
 
-add_custom_command(TARGET sqee-soko POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink
-    "${PROJECT_SOURCE_DIR}/shaders" "${CMAKE_BINARY_DIR}/tests/soko/shaders")
+#add_custom_command(TARGET sqee-soko POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink
+#    "${PROJECT_SOURCE_DIR}/shaders" "${CMAKE_BINARY_DIR}/tests/soko/shaders")

@@ -27,8 +27,8 @@ target_link_libraries(sqee-rpg PRIVATE sqee)
 
 #set_property(TARGET sqee-rpg PROPERTY RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests/rpg")
 
-add_custom_command(TARGET sqee-rpg POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink
-    "${PROJECT_SOURCE_DIR}/assets" "${CMAKE_BINARY_DIR}/tests/rpg/assets")
+#add_custom_command(TARGET sqee-rpg POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink
+#    "${PROJECT_SOURCE_DIR}/assets" "${CMAKE_BINARY_DIR}/tests/rpg/assets")
 
-add_custom_command(TARGET sqee-rpg POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink
-    "${PROJECT_SOURCE_DIR}/shaders" "${CMAKE_BINARY_DIR}/tests/rpg/shaders")
+#add_custom_command(TARGET sqee-rpg POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink
+#    "${PROJECT_SOURCE_DIR}/shaders" "${CMAKE_BINARY_DIR}/tests/rpg/shaders")
