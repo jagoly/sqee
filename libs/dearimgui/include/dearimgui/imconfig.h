@@ -20,20 +20,20 @@
 
 //---- Define attributes of all API symbols declarations, e.g. for DLL under Windows
 // Using dear imgui via a shared library is not recommended, because of function call overhead and because we don't guarantee backward nor forward ABI compatibility.
-#ifdef SQEE_STATIC_LIB
+#ifdef SQEE_IMGUI_STATIC
     #define IMGUI_API
 #elif defined(SQEE_LINUX) && defined(SQEE_GNU)
     #define IMGUI_API __attribute__((visibility("default")))
 #elif defined(SQEE_LINUX) && defined(SQEE_CLANG)
     #define IMGUI_API __attribute__((visibility("default")))
 #elif defined(SQEE_WINDOWS) && defined(SQEE_GNU)
-    #ifdef SQEE_EXPORT_LIB
+    #ifdef SQEE_IMGUI_EXPORT
         #define IMGUI_API __attribute__((dllexport))
     #else
         #define IMGUI_API __attribute__((dllimport))
     #endif
 #elif defined(SQEE_WINDOWS) && defined(SQEE_MSVC)
-    #ifdef SQEE_EXPORT_LIB
+    #ifdef SQEE_IMGUI_EXPORT
         #define IMGUI_API __declspec(dllexport)
     #else
         #define IMGUI_API __declspec(dllimport)

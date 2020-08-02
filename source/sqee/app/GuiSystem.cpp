@@ -557,7 +557,7 @@ void GuiSystem::construct(Window& window, InputDevices& inputDevices)
 {
     SQASSERT(gGuiSystemPtr == nullptr, "GuiSystem::construct() already called");
 
-    ImGui::CreateContext();
+    ImGui::SetCurrentContext(ImGui::CreateContext());
 
     gGuiSystemPtr = new GuiSystem();
 

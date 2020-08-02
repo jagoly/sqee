@@ -8,10 +8,10 @@ file(GLOB_RECURSE SOURCES "${PROJECT_SOURCE_DIR}/source/*.cpp")
 
 if (SQEE_STATIC_LIB)
     add_library(dearimgui STATIC ${HEADERS} ${SOURCES})
-    target_compile_definitions(dearimgui PRIVATE SQEE_STATIC_LIB)
+    target_compile_definitions(dearimgui PUBLIC SQEE_IMGUI_STATIC)
 else ()
     add_library(dearimgui SHARED ${HEADERS} ${SOURCES})
-    target_compile_definitions(dearimgui PRIVATE SQEE_EXPORT_LIB)
+    target_compile_definitions(dearimgui PRIVATE SQEE_IMGUI_EXPORT)
 endif ()
 
 target_include_directories(dearimgui PUBLIC "${PROJECT_SOURCE_DIR}/include")

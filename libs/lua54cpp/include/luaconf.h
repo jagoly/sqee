@@ -246,20 +246,20 @@
 
 //============================================================================//
 
-#ifdef SQEE_STATIC_LIB
+#ifdef SQEE_LUA_STATIC
     #define LUA_API
 #elif defined(SQEE_LINUX) && defined(SQEE_GNU)
     #define LUA_API __attribute__((visibility("default")))
 #elif defined(SQEE_LINUX) && defined(SQEE_CLANG)
     #define LUA_API __attribute__((visibility("default")))
 #elif defined(SQEE_WINDOWS) && defined(SQEE_GNU)
-    #ifdef SQEE_EXPORT_LIB
+    #ifdef SQEE_LUA_EXPORT
         #define LUA_API __attribute__((dllexport))
     #else
         #define LUA_API __attribute__((dllimport))
     #endif
 #elif defined(SQEE_WINDOWS) && defined(SQEE_MSVC)
-    #ifdef SQEE_EXPORT_LIB
+    #ifdef SQEE_LUA_EXPORT
         #define LUA_API __declspec(dllexport)
     #else
         #define LUA_API __declspec(dllimport)
@@ -277,7 +277,7 @@
     #define LUAI_FUNC extern
 #endif
 
-#define LUAI_DDEC(dec)	LUAI_FUNC dec
+#define LUAI_DDEC(dec) LUAI_FUNC dec
 #define LUAI_DDEF
 
 //============================================================================//

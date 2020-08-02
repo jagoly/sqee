@@ -8,10 +8,10 @@ file(GLOB_RECURSE SOURCES "${PROJECT_SOURCE_DIR}/source/*.cpp")
 
 if (SQEE_STATIC_LIB)
     add_library(lua54cpp STATIC ${HEADERS} ${SOURCES})
-    target_compile_definitions(lua54cpp PRIVATE SQEE_STATIC_LIB)
+    target_compile_definitions(lua54cpp PUBLIC SQEE_LUA_STATIC)
 else ()
     add_library(lua54cpp SHARED ${HEADERS} ${SOURCES})
-    target_compile_definitions(lua54cpp PRIVATE SQEE_EXPORT_LIB)
+    target_compile_definitions(lua54cpp PRIVATE SQEE_LUA_EXPORT)
 endif ()
 
 target_include_directories(lua54cpp PUBLIC "${PROJECT_SOURCE_DIR}/include")
