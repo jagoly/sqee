@@ -3,9 +3,7 @@
 #include <sqee/core/Algorithms.hpp>
 #include <sqee/maths/Scalar.hpp>
 
-namespace dop = sq::dop;
-namespace maths = sq::maths;
-namespace algo = sq::algo;
+using namespace sq;
 
 //============================================================================//
 

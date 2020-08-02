@@ -1,7 +1,6 @@
 #include <sqee/misc/DopClasses.hpp>
 
-namespace dop = sq::dop;
-namespace algo = sq::algo;
+using namespace sq;
 
 //============================================================================//
 
