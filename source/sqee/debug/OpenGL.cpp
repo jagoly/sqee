@@ -1,21 +1,22 @@
-// Copyright(c) 2018 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 #include <sqee/debug/OpenGL.hpp>
 
 #include <sqee/debug/Logging.hpp>
 #include <sqee/redist/gl_loader.hpp>
+
+#include <fmt/chrono.h>
 
 //============================================================================//
 
 void MSVC_STDCALL sq::debug_callback(GLenum _source, GLenum _type, GLuint id, GLenum _severity,
                                      GLsizei, const GLchar* message, const void*)
 {
-    String source, type, severity;
+    const char* source   = "???";
+    const char* type     = "???";
+    const char* severity = "???";
 
     if (_source == gl::DEBUG_SOURCE_API)             source = "API";
     if (_source == gl::DEBUG_SOURCE_WINDOW_SYSTEM)   source = "WINDOW_SYSTEM";
-    if (_source == gl::DEBUG_SOURCE_SHADER_COMPILER) return; //source = "SHADER_COMPILER";
+    if (_source == gl::DEBUG_SOURCE_SHADER_COMPILER) source = "SHADER_COMPILER";
     if (_source == gl::DEBUG_SOURCE_THIRD_PARTY)     source = "THIRD_PARTY";
     if (_source == gl::DEBUG_SOURCE_APPLICATION)     source = "APPLICATION";
     if (_source == gl::DEBUG_SOURCE_OTHER)           source = "OTHER";
@@ -35,16 +36,17 @@ void MSVC_STDCALL sq::debug_callback(GLenum _source, GLenum _type, GLuint id, GL
     if (_severity == gl::DEBUG_SEVERITY_MEDIUM)       severity = "MEDIUM";
     if (_severity == gl::DEBUG_SEVERITY_LOW)          severity = "LOW";
 
-    log_only("%s OpenGL: Source %s | Severity %s | Type %s | ID %s\n  %s",
-             get_time_string(), source, severity, type, id, message);
+    std::time_t now = std::time(nullptr);
+    sq::log_raw_multiline("{:%H:%M:%S} OpenGL: Source {} | Severity {} | Type {} | ID {}\n{}",
+                          fmt::localtime(now), source, severity, type, id, message);
 
     return;
 }
 
 //============================================================================//
 
-void sq::debug_message(const String& message)
+void sq::debug_message(StringView message)
 {
     gl::DebugMessageInsert(gl::DEBUG_SOURCE_APPLICATION, gl::DEBUG_TYPE_MARKER, 0u,
-                           gl::DEBUG_SEVERITY_NOTIFICATION, GLsizei(message.size()), message.c_str());
+                           gl::DEBUG_SEVERITY_NOTIFICATION, int(message.size()), message.data());
 }

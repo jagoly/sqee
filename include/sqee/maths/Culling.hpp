@@ -1,5 +1,7 @@
-// Copyright(c) 2018 James Gangur
+// Copyright(c) 2020 James Gangur
 // Part of https://github.com/jagoly/sqee
+
+#include <sqee/setup.hpp>
 
 #include <sqee/maths/Volumes.hpp>
 

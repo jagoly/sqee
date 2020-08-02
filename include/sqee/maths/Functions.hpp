@@ -1,8 +1,13 @@
+// Copyright(c) 2020 James Gangur
+// Part of https://github.com/jagoly/sqee
+
 #pragma once
 
+#include <sqee/setup.hpp>
+
 #include <sqee/maths/Vectors.hpp>
-#include <sqee/maths/Quaternion.hpp>
 #include <sqee/maths/Matrices.hpp>
+#include <sqee/maths/Quaternion.hpp>
 
 namespace sq::maths {
 

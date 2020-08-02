@@ -9,8 +9,8 @@ TEST_CASE("PoolTools", "[misc]")
 {
     SECTION("PoolMap")
     {
-        sq::PoolAllocatorStore<Pair<const TinyString, String>> alloc(128u);
-        sq::PoolMap<TinyString, String> map(alloc);
+        sq::PoolAllocatorStore<std::pair<const TinyString, std::string>> alloc(128u);
+        sq::PoolMap<TinyString, std::string> map(alloc);
 
         map.reserve(2u);
 
@@ -35,14 +35,14 @@ TEST_CASE("PoolTools", "[misc]")
         REQUIRE(&map["two"] == &two->second);
         REQUIRE(map.find("TWO") == map.end());
 
-        String* one_ptr = &one->second;
-        String* two_ptr = &two->second;
+        std::string* one_ptr = &one->second;
+        std::string* two_ptr = &two->second;
 
         auto [three, ok_three] = map.try_emplace("three", "THREE");
         REQUIRE(ok_three == true);
 
-        String& oneB = map["one"];
-        String& twoB = map["two"];
+        std::string& oneB = map["one"];
+        std::string& twoB = map["two"];
 
         REQUIRE(one_ptr == &oneB);
         REQUIRE(two_ptr == &twoB);
@@ -55,12 +55,12 @@ TEST_CASE("PoolTools", "[misc]")
         REQUIRE(map["two"] == "TWO");
         REQUIRE(map["three"] == "THREE");
 
-        String* three_ptr = &three->second;
+        std::string* three_ptr = &three->second;
 
         map.erase(map.find("two"));
 
-        String& oneC = map["one"];
-        String& threeC = map["three"];
+        std::string& oneC = map["one"];
+        std::string& threeC = map["three"];
 
         REQUIRE(one_ptr == &oneC);
         REQUIRE(three_ptr == &threeC);

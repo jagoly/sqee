@@ -1,15 +1,12 @@
-// Copyright(c) 2018 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 #include <sqee/misc/Parsing.hpp>
 
 using namespace sq;
 
 //============================================================================//
 
-Vector<StringView> sq::tokenise_string_view(StringView sv, char dlm)
+std::vector<StringView> sq::tokenise_string(StringView sv, char dlm)
 {
-    Vector<StringView> result;
+    std::vector<StringView> result;
 
     while (true)
     {
@@ -28,35 +25,18 @@ Vector<StringView> sq::tokenise_string_view(StringView sv, char dlm)
 
 //============================================================================//
 
-Vector<Pair<uint, StringView>> sq::tokenise_string_view_lines(StringView sv)
+std::vector<StringView> sq::tokenise_string_lines(StringView sv)
 {
-    Vector<Pair<uint, StringView>> result;
+    // todo: maybe should handle other line endings, hasn't been a problem yet
 
-    // line counting usually starts from one
-    for (uint line = 1u;; ++line)
+    std::vector<StringView> result;
+
+    while (sv.empty() == false)
     {
-        const auto begin = sv.find_first_not_of('\n');
-        if (begin == StringView::npos) { break; }
-        line += uint(begin);
-        sv.remove_prefix(begin);
-
-        const auto end = sv.find_first_of('\n');
-        if (end == StringView::npos) { result.emplace_back(line, sv); break; }
-        result.emplace_back(line, StringView{sv.data(), end});
-        sv.remove_prefix(end + 1u);
+        const size_t lineEnd = sv.find('\n');
+        result.push_back(sv.substr(0u, lineEnd));
+        sv.remove_prefix(lineEnd + 1u);
     }
-
-    return result;
-}
-
-//============================================================================//
-
-TokenisedString sq::tokenise_string(String str, char dlm)
-{
-    TokenisedString result;
-
-    result.fullString = std::move(str);
-    result.tokens = tokenise_string_view(result.fullString, dlm);
 
     return result;
 }

@@ -1,12 +1,17 @@
-// Copyright(c) 2018 James Gangur
+// Copyright(c) 2020 James Gangur
 // Part of https://github.com/jagoly/sqee
 
 #pragma once
 
-#include <sqee/misc/Builtins.hpp>
-#include <sqee/maths/Builtins.hpp>
+#include <sqee/setup.hpp>
+
+#include <sqee/core/Types.hpp>
 
 namespace sq {
+
+//====== Forward Declarations ================================================//
+
+class Context;
 
 //============================================================================//
 
@@ -26,19 +31,19 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     /// Load the vertex shader stage from a string.
-    void load_vertex(const String& source, const String& path = "");
+    void load_vertex(StringView source, StringView path = "");
 
     /// Load the geometry shader stage from a string.
-    void load_geometry(const String& source, const String& path = "");
+    void load_geometry(StringView source, StringView path = "");
 
     /// Load the fragment shader stage from a string.
-    void load_fragment(const String& source, const String& path = "");
+    void load_fragment(StringView source, StringView path = "");
 
     /// Link shader stages together, preparing the program for use.
     void link_program_stages();
 
     /// Create a program from vertex and fragment sources.
-    void create(const String& vertex, const String& fragment);
+    void create(StringView vertex, StringView fragment);
 
     //--------------------------------------------------------//
 
@@ -102,7 +107,7 @@ public: //====================================================//
 
 private: //===================================================//
 
-    class Context& mContext;
+    Context& mContext;
 
     GLuint mVertexShader = 0u;
     GLuint mGeometryShader = 0u;
@@ -131,9 +136,7 @@ inline bool operator==(const ProgramKey& a, const ProgramKey& b)
 
 //============================================================================//
 
-namespace std {
-
-template<> struct hash<sq::ProgramKey>
+template<> struct std::hash<sq::ProgramKey>
 {
     size_t operator()(const sq::ProgramKey& key) const
     {
@@ -150,5 +153,3 @@ template<> struct hash<sq::ProgramKey>
         return combine_func(combine_func(vp, vd), combine_func(fp, fd));
     }
 };
-
-} // namespace std

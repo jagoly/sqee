@@ -1,4 +1,4 @@
-#include "sqee/redist/stb_image.hpp"
+#include <sqee/redist/stb_image.hpp>
 
 #ifdef SQEE_GNU
 #pragma GCC diagnostic ignored "-Wmisleading-indentation"
@@ -46,8 +46,8 @@
 #endif
 
 
-#include <stdarg.h>
-#include <stddef.h> // ptrdiff_t on osx
+//#include <stdarg.h>
+//#include <stddef.h> // ptrdiff_t on osx
 #include <stdlib.h>
 #include <string.h>
 

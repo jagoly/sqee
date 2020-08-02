@@ -1,6 +1,3 @@
-// Copyright(c) 2018 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 #include <sqee/app/Application.hpp>
 
 #include <chrono>
@@ -11,13 +8,13 @@ using namespace sq;
 
 int Application::run(int argc, char** argv)
 {
-    Vector<String> args;
+    std::vector<String> args;
     args.reserve(size_t(argc));
 
     for (int i = 0; i < argc; ++i)
         args.emplace_back(argv[i]);
 
-    this->initialise(args);
+    initialise(std::move(args));
 
     //--------------------------------------------------------//
 
@@ -29,7 +26,7 @@ int Application::run(int argc, char** argv)
         const std::chrono::duration<double> elapsed = newTime - startTime;
         startTime = newTime;
 
-        this->update(elapsed.count());
+        update(elapsed.count());
     }
 
     //--------------------------------------------------------//

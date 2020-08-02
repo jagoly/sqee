@@ -1,10 +1,13 @@
-// Copyright(c) 2018 James Gangur
+// Copyright(c) 2020 James Gangur
 // Part of https://github.com/jagoly/sqee
 
 #pragma once
 
+#include <sqee/setup.hpp>
+
 #include <sqee/debug/Assert.hpp>
-#include <sqee/misc/Builtins.hpp>
+
+#include <memory>
 
 namespace sq {
 
@@ -35,7 +38,7 @@ protected: //=================================================//
 
     //--------------------------------------------------------//
 
-    UniquePtr<Type> uptr;
+    std::unique_ptr<Type> uptr;
     uint count = 0u;
 
     Key key;
@@ -94,19 +97,19 @@ public: //====================================================//
 
     const Type* operator->() const
     {
-        SQASSERT(mResPtr != nullptr, "");
+        SQASSERT(mResPtr != nullptr, "null resource error");
         return mResPtr->uptr.get();
     }
 
     const Type& get() const
     {
-        SQASSERT(mResPtr != nullptr, "");
+        SQASSERT(mResPtr != nullptr, "null resource error");
         return *mResPtr->uptr;
     }
 
 protected: //=================================================//
 
-    friend class ResourceCache<Key, Type>;
+    friend ResourceCache<Key, Type>;
 
     //--------------------------------------------------------//
 

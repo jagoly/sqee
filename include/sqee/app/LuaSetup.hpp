@@ -1,7 +1,11 @@
+// Copyright(c) 2020 James Gangur
+// Part of https://github.com/jagoly/sqee/
+
 #pragma once
 
-#include <sqee/redist/sol.hpp>
-#include <sqee/export.hpp>
+#include <sqee/setup.hpp>
+
+#include <sqee/redist/sol.hpp> // IWYU pragma: export
 
 namespace sq {
 

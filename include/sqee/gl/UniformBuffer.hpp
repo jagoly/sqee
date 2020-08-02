@@ -1,9 +1,15 @@
+// Copyright(c) 2020 James Gangur
+// Part of https://github.com/jagoly/sqee
+
 #pragma once
 
-#include <sqee/helpers.hpp>
 #include <sqee/setup.hpp>
 
 namespace sq {
+
+//====== Forward Declarations ================================================//
+
+class Context;
 
 //============================================================================//
 
@@ -28,24 +34,11 @@ public: //====================================================//
     /// Update a section of the buffer from a pointer.
     void update(uint offset, uint size, const void* data);
 
-    //--------------------------------------------------------//
-
     /// Update a section of the buffer with a value.
     template <class T>
     void update(uint offset, const T& data)
     {
         update(offset, sizeof(T), &data);
-    }
-
-    /// Update the entire buffer with a set of values.
-    template <class... Ts>
-    void update_complete(const Ts&... args)
-    { 
-        #ifndef SQEE_MSVC
-        update(0u, Structure(args...));
-        #else
-        update(0u, Structure<std::remove_reference_t<Ts>...>{args...});
-        #endif
     }
 
     //--------------------------------------------------------//
@@ -55,7 +48,7 @@ public: //====================================================//
 
 private: //===================================================//
 
-    class Context& mContext;
+    Context& mContext;
 
     uint mBufferSize = 0u;
 

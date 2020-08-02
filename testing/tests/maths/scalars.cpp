@@ -34,20 +34,20 @@ TEST_CASE("scalar function tests", "[maths]")
 
     SECTION("linear mix")
     {
-        REQUIRE(maths::mix(-10.0f, +10.0f, 0.5f) == approx(0.0f));
-        REQUIRE(maths::mix(-10.0f, +10.0f, 0.25f) == approx(-5.0f));
-        REQUIRE(maths::mix(-10.0f, +10.0f, 0.75f) == approx(+5.0f));
+        REQUIRE(maths::mix(-10.0f, +10.0f, 0.5f) == Approx(0.0f));
+        REQUIRE(maths::mix(-10.0f, +10.0f, 0.25f) == Approx(-5.0f));
+        REQUIRE(maths::mix(-10.0f, +10.0f, 0.75f) == Approx(+5.0f));
     }
 
     SECTION("convert to radians")
     {
-        REQUIRE(maths::radians(0.0f) == approx(0.0f));
-        REQUIRE(maths::radians(0.5f) == approx(PI));
+        REQUIRE(maths::radians(0.0f) == Approx(0.0f));
+        REQUIRE(maths::radians(0.5f) == Approx(PI));
     }
 
     SECTION("convert to cycles")
     {
-        REQUIRE(maths::cycles(0.0f) == approx(0.0f));
-        REQUIRE(maths::cycles(PI) == approx(0.5f));
+        REQUIRE(maths::cycles(0.0f) == Approx(0.0f));
+        REQUIRE(maths::cycles(PI) == Approx(0.5f));
     }
 }

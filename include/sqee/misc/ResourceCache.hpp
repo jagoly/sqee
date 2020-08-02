@@ -1,7 +1,9 @@
-// Copyright(c) 2018 James Gangur
+// Copyright(c) 2020 James Gangur
 // Part of https://github.com/jagoly/sqee
 
 #pragma once
+
+#include <sqee/setup.hpp>
 
 #include <sqee/misc/ResourceHandle.hpp>
 
@@ -55,7 +57,7 @@ protected: //=================================================//
     /// Implement to load a new resource.
     /// @param key the key of the resource to load
 
-    virtual UniquePtr<Type> create(const Key& key) = 0;
+    virtual std::unique_ptr<Type> create(const Key& key) = 0;
 
     //--------------------------------------------------------//
 

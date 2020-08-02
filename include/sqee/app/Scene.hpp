@@ -1,11 +1,15 @@
-// Copyright(c) 2018 James Gangur
+// Copyright(c) 2020 James Gangur
 // Part of https://github.com/jagoly/sqee
 
 #pragma once
 
-#include <sqee/app/Event.hpp>
+#include <sqee/setup.hpp>
 
 namespace sq {
+
+//====== Forward Declarations ================================================//
+
+struct Event;
 
 //============================================================================//
 
@@ -28,13 +32,13 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     /// Optionally implement for event handling.
-    virtual void handle_event(Event) {}
+    virtual void handle_event(Event event);
 
     /// Optionally implement for refreshing options.
-    virtual void refresh_options() {}
+    virtual void refresh_options();
 
     /// Optionally implement for ImGui widgets.
-    virtual void show_imgui_widgets() {}
+    virtual void show_imgui_widgets();
 
 protected: //=================================================//
 

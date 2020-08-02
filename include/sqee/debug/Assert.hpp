@@ -1,22 +1,24 @@
+// Copyright(c) 2020 James Gangur
+// Part of https://github.com/jagoly/sqee
+
 #pragma once
 
-#ifndef NDEBUG
+//============================================================================//
 
-#include <iostream>
+#ifdef SQEE_DEBUG
 
-#define SQASSERT(condition, message)                            \
-    do {                                                                    \
-        if (!(condition))                                                           \
-        {                                                                               \
-            std::cerr << "assertion (" #condition ") failed, " << "in file '" << __FILE__ \
-                      << "'\n    line " << __LINE__ << ": " << message << std::endl;      \
-                                                                                        \
-            std::abort();                                                           \
-        }                                                                   \
-    } while (false)                                             \
+#include <sqee/debug/Logging.hpp>
+
+#define SQASSERT(Condition, Message) \
+    do { \
+        if (!(Condition)) \
+        { \
+            sq::log_error_multiline("assertion ({}) failed\nfile '{}', line {}\n{}", #Condition, __FILE__, __LINE__, Message); \
+        } \
+    } while (false)
 
 #else
 
-#define SQASSERT(condition, message) do {} while (void(condition), false)
+#define SQASSERT(Condition, Message) do {} while (void(Condition), false)
 
 #endif

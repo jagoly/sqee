@@ -1,13 +1,12 @@
-// Copyright(c) 2018 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 #include <sqee/misc/Files.hpp>
 
-#include <fstream>
-#include <sstream>
-
+#include <sqee/core/Utilities.hpp>
 #include <sqee/debug/Assert.hpp>
 #include <sqee/debug/Logging.hpp>
+
+#include <fstream>
+#include <locale>
+#include <sstream>
 
 using namespace sq;
 
@@ -37,7 +36,7 @@ String sq::get_string_from_file(const String& path)
 
 //============================================================================//
 
-void sq::save_string_to_file(const String& path, const String& str)
+void sq::save_string_to_file(const String& path, StringView str)
 {
     auto dest = std::ofstream(path);
 
@@ -52,7 +51,7 @@ void sq::save_string_to_file(const String& path, const String& str)
 
 //============================================================================//
 
-Vector<std::byte> sq::get_bytes_from_file(const String& path)
+std::vector<std::byte> sq::get_bytes_from_file(const String& path)
 {
     using unsigned_ifstream = std::basic_ifstream<std::byte>;
     unsigned_ifstream src(path, std::ios::binary | std::ios::ate);
@@ -65,7 +64,7 @@ Vector<std::byte> sq::get_bytes_from_file(const String& path)
 
     const auto fileSize = src.tellg();
 
-    Vector<std::byte> result;
+    std::vector<std::byte> result;
     result.resize(uint(fileSize));
 
     src.seekg(0, src.beg);
@@ -166,7 +165,7 @@ StringView sq::extension_from_path(StringView path)
 
 //============================================================================//
 
-Optional<String> sq::compute_resource_path(StringView base, StringView path, Vector<StringView> extensions)
+std::optional<String> sq::compute_resource_path(StringView base, StringView path, std::vector<StringView> extensions)
 {
     const bool isAbsolute = ( path.front() == '/' );
     const bool hasExtension = !extension_from_path(path).empty();

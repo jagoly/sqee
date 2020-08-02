@@ -1,6 +1,8 @@
 #include "../../catch.hpp"
 #include "../../Common.hpp"
 
+#include <sqee/misc/DopFunctions.hpp>
+
 //============================================================================//
 
 TEST_CASE("'joined' functions", "[dop]")

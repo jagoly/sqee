@@ -1,0 +1,17 @@
+[
+
+{ include: ["<SFML/System/Vector2.inl>", "private", "<SFML/System/Vector2.hpp>", "public"] },
+{ include: ["<ctime>", "public", "<fmt/chrono.h>", "public"] },
+
+{ symbol: ["fmt::print", "private", "<fmt/core.h>", "public"] },
+{ symbol: ["fmt::format", "private", "<fmt/core.h>", "public"] },
+
+{ include: ["<bits/exception.h>", "private", "<exception>", "public"] },
+{ symbol: ["std::hash", "private", "<functional>", "public"] },
+{ symbol: ["std::stringstream", "private", "<sstream>", "public"] },
+
+{ include: ["<cxxabi.h>", "public", "<sqee/setup.hpp>", "public"] },
+{ include: ["<ext/alloc_traits.h>", "private", "<sqee/setup.hpp>", "public"] },
+{ symbol: ["uint", "private", "<sqee/setup.hpp>", "public"] }
+
+]

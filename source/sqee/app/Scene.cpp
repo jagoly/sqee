@@ -1,7 +1,6 @@
-// Copyright(c) 2018 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 #include <sqee/app/Scene.hpp>
+
+#include <sqee/app/Event.hpp>
 
 using namespace sq;
 
@@ -18,10 +17,16 @@ void Scene::update_and_render(double elapsed)
     while (mAccumulation >= mTickTime)
     {
         mAccumulation -= mTickTime;
-        this->update();
+        update();
     }
 
-    //--------------------------------------------------------//
-
-    this->render(elapsed);
+    render(elapsed);
 }
+
+//============================================================================//
+
+void Scene::handle_event(Event /*event*/) {}
+
+void Scene::refresh_options() {}
+
+void Scene::show_imgui_widgets() {};

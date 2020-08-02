@@ -1,11 +1,11 @@
-// Copyright(c) 2018 James Gangur
+// Copyright(c) 2020 James Gangur
 // Part of https://github.com/jagoly/sqee
 
 #pragma once
 
-#include <sqee/misc/Builtins.hpp>
-#include <sqee/misc/StaticVector.hpp>
-#include <sqee/maths/Builtins.hpp>
+#include <sqee/setup.hpp>
+
+#include <sqee/core/Types.hpp>
 
 namespace sq {
 
@@ -16,8 +16,6 @@ class Program;
 class Texture;
 class UniformBuffer;
 class VertexArray;
-
-struct PipelineState;
 
 //============================================================================//
 
@@ -136,11 +134,6 @@ public: //====================================================//
 
     /// Bind a portion of a UniformBuffer to the specified index.
     void bind_UniformBuffer(const UniformBuffer& ubo, uint8_t index, uint offset, uint size);
-
-    //--------------------------------------------------------//
-
-    /// Set a bunch of state and bindings at once.
-    void activate_PipelineState(const PipelineState& state);
 
     //--------------------------------------------------------//
 

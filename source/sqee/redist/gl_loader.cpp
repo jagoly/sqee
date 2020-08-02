@@ -1,11 +1,8 @@
-// Copyright(c) 2018 James Gangur
-// Part of https://github.com/jagoly/sqee
-
-#include <cstring>
-#include <algorithm>
-#include <vector>
-
 #include <sqee/redist/gl_loader.hpp>
+
+#include <algorithm>
+#include <cstring>
+#include <vector>
 
 //============================================================================//
 
@@ -17,7 +14,7 @@
 
 //============================================================================//
 
-/*#ifdef SQEE_APPLE
+#ifdef SQEE_APPLE
 
 #include <dlfcn.h>
 
@@ -33,7 +30,7 @@ static void* AppleGLGetProcAddress (const char *name)
 
 #define IntGetProcAddress(name) AppleGLGetProcAddress(name)
 
-#endif // SQEE_APPLE*/
+#endif
 
 //============================================================================//
 

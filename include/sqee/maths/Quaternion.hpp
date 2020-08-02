@@ -1,10 +1,15 @@
+// Copyright(c) 2020 James Gangur
+// Part of https://github.com/jagoly/sqee
+
 #pragma once
 
 #include <sqee/maths/Scalar.hpp>
 #include <sqee/maths/Vectors.hpp>
 #include <sqee/maths/Matrices.hpp>
 
-namespace sq::maths {
+#include <fmt/format.h>
+
+namespace sq { namespace maths {
 
 //============================================================================//
 
@@ -128,8 +133,7 @@ Quaternion<T> operator-(Quaternion<T> q)
 
 //============================================================================//
 
-// dot product (Quaternion, Quaternion) /////
-
+/// Compute the dot product of two quaternions.
 template <class T> constexpr
 T dot(Quaternion<T> a, Quaternion<T> b)
 {
@@ -140,8 +144,7 @@ T dot(Quaternion<T> a, Quaternion<T> b)
 
 //============================================================================//
 
-// conjugate (Quaternion) /////
-
+/// Compute the conjugate of a quaternion.
 template <class T> constexpr
 Quaternion<T> conjugate(Quaternion<T> quat)
 {
@@ -150,8 +153,7 @@ Quaternion<T> conjugate(Quaternion<T> quat)
 
 //============================================================================//
 
-// inverse (Quaternion) /////
-
+/// Compute the inverse of a quaternion.
 template <class T> constexpr
 Quaternion<T> inverse(Quaternion<T> quat)
 {
@@ -160,8 +162,7 @@ Quaternion<T> inverse(Quaternion<T> quat)
 
 //============================================================================//
 
-// length (Quaternion) /////
-
+/// Compute the length of a quaternion.
 template <class T> inline
 T length(Quaternion<T> quat)
 {
@@ -170,8 +171,7 @@ T length(Quaternion<T> quat)
 
 //============================================================================//
 
-// normalize (Quaternion) /////
-
+/// Compute the unit length quaternion.
 template <class T> inline
 Quaternion<T> normalize(Quaternion<T> quat)
 {
@@ -180,8 +180,7 @@ Quaternion<T> normalize(Quaternion<T> quat)
 
 //============================================================================//
 
-// linear interpolation (Quaternions, Scalar) /////
-
+/// Linearly interpolate between two quaternions.
 template <class T> inline
 Quaternion<T> lerp(Quaternion<T> a, Quaternion<T> b, T factor)
 {
@@ -195,8 +194,7 @@ Quaternion<T> lerp(Quaternion<T> a, Quaternion<T> b, T factor)
 
 //============================================================================//
 
-// spherical interpolation (Quaternions, Scalar) /////
-
+/// Spherically interpolate between two quaternions.
 template <class T> inline
 Quaternion<T> slerp(Quaternion<T> a, Quaternion<T> b, T factor)
 {
@@ -223,4 +221,50 @@ Quaternion<T> slerp(Quaternion<T> a, Quaternion<T> b, T factor)
 
 //============================================================================//
 
-} // namespace sq::maths
+} // namespace maths
+
+template <class T>
+constexpr const char* type_to_string(maths::Quaternion<T>)
+{
+    if constexpr (std::is_same_v<T, float>) return "QuatF";
+    return "Quaternion<T>";
+}
+
+namespace detail {
+
+template <class T> struct QuaternionTraits
+{
+    static constexpr bool value = false;
+};
+
+template <class T>
+struct QuaternionTraits<maths::Quaternion<T>>
+{
+    static constexpr bool value = true;
+    using type = T;
+};
+
+template <class T> constexpr auto is_quaternion_v = QuaternionTraits<T>::value;
+template <class T> using quaternion_type_t = typename QuaternionTraits<T>::type;
+
+}} // namespace sq::detail
+
+//============================================================================//
+
+template <class T>
+struct fmt::formatter<sq::maths::Quaternion<T>> : fmt::formatter<T>
+{
+      template <class FormatContext>
+      auto format(const sq::maths::Quaternion<T>& quat, FormatContext& ctx)
+      {
+          fmt::format_to(ctx.out(), "{}(", sq::type_to_string(sq::maths::Quaternion<T>()));
+          formatter<T>::format(quat.x, ctx);
+          fmt::format_to(ctx.out(), ", ");
+          formatter<T>::format(quat.y, ctx);
+          fmt::format_to(ctx.out(), ", ");
+          formatter<T>::format(quat.z, ctx);
+          fmt::format_to(ctx.out(), ", ");
+          formatter<T>::format(quat.w, ctx);
+          return fmt::format_to(ctx.out(), ")");
+      }
+};

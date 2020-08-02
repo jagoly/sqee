@@ -1,4 +1,4 @@
-#include <sqee/misc/Json.hpp>
+﻿#include <sqee/misc/Json.hpp>
 
 #include <sqee/debug/Logging.hpp>
 
@@ -14,14 +14,14 @@ JsonValue sq::parse_json_from_file(const String& path)
 
     if (src.good() == false)
     {
-        log_warning("could not open json file '%s'", path);
-        return {};
+        log_warning("could not open json file '{}'", path);
+        return JsonValue();
     }
 
     try { return JsonValue::parse(src); }
     catch (const std::exception& e)
     {
-        log_warning("problem parsing json '%s'\n  what():  %s", path, e.what());
-        return {};
+        log_warning_multiline("problem parsing json '{}'\nwhat(): {}", path, e.what());
+        return JsonValue();
     }
 }

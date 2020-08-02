@@ -1,29 +1,16 @@
-// Copyright(c) 2018 James Gangur
+// Copyright(c) 2020 James Gangur
 // Part of https://github.com/jagoly/sqee
 
 #pragma once
 
-#include <sqee/macros.hpp>
-#include <sqee/helpers.hpp>
+#include <sqee/setup.hpp>
 
-#include <sqee/debug/Assert.hpp>
-#include <sqee/maths/Vectors.hpp>
-#include <sqee/maths/Random.hpp>
-#include <sqee/misc/Builtins.hpp>
-#include <sqee/maths/Builtins.hpp>
-#include <sqee/misc/TinyString.hpp>
+#include <sqee/core/Types.hpp>
+#include <sqee/redist/json.hpp> // IWYU pragma: export
 
-#include <sqee/redist/tinyformat.hpp>
-#include <sqee/redist/json.hpp>
+#include <fmt/core.h>
 
 namespace sq {
-
-//============================================================================//
-
-// the primary purpose for this is to use float instead of double
-using JsonValue = nlohmann::basic_json<std::map, std::vector, std::string, bool, int32_t, uint32_t, float>;
-
-namespace builtins { using sq::JsonValue; }
 
 //============================================================================//
 
@@ -31,59 +18,91 @@ SQEE_API JsonValue parse_json_from_file(const String& path);
 
 //============================================================================//
 
-namespace maths {
-
-template <int Size, class Type>
-void from_json(const JsonValue& j, Vector<Size, Type>& vec)
-{
-    if (j.is_array() == false || j.size() != Size)
-        throw std::invalid_argument(tfm::format("from_json: %s -> %s", j.dump(), traits::TypeName<Vector<Size, Type>>));
-    for (int i = 0; i < Size; ++i) j[i].get_to(vec[i]);
-}
-
-template <int Size, class Type>
-void to_json(JsonValue& j, const Vector<Size, Type>& vec)
-{
-    if constexpr (Size == 2) j = { vec.x, vec.y };
-    if constexpr (Size == 3) j = { vec.x, vec.y, vec.z };
-    if constexpr (Size == 4) j = { vec.x, vec.y, vec.z, vec.w };
-}
-
-template <class Type>
-void from_json(const JsonValue& j, RandomRange<Type>& rr)
-{
-    if (j.is_array() == false || j.size() != 2)
-        throw std::invalid_argument(tfm::format("from_json: %s -> RandomRange<%s>", j.dump(), traits::TypeName<Type>));
-    j[0].get_to(rr.min); j[1].get_to(rr.max);
-}
-
-template <class Type>
-void to_json(JsonValue& j, const RandomRange<Type>& rr)
-{
-    j = { rr.min, rr.max };
-}
-
-} // namespace maths
-
-//============================================================================//
-
 template <size_t Capacity>
-void from_json(const JsonValue& j, FixedCapacityString<Capacity>& str)
+void from_json(const JsonValue& j, StackString<Capacity>& str)
 {
-    if (j.is_string() == false || j.size() > TinyString::capacity())
-        throw std::invalid_argument(tfm::format("from_json: %s -> FixedCapacityString<%d>", j.dump(), Capacity));
+    if (j.is_string() == false || j.size() > Capacity)
+        throw std::invalid_argument(fmt::format("from_json: {} -> {}", j.dump(), type_to_string(StackString<Capacity>())));
     str = j.get_ref<const String&>();
 }
 
 template <size_t Capacity>
-void to_json(JsonValue& j, const FixedCapacityString<Capacity>& str)
+void to_json(JsonValue& j, const StackString<Capacity>& str)
 {
     j = String(str);
 }
 
 //============================================================================//
 
-} // namespace sq
+namespace maths {
+
+//====== Forward Declarations ================================================//
+
+template <class T> struct RandomRange;
+
+//============================================================================//
+
+template <int Size, class Type>
+inline void from_json(const JsonValue& json, Vector<Size, Type>& vec)
+{
+    if (json.is_array() == false || json.size() != Size)
+        throw std::invalid_argument(fmt::format("from_json: {} -> {}", json.dump(), type_to_string(Vector<Size, Type>())));
+
+    json[0].get_to(vec.x);
+    json[1].get_to(vec.y);
+    if constexpr (Size >= 3) json[2].get_to(vec.z);
+    if constexpr (Size == 4) json[3].get_to(vec.w);
+}
+
+template <int Size, class Type>
+inline void to_json(JsonValue& json, const Vector<Size, Type>& vec)
+{
+    if constexpr (Size == 2) json = { vec.x, vec.y };
+    if constexpr (Size == 3) json = { vec.x, vec.y, vec.z };
+    if constexpr (Size == 4) json = { vec.x, vec.y, vec.z, vec.w };
+}
+
+//----------------------------------------------------------------------------//
+
+template <class Type>
+inline void from_json(const JsonValue& json, Quaternion<Type>& quat)
+{
+    if (json.is_array() == false || json.size() != 4)
+        throw std::invalid_argument(fmt::format("from_json: {} -> {}", json.dump(), type_to_string(Quaternion<Type>())));
+
+    json[0].get_to(quat.x);
+    json[1].get_to(quat.y);
+    json[2].get_to(quat.z);
+    json[3].get_to(quat.w);
+}
+
+template <class Type>
+inline void to_json(JsonValue& json, const Quaternion<Type>& quat)
+{
+    json = { quat.x, quat.y, quat.z, quat.w };
+}
+
+//----------------------------------------------------------------------------//
+
+template <class Type>
+inline void from_json(const JsonValue& json, RandomRange<Type>& range)
+{
+    if (json.is_array() == false || json.size() != 2u)
+        throw std::invalid_argument(fmt::format("from_json: {} -> {}", json.dump(), type_to_string(RandomRange<Type>())));
+
+    json[0].get_to(range.min);
+    json[1].get_to(range.max);
+}
+
+template <class Type>
+inline void to_json(JsonValue& json, const RandomRange<Type>& range)
+{
+    json = { range.min, range.max };
+}
+
+//============================================================================//
+
+}} // namespace sq::maths
 
 //============================================================================//
 

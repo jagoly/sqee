@@ -1,13 +1,9 @@
-// Copyright(c) 2018 James Gangur
+// Copyright(c) 2020 James Gangur
 // Part of https://github.com/jagoly/sqee
 
 #pragma once
 
-#include <sqee/misc/Builtins.hpp>
-
-#include <functional>
-#include <map>
-#include <typeindex>
+#include <sqee/setup.hpp>
 
 namespace sq {
 
@@ -46,7 +42,7 @@ struct MessageSourceBase : private NonCopyable
 {
     virtual ~MessageSourceBase() = default;
 
-    Vector<void*> subscribers;
+    std::vector<void*> subscribers;
 };
 
 template <class Message>
@@ -109,15 +105,15 @@ private: //===================================================//
 
     //--------------------------------------------------------//
 
-    void impl_add_message_source(std::type_index type, UniquePtr<MessageSourceBase>&& source);
+    void impl_add_message_source(std::type_index type, std::unique_ptr<MessageSourceBase>&& source);
 
     void impl_remove_message_source(std::type_index type);
 
     //--------------------------------------------------------//
 
-    void impl_subscribe(void* receiver, Vector<void*>& receivers);
+    void impl_subscribe(void* receiver, std::vector<void*>& receivers);
 
-    void impl_unsubscribe(void* receiver, Vector<void*>& receivers);
+    void impl_unsubscribe(void* receiver, std::vector<void*>& receivers);
 
     //--------------------------------------------------------//
 

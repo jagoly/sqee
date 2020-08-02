@@ -11,8 +11,8 @@ set(CMAKE_MODULE_PATH APPEND "${PROJECT_SOURCE_DIR}/cmake/modules")
 
 ################################################################################
 
-file(GLOB_RECURSE HEADERS "${PROJECT_SOURCE_DIR}/include/sqee/*.hpp")
-file(GLOB_RECURSE SOURCES "${PROJECT_SOURCE_DIR}/source/sqee/*.cpp")
+file(GLOB_RECURSE HEADERS "${PROJECT_SOURCE_DIR}/include/*.hpp")
+file(GLOB_RECURSE SOURCES "${PROJECT_SOURCE_DIR}/source/*.cpp")
 
 if (SQEE_STATIC_LIB)
 
@@ -28,7 +28,15 @@ endif ()
 
 target_include_directories(sqee PUBLIC "${PROJECT_SOURCE_DIR}/include")
 
-################################################################################
+# todo: makes these options so you don't have to change this file to enable them
+
+#set_property(TARGET sqee PROPERTY CXX_INCLUDE_WHAT_YOU_USE
+#    "iwyu;-Xiwyu;any;-Xiwyu;iwyu;-Xiwyu;--mapping_file=${PROJECT_SOURCE_DIR}/extras/iwyu-mapping.imp")
+#target_include_directories(sqee SYSTEM PUBLIC "${PROJECT_SOURCE_DIR}/include")
+
+#target_precompile_headers(sqee PUBLIC <sqee/setup.hpp>)
+
+###############################################################################
 
 set_property(TARGET sqee PROPERTY CXX_STANDARD 17)
 set_property(TARGET sqee PROPERTY CXX_STANDARD_REQUIRED True)
@@ -122,9 +130,17 @@ endif ()
 
 ################################################################################
 
-add_subdirectory(lua54cpp)
+add_subdirectory(libs/dearimgui)
+target_link_libraries(sqee PUBLIC dearimgui)
 
-target_include_directories(sqee PUBLIC "lua54cpp/src")
+################################################################################
+
+add_subdirectory(libs/format)
+target_link_libraries(sqee PUBLIC format)
+
+################################################################################
+
+add_subdirectory(libs/lua54cpp)
 target_link_libraries(sqee PUBLIC lua54cpp)
 
 target_compile_definitions(sqee PUBLIC SOL_ALL_SAFETIES_ON=1)
@@ -133,7 +149,7 @@ target_compile_definitions(sqee PUBLIC SOL_PRINT_ERRORS=0)
 
 ################################################################################
 
-export(TARGETS sqee lua54cpp FILE sqee-exports.cmake)
+export(TARGETS sqee dearimgui format lua54cpp FILE sqee-exports.cmake)
 
 ################################################################################
 

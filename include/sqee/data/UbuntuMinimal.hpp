@@ -1,4 +1,8 @@
+// Copyright(c) 2020 James Gangur
+// Part of https://github.com/jagoly/sqee
+
 #include <sqee/export.hpp>
+
 #include <cstdint>
 
 //============================================================================//

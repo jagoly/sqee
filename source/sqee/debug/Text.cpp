@@ -1,10 +1,7 @@
-// Copyright(c) 2018 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 #include <sqee/debug/Text.hpp>
 
-#include <algorithm>
-
+#include <sqee/core/Algorithms.hpp>
+#include <sqee/data/BasicFont.hpp>
 #include <sqee/debug/Assert.hpp>
 #include <sqee/gl/Context.hpp>
 #include <sqee/gl/FixedBuffer.hpp>
@@ -13,17 +10,11 @@
 #include <sqee/gl/VertexArray.hpp>
 #include <sqee/redist/gl_loader.hpp>
 
-#include <sqee/data/BasicFont.hpp>
-
 using namespace sq;
 
 //============================================================================//
 
-namespace { // anonymous
-
-//============================================================================//
-
-const char vertexSource[] = R"glsl(
+static constexpr const StringView VERTEX_SHADER_SOURCE = R"glsl(
 
 #version 330 core
 #extension GL_ARB_shading_language_420pack : enable
@@ -51,7 +42,7 @@ void main()
 
 //============================================================================//
 
-const char fragmentSource[] = R"glsl(
+static constexpr const StringView FRAGMENT_SHADER_SOURCE = R"glsl(
 
 #version 330 core
 #extension GL_ARB_shading_language_420pack : enable
@@ -76,45 +67,37 @@ void main()
 
 //============================================================================//
 
-struct TextBasicStuff
+void sq::render_text_basic(StringView text, Vec2I flow, Vec2I align, Vec2F scale, Vec4F colour, bool shadow)
 {
-    FixedBuffer vbo; VertexArray vao;
+    struct StaticStuff
+    {
+        FixedBuffer vbo; VertexArray vao;
+        TextureArray2D texFont { Texture::Format::R8_UN };
+        TextureArray2D texGlow { Texture::Format::R8_UN };
+        Program program;
 
-    TextureArray2D texFont { Texture::Format::R8_UN };
-    TextureArray2D texGlow { Texture::Format::R8_UN };
+        StaticStuff()
+        {
+            texFont.set_filter_mode(true);
+            texGlow.set_filter_mode(true);
 
-    Program program;
+            vbo.allocate_dynamic(2048u * 12u, nullptr);
+            vao.set_vertex_buffer(vbo, 12u);
+
+            vao.add_float_attribute(0u, 3u, gl::FLOAT, false, 0u);
+
+            texFont.allocate_storage({16u, 16u, 256u});
+            texFont.load_memory(sqee_BasicFontMain);
+
+            texGlow.allocate_storage({16u, 16u, 256u});
+            texGlow.load_memory(sqee_BasicFontGlow);
+
+            program.create(VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE);
+        }
+    };
 
     //--------------------------------------------------------//
 
-    TextBasicStuff()
-    {
-        texFont.set_filter_mode(true);
-        texGlow.set_filter_mode(true);
-
-        vbo.allocate_dynamic(2048u * 12u, nullptr);
-        vao.set_vertex_buffer(vbo, 12u);
-
-        vao.add_float_attribute(0u, 3u, gl::FLOAT, false, 0u);
-
-        texFont.allocate_storage({16u, 16u, 256u});
-        texFont.load_memory(sqee_BasicFontMain);
-
-        texGlow.allocate_storage({16u, 16u, 256u});
-        texGlow.load_memory(sqee_BasicFontGlow);
-
-        program.create(vertexSource, fragmentSource);
-    }
-};
-
-//============================================================================//
-
-} // anonymous namespace
-
-//============================================================================//
-
-void sq::render_text_basic(const String& text, Vec2I flow, Vec2I align, Vec2F scale, Vec4F colour, bool shadow)
-{
     SQASSERT(flow.x == -1 || flow.x == +1, "invalid horizontal flow");
     SQASSERT(flow.y == -1 || flow.y == +1, "invalid vertical flow");
     SQASSERT(align.x == -1 || align.x == 0 || align.x == +1, "invalid horizontal align");
@@ -122,11 +105,11 @@ void sq::render_text_basic(const String& text, Vec2I flow, Vec2I align, Vec2F sc
 
     //--------------------------------------------------------//
 
-    static auto& context = Context::get();
+    static StaticStuff stuff;
 
-    static TextBasicStuff stuff;
+    Context& context = Context::get();
 
-    const Vec2F viewPort (context.get_ViewPort());
+    const Vec2F viewPort = Vec2F(context.get_ViewPort());
 
     const Vec2F size = Vec2F(scale) / viewPort;
     const Vec2F margin = Vec2F(8.f) / viewPort;
@@ -135,7 +118,7 @@ void sq::render_text_basic(const String& text, Vec2I flow, Vec2I align, Vec2F sc
 
     //--------------------------------------------------------//
 
-    Vector<String> lines = { "" };
+    std::vector<String> lines = { "" };
 
     for (uint i = 0u; i < text.size(); i++)
     {
@@ -171,7 +154,7 @@ void sq::render_text_basic(const String& text, Vec2I flow, Vec2I align, Vec2F sc
 
     //--------------------------------------------------------//
 
-    Vector<Array<Vec3F, 6>> glyphs;
+    std::vector<std::array<Vec3F, 6>> glyphs;
 
     float currentY = origin.y;
 
@@ -214,13 +197,16 @@ void sq::render_text_basic(const String& text, Vec2I flow, Vec2I align, Vec2F sc
     if (shadow == true)
     {
         context.bind_Texture(stuff.texGlow, 0u);
-        const Vec3F rgb(maths::dot(Vec3F(colour), 0.33f) < 0.5f);
-        stuff.program.update(0, Vec4F(rgb, colour.a));
+
+        if (maths::dot(Vec3F(colour), 0.3333f) < 0.5f)
+            stuff.program.update(0, Vec4F(1.f, 1.f, 1.f, colour.a));
+        else stuff.program.update(0, Vec4F(0.f, 0.f, 0.f, colour.a));
 
         gl::DrawArrays(gl::TRIANGLES, 0, int(glyphs.size()) * 6);
     }
 
     context.bind_Texture(stuff.texFont, 0u);
+
     stuff.program.update(0, Vec4F(colour));
 
     gl::DrawArrays(gl::TRIANGLES, 0, int(glyphs.size()) * 6);

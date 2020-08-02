@@ -1,11 +1,7 @@
-// Copyright(c) 2018 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 #include <sqee/gl/Program.hpp>
 
 #include <sqee/debug/Logging.hpp>
 #include <sqee/gl/Context.hpp>
-
 #include <sqee/redist/gl_loader.hpp>
 
 using namespace sq;
@@ -14,25 +10,27 @@ using namespace sq;
 
 namespace { // anonymous
 
-void impl_load_shader(GLuint& shader, GLenum stage, const String& source, const String& path)
+void impl_load_shader(GLuint& shader, GLenum stage, StringView source, StringView path)
 {
     if (shader != 0u) gl::DeleteShader(shader);
     shader = gl::CreateShader(stage);
 
-    const char* src = source.c_str();
-    gl::ShaderSource(shader, 1, &src, nullptr);
+    const GLchar* srcData = source.data();
+    const GLint srcLen = int(source.size());
 
+    gl::ShaderSource(shader, 1, &srcData, &srcLen);
     gl::CompileShader(shader);
 
     //--------------------------------------------------------//
 
-    GLsizei length = 0; GLchar log[2048];
-    gl::GetShaderInfoLog(shader, 2048, &length, log);
+    GLsizei logLen = 0; GLchar logBuf[2048];
+    gl::GetShaderInfoLog(shader, 2048, &logLen, logBuf);
 
-    if (length > 0)
+    if (logLen > 0)
     {
-        String logStr(log); logStr.erase(logStr.rfind('\n'));
-        log_warning("Problem compiling shader from \"%s\"\n%s", path, logStr);
+        StringView logStr = logBuf;
+        while (logStr.back() == '\n') logStr.remove_suffix(1u);
+        log_warning_multiline("Problem compiling shader from '{}'\n{}", path, logStr);
     }
 }
 
@@ -77,17 +75,17 @@ Program::~Program() noexcept
 
 //============================================================================//
 
-void Program::load_vertex(const String& source, const String& path)
+void Program::load_vertex(StringView source, StringView path)
 {
     impl_load_shader(mVertexShader, gl::VERTEX_SHADER, source, path);
 }
 
-void Program::load_geometry(const String& source, const String& path)
+void Program::load_geometry(StringView source, StringView path)
 {
     impl_load_shader(mGeometryShader, gl::GEOMETRY_SHADER, source, path);
 }
 
-void Program::load_fragment(const String& source, const String& path)
+void Program::load_fragment(StringView source, StringView path)
 {
     impl_load_shader(mFragmentShader, gl::FRAGMENT_SHADER, source, path);
 }
@@ -99,7 +97,7 @@ void Program::link_program_stages()
     if (mHandle != 0u) gl::DeleteProgram(mHandle);
     mHandle = gl::CreateProgram();
 
-    if (mVertexShader   != 0u) gl::AttachShader(mHandle, mVertexShader);
+    if (mVertexShader != 0u) gl::AttachShader(mHandle, mVertexShader);
     if (mGeometryShader != 0u) gl::AttachShader(mHandle, mGeometryShader);
     if (mFragmentShader != 0u) gl::AttachShader(mHandle, mFragmentShader);
 
@@ -107,20 +105,20 @@ void Program::link_program_stages()
 
     //--------------------------------------------------------//
 
-    GLsizei length = 0; GLchar log[2048];
-    gl::GetProgramInfoLog(mHandle, 2048, &length, log);
+    GLsizei logLen = 0; GLchar logBuf[2048];
+    gl::GetProgramInfoLog(mHandle, 2048, &logLen, logBuf);
 
-    if (length > 0)
+    if (logLen > 0)
     {
-        StringView logStr(log);
-        while (!logStr.empty() && logStr.back() == '\n') logStr.remove_suffix(1);
-        log_warning("Failed to link shader\n%s", logStr);
+        StringView logStr = logBuf;
+        while (logStr.back() == '\n') logStr.remove_suffix(1u);
+        log_warning_multiline("Failed to link shader\n{}", logStr);
     }
 }
 
 //============================================================================//
 
-void Program::create(const String& vertex, const String& fragment)
+void Program::create(StringView vertex, StringView fragment)
 {
     load_vertex(vertex);
     load_fragment(fragment);

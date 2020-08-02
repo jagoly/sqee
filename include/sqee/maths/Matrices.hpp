@@ -1,16 +1,18 @@
+// Copyright(c) 2020 James Gangur
+// Part of https://github.com/jagoly/sqee
+
 #pragma once
 
 #include <sqee/maths/Scalar.hpp>
 #include <sqee/maths/Vectors.hpp>
 
-namespace sq::maths {
+#include <fmt/format.h>
+
+namespace sq { namespace maths {
 
 //============================================================================//
 
-template <int H, int W, class T> struct Matrix
-{
-    static_assert(std::is_floating_point_v<T>);
-};
+template <int H, int W, class T> struct Matrix {};
 
 template <class T> using Matrix33 = Matrix<3, 3, T>;
 template <class T> using Matrix34 = Matrix<3, 4, T>;
@@ -325,4 +327,59 @@ Matrix33<T> normal_matrix(Matrix44<T> modelView)
 
 //============================================================================//
 
-} // namespace sq::maths
+} // namespace maths
+
+template <int H, int W, class T>
+constexpr const char* type_to_string(maths::Matrix<H, W, T>)
+{
+    if constexpr (H == 3 && W == 3 && std::is_same_v<T, float>) return "Mat3F";
+    if constexpr (H == 3 && W == 4 && std::is_same_v<T, float>) return "Mat34F";
+    if constexpr (H == 4 && W == 4 && std::is_same_v<T, float>) return "Mat4F";
+    return "Matrix<H, W, T>";
+}
+
+} // namespace sq
+
+//============================================================================//
+
+template <int H, int W, class T>
+struct fmt::formatter<sq::maths::Matrix<H, W, T>> : fmt::formatter<T>
+{
+    template <class FormatContext>
+    auto format(const sq::maths::Matrix<H, W, T>& mat, FormatContext& ctx)
+    {
+        fmt::format_to(ctx.out(), "{}((", sq::type_to_string(sq::maths::Matrix<H, W, T>()));
+        formatter<T>::format(mat[0][0], ctx);
+        fmt::format_to(ctx.out(), ", ");
+        formatter<T>::format(mat[0][1], ctx);
+        if constexpr (W >= 3) fmt::format_to(ctx.out(), ", ");
+        if constexpr (W >= 3) formatter<T>::format(mat[0][2], ctx);
+        if constexpr (W == 4) fmt::format_to(ctx.out(), ", ");
+        if constexpr (W == 4) formatter<T>::format(mat[0][3], ctx);
+        fmt::format_to(ctx.out(), "), (");
+        formatter<T>::format(mat[1][0], ctx);
+        fmt::format_to(ctx.out(), ", ");
+        formatter<T>::format(mat[1][1], ctx);
+        if constexpr (W >= 3) fmt::format_to(ctx.out(), ", ");
+        if constexpr (W >= 3) formatter<T>::format(mat[1][2], ctx);
+        if constexpr (W == 4) fmt::format_to(ctx.out(), ", ");
+        if constexpr (W == 4) formatter<T>::format(mat[1][3], ctx);
+        if constexpr (H >= 3) fmt::format_to(ctx.out(), "), (");
+        if constexpr (H >= 3) formatter<T>::format(mat[2][0], ctx);
+        if constexpr (H >= 3) fmt::format_to(ctx.out(), ", ");
+        if constexpr (H >= 3) formatter<T>::format(mat[2][1], ctx);
+        if constexpr (H >= 3 && W >= 3) fmt::format_to(ctx.out(), ", ");
+        if constexpr (H >= 3 && W >= 3) formatter<T>::format(mat[2][2], ctx);
+        if constexpr (H >= 3 && W == 4) fmt::format_to(ctx.out(), ", ");
+        if constexpr (H >= 3 && W == 4) formatter<T>::format(mat[2][3], ctx);
+        if constexpr (H == 4) fmt::format_to(ctx.out(), "), (");
+        if constexpr (H == 4) formatter<T>::format(mat[3][0], ctx);
+        if constexpr (H == 4) fmt::format_to(ctx.out(), ", ");
+        if constexpr (H == 4) formatter<T>::format(mat[3][1], ctx);
+        if constexpr (H == 4 && W >= 3) fmt::format_to(ctx.out(), ", ");
+        if constexpr (H == 4 && W >= 3) formatter<T>::format(mat[3][2], ctx);
+        if constexpr (H == 4 && W == 4) fmt::format_to(ctx.out(), ", ");
+        if constexpr (H == 4 && W == 4) formatter<T>::format(mat[3][3], ctx);
+        return fmt::format_to(ctx.out(), "))");
+    }
+};

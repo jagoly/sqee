@@ -1,14 +1,21 @@
-// Copyright(c) 2018 James Gangur
+// Copyright(c) 2020 James Gangur
 // Part of https://github.com/jagoly/sqee
 
 #pragma once
 
-#include <sqee/misc/Builtins.hpp>
-#include <sqee/maths/Builtins.hpp>
+#include <sqee/setup.hpp>
 
-#include <stdexcept>
+#include <sqee/core/Types.hpp>
 
 namespace sq {
+
+//============================================================================//
+
+/// Split a StringView into a vector of tokens.
+SQEE_API std::vector<StringView> tokenise_string(StringView sv, char dlm);
+
+/// Split a StringView into lines, keeping empty lines.
+SQEE_API std::vector<StringView> tokenise_string_lines(StringView sv);
 
 //============================================================================//
 
@@ -22,19 +29,19 @@ inline void parse_tokens(int& out, StringView token) { out = sv_to_i(token); }
 inline void parse_tokens(uint& out, StringView token) { out = sv_to_u(token); }
 inline void parse_tokens(float& out, StringView token) { out = sv_to_f(token); }
 
-inline Optional<int> safe_sv_to_i(StringView sv)
+inline std::optional<int> safe_sv_to_i(StringView sv)
 {
     try { return int(std::stol(String(sv))); }
     catch (std::invalid_argument&) { return std::nullopt; }
 }
 
-inline Optional<uint> safe_sv_to_u(StringView sv)
+inline std::optional<uint> safe_sv_to_u(StringView sv)
 {
     try { return uint(std::stoul(String(sv))); }
     catch (std::invalid_argument&) { return std::nullopt; }
 }
 
-inline Optional<float> safe_sv_to_f(StringView sv)
+inline std::optional<float> safe_sv_to_f(StringView sv)
 {
     try { return float(std::stof(String(sv))); }
     catch (std::invalid_argument&) { return std::nullopt; }
@@ -43,20 +50,37 @@ inline Optional<float> safe_sv_to_f(StringView sv)
 //============================================================================//
 
 template <class T>
-inline void parse_tokens(maths::Vector2<T>& out, StringView x, StringView y)
-{ parse_tokens(out.x, x); parse_tokens(out.y, y); }
+inline void parse_tokens(maths::Vector<2, T>& out, StringView x, StringView y)
+{
+    parse_tokens(out.x, x);
+    parse_tokens(out.y, y);
+}
 
 template <class T>
-inline void parse_tokens(maths::Vector3<T>& out, StringView x, StringView y, StringView z)
-{ parse_tokens(out.x, x); parse_tokens(out.y, y); parse_tokens(out.z, z); }
+inline void parse_tokens(maths::Vector<3, T>& out, StringView x, StringView y, StringView z)
+{
+    parse_tokens(out.x, x);
+    parse_tokens(out.y, y);
+    parse_tokens(out.z, z);
+}
 
 template <class T>
-inline void parse_tokens(maths::Vector4<T>& out, StringView x, StringView y, StringView z, StringView w)
-{ parse_tokens(out.x, x); parse_tokens(out.y, y); parse_tokens(out.z, z); parse_tokens(out.w, w); }
+inline void parse_tokens(maths::Vector<4, T>& out, StringView x, StringView y, StringView z, StringView w)
+{
+    parse_tokens(out.x, x);
+    parse_tokens(out.y, y);
+    parse_tokens(out.z, z);
+    parse_tokens(out.w, w);
+}
 
 template <class T>
 inline void parse_tokens(maths::Quaternion<T>& out, StringView x, StringView y, StringView z, StringView w)
-{ parse_tokens(out.x, x); parse_tokens(out.y, y); parse_tokens(out.z, z); parse_tokens(out.w, w); }
+{
+    parse_tokens(out.x, x);
+    parse_tokens(out.y, y);
+    parse_tokens(out.z, z);
+    parse_tokens(out.w, w);
+}
 
 //============================================================================//
 
@@ -76,29 +100,12 @@ inline size_t count_tokens_in_string(StringView sv, char dlm)
     return result;
 }
 
-//============================================================================//
-
-struct TokenisedString : sq::MoveOnly
-{
-    String fullString;
-    Vector<StringView> tokens;
-};
-
-/// Split a StringView into a vector of tokens.
-SQEE_API Vector<StringView> tokenise_string_view(StringView sv, char dlm);
-
-/// Split a StringView into a vector of lineNum, line pairs.
-SQEE_API Vector<Pair<uint, StringView>> tokenise_string_view_lines(StringView sv);
-
-/// Split a String into a vector of tokens.
-SQEE_API TokenisedString tokenise_string(String str, char dlm);
-
 //===========================================================================
 
 template <size_t S, class T>
 inline maths::Vector<S, T> from_string(StringView sv)
 {
-    const auto tokens = tokenise_string_view(sv, ' ');
+    const auto tokens = tokenise_string(sv, ' ');
 
     maths::Vector<S, T> result;
     if constexpr (S == 2) parse_tokens(result, tokens[0], tokens[1]);

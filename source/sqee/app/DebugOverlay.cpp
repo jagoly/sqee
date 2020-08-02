@@ -1,12 +1,8 @@
-// Copyright(c) 2018 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 #include <sqee/app/DebugOverlay.hpp>
 
 #include <sqee/debug/Text.hpp>
 
-#include <algorithm>
-#include <numeric>
+#include <fmt/core.h>
 
 using namespace sq;
 
@@ -18,13 +14,11 @@ DebugOverlay::DebugOverlay() : Scene(0.1) {}
 
 void DebugOverlay::update()
 {
-    for (auto& notifcation : mNotifications)
-        --notifcation.timeRemaining;
-
-    for (auto& notifcation : mNotifications)
+    for (auto iter = mNotifications.begin(); iter != mNotifications.end();)
     {
-        if (notifcation.timeRemaining != 0u) break;
-        else mNotifications.pop_front();
+        if (--iter->timeRemaining == 0u)
+            iter = mNotifications.erase(iter);
+        else ++iter;
     }
 }
 
@@ -38,25 +32,17 @@ void DebugOverlay::render(double elapsed)
 
     mFrameTimes[mFrameTimeIndex] = elapsed;
 
-    if (++mFrameTimeIndex == 60u) mFrameTimeIndex = 0u;
+    if (++mFrameTimeIndex == 60u)
+        mFrameTimeIndex = 0u;
 
     //--------------------------------------------------------//
 
     if (mActive == true)
     {
-        char fpsString[8]; std::snprintf(fpsString, 8, "%.2f", 1.0 / mFrameTime);
+        const String fpsString = fmt::format("{:.2f}", 1.0 / mFrameTime);
 
         // display frame rate in the bottom left corner
         render_text_basic(fpsString, {+1, +1}, {-1, -1}, {40.f, 50.f}, {1.f, 1.f, 1.f, 1.f}, true);
-
-//        const auto [min, max] = std::minmax_element(mFrameTimes.begin(), mFrameTimes.end());
-
-//        const double average = std::accumulate(mFrameTimes.begin(), mFrameTimes.end(), 0.0) / 60.0;
-
-//        char ftString[48];
-//        std::snprintf(ftString, 48, "fps: %0.4f\nmin: %0.5fms\nmax: %0.5fms", 1.0/average, *min*1000.0, *max*1000.0);
-
-//        render_text_basic(ftString, {+1, -1}, {-1, -1}, {32.f, 32.f}, {1.f, 1.f, 1.f, 1.f}, true);
 
         //--------------------------------------------------------//
 
@@ -79,8 +65,8 @@ void DebugOverlay::notify(String message)
 {
     if (mActive == true)
     {
-        if (mNotifications.size() >= 10u) mNotifications.pop_front();
-
-        mNotifications.push_back({message, 20u});
+        mNotifications.emplace_back();
+        mNotifications.back().message = std::move(message);
+        mNotifications.back().timeRemaining = 20u;
     }
 }

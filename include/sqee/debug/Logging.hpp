@@ -1,124 +1,133 @@
+// Copyright(c) 2020 James Gangur
+// Part of https://github.com/jagoly/sqee
+
 #pragma once
 
-#include <sqee/misc/Builtins.hpp>
-#include <sqee/misc/StringCast.hpp>
+#include <sqee/setup.hpp>
 
-#include <sqee/redist/tinyformat.hpp>
+#include <sqee/core/Types.hpp>
+
+#include <fmt/core.h> // IWYU pragma: export
 
 namespace sq {
 
 //============================================================================//
 
-/// Get the system time in a tidy format.
-SQEE_API String get_time_string();
+namespace detail {
+
+SQEE_API void log_time_info();
+SQEE_API void log_time_warning();
+SQEE_API void log_time_error();
+SQEE_API void log_time_debug();
+
+SQEE_API void log_multiline(StringView str);
+
+} // namespace detail
 
 //============================================================================//
 
-/// Log an unformatted string without any prefix.
-inline void log_only(const String& str)
-{
-    std::cout << str << std::endl;
-}
-
-/// Log a formatted string without any prefix.
+/// Write a formatted string to the log.
 template <class... Args>
-inline void log_only(const char* fmt, const Args&... args)
+inline void log_raw(StringView str, const Args&... args)
 {
-    log_only(tfm::format(fmt, args...));
+    if constexpr (sizeof...(args) == 0) std::fwrite(str.data(), 1u, str.size(), stdout);
+    else fmt::print(stdout, str, args...);
+
+    std::fputc('\n', stdout);
+    std::fflush(stdout);
+}
+
+/// Write a formatted multiline string to the log.
+template <class... Args>
+inline void log_raw_multiline(StringView str, const Args&... args)
+{
+    if constexpr (sizeof...(args) == 0) detail::log_multiline(str);
+    else detail::log_multiline(fmt::format(str, args...));
 }
 
 //============================================================================//
-
-/// Log an unformatted INFO message.
-inline void log_info(const String& str)
-{
-    std::cout << get_time_string() << " INFO: ";
-    std::cout << str << std::endl;
-}
 
 /// Log a formatted INFO message.
 template <class... Args>
-inline void log_info(const char* fmt, const Args&... args)
+inline void log_info(StringView str, const Args&... args)
 {
-    log_info(tfm::format(fmt, args...));
+    detail::log_time_info();
+    log_raw(str, args...);
+}
+
+/// Log a formatted multiline INFO message.
+template <class... Args>
+inline void log_info_multiline(StringView str, const Args&... args)
+{
+    detail::log_time_info();
+    log_raw_multiline(str, args...);
 }
 
 //============================================================================//
-
-/// Log an unformatted WARNING message.
-inline void log_warning(const String& str)
-{
-    std::cout << get_time_string() << " WARNING: ";
-    std::cout << str << std::endl;
-}
 
 /// Log a formatted WARNING message.
 template <class... Args>
-inline void log_warning(const char* fmt, const Args&... args)
+inline void log_warning(StringView str, const Args&... args)
 {
-    log_warning(tfm::format(fmt, args...));
+    detail::log_time_warning();
+    log_raw(str, args...);
+}
+
+/// Log a formatted multiline WARNING message.
+template <class... Args>
+inline void log_warning_multiline(StringView str, const Args&... args)
+{
+    detail::log_time_warning();
+    log_raw_multiline(str, args...);
 }
 
 //============================================================================//
-
-/// Log an unformatted ERROR message, then abort.
-inline void log_error(const String& str)
-{
-    std::cout << get_time_string() << " ERROR: ";
-    std::cout << str << std::endl; std::abort();
-}
 
 /// Log a formatted ERROR message, then abort.
 template <class... Args>
-inline void log_error(const char* fmt, const Args&... args)
+inline void log_error(StringView str, const Args&... args)
 {
-    log_error(tfm::format(fmt, args...));
+    detail::log_time_error();
+    log_raw(str, args...);
+    std::abort();
 }
 
-//============================================================================//
-
-/// If not condition, log an unformatted ERROR message, then abort.
-inline void log_assert(bool condition, const String& str)
-{
-    if (condition == true) return;
-
-    std::cout << get_time_string() << " ERROR: ";
-    std::cout << str << std::endl; std::abort();
-}
-
-/// If not condition, log a formatted ERROR message, then abort.
+/// Log a formatted multiline ERROR message, then abort.
 template <class... Args>
-inline void log_assert(bool condition, const char* fmt, const Args&... args)
+inline void log_error_multiline(StringView str, const Args&... args)
 {
-    log_assert(condition, tfm::format(fmt, args...));
+    detail::log_time_error();
+    log_raw_multiline(str, args...);
+    std::abort();
 }
 
 //============================================================================//
 
-/// Log a block of WARNING messages.
-inline void log_warning_block(const String& heading, const Vector<String>& lines)
+/// If in debug mode, log a formatted DEBUG message.
+template <class... Args>
+inline void log_debug(StringView str, const Args&... args)
 {
-    std::cout << get_time_string() << " WARNING: " << heading << '\n';
-    for (const String& line : lines) std::cout << "  > " << line << std::endl;
+  #ifdef SQEE_DEBUG
+    detail::log_time_debug();
+    log_raw(str, args...);
+  #else
+    (void)str;
+    ((void)args, ...);
+  #endif
 }
 
-//============================================================================//
-
-namespace literals {
-
-struct FormatString final
+/// If in debug mode, log a formatted multiline DEBUG message.
+template <class... Args>
+inline void log_debug_multiline(StringView str, const Args&... args)
 {
-    template <class... Args>
-    String operator()(const Args&... args) const
-    { return tfm::format(mFmtStr, args...); }
-
-    const char* const mFmtStr;
-};
-
-inline FormatString operator ""_fmt_(const char* str, size_t)
-{ return FormatString { str }; }
-
-} // namespace literals
+  #ifdef SQEE_DEBUG
+    detail::log_time_debug();
+    log_raw_multiline(str, args...);
+  #else
+    (void)str;
+    ((void)args, ...);
+  #endif
+}
 
 //============================================================================//
 

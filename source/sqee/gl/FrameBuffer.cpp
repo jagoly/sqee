@@ -1,11 +1,8 @@
-// Copyright(c) 2018 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 #include <sqee/gl/FrameBuffer.hpp>
 
 #include <sqee/debug/Assert.hpp>
 #include <sqee/gl/Context.hpp>
-
+#include <sqee/gl/Textures.hpp>
 #include <sqee/redist/gl_loader.hpp>
 
 using namespace sq;
