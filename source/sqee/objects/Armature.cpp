@@ -19,6 +19,7 @@ inline void impl_swap_pose_yz(Armature::Pose& pose)
     {
         std::swap(bone.offset.y, bone.offset.z);
         std::swap(bone.rotation.y, bone.rotation.z);
+        std::swap(bone.scale.y, bone.scale.z);
 
         bone.rotation = maths::conjugate(bone.rotation);
     }

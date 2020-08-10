@@ -28,6 +28,9 @@ template <class T> struct RandomRange
 
     template <class Generator> T operator()(Generator& gen)
     {
+        // if values are the same, gen does not get used
+        if (min == max) return min;
+
         if constexpr (std::is_integral_v<T>)
             return std::uniform_int_distribution(min, max)(gen);
 

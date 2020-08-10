@@ -13,7 +13,7 @@
     do { \
         if (!(Condition)) \
         { \
-            sq::log_error_multiline("assertion ({}) failed\nfile '{}', line {}\n{}", #Condition, __FILE__, __LINE__, Message); \
+            sq::log_error_multiline("assertion failed: ( {} )\nfile '{}', line {}\n{}", #Condition, __FILE__, __LINE__, Message); \
         } \
     } while (false)
 

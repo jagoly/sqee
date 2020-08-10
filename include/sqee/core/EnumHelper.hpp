@@ -25,9 +25,8 @@ template <class T> struct enum_traits
     static constexpr bool defined = false;
 };
 
-template <class T> using enum_base_t = typename enum_traits<T>::base;
-template <class T> constexpr const auto enum_defined_v = enum_traits<T>::defined;
-template <class T> constexpr const auto enum_first_v = enum_traits<T>::first;
+template <class T> using enum_base_t = typename detail::enum_traits<T>::base_type;
+template <class T> constexpr auto enum_defined_v = enum_traits<T>::defined;
 
 } // namespace detail
 
@@ -36,7 +35,10 @@ template <class T> constexpr const auto enum_first_v = enum_traits<T>::first;
 /// An iterable containing all enumeration values.
 template <class T> constexpr auto enum_items_v = detail::enum_traits<T>::items;
 
-/// The value of the last enum plus one.
+/// The underlying value of the first enum.
+template <class T> constexpr auto enum_first_v = detail::enum_traits<T>::first;
+
+/// The number of enum values, excluding the first if it is -1.
 template <class T> constexpr auto enum_count_v = detail::enum_traits<T>::count;
 
 //============================================================================//
@@ -68,25 +70,22 @@ std::enable_if_t<detail::enum_defined_v<Type>, const char*> to_c_string(Type arg
 
 //============================================================================//
 
-// todo: could be made to work differently with non-consecutive enums,
-// rather than the current behaviour of just failing
+#define SQEE_ENUM_ITEMS_INNER(Case) ,enum_type::Case
 
-#define SQEE_ENUM_ITEMS_INNER(Case) ,EnumType::Case
+#define SQEE_ENUM_TO_STRING_INNER(Case) case enum_type::Case: return #Case;
 
-#define SQEE_ENUM_TO_STRING_INNER(Case) case EnumType::Case: return #Case;
-
-#define SQEE_ENUM_FROM_STRING_INNER(Case) if (str == #Case) return EnumType::Case;
+#define SQEE_ENUM_FROM_STRING_INNER(Case) if (str == #Case) return enum_type::Case;
 
 #define SQEE_ENUM_HELPER(Type, First, ...) \
 template<> struct sq::detail::enum_traits<Type> \
 { \
     static constexpr bool defined = true; \
-    using EnumType = Type; \
-    using BaseType = std::underlying_type_t<Type>; \
-    static constexpr auto first = BaseType(Type::First); \
-    static_assert(first == 0 || first == -1, "unsupported first value"); \
+    using enum_type = Type; \
+    using base_type = std::underlying_type_t<Type>; \
     static constexpr auto items = std::array { Type::First SQEE_FOR_EACH(SQEE_ENUM_ITEMS_INNER, __VA_ARGS__) }; \
-    static constexpr auto count = BaseType(items.size()) + first; \
+    static constexpr auto first = base_type(items.front()); \
+    static_assert(first == 0 || first == -1, "unsupported first value"); \
+    static constexpr auto count = base_type(items.size()) + first; \
     static const char* to_string(Type value) \
     { \
         switch (value) { SQEE_FOR_EACH(SQEE_ENUM_TO_STRING_INNER, First, __VA_ARGS__) } \

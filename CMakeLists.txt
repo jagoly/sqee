@@ -145,6 +145,7 @@ target_link_libraries(sqee PUBLIC lua54cpp)
 
 target_compile_definitions(sqee PUBLIC SOL_ALL_SAFETIES_ON=1)
 target_compile_definitions(sqee PUBLIC SOL_USING_CXX_LUA=1)
+target_compile_definitions(sqee PUBLIC SOL_EXCEPTIONS_ALWAYS_UNSAFE=1)
 target_compile_definitions(sqee PUBLIC SOL_PRINT_ERRORS=0)
 
 ################################################################################

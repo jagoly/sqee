@@ -45,7 +45,6 @@ Matrix44<T> transform(Vector3<T> translation, Matrix33<T> rotation, Vector3<T> s
 {
     auto result = Matrix44<T> ( maths::scale(rotation, scale) );
     result[3] = Vector4<T> ( translation, T(1.0) );
-
     return result;
 }
 

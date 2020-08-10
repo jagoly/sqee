@@ -16,6 +16,4 @@ elseif (SQEE_MSVC)
     target_compile_options(sqee-testing PRIVATE /W3 /wd4251)
 endif ()
 
-target_compile_definitions(sqee-testing PRIVATE SQEE_GLOBAL_BUILTINS)
-
 target_link_libraries(sqee-testing PRIVATE sqee)
