@@ -11,6 +11,19 @@ namespace sq::maths {
 
 //============================================================================//
 
+/// Constexpr version of std::abs.
+template <class T> constexpr T abs(T value)
+{
+    static_assert(std::is_arithmetic_v<T>);
+
+    if constexpr (std::is_floating_point_v<T>)
+        if (value == T(0)) return T(0);
+
+    return value < T(0) ? -value : value;
+}
+
+//============================================================================//
+
 /// Minimum of two scalar arguments.
 template <class T> constexpr T min(T a, T b)
 {

@@ -39,14 +39,14 @@ template<class T> Approx(T) -> Approx<T>;
 
 constexpr bool operator==(float a, Approx<float> b)
 {
-    const float maxScale = std::max(std::abs(a), std::abs(b.value));
-    return std::abs(a - b.value) <= std::numeric_limits<float>::epsilon() * 5.f * (1.f + maxScale);
+    const float maxScale = maths::max(maths::abs(a), maths::abs(b.value));
+    return maths::abs(a - b.value) <= std::numeric_limits<float>::epsilon() * 5.f * (1.f + maxScale);
 }
 
 constexpr bool operator==(double a, Approx<double> b)
 {
-    const float maxScale = std::max(std::abs(a), std::abs(b.value));
-    return std::abs(a - b.value) <= std::numeric_limits<double>::epsilon() * 5.0 * (1.0 + maxScale);
+    const double maxScale = maths::max(maths::abs(a), maths::abs(b.value));
+    return maths::abs(a - b.value) <= std::numeric_limits<double>::epsilon() * 5.0 * (1.0 + maxScale);
 }
 
 template <int S, class T>

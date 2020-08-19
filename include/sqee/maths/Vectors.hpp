@@ -368,7 +368,7 @@ template <int S, class T> constexpr
 Vector<S, T> abs(Vector<S, T> vec)
 {
     for (int i = 0; i < S; ++i)
-        vec[i] = std::abs(vec[i]);
+        vec[i] = maths::abs(vec[i]);
 
     return vec;
 }
