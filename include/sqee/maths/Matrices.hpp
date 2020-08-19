@@ -12,7 +12,7 @@ namespace sq { namespace maths {
 
 //============================================================================//
 
-template <int H, int W, class T> struct Matrix {};
+template <int W, int H, class T> struct Matrix {};
 
 template <class T> using Matrix33 = Matrix<3, 3, T>;
 template <class T> using Matrix34 = Matrix<3, 4, T>;
@@ -22,103 +22,96 @@ template <class T> using Matrix44 = Matrix<4, 4, T>;
 
 template <class T> struct Matrix<3, 3, T>
 {
-    // Column and Row Types
-    using ColT = Vector<3, T>;
-    using RowT = Vector<3, T>;
+    static_assert(std::is_floating_point_v<T>);
+
+    // Column Type Alias
+    using Column = Vector<3, T>;
 
     // Default and Copy Constructors
-    constexpr Matrix() : mCols { {1,0,0}, {0,1,0}, {0,0,1} } {}
-    constexpr Matrix(const Matrix& m) : mCols { m[0], m[1], m[2] } {}
+    constexpr Matrix() : data { 1,0,0, 0,1,0, 0,0,1 } {}
+    constexpr Matrix(const Matrix& m) : columns { m[0], m[1], m[2] } {}
     constexpr Matrix& operator=(const Matrix& m) = default;
 
     // Uninitialise Constructor
-    constexpr Matrix(std::nullptr_t) : mCols { nullptr, nullptr, nullptr } {}
+    constexpr Matrix(std::nullptr_t) {}
 
     // Scalar and Vector Constructors
-    constexpr explicit Matrix(T s) : mCols { {s,0,0}, {0,s,0}, {0,0,s} } {}
-    constexpr explicit Matrix(ColT a, ColT b, ColT c) : mCols { a, b, c } {}
+    constexpr explicit Matrix(T s) : data { s,0,0, 0,s,0, 0,0,s } {}
+    constexpr explicit Matrix(Column a, Column b, Column c) : columns { a, b, c } {}
 
     // Matrix Resize Constructors
-    constexpr explicit Matrix(Matrix34<T> m) : mCols { ColT(m[0]), ColT(m[1]), ColT(m[2]) } {}
-    constexpr explicit Matrix(Matrix44<T> m) : mCols { ColT(m[0]), ColT(m[1]), ColT(m[2]) } {}
+    constexpr explicit Matrix(Matrix34<T> m) : columns { Column(m[0]), Column(m[1]), Column(m[2]) } {}
+    constexpr explicit Matrix(Matrix44<T> m) : columns { Column(m[0]), Column(m[1]), Column(m[2]) } {}
 
-    // Array Access Operators
-    constexpr ColT& operator[](int index) { return mCols[index]; }
-    constexpr const ColT& operator[](int index) const { return mCols[index]; }
+    // Column Access Operators
+    constexpr Column& operator[](int index) { return columns[index]; }
+    constexpr const Column& operator[](int index) const { return columns[index]; }
 
-    constexpr Matrix& operator*=(Matrix m) { return *this = (*this * m); }
-
-    const T* data() const { return reinterpret_cast<const T*>(mCols); }
-
-    private: Vector<3, T> mCols[3];
+    union { T data[3*3]; Column columns[3] { nullptr, nullptr, nullptr }; };
 };
 
 //============================================================================//
 
 template <class T> struct Matrix<3, 4, T>
 {
-    // Column and Row Types
-    using ColT = Vector<4, T>;
-    using RowT = Vector<3, T>;
+    static_assert(std::is_floating_point_v<T>);
+
+    // Column Type Alias
+    using Column = Vector<4, T>;
 
     // Default and Copy Constructors
-    constexpr Matrix() : mCols { {1,0,0,0}, {0,1,0,0}, {0,0,1,0} } {}
-    constexpr Matrix(const Matrix& m) : mCols { m[0], m[1], m[2] } {}
+    constexpr Matrix() : data { 1,0,0,0, 0,1,0,0, 0,0,1,0 } {}
+    constexpr Matrix(const Matrix& m) : columns { m[0], m[1], m[2] } {}
     constexpr Matrix& operator=(const Matrix& m) = default;
 
     // Uninitialise Constructor
-    constexpr Matrix(std::nullptr_t) : mCols { nullptr, nullptr, nullptr } {}
+    constexpr Matrix(std::nullptr_t) {}
 
     // Scalar and Vector Constructors
-    constexpr explicit Matrix(T s) : mCols { {s,0,0,0}, {0,s,0,0}, {0,0,s,0} } {}
-    constexpr explicit Matrix(ColT a, ColT b, ColT c) : mCols { a, b, c } {}
+    constexpr explicit Matrix(T s) : data { s,0,0,0, 0,s,0,0, 0,0,s,0 } {}
+    constexpr explicit Matrix(Column a, Column b, Column c) : columns { a, b, c } {}
 
     // Matrix Resize Constructors
-    constexpr explicit Matrix(Matrix33<T> m) : mCols { ColT(m[0], 0), ColT(m[1], 0), ColT(m[2], 0) } {}
-    constexpr explicit Matrix(Matrix44<T> m) : mCols { ColT(m[0]), ColT(m[1]), ColT(m[2]) } {}
+    constexpr explicit Matrix(Matrix33<T> m) : columns { Column(m[0], 0), Column(m[1], 0), Column(m[2], 0) } {}
+    constexpr explicit Matrix(Matrix44<T> m) : columns { m[0], m[1], m[2] } {}
 
-    // Array Access Operators
-    constexpr ColT& operator[](int index) { return mCols[index]; }
-    constexpr const ColT& operator[](int index) const { return mCols[index]; }
+    // Column Access Operators
+    constexpr Column& operator[](int index) { return columns[index]; }
+    constexpr const Column& operator[](int index) const { return columns[index]; }
 
-    const T* data() const { return reinterpret_cast<const T*>(mCols); }
-
-    private: Vector<4, T> mCols[3];
+    union { T data[3*4]; Column columns[3] { nullptr, nullptr, nullptr }; };
 };
 
 //============================================================================//
 
 template <class T> struct Matrix<4, 4, T>
 {
-    // Column and Row Types
-    using ColT = Vector<4, T>;
-    using RowT = Vector<4, T>;
+    static_assert(std::is_floating_point_v<T>);
+
+    // Column Type Alias
+    using Column = Vector<4, T>;
 
     // Default and Copy Constructors
-    constexpr Matrix() : mCols { {1,0,0,0}, {0,1,0,0}, {0,0,1,0}, {0,0,0,1} } {}
-    constexpr Matrix(const Matrix& m) : mCols { m[0], m[1], m[2], m[3] } {}
+    constexpr Matrix() : data { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 } {}
+    constexpr Matrix(const Matrix& m) : columns { m[0], m[1], m[2], m[3] } {}
     constexpr Matrix& operator=(const Matrix& m) = default;
 
     // Uninitialise Constructor
-    constexpr Matrix(std::nullptr_t) : mCols { nullptr, nullptr, nullptr, nullptr } {}
+    constexpr Matrix(std::nullptr_t) {}
 
     // Scalar and Vector Constructors
-    constexpr explicit Matrix(T s) : mCols { {s,0,0,0}, {0,s,0,0}, {0,0,s,0}, {0,0,0,s} } {}
-    constexpr explicit Matrix(ColT a, ColT b, ColT c, ColT d) : mCols { a, b, c, d } {}
+    constexpr explicit Matrix(T s) : data { s,0,0,0, 0,s,0,0, 0,0,s,0, 0,0,0,s } {}
+    constexpr explicit Matrix(Column a, Column b, Column c, Column d) : columns { a, b, c, d } {}
 
     // Matrix Resize Constructors
-    constexpr explicit Matrix(Matrix33<T> m) : mCols { ColT(m[0], 0), ColT(m[1], 0), ColT(m[2], 0), ColT(0, 0, 0, 1) } {}
-    constexpr explicit Matrix(Matrix34<T> m) : mCols { ColT(m[0]), ColT(m[1]), ColT(m[2]), ColT(0, 0, 0, 1) } {}
+    constexpr explicit Matrix(Matrix33<T> m) : columns { Column(m[0], 0), Column(m[1], 0), Column(m[2], 0), Column(0,0,0,1) } {}
+    constexpr explicit Matrix(Matrix34<T> m) : columns { m[0], m[1], m[2], Column(0,0,0,1) } {}
 
-    // Array Access Operators
-    constexpr ColT& operator[](int index) { return mCols[index]; }
-    constexpr const ColT& operator[](int index) const { return mCols[index]; }
+    // Column Access Operators
+    constexpr Column& operator[](int index) { return columns[index]; }
+    constexpr const Column& operator[](int index) const { return columns[index]; }
 
-    constexpr Matrix& operator*=(Matrix m) { return *this = (*this * m); }
-
-    const T* data() const { return reinterpret_cast<const T*>(mCols); }
-
-    private: Vector<4, T> mCols[4];
+    union { T data[4*4]; Column columns[4] { nullptr, nullptr, nullptr, nullptr }; };
 };
 
 //============================================================================//
@@ -301,7 +294,7 @@ Matrix44<T> inverse(Matrix44<T> m)
 
 //============================================================================//
 
-/// Compute the affine inverse of a Matrix44.
+/// Compute the inverse of an affine Matrix44.
 template <class T> inline
 Matrix44<T> affine_inverse(Matrix44<T> m)
 {
@@ -329,57 +322,81 @@ Matrix33<T> normal_matrix(Matrix44<T> modelView)
 
 } // namespace maths
 
-template <int H, int W, class T>
-constexpr const char* type_to_string(maths::Matrix<H, W, T>)
+template <int W, int H, class T>
+constexpr const char* type_to_string(maths::Matrix<W, H, T>)
 {
-    if constexpr (H == 3 && W == 3 && std::is_same_v<T, float>) return "Mat3F";
-    if constexpr (H == 3 && W == 4 && std::is_same_v<T, float>) return "Mat34F";
-    if constexpr (H == 4 && W == 4 && std::is_same_v<T, float>) return "Mat4F";
-    return "Matrix<H, W, T>";
+    if constexpr (W == 3 && H == 3 && std::is_same_v<T, float>) return "Mat3F";
+    if constexpr (W == 3 && H == 4 && std::is_same_v<T, float>) return "Mat34F";
+    if constexpr (W == 4 && H == 4 && std::is_same_v<T, float>) return "Mat4F";
+    return "Matrix<W, H, T>";
 }
-
-} // namespace sq
 
 //============================================================================//
 
-template <int H, int W, class T>
-struct fmt::formatter<sq::maths::Matrix<H, W, T>> : fmt::formatter<T>
+namespace detail {
+
+template <class T> struct MatrixTraits
+{
+   static constexpr bool value = false;
+};
+
+template <int W, int H, class T>
+struct MatrixTraits<maths::Matrix<W, H, T>>
+{
+   static constexpr bool value = true;
+   static constexpr int width = W;
+   static constexpr int height = H;
+   using type = T;
+};
+
+template <class T> constexpr auto is_matrix_v = MatrixTraits<T>::value;
+template <class T> constexpr auto matrix_width_v = MatrixTraits<T>::width;
+template <class T> constexpr auto matrix_height_v = MatrixTraits<T>::height;
+template <class T> using matrix_type_t = typename MatrixTraits<T>::type;
+
+}} // namespace sq::detail
+
+//============================================================================//
+
+template <int W, int H, class T>
+struct fmt::formatter<sq::maths::Matrix<W, H, T>> : fmt::formatter<T>
 {
     template <class FormatContext>
-    auto format(const sq::maths::Matrix<H, W, T>& mat, FormatContext& ctx)
+    auto format(const sq::maths::Matrix<W, H, T>& mat, FormatContext& ctx)
     {
-        fmt::format_to(ctx.out(), "{}((", sq::type_to_string(sq::maths::Matrix<H, W, T>()));
+        // this func does support W/H of 2 in case I ever need 2D matrices
+        fmt::format_to(ctx.out(), "{}((", sq::type_to_string(sq::maths::Matrix<W, H, T>()));
         formatter<T>::format(mat[0][0], ctx);
         fmt::format_to(ctx.out(), ", ");
         formatter<T>::format(mat[0][1], ctx);
-        if constexpr (W >= 3) fmt::format_to(ctx.out(), ", ");
-        if constexpr (W >= 3) formatter<T>::format(mat[0][2], ctx);
-        if constexpr (W == 4) fmt::format_to(ctx.out(), ", ");
-        if constexpr (W == 4) formatter<T>::format(mat[0][3], ctx);
+        if constexpr (H >= 3) fmt::format_to(ctx.out(), ", ");
+        if constexpr (H >= 3) formatter<T>::format(mat[0][2], ctx);
+        if constexpr (H == 4) fmt::format_to(ctx.out(), ", ");
+        if constexpr (H == 4) formatter<T>::format(mat[0][3], ctx);
         fmt::format_to(ctx.out(), "), (");
         formatter<T>::format(mat[1][0], ctx);
         fmt::format_to(ctx.out(), ", ");
         formatter<T>::format(mat[1][1], ctx);
-        if constexpr (W >= 3) fmt::format_to(ctx.out(), ", ");
-        if constexpr (W >= 3) formatter<T>::format(mat[1][2], ctx);
-        if constexpr (W == 4) fmt::format_to(ctx.out(), ", ");
-        if constexpr (W == 4) formatter<T>::format(mat[1][3], ctx);
-        if constexpr (H >= 3) fmt::format_to(ctx.out(), "), (");
-        if constexpr (H >= 3) formatter<T>::format(mat[2][0], ctx);
         if constexpr (H >= 3) fmt::format_to(ctx.out(), ", ");
-        if constexpr (H >= 3) formatter<T>::format(mat[2][1], ctx);
-        if constexpr (H >= 3 && W >= 3) fmt::format_to(ctx.out(), ", ");
-        if constexpr (H >= 3 && W >= 3) formatter<T>::format(mat[2][2], ctx);
-        if constexpr (H >= 3 && W == 4) fmt::format_to(ctx.out(), ", ");
-        if constexpr (H >= 3 && W == 4) formatter<T>::format(mat[2][3], ctx);
-        if constexpr (H == 4) fmt::format_to(ctx.out(), "), (");
-        if constexpr (H == 4) formatter<T>::format(mat[3][0], ctx);
+        if constexpr (H >= 3) formatter<T>::format(mat[1][2], ctx);
         if constexpr (H == 4) fmt::format_to(ctx.out(), ", ");
-        if constexpr (H == 4) formatter<T>::format(mat[3][1], ctx);
-        if constexpr (H == 4 && W >= 3) fmt::format_to(ctx.out(), ", ");
-        if constexpr (H == 4 && W >= 3) formatter<T>::format(mat[3][2], ctx);
-        if constexpr (H == 4 && W == 4) fmt::format_to(ctx.out(), ", ");
-        if constexpr (H == 4 && W == 4) formatter<T>::format(mat[3][3], ctx);
+        if constexpr (H == 4) formatter<T>::format(mat[1][3], ctx);
+        if constexpr (W >= 3) fmt::format_to(ctx.out(), "), (");
+        if constexpr (W >= 3) formatter<T>::format(mat[2][0], ctx);
+        if constexpr (W >= 3) fmt::format_to(ctx.out(), ", ");
+        if constexpr (W >= 3) formatter<T>::format(mat[2][1], ctx);
+        if constexpr (W >= 3 && H >= 3) fmt::format_to(ctx.out(), ", ");
+        if constexpr (W >= 3 && H >= 3) formatter<T>::format(mat[2][2], ctx);
+        if constexpr (W >= 3 && H == 4) fmt::format_to(ctx.out(), ", ");
+        if constexpr (W >= 3 && H == 4) formatter<T>::format(mat[2][3], ctx);
+        if constexpr (W == 4) fmt::format_to(ctx.out(), "), (");
+        if constexpr (W == 4) formatter<T>::format(mat[3][0], ctx);
+        if constexpr (W == 4) fmt::format_to(ctx.out(), ", ");
+        if constexpr (W == 4) formatter<T>::format(mat[3][1], ctx);
+        if constexpr (W == 4 && H >= 3) fmt::format_to(ctx.out(), ", ");
+        if constexpr (W == 4 && H >= 3) formatter<T>::format(mat[3][2], ctx);
+        if constexpr (W == 4 && H == 4) fmt::format_to(ctx.out(), ", ");
+        if constexpr (W == 4 && H == 4) formatter<T>::format(mat[3][3], ctx);
         return fmt::format_to(ctx.out(), "))");
     }
 };

@@ -18,9 +18,9 @@ public: //====================================================//
 
     struct Bone
     {
-        Vec3F offset   = {};
-        QuatF rotation = {};
-        Vec3F scale    = {};
+        Vec3F offset   = { 0.f, 0.f, 0.f };
+        QuatF rotation = { 0.f, 0.f, 0.f, 1.f };
+        Vec3F scale    = { 1.f, 1.f, 1.f };
     };
 
     using Pose = std::vector<Bone>;
@@ -55,13 +55,13 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    /// Get the name of a bone by index, empty str on failure
+    /// Get the name of a bone by index, empty str on failure.
     TinyString get_bone_name(int8_t index) const;
 
-    /// Get the index of a bone by name, -1 on failure
+    /// Get the index of a bone by name, -1 on failure.
     int8_t get_bone_index(TinyString name) const;
 
-    /// Get the index of a bone's parent, -1 on failure
+    /// Get the index of a bone's parent, -1 on failure.
     int8_t get_bone_parent(int8_t index) const;
 
     //--------------------------------------------------------//
@@ -80,15 +80,16 @@ public: //====================================================//
 
     Pose compute_pose_discrete(const Animation& animation, uint time) const;
 
-    void compute_ubo_data(const Pose& pose, Mat34F* out, uint len) const;
-
     //--------------------------------------------------------//
 
-    /// Compute the absolute transform of a bone
+    /// Compute the absolute transform of a bone.
     Mat4F compute_bone_matrix(const Pose& pose, int8_t index) const;
 
-    /// Compute the absolute transforms for a pose
+    /// Compute the absolute transforms for a pose.
     std::vector<Mat4F> compute_skeleton_matrices(const Pose& pose) const;
+
+    /// Compute transposed pose matrices, ready for a shader.
+    void compute_ubo_data(const Pose& pose, Mat34F* out, uint len) const;
 
 private: //===================================================//
 

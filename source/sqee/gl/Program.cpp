@@ -172,10 +172,10 @@ void Program::update(GLint location, Vec4F vec) const
 //----------------------------------------------------------------------------//
 
 void Program::update(GLint location, const Mat3F& mat) const
-{ gl::ProgramUniformMatrix3fv(mHandle, location, 1, false, mat.data()); }
+{ gl::ProgramUniformMatrix3fv(mHandle, location, 1, false, mat.data); }
 
 void Program::update(GLint location, const Mat34F& mat) const
-{ gl::ProgramUniformMatrix3x4fv(mHandle, location, 1, false, mat.data()); }
+{ gl::ProgramUniformMatrix3x4fv(mHandle, location, 1, false, mat.data); }
 
 void Program::update(GLint location, const Mat4F& mat) const
-{ gl::ProgramUniformMatrix4fv(mHandle, location, 1, false, mat.data()); }
+{ gl::ProgramUniformMatrix4fv(mHandle, location, 1, false, mat.data); }

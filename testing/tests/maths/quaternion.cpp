@@ -58,5 +58,12 @@ TEST_CASE("quaternion arithmetic operators tests", "[maths]")
 
 TEST_CASE("quaternion function tests", "[maths]")
 {
-//    SECTION("quaternion / mat")
+    SECTION("quaternion slerp")
+    {
+        REQUIRE(maths::slerp(QuatF(), QuatF(0.f, 0.4f, 0.f), 0.5f) == Approx(QuatF(0.f, 0.2f, 0.f)));
+
+        // will fallback to lerp
+        const QuatF slerp180 = maths::slerp(QuatF(), QuatF(0.f, 0.5f, 0.f), 0.5f);
+        REQUIRE((slerp180 == Approx(QuatF(0.f, 0.25f, 0.f)) || slerp180 == Approx(QuatF(0.f, -0.25f, 0.f))));
+    }
 }

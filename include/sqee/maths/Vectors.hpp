@@ -580,28 +580,24 @@ template <class T> constexpr auto is_vector_v = VectorTraits<T>::value;
 template <class T> constexpr auto vector_size_v = VectorTraits<T>::size;
 template <class T> using vector_type_t = typename VectorTraits<T>::type;
 
-} // namespace detail
-
-//============================================================================//
-
-} // namespace sq
+}} // namespace sq::detail
 
 //============================================================================//
 
 template <int S, class T>
 struct fmt::formatter<sq::maths::Vector<S, T>> : fmt::formatter<T>
 {
-      template <class FormatContext>
-      auto format(const sq::maths::Vector<S, T>& vec, FormatContext& ctx)
-      {
-          fmt::format_to(ctx.out(), "{}(", sq::type_to_string(sq::maths::Vector<S, T>()));
-          formatter<T>::format(vec.x, ctx);
-          fmt::format_to(ctx.out(), ", ");
-          formatter<T>::format(vec.y, ctx);
-          if constexpr (S >= 3) fmt::format_to(ctx.out(), ", ");
-          if constexpr (S >= 3) formatter<T>::format(vec.z, ctx);
-          if constexpr (S == 4) fmt::format_to(ctx.out(), ", ");
-          if constexpr (S == 4) formatter<T>::format(vec.w, ctx);
-          return fmt::format_to(ctx.out(), ")");
-      }
+    template <class FormatContext>
+    auto format(const sq::maths::Vector<S, T>& vec, FormatContext& ctx)
+    {
+        fmt::format_to(ctx.out(), "{}(", sq::type_to_string(sq::maths::Vector<S, T>()));
+        formatter<T>::format(vec.x, ctx);
+        fmt::format_to(ctx.out(), ", ");
+        formatter<T>::format(vec.y, ctx);
+        if constexpr (S >= 3) fmt::format_to(ctx.out(), ", ");
+        if constexpr (S >= 3) formatter<T>::format(vec.z, ctx);
+        if constexpr (S == 4) fmt::format_to(ctx.out(), ", ");
+        if constexpr (S == 4) formatter<T>::format(vec.w, ctx);
+        return fmt::format_to(ctx.out(), ")");
+    }
 };

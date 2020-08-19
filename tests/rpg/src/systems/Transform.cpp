@@ -42,8 +42,7 @@ void sqt::sys::system_refresh_transforms(WorldStuff& stuff)
         const QuatF& rotation = transform.localRotation;
         const float& scale = transform.localScale;
 
-        transform.localMatrix = maths::translate(Mat4F(), position);
-        transform.localMatrix *= Mat4F(Mat3F(rotation) * Mat3F(scale));
+        transform.localMatrix = maths::translate(Mat4F(), position) * Mat4F(Mat3F(rotation) * Mat3F(scale));
 
         transform.worldMatrix = transform.localMatrix;
     }

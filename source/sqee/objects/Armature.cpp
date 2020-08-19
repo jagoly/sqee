@@ -1,4 +1,4 @@
-#include <sqee/objects/Armature.hpp>
+﻿#include <sqee/objects/Armature.hpp>
 
 #include <sqee/core/Algorithms.hpp>
 #include <sqee/debug/Assert.hpp>
@@ -317,8 +317,8 @@ Armature::Pose Armature::blend_poses(const Pose& a, const Pose& b, float factor)
         Bone& bone = result.emplace_back();
 
         bone.offset = maths::mix(boneA.offset, boneB.offset, factor);
-        bone.scale = maths::mix(boneA.scale, boneB.scale, factor);
         bone.rotation = maths::slerp(boneA.rotation, boneB.rotation, factor);
+        bone.scale = maths::mix(boneA.scale, boneB.scale, factor);
     }
 
     return result;
@@ -420,47 +420,18 @@ Armature::Pose Armature::compute_pose_discrete(const Animation& animation, uint 
 
 //============================================================================//
 
-void Armature::compute_ubo_data(const Pose& pose, Mat34F* out, uint len) const
-{
-    const uint boneCount = uint(mRestPose.size());
-
-    SQASSERT(boneCount == pose.size(), "bone count mismatch");
-    SQASSERT(boneCount <= len, "too many bones for output buffer");
-
-    std::vector<Mat4F> absMatrices;
-    absMatrices.reserve(boneCount);
-
-    for (uint i = 0u; i < boneCount; ++i)
-    {
-        const Bone& bone = pose[i];
-        const int32_t parentIndex = mBoneParents[i];
-
-        const Mat4F relMatrix = maths::transform(bone.offset, bone.rotation, bone.scale);
-
-        if (parentIndex < 0) absMatrices.push_back(relMatrix);
-        else absMatrices.push_back(absMatrices[parentIndex] * relMatrix);
-    }
-
-    for (uint i = 0u; i < boneCount; ++i)
-    {
-        const Mat4F skinMatrix = absMatrices[i] * mInverseMats[i];
-        out[i] = Mat34F(maths::transpose(skinMatrix));
-    }
-}
-
-//============================================================================//
-
 Mat4F Armature::compute_bone_matrix(const Pose& pose, int8_t index) const
 {
     SQASSERT(get_bone_count() == pose.size(), "bone count mismatch");
     SQASSERT(index >= 0 && uint(index) < pose.size(), "invalid bone index");
 
-    const Bone& bone = pose[index];
+    Mat4F result = maths::transform(pose[index].offset, pose[index].rotation, pose[index].scale);
 
-    Mat4F result;
-
-    for (int8_t parent = index; parent != -1; parent = mBoneParents[parent])
+    for (int8_t parent = mBoneParents[index]; parent >= 0; parent = mBoneParents[parent])
+    {
+        const Bone& bone = pose[parent];
         result = maths::transform(bone.offset, bone.rotation, bone.scale) * result;
+    }
 
     return result;
 }
@@ -477,7 +448,7 @@ std::vector<Mat4F> Armature::compute_skeleton_matrices(const Pose& pose) const
     for (uint i = 0u; i < get_bone_count(); ++i)
     {
         const Bone& bone = pose[i];
-        const int32_t parentIndex = mBoneParents[i];
+        const int8_t parentIndex = mBoneParents[i];
 
         const Mat4F relMatrix = maths::transform(bone.offset, bone.rotation, bone.scale);
 
@@ -486,4 +457,20 @@ std::vector<Mat4F> Armature::compute_skeleton_matrices(const Pose& pose) const
     }
 
     return result;
+}
+
+//============================================================================//
+
+void Armature::compute_ubo_data(const Pose& pose, Mat34F* out, uint len) const
+{
+    SQASSERT(get_bone_count() == pose.size(), "bone count mismatch");
+    SQASSERT(get_bone_count() <= len, "too many bones for output buffer");
+
+    const std::vector<Mat4F> absMatrices = compute_skeleton_matrices(pose);
+
+    for (uint i = 0u; i < get_bone_count(); ++i)
+    {
+        const Mat4F skinMatrix = absMatrices[i] * mInverseMats[i];
+        out[i] = Mat34F(maths::transpose(skinMatrix));
+    }
 }
