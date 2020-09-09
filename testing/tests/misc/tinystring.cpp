@@ -3,6 +3,8 @@
 
 //============================================================================//
 
+constexpr const char str[] = "abcdefghijklmno";
+
 TEST_CASE("TinyString", "[misc]")
 {
     SECTION("comparison operators")
@@ -10,6 +12,10 @@ TEST_CASE("TinyString", "[misc]")
         TinyString strDefault;
         TinyString strEmpty = "";
         TinyString strJunk = "abcdefghijklmno";
+        constexpr TinyString strJfnk = str;
+
+        static_assert (strJfnk == str, "");
+        static_assert (strJfnk == "abcdefghijklmno", "");
         strJunk.clear();
 
         REQUIRE(strDefault == strEmpty);

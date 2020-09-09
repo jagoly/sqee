@@ -24,7 +24,12 @@ void SokoApp::initialise(std::vector<std::string> args)
 
     mDebugOverlay = std::make_unique<sq::DebugOverlay>();
 
+    mAudioContext = std::make_unique<sq::AudioContext>();
+
     mGameScene = std::make_unique<GameScene>(*mInputDevices);
+
+    mSound = std::make_unique<sq::Sound>(*mAudioContext);
+    mSound->load_from_file("assets/sounds/Jump.wav");
 
     this->refresh_options();
 }
@@ -60,6 +65,8 @@ void SokoApp::update(double elapsed)
 
 void SokoApp::refresh_options()
 {
+    mAudioContext->play_sound(*mSound, sq::SoundGroup::Menu, 1.f, false);
+
     Context::get().set_ViewPort(mWindow->get_window_size());
     mGameScene->refresh_options();
 }

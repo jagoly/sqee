@@ -111,7 +111,7 @@ struct SpotLightData
 
 struct SoundData
 {
-    sq::Sound sound;
+    //sq::Sound sound;
     uint8_t group;
     int32_t entity;
     float volume;

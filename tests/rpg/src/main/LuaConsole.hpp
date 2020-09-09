@@ -3,22 +3,20 @@
 #include <sqee/setup.hpp>
 
 #include <sqee/app/Scene.hpp>
+#include <sqee/app/WrenPlus.hpp>
 #include <sqee/core/Types.hpp>
-#include <sqee/redist/sol.hpp>
 
 #include <forward_list>
-
-using namespace sq::coretypes;
 
 namespace sqt {
 
 //============================================================================//
 
-class LuaConsole final : public sq::Scene
+class WrenConsole final : public sq::Scene
 {
 public: //====================================================//
 
-    LuaConsole(sol::state& lua);
+    WrenConsole(wren::WrenPlusVM& vm);
 
     void handle_event(sq::Event event) override;
 
@@ -38,7 +36,7 @@ private: //===================================================//
 
     void render(double elapsed) override;
 
-    sol::state& mLua;
+    wren::WrenPlusVM& mWrenVM;
 
     std::string mInput;
 

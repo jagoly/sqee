@@ -4,16 +4,19 @@
 [![AppVeyor Status](https://ci.appveyor.com/api/projects/status/7ha0l295301mfgvr?branch=master&svg=true)](https://ci.appveyor.com/project/jagoly/sqee)
 
 ##### About LibSQEE
-LibSQEE is library containing all sorts of useful stuff for 3D applications, particularly games. Features include C++ wrappers for various OpenGL components, a simple text rendering system, some nice classes for Windows and Scenes, a scripting console, loaders for custom model, material and animation formats, a generic resource manager, sound system, simple event handling system, physics bodies and more. LibSQEE intergrates a few third party libraries, namely:
+LibSQEE is library containing all sorts of useful stuff for 3D applications, particularly games. Features include C++ wrappers for various OpenGL components, a simple text rendering system, some nice classes for Windows and Scenes, a scripting console, loaders for custom model, material and animation formats, a generic resource manager, sound system, simple event handling system, physics bodies and more. A lot more, I don't update this readme very often.
+
+LibSQEE intergrates a few third party libraries. In no particular order, they are:
 
  * [SFML](https://www.sfml-dev.org/)
- * [Lua 5.4](https://www.lua.org/)
- * [Sol3](https://github.com/ThePhD/sol2)
- * [STB_Image](https://github.com/nothings/stb)
- * [GLLoadGen](https://bitbucket.org/alfonse/glloadgen)
- * [Option Parser](http://optionparser.sourceforge.net/)
- * [TinyFormat](https://github.com/c42f/tinyformat)
- * [JSON](https://github.com/nlohmann/json)
+ * [Wren](https://wren.io/)
+ * [MiniAudio](https://github.com/mackron/miniaudio/)
+ * [DearImGui](https://github.com/ocornut/imgui/)
+ * [STB_Image](https://github.com/nothings/stb/)
+ * [GLLoadGen](https://bitbucket.org/alfonse/glloadgen/)
+ * [OptionParser](http://optionparser.sourceforge.net/)
+ * [FmtLib](https://github.com/fmtlib/fmt/)
+ * [JSON](https://github.com/nlohmann/json/)
 
 ##### About SQEE RPG
 SQEE RPG is a not a library, but a complete game engine. It's formost aim is to allow the creation of a high quality 3D Action Role Playing Game. It is however being designed such that it should be usuable in other 3D games as well - most of the logic is contained within chaiscript scripts.

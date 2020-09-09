@@ -47,12 +47,12 @@ std::unique_ptr<sq::Mesh> MeshCache::create(const std::string& path)
 
 std::unique_ptr<sq::Armature> ArmatureCache::create(const std::string& /*path*/)
 {
-    return {};
+    return {}; // fixme
 }
 
-std::unique_ptr<sq::SoundWave> SoundCache::create(const std::string& path)
+std::unique_ptr<sq::Sound> SoundCache::create(const std::string& /*path*/)
 {
-    return std::make_unique<sq::SoundWave>(path);
+    return {}; // fixme
 }
 
 std::unique_ptr<sq::Material> MaterialCache::create(const std::string& path)

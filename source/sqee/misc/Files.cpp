@@ -21,11 +21,20 @@ bool sq::check_file_exists(const String& path)
 
 String sq::get_string_from_file(const String& path)
 {
-    auto src = std::ifstream(path);
+    // todo: profile and try to optimise file loading
+    // STS is starting to take a while to load, especially on windows
+
+    // todo: need to check or convert line endings
+    // hasn't been a problem yet, but sqee can't deal with \r\n
+
+    // todo: make this function abort or throw on failure
+    // should use the try_ version most of the time
+
+    auto src = std::ifstream(path, std::ios::in);
 
     if (src.good() == false)
     {
-        log_warning("could not open file '%s'", path);
+        log_warning("could not open file '{}'", path);
         return {};
     }
 
@@ -36,9 +45,24 @@ String sq::get_string_from_file(const String& path)
 
 //============================================================================//
 
+std::optional<String> sq::try_get_string_from_file(const String& path)
+{
+    if (auto src = std::ifstream(path, std::ios::in);
+        src.good() == true)
+    {
+        std::stringstream stream;
+        stream << src.rdbuf();
+        return String(stream.str());
+    }
+
+    return std::nullopt;
+}
+
+//============================================================================//
+
 void sq::save_string_to_file(const String& path, StringView str)
 {
-    auto dest = std::ofstream(path);
+    auto dest = std::ofstream(path, std::ios::out);
 
     if (dest.good() == false)
     {
@@ -53,19 +77,18 @@ void sq::save_string_to_file(const String& path, StringView str)
 
 std::vector<std::byte> sq::get_bytes_from_file(const String& path)
 {
-    using unsigned_ifstream = std::basic_ifstream<std::byte>;
-    unsigned_ifstream src(path, std::ios::binary | std::ios::ate);
+    auto src = std::basic_ifstream<std::byte>(path, std::ios::ate | std::ios::binary | std::ios::in);
 
     if (src.good() == false)
     {
-        log_warning("Couldn't open file '%s'", path);
+        log_warning("could not open file '{}'", path);
         return {};
     }
 
     const auto fileSize = src.tellg();
 
     std::vector<std::byte> result;
-    result.resize(uint(fileSize));
+    result.resize(size_t(fileSize));
 
     src.seekg(0, src.beg);
     src.read(result.data(), fileSize);
@@ -165,23 +188,29 @@ StringView sq::extension_from_path(StringView path)
 
 //============================================================================//
 
-std::optional<String> sq::compute_resource_path(StringView base, StringView path, std::vector<StringView> extensions)
+String sq::compute_resource_path(StringView key,
+                                 std::initializer_list<StringView> prefixes,
+                                 std::initializer_list<StringView> extensions)
 {
-    const bool isAbsolute = ( path.front() == '/' );
-    const bool hasExtension = !extension_from_path(path).empty();
+    SQASSERT(key.front() != '/', "resource keys cannot be absolute");
+    SQASSERT(extension_from_path(key).empty(), "resource keys cannot have extensions");
+    SQASSERT(prefixes.size() > 0u, "no prefixes given");
+    SQASSERT(extensions.size() > 0u, "no extensions given");
 
-    const String basePath = isAbsolute ? String(path) : build_string(base, path);
-
-    if (hasExtension == false)
+    for (const StringView& prefix : prefixes)
     {
+        SQASSERT(!prefix.empty() && prefix.back() == '/', "invalid prefix");
+
         for (const StringView& extension : extensions)
         {
-            String result = build_string(basePath, '.', extension);
+            SQASSERT(!extension.empty() && extension.front() == '.', "invalid extension");
+
+            String result = build_string(prefix, key, extension);
             if (check_file_exists(result)) return result;
         }
     }
 
-    if (check_file_exists(basePath)) return basePath;
-
-    return std::nullopt;
+    // we return the original string so that the resources themselves
+    // can use it to print a useful error message
+    return String(key);
 }

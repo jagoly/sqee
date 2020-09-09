@@ -14,6 +14,9 @@ namespace sq {
 
 //============================================================================//
 
+// todo: make a better api, some kind of MaybeError class would be good
+// or, the rest of the json api uses exceptions, so why not just make this throw?
+
 SQEE_API JsonValue parse_json_from_file(const String& path);
 
 //============================================================================//

@@ -2,8 +2,7 @@
 
 #include <sqee/app/Scene.hpp>
 #include <sqee/app/InputDevices.hpp>
-
-#include <sqee/redist/sol.hpp>
+#include <sqee/app/WrenPlus.hpp>
 
 #include "Options.hpp"
 #include "ResourceCaches.hpp"
@@ -20,7 +19,7 @@ class MainScene final : public sq::Scene
 {
 public: //====================================================//
 
-    MainScene ( const Options& options, sol::state& luaState,
+    MainScene ( const Options& options, wren::WrenPlusVM& vm,
                 sq::InputDevices& input, ResourceCaches& caches );
 
     ~MainScene();
@@ -41,7 +40,7 @@ private: //===================================================//
 
     const Options& options;
 
-    sol::state& mLuaState;
+    wren::WrenPlusVM& mWrenVM;
     sq::InputDevices& mInput;
     ResourceCaches& mCaches;
 

@@ -250,6 +250,9 @@ public: //====================================================//
     using iterator       = PoolMapIterator<Key, Type>;
     using const_iterator = PoolMapConstIterator<Key, Type>;
 
+    using key_type    = Key;
+    using mapped_type = Type;
+
     //--------------------------------------------------------//
 
     class node_type

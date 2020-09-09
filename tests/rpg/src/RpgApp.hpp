@@ -4,8 +4,7 @@
 #include <sqee/app/Window.hpp>
 #include <sqee/app/InputDevices.hpp>
 #include <sqee/app/DebugOverlay.hpp>
-
-#include <sqee/redist/sol.hpp>
+#include <sqee/app/WrenPlus.hpp>
 
 #include "main/MainScene.hpp"
 #include "main/Options.hpp"
@@ -42,13 +41,13 @@ private: //===================================================//
 
     //--------------------------------------------------------//
 
-    std::unique_ptr<sol::state> mLuaState;
+    std::unique_ptr<wren::WrenPlusVM> mWrenVM;
 
     std::unique_ptr<sq::Window> mWindow;
 
     std::unique_ptr<sq::InputDevices> mInputDevices;
 
-    std::unique_ptr<LuaConsole> mLuaConsole;
+    std::unique_ptr<WrenConsole> mWrenConsole;
 
     std::unique_ptr<sq::DebugOverlay> mDebugOverlay;
 

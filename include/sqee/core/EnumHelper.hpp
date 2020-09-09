@@ -89,7 +89,7 @@ template<> struct sq::detail::enum_traits<Type> \
     static const char* to_string(Type value) \
     { \
         switch (value) { SQEE_FOR_EACH(SQEE_ENUM_TO_STRING_INNER, First, __VA_ARGS__) } \
-        throw std::invalid_argument(fmt::format("enum " #Type " to string: {}", value)); \
+        throw std::invalid_argument(fmt::format("enum " #Type " to string: {}", base_type(value))); \
     } \
     static Type from_string(std::string_view str) \
     { \

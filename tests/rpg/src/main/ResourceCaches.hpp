@@ -10,7 +10,7 @@ namespace sq {
 class Texture2D;
 class Mesh;
 class Armature;
-class SoundWave;
+class Sound;
 class Material;
 
 } // namespace sq
@@ -21,11 +21,11 @@ namespace sqt {
 
 //====== Alias Declarations ==================================================//
 
-using TextureHandle  = sq::Handle<std::string, sq::Texture2D>;
-using MeshHandle     = sq::Handle<std::string, sq::Mesh>;
-using ArmatureHandle = sq::Handle<std::string, sq::Armature>;
-using SoundHandle    = sq::Handle<std::string, sq::SoundWave>;
-using MaterialHandle = sq::Handle<std::string, sq::Material>;
+using TextureHandle  = sq::Handle<sq::Texture2D>;
+using MeshHandle     = sq::Handle<sq::Mesh>;
+using ArmatureHandle = sq::Handle<sq::Armature>;
+using SoundHandle    = sq::Handle<sq::Sound>;
+using MaterialHandle = sq::Handle<sq::Material>;
 
 //============================================================================//
 
@@ -53,10 +53,10 @@ class ArmatureCache final : public sq::ResourceCache<std::string, sq::Armature>
 
 //----------------------------------------------------------------------------//
 
-class SoundCache final : public sq::ResourceCache<std::string, sq::SoundWave>
+class SoundCache final : public sq::ResourceCache<std::string, sq::Sound>
 {
     public:  SoundCache(); ~SoundCache() override;
-    private: std::unique_ptr<sq::SoundWave> create(const std::string& path) override;
+    private: std::unique_ptr<sq::Sound> create(const std::string& path) override;
 };
 
 //----------------------------------------------------------------------------//

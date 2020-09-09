@@ -26,10 +26,19 @@ template <class T> struct RandomRange
     constexpr RandomRange() : data { T(0), T(0) } {}
     constexpr RandomRange(T min, T max) : min(min), max(max) {}
 
-    template <class Generator> T operator()(Generator& gen)
+    template <class Generator>
+    T operator()(Generator& gen) const
     {
-        // if values are the same, gen does not get used
-        if (min == max) return min;
+        if (min == max)
+        {
+            if constexpr (std::is_arithmetic_v<T>)
+                gen.discard(1u);
+
+            if constexpr (detail::is_vector_v<T>)
+                gen.discard(detail::vector_size_v<T>);
+
+            return min;
+        }
 
         if constexpr (std::is_integral_v<T>)
             return std::uniform_int_distribution(min, max)(gen);

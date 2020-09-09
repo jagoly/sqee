@@ -90,6 +90,15 @@ constexpr bool none_of(Container& container, const Predicate& pred)
     return std::none_of(std::begin(container), std::end(container), pred);
 }
 
+template <class Container, class Predicate>
+constexpr auto erase_if(Container& container, const Predicate& pred)
+{
+    const auto iter = std::remove_if(container.begin(), container.end(), pred);
+    const auto distance = std::distance(iter, container.end());
+    container.erase(iter, container.end());
+    return distance;
+}
+
 //============================================================================//
 
 } // namespace sq::algo

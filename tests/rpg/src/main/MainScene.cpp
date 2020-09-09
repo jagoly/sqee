@@ -21,10 +21,10 @@ namespace maths = sq::maths;
 
 //============================================================================//
 
-MainScene::MainScene ( const Options& options, sol::state& luaState,
+MainScene::MainScene ( const Options& options, wren::WrenPlusVM& vm,
                        sq::InputDevices& input, ResourceCaches& caches )
     : Scene(1.0 / 24.0)
-    , options(options), mLuaState(luaState)
+    , options(options), mWrenVM(vm)
     , mInput(input), mCaches(caches)
 {
     world = std::make_unique<WorldStuff>();
@@ -100,8 +100,8 @@ void MainScene::render(double)
         world->camera.set_position(maths::mix(mPosCrnt, mPosNext, tickBlend));
         world->camera.set_direction(rotation * Vec3F(0.f, 1.f, 0.f));
 
-        sq::Listener::set_position(world->camera.get_position());
-        sq::Listener::set_rotation(rotation);
+        //sq::Listener::set_position(world->camera.get_position());
+        //sq::Listener::set_rotation(rotation);
     }
 
     //--------------------------------------------------------//

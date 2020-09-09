@@ -1,13 +1,13 @@
 #pragma once
 
-#include <sqee/redist/sol.hpp>
+#include <sqee/app/WrenPlus.hpp>
 
 //============================================================================//
 
 namespace sqt {
 
-void lua_setup_world(sol::state& lua);
+void wren_setup_world(wren::WrenPlusVM& vm);
 
-void lua_setup_api(sol::state& lua);
+void wren_setup_api(wren::WrenPlusVM& vm);
 
 } // namespace sqt

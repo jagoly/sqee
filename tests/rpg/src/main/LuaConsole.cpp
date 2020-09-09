@@ -4,14 +4,15 @@
 #include <sqee/debug/Text.hpp>
 
 using namespace sqt;
+using namespace sq::coretypes;
 
 //============================================================================//
 
-LuaConsole::LuaConsole(sol::state& lua) : sq::Scene(0.5), mLua(lua) {}
+WrenConsole::WrenConsole(wren::WrenPlusVM& vm) : sq::Scene(0.5), mWrenVM(vm) {}
 
 //============================================================================//
 
-void LuaConsole::update()
+void WrenConsole::update()
 {
     mCursorVisible = !mCursorVisible;
     mCursorVisible |= mCursorDelay;
@@ -21,7 +22,7 @@ void LuaConsole::update()
 
 //============================================================================//
 
-void LuaConsole::render(double)
+void WrenConsole::render(double)
 {
     if (mActive == true)
     {
@@ -43,7 +44,7 @@ void LuaConsole::render(double)
 
 //============================================================================//
 
-void LuaConsole::handle_event(sq::Event event)
+void WrenConsole::handle_event(sq::Event event)
 {
     using Type = sq::Event::Type;
     using Key = sq::Keyboard_Key;
@@ -163,12 +164,12 @@ void LuaConsole::handle_event(sq::Event event)
 
 //============================================================================//
 
-void LuaConsole::clear()
+void WrenConsole::clear()
 {
     mOutput.clear();
 }
 
-void LuaConsole::history()
+void WrenConsole::history()
 {
     for (const std::string& command : mHistory)
     {
@@ -176,7 +177,7 @@ void LuaConsole::history()
     }
 }
 
-void LuaConsole::print(std::string arg)
+void WrenConsole::print(std::string arg)
 {
     mOutput.emplace_front(arg);
 }

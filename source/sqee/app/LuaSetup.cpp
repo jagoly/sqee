@@ -11,7 +11,7 @@ namespace { // anonymous
 //----------------------------------------------------------------------------//
 
 template <int S, class T> inline
-void impl_setup_VectorST(sol::state& /*lua*/, const String& /*name*/)
+void impl_setup_VectorST(wren::WrenPlusVM& /*vm*/, const String& /*name*/)
 {
 //    using VecST = maths::Vector<S, T>;
 
@@ -35,7 +35,7 @@ void impl_setup_VectorST(sol::state& /*lua*/, const String& /*name*/)
 //----------------------------------------------------------------------------//
 
 template <class T> inline
-void impl_setup_Vector2(sol::state& /*lua*/, const String& /*name*/)
+void impl_setup_Vector2(wren::WrenPlusVM& /*vm*/, const String& /*name*/)
 {
 //    impl_setup_VectorST<2, T>(m, name);
 
@@ -48,7 +48,7 @@ void impl_setup_Vector2(sol::state& /*lua*/, const String& /*name*/)
 //----------------------------------------------------------------------------//
 
 template <class T> inline
-void impl_setup_Vector3(sol::state& /*lua*/, const String& /*name*/)
+void impl_setup_Vector3(wren::WrenPlusVM& /*vm*/, const String& /*name*/)
 {
 //    impl_setup_VectorST<3, T>(m, name);
 
@@ -62,7 +62,7 @@ void impl_setup_Vector3(sol::state& /*lua*/, const String& /*name*/)
 //----------------------------------------------------------------------------//
 
 template <class T> inline
-void impl_setup_Vector4(sol::state& /*lua*/, const String& /*name*/)
+void impl_setup_Vector4(wren::WrenPlusVM& /*vm*/, const String& /*name*/)
 {
 //    impl_setup_VectorST<4, T>(m, name);
 
@@ -80,7 +80,7 @@ void impl_setup_Vector4(sol::state& /*lua*/, const String& /*name*/)
 
 //============================================================================//
 
-void sq::lua_setup_maths(sol::state& /*lua*/)
+void sq::wren_setup_maths(wren::WrenPlusVM& /*vm*/)
 {
 //    auto m = std::make_shared<chai::Module>();
 

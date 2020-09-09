@@ -7,6 +7,9 @@
 
 #include <sqee/core/Types.hpp>
 
+// This class should probably be part of sq::Window, but since in reality the OpenGL
+// context is global, this class can just be a singleton, at least for now.
+
 namespace sq {
 
 //====== Forward Declarations ================================================//
@@ -224,11 +227,11 @@ private: //===================================================//
 
     //--------------------------------------------------------//
 
-    friend class FrameBuffer;
-    friend class Program;
-    friend class VertexArray;
-    friend class Texture;
-    friend class UniformBuffer;
+    friend FrameBuffer;
+    friend Program;
+    friend VertexArray;
+    friend Texture;
+    friend UniformBuffer;
 };
 
 //============================================================================//

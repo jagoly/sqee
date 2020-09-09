@@ -34,10 +34,10 @@ public: //====================================================//
     bool has_specular_texture() const { return mSpecularTexture.check(); }
     bool has_mask_texture()     const { return mMaskTexture.check(); }
 
-    const Handle<String, Texture2D>& get_diffuse_handle()  const { return mDiffuseTexture; }
-    const Handle<String, Texture2D>& get_normal_handle()   const { return mNormalTexture; }
-    const Handle<String, Texture2D>& get_specular_handle() const { return mSpecularTexture; }
-    const Handle<String, Texture2D>& get_mask_handle()     const { return mMaskTexture; }
+    const Handle<Texture2D>& get_diffuse_handle()  const { return mDiffuseTexture; }
+    const Handle<Texture2D>& get_normal_handle()   const { return mNormalTexture; }
+    const Handle<Texture2D>& get_specular_handle() const { return mSpecularTexture; }
+    const Handle<Texture2D>& get_mask_handle()     const { return mMaskTexture; }
 
     const Texture2D& get_diffuse_texture()  const { return mDiffuseTexture.get(); }
     const Texture2D& get_normal_texture()   const { return mNormalTexture.get(); }
@@ -49,10 +49,10 @@ public: //====================================================//
 
 private: //===================================================//
 
-    Handle<String, Texture2D> mDiffuseTexture;
-    Handle<String, Texture2D> mNormalTexture;
-    Handle<String, Texture2D> mSpecularTexture;
-    Handle<String, Texture2D> mMaskTexture;
+    Handle<Texture2D> mDiffuseTexture;
+    Handle<Texture2D> mNormalTexture;
+    Handle<Texture2D> mSpecularTexture;
+    Handle<Texture2D> mMaskTexture;
 
     Vec3F mDiffuseColour { 1.f, 1.f, 1.f };
     Vec3F mSpecularColour { 1.f, 1.f, 1.f };

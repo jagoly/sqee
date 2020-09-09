@@ -209,10 +209,10 @@ void SoundEdit::set_volume(float volume)
 {
     const auto& groups = api.world.soundGroupVolumes;
     entry->volume = volume * groups[entry->group];
-    entry->sound.set_volume(entry->volume);
+    //entry->sound.set_volume(entry->volume);
 }
 
 void SoundEdit::enable_looping(bool enable)
 {
-    entry->sound.set_loop(enable);
+    //entry->sound.set_loop(enable);
 }

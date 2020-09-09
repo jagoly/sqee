@@ -1,9 +1,9 @@
 // Copyright(c) 2020 James Gangur
 // Part of https://github.com/jagoly/sqee
 
-#pragma once
-
 // based on https://github.com/gnzlbg/static_vector/blob/master/include/experimental/fixed_capacity_vector
+
+#pragma once
 
 #include <sqee/debug/Assert.hpp>
 

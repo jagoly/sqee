@@ -7,21 +7,34 @@
 
 #include <sqee/core/Types.hpp>
 
+#include <cstdio>
+
+// Note that all file paths in sqee are unix style, don't try to use dos paths.
+// Windows is kind enough to work just fine with unix paths, so there's no need
+// for anything platform specific.
+
+// todo: in general, file loading in sqee is pretty bad.
+//  - compute_resource_path requires opening and closing files an extra time
+//  - check_file_exists requires opening and closing a file an extra time
+
 namespace sq {
 
 //============================================================================//
 
-/// Check if a file exists
+/// Check if a file exists.
 SQEE_API bool check_file_exists(const String& path);
 
-/// Load a file into a string
+/// Load a text file into a string.
 SQEE_API String get_string_from_file(const String& path);
 
-/// Save a string to a file
-SQEE_API void save_string_to_file(const String& path, StringView str);
+/// If it exists, load a text file into a string.
+SQEE_API std::optional<String> try_get_string_from_file(const String& path);
 
-/// Load a file into a vector of bytes
+/// Load a binary file into a vector of bytes.
 SQEE_API std::vector<std::byte> get_bytes_from_file(const String& path);
+
+/// Save a string to a text file.
+SQEE_API void save_string_to_file(const String& path, StringView str);
 
 //============================================================================//
 
@@ -48,8 +61,17 @@ SQEE_API StringView directory_from_path(StringView path);
 /// Extract the file extension from a path
 SQEE_API StringView extension_from_path(StringView path);
 
-/// Compute the full path to an existing file, nullopt if none found
-SQEE_API std::optional<String> compute_resource_path(StringView base, StringView path, std::vector<StringView> extensions);
+//============================================================================//
+
+/// Compute the path to a file using its key, or just the key if none found.
+///
+/// @param key        the path with no prefix or extension
+/// @param prefixes   directories to search in, highest priority first
+/// @param extensions extensions to check, hightet priority first
+///
+SQEE_API String compute_resource_path(StringView key,
+                                      std::initializer_list<StringView> prefixes,
+                                      std::initializer_list<StringView> extensions);
 
 //============================================================================//
 

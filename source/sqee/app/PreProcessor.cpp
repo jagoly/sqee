@@ -54,10 +54,10 @@ void PreProcessor::update_header(String path, String source)
 
 String PreProcessor::process(StringView path, StringView prelude) const
 {
-    const auto fullPath = compute_resource_path("shaders/", path, {"glsl"});
-    if (fullPath == std::nullopt) log_error("Failed to find shader '{}'", path);
+    const String fullPath = compute_resource_path(path, {"shaders/"}, {".glsl"});
+    if (fullPath.empty()) log_error("Failed to find shader '{}'", path);
 
-    const String source = get_string_from_file(*fullPath);
+    const String source = get_string_from_file(fullPath);
 
     String result;
 

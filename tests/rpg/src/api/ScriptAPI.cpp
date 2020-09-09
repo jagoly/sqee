@@ -92,13 +92,13 @@ void ScriptAPI::delete_entity(Int32 id)
 
 void ScriptAPI::impl_play_sound(const std::string& path, uint group)
 {
-    sys::SoundData data { sq::Sound(), uint8_t(group), -1, 100.f };
-    data.sound.set_volume(100.f * world.soundGroupVolumes[group]);
-    data.sound.set_wave(caches.sounds.acquire(path));
+    //sys::SoundData data { sq::Sound(), uint8_t(group), -1, 100.f };
+    //data.sound.set_volume(100.f * world.soundGroupVolumes[group]);
+    //data.sound.set_wave(caches.sounds.acquire(path));
 
     const auto id = ++world.soundCounter;
-    world.soundTable.insert(id, std::move(data));
-    world.soundTable.back()->sound.play();
+    //world.soundTable.insert(id, std::move(data));
+    //world.soundTable.back()->sound.play();
 }
 
 api::SoundEdit ScriptAPI::play_sound_global(const std::string& path, uint group)
@@ -108,7 +108,7 @@ api::SoundEdit ScriptAPI::play_sound_global(const std::string& path, uint group)
     impl_play_sound(path, group);
 
     auto entry = world.soundTable.back();
-    entry->sound.set_relative(true);
+    //entry->sound.set_relative(true);
 
     return api::SoundEdit(*this, entry.id);
 }
@@ -120,8 +120,8 @@ api::SoundEdit ScriptAPI::play_sound_position(const std::string& path, uint grou
     impl_play_sound(path, group);
 
     auto entry = world.soundTable.back();
-    entry->sound.set_relative(false);
-    entry->sound.set_position(position);
+    //entry->sound.set_relative(false);
+    //entry->sound.set_position(position);
 
     return api::SoundEdit(*this, entry.id);
 }
@@ -136,8 +136,8 @@ api::SoundEdit ScriptAPI::play_sound_entity(const std::string& path, uint group,
     auto& position = transformData.worldPosition;
 
     auto entry = world.soundTable.back();
-    entry->sound.set_relative(false);
-    entry->sound.set_position(position);
+    //entry->sound.set_relative(false);
+    //entry->sound.set_position(position);
 
     return api::SoundEdit(*this, entry.id);
 }
@@ -148,7 +148,7 @@ void ScriptAPI::set_sound_group_volume(uint group, float volume)
 
     for (auto& item : world.soundTable.mData)
         if (item.group == group)
-            item.sound.set_volume(item.volume * volume);
+        {}//item.sound.set_volume(item.volume * volume);
 }
 
 //============================================================================//

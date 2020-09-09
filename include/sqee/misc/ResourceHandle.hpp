@@ -11,24 +11,18 @@
 
 namespace sq {
 
-//====== Forward Declarations ================================================//
-
-template <class Key, class Type> class Handle;
-template <class Key, class Type> class ResourceCache;
-
 //============================================================================//
 
 /// For internal use within a @ref ResourceCache.
-/// @tparam Key hashable key type
 /// @tparam Type type of the resource
 
-template <class Key, class Type>
+template <class Type>
 class Resource final : private NonCopyable
 {
 protected: //=================================================//
 
-    friend class Handle<Key, Type>;
-    friend class ResourceCache<Key, Type>;
+    template <class T> friend class Handle;
+    template <class K, class T> friend class ResourceCache;
 
     //--------------------------------------------------------//
 
@@ -39,19 +33,16 @@ protected: //=================================================//
     //--------------------------------------------------------//
 
     std::unique_ptr<Type> uptr;
-    uint count = 0u;
-
-    Key key;
+    size_t count = 0u;
 };
 
 //============================================================================//
 
 /// Provides reference counted access to a @ref Resource.
-/// @tparam Key hashable key type
 /// @tparam Type type of the resource
 
-template <class Key, class Type>
-class Handle final
+template <class Type>
+class Handle final // Copyable
 {
 public: //====================================================//
 
@@ -72,15 +63,10 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     /// Reset the resource pointer to null.
-    void set_null() { ~Handle(); mResPtr = nullptr; }
+    void set_null() { this->~Handle(); mResPtr = nullptr; }
 
-    /// Check if the resource pointer is null.
+    /// Check if the resource pointer is not null.
     bool check() const { return mResPtr != nullptr; }
-
-    //--------------------------------------------------------//
-
-    /// Get the unique key of the resource.
-    const Key& get_key() const { return mResPtr ? mResPtr->key : ""; }
 
     //--------------------------------------------------------//
 
@@ -107,21 +93,24 @@ public: //====================================================//
         return *mResPtr->uptr;
     }
 
+    //template <class Key>
+    //const Key& get_key() const
+    //{
+    //    SQASSERT(mResPtr != nullptr, "null resource error");
+    //    return *std::prev(reinterpret_cast<const Key*>(mResPtr));
+    //}
+
 protected: //=================================================//
 
-    friend ResourceCache<Key, Type>;
+    template <class K, class T> friend class ResourceCache;
 
-    //--------------------------------------------------------//
-
-    Handle(Resource<Key, Type>& resource)
+    Handle(Resource<Type>& resource)
     {
         mResPtr = &resource;
         ++mResPtr->count;
     }
 
-    //--------------------------------------------------------//
-
-    Resource<Key, Type>* mResPtr;
+    Resource<Type>* mResPtr;
 };
 
 //============================================================================//

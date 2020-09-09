@@ -7,8 +7,6 @@
 
 #include <sqee/misc/ResourceHandle.hpp>
 
-#include <unordered_map>
-
 namespace sq {
 
 //============================================================================//
@@ -28,19 +26,16 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     /// Acquire a handle to a resource, loading it if needed.
-    /// @param path the path of the resource to acquire
+    /// @param key the key of the resource to acquire
 
-    Handle<Key, Type> acquire(const Key& key)
+    Handle<Type> acquire(const Key& key)
     {
-        auto& resource = mResourceMap[key];
+        Resource<Type>& resource = mResourceMap[key];
 
-        if (resource.loaded() == false)
-        {
+        if (!resource.loaded())
             resource.uptr = create(key);
-            resource.key = key;
-        }
 
-        return resource;
+        return Handle(resource);
     }
 
     //--------------------------------------------------------//
@@ -62,7 +57,7 @@ protected: //=================================================//
     //--------------------------------------------------------//
 
     /// Map holding already cached resources.
-    std::unordered_map<Key, Resource<Key, Type>> mResourceMap;
+    std::unordered_map<Key, Resource<Type>> mResourceMap;
 };
 
 //============================================================================//

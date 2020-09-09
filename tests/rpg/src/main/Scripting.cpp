@@ -9,7 +9,7 @@
 
 //============================================================================//
 
-void sqt::lua_setup_world(sol::state& lua)
+void sqt::wren_setup_world(wren::WrenPlusVM& vm)
 {
 //    auto m = std::make_shared<chai::Module>();
 
@@ -70,7 +70,7 @@ void sqt::lua_setup_world(sol::state& lua)
 
 //============================================================================//
 
-void sqt::lua_setup_api(sol::state& lua)
+void sqt::wren_setup_api(wren::WrenPlusVM& vm)
 {
 //    auto m = std::make_shared<chai::Module>();
 

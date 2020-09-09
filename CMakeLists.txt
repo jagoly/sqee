@@ -111,10 +111,10 @@ if (SQEE_STATIC_LIB)
     set(SFML_STATIC_LIBRARIES True)
 endif ()
 
-find_package(SFML 2.5 COMPONENTS audio window system REQUIRED)
+find_package(SFML 2.5 COMPONENTS window system REQUIRED)
 
 target_include_directories(sqee PRIVATE ${SFML_INCLUDE_DIR})
-target_link_libraries(sqee PRIVATE sfml-audio sfml-window sfml-system)
+target_link_libraries(sqee PRIVATE sfml-window sfml-system)
 
 ################################################################################
 
@@ -140,17 +140,12 @@ target_link_libraries(sqee PUBLIC format)
 
 ################################################################################
 
-add_subdirectory(libs/lua54cpp)
-target_link_libraries(sqee PUBLIC lua54cpp)
-
-target_compile_definitions(sqee PUBLIC SOL_ALL_SAFETIES_ON=1)
-target_compile_definitions(sqee PUBLIC SOL_USING_CXX_LUA=1)
-target_compile_definitions(sqee PUBLIC SOL_EXCEPTIONS_ALWAYS_UNSAFE=1)
-target_compile_definitions(sqee PUBLIC SOL_PRINT_ERRORS=0)
+add_subdirectory(libs/wren)
+target_link_libraries(sqee PUBLIC wren)
 
 ################################################################################
 
-export(TARGETS sqee dearimgui format lua54cpp FILE sqee-exports.cmake)
+export(TARGETS sqee dearimgui format wren FILE sqee-exports.cmake)
 
 ################################################################################
 

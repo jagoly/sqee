@@ -4,6 +4,9 @@
 #include <sqee/app/Window.hpp>
 #include <sqee/app/InputDevices.hpp>
 #include <sqee/app/DebugOverlay.hpp>
+#include <sqee/app/AudioContext.hpp>
+
+#include <sqee/objects/Sound.hpp>
 
 #include "Game.hpp"
 
@@ -34,7 +37,11 @@ private: //===================================================//
 
     std::unique_ptr<sq::DebugOverlay> mDebugOverlay;
 
+    std::unique_ptr<sq::AudioContext> mAudioContext;
+
     std::unique_ptr<GameScene> mGameScene;
+
+    std::unique_ptr<sq::Sound> mSound;
 };
 
 }

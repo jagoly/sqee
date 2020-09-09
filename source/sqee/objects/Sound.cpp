@@ -1,85 +1,115 @@
 #include <sqee/objects/Sound.hpp>
 
-#include <sqee/debug/Assert.hpp>
+#include <sqee/app/AudioContext.hpp>
 #include <sqee/debug/Logging.hpp>
 #include <sqee/misc/Files.hpp>
 
-#include <SFML/Audio/Sound.hpp>
-#include <SFML/Audio/SoundBuffer.hpp>
-#include <SFML/Audio/Listener.hpp>
+#include <sqee/redist/miniaudio.hpp>
 
 using namespace sq;
 
 //============================================================================//
 
-void Listener::set_position(Vec3F position)
+static constexpr const char* conv_ma_error_code[]
 {
-    sf::Listener::setPosition(position.x, position.y, position.z);
+    "MA_SUCCESS",
+    "MA_ERROR",
+    "MA_INVALID_ARGS",
+    "MA_INVALID_OPERATION",
+    "MA_OUT_OF_MEMORY",
+    "MA_OUT_OF_RANGE",
+    "MA_ACCESS_DENIED",
+    "MA_DOES_NOT_EXIST",
+    "MA_ALREADY_EXISTS",
+    "MA_TOO_MANY_OPEN_FILES",
+    "MA_INVALID_FILE",
+    "MA_TOO_BIG",
+    "MA_PATH_TOO_LONG",
+    "MA_NAME_TOO_LONG",
+    "MA_NOT_DIRECTORY",
+    "MA_IS_DIRECTORY",
+    "MA_DIRECTORY_NOT_EMPTY",
+    "MA_END_OF_FILE",
+    "MA_NO_SPACE",
+    "MA_BUSY",
+    "MA_IO_ERROR",
+    "MA_INTERRUPT",
+    "MA_UNAVAILABLE",
+    "MA_ALREADY_IN_USE",
+    "MA_BAD_ADDRESS",
+    "MA_BAD_SEEK",
+    "MA_BAD_PIPE",
+    "MA_DEADLOCK",
+    "MA_TOO_MANY_LINKS",
+    "MA_NOT_IMPLEMENTED",
+    "MA_NO_MESSAGE",
+    "MA_BAD_MESSAGE",
+    "MA_NO_DATA_AVAILABLE",
+    "MA_INVALID_DATA",
+    "MA_TIMEOUT",
+    "MA_NO_NETWORK",
+    "MA_NOT_UNIQUE",
+    "MA_NOT_SOCKET",
+    "MA_NO_ADDRESS",
+    "MA_BAD_PROTOCOL",
+    "MA_PROTOCOL_UNAVAILABLE",
+    "MA_PROTOCOL_NOT_SUPPORTED",
+    "MA_PROTOCOL_FAMILY_NOT_SUPPORTED",
+    "MA_ADDRESS_FAMILY_NOT_SUPPORTED",
+    "MA_SOCKET_NOT_SUPPORTED",
+    "MA_CONNECTION_RESET",
+    "MA_ALREADY_CONNECTED",
+    "MA_NOT_CONNECTED",
+    "MA_CONNECTION_REFUSED",
+    "MA_NO_HOST",
+    "MA_IN_PROGRESS",
+    "MA_CANCELLED",
+    "MA_MEMORY_ALREADY_MAPPED",
+    "MA_AT_END"
+};
+
+//============================================================================//
+
+Sound::Sound(AudioContext& context)
+    : mContext(context) {}
+
+Sound::Sound(Sound&& other) noexcept :
+    mContext(other.mContext)
+{
+    mAudioFrames = std::move(other.mAudioFrames);
+    mContext.impl_reset_sound(&other, this);
+};
+
+Sound& Sound::operator=(Sound&& other) noexcept
+{
+    std::swap(*this, other);
+    return *this;
 }
 
-void Listener::set_rotation(QuatF rotation)
+Sound::~Sound() noexcept
 {
-    const auto direction = rotation * Vec3F(0.f, 1.f, 0.f);
-    const auto tangent = rotation * Vec3F(0.f, 0.f, 1.f);
-
-    sf::Listener::setDirection(direction.x, direction.y, direction.z);
-    sf::Listener::setUpVector(tangent.x, tangent.y, tangent.z);
+    mContext.impl_reset_sound(this);
 }
 
 //============================================================================//
 
-SoundWave::SoundWave(const String& path)
+void Sound::load_from_file(const String& path)
 {
-//    // prepend assets directory to the path
-//    if (path.is_relative()) path = "assets/sounds" / path;
+    mContext.impl_reset_sound(this);
 
-//    // automatically add flac or ogg file extension
-//    if (path.has_extension() == false)
-//    {
-//        const fs::path pathFLAC = path.string() + ".flac";
-//        const fs::path pathOGG = path.string() + ".ogg";
+    // resample all waves to match our output device
+    const auto decoderConfig = ma_decoder_config_init(ma_format_f32, 1u, 48000u);
 
-//        const bool existsFLAC = fs::exists(pathFLAC);
-//        const bool existsOGG = fs::exists(pathOGG);
+    ma_decoder decoder;
 
-//        if (existsFLAC && existsOGG) log_warning("ambiguous sound path '%s'", path);
-//        else if (existsFLAC) path = pathFLAC; else if (existsOGG) path = pathOGG;
-//    }
+    if (auto ec = ma_decoder_init_file(path.c_str(), &decoderConfig, &decoder); ec != MA_SUCCESS)
+    {
+        ma_decoder_uninit(&decoder); // not sure if we need to free here, but it can't hurt
+        throw std::runtime_error(fmt::format("failed to load sound '{}': {}", path, conv_ma_error_code[-ec]));
+    }
 
-//    log_assert(fs::exists(path), "file does not exist: %s", fs::absolute(path));
+    mAudioFrames.resize(ma_decoder_get_length_in_pcm_frames(&decoder));
+    ma_decoder_read_pcm_frames(&decoder, mAudioFrames.data(), mAudioFrames.size());
 
-    String fullPath = "assets/sounds/" + path;
-    if (check_file_exists(fullPath + ".flac")) fullPath += ".flac";
-    else if (check_file_exists(fullPath + ".ogg")) fullPath += ".ogg";
-    else log_error("Failed to find sound file '{}'", fullPath);
-
-    //mBuffer.loadFromFile(fullPath);
-}
-
-//============================================================================//
-
-Sound::Sound()
-{
-    //mSound = std::make_unique<sf::Sound>();
-}
-
-void Sound::set_wave(Handle<String, SoundWave> handle)
-{
-    SQASSERT(check_stopped(), "sound must be stopped");
-
-    //if (handle.check() == false) mSound->resetBuffer();
-    //else mSound->setBuffer(handle->mBuffer);
-
-    mWaveHandle = handle;
-}
-
-void Sound::set_position(Vec3F /*position*/)
-{
-    //mSound->setPosition(position.x, position.y, position.z);
-}
-
-void Sound::set_attenuation(float /*start*/, float /*factor*/)
-{
-    //mSound->setMinDistance(start);
-    //mSound->setAttenuation(factor);
+    ma_decoder_uninit(&decoder);
 }

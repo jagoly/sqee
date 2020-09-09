@@ -17,7 +17,6 @@ namespace sq {
 
 inline const char* to_c_string(const char* arg) { return arg; }
 inline const char* to_c_string(const String& arg) { return arg.c_str(); }
-template <size_t C> inline const char* to_c_string(const StackString<C>& arg) { return arg.c_str(); }
 
 //============================================================================//
 
@@ -52,28 +51,37 @@ template<class... Elements> Structure(const Elements&...) -> Structure<Elements.
 
 namespace detail {
 
-template <class> struct StringSize;
-
-template <size_t N> struct StringSize <const char[N]>
-{ static constexpr size_t size(const char(&)[N]) { return N - 1u; } };
-
-template <> struct StringSize <StringView>
-{ static constexpr size_t size(const StringView& s) { return s.size(); } };
-
-template <> struct StringSize <char>
-{ static constexpr size_t size(char) { return 1; } };
-
-template <> struct StringSize <String>
-{ static size_t size(const String& s) { return s.size(); } };
-
-template <> struct StringSize <const char*>
-{ static size_t size(const char* s) { return std::strlen(s); } };
-
-template <class T> inline size_t string_size(T&& str)
+template <size_t Size>
+constexpr size_t string_length(const char(&)[Size])
 {
-    using value_t = std::remove_reference_t<T>;
-    if constexpr (std::is_array_v<value_t>) return StringSize<value_t>::size(str);
-    else return StringSize<std::remove_cv_t<value_t>>::size(str);
+    return Size - 1u;
+}
+
+template <size_t Capacity>
+constexpr size_t string_length(const StackString<Capacity>& ss)
+{
+    return ss.length();
+}
+
+constexpr size_t string_length(char)
+{
+    return 1u;
+}
+
+constexpr size_t string_length(const std::string_view& sv)
+{
+    return sv.length();
+}
+
+template <class CharT, class = std::enable_if_t<std::is_same_v<CharT, char>>>
+inline size_t string_length(const CharT* const& cstr)
+{
+    return std::strlen(cstr);
+}
+
+inline size_t string_length(const std::string& str)
+{
+    return str.length();
 }
 
 } // namespace detail
@@ -85,7 +93,7 @@ template <class... Args>
 inline String build_string(Args&&... args)
 {
     String result;
-    result.reserve((detail::string_size(std::forward<Args>(args)) + ...));
+    result.reserve((detail::string_length(std::forward<Args>(args)) + ...));
     ((result += args), ...);
     return result;
 }
