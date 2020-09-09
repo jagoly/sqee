@@ -19,6 +19,9 @@ target_include_directories(dearimgui PUBLIC "${PROJECT_SOURCE_DIR}/include")
 set_property(TARGET dearimgui PROPERTY CXX_STANDARD 17)
 set_property(TARGET dearimgui PROPERTY CXX_STANDARD_REQUIRED True)
 
+# force use of the static msvc runtime so we don't need a bunch of extra dlls
+set_property(TARGET dearimgui PROPERTY MSVC_RUNTIME_LIBRARY MultiThreaded$<$<CONFIG:Debug>:Debug>)
+
 ################################################################################
 
 if (SQEE_LINUX)
