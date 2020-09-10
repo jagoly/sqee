@@ -33,7 +33,7 @@ A C++ 17 capable compiler is required. SQEE is primarily tested with GCC and Cla
 
 
 ##### SQEE CMake options:
- * `SQEE_STATIC_LIB` - Build LibSQEE and Lua as a static library. Otherwise, build as shared. Defaults to `False`.
+ * `SQEE_STATIC_LIB` - Build LibSQEE and its dependencies as a static library. Otherwise, build as shared. Defaults to `False`.
 
 ### Licence Information
 
@@ -41,4 +41,4 @@ A C++ 17 capable compiler is required. SQEE is primarily tested with GCC and Cla
 The SQEE Project is Copyright (c) 2020 James Gangur (jagoly). All code created by me in the repository is released under the GNU GPL Version 3, which can be read [here](http://www.gnu.org/licenses/gpl.html). Any assets created by me in this repository are released under the Creative Commons CC-BY-SA licence, which can be read [here](https://creativecommons.org/licenses/by-sa/2.0).
 
 ##### Bundled Source Licences
-The bundled STB-Image source, by Sean T. Barrett, is released Public Domain. The bundled TinyFormat source, by Chris Foster, is released under Boost Software Licence 1.0. The bundled Lean Mean C++ Option Parser source, by Matthias S. Benkmann, is released under the MIT Licence. The bundled Nlohmann-JSON source, by Niels Lohmann, is released under the MIT Licence. todo: update other licences
+For licence information for the bundled libraries, see the links above.
