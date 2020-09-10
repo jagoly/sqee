@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.16)
 project(SQEE CXX)
 
 ################################################################################
@@ -28,6 +28,8 @@ endif ()
 
 target_include_directories(sqee PUBLIC "${PROJECT_SOURCE_DIR}/include")
 
+################################################################################
+
 # todo: makes these options so you don't have to change this file to enable them
 
 #set_property(TARGET sqee PROPERTY CXX_INCLUDE_WHAT_YOU_USE
@@ -36,16 +38,15 @@ target_include_directories(sqee PUBLIC "${PROJECT_SOURCE_DIR}/include")
 
 #target_precompile_headers(sqee PUBLIC <sqee/setup.hpp>)
 
-###############################################################################
+################################################################################
 
 set_property(TARGET sqee PROPERTY CXX_STANDARD 17)
 set_property(TARGET sqee PROPERTY CXX_STANDARD_REQUIRED True)
 
-################################################################################
+target_compile_definitions(sqee PUBLIC $<$<CONFIG:Debug>:SQEE_DEBUG>)
 
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    target_compile_definitions(sqee PUBLIC SQEE_DEBUG)
-endif ()
+# force use of the static msvc runtime so we don't need a bunch of extra dlls
+set_property(TARGET sqee PROPERTY MSVC_RUNTIME_LIBRARY MultiThreaded$<$<CONFIG:Debug>:Debug>)
 
 ################################################################################
 
@@ -60,9 +61,7 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
     target_compile_definitions(sqee PUBLIC SQEE_WINDOWS)
 
 else ()
-
     message(FATAL_ERROR "unsupported platform '${CMAKE_SYSTEM_NAME}'")
-
 endif ()
 
 ################################################################################
@@ -83,9 +82,7 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     target_compile_definitions(sqee PUBLIC SQEE_MSVC)
 
 else ()
-
     message(FATAL_ERROR "unsupported compiler '${CMAKE_CXX_COMPILER_ID}'")
-
 endif ()
 
 ################################################################################
@@ -108,6 +105,15 @@ endif ()
 ################################################################################
 
 if (SQEE_STATIC_LIB)
+    find_package(Threads REQUIRED)
+    target_link_libraries(sqee PUBLIC Threads::Threads)
+    target_link_libraries(sqee PUBLIC ${CMAKE_DL_LIBS})
+endif ()
+
+################################################################################
+
+# for now, don't bother trying to link sfml statically on linux
+if (SQEE_STATIC_LIB AND SQEE_WINDOWS)
     set(SFML_STATIC_LIBRARIES True)
 endif ()
 
@@ -133,17 +139,11 @@ endif ()
 add_subdirectory(libs/dearimgui)
 target_link_libraries(sqee PUBLIC dearimgui)
 
-################################################################################
-
 add_subdirectory(libs/format)
 target_link_libraries(sqee PUBLIC format)
 
-################################################################################
-
 add_subdirectory(libs/wren)
 target_link_libraries(sqee PUBLIC wren)
-
-################################################################################
 
 export(TARGETS sqee dearimgui format wren FILE sqee-exports.cmake)
 

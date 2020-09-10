@@ -20,22 +20,24 @@ target_include_directories(wren PUBLIC "${PROJECT_SOURCE_DIR}/include")
 set_property(TARGET wren PROPERTY C_STANDARD 99)
 set_property(TARGET wren PROPERTY C_STANDARD_REQUIRED True)
 
+# force use of the static msvc runtime so we don't need a bunch of extra dlls
+set_property(TARGET wren PROPERTY MSVC_RUNTIME_LIBRARY MultiThreaded$<$<CONFIG:Debug>:Debug>)
+
+# wren doesn't have any declspec stuff
+set_property(TARGET wren PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS True)
+
 ################################################################################
 
 target_compile_definitions(wren PRIVATE WREN_OPT_META=0)
 target_compile_definitions(wren PRIVATE WREN_OPT_RANDOM=0)
 
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    target_compile_definitions(wren PRIVATE DEBUG=1)
-endif ()
+target_compile_definitions(wren PUBLIC $<$<CONFIG:Debug>:DEBUG=1>)
 
 ################################################################################
 
 if (SQEE_GNU OR SQEE_CLANG)
     target_compile_options(wren PRIVATE -Wall)
 elseif (SQEE_MSVC)
-    # wren doesn't have any declspec stuff
-    set_property(TARGET wren PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS True)
     target_compile_options(wren PRIVATE /W3 /wd4996)
 else ()
     message(FATAL_ERROR "could not detect compiler")
