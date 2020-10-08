@@ -5,7 +5,6 @@
 
 #include <sqee/app/Event.hpp>
 #include <sqee/app/PreProcessor.hpp>
-#include <sqee/gl/UniformBuffer.hpp>
 #include <sqee/gl/Program.hpp>
 
 #include <sqee/objects/Mesh.hpp>
@@ -42,7 +41,7 @@ private: //===================================================//
 
     sq::PreProcessor processor;
 
-    sq::UniformBuffer ubo;
+    sq::FixedBuffer ubo;
 
     std::unique_ptr<Level> level;
 

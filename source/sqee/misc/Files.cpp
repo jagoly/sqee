@@ -163,27 +163,25 @@ TokenisedFile sq::tokenise_file(const String& path)
 
 //============================================================================//
 
-StringView sq::file_from_path(StringView path)
+StringView sq::path_extract_file(StringView path)
 {
     const size_t splitPos = path.rfind('/');
     if (splitPos == path.size() - 1u) return StringView();
     return path.substr(splitPos + 1u);
 }
 
-StringView sq::directory_from_path(StringView path)
+StringView sq::path_extract_directory(StringView path)
 {
     const size_t splitPos = path.rfind('/');
     if (splitPos == StringView::npos) return StringView();
     return path.substr(0u, splitPos + 1u);
 }
 
-StringView sq::extension_from_path(StringView path)
+StringView sq::path_extract_extension(StringView path)
 {
-    const StringView fileName = file_from_path(path);
-    const size_t dotPos = fileName.rfind('.');
-    if (dotPos == StringView::npos) return StringView();
-    if (dotPos == 0u) return StringView();
-    return fileName.substr(dotPos);
+    const size_t splitPos = path.find_last_of("./");
+    if (splitPos == StringView::npos || splitPos == 0u || path[splitPos] == '/') return StringView();
+    return path.substr(splitPos);
 }
 
 //============================================================================//
@@ -193,7 +191,7 @@ String sq::compute_resource_path(StringView key,
                                  std::initializer_list<StringView> extensions)
 {
     SQASSERT(key.front() != '/', "resource keys cannot be absolute");
-    SQASSERT(extension_from_path(key).empty(), "resource keys cannot have extensions");
+    SQASSERT(path_extract_extension(key).empty(), "resource keys cannot have extensions");
     SQASSERT(prefixes.size() > 0u, "no prefixes given");
     SQASSERT(extensions.size() > 0u, "no extensions given");
 
@@ -210,7 +208,6 @@ String sq::compute_resource_path(StringView key,
         }
     }
 
-    // we return the original string so that the resources themselves
-    // can use it to print a useful error message
+    // return the key so that the resource can use it to print a useful error message
     return String(key);
 }

@@ -5,14 +5,11 @@
 
 #include <sqee/setup.hpp>
 
+#include <sqee/gl/Context.hpp>
 #include <sqee/gl/FixedBuffer.hpp>
 #include <sqee/gl/VertexArray.hpp>
 
 namespace sq {
-
-//====== Forward Declarations ================================================//
-
-class Context;
 
 //============================================================================//
 
@@ -22,18 +19,13 @@ class SQEE_API Volume final : private MoveOnly
 public: //====================================================//
 
     /// Constructor.
-    /// @param vertices pointer to array of vertices
-    /// @param indices pointer to array of indices
-    /// @param vertexCount number of vertices to use
-    /// @param indexCount number of indices to use
+    Volume(const float* vertices, const uchar* indices, uint8_t vertexCount, uint8_t indexCount);
 
-    Volume ( const float* vertices, const uchar* indices,
-             uint8_t vertexCount, uint8_t indexCount );
+    /// Bind the vao to the context.
+    void apply_to_context(Context& context) const;
 
-    //--------------------------------------------------------//
-
-    /// Bind the vao to the context and draw the mesh.
-    void bind_and_draw(Context& context) const;
+    /// Draw the volume.
+    void draw(const Context& context) const;
 
 private: //===================================================//
 

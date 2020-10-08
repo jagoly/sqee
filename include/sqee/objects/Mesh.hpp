@@ -6,6 +6,8 @@
 #include <sqee/setup.hpp>
 
 #include <sqee/core/Types.hpp>
+
+#include <sqee/gl/Context.hpp>
 #include <sqee/gl/FixedBuffer.hpp>
 #include <sqee/gl/VertexArray.hpp>
 
@@ -40,13 +42,8 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    /// Access the mesh's vertex array object.
-    const VertexArray& get_vao() const { return mVertexArray; }
-
-    /// Get the number of sub-meshes the mesh has.
-    uint get_sub_mesh_count() const { return uint(mSubMeshVec.size()); }
-
-    //--------------------------------------------------------//
+    /// Get the number of submeshes defined.
+    uint get_submesh_count() const { return uint(mSubMeshVec.size()); }
 
     /// Access the mesh's bounding box origin.
     const Vec3F& get_origin() const { return mOrigin; }
@@ -59,16 +56,19 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    /// Draw the full mesh.
-    void draw_complete() const;
+    /// Bind the vao to the context.
+    void apply_to_context(Context& context) const;
 
-    /// Draw the specified sub-mesh.
-    void draw_partial(uint index) const;
+    /// Draw the entire mesh.
+    void draw_complete(const Context& context) const;
+
+    /// Draw the specified submesh.
+    void draw_submesh(const Context& context, uint index) const;
 
     //--------------------------------------------------------//
 
     /// Create a new sq::Mesh from sqee packages.
-    static std::unique_ptr<Mesh> make_from_package(const String& path);
+    static Mesh make_from_package(const String& path);
 
 private: //===================================================//
 

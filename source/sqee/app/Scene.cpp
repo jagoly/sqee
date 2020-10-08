@@ -29,4 +29,4 @@ void Scene::handle_event(Event /*event*/) {}
 
 void Scene::refresh_options() {}
 
-void Scene::show_imgui_widgets() {};
+void Scene::show_imgui_widgets() {}

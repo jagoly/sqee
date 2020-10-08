@@ -18,32 +18,33 @@ public: //====================================================//
 
     struct Bone
     {
-        Vec3F offset   = { 0.f, 0.f, 0.f };
-        QuatF rotation = { 0.f, 0.f, 0.f, 1.f };
-        Vec3F scale    = { 1.f, 1.f, 1.f };
+        Vec3F offset { nullptr };
+        QuatF rotation { nullptr };
+        Vec3F scale { nullptr };
     };
 
     using Pose = std::vector<Bone>;
 
+    //--------------------------------------------------------//
+
+    // todo: investigate using std::pmr for allocating tracks
     struct Animation
     {
+        struct Track
+        {
+            TinyString key = "";
+            std::vector<std::byte> track;
+        };
+
         uint boneCount = 0u;
-        uint poseCount = 0u;
-        uint totalTime = 0u;
-
-        std::vector<uint32_t> times;
-        std::vector<Pose> poses;
-
-        bool looping() const { return times.back() != 0u; }
+        uint frameCount = 0u;
+        std::vector<std::vector<Track>> bones;
     };
 
     //--------------------------------------------------------//
 
-    /// Load armature relationship information.
-    void load_bones(const String& path, bool swapYZ = false);
-
-    /// Load armature basis information.
-    void load_rest_pose(const String& path);
+    /// Load bones and rest pose from a json file.
+    void load_from_file(const String& path);
 
     //--------------------------------------------------------//
 
@@ -66,11 +67,9 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    Pose make_pose(const String& path) const;
-
     Animation make_animation(const String& path) const;
 
-    Animation make_null_animation(uint length, bool loop) const;
+    Animation make_null_animation(uint length) const;
 
     //--------------------------------------------------------//
 
@@ -93,17 +92,13 @@ public: //====================================================//
 
 private: //===================================================//
 
+    Pose mRestPose;
+
     std::vector<TinyString> mBoneNames;
     std::vector<int8_t> mBoneParents;
 
     std::vector<Mat4F> mBaseMats;
     std::vector<Mat4F> mInverseMats;
-
-    //--------------------------------------------------------//
-
-    Pose mRestPose;
-
-    bool mSwapYZ = false;
 };
 
 //============================================================================//

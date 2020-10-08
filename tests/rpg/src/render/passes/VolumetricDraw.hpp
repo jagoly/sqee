@@ -21,7 +21,7 @@ private: //===================================================//
 
     sq::FrameBuffer FB_Shafts, FB_HalfDepthBlit;
 
-    sq::Texture2D TEX_Shafts_Depth { sq::Texture::Format::DEP24S8 };
+    sq::Texture2D TEX_Shafts_Depth;// { sq::Texture::Format::DEP24S8 };
 
     sq::Program PROG_Shafts_Stencil;
     sq::Program PROG_Shafts_LightCasc;

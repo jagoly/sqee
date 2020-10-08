@@ -5,7 +5,6 @@
 #include <sqee/debug/Logging.hpp>
 #include <sqee/misc/Files.hpp>
 #include <sqee/misc/Parsing.hpp>
-#include <sqee/redist/gl_loader.hpp>
 
 using namespace sq;
 
@@ -18,29 +17,24 @@ void Mesh::load_from_file(const String& path, bool swapYZ)
     if (check_file_exists(path)) impl_load_ascii(path);
     else if (auto _path = path + ".sqm"; check_file_exists(_path)) impl_load_ascii(_path);
     else log_error("Failed to find mesh '{}'", path);
-
-    //const auto fullPath = compute_resource_path("assets/", path, {"sqm"});
-    //if (!fullPath.has_value()) log_error("Failed to find mesh '%s'", path);
-
-    //impl_load_ascii(*fullPath);
 }
 
 //============================================================================//
 
-void Mesh::draw_complete() const
+void Mesh::apply_to_context(Context& context) const
 {
-    gl::DrawElements(gl::TRIANGLES, int(mIndexTotal), gl::UNSIGNED_INT, nullptr);
+    context.bind_vertexarray(mVertexArray);
 }
 
-void Mesh::draw_partial(uint index) const
+void Mesh::draw_complete(const Context& context) const
 {
-    const auto& subMesh = mSubMeshVec[index];
-    const auto startInt = ptrdiff_t(subMesh.firstIndex * 4u);
+    context.draw_elements_u32(DrawPrimitive::Triangles, 0u, mIndexTotal);
+}
 
-    const auto start = reinterpret_cast<GLuint*>(startInt);
-    const auto count = GLsizei(subMesh.indexCount);
-
-    gl::DrawElements(gl::TRIANGLES, count, gl::UNSIGNED_INT, start);
+void Mesh::draw_submesh(const Context& context, uint index) const
+{
+    const SubMesh& sm = mSubMeshVec[index];
+    context.draw_elements_u32(DrawPrimitive::Triangles, sm.firstIndex, sm.indexCount);
 }
 
 //============================================================================//
@@ -266,13 +260,14 @@ void Mesh::impl_load_ascii(const String& path)
 
 void Mesh::impl_load_final(std::vector<std::byte>& vertexData, std::vector<uint32_t>& indexData)
 {
+    const uint sizePOS = sizeof(GL_Float32[3]);
     const uint sizeTCRD = sizeof(GL_Float32[2]) * has_TCRD();
     const uint sizeNORM = sizeof(GL_SNorm16[3]) * has_NORM();
     const uint sizeTANG = sizeof(GL_SNorm16[4]) * has_TANG();
     const uint sizeCOLR = sizeof(GL_Float32[3]) * has_COLR();
     const uint sizeBONE = sizeof(GL_SInt8[4]) * has_BONE();
 
-    const uint offsetTCRD = sizeof(GL_Float32[3]);
+    const uint offsetTCRD = sizePOS;
     const uint offsetNORM = offsetTCRD + sizeTCRD;
     const uint offsetTANG = offsetNORM + sizeNORM;
     const uint offsetCOLR = offsetTANG + sizeTANG;
@@ -297,8 +292,8 @@ void Mesh::impl_load_final(std::vector<std::byte>& vertexData, std::vector<uint3
 
     //--------------------------------------------------------//
 
-    mVertexBuffer.allocate_constant(uint(vertexData.size()), vertexData.data());
-    mIndexBuffer.allocate_constant(uint(indexData.size()) * 4u, indexData.data());
+    mVertexBuffer.allocate_static(uint(vertexData.size()), vertexData.data());
+    mIndexBuffer.allocate_static(uint(indexData.size()) * 4u, indexData.data());
 
     mVertexArray.set_vertex_buffer(mVertexBuffer, mVertexSize);
     mVertexArray.set_index_buffer(mIndexBuffer);
@@ -316,7 +311,7 @@ void Mesh::impl_load_final(std::vector<std::byte>& vertexData, std::vector<uint3
 
 //============================================================================//
 
-std::unique_ptr<Mesh> Mesh::make_from_package(const String& path)
+Mesh Mesh::make_from_package(const String& path)
 {
     const String::size_type splitPos = path.find(':');
     if (splitPos == String::npos) log_error("bad path '{}'", path);
@@ -324,9 +319,9 @@ std::unique_ptr<Mesh> Mesh::make_from_package(const String& path)
     const StringView package ( path.c_str(), splitPos );
     const char* const name = path.c_str() + splitPos + 1u;
 
-    std::unique_ptr<Mesh> mesh = std::make_unique<Mesh>();
+    Mesh mesh;
 
-    mesh->load_from_file(build_string("assets/packages/", package, "/meshes/", name, ".sqm"));
+    mesh.load_from_file(build_string("assets/packages/", package, "/meshes/", name, ".sqm"));
 
     return mesh;
 }

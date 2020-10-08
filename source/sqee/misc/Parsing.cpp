@@ -1,5 +1,7 @@
 #include <sqee/misc/Parsing.hpp>
 
+#include <sqee/debug/Assert.hpp>
+
 using namespace sq;
 
 //============================================================================//
@@ -8,15 +10,13 @@ std::vector<StringView> sq::tokenise_string(StringView sv, char dlm)
 {
     std::vector<StringView> result;
 
-    while (true)
+    while (sv.empty() == false)
     {
-        const auto begin = sv.find_first_not_of(dlm);
-        if (begin == StringView::npos) { break; }
-        sv.remove_prefix(begin);
+        const size_t end = sv.find(dlm);
 
-        const auto end = sv.find_first_of(dlm);
-        if (end == StringView::npos) { result.push_back(sv); break; }
-        result.push_back({sv.data(), end});
+        if (end != 0u) result.emplace_back(sv.data(), end);
+        if (end == StringView::npos) break;
+
         sv.remove_prefix(end + 1u);
     }
 
@@ -25,17 +25,36 @@ std::vector<StringView> sq::tokenise_string(StringView sv, char dlm)
 
 //============================================================================//
 
+void sq::tokenise_string(StringView sv, char dlm, std::vector<StringView>& out)
+{
+    out.clear(); // assume this overload is reusing the vector
+
+    while (sv.empty() == false)
+    {
+        const size_t end = sv.find(dlm);
+
+        if (end != 0u) out.push_back(sv.substr(0u, end));
+        if (end == StringView::npos) break;
+
+        sv.remove_prefix(end + 1u);
+    }
+}
+
+//============================================================================//
+
 std::vector<StringView> sq::tokenise_string_lines(StringView sv)
 {
     // todo: maybe should handle other line endings, hasn't been a problem yet
+
+    SQASSERT(sv.back() == '\n', "no newline at end of string");
 
     std::vector<StringView> result;
 
     while (sv.empty() == false)
     {
-        const size_t lineEnd = sv.find('\n');
-        result.push_back(sv.substr(0u, lineEnd));
-        sv.remove_prefix(lineEnd + 1u);
+        const size_t end = sv.find('\n') + 1u;
+        result.emplace_back(sv.data(), end);
+        sv.remove_prefix(end);
     }
 
     return result;

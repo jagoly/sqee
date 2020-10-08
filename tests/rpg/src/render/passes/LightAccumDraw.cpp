@@ -1,28 +1,24 @@
 #include <sqee/gl/Context.hpp>
-#include <sqee/gl/Drawing.hpp>
-
-#include <sqee/redist/gl_loader.hpp>
 
 #include "LightAccumDraw.hpp"
 
-using Context = sq::Context;
 using namespace sqt::render;
 
 //============================================================================//
 
 LightAccumPasses::LightAccumPasses(const SharedStuff& stuff) : SharedStuff(stuff)
 {
-    FB_Lighting.draw_buffers({gl::COLOR_ATTACHMENT0});
+    FB_Lighting.draw_buffers({sq::FboAttach::Colour0});
 
-    processor.load_vertex(PROG_Main_Stencil, "lighting/Main/Stencil_vs");
+    processor.load_vertex(PROG_Main_Stencil, "shaders/lighting/Main/Stencil_vs.glsl", {});
 
-    processor.load_vertex(PROG_Main_LightCasc, "generic/FullScreen_vs");
-    processor.load_vertex(PROG_Main_LightOrtho_base, "generic/FullScreen_vs");
-    processor.load_vertex(PROG_Main_LightOrtho_shad, "generic/FullScreen_vs");
-    processor.load_vertex(PROG_Main_LightPoint_base, "generic/FullScreen_vs");
-    processor.load_vertex(PROG_Main_LightPoint_shad, "generic/FullScreen_vs");
-    processor.load_vertex(PROG_Main_LightSpot_base, "generic/FullScreen_vs");
-    processor.load_vertex(PROG_Main_LightSpot_shad, "generic/FullScreen_vs");
+    processor.load_vertex(PROG_Main_LightCasc, "shaders/generic/FullScreen_vs.glsl", {});
+    processor.load_vertex(PROG_Main_LightOrtho_base, "shaders/generic/FullScreen_vs.glsl", {});
+    processor.load_vertex(PROG_Main_LightOrtho_shad, "shaders/generic/FullScreen_vs.glsl", {});
+    processor.load_vertex(PROG_Main_LightPoint_base, "shaders/generic/FullScreen_vs.glsl", {});
+    processor.load_vertex(PROG_Main_LightPoint_shad, "shaders/generic/FullScreen_vs.glsl", {});
+    processor.load_vertex(PROG_Main_LightSpot_base, "shaders/generic/FullScreen_vs.glsl", {});
+    processor.load_vertex(PROG_Main_LightSpot_shad, "shaders/generic/FullScreen_vs.glsl", {});
 
     PROG_Main_Stencil.link_program_stages();
 }
@@ -31,13 +27,15 @@ LightAccumPasses::LightAccumPasses(const SharedStuff& stuff) : SharedStuff(stuff
 
 void LightAccumPasses::update_options()
 {
-    processor.load_fragment(PROG_Main_LightCasc, "lighting/Main/LightCasc_fs");
-    processor.load_fragment(PROG_Main_LightOrtho_base, "lighting/Main/LightOrtho_fs");
-    processor.load_fragment(PROG_Main_LightOrtho_shad, "lighting/Main/LightOrtho_fs", "#define SHADOW");
-    processor.load_fragment(PROG_Main_LightPoint_base, "lighting/Main/LightPoint_fs");
-    processor.load_fragment(PROG_Main_LightPoint_shad, "lighting/Main/LightPoint_fs", "#define SHADOW");
-    processor.load_fragment(PROG_Main_LightSpot_base, "lighting/Main/LightSpot_fs");
-    processor.load_fragment(PROG_Main_LightSpot_shad, "lighting/Main/LightSpot_fs", "#define SHADOW");
+    const sq::PreProcessor::OptionMap shadowOptions = { {"SHADOW", "1"} };
+
+    processor.load_fragment(PROG_Main_LightCasc, "shaders/lighting/Main/LightCasc_fs.glsl", {});
+    processor.load_fragment(PROG_Main_LightOrtho_base, "shaders/lighting/Main/LightOrtho_fs.glsl", {});
+    processor.load_fragment(PROG_Main_LightOrtho_shad, "shaders/lighting/Main/LightOrtho_fs.glsl", shadowOptions);
+    processor.load_fragment(PROG_Main_LightPoint_base, "shaders/lighting/Main/LightPoint_fs.glsl", {});
+    processor.load_fragment(PROG_Main_LightPoint_shad, "shaders/lighting/Main/LightPoint_fs.glsl", shadowOptions);
+    processor.load_fragment(PROG_Main_LightSpot_base, "shaders/lighting/Main/LightSpot_fs.glsl", {});
+    processor.load_fragment(PROG_Main_LightSpot_shad, "shaders/lighting/Main/LightSpot_fs.glsl", shadowOptions);
 
     PROG_Main_LightCasc.link_program_stages();
     PROG_Main_LightOrtho_base.link_program_stages();
@@ -48,8 +46,8 @@ void LightAccumPasses::update_options()
     PROG_Main_LightSpot_shad.link_program_stages();
 
     // re-attach textures to lighting framebuffer
-    FB_Lighting.attach(gl::COLOR_ATTACHMENT0, textures.Lighting_Main);
-    FB_Lighting.attach(gl::DEPTH_STENCIL_ATTACHMENT, textures.Depth_FullSize);
+    FB_Lighting.attach(sq::FboAttach::Colour0, textures.Lighting_Main);
+    FB_Lighting.attach(sq::FboAttach::DepthStencil, textures.Depth_FullSize);
 }
 
 //============================================================================//
@@ -58,20 +56,20 @@ void LightAccumPasses::render(const data::LightAccumPasses& data)
 {
     // bind framebuffer, but don't clear
     context.set_ViewPort(options.Window_Size);
-    context.bind_FrameBuffer(FB_Lighting);
+    context.bind_framebuffer(FB_Lighting);
 
     // face culling is not used at all
-    context.set_state(Context::Cull_Face::Disable);
+    context.set_state(sq::CullFace::Disable);
 
     // set blending mode for light accumulation
-    context.set_state(Context::Blend_Mode::Accumulate);
+    context.set_state(sq::BlendMode::Accumulate);
 
     // bind all gbuffer textures to their slots
-    context.bind_Texture(textures.Gbuffer_MainDiff, 3u);
-    context.bind_Texture(textures.Gbuffer_MainSurf, 4u);
-    context.bind_Texture(textures.Gbuffer_MainNorm, 5u);
-    context.bind_Texture(textures.Gbuffer_MainSpec, 6u);
-    context.bind_Texture(textures.Depth_FullSize, 7u);
+    context.bind_texture(textures.Gbuffer_MainDiff, 3u);
+    context.bind_texture(textures.Gbuffer_MainSurf, 4u);
+    context.bind_texture(textures.Gbuffer_MainNorm, 5u);
+    context.bind_texture(textures.Gbuffer_MainSpec, 6u);
+    context.bind_texture(textures.Depth_FullSize, 7u);
 
     //-- render sub passes -----------------------------------//
 
@@ -89,19 +87,20 @@ void LightAccumPasses::render(const data::LightAccumPasses& data)
 void LightAccumPasses::impl_render_SkyLightPass(const data::LightAccumSkyLightPass& light)
 {
     // disable depth test for light accumulation
-    context.set_state(Context::Depth_Test::Disable);
+    context.set_state(sq::DepthTest::Disable);
 
     // only render where there is geometry
-    context.set_state(Context::Stencil_Test::Keep);
-    context.set_Stencil_Params({gl::EQUAL, 1, 1, 0});
+    context.set_state(sq::StencilTest::Keep);
+    context.set_stencil_params(sq::CompareFunc::Equal, 1, 1, 0);
 
-    context.bind_Program(PROG_Main_LightCasc);
+    context.bind_program(PROG_Main_LightCasc);
 
-    context.bind_UniformBuffer(light.ubo, 1u);
-    context.bind_Texture(light.tex, 8u);
+    context.bind_buffer(light.ubo, sq::BufTarget::Uniform, 1u);
+    context.bind_texture(light.tex, 8u);
 
     // render full screen lighting quad
-    sq::draw_screen_quad();
+    context.bind_vertexarray_dummy();
+    context.draw_arrays(sq::DrawPrimitive::TriangleStrip, 0u, 4u);
 }
 
 //============================================================================//
@@ -110,36 +109,38 @@ void LightAccumPasses::impl_render_StencilPass(const data::LightAccumStencilPass
                                                const sq::Volume& volume, const sq::Program& program)
 {
     // enable depth test for stenciling
-    context.set_state(Context::Depth_Test::Keep);
+    context.set_state(sq::DepthTest::Keep);
 
     // use two-sided light volume stencil trick
-    context.set_state(Context::Stencil_Test::Custom);
-    context.set_Stencil_Custom({gl::KEEP, gl::INVERT, gl::KEEP});
+    context.set_state(sq::StencilTest::Custom);
+    context.set_stencil_custom(sq::StencilOp::Keep, sq::StencilOp::Invert, sq::StencilOp::Keep);
 
     // only render where there is geometry
-    context.set_Stencil_Params({gl::EQUAL, 1, 1, 2});
+    context.set_stencil_params(sq::CompareFunc::Equal, 0x01, 0x01, 0x02);
 
     // clear light volume stencil bit
-    context.clear_Stencil(0, 2);
+    context.clear_stencil(0x00, 0x02);
 
-    context.bind_Program(PROG_Main_Stencil);
+    context.bind_program(PROG_Main_Stencil);
 
     PROG_Main_Stencil.update(0, light.matrix);
 
-    volume.bind_and_draw(context);
+    volume.apply_to_context(context);
+    volume.draw(context);
 
-    context.bind_Program(program);
+    context.bind_program(program);
 
     // disable depth test for light accumulation
-    context.set_state(Context::Depth_Test::Disable);
+    context.set_state(sq::DepthTest::Disable);
 
     // only render over the stencil volume bit
-    context.set_state(Context::Stencil_Test::Keep);
-    context.set_Stencil_Params({gl::EQUAL, 2, 2, 0});
+    context.set_state(sq::StencilTest::Keep);
+    context.set_stencil_params(sq::CompareFunc::Equal, 0x02, 0x02, 0x00);
 
-    context.bind_UniformBuffer(light.ubo, 1u);
-    context.bind_Texture(light.tex, 8u);
+    context.bind_buffer(light.ubo, sq::BufTarget::Uniform, 1u);
+    context.bind_texture(light.tex, 8u);
 
     // render full screen lighting quad
-    sq::draw_screen_quad();
+    context.bind_vertexarray_dummy();
+    context.draw_arrays(sq::DrawPrimitive::TriangleStrip, 0u, 4u);
 }

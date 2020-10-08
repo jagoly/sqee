@@ -5,11 +5,12 @@
 
 #include <sqee/setup.hpp>
 
+#include <sqee/gl/Types.hpp>
+
 namespace sq {
 
 //====== Forward Declarations ================================================//
 
-class Context;
 class FixedBuffer;
 
 //============================================================================//
@@ -30,24 +31,9 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     /// Specify a floating point vertex attribute.
-    ///
-    /// @param index vertex shader input attribute index
-    /// @param size number of components (1, 2, 3, 4)
-    /// @param type OpenGL type of individual components
-    /// @param normalize should input values be normalized
-    /// @param offset offset to the first element in the vertex buffer
-
     void add_float_attribute(uint index, uint size, GLenum type, bool normalize, uint offset);
 
-    //--------------------------------------------------------//
-
     /// Specify an integral vertex attribute.
-    ///
-    /// @param index vertex shader input attribute index
-    /// @param size number of components (1, 2, 3, 4)
-    /// @param type GL type of individual components
-    /// @param offset offset to the first element in the vertex buffer
-
     void add_integer_attribute(uint index, uint size, GLenum type, uint offset);
 
     //--------------------------------------------------------//
@@ -64,8 +50,6 @@ public: //====================================================//
     GLuint get_handle() const { return mHandle; }
 
 private: //===================================================//
-
-    Context& mContext;
 
     GLuint mHandle = 0u;
 };

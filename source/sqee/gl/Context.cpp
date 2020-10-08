@@ -1,12 +1,14 @@
 #include <sqee/gl/Context.hpp>
 
+#include <sqee/debug/Assert.hpp>
 #include <sqee/debug/Logging.hpp>
+
+#include <sqee/gl/FixedBuffer.hpp>
 #include <sqee/gl/FrameBuffer.hpp>
+#include <sqee/gl/Functions.hpp>
 #include <sqee/gl/Program.hpp>
 #include <sqee/gl/Textures.hpp>
-#include <sqee/gl/UniformBuffer.hpp>
 #include <sqee/gl/VertexArray.hpp>
-#include <sqee/redist/gl_loader.hpp>
 
 using namespace sq;
 
@@ -14,12 +16,6 @@ using namespace sq;
 
 Context::Context()
 {
-    crnt_Scissor_Params = { 0u, 0u, 0u, 0u };
-    crnt_Stencil_Params = { gl::ALWAYS, 0u, 255u, 255u };
-    crnt_Stencil_Custom = { gl::KEEP, gl::KEEP, gl::KEEP };
-    crnt_Blend_Custom   = { gl::ONE, gl::ZERO };
-    crnt_ViewPort       = { 0u, 0u };
-
     sq::log_info("Creating SQEE Render Context");
     gl::CreateVertexArrays(1, &mDummyVAO);
 }
@@ -30,318 +26,267 @@ Context::~Context()
     gl::DeleteVertexArrays(1, &mDummyVAO);
 }
 
-//============================================================================//
-
-void Context::set_state(Clip_Distance state)
+Context& Context::get()
 {
-    if (impl_check_modify(crnt_Clip_Distance, state)) return;
-
-    if (state == Clip_Distance::Disable) gl::Disable(gl::CLIP_DISTANCE0);
-    if (state == Clip_Distance::Enable)  gl::Enable(gl::CLIP_DISTANCE0);
-}
-
-void Context::set_state(Depth_Clamp state)
-{
-    if (impl_check_modify(crnt_Depth_Clamp, state)) return;
-
-    if (state == Depth_Clamp::Disable) gl::Disable(gl::DEPTH_CLAMP);
-    if (state == Depth_Clamp::Enable)  gl::Enable(gl::DEPTH_CLAMP);
-}
-
-void Context::set_state(Scissor_Test state)
-{
-    if (impl_check_modify(crnt_Scissor_Test, state)) return;
-
-    if (state == Scissor_Test::Disable) gl::Disable(gl::SCISSOR_TEST);
-    if (state == Scissor_Test::Enable)  gl::Enable(gl::SCISSOR_TEST);
-}
-
-//void Context::set_state(Alpha_Coverage state)
-//{
-//    if (impl_check_modify(crnt_Alpha_Coverage, state)) return;
-//
-//    if (state == Alpha_Coverage::Disable) gl::Disable(gl::SAMPLE_ALPHA_TO_COVERAGE);
-//    if (state == Alpha_Coverage::Enable)  gl::Enable(gl::SAMPLE_ALPHA_TO_COVERAGE);
-//}
-
-void Context::set_state(Cull_Face state)
-{
-    if (impl_check_modify(crnt_Cull_Face, state)) return;
-
-    if (state == Cull_Face::Disable) { gl::Disable(gl::CULL_FACE); return; }
-
-    gl::Enable(gl::CULL_FACE);
-
-    if (state == Cull_Face::Back)  gl::CullFace(gl::BACK);
-    if (state == Cull_Face::Front) gl::CullFace(gl::FRONT);
-}
-
-void Context::set_state(Depth_Test state)
-{
-    if (impl_check_modify(crnt_Depth_Test, state)) return;
-
-    if (state == Depth_Test::Disable) { gl::Disable(gl::DEPTH_TEST); return; }
-
-    gl::Enable(gl::DEPTH_TEST);
-
-    if (state == Depth_Test::Keep)    gl::DepthMask(false);
-    if (state == Depth_Test::Replace) gl::DepthMask(true);
-}
-
-void Context::set_state(Stencil_Test state)
-{
-    if (impl_check_modify(crnt_Stencil_Test, state)) return;
-
-    if (state == Stencil_Test::Disable) { gl::Disable(gl::STENCIL_TEST); return; }
-
-    gl::Enable(gl::STENCIL_TEST);
-
-    if (state == Stencil_Test::Keep)    set_Stencil_Custom({gl::KEEP, gl::KEEP, gl::KEEP});
-    if (state == Stencil_Test::Replace) set_Stencil_Custom({gl::KEEP, gl::KEEP, gl::REPLACE});
-}
-
-void Context::set_state(Blend_Mode state)
-{
-    if (impl_check_modify(crnt_Blend_Mode, state)) return;
-
-    if (state == Blend_Mode::Disable) { gl::Disable(gl::BLEND); return; }
-
-    gl::Enable(gl::BLEND);
-
-    if (state == Blend_Mode::Accumulate) set_Blend_Custom({gl::ONE, gl::ONE});
-    if (state == Blend_Mode::Alpha)      set_Blend_Custom({gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA});
-    if (state == Blend_Mode::PremAlpha)  set_Blend_Custom({gl::ONE, gl::ONE_MINUS_SRC_ALPHA});
-}
-
-void Context::set_state(Depth_Compare state)
-{
-    if (impl_check_modify(crnt_Depth_Compare, state)) return;
-
-    if (state == Depth_Compare::Less)         gl::DepthFunc(gl::LESS);
-    if (state == Depth_Compare::LessEqual)    gl::DepthFunc(gl::LEQUAL);
-    if (state == Depth_Compare::Greater)      gl::DepthFunc(gl::GREATER);
-    if (state == Depth_Compare::GreaterEqual) gl::DepthFunc(gl::GEQUAL);
-    if (state == Depth_Compare::Equal)        gl::DepthFunc(gl::EQUAL);
-    if (state == Depth_Compare::NotEqual)     gl::DepthFunc(gl::NOTEQUAL);
+    thread_local Context instance;
+    return instance;
 }
 
 //============================================================================//
 
-void Context::set_Scissor_Params(Scissor_Params args)
+void Context::set_state(AlphaCoverage state)
 {
-    if (impl_check_modify(crnt_Scissor_Params, args)) return;
-
-    gl::Scissor(int(args.x), int(args.y), int(args.width), int(args.height));
+    if (bool(state)) gl::Enable(gl::SAMPLE_ALPHA_TO_COVERAGE);
+    else gl::Disable(gl::SAMPLE_ALPHA_TO_COVERAGE);
 }
 
-void Context::set_Stencil_Params(Stencil_Params args)
+void Context::set_state(ClipDistance state)
 {
-    if (impl_check_modify(crnt_Stencil_Params, args)) return;
-
-    gl::StencilFunc(args.func, args.ref, args.readMask);
-    gl::StencilMask(args.writeMask);
+    if (bool(state)) gl::Enable(gl::CLIP_DISTANCE0);
+    else gl::Disable(gl::CLIP_DISTANCE0);
 }
 
-void Context::set_Stencil_Custom(Stencil_Custom args)
+void Context::set_state(DepthClamp state)
 {
-    if (impl_check_modify(crnt_Stencil_Custom, args)) return;
-
-    gl::StencilOp(args.fail, args.zFail, args.zPass);
+    if (bool(state)) gl::Enable(gl::DEPTH_CLAMP);
+    else gl::Disable(gl::DEPTH_CLAMP);
 }
 
-void Context::set_Blend_Custom(Blend_Custom args)
+void Context::set_state(ScissorTest state)
 {
-    if (impl_check_modify(crnt_Blend_Custom, args)) return;
+    if (bool(state)) gl::Enable(gl::SCISSOR_TEST);
+    else gl::Disable(gl::SCISSOR_TEST);
+}
 
-    gl::BlendFunc(args.srcFactor, args.destFactor);
+//============================================================================//
+
+void Context::set_state(BlendMode state)
+{
+    if (state != BlendMode::Disable)
+    {
+        gl::Enable(gl::BLEND);
+        if (state == BlendMode::Accumulate) gl::BlendFunc(gl::ONE, gl::ONE);
+        if (state == BlendMode::Alpha) gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+        if (state == BlendMode::PremAlpha) gl::BlendFunc(gl::ONE, gl::ONE_MINUS_SRC_ALPHA);
+        if (state == BlendMode::Custom) {} // set_blend_custom
+    }
+    else gl::Disable(gl::BLEND);
+}
+
+void Context::set_state(CullFace state)
+{
+    if (state != CullFace::Disable)
+    {
+        gl::Enable(gl::CULL_FACE);
+        if (state == CullFace::Back) gl::CullFace(gl::BACK);
+        if (state == CullFace::Front) gl::CullFace(gl::FRONT);
+    }
+    else gl::Disable(gl::CULL_FACE);
+}
+
+void Context::set_state(DepthTest state)
+{
+    if (state != DepthTest::Disable)
+    {
+        gl::Enable(gl::DEPTH_TEST);
+        if (state == DepthTest::Keep) gl::DepthMask(false);
+        if (state == DepthTest::Replace) gl::DepthMask(true);
+    }
+    else gl::Disable(gl::DEPTH_TEST);
+}
+
+void Context::set_state(StencilTest state)
+{
+    if (state != StencilTest::Disable)
+    {
+        gl::Enable(gl::STENCIL_TEST);
+        if (state == StencilTest::Keep) gl::StencilOp(gl::KEEP, gl::KEEP, gl::KEEP);
+        if (state == StencilTest::Replace) gl::StencilOp(gl::KEEP, gl::KEEP, gl::REPLACE);
+        if (state == StencilTest::Custom) {} // set_stencil_custom
+    }
+    else gl::Disable(gl::STENCIL_TEST);
+}
+
+//============================================================================//
+
+void Context::set_scissor_box(uint x, uint y, uint width, uint height)
+{
+    gl::Scissor(int(x), int(y), int(width), int(height));
+}
+
+void Context::set_depth_compare(CompareFunc func)
+{
+    gl::DepthFunc(GLenum(func));
+}
+
+void Context::set_stencil_params(CompareFunc func, uchar ref, uchar readMask, uchar writeMask)
+{
+    gl::StencilFunc(GLenum(func), int(ref), uint(readMask));
+    gl::StencilMask(uint(writeMask));
+}
+
+void Context::set_blend_custom(BlendFactor src, BlendFactor dest)
+{
+    gl::BlendFunc(GLenum(src), GLenum(dest));
+}
+
+void Context::set_stencil_custom(StencilOp fail, StencilOp zFail, StencilOp zPass)
+{
+    gl::StencilOp(GLenum(fail), GLenum(zFail), GLenum(zPass));
+}
+
+//============================================================================//
+
+void Context::set_line_width(float width)
+{
+    gl::LineWidth(width);
 }
 
 //============================================================================//
 
 void Context::set_ViewPort(Vec2U size)
 {
-    if (impl_check_modify(crnt_ViewPort, size)) return;
-
+    mCurrentViewPort = size;
     gl::Viewport(0, 0, int(size.x), int(size.y));
 }
 
 //============================================================================//
 
-void Context::bind_FrameBuffer_Read(const FrameBuffer& fbo)
+void Context::bind_buffer(const FixedBuffer& buffer, BufTarget target, uint slot)
 {
-    if (impl_check_modify(mFrameBufferBindingRead, &fbo)) return;
-
-    gl::BindFramebuffer(gl::READ_FRAMEBUFFER, fbo.get_handle());
+    SQASSERT(buffer.get_handle() != 0u, "");
+    gl::BindBufferBase(GLenum(target), slot, buffer.get_handle());
 }
 
-void Context::bind_FrameBuffer_Draw(const FrameBuffer& fbo)
+void Context::bind_buffer(const FixedBuffer& buffer, BufTarget target, uint slot, uint offset, uint size)
 {
-    if (impl_check_modify(mFrameBufferBindingDraw, &fbo)) return;
-
-    gl::BindFramebuffer(gl::DRAW_FRAMEBUFFER, fbo.get_handle());
+    SQASSERT(buffer.get_handle() != 0u, "");
+    gl::BindBufferRange(GLenum(target), slot, buffer.get_handle(), ptrdiff_t(offset), ptrdiff_t(size));
 }
 
-void Context::bind_FrameBuffer(const FrameBuffer& fbo)
+void Context::bind_framebuffer(const FrameBuffer& fbo, FboTarget target)
 {
-    if (!impl_check_modify(mFrameBufferBindingRead, &fbo))
-        gl::BindFramebuffer(gl::READ_FRAMEBUFFER, fbo.get_handle());
-
-    if (!impl_check_modify(mFrameBufferBindingDraw, &fbo))
-        gl::BindFramebuffer(gl::DRAW_FRAMEBUFFER, fbo.get_handle());
+    SQASSERT(fbo.get_handle() != 0u, "");
+    gl::BindFramebuffer(GLenum(target), fbo.get_handle());
 }
 
-void Context::bind_FrameBuffer_default()
+void Context::bind_program(const Program& program)
 {
-    mFrameBufferBindingRead = nullptr;
-    mFrameBufferBindingDraw = nullptr;
-
-    gl::BindFramebuffer(gl::FRAMEBUFFER, 0u);
-}
-
-//============================================================================//
-
-void Context::bind_Program(const Program& program)
-{
-    if (impl_check_modify(mProgramBinding, &program)) return;
-
+    SQASSERT(program.get_handle() != 0u, "");
     gl::UseProgram(program.get_handle());
 }
 
-void Context::bind_Program_default()
+void Context::bind_texture(const Texture& tex, uint slot)
 {
-    mProgramBinding = nullptr;
+    SQASSERT(tex.get_handle() != 0u, "");
+    gl::BindTextureUnit(slot, tex.get_handle());
+}
 
-    gl::UseProgram(0u);
+void Context::bind_vertexarray(const VertexArray& vao)
+{
+    SQASSERT(vao.get_handle() != 0u, "");
+    gl::BindVertexArray(vao.get_handle());
 }
 
 //============================================================================//
 
-void Context::bind_VertexArray(const VertexArray& vao)
+void Context::bind_framebuffer_default(FboTarget target)
 {
-    if (impl_check_modify(mVertexArrayBinding, &vao)) return;
-
-    gl::BindVertexArray(vao.get_handle());
+    gl::BindFramebuffer(GLenum(target), 0u);
 }
 
-void Context::bind_VertexArray_dummy()
+void Context::bind_program_default()
 {
-    mVertexArrayBinding = nullptr;
+    gl::UseProgram(0u);
+}
 
+void Context::bind_vertexarray_dummy()
+{
     gl::BindVertexArray(mDummyVAO);
 }
 
 //============================================================================//
 
-void Context::bind_Texture(const Texture& tex, uint8_t slot)
+void Context::clear_depth(double depth)
 {
-    if (impl_check_modify(mTextureBindings[slot], &tex)) return;
-
-    gl::ActiveTexture(gl::TEXTURE0 + slot);
-    gl::BindTexture(tex.get_target(), tex.get_handle());
+    gl::DepthMask(true);
+    gl::ClearDepth(depth);
+    gl::Clear(gl::DEPTH_BUFFER_BIT);
 }
 
-//============================================================================//
-
-void Context::bind_UniformBuffer(const UniformBuffer& ubo, uint8_t index)
+void Context::clear_stencil(uchar stencil, uchar mask)
 {
-    const UniformBufferBinding binding { &ubo, 0u, 0u };
-    if (impl_check_modify(mUniformBufferBindings[index], binding)) return;
-
-    gl::BindBufferBase(gl::UNIFORM_BUFFER, index, ubo.get_handle());
+    gl::StencilMask(uint(mask));
+    gl::ClearStencil(int(stencil));
+    gl::Clear(gl::STENCIL_BUFFER_BIT);
 }
 
-void Context::bind_UniformBuffer(const UniformBuffer& ubo, uint8_t index, uint offset, uint size)
+void Context::clear_colour(Vec4F colour)
 {
-    const UniformBufferBinding binding { &ubo, offset, size };
-    if (impl_check_modify(mUniformBufferBindings[index], binding)) return;
-
-    gl::BindBufferRange(gl::UNIFORM_BUFFER, index, ubo.get_handle(), offset, size);
-}
-
-//============================================================================//
-
-void Context::clear_Colour(Vec4F colour)
-{
+    gl::ColorMask(true, true, true, true);
     gl::ClearColor(colour.r, colour.g, colour.b, colour.a);
     gl::Clear(gl::COLOR_BUFFER_BIT);
 }
 
-void Context::clear_Depth(double depth)
+void Context::clear_depth_stencil(double depth, uchar stencil, uchar mask)
 {
-    if (crnt_Depth_Test != Depth_Test::Replace)
-        gl::DepthMask(true);
-
+    gl::DepthMask(true);
     gl::ClearDepth(depth);
-    gl::Clear(gl::DEPTH_BUFFER_BIT);
-
-    if (crnt_Depth_Test == Depth_Test::Keep)
-        gl::DepthMask(false);
-}
-
-void Context::clear_Stencil(uchar stencil, uchar mask)
-{
-    if (crnt_Stencil_Params.writeMask != mask)
-        gl::StencilMask(mask);
-
-    gl::ClearStencil(stencil);
-    gl::Clear(gl::STENCIL_BUFFER_BIT);
-
-    if (crnt_Stencil_Params.writeMask != mask)
-        gl::StencilMask(crnt_Stencil_Params.writeMask);
-}
-
-void Context::clear_Depth_Stencil()
-{
-    if (crnt_Depth_Test != Depth_Test::Replace)
-        gl::DepthMask(true);
-
-    if (crnt_Stencil_Params.writeMask != 255u)
-        gl::StencilMask(255u);
-
-    gl::ClearDepth(1.0); gl::ClearStencil(0u);
+    gl::StencilMask(uint(mask));
+    gl::ClearStencil(int(stencil));
     gl::Clear(gl::DEPTH_BUFFER_BIT | gl::STENCIL_BUFFER_BIT);
+}
 
-    if (crnt_Depth_Test == Depth_Test::Keep)
-        gl::DepthMask(false);
+void Context::clear_depth_colour(double depth, Vec4F colour)
+{
+    gl::DepthMask(true);
+    gl::ClearDepth(depth);
+    gl::ColorMask(true, true, true, true);
+    gl::ClearColor(colour.r, colour.g, colour.b, colour.a);
+    gl::Clear(gl::DEPTH_BUFFER_BIT | gl::COLOR_BUFFER_BIT);
+}
 
-    if (crnt_Stencil_Params.writeMask != 255u)
-        gl::StencilMask(crnt_Stencil_Params.writeMask);
+void Context::clear_stencil_colour(uchar stencil, uchar mask, Vec4F colour)
+{
+    gl::StencilMask(uint(mask));
+    gl::ClearStencil(int(stencil));
+    gl::ColorMask(true, true, true, true);
+    gl::ClearColor(colour.r, colour.g, colour.b, colour.a);
+    gl::Clear(gl::DEPTH_BUFFER_BIT | gl::STENCIL_BUFFER_BIT | gl::COLOR_BUFFER_BIT);
+}
+
+void Context::clear_depth_stencil_colour(double depth, uchar stencil, uchar mask, Vec4F colour)
+{
+    gl::DepthMask(true);
+    gl::ClearDepth(depth);
+    gl::StencilMask(uint(mask));
+    gl::ClearStencil(int(stencil));
+    gl::ColorMask(true, true, true, true);
+    gl::ClearColor(colour.r, colour.g, colour.b, colour.a);
+    gl::Clear(gl::DEPTH_BUFFER_BIT | gl::STENCIL_BUFFER_BIT | gl::COLOR_BUFFER_BIT);
 }
 
 //============================================================================//
 
-void Context::impl_reset_FrameBuffer(const FrameBuffer* old, const FrameBuffer* fresh)
+void Context::draw_arrays(DrawPrimitive primitive, uint first, uint count)
 {
-    if (mFrameBufferBindingRead == old) mFrameBufferBindingRead = fresh;
-    if (mFrameBufferBindingDraw == old) mFrameBufferBindingDraw = fresh;
+    gl::DrawArrays(GLenum(primitive), int(first), int(count));
 }
 
-void Context::impl_reset_Program(const Program* old, const Program* fresh)
+void Context::draw_elements_u8(DrawPrimitive primitive, uint8_t first, uint8_t count)
 {
-    if (mProgramBinding == old) mProgramBinding = fresh;
+    const ptrdiff_t indices = ptrdiff_t(first * 1u);
+    gl::DrawElements(GLenum(primitive), int(count), gl::UNSIGNED_BYTE, reinterpret_cast<const void*>(indices));
 }
 
-void Context::impl_reset_Texture(const Texture* old, const Texture* fresh)
+void Context::draw_elements_u16(DrawPrimitive primitive, uint16_t first, uint16_t count)
 {
-    for (auto& reference : mTextureBindings)
-        if (reference == old) reference = fresh;
+    const ptrdiff_t indices = ptrdiff_t(first * 2u);
+    gl::DrawElements(GLenum(primitive), int(count), gl::UNSIGNED_SHORT, reinterpret_cast<const void*>(indices));
 }
 
-void Context::impl_reset_UniformBuffer(const UniformBuffer* old, const UniformBuffer* fresh)
+void Context::draw_elements_u32(DrawPrimitive primitive, uint32_t first, uint32_t count)
 {
-    for (auto& binding : mUniformBufferBindings)
-        if (binding.ptr == old) binding.ptr = fresh;
-}
-
-void Context::impl_reset_VertexArray(const VertexArray* old, const VertexArray* fresh)
-{
-    if (mVertexArrayBinding == old) mVertexArrayBinding = fresh;
-}
-
-//============================================================================//
-
-Context& Context::get()
-{
-    thread_local Context instance;
-    return instance;
+    const ptrdiff_t indices = ptrdiff_t(first * 4u);
+    gl::DrawElements(GLenum(primitive), int(count), gl::UNSIGNED_INT, reinterpret_cast<const void*>(indices));
 }

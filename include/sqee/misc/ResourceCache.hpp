@@ -11,53 +11,47 @@ namespace sq {
 
 //============================================================================//
 
-/// Abstract base for caching a type of @ref Resource.
-/// @tparam Key hashable key type
-/// @tparam Type type of the resource
-
+/// Class that provides caching of a type of resource.
 template <class Key, class Type>
-class ResourceCache : private NonCopyable
+class ResourceCache final : private NonCopyable
 {
 public: //====================================================//
 
-    /// Virtual Destructor.
-    virtual ~ResourceCache() = default;
+    using Factory = std::function<std::unique_ptr<Type>(const Key&)>;
 
-    //--------------------------------------------------------//
-
-    /// Acquire a handle to a resource, loading it if needed.
-    /// @param key the key of the resource to acquire
-
-    Handle<Type> acquire(const Key& key)
+    /// Set the callable to use to create new resources.
+    void assign_factory(Factory factory)
     {
-        Resource<Type>& resource = mResourceMap[key];
-
-        if (!resource.loaded())
-            resource.uptr = create(key);
-
-        return Handle(resource);
+        mFactoryFunc = std::move(factory);
     }
 
-    //--------------------------------------------------------//
+    /// Acquire a handle to a resource. Create it if needed.
+    Handle<Key, Type> acquire(const Key& key)
+    {
+        const auto& [iter, created] = mResourceMap.try_emplace(key);
+        if (created == true)
+        {
+            iter->second.key = &iter->first;
+            iter->second.data = mFactoryFunc(key);
+            iter->second.count = 0u;
+        }
+        return Handle<Key, Type>(iter->second);
+    }
 
-    /// Reload all cached resources.
+    /// Reload cached resources. Handles will remain valid.
     void reload_resources()
     {
         for (auto& [key, resource] : mResourceMap)
-            resource.uptr = create(key);
+            resource.data = mFactoryFunc(key);
     }
 
-protected: //=================================================//
+private: //===================================================//
 
-    /// Implement to load a new resource.
-    /// @param key the key of the resource to load
+    // todo: experiment with using unordered_map instead
+    std::map<Key, Resource<Key, Type>> mResourceMap;
 
-    virtual std::unique_ptr<Type> create(const Key& key) = 0;
-
-    //--------------------------------------------------------//
-
-    /// Map holding already cached resources.
-    std::unordered_map<Key, Resource<Type>> mResourceMap;
+    // we use a std::function to make things easy
+    Factory mFactoryFunc;
 };
 
 //============================================================================//

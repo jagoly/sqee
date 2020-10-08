@@ -12,7 +12,6 @@
 #include <sqee/gl/Program.hpp>
 #include <sqee/gl/Textures.hpp>
 #include <sqee/gl/VertexArray.hpp>
-#include <sqee/redist/gl_loader.hpp>
 
 #include <dearimgui/imgui.h>
 
@@ -20,12 +19,8 @@ using namespace sq;
 
 //============================================================================//
 
-static constexpr const StringView VERTEX_SHADER_SOURCE = R"glsl(
-
-#version 330 core
-#extension GL_ARB_shading_language_420pack : enable
-#extension GL_ARB_explicit_uniform_location : enable
-#extension GL_ARB_gpu_shader5 : enable
+constexpr const char VERTEX_SHADER_SOURCE[] = R"glsl(
+#version 450 core
 
 layout(location=0) in vec2 v_Position;
 layout(location=1) in vec2 v_TexCoord;
@@ -43,19 +38,14 @@ void main()
 
     gl_Position = u_Matrix * vec4(v_Position, 0.f, 1.f);
 }
-
 )glsl";
 
 //============================================================================//
 
-static constexpr const StringView FRAGMENT_SHADER_SOURCE = R"glsl(
+constexpr const char FRAGMENT_SHADER_SOURCE[] = R"glsl(
+#version 450 core
 
-#version 330 core
-#extension GL_ARB_shading_language_420pack : enable
-#extension GL_ARB_explicit_uniform_location : enable
-#extension GL_ARB_gpu_shader5 : enable
-
-layout(binding=0) uniform sampler2D tex_Atlas;
+layout(location=1, binding=0) uniform sampler2D tex_Atlas;
 
 in vec2 texcrd;
 in vec4 colour;
@@ -66,7 +56,6 @@ void main()
 {
     frag_Colour = colour * texture(tex_Atlas, texcrd);
 }
-
 )glsl";
 
 //============================================================================//
@@ -109,11 +98,11 @@ private: //===================================================//
 
     //--------------------------------------------------------//
 
-    sq::Texture2D mTexture;
-    sq::Program mProgram;
+    Texture2D mTexture;
+    Program mProgram;
 
-    sq::VertexArray mVAO;
-    sq::FixedBuffer mVBO, mIBO;
+    VertexArray mVAO;
+    FixedBuffer mVBO, mIBO;
 };
 
 //============================================================================//
@@ -341,12 +330,12 @@ void GuiSystem::Implementation::create_fonts()
 
 void GuiSystem::Implementation::create_gl_objects()
 {
-    mProgram.load_vertex(VERTEX_SHADER_SOURCE);
-    mProgram.load_fragment(FRAGMENT_SHADER_SOURCE);
+    mProgram.load_shader(ShaderStage::Vertex, VERTEX_SHADER_SOURCE, "GuiSystem.Vertex");
+    mProgram.load_shader(ShaderStage::Fragment, FRAGMENT_SHADER_SOURCE, "GuiSystem.Fragment");
     mProgram.link_program_stages();
 
-    mVBO.allocate_dynamic(65536u * 20u, nullptr);
-    mIBO.allocate_dynamic(65536u * 2u, nullptr);
+    mVBO.allocate_dynamic(65536u * 20u);
+    mIBO.allocate_dynamic(65536u * 2u);
 
     mVAO.set_vertex_buffer(mVBO, 20u);
     mVAO.set_index_buffer(mIBO);
@@ -358,11 +347,11 @@ void GuiSystem::Implementation::create_gl_objects()
     uchar* pixels; int width, height;
     io.Fonts->GetTexDataAsAlpha8(&pixels, &width, &height);
 
-    mTexture.set_format(sq::Texture::Format::R8_UN);
+    mTexture.allocate_storage(TexFormat::R8_UN, {uint(width), uint(height)}, false);
+    mTexture.load_memory(TexFormat::R8_UN, {uint(width), uint(height)}, pixels);
+
+    mTexture.set_filter_mode(true, false);
     mTexture.set_swizzle_mode('1', '1', '1', 'R');
-    mTexture.set_filter_mode(true);
-    mTexture.allocate_storage({uint(width), uint(height)});
-    mTexture.load_memory(pixels);
 
     io.Fonts->TexID = static_cast<void*>(&mTexture);
 }
@@ -491,13 +480,13 @@ void GuiSystem::Implementation::render_gui()
 
     //--------------------------------------------------------//
 
-    context.bind_FrameBuffer_default();
+    context.bind_framebuffer_default(FboTarget::Both);
 
-    context.set_state(Context::Scissor_Test::Enable);
+    context.set_state(ScissorTest::Enable);
 
-    context.set_state(Context::Blend_Mode::Alpha);
-    context.set_state(Context::Cull_Face::Disable);
-    context.set_state(Context::Depth_Test::Disable);
+    context.set_state(BlendMode::Alpha);
+    context.set_state(CullFace::Disable);
+    context.set_state(DepthTest::Disable);
 
     const Mat4F orthoMatrix
     {
@@ -509,16 +498,15 @@ void GuiSystem::Implementation::render_gui()
 
     mProgram.update(0, orthoMatrix);
 
-    context.bind_Program(mProgram);
-    context.bind_Texture(mTexture, 0u);
-    context.bind_VertexArray(mVAO);
+    context.bind_program(mProgram);
+    context.bind_texture(mTexture, 0u);
+    context.bind_vertexarray(mVAO);
 
     //--------------------------------------------------------//
 
     for (int n = 0; n < drawData.CmdListsCount; ++n)
     {
         const ImDrawList& cmdList = *drawData.CmdLists[n];
-        const ImDrawIdx* indexBufferOffset = 0;
 
         mVBO.update(0u, uint(cmdList.VtxBuffer.Size) * sizeof(ImDrawVert), cmdList.VtxBuffer.Data);
         mIBO.update(0u, uint(cmdList.IdxBuffer.Size) * sizeof(ImDrawIdx), cmdList.IdxBuffer.Data);
@@ -532,17 +520,15 @@ void GuiSystem::Implementation::render_gui()
                 const uint clipW = uint(cmd.ClipRect.z - cmd.ClipRect.x);
                 const uint clipH = uint(cmd.ClipRect.w - cmd.ClipRect.y);
 
-                context.set_Scissor_Params({clipX, clipY, clipW, clipH});
+                context.set_scissor_box(clipX, clipY, clipW, clipH);
 
-                gl::DrawElements(gl::TRIANGLES, int(cmd.ElemCount), gl::UNSIGNED_SHORT, indexBufferOffset);
+                context.draw_elements_u16(DrawPrimitive::Triangles, uint16_t(cmd.IdxOffset), uint16_t(cmd.ElemCount));
             }
             else cmd.UserCallback(&cmdList, &cmd);
-
-            std::advance(indexBufferOffset, cmd.ElemCount);
         }
     }
 
-    context.set_state(Context::Scissor_Test::Disable);
+    context.set_state(ScissorTest::Disable);
 }
 
 //============================================================================//

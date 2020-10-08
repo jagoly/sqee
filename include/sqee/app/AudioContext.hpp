@@ -26,7 +26,7 @@ enum class SoundGroup : uint8_t
 struct SoundGroups
 {
     constexpr SoundGroups() = default;
-    constexpr SoundGroups(SoundGroup group) : value(uint8_t(group)) {};
+    constexpr SoundGroups(SoundGroup group) : value(uint8_t(group)) {}
     constexpr explicit SoundGroups(uint8_t value) : value(value) {}
     uint8_t value = 0u;
 };

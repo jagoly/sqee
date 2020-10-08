@@ -55,6 +55,9 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(SQEE_LINUX True)
     target_compile_definitions(sqee PUBLIC SQEE_LINUX)
 
+    # required for stack traces from backward.hpp
+    target_link_libraries(sqee PUBLIC $<$<CONFIG:Debug>:dw>)
+
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
 
     set(SQEE_WINDOWS True)

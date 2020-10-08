@@ -27,29 +27,29 @@ struct StencilVolumes : sq::NonCopyable
 
 //============================================================================//
 
-struct TargetTextures : sq::NonCopyable
+struct TargetTextures : sq::MoveOnly
 {
-    TargetTextures();
+    TargetTextures() = default;
+    TargetTextures(const Options& options);
+    TargetTextures& operator=(TargetTextures&&) = default;
 
-    sq::Texture2D Depth_FullSize { sq::Texture::Format::DEP24S8 };
-    sq::Texture2D Depth_HalfSize { sq::Texture::Format::DEP24S8 };
-    sq::Texture2D Depth_QterSize { sq::Texture::Format::DEP24S8 };
+    sq::Texture2D Depth_FullSize;// { sq::Texture::Format::DEP24S8 };
+    sq::Texture2D Depth_HalfSize;// { sq::Texture::Format::DEP24S8 };
+    sq::Texture2D Depth_QterSize;// { sq::Texture::Format::DEP24S8 };
 
-    sq::Texture2D Gbuffer_MainDiff { sq::Texture::Format::RGB8_UN };
-    sq::Texture2D Gbuffer_MainSurf { sq::Texture::Format::RGB8_SN };
-    sq::Texture2D Gbuffer_MainNorm { sq::Texture::Format::RGB8_SN };
-    sq::Texture2D Gbuffer_MainSpec { sq::Texture::Format::RGB8_UN };
+    sq::Texture2D Gbuffer_MainDiff;// { sq::Texture::Format::RGB8_UN };
+    sq::Texture2D Gbuffer_MainSurf;// { sq::Texture::Format::RGB8_SN };
+    sq::Texture2D Gbuffer_MainNorm;// { sq::Texture::Format::RGB8_SN };
+    sq::Texture2D Gbuffer_MainSpec;// { sq::Texture::Format::RGB8_UN };
 
-    sq::Texture2D Lighting_Main { sq::Texture::Format::RGB16_FP };
+    sq::Texture2D Lighting_Main;// { sq::Texture::Format::RGB16_FP };
 
-    sq::Texture2D Volumetric_Shafts { sq::Texture::Format::RGB8_UN };
+    sq::Texture2D Volumetric_Shafts;// { sq::Texture::Format::RGB8_UN };
 
-    sq::Texture2D Effects_SSAO { sq::Texture::Format::R8_UN };
-    sq::Texture2D Effects_Bloom { sq::Texture::Format::RGB8_UN };
+    sq::Texture2D Effects_SSAO;// { sq::Texture::Format::R8_UN };
+    sq::Texture2D Effects_Bloom;// { sq::Texture::Format::RGB8_UN };
 
-    sq::Texture2D Composite_Main { sq::Texture::Format::RGBA8_UN };
-
-    void update_options(const Options& options);
+    sq::Texture2D Composite_Main;// { sq::Texture::Format::RGBA8_UN };
 };
 
 //============================================================================//

@@ -9,40 +9,40 @@
 
 // sometimes, I really do want to know if floats are equal
 
-#define DISABLE_WARNING_FLOAT_EQUALITY \
+#define DISABLE_WARNING_FLOAT_EQUALITY() \
 _Pragma("GCC diagnostic push") \
 _Pragma("GCC diagnostic ignored \"-Wfloat-equal\"")
 
-#define ENABLE_WARNING_FLOAT_EQUALITY \
+#define ENABLE_WARNING_FLOAT_EQUALITY() \
 _Pragma("GCC diagnostic pop")
 
 // imgui colour macros use old style casts, I like this warning otherwise
 
-#define DISABLE_WARNING_OLD_STYLE_CAST \
+#define DISABLE_WARNING_OLD_STYLE_CAST() \
 _Pragma("GCC diagnostic push") \
 _Pragma("GCC diagnostic ignored \"-Wold-style-cast\"")
 
-#define ENABLE_WARNING_OLD_STYLE_CAST \
+#define ENABLE_WARNING_OLD_STYLE_CAST() \
 _Pragma("GCC diagnostic pop")
 
 // msvc warns when I don't feel like adding .f to a bunch of literals
 
-#define DISABLE_WARNING_NARROWING_CONSTRUCTOR
-#define ENABLE_WARNING_NARROWING_CONSTRUCTOR
+#define DISABLE_WARNING_NARROWING_CONSTRUCTOR()
+#define ENABLE_WARNING_NARROWING_CONSTRUCTOR()
 
 #else
 
-#define DISABLE_WARNING_FLOAT_EQUALITY
-#define ENABLE_WARNING_FLOAT_EQUALITY
+#define DISABLE_WARNING_FLOAT_EQUALITY()
+#define ENABLE_WARNING_FLOAT_EQUALITY()
 
-#define DISABLE_WARNING_OLD_STYLE_CAST
-#define ENABLE_WARNING_OLD_STYLE_CAST
+#define DISABLE_WARNING_OLD_STYLE_CAST()
+#define ENABLE_WARNING_OLD_STYLE_CAST()
 
-#define DISABLE_WARNING_NARROWING_CONSTRUCTOR \
+#define DISABLE_WARNING_NARROWING_CONSTRUCTOR() \
 __pragma(warning(push)) \
 __pragma(warning(disable : 4305))
 
-#define ENABLE_WARNING_NARROWING_CONSTRUCTOR \
+#define ENABLE_WARNING_NARROWING_CONSTRUCTOR() \
 __pragma(warning(pop))
 
 #endif

@@ -4,7 +4,6 @@
 
 #include <sqee/maths/Volumes.hpp>
 
-#include <sqee/gl/UniformBuffer.hpp>
 #include <sqee/gl/FrameBuffer.hpp>
 #include <sqee/gl/Textures.hpp>
 
@@ -39,7 +38,7 @@ public: //====================================================//
         Mat4F projMat;
 
         sq::maths::Frustum frustum;
-        sq::UniformBuffer ubo;
+        sq::FixedBuffer ubo;
     };
 
     //--------------------------------------------------------//
@@ -68,9 +67,9 @@ public: //====================================================//
         std::array<sq::maths::Ortho2D, 6> orthos;
         std::array<Mat4F, 6> matrices;
 
-        sq::UniformBuffer ubo;
-        sq::TextureArray2D tex;
-
+        sq::FixedBuffer ubo;
+        sq::TextureArray tex;
+        uint resolution;
         uint cascades;
     };
 
@@ -92,7 +91,7 @@ public: //====================================================//
     {
         ArmatureHandle armature;
 
-        sq::UniformBuffer ubo;
+        sq::FixedBuffer ubo;
     };
 
     //--------------------------------------------------------//
@@ -102,8 +101,9 @@ public: //====================================================//
         sq::FrameBuffer fbo;
         Mat4F lightMatrix;
 
-        sq::UniformBuffer ubo;
+        sq::FixedBuffer ubo;
         sq::Texture2D tex;
+        uint resolution;
 
         Mat4F modelMatrix;
     };
@@ -119,8 +119,9 @@ public: //====================================================//
 
         sq::maths::Sphere sphere;
 
-        sq::UniformBuffer ubo;
+        sq::FixedBuffer ubo;
         sq::TextureCube tex;
+        uint resolution;
 
         Mat4F modelMatrix;
     };
@@ -136,8 +137,9 @@ public: //====================================================//
 
         sq::maths::Cone cone;
 
-        sq::UniformBuffer ubo;
+        sq::FixedBuffer ubo;
         sq::Texture2D tex;
+        uint resolution;
 
         Mat4F modelMatrix;
     };

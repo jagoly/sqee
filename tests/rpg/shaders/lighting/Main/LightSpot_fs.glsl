@@ -1,6 +1,6 @@
 // GLSL Fragment Shader
 
-// #define SHADOW
+#option SHADOW 0
 
 //============================================================================//
 
@@ -28,7 +28,7 @@ out vec3 frag_Colour;
 
 //============================================================================//
 
-#ifdef SHADOW
+#if SHADOW
 
 #include headers/shadow/sample_spot
 layout(binding=8) uniform sampler2DShadow tex_Shadow;
@@ -102,7 +102,7 @@ void main()
 
     float shadow = 1.f;
     
-    #ifdef SHADOW
+    #if SHADOW
     shadow = get_shadow_value(worldPos, worldSurf);
     if (shadow == 0.f) discard;
     #endif

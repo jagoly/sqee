@@ -1,44 +1,44 @@
 #include <sqee/debug/OpenGL.hpp>
 
 #include <sqee/debug/Logging.hpp>
-#include <sqee/redist/gl_loader.hpp>
+#include <sqee/gl/Constants.hpp>
+#include <sqee/gl/Functions.hpp>
 
 #include <fmt/chrono.h>
 
 //============================================================================//
 
-void MSVC_STDCALL sq::debug_callback(GLenum _source, GLenum _type, GLuint id, GLenum _severity,
-                                     GLsizei, const GLchar* message, const void*)
+void __stdcall sq::debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, void*)
 {
-    const char* source   = "???";
-    const char* type     = "???";
-    const char* severity = "???";
+    StringView strSource   = "???";
+    StringView strType     = "???";
+    StringView strSeverity = "???";
 
-    if (_source == gl::DEBUG_SOURCE_API)             source = "API";
-    if (_source == gl::DEBUG_SOURCE_WINDOW_SYSTEM)   source = "WINDOW_SYSTEM";
-    if (_source == gl::DEBUG_SOURCE_SHADER_COMPILER) source = "SHADER_COMPILER";
-    if (_source == gl::DEBUG_SOURCE_THIRD_PARTY)     source = "THIRD_PARTY";
-    if (_source == gl::DEBUG_SOURCE_APPLICATION)     source = "APPLICATION";
-    if (_source == gl::DEBUG_SOURCE_OTHER)           source = "OTHER";
+    if (source == gl::DEBUG_SOURCE_API)             strSource = "API";
+    if (source == gl::DEBUG_SOURCE_WINDOW_SYSTEM)   strSource = "WINDOW_SYSTEM";
+    if (source == gl::DEBUG_SOURCE_SHADER_COMPILER) strSource = "SHADER_COMPILER";
+    if (source == gl::DEBUG_SOURCE_THIRD_PARTY)     strSource = "THIRD_PARTY";
+    if (source == gl::DEBUG_SOURCE_APPLICATION)     strSource = "APPLICATION";
+    if (source == gl::DEBUG_SOURCE_OTHER)           strSource = "OTHER";
 
-    if (_type == gl::DEBUG_TYPE_ERROR)               type = "ERROR";
-    if (_type == gl::DEBUG_TYPE_DEPRECATED_BEHAVIOR) type = "DEPRECATED_BEHAVIOR";
-    if (_type == gl::DEBUG_TYPE_UNDEFINED_BEHAVIOR)  type = "UNDEFINED_BEHAVIOR";
-    if (_type == gl::DEBUG_TYPE_PORTABILITY)         type = "PORTABILITY";
-    if (_type == gl::DEBUG_TYPE_PERFORMANCE)         type = "PERFORMANCE";
-    if (_type == gl::DEBUG_TYPE_OTHER)               type = "OTHER";
-    if (_type == gl::DEBUG_TYPE_MARKER)              type = "MARKER";
-    if (_type == gl::DEBUG_TYPE_PUSH_GROUP)          type = "PUSH_GROUP";
-    if (_type == gl::DEBUG_TYPE_POP_GROUP)           type = "POP_GROUP";
+    if (type == gl::DEBUG_TYPE_ERROR)               strType = "ERROR";
+    if (type == gl::DEBUG_TYPE_DEPRECATED_BEHAVIOR) strType = "DEPRECATED_BEHAVIOR";
+    if (type == gl::DEBUG_TYPE_UNDEFINED_BEHAVIOR)  strType = "UNDEFINED_BEHAVIOR";
+    if (type == gl::DEBUG_TYPE_PORTABILITY)         strType = "PORTABILITY";
+    if (type == gl::DEBUG_TYPE_PERFORMANCE)         strType = "PERFORMANCE";
+    if (type == gl::DEBUG_TYPE_OTHER)               strType = "OTHER";
+    if (type == gl::DEBUG_TYPE_MARKER)              strType = "MARKER";
+    if (type == gl::DEBUG_TYPE_PUSH_GROUP)          strType = "PUSH_GROUP";
+    if (type == gl::DEBUG_TYPE_POP_GROUP)           strType = "POP_GROUP";
 
-    if (_severity == gl::DEBUG_SEVERITY_NOTIFICATION) severity = "NOTIFICATION";
-    if (_severity == gl::DEBUG_SEVERITY_HIGH)         severity = "HIGH";
-    if (_severity == gl::DEBUG_SEVERITY_MEDIUM)       severity = "MEDIUM";
-    if (_severity == gl::DEBUG_SEVERITY_LOW)          severity = "LOW";
+    if (severity == gl::DEBUG_SEVERITY_NOTIFICATION) strSeverity = "NOTIFICATION";
+    if (severity == gl::DEBUG_SEVERITY_HIGH)         strSeverity = "HIGH";
+    if (severity == gl::DEBUG_SEVERITY_MEDIUM)       strSeverity = "MEDIUM";
+    if (severity == gl::DEBUG_SEVERITY_LOW)          strSeverity = "LOW";
 
     std::time_t now = std::time(nullptr);
     sq::log_raw_multiline("{:%H:%M:%S} OpenGL: Source {} | Severity {} | Type {} | ID {}\n{}",
-                          fmt::localtime(now), source, severity, type, id, message);
+                          fmt::localtime(now), source, severity, type, id, StringView(message, size_t(length)));
 
     return;
 }

@@ -25,12 +25,15 @@
 #include <memory> // IWYU pragma: export
 #include <numeric> // IWYU pragma: export
 #include <optional> // IWYU pragma: export
+#include <set> // IWYU pragma: export
 #include <stdexcept> // IWYU pragma: export
 #include <tuple> // IWYU pragma: export
 #include <type_traits> // IWYU pragma: export
 #include <typeindex> // IWYU pragma: export
 #include <unordered_map> // IWYU pragma: export
+#include <unordered_set> // IWYU pragma: export
 #include <utility> // IWYU pragma: export
+#include <variant> // IWYU pragma: export
 #include <vector> // IWYU pragma: export
 
 //============================================================================//
@@ -47,16 +50,7 @@ static_assert(sizeof(size_t) == 8);
 typedef unsigned char uchar;
 typedef unsigned int  uint;
 
-// define the OpenGL types here so they are always available
-typedef signed int   GLint;
-typedef unsigned int GLuint;
-typedef float        GLfloat;
-typedef double       GLdouble;
-typedef unsigned int GLbitfield;
-typedef signed int   GLsizei;
-typedef unsigned int GLenum;
-typedef char         GLchar;
-
+// sometimes want to have this as a member variable
 typedef unsigned int ImGuiID;
 
 //============================================================================//
@@ -93,6 +87,20 @@ struct MoveOnly
 
 //----------------------------------------------------------------------------//
 
+
+/// Some very basic generic algorithms.
+namespace algo {}
+
+/// Utilities for data oriented programming.
+namespace dop {}
+
+/// Mathematical classes and functions.
+namespace maths {}
+
+/// OpenGL Core 4.5 constants and functions.
+namespace gl {}
+
+/// A set of core types that get used everywhere.
 namespace coretypes {}
 
 //============================================================================//
@@ -103,15 +111,3 @@ namespace coretypes {}
 
 /// @namespace sq
 /// @brief The primary SQEE namespace.
-
-/// @namespace sq::algo
-/// @brief Some very basic generic algorithms.
-
-/// @namespace sq::dop
-/// @brief Utilities for data oriented programming.
-
-/// @namespace sq::maths
-/// @brief Mathematical classes and functions.
-
-/// @namespace sq::coretypes
-/// @brief A namespace containing a set of core types.

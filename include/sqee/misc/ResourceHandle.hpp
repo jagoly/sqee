@@ -7,110 +7,74 @@
 
 #include <sqee/debug/Assert.hpp>
 
-#include <memory>
-
 namespace sq {
 
 //============================================================================//
 
-/// For internal use within a @ref ResourceCache.
-/// @tparam Type type of the resource
-
-template <class Type>
-class Resource final : private NonCopyable
+/// For internal use by ResourceCache and Handle.
+template <class Key, class Type>
+struct Resource final : private NonCopyable
 {
-protected: //=================================================//
-
-    template <class T> friend class Handle;
-    template <class K, class T> friend class ResourceCache;
-
-    //--------------------------------------------------------//
-
-    void decrement() { if (--count == 0u) uptr.reset(); }
-
-    bool loaded() const { return uptr != nullptr; }
-
-    //--------------------------------------------------------//
-
-    std::unique_ptr<Type> uptr;
-    size_t count = 0u;
+    const Key* key;
+    std::unique_ptr<Type> data;
+    size_t count;
 };
 
 //============================================================================//
 
-/// Provides reference counted access to a @ref Resource.
-/// @tparam Type type of the resource
-
-template <class Type>
-class Handle final // Copyable
+/// Provides reference counted access to a resource.
+template <class Key, class Type>
+class Handle final
 {
-public: //====================================================//
+public: //====================================================
 
-    static_assert(std::is_nothrow_destructible_v<Type>);
+    Handle(std::nullptr_t = nullptr) : mResourcePtr(nullptr) {}
 
-    /// Default Constructor.
-    Handle() noexcept : mResPtr(nullptr) {}
+    Handle(Resource<Key, Type>& resource) : mResourcePtr(&resource) { ++mResourcePtr->count; }
 
-    /// Copy Constructor.
-    Handle(const Handle& other) noexcept { if ((mResPtr = other.mResPtr)) ++mResPtr->count; }
+    Handle(const Handle& other) = default;
 
-    /// Assignment Operator.
-    Handle& operator=(Handle other) noexcept { std::swap(mResPtr, other.mResPtr); return *this; }
+    Handle& operator=(const Handle& other) = default;
 
-    /// Destructor.
-    ~Handle() noexcept { if (mResPtr != nullptr) mResPtr->decrement(); }
-
-    //--------------------------------------------------------//
-
-    /// Reset the resource pointer to null.
-    void set_null() { this->~Handle(); mResPtr = nullptr; }
-
-    /// Check if the resource pointer is not null.
-    bool check() const { return mResPtr != nullptr; }
-
-    //--------------------------------------------------------//
-
-    /// Equality Operator.
-    bool operator==(const Handle& other) const { return mResPtr == other.mResPtr; }
-
-    /// Inequality Operator.
-    bool operator!=(const Handle& other) const { return mResPtr != other.mResPtr; }
-
-    /// Comparison Operator.
-    bool operator<(const Handle& other) const { return mResPtr < other.mResPtr; }
+    ~Handle() { if (mResourcePtr) --mResourcePtr->count; }
 
     //--------------------------------------------------------//
 
     const Type* operator->() const
     {
-        SQASSERT(mResPtr != nullptr, "null resource error");
-        return mResPtr->uptr.get();
+        SQASSERT(mResourcePtr, "null handle error");
+        return mResourcePtr->data.get();
+    }
+
+    const Type& operator*() const
+    {
+        SQASSERT(mResourcePtr, "null handle error");
+        return *mResourcePtr->data;
     }
 
     const Type& get() const
     {
-        SQASSERT(mResPtr != nullptr, "null resource error");
-        return *mResPtr->uptr;
+        SQASSERT(mResourcePtr, "null handle error");
+        return *mResourcePtr->data;
     }
 
-    //template <class Key>
-    //const Key& get_key() const
-    //{
-    //    SQASSERT(mResPtr != nullptr, "null resource error");
-    //    return *std::prev(reinterpret_cast<const Key*>(mResPtr));
-    //}
-
-protected: //=================================================//
-
-    template <class K, class T> friend class ResourceCache;
-
-    Handle(Resource<Type>& resource)
+    const Key& get_key() const
     {
-        mResPtr = &resource;
-        ++mResPtr->count;
+        SQASSERT(mResourcePtr, "null handle error");
+        return *mResourcePtr->key;
     }
 
-    Resource<Type>* mResPtr;
+    //--------------------------------------------------------//
+
+    /// Equality Operator.
+    bool operator==(const Handle& other) const { return mResourcePtr == other.mResourcePtr; }
+
+    /// Inequality Operator.
+    bool operator!=(const Handle& other) const { return mResourcePtr != other.mResourcePtr; }
+
+private: //===================================================//
+
+    Resource<Key, Type>* mResourcePtr;
 };
 
 //============================================================================//

@@ -70,15 +70,13 @@ static constexpr const char* conv_ma_error_code[]
 
 //============================================================================//
 
-Sound::Sound(AudioContext& context)
-    : mContext(context) {}
+Sound::Sound(AudioContext& context) : mContext(context) {}
 
-Sound::Sound(Sound&& other) noexcept :
-    mContext(other.mContext)
+Sound::Sound(Sound&& other) noexcept : mContext(other.mContext)
 {
     mAudioFrames = std::move(other.mAudioFrames);
     mContext.impl_reset_sound(&other, this);
-};
+}
 
 Sound& Sound::operator=(Sound&& other) noexcept
 {

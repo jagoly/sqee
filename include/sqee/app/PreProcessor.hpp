@@ -20,32 +20,34 @@ class SQEE_API PreProcessor final : private NonCopyable
 {
 public: //====================================================//
 
-    /// Constructor.
-    PreProcessor();
+    using OptionMap = std::map<SmallString, SmallString>;
 
     //--------------------------------------------------------//
 
-    /// Import a header from a file.
-    void import_header(String path);
+    PreProcessor(); ///< Constructor.
 
-    /// Update a header from a string.
-    void update_header(String path, String source);
+    /// Add or update a header from a file.
+    void import_header(const String& path);
 
-    //--------------------------------------------------------//
-
-    /// Process a GLSL shader source file.
-    String process(StringView path, StringView prelude) const;
+    /// Add or update a header with a string.
+    void import_header(const String& path, String source);
 
     //--------------------------------------------------------//
 
-    /// Load a GLSL vertex shader into a Program.
-    void load_vertex(Program& program, StringView path, StringView prelude = "") const;
+    /// Process any kind of GLSL shader source file.
+    String process(const String& path, const OptionMap& options, bool prelude) const;
 
-    /// Load a GLSL geometry shader into a Program.
-    void load_geometry(Program& program, StringView path, StringView prelude = "") const;
+    /// Load a GLSL vertex shader into a program.
+    void load_vertex(Program& program, const String& path, const OptionMap& options) const;
 
-    /// Load a GLSL fragment shader into a Program.
-    void load_fragment(Program& program, StringView path, StringView prelude = "") const;
+    /// Load a GLSL geometry shader into a program.
+    void load_geometry(Program& program, const String& path, const OptionMap& options) const;
+
+    /// Load a GLSL fragment shader into a program.
+    void load_fragment(Program& program, const String& path, const OptionMap& options) const;
+
+    /// Load a GLSL super shader into a Program.
+    void load_super_shader(Program& program, const String& path, const OptionMap& options) const;
 
 private: //===================================================//
 

@@ -3,184 +3,35 @@
 #include <sqee/core/Utilities.hpp>
 #include <sqee/debug/Assert.hpp>
 #include <sqee/debug/Logging.hpp>
-#include <sqee/gl/Context.hpp>
+#include <sqee/gl/Functions.hpp>
 #include <sqee/misc/Files.hpp>
 #include <sqee/misc/Json.hpp>
-#include <sqee/redist/gl_loader.hpp>
 #include <sqee/redist/stb_image.hpp>
 
 using namespace sq;
 
 //============================================================================//
 
-Texture::Texture(GLenum target, Format format)
-    : mContext(Context::get()), mTarget(target), mFormat(format) {}
-
 Texture::Texture(Texture&& other) noexcept
-    : mContext(other.mContext), mTarget(other.mTarget), mFormat(other.mFormat)
 {
-    mContext.impl_reset_Texture(&other, this);
-
-    mFilter = other.mFilter;
-    mMipmaps = other.mMipmaps;
-    mShadow = other.mShadow;
-    mWrap = other.mWrap;
-    mSwizzle = other.mSwizzle;
-    mSize = other.mSize;
-
-    mHandle = other.mHandle;
-    other.mHandle = 0u;
+    *this = std::move(other);
 }
 
 Texture& Texture::operator=(Texture&& other) noexcept
 {
-    std::swap(*this, other);
+    std::swap(mHandle, other.mHandle);
     return *this;
 }
 
-//============================================================================//
-
-void Texture::delete_object()
+Texture::~Texture() noexcept
 {
-    if (mHandle != 0u)
-    {
-        mContext.impl_reset_Texture(this);
-        gl::DeleteTextures(1, &mHandle);
-        mHandle = 0u;
-    }
-
-    mSize = { 0u, 0u, 0u };
-}
-
-void Texture::set_format(Format format)
-{
-    SQASSERT(mHandle == 0u, "texture already created");
-
-    mFormat = format;
-}
-
-void Texture::generate_auto_mipmaps()
-{
-    gl::GenerateTextureMipmap(mHandle);
+    if (mHandle) gl::DeleteTextures(1, &mHandle);
 }
 
 //============================================================================//
 
-void Texture::set_filter_mode(bool enable)
-{
-    mFilter = enable;
-    impl_update_paramaters();
-}
-
-void Texture::set_mipmaps_mode(bool enable)
-{
-    mMipmaps = enable;
-    impl_update_paramaters();
-}
-
-void Texture::set_shadow_mode(bool enable)
-{
-    mShadow = enable;
-    impl_update_paramaters();
-}
-
-//============================================================================//
-
-void Texture::set_wrap_mode(char x, char y)
-{
-    mWrap = {{ x, y }};
-    impl_update_paramaters();
-}
-
-void Texture::set_swizzle_mode(char r, char g, char b, char a)
-{
-    mSwizzle = {{ r, g, b, a }};
-    impl_update_paramaters();
-}
-
-//============================================================================//
-
-void Texture::impl_create_object()
-{
-    SQASSERT(mFormat != Format::Undefined, "format not set");
-
-    delete_object();
-    gl::CreateTextures(mTarget, 1, &mHandle);
-}
-
-//============================================================================//
-
-void Texture::impl_update_paramaters()
-{
-    // do nothing if texture not created
-    if (mHandle == 0u) return;
-
-    //--------------------------------------------------------//
-
-    if (mTarget != gl::TEXTURE_2D_MULTISAMPLE)
-    {
-        if (!mFilter && !mMipmaps) gl::TextureParameteri(mHandle, gl::TEXTURE_MIN_FILTER, gl::NEAREST);
-        if (!mFilter &&  mMipmaps) gl::TextureParameteri(mHandle, gl::TEXTURE_MIN_FILTER, gl::NEAREST_MIPMAP_NEAREST);
-        if ( mFilter && !mMipmaps) gl::TextureParameteri(mHandle, gl::TEXTURE_MIN_FILTER, gl::LINEAR);
-        if ( mFilter &&  mMipmaps) gl::TextureParameteri(mHandle, gl::TEXTURE_MIN_FILTER, gl::LINEAR_MIPMAP_LINEAR);
-
-        gl::TextureParameteri(mHandle, gl::TEXTURE_MAG_FILTER, mFilter ? gl::LINEAR : gl::NEAREST);
-    }
-
-    //--------------------------------------------------------//
-
-    const auto set_wrap_param = [this](GLenum pname, char param)
-    {
-        switch (param) {
-        case 'C': gl::TextureParameteri(mHandle, pname, gl::CLAMP_TO_EDGE);   break;
-        case 'R': gl::TextureParameteri(mHandle, pname, gl::REPEAT);          break;
-        case 'M': gl::TextureParameteri(mHandle, pname, gl::MIRRORED_REPEAT); break;
-        default: SQASSERT(false, "invalid wrap paramater"); }
-    };
-
-    if (mTarget != gl::TEXTURE_2D_MULTISAMPLE)
-    {
-        set_wrap_param(gl::TEXTURE_WRAP_S, mWrap[0]);
-        set_wrap_param(gl::TEXTURE_WRAP_T, mWrap[1]);
-    }
-
-    //--------------------------------------------------------//
-
-    const auto set_swizzle_param = [this](GLenum pname, char param)
-    {
-        switch (param) {
-        case '0': gl::TextureParameteri(mHandle, pname, gl::ZERO);  break;
-        case '1': gl::TextureParameteri(mHandle, pname, gl::ONE);   break;
-        case 'R': gl::TextureParameteri(mHandle, pname, gl::RED);   break;
-        case 'G': gl::TextureParameteri(mHandle, pname, gl::GREEN); break;
-        case 'B': gl::TextureParameteri(mHandle, pname, gl::BLUE);  break;
-        case 'A': gl::TextureParameteri(mHandle, pname, gl::ALPHA); break;
-        default: SQASSERT(false, "invalid swizzle paramater"); }
-    };
-
-    set_swizzle_param(gl::TEXTURE_SWIZZLE_R, mSwizzle[0]);
-    set_swizzle_param(gl::TEXTURE_SWIZZLE_G, mSwizzle[1]);
-    set_swizzle_param(gl::TEXTURE_SWIZZLE_B, mSwizzle[2]);
-    set_swizzle_param(gl::TEXTURE_SWIZZLE_A, mSwizzle[3]);
-
-    //--------------------------------------------------------//
-
-    if (mShadow == true)
-    {
-        gl::TextureParameteri(mHandle, gl::TEXTURE_COMPARE_MODE, gl::COMPARE_REF_TO_TEXTURE);
-    }
-}
-
-//============================================================================//
-
-namespace { // anonymous
-
-//============================================================================//
-
-static constexpr struct { const int16_t group, channels;
-                          const GLenum baseFormat, pixelFormat;
-                          const GLenum dataType; }
-impl_Format_Meta[]
+struct { int16_t group, channels; GLenum baseFormat, pixelFormat, dataType; }
+static const impl_format_meta[]
 {
     { 0, 1, gl::RED,  gl::R8,    gl::UNSIGNED_BYTE },
     { 0, 2, gl::RG,   gl::RG8,   gl::UNSIGNED_BYTE },
@@ -242,382 +93,307 @@ impl_Format_Meta[]
     { 11, 3, gl::RGB,  gl::RGB32F,  gl::FLOAT },
     { 11, 4, gl::RGBA, gl::RGBA32F, gl::FLOAT },
 
-    { 12, 0, gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT16, 0 },
-    { 12, 0, gl::STENCIL_INDEX,   gl::STENCIL_INDEX8,    0 },
-    { 12, 0, gl::DEPTH_STENCIL,   gl::DEPTH24_STENCIL8,  0 },
+    { 12, 0, gl::DEPTH_COMPONENT, gl::DEPTH_COMPONENT16, 0u },
+    { 12, 0, gl::STENCIL_INDEX,   gl::STENCIL_INDEX8,    0u },
+    { 12, 0, gl::DEPTH_STENCIL,   gl::DEPTH24_STENCIL8,  0u },
 };
 
 //============================================================================//
 
-inline int impl_calculate_mip_levels(bool enable, uint size)
+inline TexFormat impl_string_to_format(const String& arg)
 {
-    if (enable == false) return 1;
-    return 1 + int(std::floor(std::log2(size)));
-}
+    if (arg == "R8_UN") return TexFormat::R8_UN;
+    if (arg == "RG8_UN") return TexFormat::RG8_UN;
+    if (arg == "RGB8_UN") return TexFormat::RGB8_UN;
+    if (arg == "RGBA8_UN") return TexFormat::RGBA8_UN;
 
-inline int impl_calculate_mip_levels(bool enable, Vec2U size)
-{
-    if (enable == false) return 1;
-    const uint max = maths::max(size.x, size.y);
-    return 1 + int(std::floor(std::log2(max)));
-}
-
-inline void impl_to_signed_norm_8(uint8_t* data, int count)
-{
-    for (int i = 0; i < count; ++i)
-    {
-        int8_t& cast = reinterpret_cast<int8_t&>(data[i]);
-        if (cast >= 0) cast -= 128; else cast += 128;
-    }
-}
-
-//inline void impl_to_signed_norm_16(uint16_t* data, int count)
-//{
-//    for (int i = 0; i < count; ++i)
-//    {
-//        int16_t& cast = reinterpret_cast<int16_t&>(data[i]);
-//        if (cast >= 0) cast -= 32768; else cast += 32768;
-//    }
-//}
-
-//============================================================================//
-
-inline Texture::Format impl_string_to_format(const String& arg)
-{
-    if (arg == "R8_UN") return Texture::Format::R8_UN;
-    if (arg == "RG8_UN") return Texture::Format::RG8_UN;
-    if (arg == "RGB8_UN") return Texture::Format::RGB8_UN;
-    if (arg == "RGBA8_UN") return Texture::Format::RGBA8_UN;
-    if (arg == "R8_SN") return Texture::Format::R8_SN;
-    if (arg == "RG8_SN") return Texture::Format::RG8_SN;
-    if (arg == "RGB8_SN") return Texture::Format::RGB8_SN;
-    if (arg == "RGBA8_SN") return Texture::Format::RGBA8_SN;
+    if (arg == "R8_SN") return TexFormat::R8_SN;
+    if (arg == "RG8_SN") return TexFormat::RG8_SN;
+    if (arg == "RGB8_SN") return TexFormat::RGB8_SN;
+    if (arg == "RGBA8_SN") return TexFormat::RGBA8_SN;
 
     log_warning("invalid texture format '%s'", arg);
 
-    return Texture::Format::RGBA8_UN;
+    return TexFormat::RGBA8_UN;
 }
 
 //============================================================================//
 
-struct Impl_Load_Image : NonCopyable
+static auto impl_load_image(TexFormat format, const String& path)
 {
-    void* data = nullptr;
-    Vec2U size = { 0u, 0u };
-
-    Impl_Load_Image(Texture::Format format, String path)
+    struct Image
     {
-        if (check_file_exists(path) == true) {}
-        else if (check_file_exists(path + ".png")) path += ".png";
-        else if (check_file_exists(path + ".jpg")) path += ".jpg";
-        else log_error("Failed to find image '{}'", path);
+        std::unique_ptr<uint8_t[], std::integral_constant<void(*)(void*), stbi_image_free>> data;
+        Vec2U size;
+    };
 
-        const auto& meta = impl_Format_Meta[uint8_t(format)];
+    const auto& meta = impl_format_meta[uint8_t(format)];
+    SQASSERT(meta.group == 0 || meta.group == 2, "format not yet supported");
 
-        SQASSERT(meta.group == 0 || meta.group == 2, "fixme");
+    int width = 0, height = 0, channels = 0;
+    uint8_t* data = stbi_load(path.c_str(), &width, &height, &channels, 0);
 
-        Vec2I sizeS = { 0, 0 };
-        int channels = 0;
+    if (data == nullptr) log_error_multiline("Error loading image '{}':\n{}", path, stbi_failure_reason());
+    SQASSERT(channels == meta.channels, "image channel count does not match format");
 
-        data = stbi_load(path.c_str(), &sizeS.x, &sizeS.y, &channels, 0);
-        if (data == NULL) log_error("Error loading image from '{}'", path);
+    if (meta.group == 0) {} // 8 bit unsigned normal
 
-        SQASSERT(channels == meta.channels, "");
-
-        if (meta.group == 2)
-        {
-            uint8_t* const unormPtr = static_cast<uint8_t*>(data);
-            impl_to_signed_norm_8(unormPtr, sizeS.x * sizeS.y * channels);
-        }
-
-        size = Vec2U(sizeS);
+    else if (meta.group == 2) // 8 bit signed normal
+    {
+        int8_t* cast = reinterpret_cast<int8_t*>(data);
+        for (auto p = cast; p != cast + width*height*channels; ++p)
+            *p += *p >= 0 ? -128 : +128;
     }
 
-    ~Impl_Load_Image()
-    {
-        if (data != nullptr)
-            free(data);
-    }
-};
+    return Image { decltype(Image::data)(data), Vec2U(Vec2I(width, height)) };
+}
 
 //============================================================================//
 
-} // anonymous namespace
-
-//============================================================================//
-
-// Texture Constructors /////
-
-Texture2D::Texture2D(Format format) : Texture(gl::TEXTURE_2D, format) {}
-
-TextureCube::TextureCube(Format format) : Texture(gl::TEXTURE_CUBE_MAP, format) {}
-
-TextureArray2D::TextureArray2D(Format format) : Texture(gl::TEXTURE_2D_ARRAY, format) {}
-
-//TextureArrayCube::TextureArrayCube(Format format) : Texture(gl::TEXTURE_CUBE_MAP_ARRAY, format) {}
-
-TextureVolume::TextureVolume(Format format) : Texture(gl::TEXTURE_3D, format) {}
-
-TextureMulti::TextureMulti(Format format) : Texture(gl::TEXTURE_2D_MULTISAMPLE, format) {}
-
-//============================================================================//
-
-// Allocate Storage Methods /////
-
-void Texture2D::allocate_storage(Vec2U size)
+void Texture::generate_auto_mipmaps()
 {
-    Texture::impl_create_object();
-    Texture::impl_update_paramaters();
+    gl::GenerateTextureMipmap(mHandle);
+}
 
-    const auto& meta = impl_Format_Meta[uint8_t(mFormat)];
-    const int levels = impl_calculate_mip_levels(mMipmaps, size);
+//============================================================================//
+
+void Texture::set_filter_mode(bool filter, bool mipmaps)
+{
+    SQASSERT(mHandle != 0u, "not created");
+
+    if (!mipmaps && !filter) gl::TextureParameteri(mHandle, gl::TEXTURE_MIN_FILTER, gl::NEAREST);
+    if (!mipmaps &&  filter) gl::TextureParameteri(mHandle, gl::TEXTURE_MIN_FILTER, gl::LINEAR);
+    if ( mipmaps && !filter) gl::TextureParameteri(mHandle, gl::TEXTURE_MIN_FILTER, gl::NEAREST_MIPMAP_NEAREST);
+    if ( mipmaps &&  filter) gl::TextureParameteri(mHandle, gl::TEXTURE_MIN_FILTER, gl::LINEAR_MIPMAP_LINEAR);
+
+    gl::TextureParameteri(mHandle, gl::TEXTURE_MAG_FILTER, filter ? gl::LINEAR : gl::NEAREST);
+}
+
+void Texture::set_shadow_mode(CompareFunc func)
+{
+    SQASSERT(mHandle != 0u, "not created");
+
+    gl::TextureParameteri(mHandle, gl::TEXTURE_COMPARE_MODE, gl::COMPARE_REF_TO_TEXTURE);
+    gl::TextureParameteri(mHandle, gl::TEXTURE_COMPARE_FUNC, GLenum(func));
+}
+
+//============================================================================//
+
+void Texture::set_swizzle_mode(char r, char g, char b, char a)
+{
+    SQASSERT(mHandle != 0u, "not created");
+
+    const auto char_to_param = [](char ch) -> GLint
+    {
+        if (ch == '0') return gl::ZERO;
+        if (ch == '1') return gl::ONE;
+        if (ch == 'R') return gl::RED;
+        if (ch == 'G') return gl::GREEN;
+        if (ch == 'B') return gl::BLUE;
+        if (ch == 'A') return gl::ALPHA;
+        SQASSERT(false, "invalid swizzle mode");
+        return -1;
+    };
+
+    gl::TextureParameteri(mHandle, gl::TEXTURE_SWIZZLE_R, char_to_param(r));
+    gl::TextureParameteri(mHandle, gl::TEXTURE_SWIZZLE_G, char_to_param(g));
+    gl::TextureParameteri(mHandle, gl::TEXTURE_SWIZZLE_B, char_to_param(b));
+    gl::TextureParameteri(mHandle, gl::TEXTURE_SWIZZLE_A, char_to_param(a));
+}
+
+void Texture::set_wrap_mode(char x, char y)
+{
+    SQASSERT(mHandle != 0u, "not created");
+
+    const auto char_to_param = [](char ch) -> GLint
+    {
+        if (ch == 'C') return gl::CLAMP_TO_EDGE;
+        if (ch == 'R') return gl::REPEAT;
+        if (ch == 'M') return gl::MIRRORED_REPEAT;
+        SQASSERT(false, "invalid wrap mode");
+        return -1;
+    };
+
+    gl::TextureParameteri(mHandle, gl::TEXTURE_WRAP_S, char_to_param(x));
+    gl::TextureParameteri(mHandle, gl::TEXTURE_WRAP_T, char_to_param(y));
+}
+
+//============================================================================//
+
+void Texture2D::allocate_storage(TexFormat format, Vec2U size, bool mipmaps)
+{
+    SQASSERT(mHandle == 0u, "already created");
+    gl::CreateTextures(gl::TEXTURE_2D, 1u, &mHandle);
+
+    const auto& meta = impl_format_meta[uint8_t(format)];
+    const int levels = 1 + (mipmaps ? int(std::floor(std::log2(std::max(size.x, size.y)))) : 0);
 
     gl::TextureStorage2D(mHandle, levels, meta.pixelFormat, int(size.x), int(size.y));
-
-    mSize = { size.x, size.y, 1u };
 }
 
-void TextureCube::allocate_storage(uint size)
+void TextureArray::allocate_storage(TexFormat format, Vec3U size, bool mipmaps)
 {
-    Texture::impl_create_object();
-    Texture::impl_update_paramaters();
+    SQASSERT(mHandle == 0u, "already created");
+    gl::CreateTextures(gl::TEXTURE_2D_ARRAY, 1u, &mHandle);
 
-    const auto& meta = impl_Format_Meta[uint8_t(mFormat)];
-    const int levels = impl_calculate_mip_levels(mMipmaps, size);
-
-    gl::TextureStorage2D(mHandle, levels, meta.pixelFormat, int(size), int(size));
-
-    mSize = { size, size, 6u };
-}
-
-void TextureArray2D::allocate_storage(Vec3U size)
-{
-    Texture::impl_create_object();
-    Texture::impl_update_paramaters();
-
-    const auto& meta = impl_Format_Meta[uint8_t(mFormat)];
-    const int levels = impl_calculate_mip_levels(mMipmaps, Vec2U(size));
+    const auto& meta = impl_format_meta[uint8_t(format)];
+    const int levels = 1 + (mipmaps ? int(std::floor(std::log2(std::max(size.x, size.y)))) : 0);
 
     gl::TextureStorage3D(mHandle, levels, meta.pixelFormat, int(size.x), int(size.y), int(size.z));
-
-    mSize = { size.x, size.y, size.z };
 }
 
-void TextureVolume::allocate_storage(Vec3U size)
+void TextureCube::allocate_storage(TexFormat format, uint size, bool mipmaps)
 {
-    Texture::impl_create_object();
-    Texture::impl_update_paramaters();
+    SQASSERT(mHandle == 0u, "already created");
+    gl::CreateTextures(gl::TEXTURE_CUBE_MAP, 1u, &mHandle);
 
-    const auto& meta = impl_Format_Meta[uint8_t(mFormat)];
+    const auto& meta = impl_format_meta[uint8_t(format)];
+    const int levels = 1 + (mipmaps ? int(std::floor(std::log2(size))) : 0);
 
-    gl::TextureStorage3D(mHandle, 1, meta.pixelFormat, int(size.x), int(size.y), int(size.z));
-
-    mSize = { size.x, size.y, size.z };
+    gl::TextureStorage2D(mHandle, levels, meta.pixelFormat, int(size), int(size));
 }
 
-void TextureMulti::allocate_storage(Vec3U size)
+void TextureMulti::allocate_storage(TexFormat format, Vec2U size, uint samples)
 {
-    Texture::impl_create_object();
-    Texture::impl_update_paramaters();
+    SQASSERT(mHandle == 0u, "already created");
+    gl::CreateTextures(gl::TEXTURE_2D_MULTISAMPLE, 1u, &mHandle);
 
-    const auto& meta = impl_Format_Meta[uint8_t(mFormat)];
+    const auto& meta = impl_format_meta[uint8_t(format)];
 
-    gl::TextureStorage2DMultisample(mHandle, int(size.z), meta.pixelFormat, int(size.x), int(size.y), false);
-
-    mSize = { size.x, size.y, size.z };
+    gl::TextureStorage2DMultisample(mHandle, int(samples), meta.pixelFormat, int(size.x), int(size.y), false);
 }
 
 //============================================================================//
 
-// Memory Loading Methods /////
-
-void Texture2D::load_memory(const void* data)
+void Texture2D::load_memory(TexFormat format, uint level, Vec2U offset, Vec2U size, const void* data)
 {
-    const auto& meta = impl_Format_Meta[uint8_t(mFormat)];
+    SQASSERT(mHandle != 0u, "not created");
 
-    gl::TextureSubImage2D(mHandle, 0, 0, 0, int(mSize.x), int(mSize.y),
-                          meta.baseFormat, meta.dataType, data);
+    const auto& meta = impl_format_meta[uint8_t(format)];
+
+    gl::TextureSubImage2D(mHandle, int(level), int(offset.x), int(offset.y),
+                          int(size.x), int(size.y), meta.baseFormat, meta.dataType, data);
 }
 
-void TextureCube::load_memory(const void* data)
+void TextureArray::load_memory(TexFormat format, uint level, Vec3U offset, Vec3U size, const void* data)
 {
-    const auto& meta = impl_Format_Meta[uint8_t(mFormat)];
+    SQASSERT(mHandle != 0u, "not created");
 
-    gl::TextureSubImage3D(mHandle, 0, 0, 0, 0, int(mSize.x), int(mSize.y), 6,
-                          meta.baseFormat, meta.dataType, data);
+    const auto& meta = impl_format_meta[uint8_t(format)];
+
+    gl::TextureSubImage3D(mHandle, int(level), int(offset.x), int(offset.y), int(offset.z),
+                          int(size.x), int(size.y), int(size.z), meta.baseFormat, meta.dataType, data);
 }
 
-void TextureCube::load_memory(const void* data, uint face)
+void TextureCube::load_memory(TexFormat format, uint level, Vec3U offset, Vec3U size, const void* data)
 {
-    const auto& meta = impl_Format_Meta[uint8_t(mFormat)];
+    SQASSERT(mHandle != 0u, "not created");
 
-    gl::TextureSubImage3D(mHandle, 0, 0, 0, int(face), int(mSize.x), int(mSize.y), 1,
-                          meta.baseFormat, meta.dataType, data);
-}
+    const auto& meta = impl_format_meta[uint8_t(format)];
 
-void TextureArray2D::load_memory(const void* data)
-{
-    const auto& meta = impl_Format_Meta[uint8_t(mFormat)];
-
-    gl::TextureSubImage3D(mHandle, 0, 0, 0, 0, int(mSize.x), int(mSize.y), int(mSize.z),
-                          meta.baseFormat, meta.dataType, data);
-}
-
-void TextureArray2D::load_memory(const void* data, uint layer)
-{
-    const auto& meta = impl_Format_Meta[uint8_t(mFormat)];
-
-    gl::TextureSubImage3D(mHandle, 0, 0, 0, int(layer), int(mSize.x), int(mSize.y), 1,
-                          meta.baseFormat, meta.dataType, data);
-}
-
-void TextureVolume::load_memory(const void* data, Vec3U offset, Vec3U size)
-{
-    const auto& meta = impl_Format_Meta[uint8_t(mFormat)];
-
-    const int x = int(offset.x), y = int(offset.y), z = int(offset.z);
-    const int w = int(size.x), h = int(size.y), d = int(size.z);
-
-    gl::TextureSubImage3D(mHandle, 0, x, y, z, w, h, d, meta.baseFormat, meta.dataType, data);
+    gl::TextureSubImage3D(mHandle, int(level), int(offset.x), int(offset.y), int(offset.z),
+                          int(size.x), int(size.y), int(size.z), meta.baseFormat, meta.dataType, data);
 }
 
 //============================================================================//
 
-// File Loading Methods /////
-
-void Texture2D::load_file(StringView path)
+void Texture2D::load_memory(TexFormat format, Vec2U size, const void* data)
 {
-    Impl_Load_Image image ( mFormat, String(path) );
-    SQASSERT(image.size == Vec2U(mSize), "");
-    load_memory(image.data);
+    load_memory(format, 0u, {0u, 0u}, size, data);
 }
 
-void Texture2D::load_automatic(StringView path)
+void TextureCube::load_memory(TexFormat format, uint face, uint size, const void* data)
 {
-    const auto jsonPath = build_string(directory_from_path(path), "/meta.json");
-    const auto fileName = String(file_from_path(path));
+    load_memory(format, 0u, {0u, 0u, face}, {size, size, 1u}, data);
+}
 
-    const auto json = parse_json_from_file(jsonPath).at(fileName);
+void TextureArray::load_memory(TexFormat format, uint layer, Vec2U size, const void* data)
+{
+    load_memory(format, 0u, {0u, 0u, layer}, {size.x, size.y, 1u}, data);
+}
 
-    const String& wrap = json.at("wrap");
+//============================================================================//
+
+void Texture2D::load_automatic(const String& path)
+{
+    const JsonValue json = parse_json_from_file(path + ".json");
+
+    const TexFormat format = impl_string_to_format(json.at("format"));
+    const bool mipmaps = json.at("mipmaps");
+
+    const auto image = impl_load_image(format, path + ".png");
+
+    allocate_storage(format, image.size, mipmaps);
+    load_memory(format, 0u, {0u, 0u}, image.size, image.data.get());
+    if (mipmaps == true) generate_auto_mipmaps();
+
+    const bool filter = json.at("filter");
     const String& swizzle = json.at("swizzle");
-
-    set_format(impl_string_to_format(json.at("format")));
-    set_wrap_mode(wrap[0], wrap[1]);
-    set_swizzle_mode(swizzle[0], swizzle[1], swizzle[2], swizzle[3]);
-    set_filter_mode(json.at("filter"));
-    set_mipmaps_mode(json.at("mipmaps"));
-
-    Impl_Load_Image image ( mFormat, String(path) );
-    allocate_storage(image.size);
-    load_memory(image.data);
-    if (mMipmaps == true) generate_auto_mipmaps();
-}
-
-void TextureCube::load_file(StringView path, uint face)
-{
-    Impl_Load_Image image ( mFormat, String(path) );
-    SQASSERT(image.size == Vec2U(mSize), "");
-    load_memory(image.data, face);
-}
-
-void TextureCube::load_automatic(StringView path)
-{
-    const auto json = parse_json_from_file(build_string(path, "/meta.json"));
-
     const String& wrap = json.at("wrap");
-    const String& swizzle = json.at("swizzle");
 
-    set_format(impl_string_to_format(json.at("format")));
-    set_wrap_mode(wrap[0], wrap[1]);
+    set_filter_mode(filter, mipmaps);
     set_swizzle_mode(swizzle[0], swizzle[1], swizzle[2], swizzle[3]);
-    set_filter_mode(json.at("filter"));
-    set_mipmaps_mode(json.at("mipmaps"));
-    allocate_storage(json.at("size"));
-
-    load_file(build_string(path, "/0_right"),   0u);
-    load_file(build_string(path, "/1_left"),    1u);
-    load_file(build_string(path, "/2_forward"), 2u);
-    load_file(build_string(path, "/3_back"),    3u);
-    load_file(build_string(path, "/4_up"),      4u);
-    load_file(build_string(path, "/5_down"),    5u);
-
-    if (mMipmaps == true) generate_auto_mipmaps();
+    set_wrap_mode(wrap[0], wrap[1]);
 }
 
-void TextureArray2D::load_file(StringView path, uint layer)
+void TextureCube::load_automatic(const String& path)
 {
-    Impl_Load_Image image ( mFormat, String(path) );
-    SQASSERT(image.size == Vec2U(mSize), "");
-    load_memory(image.data, layer);
-}
+    const JsonValue json = parse_json_from_file(path + "/TextureCube.json");
 
-void TextureArray2D::load_automatic(StringView path)
-{
-    const auto json = parse_json_from_file(build_string(path, "/meta.json"));
+    const TexFormat format = impl_string_to_format(json.at("format"));
+    const uint size = json.at("size");
+    const bool mipmaps = json.at("mipmaps");
 
-    const String& wrap = json.at("wrap");
-    const String& swizzle = json.at("swizzle");
-
-    set_format(impl_string_to_format(json.at("format")));
-    set_wrap_mode(wrap[0], wrap[1]);
-    set_swizzle_mode(swizzle[0], swizzle[1], swizzle[2], swizzle[3]);
-    set_filter_mode(json.at("filter"));
-    set_mipmaps_mode(json.at("mipmaps"));
-    allocate_storage({json.at("width"), json.at("height"), json.at("layers")});
-
-    const uint digits = mSize.z > 10u ? mSize.z > 100u ? 3u : 2u : 1u;
-
-    for (uint layer = 0u; layer < mSize.z; ++layer)
+    allocate_storage(format, size, mipmaps);
+    for (const char* fname : {"0_right", "1_left", "2_forward", "3_back", "4_up", "5_down"})
     {
-        const auto filePath = fmt::format("{}/{:0>{}}", path, layer, digits);
-
-        Impl_Load_Image image ( mFormat, filePath );
-        SQASSERT(image.size == Vec2U(mSize), "");
-
-        load_memory(image.data, layer);
+        const auto image = impl_load_image(format, fmt::format("{}/{}.png", path, fname));
+        SQASSERT(image.size == Vec2U(size), "image size does not match json");
+        load_memory(format, uint(*fname - '0'), size, image.data.get());
     }
+    if (mipmaps == true) generate_auto_mipmaps();
 
-    if (mMipmaps == true) generate_auto_mipmaps();
+    const bool filter = json.at("filter");
+    const String& swizzle = json.at("swizzle");
+    const String& wrap = json.at("wrap");
+
+    set_filter_mode(filter, mipmaps);
+    set_swizzle_mode(swizzle[0], swizzle[1], swizzle[2], swizzle[3]);
+    set_wrap_mode(wrap[0], wrap[1]);
+}
+
+void TextureArray::load_automatic(const String& path)
+{
+    const JsonValue json = parse_json_from_file(path + "/TextureArray.json");
+
+    const TexFormat format = impl_string_to_format(json.at("format"));
+    const uint width = json.at("width");
+    const uint height = json.at("height");
+    const uint layers = json.at("layers");
+    const bool mipmaps = json.at("mipmaps");
+
+    allocate_storage(format, {width, height, layers}, mipmaps);
+    for (uint layer = 0u; layer < layers; ++layer)
+    {
+        const uint digits = layers > 10u ? layers > 100u ? 3u : 2u : 1u;
+        const auto image = impl_load_image(format, fmt::format("{}/{:0>{}}.png", path, layer, digits));
+        SQASSERT(image.size == Vec2U(width, height), "image size does not match json");
+        load_memory(format, layer, {width, height}, image.data.get());
+    }
+    if (mipmaps == true) generate_auto_mipmaps();
+
+    const bool filter = json.at("filter");
+    const String& swizzle = json.at("swizzle");
+    const String& wrap = json.at("wrap");
+
+    set_filter_mode(filter, mipmaps);
+    set_swizzle_mode(swizzle[0], swizzle[1], swizzle[2], swizzle[3]);
+    set_wrap_mode(wrap[0], wrap[1]);
 }
 
 //============================================================================//
 
-// TextureArrayCube Methods /////
-
-/*
-void TextureCubeArray::buffer_memory(const void* _data, uint _face, uint _index, GLenum _type) {
-    gl::TextureSubImage3D(tex, 0, 0, 0, _index*6+_face, size.x, size.y, 1, format, _type, _data);
-}
-
-void TextureCubeArray::buffer_file(const string& _path, uint _face, uint _index) {
-    string path = static_path() + "textures/" + _path;
-    if (check_file_exists(path+".png")) path += ".png";
-    else if (check_file_exists(path+".jpg")) path += ".jpg";
-
-    LoadedImage img = load_image(path, format);
-    if (!img.data) log_error("Failed to load texture from %s", path);
-    else buffer_memory(img.data, _face, _index, gl::UNSIGNED_BYTE);
-}
-
-void TextureCubeArray::buffer_full(const string& _path, uint _index) {
-    buffer_file(_path+"/x+", 0, _index);
-    buffer_file(_path+"/x-", 1, _index);
-    buffer_file(_path+"/y+", 2, _index);
-    buffer_file(_path+"/y-", 3, _index);
-    buffer_file(_path+"/z+", 4, _index);
-    buffer_file(_path+"/z-", 5, _index);
-}
-
-void TextureCubeArray::allocate_storage(Vec2U _size, bool _mipmaps) {
-    create_and_setup_texture(); size = Vec3U(_size.x, _size.x, _size.y);
-    int maxLevel = _mipmaps ? std::floor(std::log2(size.x)) + 1 : 1;
-    gl::TextureStorage3D(tex, maxLevel, iFormat, size.x, size.y, size.z*6);
-}
-*/
-
-
-//============================================================================//
+// todo: get rid of this garbage
 
 Texture2D Texture2D::make_from_package(const String& path)
 {
@@ -642,26 +418,19 @@ Texture2D Texture2D::make_from_package(const String& path)
 
     const auto format = impl_string_to_format(json.at("format"));
     const auto imagePath = build_string("assets/packages/", package, "/textures/", name);
-
-    Impl_Load_Image image ( format, imagePath );
+    const auto image = impl_load_image(format, path);
 
     //========================================================//
 
-    auto texture = Texture2D(format);
+    auto texture = Texture2D();
 
-    texture.set_filter_mode(true);
-    texture.set_mipmaps_mode(true);
-
-    texture.set_wrap_mode(wrap[0], wrap[1]);
-    texture.set_swizzle_mode(swizzle[0], swizzle[1], swizzle[2], swizzle[3]);
-
-    texture.allocate_storage(image.size);
-
-    texture.load_memory(image.data);
-
+    texture.allocate_storage(format, image.size, true);
+    texture.load_memory(format, image.size, image.data.get());
     texture.generate_auto_mipmaps();
 
-    //========================================================//
+    texture.set_filter_mode(true, true);
+    texture.set_swizzle_mode(swizzle[0], swizzle[1], swizzle[2], swizzle[3]);
+    texture.set_wrap_mode(wrap[0], wrap[1]);
 
     return texture;
 }

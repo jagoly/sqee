@@ -6,7 +6,7 @@
 #include <dearimgui/imgui_internal.h>
 #include <dearimgui/imgui.h>
 
-DISABLE_WARNING_OLD_STYLE_CAST;
+DISABLE_WARNING_OLD_STYLE_CAST()
 
 //============================================================================//
 

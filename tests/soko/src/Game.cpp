@@ -4,7 +4,6 @@
 
 #include <sqee/gl/Context.hpp>
 #include <sqee/gl/Textures.hpp>
-#include <sqee/gl/Drawing.hpp>
 
 #include <sqee/core/Utilities.hpp>
 
@@ -12,13 +11,19 @@
 #include "Level.hpp"
 #include "Game.hpp"
 
+// note from september 2020, after more than five years
+// looking at this old sokoban stuff and marvelling at how horrible it is
+// looked at git, and even in july 2015 I said: "Code is mega ugly, avert your eyes."
+// REALLY should get around to fixing it, if for no other reason to have a simple
+// demo application for sqee, making animations actually work would be great too
+
 using namespace sqt;
 namespace maths = sq::maths;
 
 GameScene::GameScene(sq::InputDevices& input)
     : Scene(1.0 / 20.0), mInput(input)
 {
-    ubo.create_and_allocate(176u);
+    ubo.allocate_dynamic(176u);
 
     ubo.update ( 0u, sq::Structure (
         Mat4F(), Mat4F(),
@@ -31,17 +36,17 @@ GameScene::GameScene(sq::InputDevices& input)
     processor.import_header("uniform_block");
 
     // Load Shaders
-    processor.load_vertex(PROG_Object, "object_vs");
-    processor.load_fragment(PROG_Object, "object_fs");
+    processor.load_vertex(PROG_Object, "shaders/object_vs.glsl", {});
+    processor.load_fragment(PROG_Object, "shaders/object_fs.glsl", {});
     PROG_Object.link_program_stages();
 
     // Load Meshes
-    MESH_Ball.load_from_file("assets/meshes/Ball");
-    MESH_Floor.load_from_file("assets/meshes/Floor");
-    MESH_HoleA.load_from_file("assets/meshes/HoleA");
-    MESH_HoleB.load_from_file("assets/meshes/HoleB");
-    MESH_Player.load_from_file("assets/meshes/Player");
-    MESH_Wall.load_from_file("assets/meshes/Wall");
+    MESH_Ball.load_from_file("assets/meshes/Ball.sqm");
+    MESH_Floor.load_from_file("assets/meshes/Floor.sqm");
+    MESH_HoleA.load_from_file("assets/meshes/HoleA.sqm");
+    MESH_HoleB.load_from_file("assets/meshes/HoleB.sqm");
+    MESH_Player.load_from_file("assets/meshes/Player.sqm");
+    MESH_Wall.load_from_file("assets/meshes/Wall.sqm");
 
     // Setup Level
     Level::Specification spec;
@@ -188,20 +193,17 @@ void GameScene::update()
 
 void GameScene::render(double)
 {
-    using Context = sq::Context;
-    static auto& context = Context::get();
+    auto& context = sq::Context::get();
 
-    context.set_state(Context::Cull_Face::Back);
-    context.set_state(Context::Depth_Test::Replace);
-    context.set_state(Context::Stencil_Test::Disable);
-    context.set_state(Context::Blend_Mode::Disable);
+    context.set_state(sq::CullFace::Back);
+    context.set_state(sq::DepthTest::Replace);
+    context.set_state(sq::StencilTest::Disable);
+    context.set_state(sq::BlendMode::Disable);
 
-    context.clear_Colour({0.15f, 0.1f, 0.2f, 0.f});
-    context.clear_Depth_Stencil();
+    context.clear_depth_stencil_colour(1.0, 0x00, 0xFF, {0.15f, 0.1f, 0.2f, 0.f});
 
-    context.bind_Program(PROG_Object);
-
-    context.bind_UniformBuffer(ubo, 0u);
+    context.bind_program(PROG_Object);
+    context.bind_buffer(ubo, sq::BufTarget::Uniform, 0u);
 
     float tickPercent = float(mAccumulation) * 20.f;
 
@@ -215,8 +217,8 @@ void GameScene::render(double)
                 Mat3F normMat = maths::normal_matrix(viewMat * modelMat);
                 PROG_Object.update(0, modelMat);
                 PROG_Object.update(1, normMat);
-                context.bind_VertexArray(MESH_Floor.get_vao());
-                MESH_Floor.draw_complete();
+                MESH_Floor.apply_to_context(context);
+                MESH_Floor.draw_complete(context);
             }
         }
     }
@@ -229,8 +231,8 @@ void GameScene::render(double)
         Mat3F normMat = maths::normal_matrix(viewMat * modelMat);
         PROG_Object.update(0, modelMat);
         PROG_Object.update(1, normMat);
-        context.bind_VertexArray(MESH_Ball.get_vao());
-        MESH_Ball.draw_complete();
+        MESH_Ball.apply_to_context(context);
+        MESH_Ball.draw_complete(context);
     }
 
     for (const Hole& hole : level->holeList)
@@ -240,8 +242,8 @@ void GameScene::render(double)
         Mat3F normMat = maths::normal_matrix(viewMat * modelMat);
         PROG_Object.update(0, modelMat);
         PROG_Object.update(1, normMat);
-        context.bind_VertexArray(mesh.get_vao());
-        mesh.draw_complete();
+        mesh.apply_to_context(context);
+        mesh.draw_complete(context);
     }
 
     for (const Wall& wall : level->wallList)
@@ -250,8 +252,8 @@ void GameScene::render(double)
         Mat3F normMat = maths::normal_matrix(viewMat * modelMat);
         PROG_Object.update(0, modelMat);
         PROG_Object.update(1, normMat);
-        context.bind_VertexArray(MESH_Wall.get_vao());
-        MESH_Wall.draw_complete();
+        MESH_Wall.apply_to_context(context);
+        MESH_Wall.draw_complete(context);
     }
 
     { // Player
@@ -261,8 +263,8 @@ void GameScene::render(double)
         Mat3F normMat = maths::normal_matrix(viewMat * modelMat);
         PROG_Object.update(0, modelMat);
         PROG_Object.update(1, normMat);
-        context.bind_VertexArray(MESH_Player.get_vao());
-        MESH_Player.draw_complete();
+        MESH_Player.apply_to_context(context);
+        MESH_Player.draw_complete(context);
     }
 }
 

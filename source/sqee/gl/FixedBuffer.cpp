@@ -1,7 +1,9 @@
 ﻿#include <sqee/gl/FixedBuffer.hpp>
 
 #include <sqee/debug/Assert.hpp>
-#include <sqee/redist/gl_loader.hpp>
+
+#include <sqee/gl/Constants.hpp>
+#include <sqee/gl/Functions.hpp>
 
 using namespace sq;
 
@@ -12,43 +14,38 @@ FixedBuffer::FixedBuffer()
     gl::CreateBuffers(1, &mHandle);
 }
 
-//============================================================================//
-
 FixedBuffer::FixedBuffer(FixedBuffer&& other) noexcept
 {
-    mBufferSize = other.mBufferSize;
-    mHandle = other.mHandle;
-
-    other.mBufferSize = 0u;
-    other.mHandle = 0u;
+    *this = std::move(other);
 }
 
 FixedBuffer& FixedBuffer::operator=(FixedBuffer&& other) noexcept
-{ std::swap(*this, other); return *this; }
-
-//============================================================================//
+{
+    std::swap(mHandle, other.mHandle);
+    return *this;
+}
 
 FixedBuffer::~FixedBuffer() noexcept
 {
-    gl::DeleteBuffers(1, &mHandle);
+    if (mHandle) gl::DeleteBuffers(1, &mHandle);
 }
 
 //============================================================================//
 
-void FixedBuffer::allocate_constant(uint size, const void* data, GLenum flags)
+void FixedBuffer::allocate_static(uint size, const void* data)
 {
-    gl::NamedBufferStorage(mHandle, size, data, gl::NONE | flags);
-    mBufferSize = size;
+    SQASSERT(data != nullptr, "data must be given");
+    gl::NamedBufferStorage(mHandle, ptrdiff_t(size), data, gl::NONE);
 }
 
-void FixedBuffer::allocate_dynamic(uint size, const void* data, GLenum flags)
+void FixedBuffer::allocate_dynamic(uint size)
 {
-    gl::NamedBufferStorage(mHandle, size, data, gl::DYNAMIC_STORAGE_BIT | flags);
-    mBufferSize = size;
+    gl::NamedBufferStorage(mHandle, ptrdiff_t(size), nullptr, gl::DYNAMIC_STORAGE_BIT);
 }
+
+//============================================================================//
 
 void FixedBuffer::update(uint offset, uint size, const void* data)
 {
-    SQASSERT(offset + size <= mBufferSize, "buffer too small");
-    gl::NamedBufferSubData(mHandle, offset, size, data);
+    gl::NamedBufferSubData(mHandle, ptrdiff_t(offset), ptrdiff_t(size), data);
 }

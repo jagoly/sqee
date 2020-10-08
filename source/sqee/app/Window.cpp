@@ -4,7 +4,10 @@
 #include <sqee/core/Macros.hpp>
 #include <sqee/debug/Logging.hpp>
 #include <sqee/debug/OpenGL.hpp>
-#include <sqee/redist/gl_loader.hpp>
+
+#include <sqee/gl/Constants.hpp>
+#include <sqee/gl/Functions.hpp>
+#include <sqee/gl/Loader.hpp>
 
 #include <SFML/Config.hpp>
 #include <SFML/System/Vector2.hpp>
@@ -216,7 +219,7 @@ Window::Window(String title, Vec2U size)
 
     sf::VideoMode mode { size.x, size.y, 32u };
     sf::Uint32 style = sf::Style::Default;
-    sf::ContextSettings settings { 24u, 8u, 0u, 3u, 3u, sf::ContextSettings::Core };
+    sf::ContextSettings settings { 24u, 8u, 0u, 4u, 5u, sf::ContextSettings::Core | sf::ContextSettings::Debug };
 
     impl->sfmlWindow.create(mode, title, style, settings);
 
@@ -224,8 +227,8 @@ Window::Window(String title, Vec2U size)
 
     //--------------------------------------------------------//
 
-    const int numMissing = gl::sys::LoadFunctions().GetNumMissing();
-    if (numMissing != 0) log_warning("OpenGL functions missing: {}", numMissing);
+    if (load_opengl_core45_functions() == false)
+        log_error("Failed to Load OpenGL functions!");
 
     //--------------------------------------------------------//
 

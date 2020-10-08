@@ -6,18 +6,16 @@
 #include <sqee/setup.hpp>
 
 #include <sqee/core/Types.hpp>
-
-// This class should probably be part of sq::Window, but since in reality the OpenGL
-// context is global, this class can just be a singleton, at least for now.
+#include <sqee/gl/SafeEnums.hpp>
 
 namespace sq {
 
 //====== Forward Declarations ================================================//
 
+class FixedBuffer;
 class FrameBuffer;
 class Program;
 class Texture;
-class UniformBuffer;
 class VertexArray;
 
 //============================================================================//
@@ -27,65 +25,58 @@ class SQEE_API Context final : private NonCopyable
 {
 public: //====================================================//
 
-    enum class Clip_Distance  : bool { Disable, Enable };
-    enum class Depth_Clamp    : bool { Disable, Enable };
-    enum class Scissor_Test   : bool { Disable, Enable };
-//    enum class Alpha_Coverage : bool { Disable, Enable };
-    enum class Cull_Face      : char { Disable, Back, Front };
-    enum class Depth_Test     : char { Disable, Keep, Replace };
-    enum class Stencil_Test   : char { Disable, Keep, Replace, Custom };
-    enum class Blend_Mode     : char { Disable, Accumulate, Alpha, PremAlpha, Custom };
-    enum class Depth_Compare  : char { Less, LessEqual, Greater, GreaterEqual, Equal, NotEqual };
+    /// Get the static instance,
+    static Context& get();
 
     //--------------------------------------------------------//
 
-    struct Scissor_Params { uint x; uint y; uint width; uint height; };
-    struct Stencil_Params { GLenum func; uchar ref; uchar readMask; uchar writeMask; };
-    struct Stencil_Custom { GLenum fail; GLenum zFail; GLenum zPass; };
-    struct Blend_Custom   { GLenum srcFactor; GLenum destFactor; };
+    /// Update AlphaCoverage context state.
+    void set_state(AlphaCoverage state);
+
+    /// Update ClipDistance context state.
+    void set_state(ClipDistance state);
+
+    /// Update DepthClamp context state.
+    void set_state(DepthClamp state);
+
+    /// Update ScissorTest context state.
+    void set_state(ScissorTest state);
 
     //--------------------------------------------------------//
 
-    /// Update Clip_Distance context state.
-    void set_state(Clip_Distance state);
+    /// Update BlendMode context state.
+    void set_state(BlendMode state);
 
-    /// Update Depth_Clamp context state.
-    void set_state(Depth_Clamp state);
+    /// Update CullFace context state.
+    void set_state(CullFace state);
 
-    /// Update Scissor_Test context state.
-    void set_state(Scissor_Test state);
+    /// Update DepthTest context state.
+    void set_state(DepthTest state);
 
-//    /// Update Alpha_Coverage context state.
-//    void set_state(Alpha_Coverage state);
-
-    /// Update Cull_Face context state.
-    void set_state(Cull_Face state);
-
-    /// Update Depth_Test context state.
-    void set_state(Depth_Test state);
-
-    /// Update Stencil_Test context state.
-    void set_state(Stencil_Test state);
-
-    /// Update Blend_Mode context state.
-    void set_state(Blend_Mode state);
-
-    /// Update Depth_Compare context state.
-    void set_state(Depth_Compare state);
+    /// Update StencilTest context state.
+    void set_state(StencilTest state);
 
     //--------------------------------------------------------//
 
-    /// Set the box used for scissor testing.
-    void set_Scissor_Params(Scissor_Params args);
+    /// Set the box to use for scissor testing.
+    void set_scissor_box(uint x, uint y, uint width, uint height);
 
-    /// Set mask parameters to use for stencil testing.
-    void set_Stencil_Params(Stencil_Params args);
+    /// Set compare function to use for depth testing.
+    void set_depth_compare(CompareFunc func);
 
-    /// Set custom Stencil_Test state parameters.
-    void set_Stencil_Custom(Stencil_Custom args);
+    /// Set parameters to use for stencil testing.
+    void set_stencil_params(CompareFunc func, uchar ref, uchar readMask, uchar writeMask);
 
-    /// Set custom Blend_Mode state parameters.
-    void set_Blend_Custom(Blend_Custom args);
+    /// Set operations to use for custom stencil mode.
+    void set_stencil_custom(StencilOp fail, StencilOp zFail, StencilOp zPass);
+
+    /// Set factors to use for custom blend mode.
+    void set_blend_custom(BlendFactor src, BlendFactor dest);
+
+    //--------------------------------------------------------//
+
+    /// Set the width used for drawing lines.
+    void set_line_width(float width);
 
     //--------------------------------------------------------//
 
@@ -93,160 +84,85 @@ public: //====================================================//
     void set_ViewPort(Vec2U size);
 
     /// Get the size of the drawing viewport.
-    Vec2U get_ViewPort() const { return crnt_ViewPort; }
+    Vec2U get_ViewPort() const { return mCurrentViewPort; }
 
     //--------------------------------------------------------//
 
-    /// Bind a FrameBuffer for reading only.
-    void bind_FrameBuffer_Read(const FrameBuffer& fbo);
+    /// Bind a Buffer object to an indexed target.
+    void bind_buffer(const FixedBuffer& buffer, BufTarget target, uint slot);
 
-    /// Bind a FrameBuffer for drawing only.
-    void bind_FrameBuffer_Draw(const FrameBuffer& fbo);
+    /// Bind part of a Buffer object to an indexed target.
+    void bind_buffer(const FixedBuffer& buffer, BufTarget target, uint slot, uint offset, uint size);
 
-    /// Bind a FrameBuffer for read and draw.
-    void bind_FrameBuffer(const FrameBuffer& fbo);
+    /// Bind a FrameBuffer object.
+    void bind_framebuffer(const FrameBuffer& fbo, FboTarget target = FboTarget::Both);
 
-    /// Bind the default FrameBuffer.
-    void bind_FrameBuffer_default();
+    /// Bind a Program object.
+    void bind_program(const Program& program);
 
-    //--------------------------------------------------------//
+    /// Bind a Texture object to a slot.
+    void bind_texture(const Texture& tex, uint slot);
 
-    /// Bind the specified Program.
-    void bind_Program(const Program& program);
-
-    /// Bind the the default Program.
-    void bind_Program_default();
+    /// Bind a VertexArray object.
+    void bind_vertexarray(const VertexArray& vao);
 
     //--------------------------------------------------------//
 
-    /// Bind the specified VertexArray.
-    void bind_VertexArray(const VertexArray& vao);
+    /// Bind the default FrameBuffer object.
+    void bind_framebuffer_default(FboTarget target = FboTarget::Both);
 
-    /// Bind the dummy VertexArray.
-    void bind_VertexArray_dummy();
+    /// Bind the default Program object.
+    void bind_program_default();
 
-    //--------------------------------------------------------//
-
-    /// Bind a Texture to the specified slot.
-    void bind_Texture(const Texture& tex, uint8_t slot);
+    /// Bind the dummy VertexArray object.
+    void bind_vertexarray_dummy();
 
     //--------------------------------------------------------//
 
-    /// Bind a UniformBuffer to the specified index.
-    void bind_UniformBuffer(const UniformBuffer& ubo, uint8_t index);
+    /// Clear the bound depth buffer.
+    void clear_depth(double depth);
 
-    /// Bind a portion of a UniformBuffer to the specified index.
-    void bind_UniformBuffer(const UniformBuffer& ubo, uint8_t index, uint offset, uint size);
+    /// Clear the bound stencil buffer.
+    void clear_stencil(uchar stencil, uchar mask);
+
+    /// Clear the bound colour buffer.
+    void clear_colour(Vec4F colour);
+
+    /// Clear the bound depth and stencil buffers.
+    void clear_depth_stencil(double depth, uchar stencil, uchar mask);
+
+    /// Clear the bound depth and colour buffers.
+    void clear_depth_colour(double depth, Vec4F colour);
+
+    /// Clear the bound stencil and colour buffers.
+    void clear_stencil_colour(uchar stencil, uchar mask, Vec4F colour);
+
+    /// Clear the bound depth, stencil, and colour buffers.
+    void clear_depth_stencil_colour(double depth, uchar stencil, uchar mask, Vec4F colour);
 
     //--------------------------------------------------------//
 
-    /// Clear the bound FrameBuffer's colour.
-    void clear_Colour(Vec4F colour);
+    /// Simple wrapper function for glDrawArrays.
+    static void draw_arrays(DrawPrimitive primitive, uint first, uint count);
 
-    /// Clear the bound FrameBuffer's depth.
-    void clear_Depth(double depth);
+    /// Wrapper for glDrawElements taking one-byte indices.
+    static void draw_elements_u8(DrawPrimitive primitive, uint8_t first, uint8_t count);
 
-    /// Clear the bound FrameBuffer's stencil.
-    void clear_Stencil(uchar stencil, uchar mask);
+    /// Wrapper for glDrawElements taking two-byte indices.
+    static void draw_elements_u16(DrawPrimitive primitive, uint16_t first, uint16_t count);
 
-    /// Clear the bound FrameBuffer's depth and stencil.
-    void clear_Depth_Stencil();
-
-    //--------------------------------------------------------//
-
-    /// Get the static instance,
-    static Context& get();
+    /// Wrapper for glDrawElements taking four-byte indices.
+    static void draw_elements_u32(DrawPrimitive primitive, uint32_t first, uint32_t count);
 
 private: //===================================================//
-
-    Clip_Distance  crnt_Clip_Distance  = Clip_Distance  :: Disable;
-    Depth_Clamp    crnt_Depth_Clamp    = Depth_Clamp    :: Disable;
-    Scissor_Test   crnt_Scissor_Test   = Scissor_Test   :: Disable;
-//    Alpha_Coverage crnt_Alpha_Coverage = Alpha_Coverage :: Disable;
-    Cull_Face      crnt_Cull_Face      = Cull_Face      :: Disable;
-    Depth_Test     crnt_Depth_Test     = Depth_Test     :: Disable;
-    Stencil_Test   crnt_Stencil_Test   = Stencil_Test   :: Disable;
-    Blend_Mode     crnt_Blend_Mode     = Blend_Mode     :: Disable;
-    Depth_Compare  crnt_Depth_Compare  = Depth_Compare  :: Less;
-
-    Scissor_Params crnt_Scissor_Params;
-    Stencil_Params crnt_Stencil_Params;
-    Stencil_Custom crnt_Stencil_Custom;
-    Blend_Custom   crnt_Blend_Custom;
-    Vec2U          crnt_ViewPort;
-
-    //--------------------------------------------------------//
-
-    const FrameBuffer* mFrameBufferBindingRead = nullptr;
-    const FrameBuffer* mFrameBufferBindingDraw = nullptr;
-
-    const Program* mProgramBinding = nullptr;
-
-    const VertexArray* mVertexArrayBinding = nullptr;
-
-    const Texture* mTextureBindings[12] { nullptr };
-
-    //--------------------------------------------------------//
-
-    struct UniformBufferBinding
-    {
-        const UniformBuffer* ptr = nullptr;
-        uint offset = 0u, size = 0u;
-
-        bool operator==(const UniformBufferBinding& rhs) const
-        { return ptr == rhs.ptr && offset == rhs.offset && size == rhs.size; }
-    };
-
-    UniformBufferBinding mUniformBufferBindings[6];
-
-    //--------------------------------------------------------//
-
-    template <class T>
-    bool impl_check_modify(T& ref, T value)
-    {
-        if (ref == value) return true;
-        ref = value; return false;
-    }
-
-    //--------------------------------------------------------//
 
     Context();
     ~Context();
 
-    //--------------------------------------------------------//
+    Vec2U mCurrentViewPort = { 0u, 0u };
 
     GLuint mDummyVAO = 0u;
-
-    //--------------------------------------------------------//
-
-    void impl_reset_FrameBuffer(const FrameBuffer* old, const FrameBuffer* fresh = nullptr);
-    void impl_reset_Program(const Program* old, const Program* fresh = nullptr);
-    void impl_reset_VertexArray(const VertexArray* old, const VertexArray* fresh = nullptr);
-    void impl_reset_Texture(const Texture* old, const Texture* fresh = nullptr);
-    void impl_reset_UniformBuffer(const UniformBuffer* old, const UniformBuffer* fresh = nullptr);
-
-    //--------------------------------------------------------//
-
-    friend FrameBuffer;
-    friend Program;
-    friend VertexArray;
-    friend Texture;
-    friend UniformBuffer;
 };
-
-//============================================================================//
-
-constexpr bool operator==(const Context::Scissor_Params& a, const Context::Scissor_Params& b)
-{ return a.x == b.x && a.y == b.y && a.width == b.width && a.height == b.height; }
-
-constexpr bool operator==(const Context::Stencil_Params& a, const Context::Stencil_Params& b)
-{ return a.func == b.func && a.ref == b.ref && a.readMask == b.readMask && a.writeMask == b.writeMask; }
-
-constexpr bool operator==(const Context::Stencil_Custom& a, const Context::Stencil_Custom& b)
-{ return a.fail == b.fail && a.zFail == b.zFail && a.zPass == b.zPass; }
-
-constexpr bool operator==(const Context::Blend_Custom& a, const Context::Blend_Custom& b)
-{ return a.srcFactor == b.srcFactor && a.destFactor == b.destFactor; }
 
 //============================================================================//
 

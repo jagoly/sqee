@@ -6,16 +6,15 @@
 #include <sqee/setup.hpp>
 
 #include <sqee/core/Types.hpp>
+#include <sqee/gl/SafeEnums.hpp>
 
 namespace sq {
 
 //====== Forward Declarations ================================================//
 
-class Context;
 class Texture2D;
+class TextureArray;
 class TextureCube;
-class TextureArray2D;
-//class TextureArrayCube;
 class TextureMulti;
 
 //============================================================================//
@@ -36,32 +35,29 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     /// Attach an immutable Texture2D.
-    void attach(GLenum attach, const Texture2D& tex);
+    void attach(FboAttach attach, const Texture2D& tex);
 
     /// Attach an immutable TextureCube.
-    void attach(GLenum attach, const TextureCube& tex, uint face);
+    void attach(FboAttach attach, const TextureCube& tex, uint face);
 
-    /// Attach an immutable TextureArray2D.
-    void attach(GLenum attach, const TextureArray2D& tex, uint layer);
-
-//    /// Attach an immutable TextureArrayCube.
-//    void attach(GLenum attach, const TextureArrayCube& tex, uint layer, uint face);
+    /// Attach an immutable TextureArray.
+    void attach(FboAttach attach, const TextureArray& tex, uint layer);
 
     /// Attach an immutable TextureMulti.
-    void attach(GLenum attach, const TextureMulti& tex);
+    void attach(FboAttach attach, const TextureMulti& tex);
 
     //--------------------------------------------------------//
 
     /// Set which buffers to draw to when using the fbo.
-    void draw_buffers(std::initializer_list<GLenum> drawBufs);
+    void draw_buffers(std::initializer_list<FboAttach> drawBufs);
 
     //--------------------------------------------------------//
 
     /// Blit this FrameBuffer directly to another.
-    void blit(const FrameBuffer& other, Vec2U size, GLenum mask) const;
+    void blit(const FrameBuffer& other, Vec2U size, BlitMask mask) const;
 
     /// Blit this FrameBuffer directly to another of a different size.
-    void blit(const FrameBuffer& other, Vec2U sizeA, Vec2U sizeB, GLenum mask, GLenum filter) const;
+    void blit(const FrameBuffer& other, Vec2U sizeA, Vec2U sizeB, BlitMask mask, bool filter) const;
 
     //--------------------------------------------------------//
 
@@ -69,8 +65,6 @@ public: //====================================================//
     GLuint get_handle() const { return mHandle; }
 
 private: //===================================================//
-
-    Context& mContext;
 
     GLuint mHandle = 0u;
 };

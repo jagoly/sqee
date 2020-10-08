@@ -28,9 +28,9 @@ private: //===================================================//
     sq::FrameBuffer FB_Bloom_Main, FB_Bloom_Blur;
     sq::FrameBuffer FB_Shafts_Main, FB_Shafts_Blur;
 
-    sq::Texture2D TEX_SSAO_Blur { sq::Texture::Format::R8_UN };
-    sq::Texture2D TEX_Bloom_Blur { sq::Texture::Format::RGB8_UN };
-    sq::Texture2D TEX_Shafts_Blur { sq::Texture::Format::RGB8_UN };
+    sq::Texture2D TEX_SSAO_Blur;// { sq::Texture::Format::R8_UN };
+    sq::Texture2D TEX_Bloom_Blur;// { sq::Texture::Format::RGB8_UN };
+    sq::Texture2D TEX_Shafts_Blur;// { sq::Texture::Format::RGB8_UN };
 
     sq::Program PROG_SSAO_Main;
     sq::Program PROG_SSAO_Blur;

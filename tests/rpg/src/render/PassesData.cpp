@@ -104,11 +104,11 @@ void PassesData::prepare_depth_models(const RenderStuff& stuff)
         {
             for (uint index = 0u; index < model.materials.size(); ++index)
             {
-                const auto& mask = model.materials[index]->get_mask_handle();
+//                const auto& mask = model.materials[index]->get_mask_handle();
 
-                // add this sub-mesh either to the punch part map, or the solid part vector
-                auto& dest = mask.check() ? simplePass.punchPartMap[&mask.get()] : simplePass.solidPartVec;
-                dest.push_back({model.mesh.get(), matrix, model.isMirrored, index});
+//                // add this sub-mesh either to the punch part map, or the solid part vector
+//                auto& dest = mask != nullptr ? simplePass.punchPartMap[&mask.get()] : simplePass.solidPartVec;
+//                dest.push_back({model.mesh.get(), matrix, model.isMirrored, index});
             }
         }
 
@@ -126,11 +126,11 @@ void PassesData::prepare_depth_models(const RenderStuff& stuff)
         {
             for (uint index = 0u; index < model.materials.size(); ++index)
             {
-                const auto& mask = model.materials[index]->get_mask_handle();
+//                const auto& mask = model.materials[index]->get_mask_handle();
 
-                // add this sub-mesh either to the punch part map, or the solid part vector
-                auto& dest = mask.check() ? skellyPass.punchPartMap[&mask.get()] : skellyPass.solidPartVec;
-                dest.push_back({skeleton.ubo, model.mesh.get(), matrix, model.isMirrored, index});
+//                // add this sub-mesh either to the punch part map, or the solid part vector
+//                auto& dest = mask != nullptr ? skellyPass.punchPartMap[&mask.get()] : skellyPass.solidPartVec;
+//                dest.push_back({skeleton.ubo, model.mesh.get(), matrix, model.isMirrored, index});
             }
         }
 
@@ -307,11 +307,11 @@ void add_simple_models_to_shadows ( data::DepthModelSimplePass& pass, const Rend
         {
             for (uint index = 0u; index < model.materials.size(); ++index)
             {
-                const auto& mask = model.materials[index]->get_mask_handle();
+//                const auto& mask = model.materials[index]->get_mask_handle();
 
-                // add this sub-mesh either to the punch part map, or the solid part vector
-                auto& dest = mask.check() ? pass.punchPartMap[&mask.get()] : pass.solidPartVec;
-                dest.push_back({model.mesh.get(), matrix, model.isMirrored, index});
+//                // add this sub-mesh either to the punch part map, or the solid part vector
+//                auto& dest = mask != nullptr ? pass.punchPartMap[&mask.get()] : pass.solidPartVec;
+//                dest.push_back({model.mesh.get(), matrix, model.isMirrored, index});
             }
         }
 
@@ -331,11 +331,11 @@ void add_skelly_models_to_shadows ( data::DepthModelSkellyPass& pass, const Rend
         {
             for (uint index = 0u; index < model.materials.size(); ++index)
             {
-                const auto& mask = model.materials[index]->get_mask_handle();
+//                const auto& mask = model.materials[index]->get_mask_handle();
 
-                // add this sub-mesh either to the punch part map, or the solid part vector
-                auto& dest = mask.check() ? pass.punchPartMap[&mask.get()] : pass.solidPartVec;
-                dest.push_back({skeleton.ubo, model.mesh.get(), matrix, model.isMirrored, index});
+//                // add this sub-mesh either to the punch part map, or the solid part vector
+//                auto& dest = mask != nullptr ? pass.punchPartMap[&mask.get()] : pass.solidPartVec;
+//                dest.push_back({skeleton.ubo, model.mesh.get(), matrix, model.isMirrored, index});
             }
         }
 
@@ -360,7 +360,7 @@ void PassesData::prepare_shadow_mapping(const RenderStuff& rstuff, const WorldSt
     if (rstuff.skylight != nullptr)
     {
         const auto& light = *rstuff.skylight;
-        const Vec2U viewPort = Vec2U(light.tex.get_size());
+        const Vec2U viewPort = Vec2U(light.resolution);
 
         // iterate through individual cascades
         for (uint i = 0u; i < light.cascades; ++i)
@@ -387,7 +387,7 @@ void PassesData::prepare_shadow_mapping(const RenderStuff& rstuff, const WorldSt
 
     for (auto& [id, light] : dop::joined(mLightOrthoSet, rstuff.tables.ortholight))
     {
-        const Vec2U viewport = Vec2U(light.tex.get_size());
+        const Vec2U viewport = Vec2U(light.resolution);
 
         orthoPassVec.push_back({light.fbo, viewport, {}});
 
@@ -409,7 +409,7 @@ void PassesData::prepare_shadow_mapping(const RenderStuff& rstuff, const WorldSt
 
     for (auto& [id, light] : dop::joined(mLightPointSet, rstuff.tables.pointlight))
     {
-        const Vec2U viewport = Vec2U(light.tex.get_size());
+        const Vec2U viewport = Vec2U(light.resolution);
 
         for (uint face = 0u; face < 6u; ++face)
         {
@@ -435,7 +435,7 @@ void PassesData::prepare_shadow_mapping(const RenderStuff& rstuff, const WorldSt
 
     for (auto& [id, light] : dop::joined(mLightSpotSet, rstuff.tables.spotlight))
     {
-        const Vec2U viewport = Vec2U(light.tex.get_size());
+        const Vec2U viewport = Vec2U(light.resolution);
 
         // add the current cascade to the pass vector
         spotPassVec.push_back({light.fbo, viewport, {}});

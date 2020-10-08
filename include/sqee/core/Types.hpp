@@ -10,20 +10,14 @@
 #include <sqee/maths/Vectors.hpp> // IWYU pragma: export
 #include <sqee/maths/Matrices.hpp> // IWYU pragma: export
 #include <sqee/maths/Quaternion.hpp> // IWYU pragma: export
-
 #include <sqee/misc/StackString.hpp> // IWYU pragma: export
-
-#include <string> // IWYU pragma: export
-#include <string_view> // IWYU pragma: export
-
-//----------------------------------------------------------------------------//
-
-// here we only forward declare JsonValue, to use it include misc/Json.hpp
-
 #include <sqee/redist/json_fwd.hpp> // IWYU pragma: export
 
-#include <map>
-#include <vector>
+#include <cstdint> // IWYU pragma: export
+#include <map> // IWYU pragma: export
+#include <string> // IWYU pragma: export
+#include <string_view> // IWYU pragma: export
+#include <vector> // IWYU pragma: export
 
 //============================================================================//
 

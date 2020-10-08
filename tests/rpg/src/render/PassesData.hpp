@@ -3,15 +3,18 @@
 #include <map>
 #include <set>
 
+#include <sqee/core/Types.hpp>
+
 #include <sqee/misc/DopClasses.hpp>
 
-#include <sqee/gl/UniformBuffer.hpp>
 #include <sqee/gl/FrameBuffer.hpp>
 #include <sqee/gl/Textures.hpp>
 
 #include <sqee/objects/Mesh.hpp>
 #include <sqee/objects/Material.hpp>
 #include <sqee/objects/Armature.hpp>
+
+using namespace sq::coretypes;
 
 namespace sqt::render::data {
 
@@ -52,7 +55,7 @@ struct DepthModelSkellyPass
 {
     struct Full // a model with no punch materials
     {
-        const sq::UniformBuffer& ubo; // reference to bones buffer
+        const sq::FixedBuffer& ubo;   // reference to bones buffer
         const sq::Mesh& mesh;         // reference to the mesh
         const Mat4F matrix;           // model-view-proj matrix
         const bool mirror;            // sign of determinant
@@ -60,7 +63,7 @@ struct DepthModelSkellyPass
 
     struct Part // a single sub-mesh of the model
     {
-        const sq::UniformBuffer& ubo; // reference to bones buffer
+        const sq::FixedBuffer& ubo;   // reference to bones buffer
         const sq::Mesh& mesh;         // reference to the mesh
         const Mat4F matrix;           // model-view-proj matrix
         const bool mirror;            // sign of determinant
@@ -120,7 +123,7 @@ struct GbufferModelSkellyPass
 {
     struct Base // shared base data for a model instance
     {
-        const sq::UniformBuffer& ubo; // reference to bones buffer
+        const sq::FixedBuffer& ubo;   // reference to bones buffer
         const sq::Mesh& mesh;         // reference to the mesh
         const Mat4F matrix;           // model-view-proj matrix
         const Mat3F normMat;          // inverse transpose model-view
@@ -230,15 +233,15 @@ struct LightBasePasses
 
 struct LightAccumSkyLightPass // data for a single cascade light pass
 {
-    const sq::UniformBuffer& ubo;  // reference to light's uniform buffer
-    const sq::TextureArray2D& tex; // reference to light's shadow texture
+    const sq::FixedBuffer& ubo;  // reference to light's uniform buffer
+    const sq::TextureArray& tex; // reference to light's shadow texture
 };
 
 //----------------------------------------------------------------------------//
 
 struct LightAccumStencilPass // data for a single non-cascade light pass
 {
-    const sq::UniformBuffer& ubo; // reference to light's uniform buffer
+    const sq::FixedBuffer& ubo;   // reference to light's uniform buffer
     const sq::Texture& tex;       // reference to light's shadow texture
     const Mat4F matrix;           // model-view-projection matrix
 };
@@ -260,15 +263,15 @@ struct LightAccumPasses
 
 struct VolumetricSkyLightPass // data for a single cascade light pass
 {
-    const sq::UniformBuffer& ubo;  // reference to light's uniform buffer
-    const sq::TextureArray2D& tex; // reference to light's shadow texture
+    const sq::FixedBuffer& ubo;  // reference to light's uniform buffer
+    const sq::TextureArray& tex; // reference to light's shadow texture
 };
 
 //----------------------------------------------------------------------------//
 
 struct VolumetricStencilPass // data for a single non-cascade light pass
 {
-    const sq::UniformBuffer& ubo; // reference to light's uniform buffer
+    const sq::FixedBuffer& ubo;   // reference to light's uniform buffer
     const sq::Texture& tex;       // reference to light's shadow texture
     const Mat4F matrix;           // model-view-projection matrix
     const bool stencil;           // is the camera outside of the volume

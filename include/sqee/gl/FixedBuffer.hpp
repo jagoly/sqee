@@ -5,11 +5,13 @@
 
 #include <sqee/setup.hpp>
 
+#include <sqee/gl/Types.hpp>
+
 namespace sq {
 
 //============================================================================//
 
-/// OpenGL Buffer Object.
+/// OpenGL Generic Buffer Object.
 class SQEE_API FixedBuffer final : private MoveOnly
 {
 public: //====================================================//
@@ -24,14 +26,20 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    /// Allocate the buffer with constant data.
-    void allocate_constant(uint size, const void* data, GLenum flags = 0u);
+    /// Allocate the buffer with static data.
+    void allocate_static(uint size, const void* data);
 
     /// Allocate the buffer with dynamic data.
-    void allocate_dynamic(uint size, const void* data, GLenum flags = 0u);
+    void allocate_dynamic(uint size);
+
+    //--------------------------------------------------------//
 
     /// Update a section of the buffer with a pointer.
     void update(uint offset, uint size, const void* data);
+
+    /// Update a section of the buffer with a value.
+    template <class T>
+    void update(uint offset, const T& data) { update(offset, sizeof(T), &data); }
 
     //--------------------------------------------------------//
 
@@ -39,8 +47,6 @@ public: //====================================================//
     GLuint get_handle() const { return mHandle; }
 
 private: //===================================================//
-
-    uint mBufferSize = 0u;
 
     GLuint mHandle = 0u;
 };

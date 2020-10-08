@@ -208,12 +208,10 @@ public: //====================================================//
             emplace_back(std::move(other[i]));
     }
 
-    template <class Other>
-    StackVector(std::initializer_list<Other> il)
+    StackVector(std::initializer_list<Type> il)
     {
-        static_assert(std::is_convertible_v<Other, Type>);
         SQASSERT(il.size() <= Capacity, "init list exceeds capacity");
-        for (const Other& elem : il)
+        for (const Type& elem : il)
             emplace_back(elem);
     }
 

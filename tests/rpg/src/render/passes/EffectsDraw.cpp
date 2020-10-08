@@ -1,36 +1,28 @@
 #include <sqee/gl/Context.hpp>
-#include <sqee/gl/Drawing.hpp>
-
-#include <sqee/redist/gl_loader.hpp>
 
 #include "EffectsDraw.hpp"
 
-using Context = sq::Context;
 using namespace sqt::render;
 
 //============================================================================//
 
 EffectsPasses::EffectsPasses(const SharedStuff& stuff) : SharedStuff(stuff)
 {
-    FB_SSAO_Main.draw_buffers({gl::COLOR_ATTACHMENT0});
-    FB_SSAO_Blur.draw_buffers({gl::COLOR_ATTACHMENT0});
-    FB_Bloom_Main.draw_buffers({gl::COLOR_ATTACHMENT0});
-    FB_Bloom_Blur.draw_buffers({gl::COLOR_ATTACHMENT0});
-    FB_Shafts_Main.draw_buffers({gl::COLOR_ATTACHMENT0});
-    FB_Shafts_Blur.draw_buffers({gl::COLOR_ATTACHMENT0});
+    FB_SSAO_Main.draw_buffers({sq::FboAttach::Colour0});
+    FB_SSAO_Blur.draw_buffers({sq::FboAttach::Colour0});
+    FB_Bloom_Main.draw_buffers({sq::FboAttach::Colour0});
+    FB_Bloom_Blur.draw_buffers({sq::FboAttach::Colour0});
+    FB_Shafts_Main.draw_buffers({sq::FboAttach::Colour0});
+    FB_Shafts_Blur.draw_buffers({sq::FboAttach::Colour0});
 
-    TEX_SSAO_Blur.set_filter_mode(true);
-    TEX_Bloom_Blur.set_filter_mode(true);
-    TEX_Shafts_Blur.set_filter_mode(true);
-
-    processor.load_vertex(PROG_SSAO_Main, "generic/FullScreen_vs");
-    processor.load_vertex(PROG_SSAO_Blur, "generic/FullScreen_vs");
-    processor.load_vertex(PROG_Bloom_Main, "generic/FullScreen_vs");
-    processor.load_vertex(PROG_Bloom_BlurH, "generic/FullScreen_vs");
-    processor.load_vertex(PROG_Bloom_BlurV, "generic/FullScreen_vs");
-    processor.load_vertex(PROG_Shafts_BlurH, "generic/FullScreen_vs");
-    processor.load_vertex(PROG_Shafts_BlurV, "generic/FullScreen_vs");
-    processor.load_vertex(PROG_Overlay, "generic/FullScreen_vs");
+    processor.load_vertex(PROG_SSAO_Main, "shaders/generic/FullScreen_vs.glsl", {});
+    processor.load_vertex(PROG_SSAO_Blur, "shaders/generic/FullScreen_vs.glsl", {});
+    processor.load_vertex(PROG_Bloom_Main, "shaders/generic/FullScreen_vs.glsl", {});
+    processor.load_vertex(PROG_Bloom_BlurH, "shaders/generic/FullScreen_vs.glsl", {});
+    processor.load_vertex(PROG_Bloom_BlurV, "shaders/generic/FullScreen_vs.glsl", {});
+    processor.load_vertex(PROG_Shafts_BlurH, "shaders/generic/FullScreen_vs.glsl", {});
+    processor.load_vertex(PROG_Shafts_BlurV, "shaders/generic/FullScreen_vs.glsl", {});
+    processor.load_vertex(PROG_Overlay, "shaders/generic/FullScreen_vs.glsl", {});
 }
 
 //============================================================================//
@@ -39,8 +31,8 @@ void EffectsPasses::update_options()
 {
     if (options.SSAO_Quality)
     {
-        processor.load_fragment(PROG_SSAO_Main, "effects/SSAO/Main_fs");
-        processor.load_fragment(PROG_SSAO_Blur, "effects/SSAO/Blur_fs");
+        processor.load_fragment(PROG_SSAO_Main, "shaders/effects/SSAO/Main_fs.glsl", {});
+        processor.load_fragment(PROG_SSAO_Blur, "shaders/effects/SSAO/Blur_fs.glsl", {});
 
         PROG_SSAO_Main.link_program_stages();
         PROG_SSAO_Blur.link_program_stages();
@@ -48,9 +40,9 @@ void EffectsPasses::update_options()
 
     if (options.Bloom_Enable)
     {
-        processor.load_fragment(PROG_Bloom_Main, "effects/Bloom/Main_fs");
-        processor.load_fragment(PROG_Bloom_BlurH, "effects/Bloom/BlurH_fs");
-        processor.load_fragment(PROG_Bloom_BlurV, "effects/Bloom/BlurV_fs");
+        processor.load_fragment(PROG_Bloom_Main, "shaders/effects/Bloom/Main_fs.glsl", {});
+        processor.load_fragment(PROG_Bloom_BlurH, "shaders/effects/Bloom/BlurH_fs.glsl", {});
+        processor.load_fragment(PROG_Bloom_BlurV, "shaders/effects/Bloom/BlurV_fs.glsl", {});
 
         PROG_Bloom_Main.link_program_stages();
         PROG_Bloom_BlurH.link_program_stages();
@@ -59,40 +51,44 @@ void EffectsPasses::update_options()
 
     if (options.Shafts_Quality)
     {
-        processor.load_fragment(PROG_Shafts_BlurH, "effects/Shafts/BlurH_fs");
-        processor.load_fragment(PROG_Shafts_BlurV, "effects/Shafts/BlurV_fs");
+        processor.load_fragment(PROG_Shafts_BlurH, "shaders/effects/Shafts/BlurH_fs.glsl", {});
+        processor.load_fragment(PROG_Shafts_BlurV, "shaders/effects/Shafts/BlurV_fs.glsl", {});
 
         PROG_Shafts_BlurH.link_program_stages();
         PROG_Shafts_BlurV.link_program_stages();
     }
 
-    processor.load_fragment(PROG_Overlay, "effects/Overlay_fs");
+    processor.load_fragment(PROG_Overlay, "shaders/effects/Overlay_fs.glsl", {});
 
     PROG_Overlay.link_program_stages();
 
-    // delete or allocate ssao blur texture
-    if (options.SSAO_Quality == 0u) TEX_SSAO_Blur.delete_object();
-    else TEX_SSAO_Blur.allocate_storage(options.Window_Size / 2u);
+    TEX_SSAO_Blur = sq::Texture2D();
+    TEX_Bloom_Blur = sq::Texture2D();
+    TEX_Shafts_Blur = sq::Texture2D();
 
-    // delete or allocate bloom blur texture
-    if (options.Bloom_Enable == false) TEX_Bloom_Blur.delete_object();
-    else TEX_Bloom_Blur.allocate_storage(options.Window_Size / 4u);
+    if (options.SSAO_Quality > 0u)
+    {
+        TEX_SSAO_Blur.allocate_storage(sq::TexFormat::R8_UN, options.Window_Size / 2u, false);
+        TEX_SSAO_Blur.set_filter_mode(true, false);
+        FB_SSAO_Main.attach(sq::FboAttach::Colour0, textures.Effects_SSAO);
+        FB_SSAO_Blur.attach(sq::FboAttach::Colour0, TEX_SSAO_Blur);
+    }
 
-    // delete or allocate shafts blur texture
-    if (options.Shafts_Quality == 0u) TEX_Shafts_Blur.delete_object();
-    else TEX_Shafts_Blur.allocate_storage(options.Window_Size / 2u);
+    if (options.Bloom_Enable == false)
+    {
+        TEX_Bloom_Blur.allocate_storage(sq::TexFormat::RGB8_UN, options.Window_Size / 4u, false);
+        TEX_Bloom_Blur.set_filter_mode(true, false);
+        FB_Bloom_Main.attach(sq::FboAttach::Colour0, textures.Effects_Bloom);
+        FB_Bloom_Blur.attach(sq::FboAttach::Colour0, TEX_Bloom_Blur);
+    }
 
-    // re-attach textures to ssao main and blur framebuffers
-    if (options.SSAO_Quality) FB_SSAO_Main.attach(gl::COLOR_ATTACHMENT0, textures.Effects_SSAO);
-    if (options.SSAO_Quality) FB_SSAO_Blur.attach(gl::COLOR_ATTACHMENT0, TEX_SSAO_Blur);
-
-    // re-attach textures to bloom main and blur framebuffers
-    if (options.Bloom_Enable) FB_Bloom_Main.attach(gl::COLOR_ATTACHMENT0, textures.Effects_Bloom);
-    if (options.Bloom_Enable) FB_Bloom_Blur.attach(gl::COLOR_ATTACHMENT0, TEX_Bloom_Blur);
-
-    // re-attach textures to shafts main and blur framebuffers
-    if (options.Shafts_Quality) FB_Shafts_Main.attach(gl::COLOR_ATTACHMENT0, textures.Volumetric_Shafts);
-    if (options.Shafts_Quality) FB_Shafts_Blur.attach(gl::COLOR_ATTACHMENT0, TEX_Shafts_Blur);
+    if (options.Shafts_Quality > 0u)
+    {
+        TEX_Shafts_Blur.allocate_storage(sq::TexFormat::RGB8_UN, options.Window_Size / 2u, false);
+        TEX_Shafts_Blur.set_filter_mode(true, false);
+        FB_Shafts_Main.attach(sq::FboAttach::Colour0, textures.Volumetric_Shafts);
+        FB_Shafts_Blur.attach(sq::FboAttach::Colour0, TEX_Shafts_Blur);
+    }
 }
 
 //============================================================================//
@@ -105,31 +101,33 @@ void EffectsPasses::render_effect_SSAO()
 
     //--------------------------------------------------------//
 
-    context.set_state(Context::Cull_Face::Disable);
-    context.set_state(Context::Depth_Test::Disable);
-    context.set_state(Context::Stencil_Test::Disable);
-    context.set_state(Context::Blend_Mode::Disable);
+    context.set_state(sq::CullFace::Disable);
+    context.set_state(sq::DepthTest::Disable);
+    context.set_state(sq::StencilTest::Disable);
+    context.set_state(sq::BlendMode::Disable);
 
     context.set_ViewPort(options.Window_Size / 2u);
 
-    //--------------------------------------------------------//
-
-    context.bind_FrameBuffer(FB_SSAO_Main);
-    context.bind_Texture(textures.Depth_HalfSize, 1u);
-    context.bind_Program(PROG_SSAO_Main);
-    sq::draw_screen_quad();
+    context.bind_vertexarray_dummy();
 
     //--------------------------------------------------------//
 
-    context.bind_FrameBuffer(FB_SSAO_Blur);
-    context.bind_Texture(textures.Effects_SSAO, 0u);
-    context.bind_Program(PROG_SSAO_Blur);
-    sq::draw_screen_quad();
+    context.bind_framebuffer(FB_SSAO_Main, sq::FboTarget::Both);
+    context.bind_texture(textures.Depth_HalfSize, 1u);
+    context.bind_program(PROG_SSAO_Main);
+    context.draw_arrays(sq::DrawPrimitive::TriangleStrip, 0u, 4u);
 
-    context.bind_FrameBuffer(FB_SSAO_Main);
-    context.bind_Texture(TEX_SSAO_Blur, 0u);
-    context.bind_Program(PROG_SSAO_Blur);
-    sq::draw_screen_quad();
+    //--------------------------------------------------------//
+
+    context.bind_framebuffer(FB_SSAO_Blur, sq::FboTarget::Both);
+    context.bind_texture(textures.Effects_SSAO, 0u);
+    context.bind_program(PROG_SSAO_Blur);
+    context.draw_arrays(sq::DrawPrimitive::TriangleStrip, 0u, 4u);
+
+    context.bind_framebuffer(FB_SSAO_Main, sq::FboTarget::Both);
+    context.bind_texture(TEX_SSAO_Blur, 0u);
+    context.bind_program(PROG_SSAO_Blur);
+    context.draw_arrays(sq::DrawPrimitive::TriangleStrip, 0u, 4u);
 }
 
 //============================================================================//
@@ -142,41 +140,43 @@ void EffectsPasses::render_effect_Bloom()
 
     //--------------------------------------------------------//
 
-    context.set_state(Context::Cull_Face::Disable);
-    context.set_state(Context::Depth_Test::Disable);
-    context.set_state(Context::Stencil_Test::Disable);
-    context.set_state(Context::Blend_Mode::Disable);
+    context.set_state(sq::CullFace::Disable);
+    context.set_state(sq::DepthTest::Disable);
+    context.set_state(sq::StencilTest::Disable);
+    context.set_state(sq::BlendMode::Disable);
 
     context.set_ViewPort(options.Window_Size / 4u);
 
-    //--------------------------------------------------------//
-
-    context.bind_FrameBuffer(FB_Bloom_Main);
-    context.bind_Texture(textures.Lighting_Main, 0u);
-    context.bind_Program(PROG_Bloom_Main);
-    sq::draw_screen_quad();
+    context.bind_vertexarray_dummy();
 
     //--------------------------------------------------------//
 
-    context.bind_FrameBuffer(FB_Bloom_Blur);
-    context.bind_Texture(textures.Effects_Bloom, 0u);
-    context.bind_Program(PROG_Bloom_BlurH);
-    sq::draw_screen_quad();
+    context.bind_framebuffer(FB_Bloom_Main);
+    context.bind_texture(textures.Lighting_Main, 0u);
+    context.bind_program(PROG_Bloom_Main);
+    context.draw_arrays(sq::DrawPrimitive::TriangleStrip, 0u, 4u);
 
-    context.bind_FrameBuffer(FB_Bloom_Main);
-    context.bind_Texture(TEX_Bloom_Blur, 0u);
-    context.bind_Program(PROG_Bloom_BlurV);
-    sq::draw_screen_quad();
+    //--------------------------------------------------------//
 
-    context.bind_FrameBuffer(FB_Bloom_Blur);
-    context.bind_Texture(textures.Effects_Bloom, 0u);
-    context.bind_Program(PROG_Bloom_BlurH);
-    sq::draw_screen_quad();
+    context.bind_framebuffer(FB_Bloom_Blur);
+    context.bind_texture(textures.Effects_Bloom, 0u);
+    context.bind_program(PROG_Bloom_BlurH);
+    context.draw_arrays(sq::DrawPrimitive::TriangleStrip, 0u, 4u);
 
-    context.bind_FrameBuffer(FB_Bloom_Main);
-    context.bind_Texture(TEX_Bloom_Blur, 0u);
-    context.bind_Program(PROG_Bloom_BlurV);
-    sq::draw_screen_quad();
+    context.bind_framebuffer(FB_Bloom_Main);
+    context.bind_texture(TEX_Bloom_Blur, 0u);
+    context.bind_program(PROG_Bloom_BlurV);
+    context.draw_arrays(sq::DrawPrimitive::TriangleStrip, 0u, 4u);
+
+    context.bind_framebuffer(FB_Bloom_Blur);
+    context.bind_texture(textures.Effects_Bloom, 0u);
+    context.bind_program(PROG_Bloom_BlurH);
+    context.draw_arrays(sq::DrawPrimitive::TriangleStrip, 0u, 4u);
+
+    context.bind_framebuffer(FB_Bloom_Main);
+    context.bind_texture(TEX_Bloom_Blur, 0u);
+    context.bind_program(PROG_Bloom_BlurV);
+    context.draw_arrays(sq::DrawPrimitive::TriangleStrip, 0u, 4u);
 }
 
 //============================================================================//
@@ -189,35 +189,37 @@ void EffectsPasses::render_effect_Shafts()
 
     //--------------------------------------------------------//
 
-    context.set_state(Context::Cull_Face::Disable);
-    context.set_state(Context::Depth_Test::Disable);
-    context.set_state(Context::Stencil_Test::Disable);
-    context.set_state(Context::Blend_Mode::Disable);
+    context.set_state(sq::CullFace::Disable);
+    context.set_state(sq::DepthTest::Disable);
+    context.set_state(sq::StencilTest::Disable);
+    context.set_state(sq::BlendMode::Disable);
 
     context.set_ViewPort(options.Window_Size / 2u);
-    context.bind_Texture(textures.Depth_HalfSize, 1u);
+    context.bind_texture(textures.Depth_HalfSize, 1u);
+
+    context.bind_vertexarray_dummy();
 
     //--------------------------------------------------------//
 
-    context.bind_FrameBuffer(FB_Shafts_Blur);
-    context.bind_Texture(textures.Volumetric_Shafts, 0u);
-    context.bind_Program(PROG_Shafts_BlurH);
-    sq::draw_screen_quad();
+    context.bind_framebuffer(FB_Shafts_Blur);
+    context.bind_texture(textures.Volumetric_Shafts, 0u);
+    context.bind_program(PROG_Shafts_BlurH);
+    context.draw_arrays(sq::DrawPrimitive::TriangleStrip, 0u, 4u);
 
-    context.bind_FrameBuffer(FB_Shafts_Main);
-    context.bind_Texture(TEX_Shafts_Blur, 0u);
-    context.bind_Program(PROG_Shafts_BlurV);
-    sq::draw_screen_quad();
+    context.bind_framebuffer(FB_Shafts_Main);
+    context.bind_texture(TEX_Shafts_Blur, 0u);
+    context.bind_program(PROG_Shafts_BlurV);
+    context.draw_arrays(sq::DrawPrimitive::TriangleStrip, 0u, 4u);
 
-    context.bind_FrameBuffer(FB_Shafts_Blur);
-    context.bind_Texture(textures.Volumetric_Shafts, 0u);
-    context.bind_Program(PROG_Shafts_BlurH);
-    sq::draw_screen_quad();
+    context.bind_framebuffer(FB_Shafts_Blur);
+    context.bind_texture(textures.Volumetric_Shafts, 0u);
+    context.bind_program(PROG_Shafts_BlurH);
+    context.draw_arrays(sq::DrawPrimitive::TriangleStrip, 0u, 4u);
 
-    context.bind_FrameBuffer(FB_Shafts_Main);
-    context.bind_Texture(TEX_Shafts_Blur, 0u);
-    context.bind_Program(PROG_Shafts_BlurV);
-    sq::draw_screen_quad();
+    context.bind_framebuffer(FB_Shafts_Main);
+    context.bind_texture(TEX_Shafts_Blur, 0u);
+    context.bind_program(PROG_Shafts_BlurV);
+    context.draw_arrays(sq::DrawPrimitive::TriangleStrip, 0u, 4u);
 }
 
 //============================================================================//
@@ -230,14 +232,15 @@ void EffectsPasses::render_effect_Overlay()
 
     //--------------------------------------------------------//
 
-    context.bind_FrameBuffer_default();
+    context.bind_framebuffer_default();
 
-    context.set_state(Context::Cull_Face::Disable);
-    context.set_state(Context::Depth_Test::Disable);
-    context.set_state(Context::Stencil_Test::Disable);
-    context.set_state(Context::Blend_Mode::Alpha);
+    context.set_state(sq::CullFace::Disable);
+    context.set_state(sq::DepthTest::Disable);
+    context.set_state(sq::StencilTest::Disable);
+    context.set_state(sq::BlendMode::Alpha);
 
-    context.bind_Program(PROG_Overlay);
+    context.bind_program(PROG_Overlay);
 
-    sq::draw_screen_quad();
+    context.bind_vertexarray_dummy();
+    context.draw_arrays(sq::DrawPrimitive::TriangleStrip, 0u, 4u);
 }

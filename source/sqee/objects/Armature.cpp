@@ -5,75 +5,47 @@
 #include <sqee/debug/Logging.hpp>
 #include <sqee/maths/Functions.hpp>
 #include <sqee/misc/Files.hpp>
+#include <sqee/misc/Json.hpp>
 #include <sqee/misc/Parsing.hpp>
 
 using namespace sq;
 
 //============================================================================//
 
-namespace { // anonymous
-
-inline void impl_swap_pose_yz(Armature::Pose& pose)
+void Armature::load_from_file(const String& path)
 {
-    for (Armature::Bone& bone : pose)
+    const JsonValue json = sq::parse_json_from_file(path);
+
+    mRestPose.reserve(json.size());
+
+    mBoneNames.reserve(json.size());
+    mBoneParents.reserve(json.size());
+
+    mBaseMats.reserve(json.size());
+    mInverseMats.reserve(json.size());
+
+    for (const auto& jb : json)
     {
-        std::swap(bone.offset.y, bone.offset.z);
-        std::swap(bone.rotation.y, bone.rotation.z);
-        std::swap(bone.scale.y, bone.scale.z);
+        mBoneNames.push_back(jb.at("name"));
 
-        bone.rotation = maths::conjugate(bone.rotation);
-    }
-}
-
-} // anonymous namespace
-
-//============================================================================//
-
-void Armature::load_bones(const String& path, bool swapYZ)
-{
-    mSwapYZ = swapYZ;
-
-    const auto tokens = sq::tokenise_file(path);
-
-    mBoneNames.reserve(tokens.lines.size());
-    mBoneParents.reserve(tokens.lines.size());
-
-    for (auto& [line, num] : tokens.lines)
-    {
-        SQASSERT(line.size() <= 2u, "");
-
-        mBoneNames.emplace_back(line[0]);
-
-        if (line.size() == 2u)
+        if (const auto& parent = jb.at("parent"); parent.is_null() == false)
         {
-            const auto iter = algo::find(mBoneNames, line[1]);
-            SQASSERT(iter != mBoneNames.end(), "invalid parent bone name");
-            mBoneParents.push_back(int(std::distance(mBoneNames.begin(), iter)));
+            const auto iter = algo::find(mBoneNames, TinyString(parent));
+            SQASSERT(iter != mBoneNames.end(), "invalid parent");
+            mBoneParents.push_back(int8_t(std::distance(mBoneNames.begin(), iter)));
         }
         else mBoneParents.push_back(-1);
-    }
-}
 
-//============================================================================//
+        Bone& bone = mRestPose.emplace_back();
+        jb.at("offset").get_to(bone.offset);
+        jb.at("rotation").get_to(bone.rotation);
+        jb.at("scale").get_to(bone.scale);
 
-void Armature::load_rest_pose(const String& path)
-{
-    mRestPose = make_pose(path);
-
-    const uint boneCount = uint(mRestPose.size());
-
-    mBaseMats.reserve(boneCount);
-    mInverseMats.reserve(boneCount);
-
-    for (uint i = 0u; i < boneCount; ++i)
-    {
-        const Bone& bone = mRestPose[i];
-        const int32_t parentIndex = mBoneParents[i];
+        bone.rotation = maths::normalize(bone.rotation);
 
         mBaseMats.push_back(maths::transform(bone.offset, bone.rotation, bone.scale));
-
-        if (parentIndex >= 0)
-            mBaseMats.back() = mBaseMats[uint(parentIndex)] * mBaseMats.back();
+        if (mBoneParents.back() >= 0)
+            mBaseMats.back() = mBaseMats[size_t(mBoneParents.back())] * mBaseMats.back();
 
         mInverseMats.push_back(maths::affine_inverse(mBaseMats.back()));
     }
@@ -108,50 +80,15 @@ int8_t Armature::get_bone_parent(int8_t index) const
 
 //============================================================================//
 
-Armature::Pose Armature::make_pose(const String& path) const
-{
-    const uint boneCount = uint(mBoneNames.size());
-
-    const auto tokenFile = sq::tokenise_file(path);
-    SQASSERT(boneCount == tokenFile.lines.size(), "bone count mismatch");
-
-    Armature::Pose result;
-    result.reserve(boneCount);
-
-    for (const auto& [line, num] : tokenFile.lines)
-    {
-        Bone& bone = result.emplace_back();
-
-        if (line.size() == 10)
-        {
-            sq::parse_tokens(bone.offset, line[0], line[1], line[2]);
-            sq::parse_tokens(bone.rotation, line[3], line[4], line[5], line[6]);
-            sq::parse_tokens(bone.scale, line[7], line[8], line[9]);
-        }
-        else if (line.size() == 8)
-        {
-            sq::parse_tokens(bone.offset, line[0], line[1], line[2]);
-            bone.scale = Vec3F(sq::sv_to_f(line[3]));
-            sq::parse_tokens(bone.rotation, line[4], line[5], line[6], line[7]);
-        }
-        else log_error("invalid bone on line {} of pose '{}'", num, path);
-
-        bone.rotation = maths::normalize(bone.rotation);
-    }
-
-    if (mSwapYZ == true) impl_swap_pose_yz(result);
-
-    return result;
-}
-
-//============================================================================//
-
 Armature::Animation Armature::make_animation(const String& path) const
 {
-    enum class Section { None, Header, Poses };
+    enum class Section { None, Header, BaseTracks, ExtraTracks };
     Section section = Section::None;
 
-    uint numBones = 0u;
+    enum class BoneTrack { None, Offset, Rotation, Scale };
+    BoneTrack boneTrack = BoneTrack::None;
+
+    Animation::Track* track = nullptr;
 
     Armature::Animation result;
 
@@ -161,110 +98,99 @@ Armature::Animation Armature::make_animation(const String& path) const
     {
         const auto& key = line.front();
 
-        //--------------------------------------------------------//
-
         if (key.front() == '#') continue;
-
-        //--------------------------------------------------------//
 
         if (key == "SECTION")
         {
-            if      (line[1] == "Header") section = Section::Header;
-            else if (line[1] == "Poses")  section = Section::Poses;
-
-            else log_error("invalid section '{}' in animation '{}'", line[1], path);
+            if (line[1] == "Header") section = Section::Header;
+            else if (line[1] == "BaseTracks") section = Section::BaseTracks;
+            else log_error("'{}':{}: invalid section", path, num);
         }
-
-        //--------------------------------------------------------//
 
         else if (section == Section::Header)
         {
-            if      (key == "BoneCount") result.boneCount = sv_to_u(line[1]);
-            else if (key == "TotalTime") result.totalTime = sv_to_u(line[1]);
-
-            else if (key == "PoseCount")
+            if (key == "BoneCount")
             {
-                result.poseCount = sv_to_u(line[1]);
-                result.times.reserve(result.poseCount);
-                result.poses.reserve(result.poseCount);
+                result.boneCount = sv_to_u(line[1]);
+                if (result.boneCount != get_bone_count())
+                    log_error("'{}':{}: bone count mismatch", path, num);
+                result.bones.resize(result.boneCount, {});
             }
 
-            else if (key == "Times")
+            else if (key == "FrameCount")
             {
-                for (uint i = 1u; i < line.size(); ++i)
-                {
-                    result.times.push_back(sv_to_u(line[i]));
+                result.frameCount = sv_to_u(line[1]);
+            }
 
-                    if (result.times.back() == 0u && i != line.size() - 1u)
-                        log_error("zero time for not last pose in animation '{}'", path);
+            else log_error("'{}':{}: invalid header key", path, num);
+        }
+
+        else if (section == Section::BaseTracks)
+        {
+            if (key == "TRACK")
+            {
+                const int8_t boneIndex = get_bone_index(line[1]);
+                if (boneIndex == -1)
+                    log_error("'{}':{}: invalid bone name", path, num);
+
+                if (line[2] == "offset") boneTrack = BoneTrack::Offset;
+                else if (line[2] == "rotation") boneTrack = BoneTrack::Rotation;
+                else if (line[2] == "scale") boneTrack = BoneTrack::Scale;
+                else log_error("'{}':{}: unknown bone track", path, num);
+
+                track = &result.bones[uint(boneIndex)].emplace_back();
+                track->key = line[2];
+
+                if (boneTrack == BoneTrack::Offset)
+                {
+                    if (line.size() == 6u)
+                    {
+                        track->track.resize(sizeof(Vec3F) * 1u, {});
+                        parse_tokens(*reinterpret_cast<Vec3F*>(track->track.data()), line[3], line[4], line[5]);
+                    }
+                    else track->track.resize(sizeof(Vec3F) * result.frameCount, {});
+                }
+
+                else if (boneTrack == BoneTrack::Rotation)
+                {
+                    if (line.size() == 7u)
+                    {
+                        track->track.resize(sizeof(QuatF) * 1u, {});
+                        parse_tokens_normalize(*reinterpret_cast<QuatF*>(track->track.data()), line[3], line[4], line[5], line[6]);
+                    }
+                    else track->track.resize(sizeof(QuatF) * result.frameCount, {});
+                }
+
+                else if (boneTrack == BoneTrack::Scale)
+                {
+                    if (line.size() == 6u)
+                    {
+                        track->track.resize(sizeof(Vec3F) * 1u, {});
+                        parse_tokens(*reinterpret_cast<Vec3F*>(track->track.data()), line[3], line[4], line[5]);
+
+                    }
+                    else track->track.resize(sizeof(Vec3F) * result.frameCount, {});
                 }
             }
 
-            else log_warning("unknown header key '{}' in animation '{}'", key, path);
+            else
+            {
+                const uint frame = sv_to_u(key);
+                if (frame > result.frameCount)
+                    log_error("'{}':{}: frame out of range", path, num);
+
+                if (boneTrack == BoneTrack::Offset)
+                    parse_tokens(reinterpret_cast<Vec3F*>(track->track.data())[frame], line[1], line[2], line[3]);
+
+                else if (boneTrack == BoneTrack::Rotation)
+                    parse_tokens_normalize(reinterpret_cast<QuatF*>(track->track.data())[frame], line[1], line[2], line[3], line[4]);
+
+                else if (boneTrack == BoneTrack::Scale)
+                    parse_tokens(reinterpret_cast<Vec3F*>(track->track.data())[frame], line[1], line[2], line[3]);
+            }
         }
 
-        //--------------------------------------------------------//
-
-        else if (section == Section::Poses)
-        {
-            if (numBones++ % result.boneCount == 0u)
-            {
-                result.poses.emplace_back();
-                result.poses.back().reserve(result.boneCount);
-            }
-
-            Bone& bone = result.poses.back().emplace_back();
-
-            if (line.size() == 10)
-            {
-                sq::parse_tokens(bone.offset, line[0], line[1], line[2]);
-                sq::parse_tokens(bone.rotation, line[3], line[4], line[5], line[6]);
-                sq::parse_tokens(bone.scale, line[7], line[8], line[9]);
-            }
-            else if (line.size() == 8)
-            {
-                sq::parse_tokens(bone.offset, line[0], line[1], line[2]);
-                bone.scale = Vec3F(sq::sv_to_f(line[3]));
-                sq::parse_tokens(bone.rotation, line[4], line[5], line[6], line[7]);
-            }
-            else log_error("invalid bone on line {} of animation '{}'", num, path);
-
-            bone.rotation = maths::normalize(bone.rotation);
-        }
-
-        //--------------------------------------------------------//
-
-        else log_error("missing SECTION in animation '{}'", path);
-    }
-
-    //--------------------------------------------------------//
-
-    #ifdef SQEE_DEBUG
-
-    if (mRestPose.size() != result.boneCount)
-        log_error("bone count mismatch in '{}'", path);
-
-    if (numBones != result.poseCount * result.boneCount)
-        log_error("missing or extra bones in '{}'", path);
-
-    if (result.times.size() != result.poseCount)
-        log_error("time count mismatch in '{}'", path);
-
-    if (result.poses.size() != result.poseCount)
-        log_error("pose count mismatch in '{}'", path);
-
-    const uint totalTime = std::accumulate(result.times.begin(), result.times.end(), uint(!result.looping()));
-    if (totalTime != result.totalTime)
-        log_error("times do not add up to total in '{}'", path);
-
-    #endif
-
-    //--------------------------------------------------------//
-
-    if (mSwapYZ == true)
-    {
-        for (Pose& pose : result.poses)
-            impl_swap_pose_yz(pose);
+        else log_error("'{}': missing SECTION", path);
     }
 
     //--------------------------------------------------------//
@@ -274,24 +200,31 @@ Armature::Animation Armature::make_animation(const String& path) const
 
 //============================================================================//
 
-Armature::Animation Armature::make_null_animation(uint totalTime, bool looping) const
+Armature::Animation Armature::make_null_animation(uint length) const
 {
     Animation result;
 
     result.boneCount = get_bone_count();
-    result.totalTime = totalTime;
+    result.frameCount = length;
 
-    if (looping == true)
+    result.bones.resize(result.boneCount, {});
+
+    for (uint index = 0; index < get_bone_count(); ++index)
     {
-        result.poseCount = 1u;
-        result.times = { totalTime };
-        result.poses = { get_rest_pose() };
-    }
-    else
-    {
-        result.poseCount = 2u;
-        result.times = { totalTime, 0u };
-        result.poses = { get_rest_pose(), get_rest_pose() };
+        Animation::Track& offsetTrack = result.bones[index].emplace_back();
+        offsetTrack.key = "offset";
+        offsetTrack.track.resize(sizeof(Vec3F));
+        *reinterpret_cast<Vec3F*>(offsetTrack.track.data()) = mRestPose[index].offset;
+
+        Animation::Track& rotationTrack = result.bones[index].emplace_back();
+        rotationTrack.key = "rotation";
+        rotationTrack.track.resize(sizeof(QuatF));
+        *reinterpret_cast<QuatF*>(rotationTrack.track.data()) = mRestPose[index].rotation;
+
+        Animation::Track& scaleTrack = result.bones[index].emplace_back();
+        scaleTrack.key = "scale";
+        scaleTrack.track.resize(sizeof(Vec3F));
+        *reinterpret_cast<Vec3F*>(scaleTrack.track.data()) = mRestPose[index].scale;
     }
 
     return result;
@@ -301,24 +234,16 @@ Armature::Animation Armature::make_null_animation(uint totalTime, bool looping) 
 
 Armature::Pose Armature::blend_poses(const Pose& a, const Pose& b, float factor) const
 {
-    const uint boneCount = uint(mRestPose.size());
+    SQASSERT(get_bone_count() == a.size(), "bone count mismatch");
+    SQASSERT(get_bone_count() == b.size(), "bone count mismatch");
 
-    SQASSERT(boneCount == a.size(), "bone count mismatch");
-    SQASSERT(boneCount == b.size(), "bone count mismatch");
+    Pose result { get_bone_count() };
 
-    Armature::Pose result;
-    result.reserve(boneCount);
-
-    for (uint i = 0u; i < boneCount; ++i)
+    for (uint index = 0u; index < get_bone_count(); ++index)
     {
-        const Bone& boneA = a[i];
-        const Bone& boneB = b[i];
-
-        Bone& bone = result.emplace_back();
-
-        bone.offset = maths::mix(boneA.offset, boneB.offset, factor);
-        bone.rotation = maths::slerp(boneA.rotation, boneB.rotation, factor);
-        bone.scale = maths::mix(boneA.scale, boneB.scale, factor);
+        result[index].offset = maths::mix(a[index].offset, b[index].offset, factor);
+        result[index].rotation = maths::slerp(a[index].rotation, b[index].rotation, factor);
+        result[index].scale = maths::mix(a[index].scale, b[index].scale, factor);
     }
 
     return result;
@@ -328,94 +253,76 @@ Armature::Pose Armature::blend_poses(const Pose& a, const Pose& b, float factor)
 
 Armature::Pose Armature::compute_pose_continuous(const Animation& animation, float time) const
 {
-    SQASSERT(mRestPose.size() == animation.boneCount, "bone count mismatch");
+    SQASSERT(get_bone_count() == animation.boneCount, "bone count mismatch");
 
-    if (animation.poseCount == 1u)
-        return animation.poses.front();
+    const float animTotalTime = float(animation.frameCount);
 
-    //--------------------------------------------------------//
+    time = std::fmod(time, animTotalTime);
+    if (std::signbit(time)) time += animTotalTime;
 
-    const float animTotalTime = float(animation.totalTime);
+    const float factor = std::modf(time, &time);
 
-    if (animation.times.back() == 0u)
+    const uint frameA = uint(time);
+    const uint frameB = frameA+1u == animation.frameCount ? 0u : frameA+1u;
+
+    const auto get_frame_value = [factor, frameA, frameB](const Animation::Track& track, auto& ref)
     {
-        time = maths::clamp(time, 0.f, animTotalTime);
-    }
-    else
+        using Type = std::remove_reference_t<decltype(ref)>;
+
+        if (track.track.size() > sizeof(Type))
+        {
+            const Type& valueA = reinterpret_cast<const Type*>(track.track.data())[frameA];
+            const Type& valueB = reinterpret_cast<const Type*>(track.track.data())[frameB];
+
+            if constexpr (detail::is_vector_v<Type>)
+                ref = maths::mix(valueA, valueB, factor);
+
+            if constexpr (detail::is_quaternion_v<Type>)
+                ref = maths::slerp(valueA, valueB, factor);
+        }
+        else
+            ref = *reinterpret_cast<const Type*>(track.track.data());
+    };
+
+    Pose result { animation.boneCount };
+
+    for (uint bone = 0u; bone < animation.boneCount; ++bone)
     {
-        time = std::fmod(time, animTotalTime);
-        if (std::signbit(time)) time += animTotalTime;
+        get_frame_value(animation.bones[bone][0u], result[bone].offset);
+        get_frame_value(animation.bones[bone][1u], result[bone].rotation);
+        get_frame_value(animation.bones[bone][2u], result[bone].scale);
     }
 
-    //--------------------------------------------------------//
-
-    uint indexA = 0u, indexB = 1u;
-    uint timeA = 0u, timeB = animation.times[0];
-
-    while (float(timeB) < time)
-    {
-        indexA = indexB;
-        indexB += 1u;
-
-        timeA = timeB;
-        timeB += animation.times[indexA];
-
-        // last frame of a non-looping animation
-        if (timeA == timeB) timeB += 1u;
-    }
-
-    if (indexB == animation.poseCount)
-        indexB = 0u;
-
-    //--------------------------------------------------------//
-
-    const Pose& poseA = animation.poses[indexA];
-    const Pose& poseB = animation.poses[indexB];
-
-    const float factor = float(time - timeA) / float(timeB - timeA);
-
-    return blend_poses(poseA, poseB, factor);
+    return result;
 }
 
 //============================================================================//
 
 Armature::Pose Armature::compute_pose_discrete(const Animation& animation, uint time) const
 {
-    SQASSERT(mRestPose.size() == animation.boneCount, "bone count mismatch");
-    SQASSERT(time < animation.totalTime, "discrete time out of range");
+    SQASSERT(get_bone_count() == animation.boneCount, "bone count mismatch");
+    SQASSERT(time < animation.frameCount, "discrete time out of range");
 
-    if (animation.poseCount == 1u)
-        return animation.poses.front();
-
-    //--------------------------------------------------------//
-
-    uint indexA = 0u, indexB = 1u;
-    uint timeA = 0u, timeB = animation.times.front();
-
-    while (timeB < time)
+    const auto get_frame_value = [time](const Animation::Track& track, auto& ref)
     {
-        indexA = indexB;
-        indexB += 1u;
+        using Type = std::remove_reference_t<decltype(ref)>;
 
-        timeA = timeB;
-        timeB += animation.times[indexA];
+        if (track.track.size() > sizeof(Type))
+            ref = reinterpret_cast<const Type*>(track.track.data())[time];
+        else
+            ref = *reinterpret_cast<const Type*>(track.track.data());
+    };
+
+    Pose result { animation.boneCount };
+
+    for (uint bone = 0u; bone < animation.boneCount; ++bone)
+    {
+        get_frame_value(animation.bones[bone][0u], result[bone].offset);
+        get_frame_value(animation.bones[bone][1u], result[bone].rotation);
+        get_frame_value(animation.bones[bone][2u], result[bone].scale);
     }
 
-    // keyframe, no interpolation needed
-    if (timeA == time)
-        return animation.poses[indexA];
-
-    if (indexB == animation.poseCount)
-        indexB = 0u;
-
-    //--------------------------------------------------------//
-
-    const Pose& poseA = animation.poses[indexA];
-    const Pose& poseB = animation.poses[indexB];
-
-    const float factor = float(time - timeA) / float(timeB - timeA);
-
-    return blend_poses(poseA, poseB, factor);
+    return result;
 }
 
 //============================================================================//

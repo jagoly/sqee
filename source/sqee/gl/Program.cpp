@@ -1,72 +1,29 @@
 #include <sqee/gl/Program.hpp>
 
+#include <sqee/debug/Assert.hpp>
 #include <sqee/debug/Logging.hpp>
-#include <sqee/gl/Context.hpp>
-#include <sqee/redist/gl_loader.hpp>
+#include <sqee/gl/Functions.hpp>
 
 using namespace sq;
 
 //============================================================================//
 
-namespace { // anonymous
-
-void impl_load_shader(GLuint& shader, GLenum stage, StringView source, StringView path)
-{
-    if (shader != 0u) gl::DeleteShader(shader);
-    shader = gl::CreateShader(stage);
-
-    const GLchar* srcData = source.data();
-    const GLint srcLen = int(source.size());
-
-    gl::ShaderSource(shader, 1, &srcData, &srcLen);
-    gl::CompileShader(shader);
-
-    //--------------------------------------------------------//
-
-    GLsizei logLen = 0; GLchar logBuf[2048];
-    gl::GetShaderInfoLog(shader, 2048, &logLen, logBuf);
-
-    if (logLen > 0)
-    {
-        StringView logStr = logBuf;
-        while (logStr.back() == '\n') logStr.remove_suffix(1u);
-        log_warning_multiline("Problem compiling shader from '{}'\n{}", path, logStr);
-    }
-}
-
-} // anonymous namespace
-
-//============================================================================//
-
-Program::Program() : mContext(Context::get()) {}
-
-//============================================================================//
-
 Program::Program(Program&& other) noexcept
-    : mContext(other.mContext)
 {
-    mContext.impl_reset_Program(&other, this);
-
-    mVertexShader = other.mVertexShader;
-    mGeometryShader = other.mGeometryShader;
-    mFragmentShader = other.mFragmentShader;
-    mHandle = other.mHandle;
-
-    other.mVertexShader = 0u;
-    other.mGeometryShader = 0u;
-    other.mFragmentShader = 0u;
-    other.mHandle = 0u;
+    *this = std::move(other);
 }
 
 Program& Program::operator=(Program&& other) noexcept
-{ std::swap(*this, other); return *this; }
-
-//============================================================================//
+{
+    std::swap(mVertexShader, other.mVertexShader);
+    std::swap(mGeometryShader, other.mGeometryShader);
+    std::swap(mFragmentShader, other.mFragmentShader);
+    std::swap(mHandle, other.mHandle);
+    return *this;
+}
 
 Program::~Program() noexcept
 {
-    mContext.impl_reset_Program(this);
-
     if (mVertexShader) gl::DeleteShader(mVertexShader);
     if (mGeometryShader) gl::DeleteShader(mGeometryShader);
     if (mFragmentShader) gl::DeleteShader(mFragmentShader);
@@ -75,35 +32,48 @@ Program::~Program() noexcept
 
 //============================================================================//
 
-void Program::load_vertex(StringView source, StringView path)
+void Program::load_shader(ShaderStage stage, StringView source, StringView path)
 {
-    impl_load_shader(mVertexShader, gl::VERTEX_SHADER, source, path);
-}
+    GLuint* shader = nullptr;
+    if (stage == ShaderStage::Vertex) shader = &mVertexShader;
+    if (stage == ShaderStage::Geometry) shader = &mGeometryShader;
+    if (stage == ShaderStage::Fragment) shader = &mFragmentShader;
 
-void Program::load_geometry(StringView source, StringView path)
-{
-    impl_load_shader(mGeometryShader, gl::GEOMETRY_SHADER, source, path);
-}
+    if (*shader) gl::DeleteShader(*shader);
+    *shader = gl::CreateShader(GLenum(stage));
 
-void Program::load_fragment(StringView source, StringView path)
-{
-    impl_load_shader(mFragmentShader, gl::FRAGMENT_SHADER, source, path);
+    const char* const srcData = source.data();
+    const GLint srcLen = int(source.size());
+
+    gl::ShaderSource(*shader, 1, &srcData, &srcLen);
+    gl::CompileShader(*shader);
+
+    GLsizei logLen = 0; GLchar logBuf[2048];
+    gl::GetShaderInfoLog(*shader, 2048, &logLen, logBuf);
+
+    if (logLen > 0)
+    {
+        StringView logStr = logBuf;
+        while (logStr.back() == '\n') logStr.remove_suffix(1u);
+        if (path.empty()) log_warning_multiline("Problem compiling shader from string\n{}", logStr);
+        else log_warning_multiline("Problem compiling shader from '{}'\n{}", path, logStr);
+    }
 }
 
 //============================================================================//
 
 void Program::link_program_stages()
 {
-    if (mHandle != 0u) gl::DeleteProgram(mHandle);
+    if (mHandle) gl::DeleteProgram(mHandle);
     mHandle = gl::CreateProgram();
 
-    if (mVertexShader != 0u) gl::AttachShader(mHandle, mVertexShader);
-    if (mGeometryShader != 0u) gl::AttachShader(mHandle, mGeometryShader);
-    if (mFragmentShader != 0u) gl::AttachShader(mHandle, mFragmentShader);
+    SQASSERT(mVertexShader != 0u, "no vertex shader loaded");
+    gl::AttachShader(mHandle, mVertexShader);
+
+    if (mGeometryShader) gl::AttachShader(mHandle, mGeometryShader);
+    if (mFragmentShader) gl::AttachShader(mHandle, mFragmentShader);
 
     gl::LinkProgram(mHandle);
-
-    //--------------------------------------------------------//
 
     GLsizei logLen = 0; GLchar logBuf[2048];
     gl::GetProgramInfoLog(mHandle, 2048, &logLen, logBuf);
@@ -112,7 +82,7 @@ void Program::link_program_stages()
     {
         StringView logStr = logBuf;
         while (logStr.back() == '\n') logStr.remove_suffix(1u);
-        log_warning_multiline("Failed to link shader\n{}", logStr);
+        log_warning_multiline("Failed to link program\n{}", logStr);
     }
 }
 
@@ -120,62 +90,144 @@ void Program::link_program_stages()
 
 void Program::create(StringView vertex, StringView fragment)
 {
-    load_vertex(vertex);
-    load_fragment(fragment);
+    load_shader(ShaderStage::Vertex, vertex);
+    load_shader(ShaderStage::Fragment, fragment);
     link_program_stages();
 }
 
 //============================================================================//
 
+std::optional<Program::UniformInfo> Program::query_uniform_info(const String& name) const
+{
+    const GLuint index = gl::GetProgramResourceIndex(mHandle, gl::UNIFORM, name.c_str());
+    if (index == gl::INVALID_INDEX) return std::nullopt;
+
+    const GLenum keys[2] = { gl::TYPE, gl::LOCATION }; GLint values[2];
+    gl::GetProgramResourceiv(mHandle, gl::UNIFORM, index, 2, keys, 2, nullptr, values);
+
+    switch (GLenum(values[0])) {
+    case gl::FLOAT: case gl::FLOAT_VEC2: case gl::FLOAT_VEC3: break;
+    default: return std::nullopt;
+    } // discard unsupported uniform types
+
+    return {{ GLenum(values[0]), GLint(values[1]) }};
+}
+
+std::optional<Program::SamplerInfo> Program::query_sampler_info(const String& name) const
+{
+    const GLuint index = gl::GetProgramResourceIndex(mHandle, gl::UNIFORM, name.c_str());
+    if (index == gl::INVALID_INDEX) return std::nullopt;
+
+    const GLenum keys[2] = { gl::TYPE, gl::LOCATION }; GLint values[2];
+    gl::GetProgramResourceiv(mHandle, gl::UNIFORM, index, 2, keys, 2, nullptr, values);
+
+    switch (GLenum(values[0])) {
+    case gl::SAMPLER_2D: case gl::SAMPLER_2D_ARRAY: case gl::SAMPLER_CUBE: break;
+    default: return std::nullopt;
+    } // discard unsupported sampler types
+
+    GLint binding;
+    gl::GetUniformiv(mHandle, GLint(values[1]), &binding);
+
+    return {{ GLenum(values[0]), GLuint(binding) }};
+}
+
+//============================================================================//
+
 void Program::update(GLint location, int sca) const
-{ gl::ProgramUniform1i(mHandle, location, sca); }
+{
+    SQASSERT(mHandle != 0u, "not linked");
+    gl::ProgramUniform1i(mHandle, location, sca);
+}
 
 void Program::update(GLint location, uint sca) const
-{ gl::ProgramUniform1ui(mHandle, location, sca); }
+{
+    SQASSERT(mHandle != 0u, "not linked");
+    gl::ProgramUniform1ui(mHandle, location, sca);
+}
 
 void Program::update(GLint location, float sca) const
-{ gl::ProgramUniform1f(mHandle, location, sca); }
+{
+    SQASSERT(mHandle != 0u, "not linked");
+    gl::ProgramUniform1f(mHandle, location, sca);
+}
 
 //----------------------------------------------------------------------------//
 
 void Program::update(GLint location, Vec2I vec) const
-{ gl::ProgramUniform2i(mHandle, location, vec.x, vec.y); }
+{
+    SQASSERT(mHandle != 0u, "not linked");
+    gl::ProgramUniform2i(mHandle, location, vec.x, vec.y);
+}
 
 void Program::update(GLint location, Vec2U vec) const
-{ gl::ProgramUniform2ui(mHandle, location, vec.x, vec.y); }
+{
+    SQASSERT(mHandle != 0u, "not linked");
+    gl::ProgramUniform2ui(mHandle, location, vec.x, vec.y);
+}
 
 void Program::update(GLint location, Vec2F vec) const
-{ gl::ProgramUniform2f(mHandle, location, vec.x, vec.y); }
+{
+    SQASSERT(mHandle != 0u, "not linked");
+    gl::ProgramUniform2f(mHandle, location, vec.x, vec.y);
+}
 
 //----------------------------------------------------------------------------//
 
 void Program::update(GLint location, Vec3I vec) const
-{ gl::ProgramUniform3i(mHandle, location, vec.x, vec.y, vec.z); }
+{
+    SQASSERT(mHandle != 0u, "not linked");
+    gl::ProgramUniform3i(mHandle, location, vec.x, vec.y, vec.z);
+}
 
 void Program::update(GLint location, Vec3U vec) const
-{ gl::ProgramUniform3ui(mHandle, location, vec.x, vec.y, vec.z); }
+{
+    SQASSERT(mHandle != 0u, "not linked");
+    gl::ProgramUniform3ui(mHandle, location, vec.x, vec.y, vec.z);
+}
 
 void Program::update(GLint location, Vec3F vec) const
-{ gl::ProgramUniform3f(mHandle, location, vec.x, vec.y, vec.z); }
+{
+    SQASSERT(mHandle != 0u, "not linked");
+    gl::ProgramUniform3f(mHandle, location, vec.x, vec.y, vec.z);
+}
 
 //----------------------------------------------------------------------------//
 
 void Program::update(GLint location, Vec4I vec) const
-{ gl::ProgramUniform4i(mHandle, location, vec.x, vec.y, vec.z, vec.w); }
+{
+    SQASSERT(mHandle != 0u, "not linked");
+    gl::ProgramUniform4i(mHandle, location, vec.x, vec.y, vec.z, vec.w);
+}
 
 void Program::update(GLint location, Vec4U vec) const
-{ gl::ProgramUniform4ui(mHandle, location, vec.x, vec.y, vec.z, vec.w); }
+{
+    SQASSERT(mHandle != 0u, "not linked");
+    gl::ProgramUniform4ui(mHandle, location, vec.x, vec.y, vec.z, vec.w);
+}
 
 void Program::update(GLint location, Vec4F vec) const
-{ gl::ProgramUniform4f(mHandle, location, vec.x, vec.y, vec.z, vec.w); }
+{
+    SQASSERT(mHandle != 0u, "not linked");
+    gl::ProgramUniform4f(mHandle, location, vec.x, vec.y, vec.z, vec.w);
+}
 
 //----------------------------------------------------------------------------//
 
 void Program::update(GLint location, const Mat3F& mat) const
-{ gl::ProgramUniformMatrix3fv(mHandle, location, 1, false, mat.data); }
+{
+    SQASSERT(mHandle != 0u, "not linked");
+    gl::ProgramUniformMatrix3fv(mHandle, location, 1, false, mat.data);
+}
 
 void Program::update(GLint location, const Mat34F& mat) const
-{ gl::ProgramUniformMatrix3x4fv(mHandle, location, 1, false, mat.data); }
+{
+    SQASSERT(mHandle != 0u, "not linked");
+    gl::ProgramUniformMatrix3x4fv(mHandle, location, 1, false, mat.data);
+}
 
 void Program::update(GLint location, const Mat4F& mat) const
-{ gl::ProgramUniformMatrix4fv(mHandle, location, 1, false, mat.data); }
+{
+    SQASSERT(mHandle != 0u, "not linked");
+    gl::ProgramUniformMatrix4fv(mHandle, location, 1, false, mat.data);
+}

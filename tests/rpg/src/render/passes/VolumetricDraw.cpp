@@ -1,24 +1,20 @@
 #include <sqee/gl/Context.hpp>
-#include <sqee/gl/Drawing.hpp>
-
-#include <sqee/redist/gl_loader.hpp>
 
 #include "VolumetricDraw.hpp"
 
-using Context = sq::Context;
 using namespace sqt::render;
 
 //============================================================================//
 
 VolumetricPasses::VolumetricPasses(const SharedStuff& stuff) : SharedStuff(stuff)
 {
-    FB_Shafts.draw_buffers({gl::COLOR_ATTACHMENT0});
+    FB_Shafts.draw_buffers({sq::FboAttach::Colour0});
 
-    processor.load_vertex(PROG_Shafts_Stencil, "volumetric/Shafts/Stencil_vs");
-    processor.load_vertex(PROG_Shafts_LightCasc, "volumetric/Shafts/Light_vs");
-    processor.load_vertex(PROG_Shafts_LightOrtho, "volumetric/Shafts/Light_vs");
-    processor.load_vertex(PROG_Shafts_LightPoint, "volumetric/Shafts/Light_vs");
-    processor.load_vertex(PROG_Shafts_LightSpot, "volumetric/Shafts/Light_vs");
+    processor.load_vertex(PROG_Shafts_Stencil, "shaders/volumetric/Shafts/Stencil_vs.glsl", {});
+    processor.load_vertex(PROG_Shafts_LightCasc, "shaders/volumetric/Shafts/Light_vs.glsl", {});
+    processor.load_vertex(PROG_Shafts_LightOrtho, "shaders/volumetric/Shafts/Light_vs.glsl", {});
+    processor.load_vertex(PROG_Shafts_LightPoint, "shaders/volumetric/Shafts/Light_vs.glsl", {});
+    processor.load_vertex(PROG_Shafts_LightSpot, "shaders/volumetric/Shafts/Light_vs.glsl", {});
 
     PROG_Shafts_Stencil.link_program_stages();
 }
@@ -27,28 +23,26 @@ VolumetricPasses::VolumetricPasses(const SharedStuff& stuff) : SharedStuff(stuff
 
 void VolumetricPasses::update_options()
 {
-    if (options.Shafts_Quality)
+    TEX_Shafts_Depth = sq::Texture2D();
+
+    if (options.Shafts_Quality > 0u)
     {
-        processor.load_fragment(PROG_Shafts_LightCasc, "volumetric/Shafts/LightCasc_fs");
-        processor.load_fragment(PROG_Shafts_LightOrtho, "volumetric/Shafts/LightOrtho_fs");
-        processor.load_fragment(PROG_Shafts_LightPoint, "volumetric/Shafts/LightPoint_fs");
-        processor.load_fragment(PROG_Shafts_LightSpot, "volumetric/Shafts/LightSpot_fs");
+        processor.load_fragment(PROG_Shafts_LightCasc, "shaders/volumetric/Shafts/LightCasc_fs.glsl", {});
+        processor.load_fragment(PROG_Shafts_LightOrtho, "shaders/volumetric/Shafts/LightOrtho_fs.glsl", {});
+        processor.load_fragment(PROG_Shafts_LightPoint, "shaders/volumetric/Shafts/LightPoint_fs.glsl", {});
+        processor.load_fragment(PROG_Shafts_LightSpot, "shaders/volumetric/Shafts/LightSpot_fs.glsl", {});
 
         PROG_Shafts_LightCasc.link_program_stages();
         PROG_Shafts_LightOrtho.link_program_stages();
         PROG_Shafts_LightPoint.link_program_stages();
         PROG_Shafts_LightSpot.link_program_stages();
+
+        TEX_Shafts_Depth.allocate_storage(sq::TexFormat::DEP24S8, options.Window_Size / 2u, false);
+        FB_Shafts.attach(sq::FboAttach::Colour0, textures.Volumetric_Shafts);
+        FB_Shafts.attach(sq::FboAttach::DepthStencil, TEX_Shafts_Depth);
+
+        FB_HalfDepthBlit.attach(sq::FboAttach::DepthStencil, textures.Depth_HalfSize);
     }
-
-    // delete or allocate shafts depth stencil texture
-    if (options.Shafts_Quality == 0u) TEX_Shafts_Depth.delete_object();
-    else TEX_Shafts_Depth.allocate_storage(options.Window_Size / 2u);
-
-    // re-attach textures to shafts framebuffer
-    if (options.Shafts_Quality) FB_Shafts.attach(gl::COLOR_ATTACHMENT0, textures.Volumetric_Shafts);
-    if (options.Shafts_Quality) FB_Shafts.attach(gl::DEPTH_STENCIL_ATTACHMENT, TEX_Shafts_Depth);
-
-    FB_HalfDepthBlit.attach(gl::DEPTH_STENCIL_ATTACHMENT, textures.Depth_HalfSize);
 }
 
 //============================================================================//
@@ -61,10 +55,10 @@ void VolumetricPasses::render(const data::VolumetricPasses& data)
 
     // bind and clear framebuffer
     context.set_ViewPort(options.Window_Size / 2u);
-    context.bind_FrameBuffer(FB_Shafts);
-    context.clear_Colour(Vec4F(0.f));
+    context.bind_framebuffer(FB_Shafts);
+    context.clear_colour(Vec4F(0.f));
 
-    context.set_state(Context::Blend_Mode::Accumulate);
+    context.set_state(sq::BlendMode::Accumulate);
 
     //--------------------------------------------------------//
 
@@ -81,18 +75,19 @@ void VolumetricPasses::render(const data::VolumetricPasses& data)
 
 void VolumetricPasses::impl_render_SkyLightPass(const data::VolumetricSkyLightPass& light)
 {
-    context.set_state(Context::Cull_Face::Disable);
-    context.set_state(Context::Depth_Test::Disable);
-    context.set_state(Context::Stencil_Test::Disable);
+    context.set_state(sq::CullFace::Disable);
+    context.set_state(sq::DepthTest::Disable);
+    context.set_state(sq::StencilTest::Disable);
 
-    context.bind_UniformBuffer(light.ubo, 1u);
+    context.bind_buffer(light.ubo, sq::BufTarget::Uniform, 1u);
 
-    context.bind_Texture(textures.Depth_HalfSize, 7u);
-    context.bind_Texture(light.tex, 8u);
+    context.bind_texture(textures.Depth_HalfSize, 7u);
+    context.bind_texture(light.tex, 8u);
 
-    context.bind_Program(PROG_Shafts_LightCasc);
+    context.bind_program(PROG_Shafts_LightCasc);
 
-    sq::draw_screen_quad();
+    context.bind_vertexarray_dummy();
+    context.draw_arrays(sq::DrawPrimitive::TriangleStrip, 0u, 4u);
 }
 
 //============================================================================//
@@ -100,52 +95,53 @@ void VolumetricPasses::impl_render_SkyLightPass(const data::VolumetricSkyLightPa
 void VolumetricPasses::impl_render_StencilPass(const data::VolumetricStencilPass& light,
                                                const sq::Volume& volume, const sq::Program& program)
 {
-    FB_HalfDepthBlit.blit(FB_Shafts, options.Window_Size / 2u, gl::DEPTH_BUFFER_BIT);
+    FB_HalfDepthBlit.blit(FB_Shafts, options.Window_Size / 2u, sq::BlitMask::Depth);
 
-    context.bind_Program(PROG_Shafts_Stencil);
+    context.bind_program(PROG_Shafts_Stencil);
 
     PROG_Shafts_Stencil.update(0, light.matrix);
 
     //--------------------------------------------------------//
 
+    volume.apply_to_context(context);
+
     if (light.stencil == true)
     {
-        context.clear_Stencil(0, 255);
+        context.clear_stencil(0x00, 0xFF);
 
-        context.set_state(Context::Depth_Clamp::Enable);
+        context.set_state(sq::DepthClamp::Enable);
 
-        context.set_state(Context::Cull_Face::Back);
-        context.set_state(Context::Depth_Test::Keep);
-        context.set_state(Context::Stencil_Test::Replace);
-        context.set_Stencil_Params({gl::ALWAYS, 2, 0, 2});
+        context.set_state(sq::CullFace::Back);
+        context.set_state(sq::DepthTest::Keep);
+        context.set_state(sq::StencilTest::Replace);
+        context.set_stencil_params(sq::CompareFunc::Always, 0x02, 0x00, 0x02);
 
-        volume.bind_and_draw(context);
+        volume.draw(context);
 
-        context.set_state(Context::Depth_Clamp::Disable);
+        context.set_state(sq::DepthClamp::Disable);
 
-        context.set_state(Context::Stencil_Test::Keep);
-        context.set_Stencil_Params({gl::EQUAL, 2, 2, 0});
+        context.set_state(sq::StencilTest::Keep);
+        context.set_stencil_params(sq::CompareFunc::Always, 0x02, 0x02, 0x00);
     }
-    else context.set_state(Context::Stencil_Test::Disable);
+    else context.set_state(sq::StencilTest::Disable);
+
+    context.set_state(sq::CullFace::Front);
+    context.set_state(sq::DepthTest::Replace);
+
+    volume.draw(context);
 
     //--------------------------------------------------------//
 
-    context.set_state(Context::Cull_Face::Front);
-    context.set_state(Context::Depth_Test::Replace);
+    context.set_state(sq::CullFace::Disable);
+    context.set_state(sq::DepthTest::Disable);
 
-    volume.bind_and_draw(context);
+    context.bind_buffer(light.ubo, sq::BufTarget::Uniform, 1u);
 
-    //--------------------------------------------------------//
+    context.bind_texture(TEX_Shafts_Depth, 7u);
+    context.bind_texture(light.tex, 8u);
 
-    context.set_state(Context::Cull_Face::Disable);
-    context.set_state(Context::Depth_Test::Disable);
+    context.bind_program(program);
 
-    context.bind_UniformBuffer(light.ubo, 1u);
-
-    context.bind_Texture(TEX_Shafts_Depth, 7u);
-    context.bind_Texture(light.tex, 8u);
-
-    context.bind_Program(program);
-
-    sq::draw_screen_quad();
+    context.bind_vertexarray_dummy();
+    context.draw_arrays(sq::DrawPrimitive::TriangleStrip, 0u, 4u);
 }

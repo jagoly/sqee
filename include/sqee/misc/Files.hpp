@@ -7,8 +7,6 @@
 
 #include <sqee/core/Types.hpp>
 
-#include <cstdio>
-
 // Note that all file paths in sqee are unix style, don't try to use dos paths.
 // Windows is kind enough to work just fine with unix paths, so there's no need
 // for anything platform specific.
@@ -53,13 +51,13 @@ SQEE_API TokenisedFile tokenise_file(const String& path);
 //============================================================================//
 
 /// Extract file portion from a path
-SQEE_API StringView file_from_path(StringView path);
+SQEE_API StringView path_extract_file(StringView path);
 
 /// Extract directory portion from a path
-SQEE_API StringView directory_from_path(StringView path);
+SQEE_API StringView path_extract_directory(StringView path);
 
 /// Extract the file extension from a path
-SQEE_API StringView extension_from_path(StringView path);
+SQEE_API StringView path_extract_extension(StringView path);
 
 //============================================================================//
 
@@ -72,20 +70,6 @@ SQEE_API StringView extension_from_path(StringView path);
 SQEE_API String compute_resource_path(StringView key,
                                       std::initializer_list<StringView> prefixes,
                                       std::initializer_list<StringView> extensions);
-
-//============================================================================//
-
-inline String build_path(String path) { return path; }
-
-template <class Arg, class... Args> inline
-String build_path(String path, Arg&& arg, Args&&... args)
-{
-    if (!path.empty() && path.back() != '/') path.push_back('/');
-    return build_path(path.append(arg), args...);
-}
-
-template <class... Args> inline
-String build_path(Args&&... args) { return build_path(String(), args...); }
 
 //============================================================================//
 

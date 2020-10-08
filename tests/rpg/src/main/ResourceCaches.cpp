@@ -7,63 +7,24 @@
 #include "ResourceCaches.hpp"
 
 using namespace sqt;
-
-//============================================================================//
-
-TextureCache::TextureCache() = default;
-
-MeshCache::MeshCache() = default;
-
-ArmatureCache::ArmatureCache() = default;
-
-SoundCache::SoundCache() = default;
-
-MaterialCache::MaterialCache(TextureCache& tc) : mTextureCache(tc) {}
-
-//============================================================================//
-
-TextureCache::~TextureCache() = default;
-
-MeshCache::~MeshCache() = default;
-
-ArmatureCache::~ArmatureCache() = default;
-
-SoundCache::~SoundCache() = default;
-
-MaterialCache::~MaterialCache() = default;
-
-//============================================================================//
-
-std::unique_ptr<sq::Texture2D> TextureCache::create(const std::string& path)
-{
-    auto texture = sq::Texture2D::make_from_package(path);
-    return std::make_unique<sq::Texture2D>(std::move(texture));
-}
-
-std::unique_ptr<sq::Mesh> MeshCache::create(const std::string& path)
-{
-    return sq::Mesh::make_from_package(path);
-}
-
-std::unique_ptr<sq::Armature> ArmatureCache::create(const std::string& /*path*/)
-{
-    return {}; // fixme
-}
-
-std::unique_ptr<sq::Sound> SoundCache::create(const std::string& /*path*/)
-{
-    return {}; // fixme
-}
-
-std::unique_ptr<sq::Material> MaterialCache::create(const std::string& path)
-{
-    return std::make_unique<sq::Material>(path, mTextureCache);
-}
-
+\
 //============================================================================//
 
 ResourceCaches::ResourceCaches()
-    : textures(), meshes(), armatures(), sounds(),
-      materials(textures) {}
+{
+    textures.assign_factory([](const std::string& key)
+    {
+        auto texture = sq::Texture2D::make_from_package(key);
+        return std::make_unique<sq::Texture2D>(std::move(texture));
+    });
+
+    meshes.assign_factory([](const std::string& key)
+    {
+        auto mesh = sq::Mesh::make_from_package(key);
+        return std::make_unique<sq::Mesh>(std::move(mesh));
+    });
+
+    // fixme: sounds/armatures/materials
+}
 
 ResourceCaches::~ResourceCaches() = default;

@@ -1,7 +1,5 @@
 #include <sqee/core/Utilities.hpp>
 
-#include <sqee/redist/gl_loader.hpp>
-
 #include <sqee/maths/Functions.hpp>
 #include <sqee/misc/DopFunctions.hpp>
 
@@ -25,7 +23,7 @@ using namespace sqt;
 
 RenderStuff::RenderStuff()
 {
-    camera.ubo.create_and_allocate(352u);
+    camera.ubo.allocate_dynamic(352u);
 }
 
 //============================================================================//
@@ -74,14 +72,9 @@ void sqt::refresh_render_stuff(RenderStuff& rstuff, const WorldStuff& wstuff, co
     if (wstuff.skybox == nullptr)
         rstuff.skybox.reset();
 
-    //--------------------------------------------------------//
-
     else if (rstuff.skybox == nullptr)
     {
         rstuff.skybox = std::make_unique<RenderStuff::SkyboxData>();
-
-        rstuff.skybox->tex.set_format(sq::Texture::Format::RGB8_UN);
-        rstuff.skybox->tex.set_filter_mode(true);
     }
 
     //--------------------------------------------------------//
@@ -109,8 +102,6 @@ void sqt::refresh_render_stuff(RenderStuff& rstuff, const WorldStuff& wstuff, co
     if (wstuff.ambient == nullptr)
         rstuff.ambient.reset();
 
-    //--------------------------------------------------------//
-
     else if (rstuff.ambient == nullptr)
     {
         rstuff.ambient = std::make_unique<RenderStuff::AmbientData>();
@@ -130,36 +121,34 @@ void sqt::refresh_render_stuff(RenderStuff& rstuff, const WorldStuff& wstuff, co
     if (wstuff.skylight == nullptr)
         rstuff.skylight.reset();
 
-    //--------------------------------------------------------//
-
     else if (rstuff.skylight == nullptr)
     {
         rstuff.skylight = std::make_unique<RenderStuff::SkylightData>();
 
-        rstuff.skylight->tex.set_format(sq::Texture::Format::DEPTH16);
-        rstuff.skylight->tex.set_filter_mode(true);
-        rstuff.skylight->tex.set_shadow_mode(true);
-
-        rstuff.skylight->ubo.create_and_allocate(512u);
+        rstuff.skylight->ubo.allocate_dynamic(512u);
     }
 
     //--------------------------------------------------------//
 
     if (auto skylight = rstuff.skylight.get())
     {
-        skylight->cascades = wstuff.skylight->get_cascades();
-
         wstuff.skylight->compute_cascades(skylight->spheres, skylight->orthos, skylight->matrices);
 
         const uint resolution = wstuff.skylight->get_resolution() * (options.Shadows_Large + 1u);
-        const Vec3U newSize { resolution, resolution, skylight->cascades };
+        const uint cascades = wstuff.skylight->get_cascades();
 
-        if (skylight->tex.get_size() != newSize)
+        if (skylight->resolution != resolution || skylight->cascades != cascades)
         {
-            skylight->tex.allocate_storage(newSize);
+            skylight->resolution = resolution;
+            skylight->cascades = cascades;
+
+            skylight->tex = sq::TextureArray();
+            skylight->tex.allocate_storage(sq::TexFormat::DEPTH16, {resolution, resolution, cascades}, false);
+            skylight->tex.set_filter_mode(true, false);
+            skylight->tex.set_shadow_mode(sq::CompareFunc::LessEqual);
 
             for (uint i = 0u; i < skylight->cascades; ++i)
-                skylight->fbos[i].attach(gl::DEPTH_ATTACHMENT, skylight->tex, i);
+                skylight->fbos[i].attach(sq::FboAttach::Depth, skylight->tex, i);
         }
 
         skylight->ubo.update ( 0u, sq::Structure ( wstuff.skylight->get_rotation() * Vec3F(0, 0, -1), skylight->cascades,
@@ -183,8 +172,8 @@ void sqt::refresh_render_stuff(RenderStuff& rstuff, const WorldStuff& wstuff, co
 
         entry.hasMaskTexture = false;
 
-        for (const auto& material : entry.materials)
-            entry.hasMaskTexture |= material->has_mask_texture();
+//        for (const auto& material : entry.materials)
+//            entry.hasMaskTexture |= material->has_mask_texture();
 
         entry.mesh = model.mesh;
 
@@ -203,7 +192,7 @@ void sqt::refresh_render_stuff(RenderStuff& rstuff, const WorldStuff& wstuff, co
         rstuff.tables.skeleton.insert(id, {});
         auto& entry = *rstuff.tables.skeleton.back();
 
-        entry.ubo.create_and_allocate(3840u);
+        entry.ubo.allocate_dynamic(3840u);
 
         entry.armature = skeleton.armature;
 
@@ -223,11 +212,7 @@ void sqt::refresh_render_stuff(RenderStuff& rstuff, const WorldStuff& wstuff, co
             rTables.ortholight.insert(id, {});
             auto& entry = *rTables.ortholight.back();
 
-            entry.tex.set_format(sq::Texture::Format::DEPTH16);
-            entry.tex.set_filter_mode(true);
-            entry.tex.set_shadow_mode(true);
-
-            entry.ubo.create_and_allocate(96u);
+            entry.ubo.allocate_dynamic(96u);
         }
     }
 
@@ -235,12 +220,18 @@ void sqt::refresh_render_stuff(RenderStuff& rstuff, const WorldStuff& wstuff, co
 
     for (auto& [id, transform, light, entry] : dop::joined(wTables.transform, wTables.ortholight, rTables.ortholight))
     {
-        const uint newSize = light.resolution * (options.Shadows_Large + 1u);
+        const uint resolution = light.resolution * (options.Shadows_Large + 1u);
 
-        if (entry.tex.get_size().x != newSize)
+        if (entry.resolution != resolution)
         {
-            entry.tex.allocate_storage(Vec2U(newSize));
-            entry.fbo.attach(gl::DEPTH_ATTACHMENT, entry.tex);
+            entry.resolution = resolution;
+
+            entry.tex = sq::Texture2D();
+            entry.tex.allocate_storage(sq::TexFormat::DEPTH16, {resolution, resolution}, false);
+            entry.tex.set_filter_mode(true, false);
+            entry.tex.set_shadow_mode(sq::CompareFunc::LessEqual);
+
+            entry.fbo.attach(sq::FboAttach::Depth, entry.tex);
         }
 
         // calculate direction and tangent vectors
@@ -272,11 +263,7 @@ void sqt::refresh_render_stuff(RenderStuff& rstuff, const WorldStuff& wstuff, co
             rTables.pointlight.insert(id, {});
             auto& entry = *rTables.pointlight.back();
 
-            entry.tex.set_format(sq::Texture::Format::DEPTH16);
-            entry.tex.set_filter_mode(true);
-            entry.tex.set_shadow_mode(true);
-
-            entry.ubo.create_and_allocate(416u);
+            entry.ubo.allocate_dynamic(416u);
         }
     }
 
@@ -284,14 +271,18 @@ void sqt::refresh_render_stuff(RenderStuff& rstuff, const WorldStuff& wstuff, co
 
     for (auto& [id, transform, light, entry] : dop::joined(wTables.transform, wTables.pointlight, rTables.pointlight))
     {
-        const uint newSize = light.resolution * (options.Shadows_Large + 1u);
+        const uint resolution = light.resolution * (options.Shadows_Large + 1u);
 
-        if (entry.tex.get_size().x != newSize)
+        if (entry.resolution != resolution)
         {
-            entry.tex.allocate_storage(uint(newSize));
+            entry.resolution = resolution;
+
+            entry.tex.allocate_storage(sq::TexFormat::DEPTH16, resolution, false);
+            entry.tex.set_filter_mode(true, false);
+            entry.tex.set_shadow_mode(sq::CompareFunc::LessEqual);
 
             for (uint face = 0u; face < 6u; ++face)
-                entry.fbos[face].attach(gl::DEPTH_ATTACHMENT, entry.tex, face);
+                entry.fbos[face].attach(sq::FboAttach::Depth, entry.tex, face);
         }
 
         const Vec3F& position = transform.worldPosition;
@@ -331,11 +322,7 @@ void sqt::refresh_render_stuff(RenderStuff& rstuff, const WorldStuff& wstuff, co
             rTables.spotlight.insert(id, {});
             auto& entry = *rTables.spotlight.back();
 
-            entry.tex.set_format(sq::Texture::Format::DEPTH16);
-            entry.tex.set_filter_mode(true);
-            entry.tex.set_shadow_mode(true);
-
-            entry.ubo.create_and_allocate(112u);
+            entry.ubo.allocate_dynamic(112u);
         }
     }
 
@@ -343,12 +330,17 @@ void sqt::refresh_render_stuff(RenderStuff& rstuff, const WorldStuff& wstuff, co
 
     for (auto& [id, transform, light, entry] : dop::joined(wTables.transform, wTables.spotlight, rTables.spotlight))
     {
-        const uint newSize = light.resolution * (options.Shadows_Large + 1u);
+        const uint resolution = light.resolution * (options.Shadows_Large + 1u);
 
-        if (entry.tex.get_size().x != newSize)
+        if (entry.resolution != resolution)
         {
-            entry.tex.allocate_storage(Vec2U(newSize));
-            entry.fbo.attach(gl::DEPTH_ATTACHMENT, entry.tex);
+            entry.resolution = resolution;
+
+            entry.tex.allocate_storage(sq::TexFormat::DEPTH16, {resolution, resolution}, false);
+            entry.tex.set_filter_mode(true, false);
+            entry.tex.set_shadow_mode(sq::CompareFunc::LessEqual);
+
+            entry.fbo.attach(sq::FboAttach::Depth, entry.tex);
         }
 
         const float angle = maths::radians(light.angle);

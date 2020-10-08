@@ -473,15 +473,17 @@ struct ScopeItemWidth final : sq::NonCopyable
 /// Wrapper for Indent, Unindent.
 struct ScopeIndent final : sq::NonCopyable
 {
-    ScopeIndent() { ImGui::Indent(); }
-    ~ScopeIndent() { ImGui::Unindent(); }
+    ScopeIndent(float width = 0.f) : width(width) { ImGui::Indent(width); }
+    ~ScopeIndent() { ImGui::Unindent(width); }
+    const float width;
 };
 
 /// Wrapper for Unindent, Indent.
 struct ScopeUnindent final : sq::NonCopyable
 {
-    ScopeUnindent() { ImGui::Unindent(); }
-    ~ScopeUnindent() { ImGui::Indent(); }
+    ScopeUnindent(float width = 0.f) : width(width) { ImGui::Unindent(width); }
+    ~ScopeUnindent() { ImGui::Indent(width); }
+    const float width;
 };
 
 /// Wrapper for PushFont, PopFont.

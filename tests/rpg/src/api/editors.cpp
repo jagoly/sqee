@@ -1,5 +1,7 @@
 #include <sqee/debug/Logging.hpp>
 
+#include <sqee/misc/Json.hpp>
+
 #include <sqee/objects/Mesh.hpp>
 #include <sqee/objects/Material.hpp>
 #include <sqee/objects/Armature.hpp>

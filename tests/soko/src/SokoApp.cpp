@@ -4,7 +4,6 @@
 
 using namespace sqt;
 namespace maths = sq::maths;
-using Context = sq::Context;
 
 //============================================================================//
 
@@ -12,12 +11,8 @@ SokoApp::~SokoApp() = default;
 
 //============================================================================//
 
-void SokoApp::initialise(std::vector<std::string> args)
+void SokoApp::initialise(std::vector<std::string> /*args*/)
 {
-    (void) args;
-
-    //--------------------------------------------------------//
-
     mWindow = std::make_unique<sq::Window>("SQEE Sokoban", Vec2U(800u, 600u));
 
     mInputDevices = std::make_unique<sq::InputDevices>(*mWindow);
@@ -31,32 +26,24 @@ void SokoApp::initialise(std::vector<std::string> args)
     mSound = std::make_unique<sq::Sound>(*mAudioContext);
     mSound->load_from_file("assets/sounds/Jump.wav");
 
-    this->refresh_options();
+    refresh_options();
 }
+
+//============================================================================//
 
 void SokoApp::update(double elapsed)
 {
-    static auto& context = Context::get();
-
-    //--------------------------------------------------------//
+    auto& context = sq::Context::get();
 
     for (auto event : mWindow->fetch_events())
-        this->handle_event(event);
-
-    //--------------------------------------------------------//
+        handle_event(event);
 
     context.set_ViewPort(mWindow->get_window_size());
-    context.bind_FrameBuffer_default();
-
-    //--------------------------------------------------------//
+    context.bind_framebuffer_default(sq::FboTarget::Both);
 
     mGameScene->update_and_render(elapsed);
 
-    //--------------------------------------------------------//
-
     mDebugOverlay->update_and_render(elapsed);
-
-    //--------------------------------------------------------//
 
     mWindow->swap_buffers();
 }
@@ -67,7 +54,7 @@ void SokoApp::refresh_options()
 {
     mAudioContext->play_sound(*mSound, sq::SoundGroup::Menu, 1.f, false);
 
-    Context::get().set_ViewPort(mWindow->get_window_size());
+    sq::Context::get().set_ViewPort(mWindow->get_window_size());
     mGameScene->refresh_options();
 }
 
@@ -80,15 +67,11 @@ void SokoApp::handle_event(sq::Event event)
 
     const auto& [type, data] = event;
 
-    //--------------------------------------------------------//
-
     if (type == Type::Window_Close)
     {
         mReturnCode = 0;
         return;
     }
-
-    //--------------------------------------------------------//
 
     if (type == Type::Window_Resize)
     {
@@ -96,15 +79,11 @@ void SokoApp::handle_event(sq::Event event)
         return;
     }
 
-    //--------------------------------------------------------//
-
     if (type == Type::Keyboard_Press && data.keyboard.key == Key::Menu)
     {
         mDebugOverlay->toggle_active();
         return;
     }
-
-    //--------------------------------------------------------//
 
     if (type == Type::Keyboard_Press && data.keyboard.key == Key::V)
     {
@@ -116,8 +95,6 @@ void SokoApp::handle_event(sq::Event event)
 
         return;
     }
-
-    //--------------------------------------------------------//
 
     mGameScene->handle_event(event);
 }

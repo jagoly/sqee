@@ -6,12 +6,9 @@
 #include <sqee/setup.hpp>
 
 #include <sqee/core/Types.hpp>
+#include <sqee/gl/SafeEnums.hpp>
 
 namespace sq {
-
-//====== Forward Declarations ================================================//
-
-class Context;
 
 //============================================================================//
 
@@ -20,7 +17,21 @@ class SQEE_API Program final : private MoveOnly
 {
 public: //====================================================//
 
-    Program(); ///< Constructor.
+    struct UniformInfo
+    {
+        GLenum type;
+        GLint location;
+    };
+
+    struct SamplerInfo
+    {
+        GLenum type;
+        GLuint binding;
+    };
+
+    //--------------------------------------------------------//
+
+    Program() = default; ///< Constructor.
 
     Program(Program&& other) noexcept; ///< Move Constructor.
 
@@ -30,14 +41,8 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    /// Load the vertex shader stage from a string.
-    void load_vertex(StringView source, StringView path = "");
-
-    /// Load the geometry shader stage from a string.
-    void load_geometry(StringView source, StringView path = "");
-
-    /// Load the fragment shader stage from a string.
-    void load_fragment(StringView source, StringView path = "");
+    /// Load one shader stage from a string.
+    void load_shader(ShaderStage stage, StringView source, StringView path = {});
 
     /// Link shader stages together, preparing the program for use.
     void link_program_stages();
@@ -47,57 +52,32 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    /// Update a uniform using it's location.
-    void update(GLint location, int sca) const;
+    /// Query the type and location of a uniform.
+    std::optional<UniformInfo> query_uniform_info(const String& name) const;
 
-    /// Update a uniform using it's location.
-    void update(GLint location, uint sca) const;
-
-    /// Update a uniform using it's location.
-    void update(GLint location, float sca) const;
+    /// Query the type and binding of a sampler.
+    std::optional<SamplerInfo> query_sampler_info(const String& name) const;
 
     //--------------------------------------------------------//
 
-    /// Update a uniform using it's location.
+    void update(GLint location, int value) const;
+    void update(GLint location, uint value) const;
+    void update(GLint location, float value) const;
+
     void update(GLint location, Vec2I vec) const;
-
-    /// Update a uniform using it's location.
     void update(GLint location, Vec2U vec) const;
-
-    /// Update a uniform using it's location.
     void update(GLint location, Vec2F vec) const;
 
-    //--------------------------------------------------------//
-
-    /// Update a uniform using it's location.
     void update(GLint location, Vec3I vec) const;
-
-    /// Update a uniform using it's location.
     void update(GLint location, Vec3U vec) const;
-
-    /// Update a uniform using it's location.
     void update(GLint location, Vec3F vec) const;
 
-    //--------------------------------------------------------//
-
-    /// Update a uniform using it's location.
     void update(GLint location, Vec4I vec) const;
-
-    /// Update a uniform using it's location.
     void update(GLint location, Vec4U vec) const;
-
-    /// Update a uniform using it's location.
     void update(GLint location, Vec4F vec) const;
 
-    //--------------------------------------------------------//
-
-    /// Update a uniform using it's location.
     void update(GLint location, const Mat3F& mat) const;
-
-    /// Update a uniform using it's location.
     void update(GLint location, const Mat34F& mat) const;
-
-    /// Update a uniform using it's location.
     void update(GLint location, const Mat4F& mat) const;
 
     //--------------------------------------------------------//
@@ -106,8 +86,6 @@ public: //====================================================//
     GLuint get_handle() const { return mHandle; }
 
 private: //===================================================//
-
-    Context& mContext;
 
     GLuint mVertexShader = 0u;
     GLuint mGeometryShader = 0u;
@@ -118,38 +96,4 @@ private: //===================================================//
 
 //============================================================================//
 
-struct ProgramKey final
-{
-    String vertexPath, vertexDefines;
-    String fragmentPath, fragmentDefines;
-};
-
-inline bool operator==(const ProgramKey& a, const ProgramKey& b)
-{
-    return a.fragmentDefines == b.fragmentDefines && b.fragmentPath == b.fragmentPath
-        && a.vertexDefines == b.vertexDefines && a.vertexPath == b.vertexPath;
-}
-
-//============================================================================//
-
 } // namespace sq
-
-//============================================================================//
-
-template<> struct std::hash<sq::ProgramKey>
-{
-    size_t operator()(const sq::ProgramKey& key) const
-    {
-        const auto hash_func = std::hash<std::string>();
-
-        const size_t vp = hash_func(key.vertexPath);
-        const size_t vd = hash_func(key.vertexDefines);
-        const size_t fp = hash_func(key.fragmentPath);
-        const size_t fd = hash_func(key.fragmentDefines);
-
-        const auto combine_func = [](size_t a, size_t b) -> size_t
-        { return a ^ (b + 0x9e3779b9u + (a << 6u) + (a >> 2u)); };
-
-        return combine_func(combine_func(vp, vd), combine_func(fp, fd));
-    }
-};

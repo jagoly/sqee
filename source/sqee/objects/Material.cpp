@@ -1,90 +1,66 @@
 #include <sqee/objects/Material.hpp>
 
-#include <sqee/debug/Assert.hpp>
 #include <sqee/debug/Logging.hpp>
-#include <sqee/gl/Textures.hpp>
-#include <sqee/misc/ResourceCache.hpp>
-#include <sqee/redist/json.hpp>
-
-#include <fstream>
+#include <sqee/gl/Context.hpp>
+#include <sqee/misc/Json.hpp>
 
 using namespace sq;
-using Json = nlohmann::json;
 
-namespace { // anonymous
+//============================================================================//
 
-std::optional<Vec3F> impl_as_Vec3F(const String& str)
+void Material::load_from_json(const JsonValue& json, ProgramCache& programs, TextureCache& textures)
 {
-    SQASSERT(str.size() >= 11u, "");
-    SQASSERT(str.front() != ' ', "");
-    SQASSERT(str.back() != ' ', "");
+    const String& cullface = json.at("cullface");
+    if (cullface == "disable") mCullface = CullFace::Disable;
+    else if (cullface == "back") mCullface = CullFace::Back;
+    else if (cullface == "front") mCullface = CullFace::Front;
+    else log_error("cullface '{}'", cullface);
 
-    const auto endX = str.find_first_of(' ', 0u);
-    const auto startY = str.find_first_not_of(' ', endX);
-    const auto endY = str.find_first_of(' ', startY);
-    const auto startZ = str.find_first_not_of(' ', endY);
+    mProgram = programs.acquire(json.at("program"));
 
-    // if str has less or more than three words
-    if (startZ == String::npos) return {};
-    if (str.find(' ', startZ) != String::npos) return {};
+    for (const auto& [key, value] : json.at("textures").items())
+    {
+        const auto info = mProgram->query_sampler_info(key);
+        if (!info.has_value()) log_error("program does not have sampler '{}'", key);
 
-    const char* strX = str.c_str() + 0u;
-    const char* strY = str.c_str() + startY;
-    const char* strZ = str.c_str() + startZ;
+        if      (info->type == gl::SAMPLER_2D)       mTextures.emplace_back(info->binding, textures.acquire(value));
+        else if (info->type == gl::SAMPLER_2D_ARRAY) log_error("todo: texarrays in materials");
+        else if (info->type == gl::SAMPLER_CUBE)     log_error("todo: texcubes in materials");
 
-    Vec3F result; char* tail;
+        else log_error("unsupported type for sampler '{}'", key);
+    }
 
-    result.x = std::strtof(strX, &tail);
-    SQASSERT(tail != strX, "");
+    for (const auto& [key, value] : json.at("uniforms").items())
+    {
+        const auto info = mProgram->query_uniform_info(key);
+        if (!info.has_value()) log_error("program does not have uniform '{}'", key);
 
-    result.y = std::strtof(strY, &tail);
-    SQASSERT(tail != strY, "");
+        if      (info->type == gl::INT)        mUniforms.emplace_back(info->location, int(value));
+        else if (info->type == gl::FLOAT)      mUniforms.emplace_back(info->location, float(value));
+        else if (info->type == gl::INT_VEC2)   mUniforms.emplace_back(info->location, Vec2I(value));
+        else if (info->type == gl::FLOAT_VEC2) mUniforms.emplace_back(info->location, Vec2F(value));
+        else if (info->type == gl::INT_VEC3)   mUniforms.emplace_back(info->location, Vec3I(value));
+        else if (info->type == gl::FLOAT_VEC3) mUniforms.emplace_back(info->location, Vec3F(value));
+        else if (info->type == gl::INT_VEC4)   mUniforms.emplace_back(info->location, Vec4I(value));
+        else if (info->type == gl::FLOAT_VEC4) mUniforms.emplace_back(info->location, Vec4F(value));
 
-    result.z = std::strtof(strZ, &tail);
-    SQASSERT(tail != strZ, "");
-
-    return result;
+        else log_error("unsupported type for uniform '{}'", key);
+    }
 }
 
-std::optional<String> impl_try_get(const Json& json, const String& key)
+//============================================================================//
+
+void Material::apply_to_context(Context& context) const
 {
-    const auto iter = json.find(key);
-    if (iter == json.end()) return {};
-    return iter->get<String>();
-}
+    context.set_state(mCullface);
 
-} // anonymous namespace
+    context.bind_program(mProgram.get());
 
-Material::Material(const String& path, ResourceCache<String, Texture2D>& textures)
-{
-    const String::size_type splitPos = path.find(':');
-    if (splitPos == String::npos) log_error("bad path '{}'", path);
+    for (const auto& [slot, value] : mTextures)
+        if (auto ptr = std::get_if<Handle<String, Texture2D>>(&value))
+            context.bind_texture(ptr->get(), slot);
 
-    const String package = path.substr(0u, splitPos);
-    const String name = path.substr(splitPos + 1u);
-
-    std::ifstream srcFile("assets/packages/" + package + "/materials.json");
-    const auto json = Json::parse(srcFile).at(name);
-
-    if (auto diffuse = impl_try_get(json, "diffuse"))
-    {
-        if (auto o = impl_as_Vec3F(*diffuse)) mDiffuseColour = *o;
-        else mDiffuseTexture = textures.acquire(*diffuse);
-    }
-
-    if (auto normal = impl_try_get(json, "normal"))
-    {
-        mNormalTexture = textures.acquire(*normal);
-    }
-
-    if (auto specular = impl_try_get(json, "specular"))
-    {
-        if (auto o = impl_as_Vec3F(*specular)) mSpecularColour = *o;
-        else mSpecularTexture = textures.acquire(*specular);
-    }
-
-    if (auto mask = impl_try_get(json, "mask"))
-    {
-        mMaskTexture = textures.acquire(*mask);
-    }
+    for (const auto& [location, value] : mUniforms)
+        if (auto ptr = std::get_if<Vec3F>(&value))
+            mProgram->update(location, *ptr);
 }

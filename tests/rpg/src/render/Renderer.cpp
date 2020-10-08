@@ -16,7 +16,6 @@
 
 #include "Renderer.hpp"
 
-using Context = sq::Context;
 using namespace sqt;
 
 //============================================================================//
@@ -49,7 +48,7 @@ Renderer::Renderer(const Options& options) : options(options)
 
     //-- allocate pass drawing objects -----------------------//
 
-    render::SharedStuff shared { options, *volumes, *textures, mProcessor, Context::get() };
+    render::SharedStuff shared { options, *volumes, *textures, mProcessor, sq::Context::get() };
 
     depthDraw = std::make_unique<render::DepthPasses>(shared);
     gbufferDraw = std::make_unique<render::GbufferPasses>(shared);
@@ -98,11 +97,11 @@ void Renderer::refresh_options()
 
     #endif
 
-    mProcessor.update_header("runtime/Options", headerStr);
+    mProcessor.import_header("runtime/Options", headerStr);
 
     //--------------------------------------------------------//
 
-    textures->update_options(options);
+    *textures = render::TargetTextures(options);
 
     depthDraw->update_options();
     gbufferDraw->update_options();
@@ -118,7 +117,7 @@ void Renderer::refresh_options()
 
 void Renderer::render_scene(const WorldStuff& wstuff)
 {
-    static auto& context = Context::get();
+    auto& context = sq::Context::get();
 
     // TODO: find a proper solution for this
     mPassesData->gbufferData.modelPasses.simplePass.baseVec.reserve(256u);
@@ -132,9 +131,9 @@ void Renderer::render_scene(const WorldStuff& wstuff)
 
     //-- setup some default context state --------------------//
 
-    context.bind_Program_default();
-    context.bind_UniformBuffer(mRenderStuff->camera.ubo, 0u);
-    context.set_state(Context::Depth_Compare::LessEqual);
+    context.bind_program_default();
+    context.bind_buffer(mRenderStuff->camera.ubo, sq::BufTarget::Uniform, 0u);
+    context.set_depth_compare(sq::CompareFunc::LessEqual);
 
     //-- finally render the stuff ----------------------------//
 

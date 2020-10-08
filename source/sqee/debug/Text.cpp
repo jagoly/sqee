@@ -8,18 +8,13 @@
 #include <sqee/gl/Program.hpp>
 #include <sqee/gl/Textures.hpp>
 #include <sqee/gl/VertexArray.hpp>
-#include <sqee/redist/gl_loader.hpp>
 
 using namespace sq;
 
 //============================================================================//
 
-static constexpr const StringView VERTEX_SHADER_SOURCE = R"glsl(
-
-#version 330 core
-#extension GL_ARB_shading_language_420pack : enable
-#extension GL_ARB_explicit_uniform_location : enable
-#extension GL_ARB_gpu_shader5 : enable
+constexpr const char VERTEX_SHADER_SOURCE[] = R"glsl(
+#version 450 core
 
 const vec2 texcrds[6] =
 {
@@ -37,23 +32,17 @@ void main()
     texcrd.xy = texcrds[gl_VertexID % 6];
     texcrd.z = glyph.z;
 }
-
 )glsl";
 
 //============================================================================//
 
-static constexpr const StringView FRAGMENT_SHADER_SOURCE = R"glsl(
-
-#version 330 core
-#extension GL_ARB_shading_language_420pack : enable
-#extension GL_ARB_explicit_uniform_location : enable
-#extension GL_ARB_gpu_shader5 : enable
+constexpr const char FRAGMENT_SHADER_SOURCE[] = R"glsl(
+#version 450 core
 
 in vec3 texcrd;
 
 layout(location=0) uniform vec4 colour;
-
-layout(binding=0) uniform sampler2DArray tex;
+layout(location=1, binding=0) uniform sampler2DArray tex;
 
 out vec4 fragment;
 
@@ -62,7 +51,6 @@ void main()
     float texel = texture(tex, texcrd).r;
     fragment = vec4(colour.rgb, texel * colour.a);
 }
-
 )glsl";
 
 //============================================================================//
@@ -71,26 +59,26 @@ void sq::render_text_basic(StringView text, Vec2I flow, Vec2I align, Vec2F scale
 {
     struct StaticStuff
     {
-        FixedBuffer vbo; VertexArray vao;
-        TextureArray2D texFont { Texture::Format::R8_UN };
-        TextureArray2D texGlow { Texture::Format::R8_UN };
+        FixedBuffer vbo;
+        VertexArray vao;
+        TextureArray texFont;
+        TextureArray texGlow;
         Program program;
 
         StaticStuff()
         {
-            texFont.set_filter_mode(true);
-            texGlow.set_filter_mode(true);
-
-            vbo.allocate_dynamic(2048u * 12u, nullptr);
+            vbo.allocate_dynamic(2048u * 12u);
             vao.set_vertex_buffer(vbo, 12u);
 
             vao.add_float_attribute(0u, 3u, gl::FLOAT, false, 0u);
 
-            texFont.allocate_storage({16u, 16u, 256u});
-            texFont.load_memory(sqee_BasicFontMain);
+            texFont.allocate_storage(TexFormat::R8_UN, {16u, 16u, 256u}, false);
+            texFont.load_memory(TexFormat::R8_UN, 0u, {0u, 0u, 0u}, {16u, 16u, 256u}, sqee_BasicFontMain);
+            texFont.set_filter_mode(true, false);
 
-            texGlow.allocate_storage({16u, 16u, 256u});
-            texGlow.load_memory(sqee_BasicFontGlow);
+            texGlow.allocate_storage(TexFormat::R8_UN, {16u, 16u, 256u}, false);
+            texGlow.load_memory(TexFormat::R8_UN, 0u, {0u, 0u, 0u}, {16u, 16u, 256u}, sqee_BasicFontGlow);
+            texGlow.set_filter_mode(true, false);
 
             program.create(VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE);
         }
@@ -186,28 +174,28 @@ void sq::render_text_basic(StringView text, Vec2I flow, Vec2I align, Vec2F scale
 
     stuff.vbo.update(0u, uint(glyphs.size()) * 72u, glyphs.data());
 
-    context.set_state(Context::Cull_Face::Disable);
-    context.set_state(Context::Depth_Test::Disable);
-    context.set_state(Context::Stencil_Test::Disable);
-    context.set_state(Context::Blend_Mode::Alpha);
+    context.set_state(CullFace::Disable);
+    context.set_state(DepthTest::Disable);
+    context.set_state(StencilTest::Disable);
+    context.set_state(BlendMode::Alpha);
 
-    context.bind_Program(stuff.program);
-    context.bind_VertexArray(stuff.vao);
+    context.bind_program(stuff.program);
+    context.bind_vertexarray(stuff.vao);
 
     if (shadow == true)
     {
-        context.bind_Texture(stuff.texGlow, 0u);
+        context.bind_texture(stuff.texGlow, 0u);
 
         if (maths::dot(Vec3F(colour), 0.3333f) < 0.5f)
             stuff.program.update(0, Vec4F(1.f, 1.f, 1.f, colour.a));
         else stuff.program.update(0, Vec4F(0.f, 0.f, 0.f, colour.a));
 
-        gl::DrawArrays(gl::TRIANGLES, 0, int(glyphs.size()) * 6);
+        context.draw_arrays(DrawPrimitive::Triangles, 0u, uint(glyphs.size()) * 6u);
     }
 
-    context.bind_Texture(stuff.texFont, 0u);
+    context.bind_texture(stuff.texFont, 0u);
 
     stuff.program.update(0, Vec4F(colour));
 
-    gl::DrawArrays(gl::TRIANGLES, 0, int(glyphs.size()) * 6);
+    context.draw_arrays(DrawPrimitive::Triangles, 0u, uint(glyphs.size()) * 6u);
 }

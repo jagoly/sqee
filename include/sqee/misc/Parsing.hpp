@@ -14,6 +14,9 @@ namespace sq {
 /// Split a StringView into a vector of tokens.
 SQEE_API std::vector<StringView> tokenise_string(StringView sv, char dlm);
 
+/// Split a StringView into a vector of tokens.
+SQEE_API void tokenise_string(StringView sv, char dlm, std::vector<StringView>& out);
+
 /// Split a StringView into lines, keeping empty lines.
 SQEE_API std::vector<StringView> tokenise_string_lines(StringView sv);
 
@@ -21,7 +24,7 @@ SQEE_API std::vector<StringView> tokenise_string_lines(StringView sv);
 
 // todo: make this all use std::from_chars once compiler support is better
 
-inline int sv_to_i(StringView sv) { return int(std::stol(String(sv))); }
+inline int sv_to_i(StringView sv) { return int(std::stoi(String(sv))); }
 inline uint sv_to_u(StringView sv) { return uint(std::stoul(String(sv))); }
 inline float sv_to_f(StringView sv) { return float(std::stof(String(sv))); }
 
@@ -80,6 +83,36 @@ inline void parse_tokens(maths::Quaternion<T>& out, StringView x, StringView y, 
     parse_tokens(out.y, y);
     parse_tokens(out.z, z);
     parse_tokens(out.w, w);
+}
+
+//============================================================================//
+
+template <class T>
+inline void parse_tokens_normalize(maths::Vector<2, T>& out, StringView x, StringView y)
+{
+    parse_tokens(out, x, y);
+    out = maths::normalize(out);
+}
+
+template <class T>
+inline void parse_tokens_normalize(maths::Vector<3, T>& out, StringView x, StringView y, StringView z)
+{
+    parse_tokens(out, x, y, z);
+    out = maths::normalize(out);
+}
+
+template <class T>
+inline void parse_tokens_normalize(maths::Vector<4, T>& out, StringView x, StringView y, StringView z, StringView w)
+{
+    parse_tokens(out, x, y, z, w);
+    out = maths::normalize(out);
+}
+
+template <class T>
+inline void parse_tokens_normalize(maths::Quaternion<T>& out, StringView x, StringView y, StringView z, StringView w)
+{
+    parse_tokens(out, x, y, z, w);
+    out = maths::normalize(out);
 }
 
 //============================================================================//

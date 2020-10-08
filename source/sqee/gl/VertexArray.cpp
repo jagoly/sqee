@@ -1,39 +1,39 @@
 #include <sqee/gl/VertexArray.hpp>
 
-#include <sqee/gl/Context.hpp>
+#include <sqee/debug/Assert.hpp>
+
+#include <sqee/gl/Constants.hpp>
 #include <sqee/gl/FixedBuffer.hpp>
-#include <sqee/redist/gl_loader.hpp>
+#include <sqee/gl/Functions.hpp>
 
 using namespace sq;
 
 //============================================================================//
 
-VertexArray::VertexArray() : mContext(Context::get())
+VertexArray::VertexArray()
 {
     gl::CreateVertexArrays(1, &mHandle);
 }
 
-//============================================================================//
-
 VertexArray::VertexArray(VertexArray&& other) noexcept
-    : mContext(other.mContext)
 {
-    mContext.impl_reset_VertexArray(&other, this);
-    mHandle = other.mHandle; other.mHandle = 0u;
+    *this = std::move(other);
 }
 
 VertexArray& VertexArray::operator=(VertexArray&& other) noexcept
-{ std::swap(*this, other); return *this; }
-
-//============================================================================//
+{
+    std::swap(mHandle, other.mHandle);
+    return *this;
+}
 
 VertexArray::~VertexArray() noexcept
 {
-    mContext.impl_reset_VertexArray(this);
-    gl::DeleteVertexArrays(1, &mHandle);
+    if (mHandle) gl::DeleteVertexArrays(1, &mHandle);
 }
 
 //============================================================================//
+
+// todo: add SafeEnum version, merge size/type/normalize into one arguement
 
 void VertexArray::add_float_attribute(uint index, uint size, GLenum type, bool normalize, uint offset)
 {
