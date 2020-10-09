@@ -19625,9 +19625,9 @@ class basic_json
                    !std::is_same<ValueType, typename string_t::value_type>::value&&
                    !detail::is_basic_json<ValueType>::value
                    && !std::is_same<ValueType, std::initializer_list<typename string_t::value_type>>::value
-#if defined(JSON_HAS_CPP_17) && (defined(__GNUC__) || (defined(_MSC_VER) && _MSC_VER >= 1910 && _MSC_VER <= 1914))
-                   && !std::is_same<ValueType, typename std::string_view>::value
-#endif
+//#if defined(JSON_HAS_CPP_17) && (defined(__GNUC__) || (defined(_MSC_VER) && _MSC_VER >= 1910 && _MSC_VER <= 1914))
+//                   && !std::is_same<ValueType, typename std::string_view>::value
+//#endif
                    && detail::is_detected<detail::get_template_function, const basic_json_t&, ValueType>::value
                    , int >::type = 0 >
     JSON_EXPLICIT operator ValueType() const

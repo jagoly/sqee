@@ -79,11 +79,6 @@ inline size_t string_length(const CharT* const& cstr)
     return std::strlen(cstr);
 }
 
-inline size_t string_length(const std::string& str)
-{
-    return str.length();
-}
-
 } // namespace detail
 
 //----------------------------------------------------------------------------//
