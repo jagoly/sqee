@@ -568,6 +568,9 @@ template <class T> struct VectorTraits
     static constexpr bool value = false;
 };
 
+template <class T>
+struct VectorTraits<const T> : VectorTraits<T> {};
+
 template <int S, class T>
 struct VectorTraits<maths::Vector<S, T>>
 {

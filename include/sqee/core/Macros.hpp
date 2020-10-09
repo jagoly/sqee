@@ -25,8 +25,6 @@ _Pragma("GCC diagnostic ignored \"-Wold-style-cast\"")
 #define ENABLE_WARNING_OLD_STYLE_CAST() \
 _Pragma("GCC diagnostic pop")
 
-// msvc warns when I don't feel like adding .f to a bunch of literals
-
 #define DISABLE_WARNING_NARROWING_CONSTRUCTOR()
 #define ENABLE_WARNING_NARROWING_CONSTRUCTOR()
 
@@ -37,6 +35,8 @@ _Pragma("GCC diagnostic pop")
 
 #define DISABLE_WARNING_OLD_STYLE_CAST()
 #define ENABLE_WARNING_OLD_STYLE_CAST()
+
+// msvc warns when I don't feel like adding .f to a bunch of literals
 
 #define DISABLE_WARNING_NARROWING_CONSTRUCTOR() \
 __pragma(warning(push)) \

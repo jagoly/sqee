@@ -248,6 +248,9 @@ template <class T> struct QuaternionTraits
 };
 
 template <class T>
+struct QuaternionTraits<const T> : QuaternionTraits<T> {};
+
+template <class T>
 struct QuaternionTraits<maths::Quaternion<T>>
 {
     static constexpr bool value = true;

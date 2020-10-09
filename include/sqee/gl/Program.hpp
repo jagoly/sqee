@@ -21,11 +21,6 @@ public: //====================================================//
     {
         GLenum type;
         GLint location;
-    };
-
-    struct SamplerInfo
-    {
-        GLenum type;
         GLuint binding;
     };
 
@@ -54,9 +49,6 @@ public: //====================================================//
 
     /// Query the type and location of a uniform.
     std::optional<UniformInfo> query_uniform_info(const String& name) const;
-
-    /// Query the type and binding of a sampler.
-    std::optional<SamplerInfo> query_sampler_info(const String& name) const;
 
     //--------------------------------------------------------//
 

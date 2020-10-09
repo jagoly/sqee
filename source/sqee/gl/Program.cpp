@@ -106,30 +106,18 @@ std::optional<Program::UniformInfo> Program::query_uniform_info(const String& na
     gl::GetProgramResourceiv(mHandle, gl::UNIFORM, index, 2, keys, 2, nullptr, values);
 
     switch (GLenum(values[0])) {
-    case gl::FLOAT: case gl::FLOAT_VEC2: case gl::FLOAT_VEC3: break;
+
+    case gl::FLOAT: case gl::FLOAT_VEC2: case gl::FLOAT_VEC3:
+        return {{ GLenum(values[0]), GLint(values[1]), 0u }};
+
+    case gl::SAMPLER_2D: case gl::SAMPLER_2D_ARRAY: case gl::SAMPLER_CUBE:
+        GLint binding;
+        gl::GetUniformiv(mHandle, GLint(values[1]), &binding);
+        return {{ GLenum(values[0]), GLint(values[1]), GLuint(binding) }};
+
     default: return std::nullopt;
+
     } // discard unsupported uniform types
-
-    return {{ GLenum(values[0]), GLint(values[1]) }};
-}
-
-std::optional<Program::SamplerInfo> Program::query_sampler_info(const String& name) const
-{
-    const GLuint index = gl::GetProgramResourceIndex(mHandle, gl::UNIFORM, name.c_str());
-    if (index == gl::INVALID_INDEX) return std::nullopt;
-
-    const GLenum keys[2] = { gl::TYPE, gl::LOCATION }; GLint values[2];
-    gl::GetProgramResourceiv(mHandle, gl::UNIFORM, index, 2, keys, 2, nullptr, values);
-
-    switch (GLenum(values[0])) {
-    case gl::SAMPLER_2D: case gl::SAMPLER_2D_ARRAY: case gl::SAMPLER_CUBE: break;
-    default: return std::nullopt;
-    } // discard unsupported sampler types
-
-    GLint binding;
-    gl::GetUniformiv(mHandle, GLint(values[1]), &binding);
-
-    return {{ GLenum(values[0]), GLuint(binding) }};
 }
 
 //============================================================================//

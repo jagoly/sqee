@@ -33,14 +33,23 @@ public: //====================================================//
 
 private: //===================================================//
 
-    using TextureValue = std::variant<Handle<String, Texture2D>, Handle<String, TextureArray>, Handle<String, TextureCube>>;
-    using UniformValue = std::variant<int, float, Vec2I, Vec2F, Vec3I, Vec3F, Vec4I, Vec4F>;
+    //using TextureValue = std::variant<Handle<String, Texture2D>, Handle<String, TextureArray>, Handle<String, TextureCube>>;
+    using UniformValue = std::variant
+    <
+        int, float, Vec2I, Vec2F,
+        Vec3I, Vec3F, Vec4I, Vec4F,
+        Handle<String, Texture2D>,
+        Handle<String, TextureArray>,
+        Handle<String, TextureCube>
+    >;
 
     CullFace mCullface;
 
     Handle<JsonValue, Program> mProgram;
 
-    std::vector<std::pair<uint, TextureValue>> mTextures;
+    //std::vector<std::pair<uint, TextureValue>> mTextures;
+    //std::vector<std::pair<int, UniformValue>> mUniforms;
+
     std::vector<std::pair<int, UniformValue>> mUniforms;
 };
 

@@ -340,6 +340,9 @@ template <class T> struct MatrixTraits
    static constexpr bool value = false;
 };
 
+template <class T>
+struct MatrixTraits<const T> : MatrixTraits<T> {};
+
 template <int W, int H, class T>
 struct MatrixTraits<maths::Matrix<W, H, T>>
 {

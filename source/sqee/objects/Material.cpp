@@ -18,17 +18,17 @@ void Material::load_from_json(const JsonValue& json, ProgramCache& programs, Tex
 
     mProgram = programs.acquire(json.at("program"));
 
-    for (const auto& [key, value] : json.at("textures").items())
-    {
-        const auto info = mProgram->query_sampler_info(key);
-        if (!info.has_value()) log_error("program does not have sampler '{}'", key);
+//    for (const auto& [key, value] : json.at("textures").items())
+//    {
+//        const auto info = mProgram->query_sampler_info(key);
+//        if (!info.has_value()) log_error("program does not have sampler '{}'", key);
 
-        if      (info->type == gl::SAMPLER_2D)       mTextures.emplace_back(info->binding, textures.acquire(value));
-        else if (info->type == gl::SAMPLER_2D_ARRAY) log_error("todo: texarrays in materials");
-        else if (info->type == gl::SAMPLER_CUBE)     log_error("todo: texcubes in materials");
+//        if      (info->type == gl::SAMPLER_2D)       mTextures.emplace_back(info->binding, textures.acquire(value));
+//        else if (info->type == gl::SAMPLER_2D_ARRAY) log_error("todo: texarrays in materials");
+//        else if (info->type == gl::SAMPLER_CUBE)     log_error("todo: texcubes in materials");
 
-        else log_error("unsupported type for sampler '{}'", key);
-    }
+//        else log_error("unsupported type for sampler '{}'", key);
+//    }
 
     for (const auto& [key, value] : json.at("uniforms").items())
     {
@@ -44,6 +44,10 @@ void Material::load_from_json(const JsonValue& json, ProgramCache& programs, Tex
         else if (info->type == gl::INT_VEC4)   mUniforms.emplace_back(info->location, Vec4I(value));
         else if (info->type == gl::FLOAT_VEC4) mUniforms.emplace_back(info->location, Vec4F(value));
 
+        else if (info->type == gl::SAMPLER_2D)       mUniforms.emplace_back(int(info->binding), textures.acquire(value));
+        else if (info->type == gl::SAMPLER_2D_ARRAY) log_error("todo: texarrays in materials");
+        else if (info->type == gl::SAMPLER_CUBE)     log_error("todo: texcubes in materials");
+
         else log_error("unsupported type for uniform '{}'", key);
     }
 }
@@ -53,14 +57,26 @@ void Material::load_from_json(const JsonValue& json, ProgramCache& programs, Tex
 void Material::apply_to_context(Context& context) const
 {
     context.set_state(mCullface);
-
     context.bind_program(mProgram.get());
 
-    for (const auto& [slot, value] : mTextures)
-        if (auto ptr = std::get_if<Handle<String, Texture2D>>(&value))
-            context.bind_texture(ptr->get(), slot);
+    for (const auto& item : mUniforms)
+    {
+        const auto visitor = [&](const auto& value)
+        {
+            using Type = std::remove_reference_t<decltype(value)>;
+            if constexpr (std::is_arithmetic_v<Type> || detail::is_vector_v<Type>)
+                mProgram->update(int(item.first), value);
+            else
+                context.bind_texture(*value, uint(item.first));
+        };
+        std::visit(visitor, item.second);
+    }
 
-    for (const auto& [location, value] : mUniforms)
-        if (auto ptr = std::get_if<Vec3F>(&value))
-            mProgram->update(location, *ptr);
+    //for (const auto& [slot, value] : mTextures)
+    //    if (auto ptr = std::get_if<Handle<String, Texture2D>>(&value))
+    //        context.bind_texture(ptr->get(), slot);
+    //
+    //for (const auto& [location, value] : mUniforms)
+    //    if (auto ptr = std::get_if<Vec3F>(&value))
+    //        mProgram->update(location, *ptr);
 }
