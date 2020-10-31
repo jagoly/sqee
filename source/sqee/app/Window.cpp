@@ -228,7 +228,7 @@ Window::Window(String title, Vec2U size)
     //--------------------------------------------------------//
 
     if (load_opengl_core45_functions() == false)
-        log_error("Failed to Load OpenGL functions!");
+        log_warning("Failed to load some OpenGL functions!");
 
     //--------------------------------------------------------//
 

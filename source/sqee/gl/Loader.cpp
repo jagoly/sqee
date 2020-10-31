@@ -718,13 +718,16 @@ decltype(glWaitSync) glWaitSync = nullptr;
 
 bool sq::load_opengl_core45_functions()
 {
+    bool noneFailed = true;
+
   #if defined(SQEE_LINUX)
 
     #define LOAD_FUNCTION(Version, Name) \
     { \
         void (*funcPtr)() = glXGetProcAddress(reinterpret_cast<const GLubyte*>(#Name)); \
         if (funcPtr) gl::detail::Name = reinterpret_cast<decltype(gl::detail::Name)>(funcPtr); \
-        else return false; \
+        else sq::log_warning("failed to load '{}' from version '{}'", #Name, #Version); \
+        noneFailed = noneFailed && funcPtr; \
     }
 
   #elif defined(SQEE_WINDOWS)
@@ -733,18 +736,19 @@ bool sq::load_opengl_core45_functions()
     if (gl32dll == NULL) return false;
 
     #define LOAD_FUNCTION(Version, Name) \
-    sq::log_info("attempting to load '{}' from version '{}'", #Name, #Version); \
     if constexpr (Version > 1.1) \
     { \
         PROC funcPtr = wglGetProcAddress(#Name); \
         if (funcPtr) gl::detail::Name = reinterpret_cast<decltype(gl::detail::Name)>(funcPtr); \
-        else return false; \
+        else sq::log_warning("failed to load '{}' from version '{}'", #Name, #Version); \
+        noneFailed = noneFailed && funcPtr; \
     } \
     else \
     { \
         FARPROC funcPtr = GetProcAddress(gl32dll, #Name); \
         if (funcPtr) gl::detail::Name = reinterpret_cast<decltype(gl::detail::Name)>(funcPtr); \
-        else return false; \
+        else sq::log_warning("failed to load '{}' from version '{}'", #Name, #Version); \
+        noneFailed = noneFailed && funcPtr; \
     }
 
   #endif
@@ -1470,5 +1474,5 @@ bool sq::load_opengl_core45_functions()
     FreeLibrary(gl32dll);
   #endif
 
-    return true; // hooray!
+    return noneFailed;
 }

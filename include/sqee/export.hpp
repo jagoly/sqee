@@ -5,16 +5,6 @@
 
 //============================================================================//
 
-// todo: we only support 64bit, so is this even needed?
-
-#ifdef SQEE_MSVC
-    #define MSVC_STDCALL __stdcall
-#else
-    #define MSVC_STDCALL
-#endif
-
-//============================================================================//
-
 #ifdef SQEE_STATIC_LIB
 
     #define SQEE_API

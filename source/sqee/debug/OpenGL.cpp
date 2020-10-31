@@ -37,8 +37,8 @@ void __stdcall sq::debug_callback(GLenum source, GLenum type, GLuint id, GLenum 
     if (severity == gl::DEBUG_SEVERITY_LOW)          strSeverity = "LOW";
 
     std::time_t now = std::time(nullptr);
-    sq::log_raw_multiline("{:%H:%M:%S} OpenGL: Source {} | Severity {} | Type {} | ID {}\n{}",
-                          fmt::localtime(now), source, severity, type, id, StringView(message, size_t(length)));
+    sq::log_raw_multiline("{:%H:%M:%S} OpenGL: Source {} | Type {} | Severity {} | ID {}\n{}",
+                          fmt::localtime(now), strSource, strType, strSeverity, id, StringView(message, size_t(length)));
 
     return;
 }
