@@ -10,6 +10,58 @@
 
 using namespace sq;
 
+using Animation = Armature::Animation;
+using Track = Armature::Animation::Track;
+
+// todo: Single component extra tracks are supported in the format, but
+// not properly implemented in SQEE or STS. I may just remove them since
+// supporting only vec4 simplifies things for a negligable space cost.
+
+//============================================================================//
+
+static inline std::tuple<float, uint, uint> impl_compute_blend_times(uint frameCount, float time)
+{
+    const float animTotalTime = float(frameCount);
+
+    time = std::fmod(time, animTotalTime);
+    if (std::signbit(time)) time += animTotalTime;
+
+    const float factor = std::modf(time, &time);
+
+    const uint frameA = uint(time);
+    const uint frameB = frameA+1u == frameCount ? 0u : frameA+1u;
+
+    return { factor, frameA, frameB };
+}
+
+template <class Type>
+static inline void impl_compute_blended_value(float factor, uint frameA, uint frameB, const Track& track, Type& ref)
+{
+    if (track.track.size() > sizeof(Type))
+    {
+        const Type& valueA = reinterpret_cast<const Type*>(track.track.data())[frameA];
+        const Type& valueB = reinterpret_cast<const Type*>(track.track.data())[frameB];
+
+        if constexpr (detail::is_quaternion_v<Type>)
+            ref = maths::slerp(valueA, valueB, factor);
+
+        else // scalar or vector
+            ref = maths::mix(valueA, valueB, factor);
+    }
+    else // track is constant
+        ref = *reinterpret_cast<const Type*>(track.track.data());
+};
+
+template <class Type>
+static inline void impl_compute_discrete_value(uint time, const Track& track, Type& ref)
+{
+    if (track.track.size() > sizeof(Type))
+        ref = reinterpret_cast<const Type*>(track.track.data())[time];
+
+    else // track is constant
+        ref = *reinterpret_cast<const Type*>(track.track.data());
+};
+
 //============================================================================//
 
 void Armature::load_from_file(const String& path)
@@ -85,8 +137,11 @@ Armature::Animation Armature::make_animation(const String& path) const
     enum class Section { None, Header, BaseTracks, ExtraTracks };
     Section section = Section::None;
 
-    enum class BoneTrack { None, Offset, Rotation, Scale };
-    BoneTrack boneTrack = BoneTrack::None;
+    enum class BaseTrack { None, Offset, Rotation, Scale };
+    BaseTrack baseTrack = BaseTrack::None;
+
+    enum class ExtraTrack { None, Float, Vec4F };
+    ExtraTrack extraTrack = ExtraTrack::None;
 
     Animation::Track* track = nullptr;
 
@@ -104,6 +159,7 @@ Armature::Animation Armature::make_animation(const String& path) const
         {
             if (line[1] == "Header") section = Section::Header;
             else if (line[1] == "BaseTracks") section = Section::BaseTracks;
+            else if (line[1] == "ExtraTracks") section = Section::ExtraTracks;
             else log_error("'{}':{}: invalid section", path, num);
         }
 
@@ -133,15 +189,15 @@ Armature::Animation Armature::make_animation(const String& path) const
                 if (boneIndex == -1)
                     log_error("'{}':{}: invalid bone name", path, num);
 
-                if (line[2] == "offset") boneTrack = BoneTrack::Offset;
-                else if (line[2] == "rotation") boneTrack = BoneTrack::Rotation;
-                else if (line[2] == "scale") boneTrack = BoneTrack::Scale;
-                else log_error("'{}':{}: unknown bone track", path, num);
+                if (line[2] == "offset") baseTrack = BaseTrack::Offset;
+                else if (line[2] == "rotation") baseTrack = BaseTrack::Rotation;
+                else if (line[2] == "scale") baseTrack = BaseTrack::Scale;
+                else log_error("'{}':{}: unknown base track name", path, num);
 
                 track = &result.bones[uint(boneIndex)].emplace_back();
                 track->key = line[2];
 
-                if (boneTrack == BoneTrack::Offset)
+                if (baseTrack == BaseTrack::Offset)
                 {
                     if (line.size() == 6u)
                     {
@@ -151,7 +207,7 @@ Armature::Animation Armature::make_animation(const String& path) const
                     else track->track.resize(sizeof(Vec3F) * result.frameCount, {});
                 }
 
-                else if (boneTrack == BoneTrack::Rotation)
+                else if (baseTrack == BaseTrack::Rotation)
                 {
                     if (line.size() == 7u)
                     {
@@ -161,7 +217,7 @@ Armature::Animation Armature::make_animation(const String& path) const
                     else track->track.resize(sizeof(QuatF) * result.frameCount, {});
                 }
 
-                else if (boneTrack == BoneTrack::Scale)
+                else if (baseTrack == BaseTrack::Scale)
                 {
                     if (line.size() == 6u)
                     {
@@ -179,14 +235,64 @@ Armature::Animation Armature::make_animation(const String& path) const
                 if (frame > result.frameCount)
                     log_error("'{}':{}: frame out of range", path, num);
 
-                if (boneTrack == BoneTrack::Offset)
+                if (baseTrack == BaseTrack::Offset)
                     parse_tokens(reinterpret_cast<Vec3F*>(track->track.data())[frame], line[1], line[2], line[3]);
 
-                else if (boneTrack == BoneTrack::Rotation)
+                else if (baseTrack == BaseTrack::Rotation)
                     parse_tokens_normalize(reinterpret_cast<QuatF*>(track->track.data())[frame], line[1], line[2], line[3], line[4]);
 
-                else if (boneTrack == BoneTrack::Scale)
+                else if (baseTrack == BaseTrack::Scale)
                     parse_tokens(reinterpret_cast<Vec3F*>(track->track.data())[frame], line[1], line[2], line[3]);
+            }
+        }
+
+        else if (section == Section::ExtraTracks)
+        {
+            if (key == "TRACK")
+            {
+                const int8_t boneIndex = get_bone_index(line[1]);
+                if (boneIndex == -1)
+                    log_error("'{}':{}: invalid bone name", path, num);
+
+                if (line[3] == "Float") extraTrack = ExtraTrack::Float;
+                else if (line[3] == "Vec4F") extraTrack = ExtraTrack::Vec4F;
+                else log_error("'{}':{}: unknown extra track type", path, num);
+
+                track = &result.bones[uint(boneIndex)].emplace_back();
+                track->key = line[2];
+
+                if (extraTrack == ExtraTrack::Float)
+                {
+                    if (line.size() == 5u)
+                    {
+                        track->track.resize(sizeof(float) * 1u, {});
+                        parse_tokens(*reinterpret_cast<float*>(track->track.data()), line[4]);
+                    }
+                    else track->track.resize(sizeof(float) * result.frameCount, {});
+                }
+
+                else if (extraTrack == ExtraTrack::Vec4F)
+                {
+                    if (line.size() == 8u)
+                    {
+                        track->track.resize(sizeof(Vec4F) * 1u, {});
+                        parse_tokens(*reinterpret_cast<Vec4F*>(track->track.data()), line[4], line[5], line[6], line[7]);
+                    }
+                    else track->track.resize(sizeof(Vec4F) * result.frameCount, {});
+                }
+            }
+
+            else
+            {
+                const uint frame = sv_to_u(key);
+                if (frame > result.frameCount)
+                    log_error("'{}':{}: frame out of range", path, num);
+
+                if (extraTrack == ExtraTrack::Float)
+                    parse_tokens(reinterpret_cast<float*>(track->track.data())[frame], line[1]);
+
+                else if (extraTrack == ExtraTrack::Vec4F)
+                    parse_tokens(reinterpret_cast<Vec4F*>(track->track.data())[frame], line[1], line[2], line[3], line[4]);
             }
         }
 
@@ -232,14 +338,13 @@ Armature::Animation Armature::make_null_animation(uint length) const
 
 //============================================================================//
 
-Armature::Pose Armature::blend_poses(const Pose& a, const Pose& b, float factor) const
+Armature::Pose Armature::blend_poses(const Pose& a, const Pose& b, float factor)
 {
-    SQASSERT(get_bone_count() == a.size(), "bone count mismatch");
-    SQASSERT(get_bone_count() == b.size(), "bone count mismatch");
+    SQASSERT(a.size() == b.size(), "bone count mismatch");
 
-    Pose result { get_bone_count() };
+    Pose result { a.size() };
 
-    for (uint index = 0u; index < get_bone_count(); ++index)
+    for (uint index = 0u; index < a.size(); ++index)
     {
         result[index].offset = maths::mix(a[index].offset, b[index].offset, factor);
         result[index].rotation = maths::slerp(a[index].rotation, b[index].rotation, factor);
@@ -251,46 +356,33 @@ Armature::Pose Armature::blend_poses(const Pose& a, const Pose& b, float factor)
 
 //============================================================================//
 
-Armature::Pose Armature::compute_pose_continuous(const Animation& animation, float time) const
+Armature::Pose Armature::compute_pose_continuous(const Animation& animation, float time)
 {
-    SQASSERT(get_bone_count() == animation.boneCount, "bone count mismatch");
-
-    const float animTotalTime = float(animation.frameCount);
-
-    time = std::fmod(time, animTotalTime);
-    if (std::signbit(time)) time += animTotalTime;
-
-    const float factor = std::modf(time, &time);
-
-    const uint frameA = uint(time);
-    const uint frameB = frameA+1u == animation.frameCount ? 0u : frameA+1u;
-
-    const auto get_frame_value = [factor, frameA, frameB](const Animation::Track& track, auto& ref)
-    {
-        using Type = std::remove_reference_t<decltype(ref)>;
-
-        if (track.track.size() > sizeof(Type))
-        {
-            const Type& valueA = reinterpret_cast<const Type*>(track.track.data())[frameA];
-            const Type& valueB = reinterpret_cast<const Type*>(track.track.data())[frameB];
-
-            if constexpr (detail::is_vector_v<Type>)
-                ref = maths::mix(valueA, valueB, factor);
-
-            if constexpr (detail::is_quaternion_v<Type>)
-                ref = maths::slerp(valueA, valueB, factor);
-        }
-        else
-            ref = *reinterpret_cast<const Type*>(track.track.data());
-    };
+    const auto [factor, frameA, frameB] = impl_compute_blend_times(animation.frameCount, time);
 
     Pose result { animation.boneCount };
 
     for (uint bone = 0u; bone < animation.boneCount; ++bone)
     {
-        get_frame_value(animation.bones[bone][0u], result[bone].offset);
-        get_frame_value(animation.bones[bone][1u], result[bone].rotation);
-        get_frame_value(animation.bones[bone][2u], result[bone].scale);
+        impl_compute_blended_value(factor, frameA, frameB, animation.bones[bone][0u], result[bone].offset);
+        impl_compute_blended_value(factor, frameA, frameB, animation.bones[bone][1u], result[bone].rotation);
+        impl_compute_blended_value(factor, frameA, frameB, animation.bones[bone][2u], result[bone].scale);
+    }
+
+    return result;
+}
+
+Armature::Pose Armature::compute_pose_discrete(const Animation& animation, uint time)
+{
+    SQASSERT(time < animation.frameCount, "discrete time out of range");
+
+    Pose result { animation.boneCount };
+
+    for (uint bone = 0u; bone < animation.boneCount; ++bone)
+    {
+        impl_compute_discrete_value(time, animation.bones[bone][0u], result[bone].offset);
+        impl_compute_discrete_value(time, animation.bones[bone][1u], result[bone].rotation);
+        impl_compute_discrete_value(time, animation.bones[bone][2u], result[bone].scale);
     }
 
     return result;
@@ -298,31 +390,20 @@ Armature::Pose Armature::compute_pose_continuous(const Animation& animation, flo
 
 //============================================================================//
 
-Armature::Pose Armature::compute_pose_discrete(const Animation& animation, uint time) const
+void Armature::compute_extra_continuous(Vec4F& result, const Animation::Track& track, float time)
 {
-    SQASSERT(get_bone_count() == animation.boneCount, "bone count mismatch");
-    SQASSERT(time < animation.frameCount, "discrete time out of range");
+    const uint frameCount = track.track.size() / sizeof(Vec4F);
+    const auto [factor, frameA, frameB] = impl_compute_blend_times(frameCount, time);
 
-    const auto get_frame_value = [time](const Animation::Track& track, auto& ref)
-    {
-        using Type = std::remove_reference_t<decltype(ref)>;
+    impl_compute_blended_value(factor, frameA, frameB, track, result);
+}
 
-        if (track.track.size() > sizeof(Type))
-            ref = reinterpret_cast<const Type*>(track.track.data())[time];
-        else
-            ref = *reinterpret_cast<const Type*>(track.track.data());
-    };
+void Armature::compute_extra_discrete(Vec4F& result, const Animation::Track& track, uint time)
+{
+    const uint frameCount = track.track.size() / sizeof(Vec4F);
+    SQASSERT(frameCount == 1u || time < frameCount, "discrete time out of range");
 
-    Pose result { animation.boneCount };
-
-    for (uint bone = 0u; bone < animation.boneCount; ++bone)
-    {
-        get_frame_value(animation.bones[bone][0u], result[bone].offset);
-        get_frame_value(animation.bones[bone][1u], result[bone].rotation);
-        get_frame_value(animation.bones[bone][2u], result[bone].scale);
-    }
-
-    return result;
+    impl_compute_discrete_value(time, track, result);
 }
 
 //============================================================================//
@@ -380,4 +461,20 @@ void Armature::compute_ubo_data(const Pose& pose, Mat34F* out, uint len) const
         const Mat4F skinMatrix = absMatrices[i] * mInverseMats[i];
         out[i] = Mat34F(maths::transpose(skinMatrix));
     }
+}
+
+//============================================================================//
+
+const Armature::Animation::Track* Armature::Animation::find_extra(int8_t bone, TinyString key)
+{
+    SQASSERT(bone >= 0 && uint(bone) < bones.size(), "invalid bone index");
+
+    std::vector<Track>& tracks = bones[uint(bone)];
+
+    // skip over pos/rot/sca tracks
+    for (uint i = 3u; i < tracks.size(); ++i)
+        if (tracks[i].key == key)
+            return &tracks[i];
+
+    return nullptr;
 }

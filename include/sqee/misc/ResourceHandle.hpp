@@ -28,15 +28,35 @@ class Handle final
 {
 public: //====================================================
 
-    Handle(std::nullptr_t = nullptr) : mResourcePtr(nullptr) {}
+    Handle(std::nullptr_t = nullptr)
+    {
+        mResourcePtr = nullptr;
+    }
 
-    Handle(Resource<Key, Type>& resource) : mResourcePtr(&resource) { ++mResourcePtr->count; }
+    Handle(Resource<Key, Type>& resource)
+    {
+        mResourcePtr = &resource;
+        ++mResourcePtr->count;
+    }
 
-    Handle(const Handle& other) = default;
+    Handle(const Handle& other)
+    {
+        mResourcePtr = other.mResourcePtr;
+        if (mResourcePtr) ++mResourcePtr->count;
+    }
 
-    Handle& operator=(const Handle& other) = default;
+    Handle& operator=(const Handle& other)
+    {
+        if (mResourcePtr) --mResourcePtr->count;
+        mResourcePtr = other.mResourcePtr;
+        if (mResourcePtr) ++mResourcePtr->count;
+        return *this;
+    }
 
-    ~Handle() { if (mResourcePtr) --mResourcePtr->count; }
+    ~Handle()
+    {
+        if (mResourcePtr) --mResourcePtr->count;
+    }
 
     //--------------------------------------------------------//
 

@@ -39,6 +39,9 @@ public: //====================================================//
         uint boneCount = 0u;
         uint frameCount = 0u;
         std::vector<std::vector<Track>> bones;
+
+        /// Helper to access an extra track by name.
+        const Track* find_extra(int8_t bone, TinyString key);
     };
 
     //--------------------------------------------------------//
@@ -73,11 +76,15 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    Pose blend_poses(const Pose& a, const Pose& b, float factor) const;
+    static Pose blend_poses(const Pose& a, const Pose& b, float factor);
 
-    Pose compute_pose_continuous(const Animation& animation, float time) const;
+    static Pose compute_pose_continuous(const Animation& animation, float time);
 
-    Pose compute_pose_discrete(const Animation& animation, uint time) const;
+    static void compute_extra_continuous(Vec4F& result, const Animation::Track& track, float time);
+
+    static Pose compute_pose_discrete(const Animation& animation, uint time);
+
+    static void compute_extra_discrete(Vec4F& result, const Animation::Track& track, uint time);
 
     //--------------------------------------------------------//
 

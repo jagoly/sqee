@@ -400,7 +400,7 @@ private: //===================================================//
 
     static WrenForeignMethodFn impl_bind_foreign_method_fn(WrenVM*, const char*, const char*, bool, const char*);
 
-    static char* impl_load_module_fn(WrenVM* vm, const char* name);
+    static WrenLoadModuleResult impl_load_module_fn(WrenVM* vm, const char* name);
 
     //--------------------------------------------------------//
 

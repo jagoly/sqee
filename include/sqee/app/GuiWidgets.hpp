@@ -307,6 +307,18 @@ inline bool InputVector(CStrView label, sq::maths::Vector<Size, Type>& ref, decl
     return changed;
 }
 
+// todo: make widget fancy, allow to switch input mode to euler XYZ
+template <class Type>
+inline bool InputQuaternion(CStrView label, sq::maths::Quaternion<Type>& ref, decltype(Type()) step = 0, const char* format = nullptr)
+{
+    constexpr const auto dataType = impl_get_data_type<Type>();
+    auto temp = ref;
+    ImGui::InputScalarN(label, dataType, temp.data, 4, step > 0 ? &step : nullptr, nullptr, format);
+    const bool changed = ImGui::IsItemDeactivatedAfterEdit();
+    if (changed) ref = temp;
+    return changed;
+}
+
 //----------------------------------------------------------------------------//
 
 /// C++ style API for combo boxes. If none is given, it will be listed as index -1.

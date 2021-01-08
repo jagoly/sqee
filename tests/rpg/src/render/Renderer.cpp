@@ -33,19 +33,6 @@ Renderer::Renderer(const Options& options) : options(options)
     volumes = std::make_unique<render::StencilVolumes>();
     textures = std::make_unique<render::TargetTextures>();
 
-    //-- import shader headers -------------------------------//
-
-    mProcessor.import_header("headers/blocks/Camera");
-    mProcessor.import_header("headers/blocks/Skeleton");
-    mProcessor.import_header("headers/blocks/LightCasc");
-    mProcessor.import_header("headers/blocks/LightOrtho");
-    mProcessor.import_header("headers/blocks/LightPoint");
-    mProcessor.import_header("headers/blocks/LightSpot");
-    mProcessor.import_header("headers/shadow/sample_casc");
-    mProcessor.import_header("headers/shadow/sample_ortho");
-    mProcessor.import_header("headers/shadow/sample_point");
-    mProcessor.import_header("headers/shadow/sample_spot");
-
     //-- allocate pass drawing objects -----------------------//
 
     render::SharedStuff shared { options, *volumes, *textures, mProcessor, sq::Context::get() };

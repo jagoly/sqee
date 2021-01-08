@@ -242,11 +242,11 @@ Window::Window(String title, Vec2U size)
     gl::Enable(gl::DEBUG_OUTPUT);
     gl::Enable(gl::DEBUG_OUTPUT_SYNCHRONOUS);
 
-    gl::DebugMessageControl(gl::DEBUG_SOURCE_API, gl::DEBUG_TYPE_OTHER,
-                            gl::DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, false);
+    // generally, we don't care about notification messages so just ignore them
+    gl::DebugMessageControl(gl::DONT_CARE, gl::DONT_CARE, gl::DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, false);
 
-    gl::DebugMessageControl(gl::DEBUG_SOURCE_SHADER_COMPILER, gl::DEBUG_TYPE_OTHER,
-                            gl::DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, false);
+    // we use glGetShaderInfoLog, but some drivers also send logs to the debug callback
+    //gl::DebugMessageControl(gl::DEBUG_SOURCE_SHADER_COMPILER, gl::DEBUG_TYPE_ERROR, gl::DEBUG_SEVERITY_HIGH, 0, nullptr, false);
 
     gl::DebugMessageCallback(debug_callback, nullptr);
 

@@ -33,12 +33,17 @@ PreProcessor::PreProcessor()
 
 //============================================================================//
 
-void PreProcessor::import_header(const String& path)
+const PreProcessor::TokenisedHeader& PreProcessor::impl_access_header(const String& path)
 {
-    TokenisedHeader& header = mHeaders[path];
+    const auto [iter, created] = mHeaders.try_emplace(path);
 
-    header.source = get_string_from_file(build_string("shaders/", path, ".glsl"));
-    header.lines = tokenise_string_lines(header.source);
+    if (created == true)
+    {
+        iter->second.source = get_string_from_file(build_string("shaders/", path, ".glsl"));
+        iter->second.lines = tokenise_string_lines(iter->second.source);
+    }
+
+    return iter->second;
 }
 
 void PreProcessor::import_header(const String& path, String source)
@@ -51,7 +56,7 @@ void PreProcessor::import_header(const String& path, String source)
 
 //============================================================================//
 
-String PreProcessor::process(const String& path, const OptionMap& options, bool prelude) const
+String PreProcessor::process(const String& path, const OptionMap& options, bool prelude)
 {
     const auto source = try_get_string_from_file(path);
 
@@ -101,11 +106,11 @@ String PreProcessor::process(const String& path, const OptionMap& options, bool 
                     // include paths cannot contain spaces
                     if (tokens.size() == 2u)
                     {
-                        const auto iter = mHeaders.find(String(tokens[1]));
-                        if (iter != mHeaders.end())
+                        const auto& header = impl_access_header(String(tokens[1]));
+                        if (header.source.empty() == false)
                         {
                             file = tokens[1];
-                            thisFunc(thisFunc, iter->second.lines);
+                            thisFunc(thisFunc, header.lines);
                             file = path;
                         }
                         else write_error_message("invalid header '{}'", tokens[1]);
@@ -162,24 +167,24 @@ String PreProcessor::process(const String& path, const OptionMap& options, bool 
 
 //============================================================================//
 
-void PreProcessor::load_vertex(Program& program, const String& path, const OptionMap& options) const
+void PreProcessor::load_vertex(Program& program, const String& path, const OptionMap& options)
 {
     program.load_shader(ShaderStage::Vertex, process(path, options, true), path);
 }
 
-void PreProcessor::load_geometry(Program& program, const String& path, const OptionMap& options) const
+void PreProcessor::load_geometry(Program& program, const String& path, const OptionMap& options)
 {
     program.load_shader(ShaderStage::Geometry, process(path, options, true), path);
 }
 
-void PreProcessor::load_fragment(Program& program, const String& path, const OptionMap& options) const
+void PreProcessor::load_fragment(Program& program, const String& path, const OptionMap& options)
 {
     program.load_shader(ShaderStage::Fragment, process(path, options, true), path);
 }
 
 //============================================================================//
 
-void PreProcessor::load_super_shader(Program& program, const String& path, const OptionMap& options) const
+void PreProcessor::load_super_shader(Program& program, const String& path, const OptionMap& options)
 {
     const String processed = process(path, options, false);
 

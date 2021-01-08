@@ -39,7 +39,11 @@ public: //====================================================//
 
     /// Update a section of the buffer with a value.
     template <class T>
-    void update(uint offset, const T& data) { update(offset, sizeof(T), &data); }
+    void update(uint offset, const T& data)
+    {
+        static_assert(std::is_pointer_v<T> == false, "");
+        update(offset, sizeof(T), &data);
+    }
 
     //--------------------------------------------------------//
 

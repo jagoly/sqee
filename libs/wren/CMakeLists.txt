@@ -31,6 +31,8 @@ set_property(TARGET wren PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS True)
 target_compile_definitions(wren PRIVATE WREN_OPT_META=0)
 target_compile_definitions(wren PRIVATE WREN_OPT_RANDOM=0)
 
+#target_compile_definitions(wren PRIVATE WREN_NAN_TAGGING=0)
+
 target_compile_definitions(wren PUBLIC $<$<CONFIG:Debug>:DEBUG=1>)
 
 ################################################################################

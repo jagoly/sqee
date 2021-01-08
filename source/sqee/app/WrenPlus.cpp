@@ -97,23 +97,25 @@ WrenForeignMethodFn WrenPlusVM::impl_bind_foreign_method_fn(WrenVM* vm, const ch
     return iter != pvm.mForiegnMethods.end() ? iter->second : nullptr;
 }
 
-char* WrenPlusVM::impl_load_module_fn(WrenVM*, const char* name)
+WrenLoadModuleResult WrenPlusVM::impl_load_module_fn(WrenVM*, const char* name)
 {
-    // wren api is weird here, it will deallocate the string you pass it
-    // this means you can't pass it c_str() or it will double free
-    // its pretty gross, but there seems to be work towards fixing it
-    // https://github.com/wren-lang/wren/pull/778
-
     const auto path = sq::build_string("wren/", name, ".wren");
 
     const auto maybe = sq::try_get_string_from_file(path);
-    //if (maybe.has_value()) return maybe->c_str();
 
     if (maybe.has_value() == false)
-        return nullptr;
+        return { nullptr, nullptr, nullptr };
 
-    char* result = static_cast<char*>(std::malloc(maybe->length() + 1u));
-    std::memcpy(result, maybe->data(), maybe->length() + 1u);
+    auto ptr = new std::string(std::move(*maybe));
+
+    WrenLoadModuleResult result;
+    result.source = ptr->c_str();
+    result.userData = ptr;
+
+    result.onComplete = [](WrenVM*, const char*, WrenLoadModuleResult result)
+    {
+        delete static_cast<std::string*>(result.userData);
+    };
 
     return result;
 }

@@ -87,6 +87,22 @@ template <class T> struct Quaternion
 
 //============================================================================//
 
+// equality, inequality (Quaternion, Quaternion) /////
+
+template <class T> constexpr
+bool operator==(Quaternion<T> a, Quaternion<T> b)
+{
+    return a.x == b.x && a.y == b.y && a.z == b.z && a.w == b.w;
+}
+
+template <class T> constexpr
+bool operator!=(Quaternion<T> a, Quaternion<T> b)
+{
+    return a.x != b.x || a.y != b.y || a.z != b.z || a.w != b.w;
+}
+
+//============================================================================//
+
 // multiplication & division (Quaternion, Scalar) /////
 
 template <class T> constexpr

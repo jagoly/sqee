@@ -26,28 +26,25 @@ public: //====================================================//
 
     PreProcessor(); ///< Constructor.
 
-    /// Add or update a header from a file.
-    void import_header(const String& path);
-
-    /// Add or update a header with a string.
+    /// Add or update a non-filesystem header.
     void import_header(const String& path, String source);
 
     //--------------------------------------------------------//
 
     /// Process any kind of GLSL shader source file.
-    String process(const String& path, const OptionMap& options, bool prelude) const;
+    String process(const String& path, const OptionMap& options, bool prelude);
 
     /// Load a GLSL vertex shader into a program.
-    void load_vertex(Program& program, const String& path, const OptionMap& options) const;
+    void load_vertex(Program& program, const String& path, const OptionMap& options);
 
     /// Load a GLSL geometry shader into a program.
-    void load_geometry(Program& program, const String& path, const OptionMap& options) const;
+    void load_geometry(Program& program, const String& path, const OptionMap& options);
 
     /// Load a GLSL fragment shader into a program.
-    void load_fragment(Program& program, const String& path, const OptionMap& options) const;
+    void load_fragment(Program& program, const String& path, const OptionMap& options);
 
     /// Load a GLSL super shader into a Program.
-    void load_super_shader(Program& program, const String& path, const OptionMap& options) const;
+    void load_super_shader(Program& program, const String& path, const OptionMap& options);
 
 private: //===================================================//
 
@@ -56,6 +53,8 @@ private: //===================================================//
         String source;
         std::vector<StringView> lines;
     };
+
+    const TokenisedHeader& impl_access_header(const String& path);
 
     std::unordered_map<String, TokenisedHeader> mHeaders;
 };

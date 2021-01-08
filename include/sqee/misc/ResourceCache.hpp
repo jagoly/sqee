@@ -31,6 +31,7 @@ public: //====================================================//
         const auto& [iter, created] = mResourceMap.try_emplace(key);
         if (created == true)
         {
+            SQASSERT(mFactoryFunc != nullptr, "no factory assigned");
             iter->second.key = &iter->first;
             iter->second.data = mFactoryFunc(key);
             iter->second.count = 0u;

@@ -32,9 +32,6 @@ GameScene::GameScene(sq::InputDevices& input)
         Vec3F { 0.3f, 0.3f, 0.3f }, 0
     ) );
 
-    processor.import_header("camera_block");
-    processor.import_header("uniform_block");
-
     // Load Shaders
     processor.load_vertex(PROG_Object, "shaders/object_vs.glsl", {});
     processor.load_fragment(PROG_Object, "shaders/object_fs.glsl", {});
