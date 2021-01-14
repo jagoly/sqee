@@ -140,6 +140,18 @@ endif ()
 
 ################################################################################
 
+find_package(Vulkan REQUIRED)
+
+target_link_libraries(sqee PUBLIC Vulkan::Vulkan)
+
+################################################################################
+
+find_package(glfw3 3.3 REQUIRED)
+
+target_link_libraries(sqee PUBLIC glfw)
+
+################################################################################
+
 add_subdirectory(libs/dearimgui)
 target_link_libraries(sqee PUBLIC dearimgui)
 
@@ -157,3 +169,5 @@ add_subdirectory("testing")
 
 add_subdirectory("tests/soko")
 add_subdirectory("tests/rpg")
+
+add_subdirectory("tests/vkdemo")

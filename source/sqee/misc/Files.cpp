@@ -75,9 +75,9 @@ void sq::save_string_to_file(const String& path, StringView str)
 
 //============================================================================//
 
-std::vector<std::byte> sq::get_bytes_from_file(const String& path)
+std::vector<char> sq::get_bytes_from_file(const String& path)
 {
-    auto src = std::basic_ifstream<std::byte>(path, std::ios::ate | std::ios::binary | std::ios::in);
+    auto src = std::ifstream(path, std::ios::ate | std::ios::binary | std::ios::in);
 
     if (src.good() == false)
     {
@@ -87,7 +87,7 @@ std::vector<std::byte> sq::get_bytes_from_file(const String& path)
 
     const auto fileSize = src.tellg();
 
-    std::vector<std::byte> result;
+    std::vector<char> result;
     result.resize(size_t(fileSize));
 
     src.seekg(0, src.beg);

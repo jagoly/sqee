@@ -8,8 +8,14 @@ addons:
       - libsfml-system2.5
       - libsfml-window2.5
       - libsfml-dev
+      - libglfw3-dev
 
 script:
   - cd /home/travis/build/jagoly/sqee
+
+  - wget -O vulkan-sdk.tar.gz https://sdk.lunarg.com/sdk/download/1.2.162.1/linux/vulkansdk-linux-x86_64-1.2.162.1.tar.gz
+  - tar -xzf vulkan-sdk.tar.gz
+  - source 1.2.162.1/setup-env.sh
+
   - cmake .
   - cmake --build .

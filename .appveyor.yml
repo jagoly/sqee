@@ -4,24 +4,32 @@ image:
 
 before_build:
 
-  - mkdir extlibs
-  - cd extlibs
+  - cd c:/projects
+  - curl -fsSL -o vulkan-sdk.exe https://sdk.lunarg.com/sdk/download/1.2.162.0/windows/VulkanSDK-1.2.162.0-Installer.exe
+  - ./vulkan-sdk.exe \S
+  - set VULKAN_SDK=c:/VulkanSDK/1.2.162.0
 
-  - curl -fsSL -o sfml.zip https://www.sfml-dev.org/files/SFML-2.5.1-windows-vc15-64-bit.zip
-  - 7z x sfml.zip
-  - rename SFML-2.5.1 sfml
+  - cd c:/projects
+  - git clone --depth 1 --branch master https://github.com/SFML/SFML.git
+  - cd c:/projects/SFML
+  #- cmake . -DBUILD_SHARED_LIBS=False -DSFML_USE_STATIC_STD_LIBS=True -DSFML_BUILD_AUDIO=False -DSFML_BUILD_GRAPHICS=False -DSFML_BUILD_NETWORK=False
+  - cmake . -DBUILD_SHARED_LIBS=True -DSFML_USE_STATIC_STD_LIBS=False -DSFML_BUILD_AUDIO=False -DSFML_BUILD_GRAPHICS=False -DSFML_BUILD_NETWORK=False
+  - cmake --build . --config Debug
 
-  - cd ..
+  - cd c:/projects
+  - git clone --depth 1 --branch 3.3.2 https://github.com/glfw/glfw.git
+  - cd c:/projects/glfw
+  #- cmake . -DBUILD_SHARED_LIBS=False -DUSE_MSVC_RUNTIME_LIBRARY_DLL=False -DGLFW_BUILD_DOCS=False -DGLFW_BUILD_EXAMPLES=False -DGLFW_BUILD_TESTS=False
+  - cmake . -DBUILD_SHARED_LIBS=True -DUSE_MSVC_RUNTIME_LIBRARY_DLL=True -DGLFW_BUILD_DOCS=False -DGLFW_BUILD_EXAMPLES=False -DGLFW_BUILD_TESTS=False
+  - cmake --build . --config Debug
 
 
 build_script:
 
-  - mkdir build
-  - cd build
+  - cd c:/projects/sqee
+  - cmake . -DCMAKE_PREFIX_PATH=c:/projects/SFML;c:/projects/glfw -G "Visual Studio 16 2019" -A x64
+  - cmake --build . --config Debug
 
-  - cmake c:/projects/sqee -DCMAKE_PREFIX_PATH=c:/projects/sqee/extlibs/sfml -G "Visual Studio 16 2019" -A x64
-  - cmake --build .
-  
 
 after_build:
 
