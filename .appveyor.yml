@@ -6,7 +6,7 @@ before_build:
 
   - cd c:/projects
   - curl -fsSL -o vulkan-sdk.exe https://sdk.lunarg.com/sdk/download/1.2.162.0/windows/VulkanSDK-1.2.162.0-Installer.exe
-  - ./vulkan-sdk.exe \S
+  - vulkan-sdk.exe \S
   - set VULKAN_SDK=c:/VulkanSDK/1.2.162.0
 
   - cd c:/projects
