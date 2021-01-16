@@ -4,6 +4,7 @@
 #include <sqee/core/Algorithms.hpp>
 #include <sqee/debug/Assert.hpp>
 #include <sqee/debug/Logging.hpp>
+#include <sqee/vk/VulkContext.hpp>
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -172,14 +173,41 @@ sq::VulkWindow::VulkWindow(const char* title, sq::Vec2U size, const char* appNam
         sq::log_info("Using Vulkan Device '{}'", mPhysicalDevice.getProperties().deviceName);
     }
 
+    // query memory types
+    {
+        const auto memoryProps = mPhysicalDevice.getMemoryProperties();
+
+        const auto hostProps = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
+        const auto deviceProps = vk::MemoryPropertyFlagBits::eDeviceLocal;
+
+        for (uint32_t i = 0u; i < memoryProps.memoryTypeCount; ++i)
+        {
+            if (mMemoryTypeIndexHost == 0u)
+                if ((memoryProps.memoryTypes[i].propertyFlags & hostProps) == hostProps)
+                    mMemoryTypeIndexHost = i;
+
+            if (mMemoryTypeIndexDevice == 0u)
+                if ((memoryProps.memoryTypes[i].propertyFlags & deviceProps) == deviceProps)
+                    mMemoryTypeIndexDevice = i;
+        }
+    }
+
+    // query limits
+    {
+        mMaxAnisotropy = mPhysicalDevice.getProperties().limits.maxSamplerAnisotropy;
+    }
+
     // setup logical device and queue
     {
         auto priorities = std::array { 1.f };
         auto queues = vk::DeviceQueueCreateInfo { {}, 0u, priorities };
         auto extensions = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
 
+        auto features = vk::PhysicalDeviceFeatures();
+        features.samplerAnisotropy = true;
+
         mDevice = mPhysicalDevice.createDevice (
-            vk::DeviceCreateInfo { {}, queues, {}, extensions, {} }
+            vk::DeviceCreateInfo { {}, queues, {}, extensions, &features }
         );
 
         mQueue = mDevice.getQueue(0u, 0u);
@@ -187,26 +215,44 @@ sq::VulkWindow::VulkWindow(const char* title, sq::Vec2U size, const char* appNam
 
     // create semaphores and fences
     {
-        mImageAvailableSemaphore = mDevice.createSemaphore({});
-        mImageAvailableSemaphoreOther = mDevice.createSemaphore({});
+        mImageAvailableSemaphore.front = mDevice.createSemaphore({});
+        mImageAvailableSemaphore.back = mDevice.createSemaphore({});
 
-        mRenderFinishedSemaphore = mDevice.createSemaphore({});
-        mRenderFinishedSemaphoreOther = mDevice.createSemaphore({});
+        mRenderFinishedSemaphore.front = mDevice.createSemaphore({});
+        mRenderFinishedSemaphore.back = mDevice.createSemaphore({});
 
-        mRenderFinishedFence = mDevice.createFence({vk::FenceCreateFlagBits::eSignaled});
-        mRenderFinishedFenceOther = mDevice.createFence({vk::FenceCreateFlagBits::eSignaled});
+        mRenderFinishedFence.front = mDevice.createFence({vk::FenceCreateFlagBits::eSignaled});
+        mRenderFinishedFence.back = mDevice.createFence({vk::FenceCreateFlagBits::eSignaled});
     }
 
-    // create command pool
+    // create command pool and buffers
     {
         mCommandPool = mDevice.createCommandPool (
-            vk::CommandPoolCreateInfo { {}, 0u }
+            vk::CommandPoolCreateInfo { vk::CommandPoolCreateFlagBits::eResetCommandBuffer, 0u }
+        );
+
+        mCommandBuffer.front = mDevice.allocateCommandBuffers (
+            vk::CommandBufferAllocateInfo { mCommandPool, vk::CommandBufferLevel::ePrimary, 1u }
+        ).front();
+
+        mCommandBuffer.back = mDevice.allocateCommandBuffers (
+            vk::CommandBufferAllocateInfo { mCommandPool, vk::CommandBufferLevel::ePrimary, 1u }
+        ).front();
+    }
+
+    // create descriptor pool
+    {
+        auto poolSizes = std::array {
+            vk::DescriptorPoolSize { vk::DescriptorType::eUniformBuffer, 256u },
+            vk::DescriptorPoolSize { vk::DescriptorType::eCombinedImageSampler, 512u }
+        };
+
+        mDesciptorPool = mDevice.createDescriptorPool (
+            vk::DescriptorPoolCreateInfo { {}, 256u + 512u, poolSizes }
         );
     }
 
     create_swapchain_and_friends();
-
-    allocate_command_buffers();
 }
 
 //============================================================================//
@@ -217,13 +263,14 @@ VulkWindow::~VulkWindow()
 
     destroy_swapchain_and_friends();
 
-    mDevice.destroy(mImageAvailableSemaphore);
-    mDevice.destroy(mImageAvailableSemaphoreOther);
-    mDevice.destroy(mRenderFinishedSemaphore);
-    mDevice.destroy(mRenderFinishedSemaphoreOther);
-    mDevice.destroy(mRenderFinishedFence);
-    mDevice.destroy(mRenderFinishedFenceOther);
+    mDevice.destroy(mImageAvailableSemaphore.front);
+    mDevice.destroy(mImageAvailableSemaphore.back);
+    mDevice.destroy(mRenderFinishedSemaphore.front);
+    mDevice.destroy(mRenderFinishedSemaphore.back);
+    mDevice.destroy(mRenderFinishedFence.front);
+    mDevice.destroy(mRenderFinishedFence.back);
 
+    mDevice.destroy(mDesciptorPool);
     mDevice.destroy(mCommandPool);
     mDevice.destroy();
 
@@ -253,7 +300,7 @@ void VulkWindow::create_swapchain_and_friends()
 
         mSwapchain = mDevice.createSwapchainKHR (
             vk::SwapchainCreateInfoKHR {
-                {}, mSurface, capabilities.minImageCount , vk::Format::eB8G8R8A8Srgb,
+                {}, mSurface, capabilities.minImageCount, vk::Format::eB8G8R8A8Srgb,
                 vk::ColorSpaceKHR::eSrgbNonlinear, { mFramebufferSize.x, mFramebufferSize.y }, 1u,
                 vk::ImageUsageFlagBits::eColorAttachment, vk::SharingMode::eExclusive, {},
                 vk::SurfaceTransformFlagBitsKHR::eIdentity, vk::CompositeAlphaFlagBitsKHR::eOpaque,
@@ -311,7 +358,7 @@ void VulkWindow::create_swapchain_and_friends()
     // create framebuffers
     {
         mSwapchainFramebuffers.clear();
-        mSwapchainFramebuffers.reserve(get_swapchain_image_count());
+        mSwapchainFramebuffers.reserve(mSwapchainImageViews.size());
 
         for (auto& imageView : mSwapchainImageViews)
         {
@@ -333,8 +380,6 @@ void VulkWindow::destroy_swapchain_and_friends()
     for (auto& framebuffer : mSwapchainFramebuffers)
         mDevice.destroy(framebuffer);
 
-    free_command_buffers();
-
     mDevice.destroy(mRenderPass);
 
     for (auto& imageView : mSwapchainImageViews)
@@ -344,23 +389,6 @@ void VulkWindow::destroy_swapchain_and_friends()
 
     mSwapchainFramebuffers.clear();
     mSwapchainImageViews.clear();
-}
-
-//============================================================================//
-
-void VulkWindow::allocate_command_buffers()
-{
-    mCommandBuffers = mDevice.allocateCommandBuffers (
-        vk::CommandBufferAllocateInfo {
-            mCommandPool, vk::CommandBufferLevel::ePrimary, get_swapchain_image_count()
-        }
-    );
-}
-
-void VulkWindow::free_command_buffers()
-{
-    mDevice.free(mCommandPool, mCommandBuffers);
-    mCommandBuffers.clear();
 }
 
 //============================================================================//
@@ -388,90 +416,87 @@ void VulkWindow::handle_window_resize()
 
     destroy_swapchain_and_friends();
     create_swapchain_and_friends();
+}
 
-    free_command_buffers();
-    allocate_command_buffers();
+//============================================================================//
+
+void VulkWindow::begin_new_frame()
+{
+    auto waitResult = mDevice.waitForFences(mRenderFinishedFence.front, true, UINT64_MAX);
+    SQASSERT(waitResult == vk::Result::eSuccess, "");
+
+    try
+    {
+        mImageIndex = mDevice.acquireNextImageKHR (
+            mSwapchain, UINT64_MAX, mImageAvailableSemaphore.front, nullptr
+        ).value;
+    }
+    catch (const vk::OutOfDateKHRError&)
+    {
+        impl->events.push_back({ Event::Type::Window_Resize, {} });
+        return; // EARLY RETURN
+    }
+
+    mDevice.resetFences(mRenderFinishedFence.front);
+
+    if (mNeedWaitFenceOther == true)
+    {
+        auto waitResultOther = mDevice.waitForFences(mRenderFinishedFence.back, true, UINT64_MAX);
+        SQASSERT(waitResultOther == vk::Result::eSuccess, "");
+        mNeedWaitFenceOther = false;
+    }
+
+    mCommandBuffer.front.reset({});
 }
 
 //============================================================================//
 
 void VulkWindow::submit_and_present()
 {
-    auto waitResult = mDevice.waitForFences(mRenderFinishedFence, true, UINT64_MAX);
-    SQASSERT(waitResult == vk::Result::eSuccess, "");
-
-    uint32_t imageIndex;
-    try
-    {
-        imageIndex = mDevice.acquireNextImageKHR(mSwapchain, UINT64_MAX, mImageAvailableSemaphore, nullptr).value;
-    }
-    catch (const vk::OutOfDateKHRError&)
-    {
-        impl->events.push_back({ Event::Type::Window_Resize, {} });
-        return;
-    }
-
-    if (mNeedWaitFenceOther == true)
-    {
-        auto waitResultOther = mDevice.waitForFences(mRenderFinishedFenceOther, true, UINT64_MAX);
-        SQASSERT(waitResultOther == vk::Result::eSuccess, "");
-        mNeedWaitFenceOther = false;
-    }
-
-    mDevice.resetFences(mRenderFinishedFence);
-
     auto waitDstStageMask = vk::Flags(vk::PipelineStageFlagBits::eColorAttachmentOutput);
     mQueue.submit (
         vk::SubmitInfo {
-            mImageAvailableSemaphore, waitDstStageMask, mCommandBuffers[imageIndex], mRenderFinishedSemaphore,
+            mImageAvailableSemaphore.front, waitDstStageMask,
+            mCommandBuffer.front, mRenderFinishedSemaphore.front,
         },
-        mRenderFinishedFence
+        mRenderFinishedFence.front
     );
 
     try
     {
-        void( mQueue.presentKHR({mRenderFinishedSemaphore, mSwapchain, imageIndex, {}}) );
+        auto presentResult = mQueue.presentKHR (
+            vk::PresentInfoKHR { mRenderFinishedSemaphore.front, mSwapchain, mImageIndex, {} }
+        );
+        SQASSERT(presentResult == vk::Result::eSuccess, "");
     }
     catch (const vk::OutOfDateKHRError&)
     {
         impl->events.push_back({ Event::Type::Window_Resize, {} });
     }
 
-    std::swap(mImageAvailableSemaphore, mImageAvailableSemaphoreOther);
-    std::swap(mRenderFinishedSemaphore, mRenderFinishedSemaphoreOther);
-    std::swap(mRenderFinishedFence, mRenderFinishedFenceOther);
+    mCommandBuffer.swap();
+    mImageAvailableSemaphore.swap();
+    mRenderFinishedSemaphore.swap();
+    mRenderFinishedFence.swap();
 }
 
 //============================================================================//
 
-const vk::Device& VulkWindow::get_device() const
+VulkContext VulkWindow::get_context() const
 {
-    return mDevice;
-}
-
-const vk::RenderPass& VulkWindow::get_renderpass() const
-{
-    return mRenderPass;
-}
-
-const std::vector<vk::Framebuffer>& VulkWindow::get_framebuffers() const
-{
-    return mSwapchainFramebuffers;
-}
-
-const std::vector<vk::CommandBuffer>& VulkWindow::get_commandbuffers() const
-{
-    return mCommandBuffers;
-}
-
-uint VulkWindow::get_swapchain_image_count() const
-{
-    return uint(mSwapchainImages.size());
-}
-
-Vec2U VulkWindow::get_framebuffer_size() const
-{
-    return mFramebufferSize;
+    return VulkContext {
+        mDevice,
+        mCommandPool,
+        mDesciptorPool,
+        mQueue,
+        mCommandBuffer.front,
+        mRenderPass,
+        mSwapchainFramebuffers[mImageIndex],
+        mFramebufferSize,
+        mMemoryTypeIndexHost,
+        mMemoryTypeIndexDevice,
+        mMaxAnisotropy
+    };
 }
 
 //============================================================================//

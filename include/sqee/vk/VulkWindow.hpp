@@ -3,21 +3,20 @@
 #include <sqee/setup.hpp>
 
 #include <sqee/core/Types.hpp>
+#include <sqee/vk/Swapper.hpp>
 #include <sqee/vk/Vulkan.hpp>
-
-//namespace sqt { class VulkTestApp; }
 
 namespace sq {
 
 //====== Forward Declarations ================================================//
 
-class InputDevices;
 struct Event;
+struct VulkContext;
+
+//============================================================================//
 
 struct SQEE_API VulkWindow
 {
-//    friend sqt::VulkTestApp;
-
     VulkWindow(const char* title, Vec2U size, const char* appName, int vMajor, int vMinor, int vPatch);
 
     ~VulkWindow();
@@ -28,31 +27,19 @@ struct SQEE_API VulkWindow
 
     void destroy_swapchain_and_friends();
 
-    void allocate_command_buffers();
+    void handle_window_resize();
 
-    void free_command_buffers();
+    //--------------------------------------------------------//
 
     const std::vector<Event>& fetch_events();
 
-    void handle_window_resize();
+    void begin_new_frame();
 
     void submit_and_present();
 
     //--------------------------------------------------------//
 
-    const vk::Device& get_device() const;
-
-    const vk::RenderPass& get_renderpass() const;
-
-    const std::vector<vk::Framebuffer>& get_framebuffers() const;
-
-    const std::vector<vk::CommandBuffer>& get_commandbuffers() const;
-
-    uint get_swapchain_image_count() const;
-
-    Vec2U get_framebuffer_size() const;
-
-    //bool get_window_should_close() const;
+    VulkContext get_context() const;
 
     //--------------------------------------------------------//
 
@@ -60,15 +47,17 @@ struct SQEE_API VulkWindow
 
     void set_vsync_enabled(bool enabled);
 
-    void swap_buffers();
-
 private: //===================================================//
 
     void* mGlfwWindow = nullptr;
 
-    uint mPrevImageIndex = 0u;
+    uint mMemoryTypeIndexHost = 0u;
+    uint mMemoryTypeIndexDevice = 0u;
 
-    Vec2U mFramebufferSize;
+    float mMaxAnisotropy = 0.f;
+
+    Vec2U mFramebufferSize = {};
+    uint mImageIndex = 0u;
 
     bool mNeedWaitFenceOther = false;
 
@@ -81,18 +70,18 @@ private: //===================================================//
     vk::Device mDevice;
     vk::Queue mQueue;
 
+    vk::CommandPool mCommandPool;
+    vk::DescriptorPool mDesciptorPool;
+
     vk::SwapchainKHR mSwapchain;
     std::vector<vk::Image> mSwapchainImages;
     std::vector<vk::ImageView> mSwapchainImageViews;
     std::vector<vk::Framebuffer> mSwapchainFramebuffers;
 
-    vk::Semaphore mImageAvailableSemaphore, mImageAvailableSemaphoreOther;
-    vk::Semaphore mRenderFinishedSemaphore, mRenderFinishedSemaphoreOther;
-    vk::Fence mRenderFinishedFence, mRenderFinishedFenceOther;
-    vk::Fence mImageBusyFence, mImageBusyFenceOther;
-
-    vk::CommandPool mCommandPool;
-    std::vector<vk::CommandBuffer> mCommandBuffers;
+    sq::Swapper<vk::CommandBuffer> mCommandBuffer;
+    sq::Swapper<vk::Semaphore> mImageAvailableSemaphore;
+    sq::Swapper<vk::Semaphore> mRenderFinishedSemaphore;
+    sq::Swapper<vk::Fence> mRenderFinishedFence;
 
     vk::RenderPass mRenderPass;
 
@@ -103,5 +92,7 @@ private: //===================================================//
 
     friend Implementation;
 };
+
+//============================================================================//
 
 } // namesapce sq

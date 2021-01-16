@@ -25,17 +25,44 @@ private: //===================================================//
 
     //--------------------------------------------------------//
 
+    void create_buffers();
+
+    void create_textures();
+
+    void create_descriptor_sets();
+
     void create_demo_pipeline();
 
-    void populate_command_buffer();
+    //--------------------------------------------------------//
 
-    void render(double elapsed);
+    void update_uniform_buffer(double elapsed);
+
+    void populate_command_buffer(double elapsed);
+
+    void update_window_title(double elapsed);
 
     void handle_window_resize();
 
     //--------------------------------------------------------//
 
     std::unique_ptr<sq::VulkWindow> mWindow;
+
+    vk::Buffer mVertexBuffer;
+    vk::DeviceMemory mVertexBufferMem;
+    vk::Buffer mIndexBuffer;
+    vk::DeviceMemory mIndexBufferMem;
+
+    vk::Image mTextureImage;
+    vk::DeviceMemory mTextureImageMem;
+    vk::ImageView mTextureImageView;
+    vk::Sampler mTextureSampler;
+
+    sq::Swapper<vk::Buffer> mCameraUbo;
+    sq::Swapper<vk::DeviceMemory> mCameraUboMem;
+    sq::Swapper<void*> mCameraUboMemPtr;
+
+    vk::DescriptorSetLayout mDescriptorSetLayout;
+    sq::Swapper<vk::DescriptorSet> mDescriptorSet;
 
     vk::PipelineLayout mPipelineLayout;
     vk::Pipeline mPipeline;

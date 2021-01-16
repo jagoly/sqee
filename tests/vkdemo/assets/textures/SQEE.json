@@ -1,0 +1,7 @@
+{
+  "format": "RGBA8_UN",
+  "wrap": "RR",
+  "swizzle": "RGBA",
+  "filter": true,
+  "mipmaps": true
+}
