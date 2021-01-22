@@ -8,56 +8,23 @@
 #include <sqee/maths/Functions.hpp>
 #include <sqee/misc/Files.hpp>
 #include <sqee/vk/Helpers.hpp>
-#include <sqee/redist/stb_image.hpp>
 
 using namespace sqt;
 namespace maths = sq::maths;
 
 //============================================================================//
 
-struct Vertex
-{
-    Vec2F position; Vec3F colour; Vec2F texcoord;
-
-    static vk::VertexInputBindingDescription get_binding_description()
-    {
-        return vk::VertexInputBindingDescription {
-            0u, sizeof(Vertex), vk::VertexInputRate::eVertex
-        };
-    }
-
-    static std::array<vk::VertexInputAttributeDescription, 3> get_attribute_description()
-    {
-        return std::array {
-            vk::VertexInputAttributeDescription { 0, 0, vk::Format::eR32G32Sfloat, offsetof(Vertex, position) },
-            vk::VertexInputAttributeDescription { 1, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertex, colour) },
-            vk::VertexInputAttributeDescription { 2, 0, vk::Format::eR32G32Sfloat, offsetof(Vertex, texcoord) }
-        };
-    }
-};
-
-const std::vector<Vertex> g_vertices =
-{
-    {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
-    {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
-    {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
-    {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
-};
-
-const std::vector<uint16_t> g_indices = { 0, 1, 2, 2, 3, 0 };
-
-//============================================================================//
-
 void VulkTestApp::initialise(std::vector<std::string> /*args*/)
 {
-    mWindow = std::make_unique<sq::VulkWindow>("Hello Vulkan", Vec2U(800u, 600u), "sqee-vulkan", 0, 0, 1);
+    mWindow = std::make_unique<sq::VulkWindow> (
+        "Hello Vulkan", Vec2U(800u, 600u), "sqee-vkdemo", Vec3U(0u, 0u, 1u)
+    );
+
+    mInputDevices = std::make_unique<sq::VulkInputDevices>(*mWindow);
 
     create_buffers();
-
     create_textures();
-
     create_descriptor_sets();
-
     create_demo_pipeline();
 }
 
@@ -65,25 +32,14 @@ void VulkTestApp::initialise(std::vector<std::string> /*args*/)
 
 VulkTestApp::~VulkTestApp()
 {
-    const auto ctx = mWindow->get_context();
+    const auto& ctx = mWindow->get_context();
 
     ctx.device.waitIdle();
 
-    ctx.device.destroy(mTextureSampler);
-    ctx.device.destroy(mTextureImageView);
-    ctx.device.destroy(mTextureImage);
-    ctx.device.free(mTextureImageMem);
-
-    ctx.device.destroy(mVertexBuffer);
-    ctx.device.free(mVertexBufferMem);
-
-    ctx.device.destroy(mIndexBuffer);
-    ctx.device.free(mIndexBufferMem);
-
     ctx.device.destroy(mCameraUbo.front);
+    mCameraUboMem.front.free();
     ctx.device.destroy(mCameraUbo.back);
-    ctx.device.free(mCameraUboMem.front);
-    ctx.device.free(mCameraUboMem.back);
+    mCameraUboMem.back.free();
 
     ctx.device.destroy(mDescriptorSetLayout);
 
@@ -101,75 +57,31 @@ void VulkTestApp::update(double elapsed)
             mReturnCode = 0;
 
         if (event.type == sq::Event::Type::Window_Resize)
-        {
-            mWindow->handle_window_resize();
             handle_window_resize();
-        }
     }
 
-    mWindow->begin_new_frame();
+    if (mWindow->begin_new_frame() == true)
+    {
+        update_uniform_buffer(elapsed);
+        populate_command_buffer(elapsed);
+        update_window_title(elapsed);
 
-    update_uniform_buffer(elapsed);
+        mWindow->submit_and_present();
 
-    populate_command_buffer(elapsed);
-
-    update_window_title(elapsed);
-
-    mWindow->submit_and_present();
-
-    mCameraUbo.swap();
-    mCameraUboMem.swap();
-    mCameraUboMemPtr.swap();
-    mDescriptorSet.swap();
+        mCameraUbo.swap();
+        mCameraUboMem.swap();
+        mCameraUboMemPtr.swap();
+        mDescriptorSet.swap();
+    }
 }
 
 //============================================================================//
 
 void VulkTestApp::create_buffers()
 {
-    const auto ctx = mWindow->get_context();
+    const auto& ctx = mWindow->get_context();
 
-    // vertex buffer
-    {
-        const size_t bufferSize = sizeof(Vertex) * g_vertices.size();
-
-        auto [stagingBuffer, stagingBufferMem] = sq::vk_create_buffer (
-            ctx, bufferSize, vk::BufferUsageFlagBits::eTransferSrc, true
-        );
-
-        std::memcpy(ctx.device.mapMemory(stagingBufferMem, 0u, bufferSize, {}), g_vertices.data(), bufferSize);
-        ctx.device.unmapMemory(stagingBufferMem);
-
-        std::tie(mVertexBuffer, mVertexBufferMem) = sq::vk_create_buffer (
-            ctx, bufferSize, vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferDst, false
-        );
-
-        sq::vk_copy_buffer(ctx, stagingBuffer, mVertexBuffer, bufferSize);
-
-        ctx.device.destroy(stagingBuffer);
-        ctx.device.free(stagingBufferMem);
-    }
-
-    // index buffer
-    {
-        const size_t bufferSize = sizeof(uint16_t) * g_indices.size();
-
-        auto [stagingBuffer, stagingBufferMem] = sq::vk_create_buffer (
-            ctx, bufferSize, vk::BufferUsageFlagBits::eTransferSrc, true
-        );
-
-        std::memcpy(ctx.device.mapMemory(stagingBufferMem, 0u, bufferSize, {}), g_indices.data(), bufferSize);
-        ctx.device.unmapMemory(stagingBufferMem);
-
-        std::tie(mIndexBuffer, mIndexBufferMem) = sq::vk_create_buffer (
-            ctx, bufferSize, vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferDst, false
-        );
-
-        sq::vk_copy_buffer(ctx, stagingBuffer, mIndexBuffer, bufferSize);
-
-        ctx.device.destroy(stagingBuffer);
-        ctx.device.free(stagingBufferMem);
-    }
+    mMesh.load_from_file(ctx, "assets/meshes/Dice");
 
     // camera uniform buffer
     {
@@ -178,12 +90,12 @@ void VulkTestApp::create_buffers()
         std::tie(mCameraUbo.front, mCameraUboMem.front) = sq::vk_create_buffer (
             ctx, bufferSize, vk::BufferUsageFlagBits::eUniformBuffer, true
         );
-        mCameraUboMemPtr.front = ctx.device.mapMemory(mCameraUboMem.front, 0u, bufferSize, {});
+        mCameraUboMemPtr.front = mCameraUboMem.front.map();
 
         std::tie(mCameraUbo.back, mCameraUboMem.back) = sq::vk_create_buffer (
             ctx, bufferSize, vk::BufferUsageFlagBits::eUniformBuffer, true
         );
-        mCameraUboMemPtr.back = ctx.device.mapMemory(mCameraUboMem.back, 0u, bufferSize, {});
+        mCameraUboMemPtr.back = mCameraUboMem.back.map();
     }
 }
 
@@ -191,61 +103,16 @@ void VulkTestApp::create_buffers()
 
 void VulkTestApp::create_textures()
 {
-    const auto ctx = mWindow->get_context();
+    const auto& ctx = mWindow->get_context();
 
-    // create and load image
-    {
-        int width, height, channels;
-        stbi_set_flip_vertically_on_load(0);
-        stbi_uc* pixels = stbi_load("assets/textures/SQEE.png", &width, &height, &channels, 4);
-
-        size_t imageSize = size_t(width * height * 4);
-
-        auto [stagingBuffer, stagingBufferMem] = sq::vk_create_buffer (
-            ctx, imageSize, vk::BufferUsageFlagBits::eTransferSrc, true
-        );
-
-        std::memcpy(ctx.device.mapMemory(stagingBufferMem, 0u, imageSize, {}), pixels, imageSize);
-        ctx.device.unmapMemory(stagingBufferMem);
-
-        stbi_image_free(pixels);
-
-        std::tie(mTextureImage, mTextureImageMem) = sq::vk_create_image (
-            ctx, Vec2U(width, height), vk::Format::eR8G8B8A8Srgb, vk::ImageTiling::eOptimal,
-            vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled, false
-        );
-
-        sq::vk_transfer_buffer_to_image(ctx, stagingBuffer, mTextureImage, Vec2U(width, height));
-
-        ctx.device.destroy(stagingBuffer);
-        ctx.device.free(stagingBufferMem);
-    }
-
-    // create image view and sampler
-    {
-        mTextureImageView = ctx.device.createImageView (
-            vk::ImageViewCreateInfo {
-                {}, mTextureImage, vk::ImageViewType::e2D, vk::Format::eR8G8B8A8Srgb, vk::ComponentMapping(),
-                vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u)
-            }
-        );
-
-        mTextureSampler = ctx.device.createSampler (
-            vk::SamplerCreateInfo {
-                {}, vk::Filter::eLinear, vk::Filter::eLinear, vk::SamplerMipmapMode::eLinear,
-                vk::SamplerAddressMode::eRepeat, vk::SamplerAddressMode::eRepeat, vk::SamplerAddressMode::eRepeat,
-                0.f, true, ctx.maxAnisotropy, false, vk::CompareOp::eAlways, 0.f, 0.f,
-                vk::BorderColor::eIntOpaqueWhite, false
-            }
-        );
-    }
+    mTexture.load_automatic_2D(ctx, "assets/textures/Dice_diff");
 }
 
 //============================================================================//
 
 void VulkTestApp::create_descriptor_sets()
 {
-    const auto ctx = mWindow->get_context();
+    const auto& ctx = mWindow->get_context();
 
     auto bindings = std::array {
         vk::DescriptorSetLayoutBinding {
@@ -271,7 +138,7 @@ void VulkTestApp::create_descriptor_sets()
         };
 
         auto imageInfo = std::array {
-            vk::DescriptorImageInfo { mTextureSampler, mTextureImageView, vk::ImageLayout::eShaderReadOnlyOptimal }
+            mTexture.get_descriptor_info()
         };
 
         auto descriptorWrites = std::array {
@@ -296,7 +163,7 @@ void VulkTestApp::create_descriptor_sets()
 
 void VulkTestApp::create_demo_pipeline()
 {
-    const auto ctx = mWindow->get_context();
+    const auto& ctx = mWindow->get_context();
 
     // create pipeline layout
     {
@@ -331,26 +198,18 @@ void VulkTestApp::create_demo_pipeline()
             }
         };
 
-        auto vertexBindingDescriptions = Vertex::get_binding_description();
-        auto vertexAttributeDescriptions = Vertex::get_attribute_description();
-
-        auto vertexInputState = vk::PipelineVertexInputStateCreateInfo {
-            {}, vertexBindingDescriptions, vertexAttributeDescriptions
-        };
+        auto vertexInputState = mMesh.get_vertex_input_state_info();
 
         auto inputAssemblyState = vk::PipelineInputAssemblyStateCreateInfo {
             {}, vk::PrimitiveTopology::eTriangleList, false
         };
-
-        //auto viewports = vk::Viewport { 0.f, 0.f, float(ctx.windowSize.x), float(ctx.windowSize.y), 0.f, 1.f };
-        //auto scissors = vk::Rect2D { { 0, 0 }, { ctx.windowSize.x, ctx.windowSize.y } };
 
         auto viewportState = vk::PipelineViewportStateCreateInfo {
             {}, 1u, nullptr, 1u, nullptr //viewports, scissors
         };
 
         auto rasterizationState = vk::PipelineRasterizationStateCreateInfo {
-            {}, false, false, vk::PolygonMode::eFill, vk::CullModeFlagBits::eNone,
+            {}, false, false, vk::PolygonMode::eFill, vk::CullModeFlagBits::eBack,
             vk::FrontFace::eClockwise, false, 0.f, false, 0.f, 1.f
         };
 
@@ -395,15 +254,26 @@ void VulkTestApp::create_demo_pipeline()
 
 void VulkTestApp::update_uniform_buffer(double elapsed)
 {
-    const auto ctx = mWindow->get_context();
+    const auto& ctx = mWindow->get_context();
 
     static double totalTime = 0.0;
-    totalTime += elapsed * 0.1;
+    totalTime += elapsed * 0.2;
 
     auto& block = *static_cast<CameraBlock*>(mCameraUboMemPtr.front);
 
-    block.model = Mat4F(maths::rotation(Vec3F(0.f, 1.f, 0.f), float(totalTime)));
-    block.view = maths::look_at_RH(Vec3F(0.f, 0.1f, 2.f), Vec3F(0.f, 0.f, 0.f), Vec3F(0.f, 1.f, 0.f));
+    static Mat4F model = Mat4F();
+
+    if (mInputDevices->is_pressed(sq::Keyboard_Key::Arrow_Up))
+        model = Mat4F(maths::rotation(Vec3F(1.f, 0.f, 0.f), float(elapsed))) * model;
+    if (mInputDevices->is_pressed(sq::Keyboard_Key::Arrow_Down))
+        model = Mat4F(maths::rotation(Vec3F(-1.f, 0.f, 0.f), float(elapsed))) * model;
+    if (mInputDevices->is_pressed(sq::Keyboard_Key::Arrow_Left))
+        model = Mat4F(maths::rotation(Vec3F(0.f, 1.f, 0.f), float(elapsed))) * model;
+    if (mInputDevices->is_pressed(sq::Keyboard_Key::Arrow_Right))
+        model = Mat4F(maths::rotation(Vec3F(0.f, -1.f, 0.f), float(elapsed))) * model;
+
+    block.model = model;
+    block.view = maths::look_at_RH(Vec3F(0.f, 0.1f, -2.f), Vec3F(0.f, 0.f, 0.f), Vec3F(0.f, 1.f, 0.f));
 
     const float aspect = float(ctx.windowSize.x) / float(ctx.windowSize.y);
     block.proj = maths::perspective_RH(maths::radians(0.125f), aspect, 0.1f, 10.f);
@@ -413,16 +283,16 @@ void VulkTestApp::update_uniform_buffer(double elapsed)
 
 void VulkTestApp::populate_command_buffer(double /*elapsed*/)
 {
-    const auto ctx = mWindow->get_context();
-    const auto cmdbuf = ctx.commandBuffer;
+    const auto& ctx = mWindow->get_context();
+    const auto& cmdbuf = ctx.frame.commandBuffer;
 
-    cmdbuf.begin({{}, nullptr});
+    cmdbuf.begin({vk::CommandBufferUsageFlagBits::eOneTimeSubmit, nullptr});
 
     auto clearValues = vk::ClearValue { std::array<float,4> { 0.1f, 0.1f, 0.f, 1.f } };
 
     cmdbuf.beginRenderPass (
         vk::RenderPassBeginInfo {
-            ctx.renderPass, ctx.framebuffer,
+            ctx.renderPass, ctx.frame.framebuffer,
             vk::Rect2D { { 0, 0 }, { ctx.windowSize.x, ctx.windowSize.y } },
             clearValues
         },
@@ -434,13 +304,12 @@ void VulkTestApp::populate_command_buffer(double /*elapsed*/)
     cmdbuf.setViewport(0u, vk::Viewport{0.f, 0.f, float(ctx.windowSize.x), float(ctx.windowSize.y), 0.f, 1.f});
     cmdbuf.setScissor(0u, vk::Rect2D{{ 0, 0 }, { ctx.windowSize.x, ctx.windowSize.y }});
 
-    cmdbuf.bindVertexBuffers(0u, mVertexBuffer, size_t(0u));
-    cmdbuf.bindIndexBuffer(mIndexBuffer, 0u, vk::IndexType::eUint16);
+    mMesh.bind_buffers(cmdbuf);
 
     cmdbuf.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, mPipelineLayout, 0u, mDescriptorSet.front, {});
 
     //for (uint i = 0u; i < 200u; ++i)
-        cmdbuf.drawIndexed(uint(g_indices.size()), 1u, 0u, 0, 0u);
+        mMesh.draw_complete(cmdbuf);
 
     cmdbuf.endRenderPass();
     cmdbuf.end();
@@ -467,8 +336,9 @@ void VulkTestApp::update_window_title(double elapsed)
 
 void VulkTestApp::handle_window_resize()
 {
-    //const auto ctx = mWindow->get_context();
+    const auto& ctx = mWindow->get_context();
 
-    //ctx.device.destroy(mPipeline);
-    //ctx.device.destroy(mPipelineLayout);
+    ctx.device.waitIdle();
+    mWindow->destroy_swapchain_and_friends();
+    mWindow->create_swapchain_and_friends();
 }

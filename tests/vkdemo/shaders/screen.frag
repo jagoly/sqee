@@ -1,13 +1,14 @@
 #version 450
 
-layout(location = 0) in vec3 fragColor;
-layout(location = 1) in vec2 fragTexCoord;
+layout(location=0) in vec2 io_TexCoord;
+layout(location=1) in vec3 io_Normal;
 
-layout(binding = 1) uniform sampler2D texSampler;
+layout(binding=1) uniform sampler2D tx_Colour;
 
-layout(location = 0) out vec4 outColor;
+layout(location=0) out vec4 frag_Colour;
 
-void main() {
-    outColor = texture(texSampler, fragTexCoord);
-    if (outColor.a < 0.5f) discard;
+void main()
+{
+    frag_Colour = vec4((io_Normal + 1.f) * 0.5f, 1.f);
+    frag_Colour *= texture(tx_Colour, io_TexCoord).rrra;
 }

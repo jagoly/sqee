@@ -4,7 +4,6 @@
 #include <sqee/core/Algorithms.hpp>
 #include <sqee/debug/Assert.hpp>
 #include <sqee/debug/Logging.hpp>
-#include <sqee/vk/VulkContext.hpp>
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -51,7 +50,7 @@ struct VulkWindow::Implementation
 
 //============================================================================//
 
-sq::VulkWindow::VulkWindow(const char* title, sq::Vec2U size, const char* appName, int vMajor, int vMinor, int vPatch)
+VulkWindow::VulkWindow(const char* title, Vec2U size, const char* appName, Vec3U version)
 {
     impl = std::make_unique<Implementation>();
 
@@ -60,15 +59,12 @@ sq::VulkWindow::VulkWindow(const char* title, sq::Vec2U size, const char* appNam
         glfwInit();
 
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-        //glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
         mGlfwWindow = glfwCreateWindow(int(size.x), int(size.y), title, nullptr, nullptr);
 
-        auto window = static_cast<GLFWwindow*>(mGlfwWindow);
+        glfwSetWindowUserPointer(mGlfwWindow, this);
 
-        glfwSetWindowUserPointer(window, this);
-
-        glfwSetWindowCloseCallback(window, Implementation::cb_window_close);
+        glfwSetWindowCloseCallback(mGlfwWindow, Implementation::cb_window_close);
     }
 
     // initial dispatcher setup
@@ -79,13 +75,15 @@ sq::VulkWindow::VulkWindow(const char* title, sq::Vec2U size, const char* appNam
         //VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
     }
 
-    // setup instance, surface, and debug callback
+    // setup instance and debug callback
     {
-        vk::ApplicationInfo appInfo {
-            appName, VK_MAKE_VERSION(vMajor,vMinor,vPatch), "SQEE", VK_MAKE_VERSION(1,0,0), VK_API_VERSION_1_2
+        const auto appInfo = vk::ApplicationInfo {
+            appName, VK_MAKE_VERSION(version.x, version.y, version.z),
+            "SQEE", VK_MAKE_VERSION(1u, 2u, 3u),
+            VK_API_VERSION_1_2
         };
 
-        const std::array layers = { "VK_LAYER_KHRONOS_validation" };
+        const auto layers = std::array { "VK_LAYER_KHRONOS_validation" };
 
         uint32_t extCount = 0u;
         const char** extNames = glfwGetRequiredInstanceExtensions(&extCount);
@@ -122,11 +120,9 @@ sq::VulkWindow::VulkWindow(const char* title, sq::Vec2U size, const char* appNam
 
     // create window surface
     {
-        auto window = static_cast<GLFWwindow*>(mGlfwWindow);
         auto surfacePtr = reinterpret_cast<VkSurfaceKHR*>(&mSurface);
-
-        if (glfwCreateWindowSurface(mInstance, window, nullptr, surfacePtr) != VK_SUCCESS)
-            sq::log_error("failed to create window surface");
+        if (glfwCreateWindowSurface(mInstance, mGlfwWindow, nullptr, surfacePtr) != VK_SUCCESS)
+            log_error("failed to create window surface");
     }
 
     // setup physical device
@@ -155,8 +151,8 @@ sq::VulkWindow::VulkWindow(const char* title, sq::Vec2U size, const char* appNam
                     continue;
             }
 
-            const auto preferredType = vk::PhysicalDeviceType::eDiscreteGpu;
-            //const auto preferredType = vk::PhysicalDeviceType::eIntegratedGpu;
+            //const auto preferredType = vk::PhysicalDeviceType::eDiscreteGpu;
+            const auto preferredType = vk::PhysicalDeviceType::eIntegratedGpu;
 
             if (mPhysicalDevice)
             {
@@ -171,30 +167,6 @@ sq::VulkWindow::VulkWindow(const char* title, sq::Vec2U size, const char* appNam
             sq::log_error("GPU(s) found, but none are useable");
 
         sq::log_info("Using Vulkan Device '{}'", mPhysicalDevice.getProperties().deviceName);
-    }
-
-    // query memory types
-    {
-        const auto memoryProps = mPhysicalDevice.getMemoryProperties();
-
-        const auto hostProps = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
-        const auto deviceProps = vk::MemoryPropertyFlagBits::eDeviceLocal;
-
-        for (uint32_t i = 0u; i < memoryProps.memoryTypeCount; ++i)
-        {
-            if (mMemoryTypeIndexHost == 0u)
-                if ((memoryProps.memoryTypes[i].propertyFlags & hostProps) == hostProps)
-                    mMemoryTypeIndexHost = i;
-
-            if (mMemoryTypeIndexDevice == 0u)
-                if ((memoryProps.memoryTypes[i].propertyFlags & deviceProps) == deviceProps)
-                    mMemoryTypeIndexDevice = i;
-        }
-    }
-
-    // query limits
-    {
-        mMaxAnisotropy = mPhysicalDevice.getProperties().limits.maxSamplerAnisotropy;
     }
 
     // setup logical device and queue
@@ -252,80 +224,6 @@ sq::VulkWindow::VulkWindow(const char* title, sq::Vec2U size, const char* appNam
         );
     }
 
-    create_swapchain_and_friends();
-}
-
-//============================================================================//
-
-VulkWindow::~VulkWindow()
-{
-    mDevice.waitIdle();
-
-    destroy_swapchain_and_friends();
-
-    mDevice.destroy(mImageAvailableSemaphore.front);
-    mDevice.destroy(mImageAvailableSemaphore.back);
-    mDevice.destroy(mRenderFinishedSemaphore.front);
-    mDevice.destroy(mRenderFinishedSemaphore.back);
-    mDevice.destroy(mRenderFinishedFence.front);
-    mDevice.destroy(mRenderFinishedFence.back);
-
-    mDevice.destroy(mDesciptorPool);
-    mDevice.destroy(mCommandPool);
-    mDevice.destroy();
-
-    mInstance.destroy(mSurface);
-    mInstance.destroy(mDebugMessenger);
-    mInstance.destroy();
-
-    glfwDestroyWindow(static_cast<GLFWwindow*>(mGlfwWindow));
-    glfwTerminate();
-}
-
-//============================================================================//
-
-void VulkWindow::create_swapchain_and_friends()
-{
-    // get framebuffer size
-    {
-        auto window = static_cast<GLFWwindow*>(mGlfwWindow);
-        int intWidth, intHeight;
-        glfwGetFramebufferSize(window, &intWidth, &intHeight);
-        mFramebufferSize = { uint(intWidth), uint(intHeight) };
-    }
-
-    // create swapchain
-    {
-        const auto capabilities = mPhysicalDevice.getSurfaceCapabilitiesKHR(mSurface);
-
-        mSwapchain = mDevice.createSwapchainKHR (
-            vk::SwapchainCreateInfoKHR {
-                {}, mSurface, capabilities.minImageCount, vk::Format::eB8G8R8A8Srgb,
-                vk::ColorSpaceKHR::eSrgbNonlinear, { mFramebufferSize.x, mFramebufferSize.y }, 1u,
-                vk::ImageUsageFlagBits::eColorAttachment, vk::SharingMode::eExclusive, {},
-                vk::SurfaceTransformFlagBitsKHR::eIdentity, vk::CompositeAlphaFlagBitsKHR::eOpaque,
-                vk::PresentModeKHR::eImmediate, true, nullptr
-            }
-        );
-
-        mSwapchainImages = mDevice.getSwapchainImagesKHR(mSwapchain);
-
-        mSwapchainImageViews.clear();
-        mSwapchainImageViews.reserve(mSwapchainImages.size());
-
-        for (auto& image : mSwapchainImages)
-        {
-            mSwapchainImageViews.emplace_back() = mDevice.createImageView (
-                vk::ImageViewCreateInfo {
-                    {}, image, vk::ImageViewType::e2D, vk::Format::eB8G8R8A8Srgb, {},
-                    vk::ImageSubresourceRange { vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u }
-                }
-            );
-        }
-
-        sq::log_debug("Swapchain Info: {}, {}, {}", mFramebufferSize.x, mFramebufferSize.y, mSwapchainImages.size());
-    }
-
     // create render pass
     {
         auto attachments = vk::AttachmentDescription {
@@ -355,6 +253,124 @@ void VulkWindow::create_swapchain_and_friends()
         );
     }
 
+    // create allocator
+    {
+        const auto memoryProps = mPhysicalDevice.getMemoryProperties();
+
+        const auto host = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
+        const auto device = vk::MemoryPropertyFlagBits::eDeviceLocal;
+
+        uint32_t memoryTypeHost = 0u;
+        for (; memoryTypeHost < memoryProps.memoryTypeCount; ++memoryTypeHost)
+            if ((memoryProps.memoryTypes[memoryTypeHost].propertyFlags & host) == host)
+                break;
+
+        uint32_t memoryTypeDevice = 0u;
+        for (; memoryTypeDevice < memoryProps.memoryTypeCount; ++memoryTypeDevice)
+            if ((memoryProps.memoryTypes[memoryTypeDevice].propertyFlags & device) == device)
+                break;
+
+        mAllocator.initialise(mDevice, memoryTypeHost, memoryTypeDevice, 4096u);
+    }
+
+    // setup context
+    {
+        mContext.device = mDevice;
+        mContext.queue = mQueue;
+        mContext.commandPool = mCommandPool;
+        mContext.descriptorPool = mDesciptorPool;
+        mContext.renderPass = mRenderPass;
+
+        // query limits
+        {
+            const auto limits = mPhysicalDevice.getProperties().limits;
+
+            mContext.limits.maxAnisotropy = limits.maxSamplerAnisotropy;
+        }
+
+        mContext.allocator = &mAllocator;
+    }
+
+    create_swapchain_and_friends();
+}
+
+//============================================================================//
+
+VulkWindow::~VulkWindow()
+{
+    mDevice.waitIdle();
+
+    mAllocator.destroy();
+
+    destroy_swapchain_and_friends();
+
+    mDevice.destroy(mImageAvailableSemaphore.front);
+    mDevice.destroy(mImageAvailableSemaphore.back);
+    mDevice.destroy(mRenderFinishedSemaphore.front);
+    mDevice.destroy(mRenderFinishedSemaphore.back);
+    mDevice.destroy(mRenderFinishedFence.front);
+    mDevice.destroy(mRenderFinishedFence.back);
+
+    mDevice.destroy(mRenderPass);
+
+    mDevice.destroy(mDesciptorPool);
+    mDevice.destroy(mCommandPool);
+    mDevice.destroy();
+
+    mInstance.destroy(mSurface);
+    mInstance.destroy(mDebugMessenger);
+    mInstance.destroy();
+
+    glfwDestroyWindow(mGlfwWindow);
+    glfwTerminate();
+}
+
+//============================================================================//
+
+void VulkWindow::create_swapchain_and_friends()
+{
+    const auto capabilities = mPhysicalDevice.getSurfaceCapabilitiesKHR(mSurface);
+
+    // get framebuffer size
+    {
+        mFramebufferSize = capabilities.currentExtent;
+        mContext.windowSize = { mFramebufferSize.width, mFramebufferSize.height };
+    }
+
+    // create swapchain
+    {
+        //const auto presentMode = vk::PresentModeKHR::eImmediate;
+        const auto presentMode = vk::PresentModeKHR::eFifo;
+
+        mSwapchain = mDevice.createSwapchainKHR (
+            vk::SwapchainCreateInfoKHR {
+                {}, mSurface, capabilities.minImageCount, vk::Format::eB8G8R8A8Srgb,
+                vk::ColorSpaceKHR::eSrgbNonlinear, mFramebufferSize, 1u,
+                vk::ImageUsageFlagBits::eColorAttachment, vk::SharingMode::eExclusive, {},
+                vk::SurfaceTransformFlagBitsKHR::eIdentity, vk::CompositeAlphaFlagBitsKHR::eOpaque,
+                presentMode, true, nullptr
+            }
+        );
+
+        mSwapchainImages = mDevice.getSwapchainImagesKHR(mSwapchain);
+
+        mSwapchainImageViews.clear();
+        mSwapchainImageViews.reserve(mSwapchainImages.size());
+
+        for (auto& image : mSwapchainImages)
+        {
+            mSwapchainImageViews.emplace_back() = mDevice.createImageView (
+                vk::ImageViewCreateInfo {
+                    {}, image, vk::ImageViewType::e2D, vk::Format::eB8G8R8A8Srgb, {},
+                    vk::ImageSubresourceRange { vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u }
+                }
+            );
+        }
+
+        //sq::log_debug("Swapchain: mode = {} | images = {} | size = {}×{}", vk::to_string(presentMode),
+        //              mSwapchainImages.size(), mFramebufferSize.width, mFramebufferSize.height);
+    }
+
     // create framebuffers
     {
         mSwapchainFramebuffers.clear();
@@ -364,13 +380,11 @@ void VulkWindow::create_swapchain_and_friends()
         {
             mSwapchainFramebuffers.emplace_back() = mDevice.createFramebuffer (
                 vk::FramebufferCreateInfo {
-                    {}, mRenderPass, imageView, mFramebufferSize.x, mFramebufferSize.y, 1u
+                    {}, mRenderPass, imageView, mFramebufferSize.width, mFramebufferSize.height, 1u
                 }
             );
         }
     }
-
-    mNeedWaitFenceOther = true;
 }
 
 //============================================================================//
@@ -379,8 +393,6 @@ void VulkWindow::destroy_swapchain_and_friends()
 {
     for (auto& framebuffer : mSwapchainFramebuffers)
         mDevice.destroy(framebuffer);
-
-    mDevice.destroy(mRenderPass);
 
     for (auto& imageView : mSwapchainImageViews)
         mDevice.destroy(imageView);
@@ -410,20 +422,12 @@ const std::vector<Event>& VulkWindow::fetch_events()
 
 //============================================================================//
 
-void VulkWindow::handle_window_resize()
-{
-    mDevice.waitIdle();
-
-    destroy_swapchain_and_friends();
-    create_swapchain_and_friends();
-}
-
-//============================================================================//
-
-void VulkWindow::begin_new_frame()
+bool VulkWindow::begin_new_frame()
 {
     auto waitResult = mDevice.waitForFences(mRenderFinishedFence.front, true, UINT64_MAX);
     SQASSERT(waitResult == vk::Result::eSuccess, "");
+
+    const uint32_t oldImageIndex = mImageIndex;
 
     try
     {
@@ -434,25 +438,26 @@ void VulkWindow::begin_new_frame()
     catch (const vk::OutOfDateKHRError&)
     {
         impl->events.push_back({ Event::Type::Window_Resize, {} });
-        return; // EARLY RETURN
+        return false; // EARLY RETURN
     }
 
-    mDevice.resetFences(mRenderFinishedFence.front);
+    if (oldImageIndex == mImageIndex)
+        mDevice.waitIdle();
 
-    if (mNeedWaitFenceOther == true)
-    {
-        auto waitResultOther = mDevice.waitForFences(mRenderFinishedFence.back, true, UINT64_MAX);
-        SQASSERT(waitResultOther == vk::Result::eSuccess, "");
-        mNeedWaitFenceOther = false;
-    }
+    mContext.frame.commandBuffer = mCommandBuffer.front;
+    mContext.frame.framebuffer = mSwapchainFramebuffers[mImageIndex];
 
     mCommandBuffer.front.reset({});
+
+    return true;
 }
 
 //============================================================================//
 
 void VulkWindow::submit_and_present()
 {
+    mDevice.resetFences(mRenderFinishedFence.front);
+
     auto waitDstStageMask = vk::Flags(vk::PipelineStageFlagBits::eColorAttachmentOutput);
     mQueue.submit (
         vk::SubmitInfo {
@@ -482,27 +487,7 @@ void VulkWindow::submit_and_present()
 
 //============================================================================//
 
-VulkContext VulkWindow::get_context() const
-{
-    return VulkContext {
-        mDevice,
-        mCommandPool,
-        mDesciptorPool,
-        mQueue,
-        mCommandBuffer.front,
-        mRenderPass,
-        mSwapchainFramebuffers[mImageIndex],
-        mFramebufferSize,
-        mMemoryTypeIndexHost,
-        mMemoryTypeIndexDevice,
-        mMaxAnisotropy
-    };
-}
-
-//============================================================================//
-
 void VulkWindow::set_title(String title)
 {
-    auto window = static_cast<GLFWwindow*>(mGlfwWindow);
-    glfwSetWindowTitle(window, title.c_str());
+    glfwSetWindowTitle(mGlfwWindow, title.c_str());
 }

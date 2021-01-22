@@ -24,7 +24,7 @@ enum class Keyboard_Key : int8_t
     Insert, Delete, Home, End, PageUp, PageDown,
     Arrow_Left, Arrow_Up, Arrow_Right, Arrow_Down,
     Pad_0, Pad_1, Pad_2, Pad_3, Pad_4, Pad_5, Pad_6, Pad_7, Pad_8, Pad_9,
-    Pad_Plus, Pad_Minus, Pad_Multiply, Pad_Divide,
+    Pad_Decimal, Pad_Plus, Pad_Minus, Pad_Multiply, Pad_Divide,
     F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12,
 };
 

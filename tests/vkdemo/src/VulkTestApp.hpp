@@ -3,6 +3,10 @@
 #include <sqee/app/Application.hpp>
 
 #include <sqee/vk/VulkWindow.hpp>
+#include <sqee/vk/VulkInputDevices.hpp>
+
+#include <sqee/vk/VulkTexture.hpp>
+#include <sqee/vk/VulkMesh.hpp>
 
 using namespace sq::coretypes;
 
@@ -46,19 +50,24 @@ private: //===================================================//
     //--------------------------------------------------------//
 
     std::unique_ptr<sq::VulkWindow> mWindow;
+    std::unique_ptr<sq::VulkInputDevices> mInputDevices;
 
-    vk::Buffer mVertexBuffer;
-    vk::DeviceMemory mVertexBufferMem;
-    vk::Buffer mIndexBuffer;
-    vk::DeviceMemory mIndexBufferMem;
+//    vk::Buffer mVertexBuffer;
+//    sq::VulkanMemory mVertexBufferMem;
+//    vk::Buffer mIndexBuffer;
+//    sq::VulkanMemory mIndexBufferMem;
 
-    vk::Image mTextureImage;
-    vk::DeviceMemory mTextureImageMem;
-    vk::ImageView mTextureImageView;
-    vk::Sampler mTextureSampler;
+    sq::VulkMesh mMesh;
+
+//    vk::Image mTextureImage;
+//    sq::VulkanMemory mTextureImageMem;
+//    vk::ImageView mTextureImageView;
+//    vk::Sampler mTextureSampler;
+
+    sq::VulkTexture mTexture;
 
     sq::Swapper<vk::Buffer> mCameraUbo;
-    sq::Swapper<vk::DeviceMemory> mCameraUboMem;
+    sq::Swapper<sq::VulkanMemory> mCameraUboMem;
     sq::Swapper<void*> mCameraUboMemPtr;
 
     vk::DescriptorSetLayout mDescriptorSetLayout;

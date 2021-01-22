@@ -82,7 +82,7 @@ inline void log_warning_multiline(std::string_view str, const Args&... args)
 //============================================================================//
 
 /// Log a formatted ERROR message, then abort.
-template <class... Args>
+template <class... Args> [[noreturn]]
 inline void log_error(std::string_view str, const Args&... args)
 {
     detail::log_time_error();
@@ -91,7 +91,7 @@ inline void log_error(std::string_view str, const Args&... args)
 }
 
 /// Log a formatted multiline ERROR message, then abort.
-template <class... Args>
+template <class... Args> [[noreturn]]
 inline void log_error_multiline(std::string_view str, const Args&... args)
 {
     detail::log_time_error();

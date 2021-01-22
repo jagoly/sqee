@@ -3,21 +3,26 @@
 #include <sqee/setup.hpp>
 
 #include <sqee/core/Types.hpp>
-#include <sqee/vk/Swapper.hpp>
-#include <sqee/vk/Vulkan.hpp>
 
-namespace sq {
+#include <sqee/vk/Swapper.hpp>
+#include <sqee/vk/VulkanContext.hpp>
+#include <sqee/vk/VulkanMemory.hpp>
 
 //====== Forward Declarations ================================================//
 
+extern "C" { typedef struct GLFWwindow GLFWwindow; };
+
+namespace sq {
+
 struct Event;
-struct VulkContext;
 
 //============================================================================//
 
-struct SQEE_API VulkWindow
+class SQEE_API VulkWindow final : private NonCopyable
 {
-    VulkWindow(const char* title, Vec2U size, const char* appName, int vMajor, int vMinor, int vPatch);
+public: //====================================================//
+
+    VulkWindow(const char* title, Vec2U size, const char* appName, Vec3U version);
 
     ~VulkWindow();
 
@@ -27,19 +32,19 @@ struct SQEE_API VulkWindow
 
     void destroy_swapchain_and_friends();
 
-    void handle_window_resize();
-
     //--------------------------------------------------------//
 
     const std::vector<Event>& fetch_events();
 
-    void begin_new_frame();
+    bool begin_new_frame();
 
     void submit_and_present();
 
     //--------------------------------------------------------//
 
-    VulkContext get_context() const;
+    GLFWwindow* get_glfw_window() { return mGlfwWindow; }
+
+    const VulkanContext& get_context() const { return mContext; }
 
     //--------------------------------------------------------//
 
@@ -49,23 +54,19 @@ struct SQEE_API VulkWindow
 
 private: //===================================================//
 
-    void* mGlfwWindow = nullptr;
+    GLFWwindow* mGlfwWindow = nullptr;
 
-    uint mMemoryTypeIndexHost = 0u;
-    uint mMemoryTypeIndexDevice = 0u;
+    vk::Extent2D mFramebufferSize = {};
+    uint32_t mImageIndex = 0u;
 
-    float mMaxAnisotropy = 0.f;
-
-    Vec2U mFramebufferSize = {};
-    uint mImageIndex = 0u;
-
-    bool mNeedWaitFenceOther = false;
+    VulkanAllocator mAllocator;
+    VulkanContext mContext;
 
     //--------------------------------------------------------//
 
     vk::Instance mInstance;
-    vk::SurfaceKHR mSurface;
     vk::DebugUtilsMessengerEXT mDebugMessenger;
+    vk::SurfaceKHR mSurface;
     vk::PhysicalDevice mPhysicalDevice;
     vk::Device mDevice;
     vk::Queue mQueue;
@@ -73,17 +74,17 @@ private: //===================================================//
     vk::CommandPool mCommandPool;
     vk::DescriptorPool mDesciptorPool;
 
+    vk::RenderPass mRenderPass;
+
     vk::SwapchainKHR mSwapchain;
     std::vector<vk::Image> mSwapchainImages;
     std::vector<vk::ImageView> mSwapchainImageViews;
     std::vector<vk::Framebuffer> mSwapchainFramebuffers;
 
-    sq::Swapper<vk::CommandBuffer> mCommandBuffer;
-    sq::Swapper<vk::Semaphore> mImageAvailableSemaphore;
-    sq::Swapper<vk::Semaphore> mRenderFinishedSemaphore;
-    sq::Swapper<vk::Fence> mRenderFinishedFence;
-
-    vk::RenderPass mRenderPass;
+    Swapper<vk::CommandBuffer> mCommandBuffer;
+    Swapper<vk::Semaphore> mImageAvailableSemaphore;
+    Swapper<vk::Semaphore> mRenderFinishedSemaphore;
+    Swapper<vk::Fence> mRenderFinishedFence;
 
     //--------------------------------------------------------//
 
@@ -92,7 +93,5 @@ private: //===================================================//
 
     friend Implementation;
 };
-
-//============================================================================//
 
 } // namesapce sq

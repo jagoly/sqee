@@ -65,7 +65,7 @@ bool InputDevices::is_pressed(Keyboard_Key key) const
         sf::Keyboard::Key::Z,  // Z
 
         sf::Keyboard::Key::Tilde,      // Grave
-        sf::Keyboard::Key::Dash,       // Dash
+        sf::Keyboard::Key::Hyphen,     // Dash
         sf::Keyboard::Key::Equal,      // Equal
         sf::Keyboard::Key::LBracket,   // LeftBracket
         sf::Keyboard::Key::RBracket,   // RightBracket
@@ -117,6 +117,7 @@ bool InputDevices::is_pressed(Keyboard_Key key) const
         sf::Keyboard::Key::Numpad8,  // Pad_8
         sf::Keyboard::Key::Numpad9,  // Pad_9
 
+        sf::Keyboard::Key::Unknown,   // Pad_Decimal (missing from SFML)
         sf::Keyboard::Key::Add,       // Pad_Plus
         sf::Keyboard::Key::Subtract,  // Pad_Minus
         sf::Keyboard::Key::Multiply,  // Pad_Multiply

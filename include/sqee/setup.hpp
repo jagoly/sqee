@@ -87,7 +87,6 @@ struct MoveOnly
 
 //----------------------------------------------------------------------------//
 
-
 /// Some very basic generic algorithms.
 namespace algo {}
 

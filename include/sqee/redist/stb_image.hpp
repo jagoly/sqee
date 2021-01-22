@@ -120,9 +120,6 @@ RECENT REVISION HISTORY:
   of the credits.
 */
 
-#include <sqee/export.hpp>
-#define STBIDEF SQEE_API
-
 #ifndef STBI_INCLUDE_STB_IMAGE_H
 #define STBI_INCLUDE_STB_IMAGE_H
 

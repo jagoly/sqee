@@ -1,24 +1,37 @@
-#pragma once
+﻿#pragma once
 
 #include <sqee/export.hpp>
 
-#include <sqee/vk/VulkContext.hpp>
+#include <sqee/vk/Vulkan.hpp>
+#include <sqee/vk/VulkanContext.hpp>
+#include <sqee/vk/VulkanMemory.hpp>
 
 namespace sq {
 
-SQEE_API std::tuple<vk::Buffer, vk::DeviceMemory> vk_create_buffer
-(const VulkContext& ctx, size_t size, vk::BufferUsageFlags usage, bool host);
+struct SQEE_API StagingBuffer
+{
+    StagingBuffer(const VulkanContext& ctx, size_t size);
+    ~StagingBuffer();
+    const VulkanContext& ctx;
+    vk::Buffer buffer;
+    VulkanMemory memory;
+};
 
-SQEE_API std::tuple<vk::Image, vk::DeviceMemory> vk_create_image
-(const VulkContext& ctx, Vec2U size, vk::Format format, vk::ImageTiling tiling, vk::ImageUsageFlags usage, bool host);
+struct SQEE_API OneTimeCommands
+{
+    OneTimeCommands(const VulkanContext& ctx);
+    ~OneTimeCommands();
+    auto operator->() { return &cmdbuf; }
+    const VulkanContext& ctx;
+    vk::CommandBuffer cmdbuf;
+};
 
-SQEE_API void vk_copy_buffer
-(const VulkContext& ctx, vk::Buffer srcBuffer, vk::Buffer dstBuffer, size_t size);
+SQEE_API std::tuple<vk::Buffer, VulkanMemory> vk_create_buffer (
+    const VulkanContext& ctx, size_t size, vk::BufferUsageFlags usage, bool host
+);
 
-//SQEE_API void vk_transition_image_layout
-//(const VulkContext& ctx, vk::Image image, vk::Format format, vk::ImageLayout oldLayout, vk::ImageLayout newLayout);
-
-SQEE_API void vk_transfer_buffer_to_image
-(const VulkContext& ctx, vk::Buffer srcBuffer, vk::Image dstImage, Vec2U size);
+SQEE_API std::tuple<vk::Image, VulkanMemory> vk_create_image_2D (
+    const VulkanContext& ctx, vk::Format format, Vec2U size, bool linear, vk::ImageUsageFlags usage, bool host
+);
 
 } // namespace sq
