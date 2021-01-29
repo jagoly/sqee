@@ -2,10 +2,10 @@
 
 #include <sqee/setup.hpp>
 
+#include <sqee/app/Event.hpp>
 #include <sqee/core/Types.hpp>
 
 #include <sqee/vk/Swapper.hpp>
-#include <sqee/vk/VulkanContext.hpp>
 #include <sqee/vk/VulkanMemory.hpp>
 
 //====== Forward Declarations ================================================//
@@ -13,8 +13,6 @@
 extern "C" { typedef struct GLFWwindow GLFWwindow; };
 
 namespace sq {
-
-struct Event;
 
 //============================================================================//
 
@@ -28,7 +26,7 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    void create_swapchain_and_friends();
+    void create_swapchain_and_friends(bool singlePass);
 
     void destroy_swapchain_and_friends();
 
@@ -36,7 +34,9 @@ public: //====================================================//
 
     const std::vector<Event>& fetch_events();
 
-    bool begin_new_frame();
+    std::tuple<vk::CommandBuffer, uint32_t> begin_new_frame();
+
+    void begin_render_pass(vk::CommandBuffer cmdbuf);
 
     void submit_and_present();
 
@@ -44,13 +44,31 @@ public: //====================================================//
 
     GLFWwindow* get_glfw_window() { return mGlfwWindow; }
 
-    const VulkanContext& get_context() const { return mContext; }
+    vk::RenderPass get_render_pass() { return mRenderPass; }
+
+    const std::vector<vk::ImageView>& get_image_views() { return mSwapchainImageViews; }
 
     //--------------------------------------------------------//
 
     void set_title(String title);
 
+    void set_cursor_hidden(bool hidden);
+
     void set_vsync_enabled(bool enabled);
+
+    void set_key_repeat(bool /*repeat*/) {} // todo
+
+    //--------------------------------------------------------//
+
+    const String& get_title() const { return mTitle; };
+
+    bool get_cursor_hidden() const { return mCursorHidden; };
+
+    bool get_vsync_enabled() const { return mVsyncEnabled; };
+
+    //--------------------------------------------------------//
+
+    bool has_focus() const;
 
 private: //===================================================//
 
@@ -60,7 +78,8 @@ private: //===================================================//
     uint32_t mImageIndex = 0u;
 
     VulkanAllocator mAllocator;
-    VulkanContext mContext;
+
+    std::vector<Event> mEvents, mEventsOld;
 
     //--------------------------------------------------------//
 
@@ -77,7 +96,8 @@ private: //===================================================//
     vk::RenderPass mRenderPass;
 
     vk::SwapchainKHR mSwapchain;
-    std::vector<vk::Image> mSwapchainImages;
+    std::vector<vk::Image> mSwapchainImages;    
+
     std::vector<vk::ImageView> mSwapchainImageViews;
     std::vector<vk::Framebuffer> mSwapchainFramebuffers;
 
@@ -88,9 +108,13 @@ private: //===================================================//
 
     //--------------------------------------------------------//
 
-    struct Implementation;
-    std::unique_ptr<Implementation> impl;
+    String mTitle;
+    bool mCursorHidden = false;
+    bool mVsyncEnabled = false;
 
+    //--------------------------------------------------------//
+
+    struct Implementation;
     friend Implementation;
 };
 

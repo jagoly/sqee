@@ -1,17 +1,21 @@
 ﻿#include <sqee/vk/Helpers.hpp>
 
+#include <sqee/debug/Assert.hpp>
+#include <sqee/misc/Files.hpp>
+
 using namespace sq;
 
 //============================================================================//
 
-StagingBuffer::StagingBuffer(const VulkanContext& _ctx, size_t size) : ctx(_ctx)
+StagingBuffer::StagingBuffer(const VulkanContext& _ctx, size_t size)
+    : ctx(_ctx)
 {
     buffer = ctx.device.createBuffer (
         vk::BufferCreateInfo {
             {}, size, vk::BufferUsageFlagBits::eTransferSrc, vk::SharingMode::eExclusive, {}
         }
     );
-    memory = ctx.allocator->allocate(ctx.device.getBufferMemoryRequirements(buffer), true);
+    memory = ctx.allocator.allocate(ctx.device.getBufferMemoryRequirements(buffer), true);
     ctx.device.bindBufferMemory(buffer, memory.get_memory(), memory.get_offset());
 }
 
@@ -23,7 +27,8 @@ StagingBuffer::~StagingBuffer()
 
 //============================================================================//
 
-OneTimeCommands::OneTimeCommands(const VulkanContext& _ctx) : ctx(_ctx)
+OneTimeCommands::OneTimeCommands(const VulkanContext& _ctx)
+    : ctx(_ctx)
 {
     cmdbuf = ctx.device.allocateCommandBuffers (
         vk::CommandBufferAllocateInfo {
@@ -50,6 +55,62 @@ OneTimeCommands::~OneTimeCommands()
 
 //============================================================================//
 
+ShaderModules::ShaderModules(const VulkanContext& _ctx, std::optional<String> vertex, std::optional<String> geometry, std::optional<String> fragment)
+    : ctx(_ctx)
+{
+    modules.reserve(size_t(vertex.has_value() + geometry.has_value() + fragment.has_value()));
+    stages.reserve(size_t(vertex.has_value() + geometry.has_value() + fragment.has_value()));
+
+    const auto load_shader = [this](const String& source, vk::ShaderStageFlagBits stage)
+    {
+        auto shaderCode = sq::get_bytes_from_file(source);
+
+        auto shaderModule = ctx.device.createShaderModule (
+            vk::ShaderModuleCreateInfo { {}, shaderCode.size(), reinterpret_cast<uint32_t*>(shaderCode.data()) }
+        );
+
+        auto shaderStage = vk::PipelineShaderStageCreateInfo { {}, stage, shaderModule, "main", nullptr };
+
+        modules.push_back(shaderModule);
+        stages.push_back(shaderStage);
+    };
+
+    if (vertex.has_value()) load_shader(*vertex, vk::ShaderStageFlagBits::eVertex);
+    if (geometry.has_value()) load_shader(*geometry, vk::ShaderStageFlagBits::eGeometry);
+    if (fragment.has_value()) load_shader(*fragment, vk::ShaderStageFlagBits::eFragment);
+}
+
+ShaderModules::ShaderModules(const VulkanContext& _ctx, std::optional<Span> vertex, std::optional<Span> geometry, std::optional<Span> fragment)
+    : ctx(_ctx)
+{
+    modules.reserve(size_t(vertex.has_value() + geometry.has_value() + fragment.has_value()));
+    stages.reserve(size_t(vertex.has_value() + geometry.has_value() + fragment.has_value()));
+
+    const auto load_shader = [this](const Span& source, vk::ShaderStageFlagBits stage)
+    {
+        auto shaderModule = ctx.device.createShaderModule (
+            vk::ShaderModuleCreateInfo { {}, std::get<1>(source), std::get<0>(source) }
+        );
+
+        auto shaderStage = vk::PipelineShaderStageCreateInfo { {}, stage, shaderModule, "main", nullptr };
+
+        modules.push_back(shaderModule);
+        stages.push_back(shaderStage);
+    };
+
+    if (vertex.has_value()) load_shader(*vertex, vk::ShaderStageFlagBits::eVertex);
+    if (geometry.has_value()) load_shader(*geometry, vk::ShaderStageFlagBits::eGeometry);
+    if (fragment.has_value()) load_shader(*fragment, vk::ShaderStageFlagBits::eFragment);
+}
+
+ShaderModules::~ShaderModules()
+{
+    for (auto& module : modules)
+        ctx.device.destroy(module);
+}
+
+//============================================================================//
+
 std::tuple<vk::Buffer, VulkanMemory> sq::vk_create_buffer(const VulkanContext& ctx, size_t size, vk::BufferUsageFlags usage, bool host)
 {
     auto buffer = ctx.device.createBuffer (
@@ -58,8 +119,7 @@ std::tuple<vk::Buffer, VulkanMemory> sq::vk_create_buffer(const VulkanContext& c
         }
     );
 
-    auto memory = ctx.allocator->allocate(ctx.device.getBufferMemoryRequirements(buffer), host);
-
+    auto memory = ctx.allocator.allocate(ctx.device.getBufferMemoryRequirements(buffer), host);
     ctx.device.bindBufferMemory(buffer, memory.get_memory(), memory.get_offset());
 
     return { buffer, memory };
@@ -67,167 +127,75 @@ std::tuple<vk::Buffer, VulkanMemory> sq::vk_create_buffer(const VulkanContext& c
 
 //============================================================================//
 
-std::tuple<vk::Image, VulkanMemory> sq::vk_create_image_2D(const VulkanContext& ctx, vk::Format format, Vec2U size, bool linear, vk::ImageUsageFlags usage, bool host)
+std::tuple<vk::Image, VulkanMemory> sq::vk_create_image_2D(const VulkanContext& ctx, vk::Format format, Vec2U size, vk::SampleCountFlagBits samples, bool linear, vk::ImageUsageFlags usage, bool host)
 {
     auto image = ctx.device.createImage (
         vk::ImageCreateInfo {
             {}, vk::ImageType::e2D, format, vk::Extent3D(size.x, size.y, 1u),
-            1u, 1u, vk::SampleCountFlagBits::e1,
+            1u, 1u, samples,
             linear ? vk::ImageTiling::eLinear : vk::ImageTiling::eOptimal, usage,
             vk::SharingMode::eExclusive, {}, vk::ImageLayout::eUndefined
         }
     );
 
-    auto memory = ctx.allocator->allocate(ctx.device.getImageMemoryRequirements(image), host);
-
+    auto memory = ctx.allocator.allocate(ctx.device.getImageMemoryRequirements(image), host);
     ctx.device.bindImageMemory(image, memory.get_memory(), memory.get_offset());
 
     return { image, memory };
 }
 
-////============================================================================//
+//============================================================================//
 
-//void sq::vk_copy_buffer(const VulkContext& ctx, vk::Buffer srcBuffer, vk::Buffer dstBuffer, size_t size)
-//{
-//    auto cmdbuf = vk_begin_one_time_commands(ctx);
+vk::Pipeline sq::vk_create_graphics_pipeline(const VulkanContext& ctx, vk::PipelineLayout layout, vk::RenderPass renderPass, uint32_t subpass, ArrayProxyRef<vk::PipelineShaderStageCreateInfo> stages, const vk::PipelineVertexInputStateCreateInfo& vertexInputState, const vk::PipelineInputAssemblyStateCreateInfo& inputAssemblyState, const vk::PipelineViewportStateCreateInfo& viewportState, const vk::PipelineRasterizationStateCreateInfo& rasterizationState, const vk::PipelineMultisampleStateCreateInfo& multisampleState, const vk::PipelineDepthStencilStateCreateInfo& depthStencilState, ArrayProxyRef<vk::PipelineColorBlendAttachmentState> colorBlendAttachments, ArrayProxyRef<vk::DynamicState> dynamicStates)
+{
+    const auto colorBlendState = vk::PipelineColorBlendStateCreateInfo {
+        {}, false, {}, uint(colorBlendAttachments.size()), colorBlendAttachments.data(), {}
+    };
 
-//    cmdbuf.copyBuffer(srcBuffer, dstBuffer, vk::BufferCopy{0u, 0u, size});
+    const auto dynamicState = vk::PipelineDynamicStateCreateInfo {
+        {}, dynamicStates.size(), dynamicStates.data()
+    };
 
-//    vk_end_one_time_commands(ctx, cmdbuf);
-//}
+    const auto result = ctx.device.createGraphicsPipeline (
+        nullptr,
+        vk::GraphicsPipelineCreateInfo {
+            {}, uint(stages.size()), stages.data(), &vertexInputState, &inputAssemblyState, nullptr,
+            &viewportState, &rasterizationState, &multisampleState, &depthStencilState, &colorBlendState,
+            &dynamicState, layout, renderPass, subpass
+        }
+    );
 
-////============================================================================//
+    if (result.result != vk::Result::eSuccess)
+        vk::throwResultException(result.result, "sq::vk_create_gfx_pipeline");
 
-////void sq::vk_cmd_transition_image_layout(vk::CommandBuffer cmdbuf, vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout)
-////{
-////    cmdbuf.pipelineBarrier (
-////        vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eTransfer,
-////        {}, {}, {},
-////        vk::ImageMemoryBarrier {
-////            {}, vk::AccessFlagBits::eTransferWrite,
-////            vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal,
-////            VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, image,
-////            vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u)
-////        }
-////    );
-////}
+    return result.value;
+}
 
-////============================================================================//
+//============================================================================//
 
-//void sq::vk_transfer_buffer_to_image(const VulkContext& ctx, vk::Buffer srcBuffer, vk::Image dstImage, Vec2U size)
-//{
-//    auto cmdbuf = vk_begin_one_time_commands(ctx);
+vk::DescriptorSet sq::vk_allocate_descriptor_set(const VulkanContext& ctx, vk::DescriptorSetLayout layout)
+{
+    const auto info = vk::DescriptorSetAllocateInfo { ctx.descriptorPool, layout };
 
-//    cmdbuf.pipelineBarrier (
-//        vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eTransfer,
-//        {}, {}, {},
-//        vk::ImageMemoryBarrier {
-//            {}, vk::AccessFlagBits::eTransferWrite,
-//            vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal,
-//            VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, dstImage,
-//            vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u)
-//        }
-//    );
+    vk::DescriptorSet descriptorSet;
 
-//    cmdbuf.copyBufferToImage (
-//        srcBuffer, dstImage, vk::ImageLayout::eTransferDstOptimal,
-//        vk::BufferImageCopy {
-//            0u, 0u, 0u,
-//            vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0u, 0u, 1u),
-//            vk::Offset3D(0u, 0u, 0u), vk::Extent3D(size.x, size.y, 1u)
-//        }
-//    );
+    const auto result = ctx.device.allocateDescriptorSets(&info, &descriptorSet);
+    if (result != vk::Result::eSuccess)
+        vk::throwResultException(result, "sq::vk_allocate_descriptor_set");
 
-//    cmdbuf.pipelineBarrier (
-//        vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eBottomOfPipe,
-//        {}, {}, {},
-//        vk::ImageMemoryBarrier {
-//            vk::AccessFlagBits::eTransferWrite, vk::AccessFlagBits::eShaderRead,
-//            vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal,
-//            VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, dstImage,
-//            vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u)
-//        }
-//    );
+    return descriptorSet;
+}
 
-//    vk_end_one_time_commands(ctx, cmdbuf);
-//}
+Swapper<vk::DescriptorSet> sq::vk_allocate_descriptor_set_swapper(const VulkanContext& ctx, vk::DescriptorSetLayout layout)
+{
+    const auto layouts = std::array { layout, layout };
+    const auto info = vk::DescriptorSetAllocateInfo { ctx.descriptorPool, layouts };
 
-////============================================================================//
+    Swapper<vk::DescriptorSet> swapper;
 
-//void sq::vk_copy_to_buffer(const VulkContext& ctx, void* data, vk::Buffer buffer, size_t size)
-//{
-//    auto stagingBuffer = ctx.device.createBuffer (
-//        vk::BufferCreateInfo {
-//            {}, size, vk::BufferUsageFlagBits::eTransferSrc, vk::SharingMode::eExclusive, {}
-//        }
-//    );
+    const auto result = ctx.device.allocateDescriptorSets(&info, &swapper.front);
+    if (result != vk::Result::eSuccess)
+        vk::throwResultException(result, "sq::vk_allocate_descriptor_set_swapper");
 
-//    auto stagingMem = ctx.allocator->allocate(ctx.device.getBufferMemoryRequirements(stagingBuffer), true);
-//    ctx.device.bindBufferMemory(stagingBuffer, stagingMem.get_memory(), stagingMem.get_offset());
-
-//    std::memcpy(stagingMem.map(), data, size);
-//    stagingMem.unmap();
-
-//    auto cmdbuf = vk_begin_one_time_commands(ctx);
-
-//    cmdbuf.copyBuffer(stagingBuffer, buffer, vk::BufferCopy(0u, 0u, size));
-
-//    vk_end_one_time_commands(ctx, cmdbuf);
-
-//    ctx.device.destroy(stagingBuffer);
-//    stagingMem.free();
-//}
-
-////============================================================================//
-
-////void sq::vk_copy_to_image(const VulkContext& ctx, void* data, vk::Image image, Vec3U offset, Vec3U size)
-////{
-////    const size_t length = size_t(size.x * size.y * size.z);
-
-////    auto stagingBuffer = ctx.device.createBuffer (
-////        vk::BufferCreateInfo {
-////            {}, length, vk::BufferUsageFlagBits::eTransferSrc, vk::SharingMode::eExclusive, {}
-////        }
-////    );
-
-////    auto stagingMem = ctx.allocator->allocate(ctx.device.getBufferMemoryRequirements(stagingBuffer), true);
-////    ctx.device.bindBufferMemory(stagingBuffer, stagingMem.get_memory(), stagingMem.get_offset());
-
-////    std::memcpy(stagingMem.map(), data, length);
-////    stagingMem.unmap();
-
-////    auto cmdbuf = vk_begin_one_time_commands(ctx);
-
-////    cmdbuf.pipelineBarrier (
-////        vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eTransfer,
-////        {}, {}, {},
-////        vk::ImageMemoryBarrier {
-////            {}, vk::AccessFlagBits::eTransferWrite,
-////            vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal,
-////            VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, image,
-////            vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u)
-////        }
-////    );
-
-////    cmdbuf.copyBufferToImage (
-////        stagingBuffer, image, vk::ImageLayout::eTransferDstOptimal,
-////        vk::BufferImageCopy {
-////            0u, 0u, 0u,
-////            vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0u, 0u, 1u),
-////            offset, size
-////        }
-////    );
-
-////    cmdbuf.pipelineBarrier (
-////        vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eFragmentShader,
-////        {}, {}, {},
-////        vk::ImageMemoryBarrier {
-////            vk::AccessFlagBits::eTransferWrite, vk::AccessFlagBits::eShaderRead,
-////            vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal,
-////            VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, dstImage,
-////            vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u)
-////        }
-////    );
-
-////    vk_end_one_time_commands(ctx, cmdbuf);
-////}
+    return swapper;
+}

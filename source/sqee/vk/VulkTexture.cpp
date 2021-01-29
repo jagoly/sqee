@@ -27,6 +27,16 @@ static vk::Format impl_string_to_format(const String& arg)
     log_error("invalid texture format string '{}'", arg);
 }
 
+static vk::SamplerAddressMode impl_string_to_wrap(const String& arg)
+{
+    if (arg == "Repeat") return vk::SamplerAddressMode::eRepeat;
+    if (arg == "MirrorRepeat") return vk::SamplerAddressMode::eMirroredRepeat;
+    if (arg == "Clamp") return vk::SamplerAddressMode::eClampToEdge;
+    if (arg == "MirrorClamp") return vk::SamplerAddressMode::eMirrorClampToEdge;
+
+    log_error("invalid texture wrap string '{}'", arg);
+}
+
 static vk::ComponentMapping impl_string_to_swizzle(const String& arg)
 {
     const auto char_to_swizzle = [](char c)
@@ -52,42 +62,25 @@ static vk::ComponentMapping impl_string_to_swizzle(const String& arg)
     return { swizzleR, swizzleG, swizzleB, swizzleA };
 }
 
-static vk::SamplerAddressMode impl_string_to_wrap(const String& arg)
-{
-    if (arg == "Repeat") return vk::SamplerAddressMode::eRepeat;
-    if (arg == "MirrorRepeat") return vk::SamplerAddressMode::eMirroredRepeat;
-    if (arg == "Clamp") return vk::SamplerAddressMode::eClampToEdge;
-    if (arg == "MirrorClamp") return vk::SamplerAddressMode::eMirrorClampToEdge;
-
-    log_error("invalid texture wrap string '{}'", arg);
-}
-
 //============================================================================//
 
-inline int impl_get_format_channels(vk::Format format)
+inline auto impl_get_format_info(vk::Format format)
 {
-    if (format == vk::Format::eR8Srgb) return 1;
-    if (format == vk::Format::eR8G8Srgb) return 2;
-    if (format == vk::Format::eR8G8B8A8Srgb) return 4;
+    struct Result { int channels; size_t pixelSize; bool isSigned; };
 
-    if (format == vk::Format::eR8Unorm) return 1;
-    if (format == vk::Format::eR8G8Unorm) return 2;
-    if (format == vk::Format::eR8G8B8A8Unorm) return 4;
+    if (format == vk::Format::eR8Srgb) return Result { 1u, 1u, false };
+    if (format == vk::Format::eR8G8Srgb) return Result { 2u, 2u, false };
+    if (format == vk::Format::eR8G8B8A8Srgb) return Result { 4u, 4u, false };
 
-    if (format == vk::Format::eR8Snorm) return 1;
-    if (format == vk::Format::eR8G8Snorm) return 2;
-    if (format == vk::Format::eR8G8B8A8Snorm) return 4;
+    if (format == vk::Format::eR8Unorm) return Result { 1u, 1u, false };
+    if (format == vk::Format::eR8G8Unorm) return Result { 2u, 2u, false };
+    if (format == vk::Format::eR8G8B8A8Unorm) return Result { 4u, 4u, false };
 
-    return 0;
-}
+    if (format == vk::Format::eR8Snorm) return Result { 1u, 1u, true };
+    if (format == vk::Format::eR8G8Snorm) return Result { 2u, 2u, true };
+    if (format == vk::Format::eR8G8B8A8Snorm) return Result { 4u, 4u, true };
 
-inline bool impl_get_format_signed(vk::Format format)
-{
-    if (format == vk::Format::eR8Snorm) return true;
-    if (format == vk::Format::eR8G8Snorm) return true;
-    if (format == vk::Format::eR8G8B8A8Snorm) return true;
-
-    return false;
+    return Result {};
 }
 
 //============================================================================//
@@ -97,18 +90,18 @@ static auto impl_load_image(vk::Format format, const String& path)
     struct Image
     {
         ~Image() { stbi_image_free(data); };
-        uint8_t* data; Vec2U size; size_t length;
+        void* data; Vec2U size;
     };
 
-    const int formatChannels = impl_get_format_channels(format);
+    const auto formatInfo = impl_get_format_info(format);
 
     int width, height, channels;
-    uint8_t* data = stbi_load(path.c_str(), &width, &height, &channels, formatChannels);
+    uint8_t* data = stbi_load(path.c_str(), &width, &height, &channels, formatInfo.channels);
 
     if (data == nullptr)
         log_error_multiline("Error loading image '{}':\n{}", path, stbi_failure_reason());
 
-    if (impl_get_format_signed(format) == true)
+    if (formatInfo.isSigned == true)
     {
         int8_t* begin = reinterpret_cast<int8_t*>(data);
         int8_t* end = begin + width*height*channels;
@@ -117,7 +110,7 @@ static auto impl_load_image(vk::Format format, const String& path)
             *p += *p >= 0 ? -128 : +128;
     }
 
-    return Image { data, Vec2U(width, height), size_t(width * height * formatChannels) };
+    return Image { data, Vec2U(width, height) };
 }
 
 //============================================================================//
@@ -129,7 +122,6 @@ VulkTexture::VulkTexture(VulkTexture&& other)
 
 VulkTexture& VulkTexture::operator=(VulkTexture&& other)
 {
-    std::swap(ctx, other.ctx);
     std::swap(mImage, other.mImage);
     std::swap(mImageMem, other.mImageMem);
     std::swap(mImageView, other.mImageView);
@@ -139,48 +131,34 @@ VulkTexture& VulkTexture::operator=(VulkTexture&& other)
 
 VulkTexture::~VulkTexture()
 {
-    if (ctx == nullptr) return;
-    ctx->device.destroy(mSampler);
-    ctx->device.destroy(mImageView);
-    ctx->device.destroy(mImage);
-    mImageMem.free();
+    const auto& ctx = VulkanContext::get();
+    if (mSampler) ctx.device.destroy(mSampler);
+    if (mImageView) ctx.device.destroy(mImageView);
+    if (mImage) ctx.device.destroy(mImage);
+    if (mImageMem) mImageMem.free();
 }
 
 //============================================================================//
 
-void VulkTexture::load_automatic_2D(const VulkanContext& _ctx, const String& path)
+void VulkTexture::load_from_memory_2D(void* data, Vec2U size, Config2D config)
 {
-    SQASSERT(ctx == nullptr, "texture already loaded");
-    ctx = &_ctx;
+    SQASSERT(!mImage, "texture already loaded");
 
-    const JsonValue json = parse_json_from_file(path + ".json");
+    const auto& ctx = sq::VulkanContext::get();
 
-    const auto format = impl_string_to_format(json.at("format"));
-    //const bool mipmaps = json.at("mipmaps");
+    std::tie(mImage, mImageMem) = vk_create_image_2D (
+        ctx, config.format, size, vk::SampleCountFlagBits::e1, false,
+        vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled, false
+    );
 
-    const auto image = impl_load_image(format, path + ".png");
-
-    // create image and allocate memory
-    {
-        mImage = ctx->device.createImage (
-            vk::ImageCreateInfo {
-                {}, vk::ImageType::e2D, format, {image.size.x, image.size.y, 1u},
-                1u, 1u, vk::SampleCountFlagBits::e1, vk::ImageTiling::eOptimal,
-                vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
-                vk::SharingMode::eExclusive, {}, vk::ImageLayout::eUndefined
-            }
-        );
-
-        mImageMem = ctx->allocator->allocate(ctx->device.getImageMemoryRequirements(mImage), false);
-        ctx->device.bindImageMemory(mImage, mImageMem.get_memory(), mImageMem.get_offset());
-    }
+    const auto formatInfo = impl_get_format_info(config.format);
 
     // load image data via staging buffer
     {
-        auto staging = StagingBuffer(*ctx, image.length);
-        auto cmdbuf = OneTimeCommands(*ctx);
+        auto staging = StagingBuffer(ctx, size.x * size.y * formatInfo.pixelSize);
+        auto cmdbuf = OneTimeCommands(ctx);
 
-        std::memcpy(staging.memory.map(), image.data, image.length);
+        std::memcpy(staging.memory.map(), data, size.x * size.y * formatInfo.pixelSize);
         staging.memory.unmap();
 
         cmdbuf->pipelineBarrier (
@@ -199,7 +177,7 @@ void VulkTexture::load_automatic_2D(const VulkanContext& _ctx, const String& pat
             vk::BufferImageCopy {
                 0u, 0u, 0u,
                 vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0u, 0u, 1u),
-                vk::Offset3D(0u, 0u, 0u), vk::Extent3D(image.size.x, image.size.y, 1u)
+                vk::Offset3D(0u, 0u, 0u), vk::Extent3D(size.x, size.y, 1u)
             }
         );
 
@@ -215,39 +193,46 @@ void VulkTexture::load_automatic_2D(const VulkanContext& _ctx, const String& pat
         );
     }
 
-    // create image view
-    {
-        const auto components = impl_string_to_swizzle(json.at("swizzle"));
+    mImageView = ctx.device.createImageView (
+        vk::ImageViewCreateInfo {
+            {}, mImage, vk::ImageViewType::e2D, config.format, config.swizzle,
+            vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u)
+        }
+    );
 
-        mImageView = ctx->device.createImageView (
-            vk::ImageViewCreateInfo {
-                {}, mImage, vk::ImageViewType::e2D, format, components,
-                vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u)
-            }
-        );
-    }
-
-    // create sampler
-    {
-        const bool filterBool = json.at("filter");
-
-        const auto magFilter = filterBool ? vk::Filter::eLinear : vk::Filter::eNearest;
-        const auto minFilter = filterBool ? vk::Filter::eLinear : vk::Filter::eNearest;
-        const auto mipmapMode = filterBool ? vk::SamplerMipmapMode::eLinear : vk::SamplerMipmapMode::eNearest;
-
-        const auto addressModeU = impl_string_to_wrap(json.at("wrapX"));
-        const auto addressModeV = impl_string_to_wrap(json.at("wrapY"));
-
-        mSampler = ctx->device.createSampler (
-            vk::SamplerCreateInfo {
-                {}, magFilter, minFilter, mipmapMode,
-                addressModeU, addressModeV, vk::SamplerAddressMode::eRepeat,
-                0.f, filterBool, filterBool ? ctx->limits.maxAnisotropy : 0.f,
-                false, vk::CompareOp::eAlways, 0.f, 0.f,
-                vk::BorderColor::eFloatTransparentBlack, false
-            }
-        );
-    }
+    mSampler = ctx.device.createSampler (
+        vk::SamplerCreateInfo {
+            {}, config.filter ? vk::Filter::eLinear : vk::Filter::eNearest,
+            config.filter ? vk::Filter::eLinear : vk::Filter::eNearest,
+            config.filter ? vk::SamplerMipmapMode::eLinear : vk::SamplerMipmapMode::eNearest,
+            config.wrapX, config.wrapY, vk::SamplerAddressMode::eRepeat,
+            0.f, config.anisotropy, ctx.limits.maxAnisotropy,
+            false, vk::CompareOp::eAlways, 0.f, 0.f,
+            vk::BorderColor::eFloatTransparentBlack, false
+        }
+    );
 
     mDescriptorInfo = vk::DescriptorImageInfo(mSampler, mImageView, vk::ImageLayout::eShaderReadOnlyOptimal);
+}
+
+//============================================================================//
+
+void VulkTexture::load_from_file_2D(const String& path)
+{
+    SQASSERT(!mImage, "texture already loaded");
+
+    const JsonValue json = parse_json_from_file(path + ".json");
+
+    Config2D config;
+    config.format = impl_string_to_format(json.at("format"));
+    config.wrapX = impl_string_to_wrap(json.at("wrapX"));
+    config.wrapY = impl_string_to_wrap(json.at("wrapY"));
+    config.swizzle = impl_string_to_swizzle(json.at("swizzle"));
+    config.filter = json.at("filter");
+    config.mipmaps = json.at("mipmaps");
+    config.anisotropy = json.at("anisotropy");
+
+    const auto image = impl_load_image(config.format, path + ".png");
+
+    load_from_memory_2D(image.data, image.size, config);
 }

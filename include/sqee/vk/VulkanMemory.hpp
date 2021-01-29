@@ -14,10 +14,10 @@ class SQEE_API VulkanAllocator : private NonCopyable
 {
 public: //====================================================//
 
-    constexpr static size_t MEMORY_BLOCK_SIZE = 1024 * 1024 * 32;
-    constexpr static size_t CHUNK_ALIGNMENT = 256;
+    constexpr static size_t MIN_BLOCK_SIZE = 1024u * 1024u * 32u;
+    constexpr static size_t MIN_ALIGNMENT = 256u;
 
-    static_assert(MEMORY_BLOCK_SIZE % CHUNK_ALIGNMENT == 0u, "");
+    static_assert(MIN_BLOCK_SIZE % MIN_ALIGNMENT == 0u, "");
 
     //--------------------------------------------------------//
 
@@ -48,6 +48,7 @@ private: //===================================================//
     {
         VulkanAllocator* allocator;
         size_t alignment;
+        size_t size;
         vk::DeviceMemory memory;
         Chunk* firstChunk;
         size_t minFailSize;
@@ -112,6 +113,10 @@ public: //====================================================//
     void unmap();
 
     void free();
+
+    //--------------------------------------------------------//
+
+    operator bool() const { return mChunk != nullptr; }
 
 private: //===================================================//
 

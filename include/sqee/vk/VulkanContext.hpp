@@ -7,38 +7,59 @@
 
 namespace sq {
 
-//============================================================================//
+//====== Forward Declarations ================================================//
 
 class VulkanAllocator;
+class VulkWindow;
 
-struct VulkanContext final : NonCopyable
+//============================================================================//
+
+class SQEE_API VulkanContext final : NonCopyable
 {
-    struct Limits
-    {
-        float maxAnisotropy;
-    };
+public: //====================================================//
 
-    struct Frame
-    {
-        vk::CommandBuffer commandBuffer;
-        vk::Framebuffer framebuffer;
-    };
+    /// Access the static VulkanContext instance.
+    static const VulkanContext& get();
+
+    //--------------------------------------------------------//
+
+    VulkanAllocator& allocator;
 
     vk::Device device;
     vk::Queue queue;
     vk::CommandPool commandPool;
     vk::DescriptorPool descriptorPool;
-    vk::RenderPass renderPass;
 
-    VulkanAllocator* allocator;
+    //--------------------------------------------------------//
 
-    Vec2U windowSize;
+    /// Window information that gets updated each frame.
+    struct Window
+    {
+        Vec2U size;
+        vk::Framebuffer framebuffer;
+    }
+    window;
+
+    //--------------------------------------------------------//
 
     /// Relevant hardware limits from device.
-    Limits limits;
+    struct
+    {
+        float maxAnisotropy;
+    }
+    limits;
 
-    /// Objects that get swapped each frame.
-    Frame frame;
+private: //===================================================//
+
+    VulkanContext(VulkanAllocator& allocator);
+
+    static void construct(VulkanAllocator& allocator);
+
+    static void destruct();
+
+    static VulkanContext& get_mutable();
+
+    friend VulkWindow;
 };
 
 //============================================================================//

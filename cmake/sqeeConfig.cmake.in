@@ -1,0 +1,14 @@
+include("@CMAKE_CURRENT_BINARY_DIR@/sqee-exports.cmake")
+
+find_package(Vulkan REQUIRED)
+
+set(SQEE_STATIC_LIB @SQEE_STATIC_LIB@)
+
+set(SQEE_LINUX @SQEE_LINUX@)
+set(SQEE_WINDOWS @SQEE_WINDOWS@)
+
+set(SQEE_GNU @SQEE_GNU@)
+set(SQEE_CLANG @SQEE_CLANG@)
+set(SQEE_MSVC @SQEE_MSVC@)
+
+message(STATUS "VULKAN_SDK = $ENV{VULKAN_SDK}")

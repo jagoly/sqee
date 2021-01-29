@@ -58,7 +58,6 @@ VulkMesh::VulkMesh(VulkMesh&& other)
 
 VulkMesh& VulkMesh::operator=(VulkMesh&& other)
 {
-    std::swap(ctx, other.ctx);
     std::swap(mVertexBuffer, other.mVertexBuffer);
     std::swap(mVertexBufferMem, other.mVertexBufferMem);
     std::swap(mIndexBuffer, other.mIndexBuffer);
@@ -68,26 +67,23 @@ VulkMesh& VulkMesh::operator=(VulkMesh&& other)
     mIndexTotal = other.mIndexTotal;
     mAttributeFlags = other.mAttributeFlags;
     mSubMeshes = std::move(other.mSubMeshes);
-    mBindingDescription = other.mBindingDescription;
-    mAttributeDescriptions = std::move(other.mAttributeDescriptions);
     return *this;
 }
 
 VulkMesh::~VulkMesh()
 {
-    if (ctx == nullptr) return;
-    ctx->device.destroy(mVertexBuffer);
-    ctx->device.destroy(mIndexBuffer);
-    mVertexBufferMem.free();
-    mIndexBufferMem.free();
+    const auto& ctx = VulkanContext::get();
+    if (mVertexBuffer) ctx.device.destroy(mVertexBuffer);
+    if (mIndexBuffer) ctx.device.destroy(mIndexBuffer);
+    if (mVertexBufferMem) mVertexBufferMem.free();
+    if (mIndexBufferMem) mIndexBufferMem.free();
 }
 
 //============================================================================//
 
-void VulkMesh::load_from_file(const VulkanContext& _ctx, const String& path, bool swapYZ)
+void VulkMesh::load_from_file(const String& path, bool swapYZ)
 {
-    SQASSERT(ctx == nullptr, "mesh already loaded");
-    ctx = &_ctx;
+    SQASSERT(!mVertexBuffer, "mesh already loaded");
 
     if (check_file_exists(path)) impl_load_ascii(path, swapYZ);
     else if (auto _path = path + ".sqm"; check_file_exists(_path)) impl_load_ascii(_path, swapYZ);
@@ -95,13 +91,6 @@ void VulkMesh::load_from_file(const VulkanContext& _ctx, const String& path, boo
 }
 
 //============================================================================//
-
-vk::PipelineVertexInputStateCreateInfo VulkMesh::get_vertex_input_state_info() const
-{
-    return vk::PipelineVertexInputStateCreateInfo {
-        {}, mBindingDescription, mAttributeDescriptions
-    };
-}
 
 void VulkMesh::bind_buffers(vk::CommandBuffer cmdbuf) const
 {
@@ -155,11 +144,11 @@ void VulkMesh::impl_load_ascii(const String& path, bool swapYZ)
             {
                 for (uint i = 1u; i < line.size(); ++i)
                 {
-                    if      (line[i] == "TCRD") mAttributeFlags |= Attributes::TexCoords;
-                    else if (line[i] == "NORM") mAttributeFlags |= Attributes::Normals;
-                    else if (line[i] == "TANG") mAttributeFlags |= Attributes::Tangents;
-                    else if (line[i] == "COLR") mAttributeFlags |= Attributes::Colours;
-                    else if (line[i] == "BONE") mAttributeFlags |= Attributes::Bones;
+                    if      (line[i] == "TCRD") mAttributeFlags |= Attribute::TexCoords;
+                    else if (line[i] == "NORM") mAttributeFlags |= Attribute::Normals;
+                    else if (line[i] == "TANG") mAttributeFlags |= Attribute::Tangents;
+                    else if (line[i] == "COLR") mAttributeFlags |= Attribute::Colours;
+                    else if (line[i] == "BONE") mAttributeFlags |= Attribute::Bones;
 
                     else log_warning("unknown attribute '{}' in mesh '{}'", line[i], path);
                 }
@@ -201,12 +190,12 @@ void VulkMesh::impl_load_ascii(const String& path, bool swapYZ)
             if (allocatedVertices == false)
             {
                 mVertexSize = sizeof(float[3]);
-                if (mAttributeFlags & Attributes::TexCoords) mVertexSize += sizeof(float[2]);
-                if (mAttributeFlags & Attributes::Normals) mVertexSize += sizeof(uint32_t);
-                if (mAttributeFlags & Attributes::Tangents) mVertexSize += sizeof(uint32_t);
-                if (mAttributeFlags & Attributes::Colours) mVertexSize += sizeof(uint8_t[4]);
-                if (mAttributeFlags & Attributes::Bones) mVertexSize += sizeof(int8_t[4]);
-                if (mAttributeFlags & Attributes::Bones) mVertexSize += sizeof(uint8_t[4]);
+                if (mAttributeFlags & Attribute::TexCoords) mVertexSize += sizeof(float[2]);
+                if (mAttributeFlags & Attribute::Normals) mVertexSize += sizeof(uint32_t);
+                if (mAttributeFlags & Attribute::Tangents) mVertexSize += sizeof(uint32_t);
+                if (mAttributeFlags & Attribute::Colours) mVertexSize += sizeof(uint8_t[4]);
+                if (mAttributeFlags & Attribute::Bones) mVertexSize += sizeof(int8_t[4]);
+                if (mAttributeFlags & Attribute::Bones) mVertexSize += sizeof(uint8_t[4]);
 
                 vertexData.resize(mVertexTotal * mVertexSize);
                 vertexPtr = vertexData.data();
@@ -228,13 +217,13 @@ void VulkMesh::impl_load_ascii(const String& path, bool swapYZ)
                 impl_ascii_append_float(vertexPtr, line[index++]);
             }
 
-            if (mAttributeFlags & Attributes::TexCoords)
+            if (mAttributeFlags & Attribute::TexCoords)
             {
                 impl_ascii_append_float(vertexPtr, line[index++]);
                 impl_ascii_append_float(vertexPtr, line[index++]);
             }
 
-            if (mAttributeFlags & Attributes::Normals)
+            if (mAttributeFlags & Attribute::Normals)
             {
                 const auto x = line[index++];
                 const auto y = line[index++];
@@ -243,7 +232,7 @@ void VulkMesh::impl_load_ascii(const String& path, bool swapYZ)
                 else impl_ascii_append_normal(vertexPtr, x, y, z, {});
             }
 
-            if (mAttributeFlags & Attributes::Tangents)
+            if (mAttributeFlags & Attribute::Tangents)
             {
                 const auto x = line[index++];
                 const auto y = line[index++];
@@ -253,7 +242,7 @@ void VulkMesh::impl_load_ascii(const String& path, bool swapYZ)
                 else impl_ascii_append_normal(vertexPtr, x, y, z, w);
             }
 
-            if (mAttributeFlags & Attributes::Colours)
+            if (mAttributeFlags & Attribute::Colours)
             {
                 impl_ascii_append_unorm8(vertexPtr, line[index++]);
                 impl_ascii_append_unorm8(vertexPtr, line[index++]);
@@ -262,7 +251,7 @@ void VulkMesh::impl_load_ascii(const String& path, bool swapYZ)
                 impl_ascii_append_unorm8(vertexPtr, "1.0");
             }
 
-            if (mAttributeFlags & Attributes::Bones)
+            if (mAttributeFlags & Attribute::Bones)
             {
                 impl_ascii_append_int8(vertexPtr, line[index++]);
                 impl_ascii_append_int8(vertexPtr, line[index++]);
@@ -309,20 +298,14 @@ void VulkMesh::impl_load_ascii(const String& path, bool swapYZ)
 
 void VulkMesh::impl_load_final(std::vector<std::byte>& vertexData, std::vector<uint32_t>& indexData)
 {
-    const auto setup_buffer = [this](vk::Buffer& buffer, VulkanMemory& memory, vk::BufferUsageFlags usage, void* data, size_t size)
+    const auto& ctx = sq::VulkanContext::get();
+
+    const auto setup_buffer = [&ctx](vk::Buffer& buffer, VulkanMemory& memory, vk::BufferUsageFlags usage, void* data, size_t size)
     {
-        buffer = ctx->device.createBuffer (
-            vk::BufferCreateInfo {
-                {}, size, usage | vk::BufferUsageFlagBits::eTransferDst,
-                vk::SharingMode::eExclusive, {}
-            }
-        );
+        std::tie(buffer, memory) = vk_create_buffer(ctx, size, usage | vk::BufferUsageFlagBits::eTransferDst, false);
 
-        memory = ctx->allocator->allocate(ctx->device.getBufferMemoryRequirements(buffer), false);
-        ctx->device.bindBufferMemory(buffer, memory.get_memory(), memory.get_offset());
-
-        auto staging = StagingBuffer(*ctx, size);
-        auto cmdbuf = OneTimeCommands(*ctx);
+        auto staging = StagingBuffer(ctx, size);
+        auto cmdbuf = OneTimeCommands(ctx);
 
         std::memcpy(staging.memory.map(), data, size);
         staging.memory.unmap();
@@ -339,43 +322,51 @@ void VulkMesh::impl_load_final(std::vector<std::byte>& vertexData, std::vector<u
         mIndexBuffer, mIndexBufferMem, vk::BufferUsageFlagBits::eIndexBuffer,
         indexData.data(), indexData.size() * 4u
     );
+}
 
-    //--------------------------------------------------------//
+//============================================================================//
 
-    mBindingDescription = vk::VertexInputBindingDescription(0u, mVertexSize, vk::VertexInputRate::eVertex);
-
+VulkMesh::VertexConfig::VertexConfig(vk::Flags<Attribute> flags)
+{
     const uint sizePOS = sizeof(float[3]);
-    const uint sizeTCRD = sizeof(float[2]) * bool(mAttributeFlags & Attributes::TexCoords);
-    const uint sizeNORM = sizeof(uint32_t) * bool(mAttributeFlags & Attributes::Normals);
-    const uint sizeTANG = sizeof(uint32_t) * bool(mAttributeFlags & Attributes::Tangents);
-    const uint sizeCOLR = sizeof(uint8_t[4]) * bool(mAttributeFlags & Attributes::Colours);
-    const uint sizeBONE = sizeof(int8_t[4]) * bool(mAttributeFlags & Attributes::Bones);
+    const uint sizeTCRD = sizeof(float[2]) * bool(flags & Attribute::TexCoords);
+    const uint sizeNORM = sizeof(uint32_t) * bool(flags & Attribute::Normals);
+    const uint sizeTANG = sizeof(uint32_t) * bool(flags & Attribute::Tangents);
+    const uint sizeCOLR = sizeof(uint8_t[4]) * bool(flags & Attribute::Colours);
+    const uint sizeBONEI = sizeof(int8_t[4]) * bool(flags & Attribute::Bones);
+    const uint sizeBONEW = sizeof(uint8_t[4]) * bool(flags & Attribute::Bones);
 
     const uint offsetTCRD = sizePOS;
     const uint offsetNORM = offsetTCRD + sizeTCRD;
     const uint offsetTANG = offsetNORM + sizeNORM;
     const uint offsetCOLR = offsetTANG + sizeTANG;
+    const uint offsetBONEI = offsetCOLR + sizeCOLR;
+    const uint offsetBONEW = offsetBONEI + sizeBONEI;
 
-    const uint offsetBoneI = offsetCOLR + sizeCOLR;
-    const uint offsetBoneW = offsetBoneI + sizeBONE;
+    const uint vertexSize = offsetBONEW + sizeBONEW;
 
-    mAttributeDescriptions.push_back({0u, 0u, vk::Format::eR32G32B32Sfloat, 0u});
+    binding = vk::VertexInputBindingDescription(0u, vertexSize, vk::VertexInputRate::eVertex);
 
-    if (mAttributeFlags & Attributes::TexCoords)
-        mAttributeDescriptions.push_back({1u, 0u, vk::Format::eR32G32Sfloat, offsetTCRD});
+    attributes.push_back({0u, 0u, vk::Format::eR32G32B32Sfloat, 0u});
 
-    if (mAttributeFlags & Attributes::Normals)
-        mAttributeDescriptions.push_back({2u, 0u, vk::Format::eA2R10G10B10SnormPack32, offsetNORM});
+    if (flags & Attribute::TexCoords)
+        attributes.push_back({1u, 0u, vk::Format::eR32G32Sfloat, offsetTCRD});
 
-    if (mAttributeFlags & Attributes::Tangents)
-        mAttributeDescriptions.push_back({3u, 0u, vk::Format::eA2R10G10B10SnormPack32, offsetTANG});
+    if (flags & Attribute::Normals)
+        attributes.push_back({2u, 0u, vk::Format::eA2R10G10B10SnormPack32, offsetNORM});
 
-    if (mAttributeFlags & Attributes::Colours)
-        mAttributeDescriptions.push_back({4u, 0u, vk::Format::eR8G8B8A8Unorm, offsetCOLR});
+    if (flags & Attribute::Tangents)
+        attributes.push_back({3u, 0u, vk::Format::eA2R10G10B10SnormPack32, offsetTANG});
 
-    if (mAttributeFlags & Attributes::Bones)
+    // todo: use eA2R10G10B10UnormPack32 if alpha is not needed
+    if (flags & Attribute::Colours)
+        attributes.push_back({4u, 0u, vk::Format::eR8G8B8A8Unorm, offsetCOLR});
+
+    if (flags & Attribute::Bones)
     {
-        mAttributeDescriptions.push_back({5u, 0u, vk::Format::eR8Sint, offsetBoneI});
-        mAttributeDescriptions.push_back({6u, 0u, vk::Format::eR8Unorm, offsetBoneW});
+        attributes.push_back({5u, 0u, vk::Format::eR8Sint, offsetBONEI});
+        attributes.push_back({6u, 0u, vk::Format::eR8Unorm, offsetBONEW});
     }
+
+    state = vk::PipelineVertexInputStateCreateInfo({}, binding, attributes);
 }

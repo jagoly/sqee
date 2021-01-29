@@ -4,6 +4,7 @@
 #include <sqee/core/Algorithms.hpp>
 #include <sqee/debug/Assert.hpp>
 #include <sqee/debug/Logging.hpp>
+#include <sqee/vk/VulkanContext.hpp>
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -32,28 +33,235 @@ VKAPI_ATTR VkBool32 VKAPI_CALL impl_vulkan_debug_callback (
 
 //============================================================================//
 
+constexpr Keyboard_Key impl_glfw_key_to_sqee(int key)
+{
+    switch (key) {
+
+    //case GLFW_KEY_UNKNOWN:        return Keyboard_Key::Unknown;
+    case GLFW_KEY_SPACE:          return Keyboard_Key::Space;
+    case GLFW_KEY_APOSTROPHE:     return Keyboard_Key::Apostrophe;
+    case GLFW_KEY_COMMA:          return Keyboard_Key::Comma;
+    case GLFW_KEY_MINUS:          return Keyboard_Key::Dash;
+    case GLFW_KEY_PERIOD:         return Keyboard_Key::Period;
+    case GLFW_KEY_SLASH:          return Keyboard_Key::Slash;
+    case GLFW_KEY_0:              return Keyboard_Key::Num_0;
+    case GLFW_KEY_1:              return Keyboard_Key::Num_1;
+    case GLFW_KEY_2:              return Keyboard_Key::Num_2;
+    case GLFW_KEY_3:              return Keyboard_Key::Num_3;
+    case GLFW_KEY_4:              return Keyboard_Key::Num_4;
+    case GLFW_KEY_5:              return Keyboard_Key::Num_5;
+    case GLFW_KEY_6:              return Keyboard_Key::Num_6;
+    case GLFW_KEY_7:              return Keyboard_Key::Num_7;
+    case GLFW_KEY_8:              return Keyboard_Key::Num_8;
+    case GLFW_KEY_9:              return Keyboard_Key::Num_9;
+    case GLFW_KEY_SEMICOLON:      return Keyboard_Key::SemiColon;
+    case GLFW_KEY_EQUAL:          return Keyboard_Key::Equal;
+    case GLFW_KEY_A:              return Keyboard_Key::A;
+    case GLFW_KEY_B:              return Keyboard_Key::B;
+    case GLFW_KEY_C:              return Keyboard_Key::C;
+    case GLFW_KEY_D:              return Keyboard_Key::D;
+    case GLFW_KEY_E:              return Keyboard_Key::E;
+    case GLFW_KEY_F:              return Keyboard_Key::F;
+    case GLFW_KEY_G:              return Keyboard_Key::G;
+    case GLFW_KEY_H:              return Keyboard_Key::H;
+    case GLFW_KEY_I:              return Keyboard_Key::I;
+    case GLFW_KEY_J:              return Keyboard_Key::J;
+    case GLFW_KEY_K:              return Keyboard_Key::K;
+    case GLFW_KEY_L:              return Keyboard_Key::L;
+    case GLFW_KEY_M:              return Keyboard_Key::M;
+    case GLFW_KEY_N:              return Keyboard_Key::N;
+    case GLFW_KEY_O:              return Keyboard_Key::O;
+    case GLFW_KEY_P:              return Keyboard_Key::P;
+    case GLFW_KEY_Q:              return Keyboard_Key::Q;
+    case GLFW_KEY_R:              return Keyboard_Key::R;
+    case GLFW_KEY_S:              return Keyboard_Key::S;
+    case GLFW_KEY_T:              return Keyboard_Key::T;
+    case GLFW_KEY_U:              return Keyboard_Key::U;
+    case GLFW_KEY_V:              return Keyboard_Key::V;
+    case GLFW_KEY_W:              return Keyboard_Key::W;
+    case GLFW_KEY_X:              return Keyboard_Key::X;
+    case GLFW_KEY_Y:              return Keyboard_Key::Y;
+    case GLFW_KEY_Z:              return Keyboard_Key::Z;
+    case GLFW_KEY_LEFT_BRACKET:   return Keyboard_Key::LeftBracket;
+    case GLFW_KEY_BACKSLASH:      return Keyboard_Key::BackSlash;
+    case GLFW_KEY_RIGHT_BRACKET:  return Keyboard_Key::RightBracket;
+    case GLFW_KEY_GRAVE_ACCENT:   return Keyboard_Key::Grave;
+    //case GLFW_KEY_WORLD_1:        return Keyboard_Key::Unknown;
+    //case GLFW_KEY_WORLD_2:        return Keyboard_Key::Unknown;
+    case GLFW_KEY_ESCAPE:         return Keyboard_Key::Escape;
+    case GLFW_KEY_ENTER:          return Keyboard_Key::Return;
+    case GLFW_KEY_TAB:            return Keyboard_Key::Tab;
+    case GLFW_KEY_BACKSPACE:      return Keyboard_Key::BackSpace;
+    case GLFW_KEY_INSERT:         return Keyboard_Key::Insert;
+    case GLFW_KEY_DELETE:         return Keyboard_Key::Delete;
+    case GLFW_KEY_RIGHT:          return Keyboard_Key::Arrow_Right;
+    case GLFW_KEY_LEFT:           return Keyboard_Key::Arrow_Left;
+    case GLFW_KEY_DOWN:           return Keyboard_Key::Arrow_Down;
+    case GLFW_KEY_UP:             return Keyboard_Key::Arrow_Up;
+    case GLFW_KEY_PAGE_UP:        return Keyboard_Key::PageUp;
+    case GLFW_KEY_PAGE_DOWN:      return Keyboard_Key::PageDown;
+    case GLFW_KEY_HOME:           return Keyboard_Key::Home;
+    case GLFW_KEY_END:            return Keyboard_Key::End;
+    //case GLFW_KEY_CAPS_LOCK:      return Keyboard_Key::Unknown;
+    //case GLFW_KEY_SCROLL_LOCK:    return Keyboard_Key::Unknown;
+    //case GLFW_KEY_NUM_LOCK:       return Keyboard_Key::Unknown;
+    //case GLFW_KEY_PRINT_SCREEN:   return Keyboard_Key::Unknown;
+    case GLFW_KEY_PAUSE:          return Keyboard_Key::Pause;
+    case GLFW_KEY_F1:             return Keyboard_Key::F1;
+    case GLFW_KEY_F2:             return Keyboard_Key::F2;
+    case GLFW_KEY_F3:             return Keyboard_Key::F3;
+    case GLFW_KEY_F4:             return Keyboard_Key::F4;
+    case GLFW_KEY_F5:             return Keyboard_Key::F5;
+    case GLFW_KEY_F6:             return Keyboard_Key::F6;
+    case GLFW_KEY_F7:             return Keyboard_Key::F7;
+    case GLFW_KEY_F8:             return Keyboard_Key::F8;
+    case GLFW_KEY_F9:             return Keyboard_Key::F9;
+    case GLFW_KEY_F10:            return Keyboard_Key::F10;
+    case GLFW_KEY_F11:            return Keyboard_Key::F11;
+    case GLFW_KEY_F12:            return Keyboard_Key::F12;
+    //case GLFW_KEY_F13:            return Keyboard_Key::Unknown;
+    //case GLFW_KEY_F14:            return Keyboard_Key::Unknown;
+    //case GLFW_KEY_F15:            return Keyboard_Key::Unknown;
+    //case GLFW_KEY_F16:            return Keyboard_Key::Unknown;
+    //case GLFW_KEY_F17:            return Keyboard_Key::Unknown;
+    //case GLFW_KEY_F18:            return Keyboard_Key::Unknown;
+    //case GLFW_KEY_F19:            return Keyboard_Key::Unknown;
+    //case GLFW_KEY_F20:            return Keyboard_Key::Unknown;
+    //case GLFW_KEY_F21:            return Keyboard_Key::Unknown;
+    //case GLFW_KEY_F22:            return Keyboard_Key::Unknown;
+    //case GLFW_KEY_F23:            return Keyboard_Key::Unknown;
+    //case GLFW_KEY_F24:            return Keyboard_Key::Unknown;
+    //case GLFW_KEY_F25:            return Keyboard_Key::Unknown;
+    case GLFW_KEY_KP_0:           return Keyboard_Key::Pad_0;
+    case GLFW_KEY_KP_1:           return Keyboard_Key::Pad_1;
+    case GLFW_KEY_KP_2:           return Keyboard_Key::Pad_2;
+    case GLFW_KEY_KP_3:           return Keyboard_Key::Pad_3;
+    case GLFW_KEY_KP_4:           return Keyboard_Key::Pad_4;
+    case GLFW_KEY_KP_5:           return Keyboard_Key::Pad_5;
+    case GLFW_KEY_KP_6:           return Keyboard_Key::Pad_6;
+    case GLFW_KEY_KP_7:           return Keyboard_Key::Pad_7;
+    case GLFW_KEY_KP_8:           return Keyboard_Key::Pad_8;
+    case GLFW_KEY_KP_9:           return Keyboard_Key::Pad_9;
+    case GLFW_KEY_KP_DECIMAL:     return Keyboard_Key::Pad_Decimal;
+    case GLFW_KEY_KP_DIVIDE:      return Keyboard_Key::Pad_Divide;
+    case GLFW_KEY_KP_MULTIPLY:    return Keyboard_Key::Pad_Multiply;
+    case GLFW_KEY_KP_SUBTRACT:    return Keyboard_Key::Pad_Minus;
+    case GLFW_KEY_KP_ADD:         return Keyboard_Key::Pad_Plus;
+    case GLFW_KEY_KP_ENTER:       return Keyboard_Key::Return;
+    //case GLFW_KEY_KP_EQUAL:       return Keyboard_Key::Unknown;
+    case GLFW_KEY_LEFT_SHIFT:     return Keyboard_Key::Shift_L;
+    case GLFW_KEY_LEFT_CONTROL:   return Keyboard_Key::Control_L;
+    case GLFW_KEY_LEFT_ALT:       return Keyboard_Key::Alt_L;
+    case GLFW_KEY_LEFT_SUPER:     return Keyboard_Key::Super_L;
+    case GLFW_KEY_RIGHT_SHIFT:    return Keyboard_Key::Shift_R;
+    case GLFW_KEY_RIGHT_CONTROL:  return Keyboard_Key::Control_R;
+    case GLFW_KEY_RIGHT_ALT:      return Keyboard_Key::Alt_R;
+    case GLFW_KEY_RIGHT_SUPER:    return Keyboard_Key::Super_R;
+    case GLFW_KEY_MENU:           return Keyboard_Key::Menu;
+
+    default: return Keyboard_Key::Unknown;
+
+    } // switch(key)
+}
+
+//============================================================================//
+
+constexpr Mouse_Button impl_glfw_mouse_button_to_sqee(int button)
+{
+    switch (button) {
+
+    case GLFW_MOUSE_BUTTON_1: return Mouse_Button::Left;
+    case GLFW_MOUSE_BUTTON_2: return Mouse_Button::Right;
+    case GLFW_MOUSE_BUTTON_3: return Mouse_Button::Middle;
+    case GLFW_MOUSE_BUTTON_4: return Mouse_Button::ExtraA;
+    case GLFW_MOUSE_BUTTON_5: return Mouse_Button::ExtraB;
+
+    default: return Mouse_Button::Unknown;
+
+    } // switch(button)
+}
+
+//============================================================================//
+
 struct VulkWindow::Implementation
 {
-    static inline VulkWindow* get(GLFWwindow* glfwWindow)
+    static void add_event(GLFWwindow* glfwWindow, Event event)
     {
-        return static_cast<VulkWindow*>(glfwGetWindowUserPointer(glfwWindow));
+        static_cast<VulkWindow*>(glfwGetWindowUserPointer(glfwWindow))->mEvents.push_back(event);
     }
 
     static void cb_window_close(GLFWwindow* window)
     {
-        Event event { Event::Type::Window_Close, {} };
-        get(window)->impl->events.push_back(event);
+        Event event;
+        event.type = Event::Type::Window_Close;
+        add_event(window, event);
     }
 
-    std::vector<Event> events, eventsOld;
+    static void cb_window_focus(GLFWwindow* window, int focused)
+    {
+        Event event;
+        event.type = bool(focused) ? Event::Type::Window_Focus : Event::Type::Window_Unfocus;
+        add_event(window, event);
+    }
+
+    static void cb_key(GLFWwindow* window, int key, int /*scancode*/, int action, int mods)
+    {
+        if (action == GLFW_REPEAT) return;
+        Event event;
+        event.type = bool(action) ? Event::Type::Keyboard_Press : Event::Type::Keyboard_Release;
+        event.data.keyboard.key = impl_glfw_key_to_sqee(key);
+        event.data.keyboard.shift = mods & GLFW_MOD_SHIFT;
+        event.data.keyboard.ctrl = mods & GLFW_MOD_CONTROL;
+        event.data.keyboard.alt = mods & GLFW_MOD_ALT;
+        event.data.keyboard.super = mods & GLFW_MOD_SUPER;
+        add_event(window, event);
+    }
+
+    static void cb_mouse_button(GLFWwindow* window, int button, int action, int /*mods*/)
+    {
+        Event event;
+        event.type = bool(action) ? Event::Type::Mouse_Press : Event::Type::Mouse_Release;
+        event.data.mouse.button = impl_glfw_mouse_button_to_sqee(button);
+        //event.data.mouse.shift = mods & GLFW_MOD_SHIFT;
+        //event.data.mouse.ctrl = mods & GLFW_MOD_CONTROL;
+        //event.data.mouse.alt = mods & GLFW_MOD_ALT;
+        //event.data.mouse.super = mods & GLFW_MOD_SUPER;
+        add_event(window, event);
+    }
+
+    static void cb_scroll(GLFWwindow* window, double xoffset, double yoffset)
+    {
+        if (xoffset != 0.0)
+        {
+            Event event;
+            event.type = Event::Type::Mouse_Scroll;
+            event.data.scroll.wheel = Mouse_Wheel::Horizontal;
+            event.data.scroll.delta = float(xoffset);
+            add_event(window, event);
+        }
+        if (yoffset != 0.0)
+        {
+            Event event;
+            event.type = Event::Type::Mouse_Scroll;
+            event.data.scroll.wheel = Mouse_Wheel::Vertical;
+            event.data.scroll.delta = float(yoffset);
+            add_event(window, event);
+        }
+    }
+
+    static void cb_char(GLFWwindow* window, uint codepoint)
+    {
+        Event event;
+        event.type = Event::Type::Text_Entry;
+        event.data.text.unicode = codepoint;
+        add_event(window, event);
+    }
 };
 
 //============================================================================//
 
 VulkWindow::VulkWindow(const char* title, Vec2U size, const char* appName, Vec3U version)
 {
-    impl = std::make_unique<Implementation>();
-
     // create glfw window
     {
         glfwInit();
@@ -65,6 +273,11 @@ VulkWindow::VulkWindow(const char* title, Vec2U size, const char* appName, Vec3U
         glfwSetWindowUserPointer(mGlfwWindow, this);
 
         glfwSetWindowCloseCallback(mGlfwWindow, Implementation::cb_window_close);
+        glfwSetWindowFocusCallback(mGlfwWindow, Implementation::cb_window_focus);
+        glfwSetKeyCallback(mGlfwWindow, Implementation::cb_key);
+        glfwSetMouseButtonCallback(mGlfwWindow, Implementation::cb_mouse_button);
+        glfwSetScrollCallback(mGlfwWindow, Implementation::cb_scroll);
+        glfwSetCharCallback(mGlfwWindow, Implementation::cb_char);
     }
 
     // initial dispatcher setup
@@ -224,35 +437,6 @@ VulkWindow::VulkWindow(const char* title, Vec2U size, const char* appName, Vec3U
         );
     }
 
-    // create render pass
-    {
-        auto attachments = vk::AttachmentDescription {
-            {}, vk::Format::eB8G8R8A8Srgb, vk::SampleCountFlagBits::e1, vk::AttachmentLoadOp::eClear,
-            vk::AttachmentStoreOp::eStore, vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
-            vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR
-        };
-
-        auto colorAttachments = vk::AttachmentReference {
-            0u, vk::ImageLayout::eColorAttachmentOptimal
-        };
-
-        auto subpasses = vk::SubpassDescription {
-            {}, vk::PipelineBindPoint::eGraphics, {}, colorAttachments
-        };
-
-        auto dependencies = vk::SubpassDependency {
-            VK_SUBPASS_EXTERNAL, 0u,
-            vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eColorAttachmentOutput,
-            {}, vk::AccessFlagBits::eColorAttachmentWrite, {}
-        };
-
-        mRenderPass = mDevice.createRenderPass (
-            vk::RenderPassCreateInfo {
-                {}, attachments, subpasses, dependencies
-            }
-        );
-    }
-
     // create allocator
     {
         const auto memoryProps = mPhysicalDevice.getMemoryProperties();
@@ -275,23 +459,21 @@ VulkWindow::VulkWindow(const char* title, Vec2U size, const char* appName, Vec3U
 
     // setup context
     {
-        mContext.device = mDevice;
-        mContext.queue = mQueue;
-        mContext.commandPool = mCommandPool;
-        mContext.descriptorPool = mDesciptorPool;
-        mContext.renderPass = mRenderPass;
+        VulkanContext::construct(mAllocator);
+        VulkanContext& context = VulkanContext::get_mutable();
+
+        context.device = mDevice;
+        context.queue = mQueue;
+        context.commandPool = mCommandPool;
+        context.descriptorPool = mDesciptorPool;
 
         // query limits
         {
             const auto limits = mPhysicalDevice.getProperties().limits;
 
-            mContext.limits.maxAnisotropy = limits.maxSamplerAnisotropy;
+            context.limits.maxAnisotropy = limits.maxSamplerAnisotropy;
         }
-
-        mContext.allocator = &mAllocator;
     }
-
-    create_swapchain_and_friends();
 }
 
 //============================================================================//
@@ -299,6 +481,8 @@ VulkWindow::VulkWindow(const char* title, Vec2U size, const char* appName, Vec3U
 VulkWindow::~VulkWindow()
 {
     mDevice.waitIdle();
+
+    VulkanContext::destruct();
 
     mAllocator.destroy();
 
@@ -310,8 +494,6 @@ VulkWindow::~VulkWindow()
     mDevice.destroy(mRenderFinishedSemaphore.back);
     mDevice.destroy(mRenderFinishedFence.front);
     mDevice.destroy(mRenderFinishedFence.back);
-
-    mDevice.destroy(mRenderPass);
 
     mDevice.destroy(mDesciptorPool);
     mDevice.destroy(mCommandPool);
@@ -327,20 +509,19 @@ VulkWindow::~VulkWindow()
 
 //============================================================================//
 
-void VulkWindow::create_swapchain_and_friends()
+void VulkWindow::create_swapchain_and_friends(bool /*singlePass*/)
 {
     const auto capabilities = mPhysicalDevice.getSurfaceCapabilitiesKHR(mSurface);
 
-    // get framebuffer size
+    // update framebuffer size
     {
         mFramebufferSize = capabilities.currentExtent;
-        mContext.windowSize = { mFramebufferSize.width, mFramebufferSize.height };
+        VulkanContext::get_mutable().window.size = { mFramebufferSize.width, mFramebufferSize.height };
     }
 
     // create swapchain
     {
-        //const auto presentMode = vk::PresentModeKHR::eImmediate;
-        const auto presentMode = vk::PresentModeKHR::eFifo;
+        const auto presentMode = mVsyncEnabled ? vk::PresentModeKHR::eFifo : vk::PresentModeKHR::eImmediate;
 
         mSwapchain = mDevice.createSwapchainKHR (
             vk::SwapchainCreateInfoKHR {
@@ -353,34 +534,65 @@ void VulkWindow::create_swapchain_and_friends()
         );
 
         mSwapchainImages = mDevice.getSwapchainImagesKHR(mSwapchain);
+    }
 
-        mSwapchainImageViews.clear();
+    // create render pass
+    {
+        auto attachments = vk::AttachmentDescription {
+            {}, vk::Format::eB8G8R8A8Srgb, vk::SampleCountFlagBits::e1,
+            vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eStore,
+            vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
+            vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR
+        };
+
+        auto colorAttachments = vk::AttachmentReference {
+            0u, vk::ImageLayout::eColorAttachmentOptimal
+        };
+
+        auto subpasses = vk::SubpassDescription {
+            {}, vk::PipelineBindPoint::eGraphics, {}, colorAttachments, {}, nullptr, {}
+        };
+
+        auto dependencies = std::array {
+            vk::SubpassDependency {
+                VK_SUBPASS_EXTERNAL, 0u,
+                vk::PipelineStageFlagBits::eBottomOfPipe, vk::PipelineStageFlagBits::eColorAttachmentOutput,
+                vk::AccessFlagBits::eMemoryRead,
+                vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite,
+                vk::DependencyFlagBits::eByRegion
+            },
+            vk::SubpassDependency {
+                0u, VK_SUBPASS_EXTERNAL,
+                vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eBottomOfPipe,
+                vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite,
+                vk::AccessFlagBits::eMemoryRead,
+                vk::DependencyFlagBits::eByRegion
+            }
+        };
+
+        mRenderPass = mDevice.createRenderPass (
+            vk::RenderPassCreateInfo { {}, attachments, subpasses, dependencies }
+        );
+    }
+
+    // create image views and framebuffers
+    {
         mSwapchainImageViews.reserve(mSwapchainImages.size());
+        mSwapchainFramebuffers.reserve(mSwapchainImageViews.size());
 
         for (auto& image : mSwapchainImages)
         {
             mSwapchainImageViews.emplace_back() = mDevice.createImageView (
                 vk::ImageViewCreateInfo {
                     {}, image, vk::ImageViewType::e2D, vk::Format::eB8G8R8A8Srgb, {},
-                    vk::ImageSubresourceRange { vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u }
+                    vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u)
                 }
             );
-        }
 
-        //sq::log_debug("Swapchain: mode = {} | images = {} | size = {}×{}", vk::to_string(presentMode),
-        //              mSwapchainImages.size(), mFramebufferSize.width, mFramebufferSize.height);
-    }
-
-    // create framebuffers
-    {
-        mSwapchainFramebuffers.clear();
-        mSwapchainFramebuffers.reserve(mSwapchainImageViews.size());
-
-        for (auto& imageView : mSwapchainImageViews)
-        {
             mSwapchainFramebuffers.emplace_back() = mDevice.createFramebuffer (
                 vk::FramebufferCreateInfo {
-                    {}, mRenderPass, imageView, mFramebufferSize.width, mFramebufferSize.height, 1u
+                    {}, mRenderPass, mSwapchainImageViews.back(),
+                    mFramebufferSize.width, mFramebufferSize.height, 1u
                 }
             );
         }
@@ -391,6 +603,10 @@ void VulkWindow::create_swapchain_and_friends()
 
 void VulkWindow::destroy_swapchain_and_friends()
 {
+    mDevice.waitIdle();
+
+    mDevice.destroy(mRenderPass);
+
     for (auto& framebuffer : mSwapchainFramebuffers)
         mDevice.destroy(framebuffer);
 
@@ -411,18 +627,18 @@ const std::vector<Event>& VulkWindow::fetch_events()
 
     // we don't want to resize more than once at a time
     const auto predicate = [](Event& event) { return event.type == Event::Type::Window_Resize; };
-    const auto end = std::prev(std::find_if(impl->events.rbegin(), impl->events.rend(), predicate).base());
-    impl->events.erase(std::remove_if(impl->events.begin(), end, predicate), end);
+    const auto end = std::prev(std::find_if(mEvents.rbegin(), mEvents.rend(), predicate).base());
+    mEvents.erase(std::remove_if(mEvents.begin(), end, predicate), end);
 
-    std::swap(impl->events, impl->eventsOld);
-    impl->events.clear();
+    std::swap(mEvents, mEventsOld);
+    mEvents.clear();
 
-    return impl->eventsOld;
+    return mEventsOld;
 }
 
 //============================================================================//
 
-bool VulkWindow::begin_new_frame()
+std::tuple<vk::CommandBuffer, uint32_t> VulkWindow::begin_new_frame()
 {
     auto waitResult = mDevice.waitForFences(mRenderFinishedFence.front, true, UINT64_MAX);
     SQASSERT(waitResult == vk::Result::eSuccess, "");
@@ -437,19 +653,30 @@ bool VulkWindow::begin_new_frame()
     }
     catch (const vk::OutOfDateKHRError&)
     {
-        impl->events.push_back({ Event::Type::Window_Resize, {} });
-        return false; // EARLY RETURN
+        mEvents.push_back({Event::Type::Window_Resize, {}});
+        return { {}, {} }; // EARLY RETURN
     }
 
     if (oldImageIndex == mImageIndex)
         mDevice.waitIdle();
 
-    mContext.frame.commandBuffer = mCommandBuffer.front;
-    mContext.frame.framebuffer = mSwapchainFramebuffers[mImageIndex];
-
     mCommandBuffer.front.reset({});
 
-    return true;
+    return { mCommandBuffer.front, mImageIndex };
+}
+
+//============================================================================//
+
+void VulkWindow::begin_render_pass(vk::CommandBuffer cmdbuf)
+{
+    cmdbuf.beginRenderPass (
+        vk::RenderPassBeginInfo {
+            mRenderPass, mSwapchainFramebuffers[mImageIndex],
+            vk::Rect2D({0, 0}, mFramebufferSize),
+            nullptr
+        },
+        vk::SubpassContents::eInline
+    );
 }
 
 //============================================================================//
@@ -476,7 +703,7 @@ void VulkWindow::submit_and_present()
     }
     catch (const vk::OutOfDateKHRError&)
     {
-        impl->events.push_back({ Event::Type::Window_Resize, {} });
+        mEvents.push_back({Event::Type::Window_Resize, {}});
     }
 
     mCommandBuffer.swap();
@@ -489,5 +716,31 @@ void VulkWindow::submit_and_present()
 
 void VulkWindow::set_title(String title)
 {
-    glfwSetWindowTitle(mGlfwWindow, title.c_str());
+    mTitle = std::move(title);
+    glfwSetWindowTitle(mGlfwWindow, mTitle.c_str());
+}
+
+// todo: GLFW supports proper raw mouse movement, unlike SFML
+void VulkWindow::set_cursor_hidden(bool hidden)
+{
+    if (mCursorHidden == hidden) return;
+
+    mCursorHidden = hidden;
+    glfwSetInputMode(mGlfwWindow, GLFW_CURSOR, hidden ? GLFW_CURSOR_HIDDEN : GLFW_CURSOR_NORMAL);
+}
+
+// todo: Vulkan supports freesync/gsync refresh, unline OpenGL
+void VulkWindow::set_vsync_enabled(bool enabled)
+{
+    if (mVsyncEnabled == enabled) return;
+
+    mVsyncEnabled = enabled;
+    mEvents.push_back({Event::Type::Window_Resize, {}});
+}
+
+//============================================================================//
+
+bool VulkWindow::has_focus() const
+{
+    return bool(glfwGetWindowAttrib(mGlfwWindow, GLFW_FOCUSED));
 }

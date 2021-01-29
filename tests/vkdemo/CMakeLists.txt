@@ -4,8 +4,8 @@ project(SQEE_VKDEMO CXX)
 
 set(SHADER_OUTPUT_DIR "${CMAKE_BINARY_DIR}/tests/vkdemo/shaders")
 
-function (target_add_shaders TARGET SHADERS)
-    foreach (SHADER ${SHADERS})
+function (target_add_shaders TARGET)
+    foreach (SHADER ${ARGN})
 
         string( REGEX REPLACE
                 "${PROJECT_SOURCE_DIR}/shaders/(.*)\.(vert|geom|frag)"
@@ -44,8 +44,7 @@ add_executable(sqee-vkdemo ${HEADERS} ${SOURCES})
 file(GLOB_RECURSE VERT_SHADERS "${PROJECT_SOURCE_DIR}/shaders/*.vert")
 file(GLOB_RECURSE FRAG_SHADERS "${PROJECT_SOURCE_DIR}/shaders/*.frag")
 
-target_add_shaders(sqee-vkdemo ${VERT_SHADERS})
-target_add_shaders(sqee-vkdemo ${FRAG_SHADERS})
+target_add_shaders(sqee-vkdemo ${VERT_SHADERS} ${FRAG_SHADERS})
 
 ################################################################################
 

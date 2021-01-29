@@ -19,7 +19,7 @@ class SQEE_API VulkMesh final : private MoveOnly
 {
 public: //====================================================//
 
-    enum class Attributes : int8_t
+    enum class Attribute
     {
         TexCoords = 0b00001,
         Normals   = 0b00010,
@@ -41,12 +41,6 @@ public: //====================================================//
         float radius = 0.f;
     };
 
-//    struct VertexInputStateInfo
-//    {
-//        vk::VertexInputBindingDescription binding;
-//        vk::ArrayProxyNoTemporaries<vk::VertexInputAttributeDescription> attributes;
-//    };
-
     //--------------------------------------------------------//
 
     VulkMesh() = default;
@@ -59,12 +53,7 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     /// Load the mesh from an SQM file.
-    void load_from_file(const VulkanContext& ctx, const String& path, bool swapYZ = false);
-
-    //--------------------------------------------------------//
-
-    /// Get information needed to create graphics pipelines.
-    vk::PipelineVertexInputStateCreateInfo get_vertex_input_state_info() const;
+    void load_from_file(const String& path, bool swapYZ = false);
 
     //--------------------------------------------------------//
 
@@ -80,14 +69,23 @@ public: //====================================================//
     const std::vector<SubMesh>& get_sub_meshes() const { return mSubMeshes; }
 
     /// Check what attributes the mesh contains.
-    vk::Flags<Attributes> get_attribute_flags() const { return mAttributeFlags; }\
+    vk::Flags<Attribute> get_attribute_flags() const { return mAttributeFlags; }
 
     /// Access the mesh's bounding box.
     const Bounds& get_bounds() const { return mBounds; }
 
-private: //===================================================//
+    //--------------------------------------------------------//
 
-    const VulkanContext* ctx = nullptr;
+    struct VertexConfig
+    {
+        VertexConfig(vk::Flags<Attribute> flags);
+
+        vk::VertexInputBindingDescription binding;
+        std::vector<vk::VertexInputAttributeDescription> attributes;
+        vk::PipelineVertexInputStateCreateInfo state;
+    };
+
+private: //===================================================//
 
     vk::Buffer mVertexBuffer;
     sq::VulkanMemory mVertexBufferMem;
@@ -98,12 +96,9 @@ private: //===================================================//
     uint mVertexTotal = 0u;
     uint mIndexTotal = 0u;
 
-    vk::Flags<Attributes> mAttributeFlags;
+    vk::Flags<Attribute> mAttributeFlags;
     std::vector<SubMesh> mSubMeshes;
     Bounds mBounds;
-
-    vk::VertexInputBindingDescription mBindingDescription;
-    std::vector<vk::VertexInputAttributeDescription> mAttributeDescriptions;
 
     //--------------------------------------------------------//
 
@@ -111,6 +106,13 @@ private: //===================================================//
 
     void impl_load_final(std::vector<std::byte>& vertexData, std::vector<uint32_t>& indexData);
 };
+
+//============================================================================//
+
+inline vk::Flags<VulkMesh::Attribute> operator|(VulkMesh::Attribute lhs, VulkMesh::Attribute rhs)
+{
+    return vk::Flags<VulkMesh::Attribute>(int(lhs) | int(rhs));
+}
 
 //============================================================================//
 

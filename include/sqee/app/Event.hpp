@@ -6,7 +6,6 @@
 #include <sqee/setup.hpp>
 
 #include <sqee/core/Types.hpp>
-#include <sqee/maths/Vectors.hpp>
 
 namespace sq {
 
@@ -25,7 +24,7 @@ enum class Keyboard_Key : int8_t
     Arrow_Left, Arrow_Up, Arrow_Right, Arrow_Down,
     Pad_0, Pad_1, Pad_2, Pad_3, Pad_4, Pad_5, Pad_6, Pad_7, Pad_8, Pad_9,
     Pad_Decimal, Pad_Plus, Pad_Minus, Pad_Multiply, Pad_Divide,
-    F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12,
+    F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12
 };
 
 enum class Mouse_Button : int8_t
@@ -53,6 +52,43 @@ enum class Gamepad_Stick : int8_t
     Unknown = -1,
     Left, Right
 };
+
+//============================================================================//
+
+//struct Event_WindowClose {};
+
+//struct Event_WindowResize {};
+
+//struct Event_WindowFocus {};
+
+//struct Event_WindowUnfocus {};
+
+//struct Event_KeyPress { Keyboard_Key key; bool shift, ctrl, alt, super; };
+
+//struct Event_KeyRelease { Keyboard_Key key; bool shift, ctrl, alt, super; };
+
+//struct Event_MousePress { Mouse_Button button; Vec2I position; };
+
+//struct Event_MouseRelease { Mouse_Button button; Vec2I position; };
+
+//struct Event_GamepadPress { int32_t port; Gamepad_Button button; };
+
+//struct Event_GamepadRelease { int32_t port; Gamepad_Button button; };
+
+//struct Event_MouseScroll { Mouse_Wheel wheel; float delta; };
+
+//struct Event_TextEntry { uint32_t unicode; };
+
+////============================================================================//
+
+//using Event = std::variant <
+//    Event_WindowClose, Event_WindowResize,
+//    Event_WindowFocus, Event_WindowUnfocus,
+//    Event_KeyPress, Event_KeyRelease,
+//    Event_MousePress, Event_MouseRelease,
+//    Event_GamepadPress, Event_GamepadRelease,
+//    Event_MouseScroll, Event_TextEntry
+//>;
 
 //============================================================================//
 
@@ -86,7 +122,7 @@ struct Event final
     };
 
     Type type = Type::Unknown;
-    Data data;
+    Data data {};
 };
 
 static_assert(sizeof(Event) == 16, "");

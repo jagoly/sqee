@@ -1,8 +1,9 @@
 #version 450
 
-layout(set=0, binding=0) uniform sampler2D tx_Colour;
+layout(set=1, binding=1) uniform sampler2D tx_Colour;
 
 layout(location=0) in vec2 io_TexCoord;
+layout(location=1) in vec3 io_Normal;
 
 layout(location=0) out vec4 frag_Colour;
 

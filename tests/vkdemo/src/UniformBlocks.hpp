@@ -6,9 +6,13 @@ namespace sqt {
 
 struct CameraBlock
 {
-    Mat4F model;
     Mat4F view;
     Mat4F proj;
+};
+
+struct ModelBlock
+{
+    Mat4F model;
 };
 
 } // namespace sqt

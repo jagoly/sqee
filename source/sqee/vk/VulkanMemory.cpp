@@ -2,6 +2,12 @@
 
 #include <sqee/debug/Assert.hpp>
 
+// todo:
+// - alignment is fixed for each block, so lots of mem is wasted
+// - minFailSize is probably dumb premature optimisation, if it even works
+// - blocks never get freed
+// - needs unit tests
+
 using namespace sq;
 
 //============================================================================//
@@ -37,13 +43,13 @@ void VulkanAllocator::destroy()
 {
     for (auto& block : mHostMemoryBlocks)
     {
-        SQASSERT(block->firstChunk->free && block->firstChunk->next == nullptr, "unfreed host memory");
+        //SQASSERT(block->firstChunk->free && block->firstChunk->next == nullptr, "unfreed host memory");
         mDevice.free(block->memory);
     }
 
     for (auto& block : mDeviceMemoryBlocks)
     {
-        SQASSERT(block->firstChunk->free && block->firstChunk->next == nullptr, "unfreed device memory");
+        //SQASSERT(block->firstChunk->free && block->firstChunk->next == nullptr, "unfreed device memory");
         mDevice.free(block->memory);
     }
 }
@@ -52,9 +58,9 @@ void VulkanAllocator::destroy()
 
 VulkanMemory VulkanAllocator::allocate(size_t alignment, size_t size, bool host)
 {
-    SQASSERT(size <= MEMORY_BLOCK_SIZE, ""); // todo: just allocate a larger block
+    //SQASSERT(size <= MEMORY_BLOCK_SIZE, ""); // todo: just allocate a larger block
 
-    alignment = std::max(alignment, CHUNK_ALIGNMENT);
+    alignment = std::max(alignment, MIN_ALIGNMENT);
 
     auto& memoryBlocks = host ? mHostMemoryBlocks : mDeviceMemoryBlocks;
     const auto memoryTypeIndex = host ? mMemTypeHost : mMemTypeDevice;
@@ -64,6 +70,7 @@ VulkanMemory VulkanAllocator::allocate(size_t alignment, size_t size, bool host)
     // look for any usable chunk in existing blocks
     for (auto& block : memoryBlocks)
     {
+        if (block->size < size) continue;
         if (block->alignment != alignment) continue;
         if (block->minFailSize <= size) continue;
 
@@ -81,12 +88,13 @@ VulkanMemory VulkanAllocator::allocate(size_t alignment, size_t size, bool host)
 
         block->allocator = this;
         block->alignment = alignment;
-        block->memory = mDevice.allocateMemory(vk::MemoryAllocateInfo(MEMORY_BLOCK_SIZE, memoryTypeIndex));
+        block->size = impl_round_up(size, MIN_BLOCK_SIZE);
+        block->memory = mDevice.allocateMemory(vk::MemoryAllocateInfo(block->size, memoryTypeIndex));
 
         chunk = impl_new_chunk();
         chunk->block = block.get();
         chunk->offset = 0u;
-        chunk->size = MEMORY_BLOCK_SIZE;
+        chunk->size = block->size;
         chunk->previous = nullptr;
         chunk->next = nullptr;
         chunk->free = true;
@@ -194,7 +202,7 @@ void* VulkanMemory::map()
     auto device = block.allocator->mDevice;
 
     if (block.mapped == nullptr)
-        block.mapped = device.mapMemory(block.memory, 0u, VulkanAllocator::MEMORY_BLOCK_SIZE, {});
+        block.mapped = device.mapMemory(block.memory, 0u, block.size, {});
 
     ++block.mapCount;
     mChunk->mapped = true;
@@ -227,7 +235,7 @@ void VulkanMemory::free()
     if (mChunk->mapped == true)
         unmap();
 
-    mChunk->size = impl_round_up(mChunk->size, VulkanAllocator::CHUNK_ALIGNMENT);
+    mChunk->size = impl_round_up(mChunk->size, mChunk->block->alignment);
 
     // merge with previous chunk
     if (mChunk->previous != nullptr && mChunk->previous->free == true)

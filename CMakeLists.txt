@@ -8,6 +8,7 @@ option(SQEE_STATIC_LIB "Build SQEE as a static library" False)
 ################################################################################
 
 set(CMAKE_MODULE_PATH APPEND "${PROJECT_SOURCE_DIR}/cmake/modules")
+set(CMAKE_INCLUDE_PATH APPEND "${PROJECT_SOURCE_DIR}/cmake")
 
 ################################################################################
 
@@ -95,6 +96,9 @@ if (SQEE_GNU OR SQEE_CLANG)
     target_compile_options(sqee PRIVATE -Wall -Wextra)
     #target_compile_options(sqee PRIVATE -Wall -Wextra -Wpedantic)
 
+    # remove after vulkan sdk update
+    target_compile_options(sqee PUBLIC -Wno-init-list-lifetime)
+
     if (NOT SQEE_STATIC_LIB)
         target_compile_options(sqee PRIVATE -fvisibility=hidden)
     endif ()
@@ -128,6 +132,12 @@ target_link_libraries(sqee PRIVATE sfml-window sfml-system)
 
 ################################################################################
 
+find_package(glfw3 3.3 REQUIRED)
+
+target_link_libraries(sqee PRIVATE glfw)
+
+################################################################################
+
 set(OpenGL_GL_PREFERENCE "GLVND")
 
 find_package(OpenGL REQUIRED)
@@ -144,13 +154,9 @@ message(STATUS "VULKAN_SDK = $ENV{VULKAN_SDK}")
 
 find_package(Vulkan REQUIRED)
 
-target_link_libraries(sqee PUBLIC Vulkan::Vulkan)
-
-################################################################################
-
-find_package(glfw3 3.3 REQUIRED)
-
-target_link_libraries(sqee PUBLIC glfw)
+#target_link_libraries(sqee PUBLIC Vulkan::Vulkan)
+target_link_libraries(sqee PUBLIC ${Vulkan_LIBRARIES})
+target_include_directories(sqee PUBLIC ${Vulkan_INCLUDE_DIRS})
 
 ################################################################################
 
@@ -163,9 +169,25 @@ target_link_libraries(sqee PUBLIC format)
 add_subdirectory(libs/wren)
 target_link_libraries(sqee PUBLIC wren)
 
-export(TARGETS sqee dearimgui format wren FILE sqee-exports.cmake)
-
 ################################################################################
+
+include(CMakePackageConfigHelpers)
+
+write_basic_package_version_file (
+    "${CMAKE_CURRENT_BINARY_DIR}/sqeeConfigVersion.cmake"
+    VERSION 1.0
+    COMPATIBILITY AnyNewerVersion
+)
+
+export (
+    TARGETS sqee dearimgui format wren
+    FILE "${CMAKE_CURRENT_BINARY_DIR}/sqee-exports.cmake"
+)
+
+configure_file (
+    cmake/sqeeConfig.cmake.in
+    "${CMAKE_CURRENT_BINARY_DIR}/sqeeConfig.cmake"
+)
 
 add_subdirectory("testing")
 
