@@ -14,7 +14,7 @@ class SQEE_API VulkanAllocator : private NonCopyable
 {
 public: //====================================================//
 
-    constexpr static size_t MIN_BLOCK_SIZE = 1024u * 1024u * 32u;
+    constexpr static size_t MIN_BLOCK_SIZE = 1024u * 1024u * 4u;
     constexpr static size_t MIN_ALIGNMENT = 256u;
 
     static_assert(MIN_BLOCK_SIZE % MIN_ALIGNMENT == 0u, "");
@@ -50,10 +50,9 @@ private: //===================================================//
         size_t alignment;
         size_t size;
         vk::DeviceMemory memory;
-        Chunk* firstChunk;
-        size_t minFailSize;
         void* mapped;
         size_t mapCount;
+        Chunk* firstChunk;
     };
 
     union FreeSlot
@@ -94,17 +93,17 @@ class SQEE_API VulkanMemory
 {
 public: //====================================================//
 
-    VulkanMemory() : mChunk(nullptr) {}
+    VulkanMemory() : chunk(nullptr) {}
 
-    VulkanMemory(VulkanAllocator::Chunk* chunk) : mChunk(chunk) {}
+    VulkanMemory(VulkanAllocator::Chunk* _chunk) : chunk(_chunk) {}
 
     //--------------------------------------------------------//
 
-    size_t get_offset() { return mChunk->offset; }
+    size_t get_offset() { return chunk->offset; }
 
-    size_t get_size() { return mChunk->size; }
+    size_t get_size() { return chunk->size; }
 
-    vk::DeviceMemory get_memory() { return mChunk->block->memory; }
+    vk::DeviceMemory get_memory() { return chunk->block->memory; }
 
     //--------------------------------------------------------//
 
@@ -116,11 +115,11 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    operator bool() const { return mChunk != nullptr; }
+    operator bool() const { return chunk != nullptr; }
 
 private: //===================================================//
 
-    VulkanAllocator::Chunk* mChunk;
+    VulkanAllocator::Chunk* chunk;
 };
 
 //============================================================================//

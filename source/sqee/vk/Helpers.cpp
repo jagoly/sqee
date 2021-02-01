@@ -146,10 +146,14 @@ std::tuple<vk::Image, VulkanMemory> sq::vk_create_image_2D(const VulkanContext& 
 
 //============================================================================//
 
-vk::Pipeline sq::vk_create_graphics_pipeline(const VulkanContext& ctx, vk::PipelineLayout layout, vk::RenderPass renderPass, uint32_t subpass, ArrayProxyRef<vk::PipelineShaderStageCreateInfo> stages, const vk::PipelineVertexInputStateCreateInfo& vertexInputState, const vk::PipelineInputAssemblyStateCreateInfo& inputAssemblyState, const vk::PipelineViewportStateCreateInfo& viewportState, const vk::PipelineRasterizationStateCreateInfo& rasterizationState, const vk::PipelineMultisampleStateCreateInfo& multisampleState, const vk::PipelineDepthStencilStateCreateInfo& depthStencilState, ArrayProxyRef<vk::PipelineColorBlendAttachmentState> colorBlendAttachments, ArrayProxyRef<vk::DynamicState> dynamicStates)
+vk::Pipeline sq::vk_create_graphics_pipeline(const VulkanContext& ctx, vk::PipelineLayout layout, vk::RenderPass renderPass, uint32_t subpass, ArrayProxyRef<vk::PipelineShaderStageCreateInfo> stages, const vk::PipelineVertexInputStateCreateInfo& vertexInputState, const vk::PipelineInputAssemblyStateCreateInfo& inputAssemblyState, const vk::PipelineRasterizationStateCreateInfo& rasterizationState, const vk::PipelineMultisampleStateCreateInfo& multisampleState, const vk::PipelineDepthStencilStateCreateInfo& depthStencilState, ArrayProxyRef<vk::Viewport> viewports, ArrayProxyRef<vk::Rect2D> scissors, ArrayProxyRef<vk::PipelineColorBlendAttachmentState> colorBlendAttachments, ArrayProxyRef<vk::DynamicState> dynamicStates)
 {
+    const auto viewportState = vk::PipelineViewportStateCreateInfo {
+        {}, viewports.size(), viewports.data(), scissors.size(), scissors.data()
+    };
+
     const auto colorBlendState = vk::PipelineColorBlendStateCreateInfo {
-        {}, false, {}, uint(colorBlendAttachments.size()), colorBlendAttachments.data(), {}
+        {}, false, {}, colorBlendAttachments.size(), colorBlendAttachments.data(), {}
     };
 
     const auto dynamicState = vk::PipelineDynamicStateCreateInfo {

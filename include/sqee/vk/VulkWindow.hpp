@@ -26,7 +26,7 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    void create_swapchain_and_friends(bool singlePass);
+    void create_swapchain_and_friends();
 
     void destroy_swapchain_and_friends();
 
@@ -34,19 +34,15 @@ public: //====================================================//
 
     const std::vector<Event>& fetch_events();
 
-    std::tuple<vk::CommandBuffer, uint32_t> begin_new_frame();
+    std::tuple<vk::CommandBuffer, vk::Framebuffer> begin_frame();
 
-    void begin_render_pass(vk::CommandBuffer cmdbuf);
-
-    void submit_and_present();
+    void submit_present_swap();
 
     //--------------------------------------------------------//
 
     GLFWwindow* get_glfw_window() { return mGlfwWindow; }
 
     vk::RenderPass get_render_pass() { return mRenderPass; }
-
-    const std::vector<vk::ImageView>& get_image_views() { return mSwapchainImageViews; }
 
     //--------------------------------------------------------//
 
@@ -97,7 +93,6 @@ private: //===================================================//
 
     vk::SwapchainKHR mSwapchain;
     std::vector<vk::Image> mSwapchainImages;    
-
     std::vector<vk::ImageView> mSwapchainImageViews;
     std::vector<vk::Framebuffer> mSwapchainFramebuffers;
 

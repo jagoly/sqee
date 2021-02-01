@@ -357,8 +357,8 @@ void VulkGuiSystem::create_pipeline()
 
     // create pipeline layout
     {
-        auto pushConstantRanges = vk::PushConstantRange {
-            vk::ShaderStageFlagBits::eVertex, 0u, sizeof(Mat4F)
+        const auto pushConstantRanges = std::array {
+            vk::PushConstantRange { vk::ShaderStageFlagBits::eVertex, 0u, sizeof(Mat4F) }
         };
 
         mPipelineLayout = ctx.device.createPipelineLayout (
@@ -368,66 +368,48 @@ void VulkGuiSystem::create_pipeline()
 
     // load shaders and create graphics pipeline
     {
-        auto shaders = ShaderModules (
+        const auto shaderModules = ShaderModules (
             ctx, std::tuple(sqee_GuiSystemVertSpv, sizeof(sqee_GuiSystemVertSpv)),
             {}, std::tuple(sqee_GuiSystemFragSpv, sizeof(sqee_GuiSystemFragSpv))
         );
 
-        auto vertexBindingDescriptions = vk::VertexInputBindingDescription {
-            0u, sizeof(ImDrawVert), vk::VertexInputRate::eVertex
+        const auto vertexBindingDescriptions = std::array {
+            vk::VertexInputBindingDescription { 0u, sizeof(ImDrawVert), vk::VertexInputRate::eVertex }
         };
 
-        auto vertexAttributeDescriptions = std::array {
+        const auto vertexAttributeDescriptions = std::array {
             vk::VertexInputAttributeDescription { 0u, 0u, vk::Format::eR32G32Sfloat, 0u },
             vk::VertexInputAttributeDescription { 1u, 0u, vk::Format::eR32G32Sfloat, 8u },
             vk::VertexInputAttributeDescription { 2u, 0u, vk::Format::eR8G8B8A8Unorm, 16u }
         };
 
-        auto vertexInputState = vk::PipelineVertexInputStateCreateInfo {
-            {}, vertexBindingDescriptions, vertexAttributeDescriptions
-        };
-
-        auto inputAssemblyState = vk::PipelineInputAssemblyStateCreateInfo {
-            {}, vk::PrimitiveTopology::eTriangleList, false
-        };
-
-        auto viewportState = vk::PipelineViewportStateCreateInfo {
-            {}, 1u, nullptr, 1u, nullptr
-        };
-
-        auto rasterizationState = vk::PipelineRasterizationStateCreateInfo {
-            {}, false, false, vk::PolygonMode::eFill, vk::CullModeFlagBits::eNone,
-            vk::FrontFace::eClockwise, false, 0.f, false, 0.f, 1.f
-        };
-
-        auto multisampleState = vk::PipelineMultisampleStateCreateInfo {
-            {}, vk::SampleCountFlagBits::e1, false, 0.f, nullptr, false, false
-        };
-
-        const auto attachments = vk::PipelineColorBlendAttachmentState {
-            true,
-            vk::BlendFactor::eSrcAlpha, vk::BlendFactor::eOneMinusSrcAlpha, vk::BlendOp::eAdd,
-            vk::BlendFactor::eOneMinusSrcAlpha, vk::BlendFactor::eZero, vk::BlendOp::eAdd,
-            vk::ColorComponentFlags(0b1111)
-        };
-        const auto colorBlendState = vk::PipelineColorBlendStateCreateInfo {
-            {}, false, {}, attachments, {}
-        };
-
-        auto states = std::array { vk::DynamicState::eViewport, vk::DynamicState::eScissor };
-        auto dynamicState = vk::PipelineDynamicStateCreateInfo { {}, states };
-
-        auto result = ctx.device.createGraphicsPipeline (
-            nullptr,
-            vk::GraphicsPipelineCreateInfo {
-                {}, shaders.stages, &vertexInputState, &inputAssemblyState, nullptr,
-                &viewportState, &rasterizationState, &multisampleState, nullptr, &colorBlendState,
-                &dynamicState, mPipelineLayout, window.get_render_pass(), 0u
-            }
+        mPipeline = sq::vk_create_graphics_pipeline (
+            ctx, mPipelineLayout, window.get_render_pass(), 0u, shaderModules.stages,
+            vk::PipelineVertexInputStateCreateInfo {
+                {}, vertexBindingDescriptions, vertexAttributeDescriptions
+            },
+            vk::PipelineInputAssemblyStateCreateInfo {
+                {}, vk::PrimitiveTopology::eTriangleList, false
+            },
+            vk::PipelineRasterizationStateCreateInfo {
+                {}, false, false, vk::PolygonMode::eFill, vk::CullModeFlagBits::eBack,
+                vk::FrontFace::eClockwise, false, 0.f, false, 0.f, 1.f
+            },
+            vk::PipelineMultisampleStateCreateInfo {
+                {}, vk::SampleCountFlagBits::e1, false, 0.f, nullptr, false, false
+            },
+            vk::PipelineDepthStencilStateCreateInfo {
+                {}, false, false, {}, false, false, {}, {}, 0.f, 0.f
+            },
+            { 1u, nullptr }, { 1u, nullptr },
+            vk::PipelineColorBlendAttachmentState {
+                true,
+                vk::BlendFactor::eSrcAlpha, vk::BlendFactor::eOneMinusSrcAlpha, vk::BlendOp::eAdd,
+                vk::BlendFactor::eOneMinusSrcAlpha, vk::BlendFactor::eZero, vk::BlendOp::eAdd,
+                vk::ColorComponentFlags(0b1111)
+            },
+            { vk::DynamicState::eViewport, vk::DynamicState::eScissor }
         );
-        SQASSERT(result.result == vk::Result::eSuccess, "");
-
-        mPipeline = result.value;
     }
 }
 

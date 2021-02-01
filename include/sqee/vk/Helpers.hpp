@@ -63,13 +63,17 @@ SQEE_API vk::Pipeline vk_create_graphics_pipeline (
     ArrayProxyRef<vk::PipelineShaderStageCreateInfo> stages,
     const vk::PipelineVertexInputStateCreateInfo& vertexInputState,
     const vk::PipelineInputAssemblyStateCreateInfo& inputAssemblyState,
-    const vk::PipelineViewportStateCreateInfo& viewportState,
     const vk::PipelineRasterizationStateCreateInfo& rasterizationState,
     const vk::PipelineMultisampleStateCreateInfo& multisampleState,
     const vk::PipelineDepthStencilStateCreateInfo& depthStencilState,
+    ArrayProxyRef<vk::Viewport> viewports,
+    ArrayProxyRef<vk::Rect2D> scissors,
     ArrayProxyRef<vk::PipelineColorBlendAttachmentState> colorBlendAttachments,
     ArrayProxyRef<vk::DynamicState> dynamicStates
 );
+
+// todo: don't want to try to wrap this until I know what I'm doing
+//SQEE_API vk::RenderPass vk_create_render_pass ();
 
 //============================================================================//
 

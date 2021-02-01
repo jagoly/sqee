@@ -37,29 +37,29 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     /// Access the front buffer object.
-    vk::Buffer front() const { return mBufferFront; }
+    vk::Buffer front() const { return mBuffer.front; }
 
     /// Access the back buffer object.
-    vk::Buffer back() const { return mBufferBack; }
+    vk::Buffer back() const { return mBuffer.back; }
 
     /// Access the mapped memory.
-    void* map() { return mBufferPtrFront; }
+    void* map() { return mBufferPtr.front; }
 
     //--------------------------------------------------------//
 
     /// Get descriptor info for the front buffer.
-    vk::DescriptorBufferInfo get_descriptor_info_front() const { return { mBufferFront, 0u, mSize }; }
+    vk::DescriptorBufferInfo get_descriptor_info_front() const { return { mBuffer.front, 0u, mSize }; }
 
     /// Get descriptor info for the back buffer.
-    vk::DescriptorBufferInfo get_descriptor_info_back() const { return { mBufferBack, 0u, mSize }; }
+    vk::DescriptorBufferInfo get_descriptor_info_back() const { return { mBuffer.back, 0u, mSize }; }
 
 private: //===================================================//
 
     size_t mSize = 0u;
 
-    vk::Buffer mBufferFront, mBufferBack;
-    VulkanMemory mBufferMemFront, mBufferMemBack;
-    void *mBufferPtrFront, *mBufferPtrBack;
+    Swapper<vk::Buffer> mBuffer;
+    Swapper<VulkanMemory> mBufferMem;
+    Swapper<void*> mBufferPtr;
 };
 
 //============================================================================//

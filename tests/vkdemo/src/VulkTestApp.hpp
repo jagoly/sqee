@@ -24,15 +24,25 @@ public: //====================================================//
 
 private: //===================================================//
 
-    void initialise(std::vector<std::string> args) override;
+    void initialise(std::vector<String> args) override;
 
     void update(double elapsed) override;
 
     //--------------------------------------------------------//
 
+    void swap_resources();
+
     void handle_event(sq::Event event);
 
-    void handle_window_resize();
+    void refresh_graphics_config();
+
+    //--------------------------------------------------------//
+
+    void initialise_layouts();
+
+    void initialise_camera();
+
+    void initialise_models();
 
     //--------------------------------------------------------//
 
@@ -46,19 +56,11 @@ private: //===================================================//
 
     //--------------------------------------------------------//
 
-    void create_objects();
-
-    void create_layouts();
-
-    void create_descriptor_sets();
-
-    //--------------------------------------------------------//
-
     void update_window_title(double elapsed);
 
     void update_uniform_buffer(double elapsed);
 
-    void populate_command_buffer(vk::CommandBuffer cmdbuf, uint32_t imageIndex);
+    void populate_command_buffer(vk::CommandBuffer cmdbuf, vk::Framebuffer framebuf);
 
     //--------------------------------------------------------//
 
@@ -102,11 +104,6 @@ private: //===================================================//
     sq::VulkanMemory mResolveColourImageMem;
     vk::ImageView mResolveColourImageView;
     vk::Sampler mResolveColourSampler;
-
-    //vk::RenderPass mResolveRenderPass;
-    //vk::Framebuffer mResolveFramebuffer;
-
-    //std::vector<vk::Framebuffer> mMsFramebuffers;
 
     //vk::Image mDepthImage;
     //sq::VulkanMemory mDepthImageMem;

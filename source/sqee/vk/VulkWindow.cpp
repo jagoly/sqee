@@ -437,6 +437,37 @@ VulkWindow::VulkWindow(const char* title, Vec2U size, const char* appName, Vec3U
         );
     }
 
+    // create render pass
+    {
+        auto attachments = vk::AttachmentDescription {
+            {}, vk::Format::eB8G8R8A8Srgb, vk::SampleCountFlagBits::e1,
+            vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eStore,
+            vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
+            vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR
+        };
+
+        auto colorAttachments = vk::AttachmentReference {
+            0u, vk::ImageLayout::eColorAttachmentOptimal
+        };
+
+        auto subpasses = vk::SubpassDescription {
+            {}, vk::PipelineBindPoint::eGraphics, {}, colorAttachments, {}, nullptr, {}
+        };
+
+        auto dependencies = std::array {
+            vk::SubpassDependency {
+                VK_SUBPASS_EXTERNAL, 0u,
+                vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eFragmentShader,
+                vk::AccessFlagBits::eColorAttachmentWrite, vk::AccessFlagBits::eShaderRead,
+                vk::DependencyFlagBits::eByRegion
+            }
+        };
+
+        mRenderPass = mDevice.createRenderPass (
+            vk::RenderPassCreateInfo { {}, attachments, subpasses, dependencies }
+        );
+    }
+
     // create allocator
     {
         const auto memoryProps = mPhysicalDevice.getMemoryProperties();
@@ -488,6 +519,8 @@ VulkWindow::~VulkWindow()
 
     destroy_swapchain_and_friends();
 
+    mDevice.destroy(mRenderPass);
+
     mDevice.destroy(mImageAvailableSemaphore.front);
     mDevice.destroy(mImageAvailableSemaphore.back);
     mDevice.destroy(mRenderFinishedSemaphore.front);
@@ -509,15 +542,12 @@ VulkWindow::~VulkWindow()
 
 //============================================================================//
 
-void VulkWindow::create_swapchain_and_friends(bool /*singlePass*/)
+void VulkWindow::create_swapchain_and_friends()
 {
     const auto capabilities = mPhysicalDevice.getSurfaceCapabilitiesKHR(mSurface);
 
-    // update framebuffer size
-    {
-        mFramebufferSize = capabilities.currentExtent;
-        VulkanContext::get_mutable().window.size = { mFramebufferSize.width, mFramebufferSize.height };
-    }
+    mFramebufferSize = capabilities.currentExtent;
+    VulkanContext::get_mutable().window.size = { mFramebufferSize.width, mFramebufferSize.height };
 
     // create swapchain
     {
@@ -534,45 +564,6 @@ void VulkWindow::create_swapchain_and_friends(bool /*singlePass*/)
         );
 
         mSwapchainImages = mDevice.getSwapchainImagesKHR(mSwapchain);
-    }
-
-    // create render pass
-    {
-        auto attachments = vk::AttachmentDescription {
-            {}, vk::Format::eB8G8R8A8Srgb, vk::SampleCountFlagBits::e1,
-            vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eStore,
-            vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
-            vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR
-        };
-
-        auto colorAttachments = vk::AttachmentReference {
-            0u, vk::ImageLayout::eColorAttachmentOptimal
-        };
-
-        auto subpasses = vk::SubpassDescription {
-            {}, vk::PipelineBindPoint::eGraphics, {}, colorAttachments, {}, nullptr, {}
-        };
-
-        auto dependencies = std::array {
-            vk::SubpassDependency {
-                VK_SUBPASS_EXTERNAL, 0u,
-                vk::PipelineStageFlagBits::eBottomOfPipe, vk::PipelineStageFlagBits::eColorAttachmentOutput,
-                vk::AccessFlagBits::eMemoryRead,
-                vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite,
-                vk::DependencyFlagBits::eByRegion
-            },
-            vk::SubpassDependency {
-                0u, VK_SUBPASS_EXTERNAL,
-                vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eBottomOfPipe,
-                vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite,
-                vk::AccessFlagBits::eMemoryRead,
-                vk::DependencyFlagBits::eByRegion
-            }
-        };
-
-        mRenderPass = mDevice.createRenderPass (
-            vk::RenderPassCreateInfo { {}, attachments, subpasses, dependencies }
-        );
     }
 
     // create image views and framebuffers
@@ -605,8 +596,6 @@ void VulkWindow::destroy_swapchain_and_friends()
 {
     mDevice.waitIdle();
 
-    mDevice.destroy(mRenderPass);
-
     for (auto& framebuffer : mSwapchainFramebuffers)
         mDevice.destroy(framebuffer);
 
@@ -638,7 +627,7 @@ const std::vector<Event>& VulkWindow::fetch_events()
 
 //============================================================================//
 
-std::tuple<vk::CommandBuffer, uint32_t> VulkWindow::begin_new_frame()
+std::tuple<vk::CommandBuffer, vk::Framebuffer> VulkWindow::begin_frame()
 {
     auto waitResult = mDevice.waitForFences(mRenderFinishedFence.front, true, UINT64_MAX);
     SQASSERT(waitResult == vk::Result::eSuccess, "");
@@ -662,26 +651,12 @@ std::tuple<vk::CommandBuffer, uint32_t> VulkWindow::begin_new_frame()
 
     mCommandBuffer.front.reset({});
 
-    return { mCommandBuffer.front, mImageIndex };
+    return { mCommandBuffer.front, mSwapchainFramebuffers[mImageIndex] };
 }
 
 //============================================================================//
 
-void VulkWindow::begin_render_pass(vk::CommandBuffer cmdbuf)
-{
-    cmdbuf.beginRenderPass (
-        vk::RenderPassBeginInfo {
-            mRenderPass, mSwapchainFramebuffers[mImageIndex],
-            vk::Rect2D({0, 0}, mFramebufferSize),
-            nullptr
-        },
-        vk::SubpassContents::eInline
-    );
-}
-
-//============================================================================//
-
-void VulkWindow::submit_and_present()
+void VulkWindow::submit_present_swap()
 {
     mDevice.resetFences(mRenderFinishedFence.front);
 
@@ -732,10 +707,7 @@ void VulkWindow::set_cursor_hidden(bool hidden)
 // todo: Vulkan supports freesync/gsync refresh, unline OpenGL
 void VulkWindow::set_vsync_enabled(bool enabled)
 {
-    if (mVsyncEnabled == enabled) return;
-
     mVsyncEnabled = enabled;
-    mEvents.push_back({Event::Type::Window_Resize, {}});
 }
 
 //============================================================================//

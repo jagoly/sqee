@@ -32,11 +32,10 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    /// Window information that gets updated each frame.
+    /// Window information that gets updated when the window resizes.
     struct Window
     {
         Vec2U size;
-        vk::Framebuffer framebuffer;
     }
     window;
 
