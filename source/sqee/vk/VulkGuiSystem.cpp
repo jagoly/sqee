@@ -369,8 +369,8 @@ void VulkGuiSystem::create_pipeline()
     // load shaders and create graphics pipeline
     {
         const auto shaderModules = ShaderModules (
-            ctx, std::tuple(sqee_GuiSystemVertSpv, sizeof(sqee_GuiSystemVertSpv)),
-            {}, std::tuple(sqee_GuiSystemFragSpv, sizeof(sqee_GuiSystemFragSpv))
+            ctx, std::pair(sqee_GuiSystemVertSpv, sizeof(sqee_GuiSystemVertSpv)),
+            {}, std::pair(sqee_GuiSystemFragSpv, sizeof(sqee_GuiSystemFragSpv))
         );
 
         const auto vertexBindingDescriptions = std::array {
@@ -532,8 +532,8 @@ void VulkGuiSystem::render_gui(vk::CommandBuffer cmdbuf)
 
     // copy all vertices/indices into same pair of buffers
     {
-        ImDrawVert* vertexPtr = static_cast<ImDrawVert*>(mVertexBuffer.map());
-        ImDrawIdx* indexPtr = static_cast<ImDrawIdx*>(mIndexBuffer.map());
+        ImDrawVert* vertexPtr = reinterpret_cast<ImDrawVert*>(mVertexBuffer.map());
+        ImDrawIdx* indexPtr = reinterpret_cast<ImDrawIdx*>(mIndexBuffer.map());
 
         for (int n = 0; n < drawData.CmdListsCount; ++n)
         {

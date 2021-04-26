@@ -75,23 +75,22 @@ void sq::save_string_to_file(const String& path, StringView str)
 
 //============================================================================//
 
-std::vector<char> sq::get_bytes_from_file(const String& path)
+std::vector<std::byte> sq::get_bytes_from_file(const String& path)
 {
-    auto src = std::ifstream(path, std::ios::ate | std::ios::binary | std::ios::in);
+    FILE* file = std::fopen(path.c_str(), "rb");
 
-    if (src.good() == false)
-    {
-        log_warning("could not open file '{}'", path);
-        return {};
-    }
+    if (file == NULL)
+        throw std::runtime_error(fmt::format("could not open file '{}'", path));
 
-    const auto fileSize = src.tellg();
+    std::fseek(file, 0, SEEK_END);
+    const size_t fileSize = std::ftell(file);
 
-    std::vector<char> result;
-    result.resize(size_t(fileSize));
+    auto result = std::vector<std::byte>(fileSize);
 
-    src.seekg(0, src.beg);
-    src.read(result.data(), fileSize);
+    std::fseek(file, 0, SEEK_SET);
+    std::fread(result.data(), 1u, result.size(), file);
+
+    std::fclose(file);
 
     return result;
 }

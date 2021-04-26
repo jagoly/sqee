@@ -4,5 +4,6 @@
   "wrapY": "Repeat",
   "swizzle": "RGBA",
   "filter": true,
-  "mipmaps": true
+  "mipmaps": true,
+  "anisotropy": true
 }

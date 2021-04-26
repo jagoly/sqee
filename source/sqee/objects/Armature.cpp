@@ -392,7 +392,7 @@ Armature::Pose Armature::compute_pose_discrete(const Animation& animation, uint 
 
 void Armature::compute_extra_continuous(Vec4F& result, const Animation::Track& track, float time)
 {
-    const uint frameCount = track.track.size() / sizeof(Vec4F);
+    const uint frameCount = uint(track.track.size() / sizeof(Vec4F));
     const auto [factor, frameA, frameB] = impl_compute_blend_times(frameCount, time);
 
     impl_compute_blended_value(factor, frameA, frameB, track, result);
@@ -400,7 +400,7 @@ void Armature::compute_extra_continuous(Vec4F& result, const Animation::Track& t
 
 void Armature::compute_extra_discrete(Vec4F& result, const Animation::Track& track, uint time)
 {
-    const uint frameCount = track.track.size() / sizeof(Vec4F);
+    const uint frameCount = uint(track.track.size() / sizeof(Vec4F));
     SQASSERT(frameCount == 1u || time < frameCount, "discrete time out of range");
 
     impl_compute_discrete_value(time, track, result);

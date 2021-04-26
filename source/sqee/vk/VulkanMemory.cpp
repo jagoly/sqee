@@ -173,7 +173,7 @@ void VulkanAllocator::impl_delete_chunk(Chunk* ptr)
 
 //============================================================================//
 
-void* VulkanMemory::map()
+std::byte* VulkanMemory::map()
 {
     SQASSERT(chunk->mapped == false, "memory already mapped");
 
@@ -181,12 +181,12 @@ void* VulkanMemory::map()
     auto device = block.allocator->mDevice;
 
     if (block.mapped == nullptr)
-        block.mapped = device.mapMemory(block.memory, 0u, block.size, {});
+        block.mapped = static_cast<std::byte*>(device.mapMemory(block.memory, 0u, block.size, {}));
 
     ++block.mapCount;
     chunk->mapped = true;
 
-    return static_cast<char*>(block.mapped) + chunk->offset;
+    return block.mapped + chunk->offset;
 }
 
 void VulkanMemory::unmap()

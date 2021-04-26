@@ -55,11 +55,11 @@ OneTimeCommands::~OneTimeCommands()
 
 //============================================================================//
 
-ShaderModules::ShaderModules(const VulkanContext& _ctx, std::optional<String> vertex, std::optional<String> geometry, std::optional<String> fragment)
+ShaderModules::ShaderModules(const VulkanContext& _ctx, const String& vertex, const String& geometry, const String& fragment)
     : ctx(_ctx)
 {
-    modules.reserve(size_t(vertex.has_value() + geometry.has_value() + fragment.has_value()));
-    stages.reserve(size_t(vertex.has_value() + geometry.has_value() + fragment.has_value()));
+    modules.reserve(size_t(!vertex.empty() + !geometry.empty() + !fragment.empty()));
+    stages.reserve(size_t(!vertex.empty() + !geometry.empty() + !fragment.empty()));
 
     const auto load_shader = [this](const String& source, vk::ShaderStageFlagBits stage)
     {
@@ -75,18 +75,18 @@ ShaderModules::ShaderModules(const VulkanContext& _ctx, std::optional<String> ve
         stages.push_back(shaderStage);
     };
 
-    if (vertex.has_value()) load_shader(*vertex, vk::ShaderStageFlagBits::eVertex);
-    if (geometry.has_value()) load_shader(*geometry, vk::ShaderStageFlagBits::eGeometry);
-    if (fragment.has_value()) load_shader(*fragment, vk::ShaderStageFlagBits::eFragment);
+    if (vertex.empty() == false) load_shader(vertex, vk::ShaderStageFlagBits::eVertex);
+    if (geometry.empty() == false) load_shader(geometry, vk::ShaderStageFlagBits::eGeometry);
+    if (fragment.empty() == false) load_shader(fragment, vk::ShaderStageFlagBits::eFragment);
 }
 
-ShaderModules::ShaderModules(const VulkanContext& _ctx, std::optional<Span> vertex, std::optional<Span> geometry, std::optional<Span> fragment)
+ShaderModules::ShaderModules(const VulkanContext& _ctx, ShaderData vertex, ShaderData geometry, ShaderData fragment)
     : ctx(_ctx)
 {
-    modules.reserve(size_t(vertex.has_value() + geometry.has_value() + fragment.has_value()));
-    stages.reserve(size_t(vertex.has_value() + geometry.has_value() + fragment.has_value()));
+    modules.reserve(size_t(bool(vertex.first) + bool(geometry.first) + bool(fragment.first)));
+    stages.reserve(size_t(bool(vertex.first) + bool(geometry.first) + bool(fragment.first)));
 
-    const auto load_shader = [this](const Span& source, vk::ShaderStageFlagBits stage)
+    const auto load_shader = [this](const ShaderData& source, vk::ShaderStageFlagBits stage)
     {
         auto shaderModule = ctx.device.createShaderModule (
             vk::ShaderModuleCreateInfo { {}, std::get<1>(source), std::get<0>(source) }
@@ -98,9 +98,9 @@ ShaderModules::ShaderModules(const VulkanContext& _ctx, std::optional<Span> vert
         stages.push_back(shaderStage);
     };
 
-    if (vertex.has_value()) load_shader(*vertex, vk::ShaderStageFlagBits::eVertex);
-    if (geometry.has_value()) load_shader(*geometry, vk::ShaderStageFlagBits::eGeometry);
-    if (fragment.has_value()) load_shader(*fragment, vk::ShaderStageFlagBits::eFragment);
+    if (vertex.first != nullptr) load_shader(vertex, vk::ShaderStageFlagBits::eVertex);
+    if (geometry.first != nullptr) load_shader(geometry, vk::ShaderStageFlagBits::eGeometry);
+    if (fragment.first != nullptr) load_shader(fragment, vk::ShaderStageFlagBits::eFragment);
 }
 
 ShaderModules::~ShaderModules()
@@ -127,7 +127,7 @@ std::tuple<vk::Buffer, VulkanMemory> sq::vk_create_buffer(const VulkanContext& c
 
 //============================================================================//
 
-std::tuple<vk::Image, VulkanMemory> sq::vk_create_image_2D(const VulkanContext& ctx, vk::Format format, Vec2U size, vk::SampleCountFlagBits samples, bool linear, vk::ImageUsageFlags usage, bool host)
+std::tuple<vk::Image, VulkanMemory, vk::ImageView> sq::vk_create_image_2D(const VulkanContext& ctx, vk::Format format, Vec2U size, vk::SampleCountFlagBits samples, bool linear, vk::ImageUsageFlags usage, bool host, vk::ComponentMapping swizzle, vk::ImageAspectFlags aspect)
 {
     auto image = ctx.device.createImage (
         vk::ImageCreateInfo {
@@ -141,7 +141,14 @@ std::tuple<vk::Image, VulkanMemory> sq::vk_create_image_2D(const VulkanContext& 
     auto memory = ctx.allocator.allocate(ctx.device.getImageMemoryRequirements(image), host);
     ctx.device.bindImageMemory(image, memory.get_memory(), memory.get_offset());
 
-    return { image, memory };
+    auto view = ctx.device.createImageView (
+        vk::ImageViewCreateInfo {
+            {}, image, vk::ImageViewType::e2D, format, swizzle,
+            vk::ImageSubresourceRange(aspect, 0u, 1u, 0u, 1u)
+        }
+    );
+
+    return { image, memory, view };
 }
 
 //============================================================================//

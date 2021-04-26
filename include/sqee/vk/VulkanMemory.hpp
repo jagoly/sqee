@@ -50,7 +50,7 @@ private: //===================================================//
         size_t alignment;
         size_t size;
         vk::DeviceMemory memory;
-        void* mapped;
+        std::byte* mapped;
         size_t mapCount;
         Chunk* firstChunk;
     };
@@ -107,7 +107,7 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    void* map();
+    std::byte* map();
 
     void unmap();
 

@@ -101,13 +101,19 @@ static auto impl_load_image(vk::Format format, const String& path)
     if (data == nullptr)
         log_error_multiline("Error loading image '{}':\n{}", path, stbi_failure_reason());
 
+    // todo: allow signed textures that aren't normal maps
     if (formatInfo.isSigned == true)
     {
         int8_t* begin = reinterpret_cast<int8_t*>(data);
-        int8_t* end = begin + width*height*channels;
+        int8_t* end = begin + width * height * formatInfo.channels;
 
+        // convert values to signed twos compliment values from -127 to +127
         for (int8_t* p = begin; p != end; ++p)
-            *p += *p >= 0 ? -128 : +128;
+            *p += *p >= 0 ? -127 : +128;
+
+        // normal maps have opengl style +Y, so invert it
+        for (int8_t* p = begin+1; p != end+1 ; p += formatInfo.channels)
+            *p = -*p;
     }
 
     return Image { data, Vec2U(width, height) };
@@ -146,9 +152,10 @@ void VulkTexture::load_from_memory_2D(void* data, Vec2U size, Config2D config)
 
     const auto& ctx = sq::VulkanContext::get();
 
-    std::tie(mImage, mImageMem) = vk_create_image_2D (
-        ctx, config.format, size, vk::SampleCountFlagBits::e1, false,
-        vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled, false
+    std::tie(mImage, mImageMem, mImageView) = vk_create_image_2D (
+        ctx, config.format, size, vk::SampleCountFlagBits::e1,
+        false, vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
+        false, config.swizzle, vk::ImageAspectFlagBits::eColor
     );
 
     const auto formatInfo = impl_get_format_info(config.format);
@@ -192,13 +199,6 @@ void VulkTexture::load_from_memory_2D(void* data, Vec2U size, Config2D config)
             }
         );
     }
-
-    mImageView = ctx.device.createImageView (
-        vk::ImageViewCreateInfo {
-            {}, mImage, vk::ImageViewType::e2D, config.format, config.swizzle,
-            vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u)
-        }
-    );
 
     mSampler = ctx.device.createSampler (
         vk::SamplerCreateInfo {

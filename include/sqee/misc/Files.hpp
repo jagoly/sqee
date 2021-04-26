@@ -29,7 +29,7 @@ SQEE_API String get_string_from_file(const String& path);
 SQEE_API std::optional<String> try_get_string_from_file(const String& path);
 
 /// Load a binary file into a vector of bytes.
-SQEE_API std::vector<char> get_bytes_from_file(const String& path);
+SQEE_API std::vector<std::byte> get_bytes_from_file(const String& path);
 
 /// Save a string to a text file.
 SQEE_API void save_string_to_file(const String& path, StringView str);

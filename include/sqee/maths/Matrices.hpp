@@ -116,6 +116,30 @@ template <class T> struct Matrix<4, 4, T>
 
 //============================================================================//
 
+// equality, inequality (Matrix, Matrix) /////
+
+template <int W, int H, class T> constexpr
+bool operator==(Matrix<W, H, T> a, Matrix<W, H, T> b)
+{
+    for (int i = 0; i < W; ++i)
+        for (int j = 0; j < H; ++j)
+            if (a[i][j] != b[i][j])
+                return false;
+    return true;
+}
+
+template <int W, int H, class T> constexpr
+bool operator!=(Matrix<W, H, T> a, Matrix<W, H, T> b)
+{
+    for (int i = 0; i < W; ++i)
+        for (int j = 0; j < H; ++j)
+            if (a[i][j] != b[i][j])
+                return true;
+    return false;
+}
+
+//============================================================================//
+
 // Multiplication (Matrix, Matrix) /////
 
 template <class T> constexpr

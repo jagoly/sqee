@@ -96,9 +96,6 @@ if (SQEE_GNU OR SQEE_CLANG)
     target_compile_options(sqee PRIVATE -Wall -Wextra)
     #target_compile_options(sqee PRIVATE -Wall -Wextra -Wpedantic)
 
-    # remove after vulkan sdk update
-    target_compile_options(sqee PUBLIC -Wno-init-list-lifetime)
-
     if (NOT SQEE_STATIC_LIB)
         target_compile_options(sqee PRIVATE -fvisibility=hidden)
     endif ()
@@ -154,9 +151,15 @@ message(STATUS "VULKAN_SDK = $ENV{VULKAN_SDK}")
 
 find_package(Vulkan REQUIRED)
 
-#target_link_libraries(sqee PUBLIC Vulkan::Vulkan)
 target_link_libraries(sqee PUBLIC ${Vulkan_LIBRARIES})
 target_include_directories(sqee PUBLIC ${Vulkan_INCLUDE_DIRS})
+
+find_library(SpirvCrossCore_LIB NAMES spirv-cross-core PATHS "$ENV{VULKAN_SDK}/lib")
+if (NOT SpirvCrossCore_LIB)
+    message(FATAL_ERROR "could not find Spirv-Cross in $ENV{VULKAN_SDK}/libs")
+endif ()
+
+target_link_libraries(sqee PRIVATE ${SpirvCrossCore_LIB})
 
 ################################################################################
 

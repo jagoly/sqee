@@ -1,26 +1,28 @@
 #pragma once
 
+#include "setup.hpp"
+
+#include "Resources.hpp"
+
 #include <sqee/app/Application.hpp>
-
-#include <sqee/vk/VulkWindow.hpp>
-#include <sqee/vk/VulkInputDevices.hpp>
 #include <sqee/vk/VulkGuiSystem.hpp>
-
-#include <sqee/vk/VulkTexture.hpp>
+#include <sqee/vk/VulkInputDevices.hpp>
 #include <sqee/vk/VulkMesh.hpp>
+#include <sqee/vk/VulkTexture.hpp>
+#include <sqee/vk/VulkWindow.hpp>
+#include <sqee/vk/Pipeline.hpp>
+#include <sqee/vk/VulkMaterial.hpp>
+#include <sqee/vk/SwapBuffer.hpp>
 
-namespace sqt {
-
-using namespace sq::coretypes;
+namespace demo {
 
 //============================================================================//
 
-class VulkTestApp : public sq::Application
+class DemoApp : public sq::Application
 {
-
 public: //====================================================//
 
-    ~VulkTestApp();
+    ~DemoApp() override;
 
 private: //===================================================//
 
@@ -70,26 +72,36 @@ private: //===================================================//
     std::unique_ptr<sq::VulkInputDevices> mInputDevices;
     std::unique_ptr<sq::VulkGuiSystem> mGuiSystem;
 
+    ResourceCaches mResourceCaches;
+
     //--------------------------------------------------------//
 
     vk::DescriptorSetLayout mCameraDescriptorSetLayout;
+    vk::DescriptorSetLayout mLightDescriptorSetLayout;
     vk::DescriptorSetLayout mModelDescriptorSetLayout;
+    vk::PipelineLayout mModelPipelineLayout;
+
     vk::DescriptorSetLayout mCompositeDescriptorSetLayout;
+    vk::PipelineLayout mCompositePipelineLayout;
+
+    sq::Swapper<vk::DescriptorSet> mCameraDescriptorSet;
+    sq::Swapper<vk::DescriptorSet> mLightDescriptorSet;
+    vk::DescriptorSet mCompositeDescriptorSet;
 
     //--------------------------------------------------------//
 
     sq::SwapBuffer mCameraUbo;
-    sq::Swapper<vk::DescriptorSet> mCameraDescriptorSet;
+    sq::SwapBuffer mLightUbo;
 
-    struct Model
+    struct StaticModel
     {
-        sq::VulkMesh mesh;
-        sq::VulkTexture texture;
+        MeshHandle mesh;
+        MaterialHandle material;
         sq::SwapBuffer ubo;
         sq::Swapper<vk::DescriptorSet> descriptorSet;
     };
 
-    std::vector<Model> mModels;
+    std::vector<StaticModel> mStaticModels;
 
     //--------------------------------------------------------//
 
@@ -97,13 +109,13 @@ private: //===================================================//
     sq::VulkanMemory mMsColourImageMem;
     vk::ImageView mMsColourImageView;
 
-    vk::RenderPass mMsRenderPass;
-    vk::Framebuffer mMsFramebuffer;
-
     vk::Image mResolveColourImage;
     sq::VulkanMemory mResolveColourImageMem;
     vk::ImageView mResolveColourImageView;
     vk::Sampler mResolveColourSampler;
+
+    vk::RenderPass mMsRenderPass;
+    vk::Framebuffer mMsFramebuffer;
 
     //vk::Image mDepthImage;
     //sq::VulkanMemory mDepthImageMem;
@@ -111,13 +123,7 @@ private: //===================================================//
 
     //--------------------------------------------------------//
 
-    vk::PipelineLayout mModelPipelineLayout;
-    vk::Pipeline mModelPipeline;
-
-    vk::PipelineLayout mCompositePipelineLayout;
     vk::Pipeline mCompositePipeline;
-
-    vk::DescriptorSet mCompositeDescriptorSet;
 
     double mTimeAccum = 0.0;
     uint mFramesAccum = 0u;

@@ -1,8 +1,8 @@
-#include "VulkTestApp.hpp"
+#include "DemoApp.hpp"
 
 int main(int argc, char** argv)
 {
-    sqt::VulkTestApp app;
+    demo::DemoApp app;
 
     return app.run(argc, argv);
 }

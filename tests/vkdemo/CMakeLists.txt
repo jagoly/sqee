@@ -16,19 +16,20 @@ function (target_add_shaders TARGET)
             message(FATAL_ERROR "bad shader path '${SHADER}'")
         endif ()
 
+        target_sources(${TARGET} PRIVATE ${SHADER})
+        source_group("GLSL" FILES ${SHADER})
+
         get_filename_component(OUTDIR ${OUTPATH} DIRECTORY)
         file(MAKE_DIRECTORY ${OUTDIR})
 
         add_custom_command( OUTPUT ${OUTPATH}
-                            COMMAND glslc -o ${OUTPATH} ${SHADER}
+                            COMMAND glslc ${SHADER} -o ${OUTPATH}
                             DEPENDS ${SHADER}
                             IMPLICIT_DEPENDS CXX ${SHADER}
                             VERBATIM )
 
-        target_sources(${TARGET} PRIVATE ${SHADER})
-        source_group("GLSL" FILES ${SHADER})
-
         set_source_files_properties(${OUTPATH} PROPERTIES GENERATED True)
+
         target_sources(${TARGET} PRIVATE ${OUTPATH})
 
     endforeach ()
@@ -61,8 +62,5 @@ target_link_libraries(sqee-vkdemo PRIVATE sqee)
 
 ################################################################################
 
-#add_custom_command(TARGET sqee-vkdemo POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink
-#    "${PROJECT_SOURCE_DIR}/assets" "${CMAKE_BINARY_DIR}/tests/vkdemo/assets")
-
-#add_custom_command(TARGET sqee-vkdemo POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink
-#    "${PROJECT_SOURCE_DIR}/shaders" "${CMAKE_BINARY_DIR}/tests/vkdemo/shaders")
+add_custom_command(TARGET sqee-vkdemo POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink
+    "${PROJECT_SOURCE_DIR}/assets" "${CMAKE_BINARY_DIR}/tests/vkdemo/assets")

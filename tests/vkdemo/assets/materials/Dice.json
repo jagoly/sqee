@@ -1,0 +1,19 @@
+{
+  "pipeline": {
+    "attributes": [ "TexCoords", "Normals", "Tangents" ],
+    "pass": "Opaque",
+    "vertexShader": "super/BasicModel/VertTangents",
+    "fragmentShader": "super/BasicModel/FragDiffuseNormal",
+    "cullFace": "Back",
+    "polygonMode": "Fill",
+    "depthTest": "Replace",
+    "colourBlend": "Disable"
+  },
+  "params": {
+    "specular": [ 0.5, 0.5, 0.5 ]
+  },
+  "textures": {
+    "tx_Diffuse": "textures/Dice_diff",
+    "tx_Normal": "textures/Dice_norm"
+  }
+}

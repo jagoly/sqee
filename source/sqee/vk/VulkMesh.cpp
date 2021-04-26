@@ -12,19 +12,23 @@ using namespace sq;
 
 //============================================================================//
 
-inline void impl_ascii_append_normal(std::byte*& ptr, StringView svx, StringView svy, StringView svz, StringView svw)
+inline void impl_ascii_append_normal(std::byte*& ptr, StringView svx, StringView svy, StringView svz, StringView svw, bool swapYZ)
 {
-    const float x = sv_to_f(svx), y = sv_to_f(svy), z = sv_to_f(svz);
-    const float w = svw.empty() ? 0.f : sv_to_f(svw);
+    // swapping yz requires inverting bitangtent sign
+    const float fw = svw.empty() ? 0.f : (sv_to_f(svw) * (swapYZ ? -1.f : 1.f));
 
-    const uint32_t xs = x < 0.f, ys = y < 0.f, zs = z < 0.f, ws = w < 0.f;
+    // invert tangent to accomodate blender's Y=up tangent space
+    // todo: move tangent inversion to the export script
+    const float fx = std::round(sv_to_f(svx               ) * 511.f) * (svw.empty() ? 1.f : -1.f);
+    const float fy = std::round(sv_to_f(swapYZ ? svz : svy) * 511.f) * (svw.empty() ? 1.f : -1.f);
+    const float fz = std::round(sv_to_f(swapYZ ? svy : svz) * 511.f) * (svw.empty() ? 1.f : -1.f);
 
-    const uint32_t value = ws << 31 | (uint32_t(w + (ws << 1)) & 1) << 30 |
-                           zs << 29 | (uint32_t(z * 0x1FF + (zs << 9)) & 0x1FF) << 20 |
-                           ys << 19 | (uint32_t(y * 0x1FF + (ys << 9)) & 0x1FF) << 10 |
-                           xs << 9  | (uint32_t(x * 0x1FF + (xs << 9)) & 0x1FF);
+    const uint32_t uw = (int32_t(fw) &   1) << 30 | (fw < 0.f) << 31;
+    const uint32_t ux = (int32_t(fx) & 511) << 20 | (fx < 0.f) << 29;
+    const uint32_t uy = (int32_t(fy) & 511) << 10 | (fy < 0.f) << 19;
+    const uint32_t uz = (int32_t(fz) & 511) <<  0 | (fz < 0.f) <<  9;
 
-    reinterpret_cast<uint32_t&>(*ptr) = value;
+    reinterpret_cast<uint32_t&>(*ptr) = uw | ux | uy | uz;
     std::advance(ptr, sizeof(uint32_t));
 }
 
@@ -101,6 +105,14 @@ void VulkMesh::bind_buffers(vk::CommandBuffer cmdbuf) const
 void VulkMesh::draw_complete(vk::CommandBuffer cmdbuf) const
 {
     cmdbuf.drawIndexed(mIndexTotal, 1u, 0u, 0, 0u);
+}
+
+void VulkMesh::draw_submesh(vk::CommandBuffer cmdbuf, uint index) const
+{
+    SQASSERT(index < mSubMeshes.size(), "invalid submesh index");
+
+    const SubMesh& sm = mSubMeshes[index];
+    cmdbuf.drawIndexed(sm.indexCount, 1u, sm.firstIndex, 0, 0u);
 }
 
 //============================================================================//
@@ -207,9 +219,8 @@ void VulkMesh::impl_load_ascii(const String& path, bool swapYZ)
             impl_ascii_append_float(vertexPtr, line[index++]);
             if (swapYZ)
             {
-                impl_ascii_append_float(vertexPtr, line[index+1u]);
-                impl_ascii_append_float(vertexPtr, line[index+0u]);
-                index += 2u;
+                impl_ascii_append_float(vertexPtr, line[index++ +1u]);
+                impl_ascii_append_float(vertexPtr, line[index++ -1u]);
             }
             else
             {
@@ -228,8 +239,7 @@ void VulkMesh::impl_load_ascii(const String& path, bool swapYZ)
                 const auto x = line[index++];
                 const auto y = line[index++];
                 const auto z = line[index++];
-                if (swapYZ) impl_ascii_append_normal(vertexPtr, x, z, y, {});
-                else impl_ascii_append_normal(vertexPtr, x, y, z, {});
+                impl_ascii_append_normal(vertexPtr, x, y, z, {}, swapYZ);
             }
 
             if (mAttributeFlags & Attribute::Tangents)
@@ -238,8 +248,7 @@ void VulkMesh::impl_load_ascii(const String& path, bool swapYZ)
                 const auto y = line[index++];
                 const auto z = line[index++];
                 const auto w = line[index++];
-                if (swapYZ) impl_ascii_append_normal(vertexPtr, x, z, y, w);
-                else impl_ascii_append_normal(vertexPtr, x, y, z, w);
+                impl_ascii_append_normal(vertexPtr, x, y, z, w, swapYZ);
             }
 
             if (mAttributeFlags & Attribute::Colours)
@@ -276,9 +285,18 @@ void VulkMesh::impl_load_ascii(const String& path, bool swapYZ)
                 allocatedIndices = true;
             }
 
+            // swap indices to make sure winding order is clockwise
             *(indexPtr++) = sv_to_u(line[0]);
-            *(indexPtr++) = sv_to_u(line[1]);
-            *(indexPtr++) = sv_to_u(line[2]);
+            if (swapYZ)
+            {
+                *(indexPtr++) = sv_to_u(line[2]);
+                *(indexPtr++) = sv_to_u(line[1]);
+            }
+            else
+            {
+                *(indexPtr++) = sv_to_u(line[1]);
+                *(indexPtr++) = sv_to_u(line[2]);
+            }
         }
 
         //--------------------------------------------------------//
@@ -364,8 +382,8 @@ VulkMesh::VertexConfig::VertexConfig(vk::Flags<Attribute> flags)
 
     if (flags & Attribute::Bones)
     {
-        attributes.push_back({5u, 0u, vk::Format::eR8Sint, offsetBONEI});
-        attributes.push_back({6u, 0u, vk::Format::eR8Unorm, offsetBONEW});
+        attributes.push_back({5u, 0u, vk::Format::eR8G8B8A8Sint, offsetBONEI});
+        attributes.push_back({6u, 0u, vk::Format::eR8G8B8A8Unorm, offsetBONEW});
     }
 
     state = vk::PipelineVertexInputStateCreateInfo({}, binding, attributes);

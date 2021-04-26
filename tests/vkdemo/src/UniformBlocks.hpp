@@ -1,18 +1,31 @@
-#include <sqee/core/Types.hpp>
+#pragma once
 
-using namespace sq::coretypes;
+#include "setup.hpp"
 
-namespace sqt {
+namespace demo {
 
 struct CameraBlock
 {
-    Mat4F view;
-    Mat4F proj;
+    alignas(16) Mat4F viewMat;
+    alignas(16) Mat4F projMat;
+    alignas(16) Mat4F invViewMat;
+    alignas(16) Mat4F invProjMat;
+    alignas(16) Vec3F position;
+    alignas(16) Vec3F direction;
 };
 
-struct ModelBlock
+struct LightBlock
 {
-    Mat4F model;
+    alignas(16) Vec3F ambiColour;
+    alignas(16) Vec3F skyColour;
+    alignas(16) Vec3F skyDirection;
+    alignas(16) Mat4F skyMatrix;
 };
 
-} // namespace sqt
+struct StaticBlock
+{
+    alignas(16) Mat4F matrix;
+    alignas(16) Mat34F normMat;
+};
+
+} // namespace demo

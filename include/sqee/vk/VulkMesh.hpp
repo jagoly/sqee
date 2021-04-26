@@ -63,6 +63,9 @@ public: //====================================================//
     /// Draw the entire mesh.
     void draw_complete(vk::CommandBuffer cmdbuf) const;
 
+    /// Draw the specified submesh.
+    void draw_submesh(vk::CommandBuffer, uint index) const;
+
     //--------------------------------------------------------//
 
     /// Access vector of sub mesh offsets and sizes.

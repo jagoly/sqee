@@ -43,9 +43,7 @@ public: //====================================================//
     vk::Buffer back() const { return mBuffer.back; }
 
     /// Access the mapped memory.
-    void* map() { return mBufferPtr.front; }
-
-    //--------------------------------------------------------//
+    std::byte* map() { return mBufferPtr.front; }
 
     /// Get descriptor info for the front buffer.
     vk::DescriptorBufferInfo get_descriptor_info_front() const { return { mBuffer.front, 0u, mSize }; }
@@ -59,7 +57,7 @@ private: //===================================================//
 
     Swapper<vk::Buffer> mBuffer;
     Swapper<VulkanMemory> mBufferMem;
-    Swapper<void*> mBufferPtr;
+    Swapper<std::byte*> mBufferPtr;
 };
 
 //============================================================================//

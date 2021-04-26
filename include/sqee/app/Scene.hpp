@@ -5,6 +5,8 @@
 
 #include <sqee/setup.hpp>
 
+#include <sqee/vk/Vulkan.hpp>
+
 namespace sq {
 
 //====== Forward Declarations ================================================//
@@ -31,6 +33,11 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
+    /// Call to update and then integrate the scene.
+    void update_and_integrate(double elapsed);
+
+    //--------------------------------------------------------//
+
     /// Optionally implement for event handling.
     virtual void handle_event(Event event);
 
@@ -40,13 +47,23 @@ public: //====================================================//
     /// Optionally implement for ImGui widgets.
     virtual void show_imgui_widgets();
 
+    //--------------------------------------------------------//
+
+    /// Call between cmdbuf.begin() and cmdbuf.end() for drawing commands.
+    //virtual void populate_command_buffer(vk::CommandBuffer cmdbuf, vk::Framebuffer framebuf) = 0;
+    virtual void populate_command_buffer(vk::CommandBuffer /*cmdbuf*/, vk::Framebuffer /*framebuf*/) {}
+
 protected: //=================================================//
 
     /// Implement to simulate one tick.
     virtual void update() = 0;
 
+    /// Implement to prepare for render.
+    //virtual void integrate(double elapsed, float blend) = 0;
+    virtual void integrate(double /*elapsed*/, float /*blend*/) {}
+
     /// Implement to render the scene.
-    virtual void render(double elapsed) = 0;
+    virtual void render(double /*elapsed*/) {}
 
     //--------------------------------------------------------//
 

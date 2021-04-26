@@ -37,9 +37,9 @@ struct SQEE_API OneTimeCommands
 
 struct SQEE_API ShaderModules
 {
-    using Span = std::tuple<const uint32_t*, size_t>;
-    ShaderModules(const VulkanContext& ctx, std::optional<String> vertex, std::optional<String> geometry, std::optional<String> fragment);
-    ShaderModules(const VulkanContext& ctx, std::optional<Span> vertex, std::optional<Span> geometry, std::optional<Span> fragment);
+    using ShaderData = std::pair<const uint32_t*, size_t>;
+    ShaderModules(const VulkanContext& ctx, const String& vertex, const String& geometry, const String& fragment);
+    ShaderModules(const VulkanContext& ctx, ShaderData vertex, ShaderData geometry, ShaderData fragment);
     ~ShaderModules();
     const VulkanContext& ctx;
     std::vector<vk::ShaderModule> modules;
@@ -52,8 +52,8 @@ SQEE_API std::tuple<vk::Buffer, VulkanMemory> vk_create_buffer (
     const VulkanContext& ctx, size_t size, vk::BufferUsageFlags usage, bool host
 );
 
-SQEE_API std::tuple<vk::Image, VulkanMemory> vk_create_image_2D (
-    const VulkanContext& ctx, vk::Format format, Vec2U size, vk::SampleCountFlagBits samples, bool linear, vk::ImageUsageFlags usage, bool host
+SQEE_API std::tuple<vk::Image, VulkanMemory, vk::ImageView> vk_create_image_2D (
+    const VulkanContext& ctx, vk::Format format, Vec2U size, vk::SampleCountFlagBits samples, bool linear, vk::ImageUsageFlags usage, bool host, vk::ComponentMapping swizzle, vk::ImageAspectFlags aspect
 );
 
 //============================================================================//

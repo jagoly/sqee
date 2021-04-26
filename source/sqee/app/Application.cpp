@@ -8,13 +8,7 @@ using namespace sq;
 
 int Application::run(int argc, char** argv)
 {
-    std::vector<String> args;
-    args.reserve(size_t(argc));
-
-    for (int i = 0; i < argc; ++i)
-        args.emplace_back(argv[i]);
-
-    initialise(std::move(args));
+    initialise(std::vector<String>(argv, argv + argc));
 
     //--------------------------------------------------------//
 

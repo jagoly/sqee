@@ -171,12 +171,11 @@ template <class T> inline
 Matrix44<T> perspective_LH(T fov, T aspect, T near, T far)
 {
     T tanHalfFov = std::tan(fov * T(0.5));
-    T invRange = T(1.0) / (far - near);
 
     Vector4<T> colA { T(1.0) / (aspect * tanHalfFov), 0.0, 0.0, 0.0 };
     Vector4<T> colB { 0.0, T(1.0) / tanHalfFov, 0.0, 0.0 };
-    Vector4<T> colC { 0.0, 0.0, invRange * +(far + near), +1.0 };
-    Vector4<T> colD { 0.0, 0.0, invRange * -(T(2.0) * far * near), 0.0 };
+    Vector4<T> colC { 0.0, 0.0, far / (far - near), +1.0 };
+    Vector4<T> colD { 0.0, 0.0, -(far * near) / (far - near), 0.0 };
 
     return Matrix44<T> ( colA, colB, colC, colD );
 }
@@ -186,12 +185,11 @@ template <class T> inline
 Matrix44<T> perspective_RH(T fov, T aspect, T near, T far)
 {
     T tanHalfFov = std::tan(fov * T(0.5));
-    T invRange = T(1.0) / (far - near);
 
     Vector4<T> colA { T(1.0) / (aspect * tanHalfFov), 0.0, 0.0, 0.0 };
     Vector4<T> colB { 0.0, T(1.0) / tanHalfFov, 0.0, 0.0 };
-    Vector4<T> colC { 0.0, 0.0, invRange * -(far + near), -1.0 };
-    Vector4<T> colD { 0.0, 0.0, invRange * -(T(2.0) * far * near), 0.0 };
+    Vector4<T> colC { 0.0, 0.0, far / (near - far), -1.0 };
+    Vector4<T> colD { 0.0, 0.0, -(far * near) / (far - near), 0.0 };
 
     return Matrix44<T> ( colA, colB, colC, colD );
 }
@@ -290,30 +288,6 @@ Matrix33<T> basis_from_z(Vector3<T> zAxis)
     const Vector3<T> xAxis = maths::cross(zAxis, yAxis);
 
     return Matrix33<T> ( xAxis, yAxis, zAxis );
-}
-
-//============================================================================//
-
-/// Convert an HSV value to RGB, all values in the range 0:1
-template <class T> constexpr
-Vector3<T> hsv_to_rgb(Vector3<T> hsv)
-{
-    static_assert(std::is_floating_point_v<T>);
-
-    const int i = int(hsv[0] * T(6));
-    const T f = hsv[0] * T(6) - T(i);
-    const T p = hsv[2] * (T(1) - hsv[1]);
-    const T q = hsv[2] * (T(1) - f * hsv[1]);
-    const T t = hsv[2] * (T(1) - (T(1) - f) * hsv[1]);
-
-    const int j = i % 6;
-
-    if (j == 0) return { hsv.z, t, p };
-    if (j == 1) return { q, hsv.z, p };
-    if (j == 2) return { p, hsv.z, t };
-    if (j == 3) return { p, q, hsv.z };
-    if (j == 4) return { t, p, hsv.z };
-    if (j == 5) return { hsv.z, p, q };
 }
 
 //============================================================================//

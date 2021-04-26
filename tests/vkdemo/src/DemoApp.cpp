@@ -1,5 +1,6 @@
-#include "VulkTestApp.hpp"
+#include "DemoApp.hpp"
 
+#include "Resources.hpp"
 #include "UniformBlocks.hpp"
 
 #include <sqee/app/Event.hpp>
@@ -9,12 +10,14 @@
 #include <sqee/misc/Files.hpp>
 #include <sqee/vk/Helpers.hpp>
 
-using namespace sqt;
-namespace maths = sq::maths;
+#include <sqee/misc/Json.hpp>
+#include <sqee/vk/Pipeline.hpp>
+
+using namespace demo;
 
 //============================================================================//
 
-void VulkTestApp::initialise(std::vector<String> /*args*/)
+void DemoApp::initialise(std::vector<String> /*args*/)
 {
     mWindow = std::make_unique<sq::VulkWindow> (
         "Hello Vulkan", Vec2U(800u, 600u), "sqee-vkdemo", Vec3U(0u, 0u, 1u)
@@ -31,26 +34,32 @@ void VulkTestApp::initialise(std::vector<String> /*args*/)
 
     initialise_layouts();
     initialise_camera();
-    initialise_models();
 
     create_render_targets();
     create_pipelines();
+
+    initialise_models();
 }
 
 //============================================================================//
 
-VulkTestApp::~VulkTestApp()
+DemoApp::~DemoApp()
 {
     const auto& ctx = sq::VulkanContext::get();
 
     ctx.device.waitIdle();
 
     ctx.device.destroy(mCameraDescriptorSetLayout);
+    ctx.device.destroy(mLightDescriptorSetLayout);
     ctx.device.destroy(mModelDescriptorSetLayout);
     ctx.device.destroy(mCompositeDescriptorSetLayout);
 
     ctx.device.destroy(mModelPipelineLayout);
     ctx.device.destroy(mCompositePipelineLayout);
+
+    ctx.device.free(ctx.descriptorPool, {mCameraDescriptorSet.front, mCameraDescriptorSet.back});
+    ctx.device.free(ctx.descriptorPool, {mLightDescriptorSet.front, mLightDescriptorSet.back});
+    ctx.device.free(ctx.descriptorPool, mCompositeDescriptorSet);
 
     destroy_render_targets();
     destroy_pipelines();
@@ -58,7 +67,7 @@ VulkTestApp::~VulkTestApp()
 
 //============================================================================//
 
-void VulkTestApp::update(double elapsed)
+void DemoApp::update(double elapsed)
 {
     if (mWindow->has_focus())
     {
@@ -88,12 +97,12 @@ void VulkTestApp::update(double elapsed)
 
 //============================================================================//
 
-void VulkTestApp::swap_resources()
+void DemoApp::swap_resources()
 {
     mCameraUbo.swap();
     mCameraDescriptorSet.swap();
 
-    for (auto& model : mModels)
+    for (auto& model : mStaticModels)
     {
         model.ubo.swap();
         model.descriptorSet.swap();
@@ -102,7 +111,7 @@ void VulkTestApp::swap_resources()
 
 //============================================================================//
 
-void VulkTestApp::handle_event(sq::Event event)
+void DemoApp::handle_event(sq::Event event)
 {
     if (event.type == sq::Event::Type::Window_Close)
         mReturnCode = 0;
@@ -129,7 +138,7 @@ void VulkTestApp::handle_event(sq::Event event)
 
 //============================================================================//
 
-void VulkTestApp::refresh_graphics_config()
+void DemoApp::refresh_graphics_config()
 {
     mWindow->destroy_swapchain_and_friends();
     mWindow->create_swapchain_and_friends();
@@ -139,11 +148,14 @@ void VulkTestApp::refresh_graphics_config()
 
     destroy_pipelines();
     create_pipelines();
+
+    mResourceCaches.pipelines.reload_resources();
+    mResourceCaches.materials.reload_resources();
 }
 
 //============================================================================//
 
-void VulkTestApp::initialise_layouts()
+void DemoApp::initialise_layouts()
 {
     const auto& ctx = sq::VulkanContext::get();
 
@@ -152,24 +164,27 @@ void VulkTestApp::initialise_layouts()
         mCameraDescriptorSetLayout = sq::vk_create_descriptor_set_layout (
             ctx, {}, {
                 vk::DescriptorSetLayoutBinding {
+                    0u, vk::DescriptorType::eUniformBuffer, 1u, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, nullptr
+                }
+            }
+        );
+        mLightDescriptorSetLayout = sq::vk_create_descriptor_set_layout (
+            ctx, {}, {
+                vk::DescriptorSetLayoutBinding {
+                    0u, vk::DescriptorType::eUniformBuffer, 1u, vk::ShaderStageFlagBits::eFragment, nullptr
+                }
+            }
+        );
+        mModelDescriptorSetLayout = sq::vk_create_descriptor_set_layout (
+            ctx, {}, {
+                vk::DescriptorSetLayoutBinding {
                     0u, vk::DescriptorType::eUniformBuffer, 1u, vk::ShaderStageFlagBits::eVertex, nullptr
                 }
             }
         );
 
-        mModelDescriptorSetLayout = sq::vk_create_descriptor_set_layout (
-            ctx, {}, {
-                vk::DescriptorSetLayoutBinding {
-                    0u, vk::DescriptorType::eUniformBuffer, 1u, vk::ShaderStageFlagBits::eVertex
-                },
-                vk::DescriptorSetLayoutBinding {
-                    1u, vk::DescriptorType::eCombinedImageSampler, 1u, vk::ShaderStageFlagBits::eFragment
-                }
-            }
-        );
-
         mModelPipelineLayout = sq::vk_create_pipeline_layout (
-            ctx, {}, { mCameraDescriptorSetLayout, mModelDescriptorSetLayout }, {}
+            ctx, {}, { mCameraDescriptorSetLayout, mLightDescriptorSetLayout }, {}
         );
     }
 
@@ -186,12 +201,14 @@ void VulkTestApp::initialise_layouts()
         mCompositePipelineLayout = sq::vk_create_pipeline_layout (
             ctx, {}, { mCompositeDescriptorSetLayout }, {}
         );
+
+        mCompositeDescriptorSet = sq::vk_allocate_descriptor_set(ctx, mCompositeDescriptorSetLayout);
     }
 }
 
 //============================================================================//
 
-void VulkTestApp::initialise_camera()
+void DemoApp::initialise_camera()
 {
     const auto& ctx = sq::VulkanContext::get();
 
@@ -200,24 +217,32 @@ void VulkTestApp::initialise_camera()
 
     sq::vk_update_descriptor_set_swapper (
         ctx, mCameraDescriptorSet, 0u, 0u, vk::DescriptorType::eUniformBuffer,
-        mCameraUbo.get_descriptor_info_front(),
-        mCameraUbo.get_descriptor_info_back()
+        mCameraUbo.get_descriptor_info_front(), mCameraUbo.get_descriptor_info_back()
+    );
+
+    mLightUbo.initialise(sizeof(LightBlock), vk::BufferUsageFlagBits::eUniformBuffer);
+    mLightDescriptorSet = sq::vk_allocate_descriptor_set_swapper(ctx, mLightDescriptorSetLayout);
+
+    sq::vk_update_descriptor_set_swapper (
+        ctx, mLightDescriptorSet, 0u, 0u, vk::DescriptorType::eUniformBuffer,
+        mLightUbo.get_descriptor_info_front(), mLightUbo.get_descriptor_info_back()
     );
 }
 
 //============================================================================//
 
-void VulkTestApp::initialise_models()
+void DemoApp::initialise_models()
 {
     const auto& ctx = sq::VulkanContext::get();
 
     // todo: more than one model
     {
-        auto& model = mModels.emplace_back();
+        auto& model = mStaticModels.emplace_back();
 
-        model.mesh.load_from_file("assets/meshes/Dice");
-        model.texture.load_from_file_2D("assets/textures/Dice_diff");
-        model.ubo.initialise(sizeof(ModelBlock), vk::BufferUsageFlagBits::eUniformBuffer);
+        model.mesh = mResourceCaches.meshes.acquire("meshes/Dice");
+        model.material = mResourceCaches.materials.acquire(sq::parse_json_from_file("assets/materials/Dice.json"));
+
+        model.ubo.initialise(sizeof(StaticBlock), vk::BufferUsageFlagBits::eUniformBuffer);
         model.descriptorSet = sq::vk_allocate_descriptor_set_swapper(ctx, mModelDescriptorSetLayout);
 
         sq::vk_update_descriptor_set_swapper (
@@ -225,48 +250,30 @@ void VulkTestApp::initialise_models()
             model.ubo.get_descriptor_info_front(),
             model.ubo.get_descriptor_info_back()
         );
-
-        sq::vk_update_descriptor_set_swapper (
-            ctx, model.descriptorSet, 1u, 0u, vk::DescriptorType::eCombinedImageSampler,
-            model.texture.get_descriptor_info(),
-            model.texture.get_descriptor_info()
-        );
     }
 }
 
 //============================================================================//
 
-void VulkTestApp::create_render_targets()
+void DemoApp::create_render_targets()
 {
     const auto& ctx = sq::VulkanContext::get();
 
-    // create images and image views
+    // create images and samplers
     {
         if (mMultisampleMode > vk::SampleCountFlagBits::e1)
         {
-            std::tie(mMsColourImage, mMsColourImageMem) = sq::vk_create_image_2D (
-                ctx, vk::Format::eB8G8R8A8Srgb, ctx.window.size, mMultisampleMode, false,
-                vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment, false
-            );
-
-            mMsColourImageView = ctx.device.createImageView (
-                vk::ImageViewCreateInfo {
-                    {}, mMsColourImage, vk::ImageViewType::e2D, vk::Format::eB8G8R8A8Srgb, {},
-                    vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u)
-                }
+            std::tie(mMsColourImage, mMsColourImageMem, mMsColourImageView) = sq::vk_create_image_2D (
+                ctx, vk::Format::eB8G8R8A8Srgb, ctx.window.size, mMultisampleMode,
+                false, vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment,
+                false, {}, vk::ImageAspectFlagBits::eColor
             );
         }
 
-        std::tie(mResolveColourImage, mResolveColourImageMem) = sq::vk_create_image_2D (
-            ctx, vk::Format::eB8G8R8A8Srgb, ctx.window.size, vk::SampleCountFlagBits::e1, false,
-            vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled, false
-        );
-
-        mResolveColourImageView = ctx.device.createImageView (
-            vk::ImageViewCreateInfo {
-                {}, mResolveColourImage, vk::ImageViewType::e2D, vk::Format::eB8G8R8A8Srgb, {},
-                vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u)
-            }
+        std::tie(mResolveColourImage, mResolveColourImageMem, mResolveColourImageView) = sq::vk_create_image_2D (
+            ctx, vk::Format::eB8G8R8A8Srgb, ctx.window.size, vk::SampleCountFlagBits::e1,
+            false, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled,
+            false, {}, vk::ImageAspectFlagBits::eColor
         );
 
         mResolveColourSampler = ctx.device.createSampler (
@@ -375,11 +382,15 @@ void VulkTestApp::create_render_targets()
             );
         }
     }
+
+    mResourceCaches.passConfigMap = {
+        { "Opaque", { mMsRenderPass, mMultisampleMode, ctx.window.size } }
+    };
 }
 
 //============================================================================//
 
-void VulkTestApp::destroy_render_targets()
+void DemoApp::destroy_render_targets()
 {
     const auto& ctx = sq::VulkanContext::get();
 
@@ -398,46 +409,14 @@ void VulkTestApp::destroy_render_targets()
 
 //============================================================================//
 
-void VulkTestApp::create_pipelines()
+void DemoApp::create_pipelines()
 {
     const auto& ctx = sq::VulkanContext::get();
 
-    // model pipeline
+    // composite pipeline and descriptor set
     {
         const auto shaderModules = sq::ShaderModules (
-            ctx, "shaders/object.vert.spv", {}, "shaders/object.frag.spv"
-        );
-
-        const auto vertexConfig = sq::VulkMesh::VertexConfig (
-            sq::VulkMesh::Attribute::TexCoords | sq::VulkMesh::Attribute::Normals | sq::VulkMesh::Attribute::Tangents
-        );
-
-        mModelPipeline = sq::vk_create_graphics_pipeline (
-            ctx, mModelPipelineLayout, mMsRenderPass, 0u, shaderModules.stages, vertexConfig.state,
-            vk::PipelineInputAssemblyStateCreateInfo {
-                {}, vk::PrimitiveTopology::eTriangleList, false
-            },
-            vk::PipelineRasterizationStateCreateInfo {
-                {}, false, false, vk::PolygonMode::eFill, vk::CullModeFlagBits::eBack,
-                vk::FrontFace::eClockwise, false, 0.f, false, 0.f, 1.f
-            },
-            vk::PipelineMultisampleStateCreateInfo {
-                {}, mMultisampleMode, false, 0.f, nullptr, false, false
-            },
-            vk::PipelineDepthStencilStateCreateInfo {
-                {}, false, false, {}, false, false, {}, {}, 0.f, 0.f
-            },
-            vk::Viewport { 0.f, 0.f, float(ctx.window.size.x), float(ctx.window.size.y) },
-            vk::Rect2D { {0, 0}, {ctx.window.size.x, ctx.window.size.y} },
-            vk::PipelineColorBlendAttachmentState { false, {}, {}, {}, {}, {}, {}, vk::ColorComponentFlags(0b1111) },
-            nullptr
-        );
-    }
-
-    // composite pipeline
-    {
-        const auto shaderModules = sq::ShaderModules (
-            ctx, "shaders/screen.vert.spv", {}, "shaders/screen.frag.spv"
+            ctx, "shaders/FullScreen.vert.spv", {}, "shaders/Composite.frag.spv"
         );
 
         mCompositePipeline = sq::vk_create_graphics_pipeline (
@@ -447,7 +426,7 @@ void VulkTestApp::create_pipelines()
             },
             vk::PipelineRasterizationStateCreateInfo {
                 {}, false, false, vk::PolygonMode::eFill, vk::CullModeFlagBits::eNone,
-                vk::FrontFace::eClockwise, false, 0.f, false, 0.f, 1.f
+                vk::FrontFace::eCounterClockwise, false, 0.f, false, 0.f, 1.f
             },
             vk::PipelineMultisampleStateCreateInfo {
                 {}, vk::SampleCountFlagBits::e1, false, 0.f, nullptr, false, false
@@ -460,11 +439,6 @@ void VulkTestApp::create_pipelines()
             vk::PipelineColorBlendAttachmentState { false, {}, {}, {}, {}, {}, {}, vk::ColorComponentFlags(0b1111) },
             nullptr
         );
-    }
-
-    // composite descriptor set
-    {
-        mCompositeDescriptorSet = sq::vk_allocate_descriptor_set(ctx, mCompositeDescriptorSetLayout);
 
         sq::vk_update_descriptor_set (
             ctx, mCompositeDescriptorSet, 0u, 0u, vk::DescriptorType::eCombinedImageSampler,
@@ -477,17 +451,16 @@ void VulkTestApp::create_pipelines()
 
 //============================================================================//
 
-void VulkTestApp::destroy_pipelines()
+void DemoApp::destroy_pipelines()
 {
     const auto& ctx = sq::VulkanContext::get();
 
-    ctx.device.destroy(mModelPipeline);
     ctx.device.destroy(mCompositePipeline);
 }
 
 //============================================================================//
 
-void VulkTestApp::update_window_title(double elapsed)
+void DemoApp::update_window_title(double elapsed)
 {
     mTimeAccum += elapsed;
     mFramesAccum += 1u;
@@ -504,44 +477,59 @@ void VulkTestApp::update_window_title(double elapsed)
 
 //============================================================================//
 
-void VulkTestApp::update_uniform_buffer(double elapsed)
+void DemoApp::update_uniform_buffer(double elapsed)
 {
     const auto& ctx = sq::VulkanContext::get();
 
     static double totalTime = 0.0;
     totalTime += elapsed * 0.2;
 
-    static Mat4F modelMat = Mat4F();
+    static Mat4F modelMat;
 
-    if (mInputDevices->is_pressed(sq::Keyboard_Key::Arrow_Up))
-        modelMat = Mat4F(maths::rotation(Vec3F(1.f, 0.f, 0.f), float(elapsed))) * modelMat;
     if (mInputDevices->is_pressed(sq::Keyboard_Key::Arrow_Down))
-        modelMat = Mat4F(maths::rotation(Vec3F(-1.f, 0.f, 0.f), float(elapsed))) * modelMat;
+        modelMat = Mat4F(maths::rotation(Vec3F(1.f, 0.f, 0.f), +float(elapsed) * 0.5f)) * modelMat;
+    if (mInputDevices->is_pressed(sq::Keyboard_Key::Arrow_Up))
+        modelMat = Mat4F(maths::rotation(Vec3F(1.f, 0.f, 0.f), -float(elapsed) * 0.5f)) * modelMat;
     if (mInputDevices->is_pressed(sq::Keyboard_Key::Arrow_Left))
-        modelMat = Mat4F(maths::rotation(Vec3F(0.f, 1.f, 0.f), float(elapsed))) * modelMat;
+        modelMat = Mat4F(maths::rotation(Vec3F(0.f, 1.f, 0.f), -float(elapsed) * 0.5f)) * modelMat;
     if (mInputDevices->is_pressed(sq::Keyboard_Key::Arrow_Right))
-        modelMat = Mat4F(maths::rotation(Vec3F(0.f, -1.f, 0.f), float(elapsed))) * modelMat;
+        modelMat = Mat4F(maths::rotation(Vec3F(0.f, 1.f, 0.f), +float(elapsed) * 0.5f)) * modelMat;
+    if (mInputDevices->is_pressed(sq::Keyboard_Key::PageDown))
+        modelMat = Mat4F(maths::rotation(Vec3F(0.f, 0.f, 1.f), -float(elapsed) * 0.5f)) * modelMat;
+    if (mInputDevices->is_pressed(sq::Keyboard_Key::PageUp))
+        modelMat = Mat4F(maths::rotation(Vec3F(0.f, 0.f, 1.f), +float(elapsed) * 0.5f)) * modelMat;
 
-    for (auto& model : mModels)
+    auto& camera = *reinterpret_cast<CameraBlock*>(mCameraUbo.map());
     {
-        auto& block = *static_cast<ModelBlock*>(model.ubo.map());
-        block.model = modelMat;
-    }
-
-    // update camera block
-    {
-        auto& block = *static_cast<CameraBlock*>(mCameraUbo.map());
-
-        block.view = maths::look_at_RH(Vec3F(0.f, 0.1f, -2.f), Vec3F(0.f, 0.f, 0.f), Vec3F(0.f, 1.f, 0.f));
+        camera.viewMat = maths::look_at_LH(Vec3F(0.f, 0.f, -2.f), Vec3F(0.f, 0.f, 0.f), Vec3F(0.f, 1.f, 0.f));
 
         const float aspect = float(ctx.window.size.x) / float(ctx.window.size.y);
-        block.proj = maths::perspective_RH(maths::radians(0.125f), aspect, 0.1f, 10.f);
+        camera.projMat = maths::perspective_LH(maths::radians(0.125f), aspect, 0.1f, 10.f);
+
+        camera.invViewMat = maths::inverse(camera.viewMat);
+        camera.invProjMat = maths::inverse(camera.projMat);
+    }
+
+    auto& light = *reinterpret_cast<LightBlock*>(mLightUbo.map());
+    {
+        light.ambiColour = { 0.3f, 0.3f, 0.3f };
+        light.skyColour = { 0.7f, 0.7f, 0.7f };
+        light.skyDirection = maths::normalize(Vec3F(0.f, 0.f, 1.f));
+        light.skyMatrix = Mat4F();
+    }
+
+    for (auto& model : mStaticModels)
+    {
+        auto& block = *reinterpret_cast<StaticBlock*>(model.ubo.map());
+        //block.matrix = camera.projMat * camera.viewMat * modelMat;
+        block.matrix = modelMat;
+        block.normMat = Mat34F(maths::normal_matrix(camera.viewMat * modelMat));
     }
 }
 
 //============================================================================//
 
-void VulkTestApp::populate_command_buffer(vk::CommandBuffer cmdbuf, vk::Framebuffer framebuf)
+void DemoApp::populate_command_buffer(vk::CommandBuffer cmdbuf, vk::Framebuffer framebuf)
 {
     const auto& ctx = sq::VulkanContext::get();
 
@@ -556,18 +544,19 @@ void VulkTestApp::populate_command_buffer(vk::CommandBuffer cmdbuf, vk::Framebuf
         );
 
         cmdbuf.clearAttachments (
-            vk::ClearAttachment(vk::ImageAspectFlagBits::eColor, 0u, vk::ClearValue(std::array{0.05f, 0.05f, 0.f, 1.f})),
+            vk::ClearAttachment(vk::ImageAspectFlagBits::eColor, 0u, vk::ClearValue(std::array{0.025f, 0.025f, 0.f, 1.f})),
             vk::ClearRect(vk::Rect2D({0, 0}, {ctx.window.size.x, ctx.window.size.y}), 0u, 1u)
         );
 
-        cmdbuf.bindPipeline(vk::PipelineBindPoint::eGraphics, mModelPipeline);
         cmdbuf.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, mModelPipelineLayout, 0u, mCameraDescriptorSet.front, {});
+        cmdbuf.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, mModelPipelineLayout, 1u, mLightDescriptorSet.front, {});
 
-        for (const auto& model : mModels)
+        for (const auto& model : mStaticModels)
         {
-            cmdbuf.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, mModelPipelineLayout, 1u, model.descriptorSet.front, {});
-            model.mesh.bind_buffers(cmdbuf);
-            model.mesh.draw_complete(cmdbuf);
+            model.material->bind(cmdbuf);
+            model.material->bind_final_descriptor_set(cmdbuf, model.descriptorSet.front);
+            model.mesh->bind_buffers(cmdbuf);
+            model.mesh->draw_complete(cmdbuf);
         }
 
         cmdbuf.endRenderPass();

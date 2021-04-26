@@ -25,6 +25,21 @@ void Scene::update_and_render(double elapsed)
 
 //============================================================================//
 
+void Scene::update_and_integrate(double elapsed)
+{
+    mAccumulation += elapsed;
+
+    while (mAccumulation >= mTickTime)
+    {
+        mAccumulation -= mTickTime;
+        update();
+    }
+
+    integrate(elapsed, float(mAccumulation / mTickTime));
+}
+
+//============================================================================//
+
 void Scene::handle_event(Event /*event*/) {}
 
 void Scene::refresh_options() {}

@@ -42,7 +42,7 @@ public: //====================================================//
 
     GLFWwindow* get_glfw_window() { return mGlfwWindow; }
 
-    vk::RenderPass get_render_pass() { return mRenderPass; }
+    vk::RenderPass get_render_pass() const { return mRenderPass; }
 
     //--------------------------------------------------------//
 

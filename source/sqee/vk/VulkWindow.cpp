@@ -427,13 +427,14 @@ VulkWindow::VulkWindow(const char* title, Vec2U size, const char* appName, Vec3U
 
     // create descriptor pool
     {
+        // todo: allow these to be configured
         auto poolSizes = std::array {
-            vk::DescriptorPoolSize { vk::DescriptorType::eUniformBuffer, 256u },
-            vk::DescriptorPoolSize { vk::DescriptorType::eCombinedImageSampler, 512u }
+            vk::DescriptorPoolSize { vk::DescriptorType::eUniformBuffer, 240u },
+            vk::DescriptorPoolSize { vk::DescriptorType::eCombinedImageSampler, 320u }
         };
 
         mDesciptorPool = mDevice.createDescriptorPool (
-            vk::DescriptorPoolCreateInfo { {}, 256u + 512u, poolSizes }
+            vk::DescriptorPoolCreateInfo { vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet, 240u, poolSizes }
         );
     }
 
