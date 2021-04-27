@@ -173,6 +173,7 @@ else ()
 endif ()
 
 add_subdirectory(libs/SPIRV-Cross)
+set_property(TARGET spirv-cross-core PROPERTY MSVC_RUNTIME_LIBRARY MultiThreaded$<$<CONFIG:Debug>:Debug>)
 target_link_libraries(sqee PRIVATE spirv-cross-core)
 
 ################################################################################
