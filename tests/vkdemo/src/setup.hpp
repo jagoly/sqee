@@ -19,7 +19,7 @@ namespace algo = sq::algo;
 namespace maths = sq::maths;
 
 class DemoApp;
-class ResourceCaches;
+struct ResourceCaches;
 
 //============================================================================//
 

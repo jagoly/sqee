@@ -66,5 +66,9 @@ target_link_libraries(sqee-vkdemo PRIVATE sqee)
 
 ################################################################################
 
-add_custom_command(TARGET sqee-vkdemo POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink
-    "${PROJECT_SOURCE_DIR}/assets" "${CMAKE_BINARY_DIR}/tests/vkdemo/assets")
+if (NOT "${PROJECT_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}/tests/vkdemo")
+
+    add_custom_command(TARGET sqee-vkdemo POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink
+        "${PROJECT_SOURCE_DIR}/assets" "${CMAKE_BINARY_DIR}/tests/vkdemo/assets")
+
+endif ()
