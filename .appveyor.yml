@@ -5,9 +5,9 @@ image:
 before_build:
 
   - cd c:/projects
-  - curl -fsSL -o vulkan-sdk.exe https://sdk.lunarg.com/sdk/download/1.2.162.0/windows/VulkanSDK-1.2.162.0-Installer.exe
+  - curl -fsSL -o vulkan-sdk.exe https://sdk.lunarg.com/sdk/download/1.2.170.0/windows/VulkanSDK-1.2.170.0-Installer.exe
   - vulkan-sdk.exe /S
-  - set VULKAN_SDK=c:/VulkanSDK/1.2.162.0
+  - set VULKAN_SDK=c:/VulkanSDK/1.2.170.0
 
   - cd c:/projects
   - git clone --depth 1 --branch master https://github.com/SFML/SFML.git
@@ -17,11 +17,11 @@ before_build:
   - cmake --build . --config Debug
 
   - cd c:/projects
-  - git clone --depth 1 --branch 3.3.2 https://github.com/glfw/glfw.git
+  - git clone --depth 1 --branch 3.3.4 https://github.com/glfw/glfw.git
   - cd c:/projects/glfw
-  #- cmake . -DBUILD_SHARED_LIBS=False -DUSE_MSVC_RUNTIME_LIBRARY_DLL=False -DGLFW_BUILD_DOCS=False -DGLFW_BUILD_EXAMPLES=False -DGLFW_BUILD_TESTS=False
-  - cmake . -DBUILD_SHARED_LIBS=True -DUSE_MSVC_RUNTIME_LIBRARY_DLL=True -DGLFW_BUILD_DOCS=False -DGLFW_BUILD_EXAMPLES=False -DGLFW_BUILD_TESTS=False
-  - cmake --build . --config Debug
+  #- cmake . -DBUILD_SHARED_LIBS=False -DUSE_MSVC_RUNTIME_LIBRARY_DLL=False -DGLFW_BUILD_DOCS=False -DGLFW_BUILD_EXAMPLES=False -DGLFW_BUILD_TESTS=False -DCMAKE_INSTALL_PREFIX=.
+  - cmake . -DBUILD_SHARED_LIBS=True -DUSE_MSVC_RUNTIME_LIBRARY_DLL=True -DGLFW_BUILD_DOCS=False -DGLFW_BUILD_EXAMPLES=False -DGLFW_BUILD_TESTS=False -DCMAKE_INSTALL_PREFIX=.
+  - cmake --build . --config Debug --target install
 
 
 build_script:
