@@ -4,6 +4,8 @@ project(SQEE_VKDEMO CXX)
 
 set(SHADER_OUTPUT_DIR "${CMAKE_BINARY_DIR}/tests/vkdemo/shaders")
 
+find_program(GLSLC glslc)
+
 function (target_add_shaders TARGET)
     foreach (SHADER ${ARGN})
 
@@ -23,7 +25,7 @@ function (target_add_shaders TARGET)
         file(MAKE_DIRECTORY ${OUTDIR})
 
         add_custom_command( OUTPUT ${OUTPATH}
-                            COMMAND glslc ${SHADER} -o ${OUTPATH}
+                            COMMAND ${GLSLC} ${SHADER} -o ${OUTPATH}
                             DEPENDS ${SHADER}
                             IMPLICIT_DEPENDS CXX ${SHADER}
                             VERBATIM )
