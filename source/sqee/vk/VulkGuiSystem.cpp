@@ -302,10 +302,11 @@ void VulkGuiSystem::create_objects()
     uchar* pixels; int width, height;
     ImGui::GetIO().Fonts->GetTexDataAsAlpha8(&pixels, &width, &height);
 
-    VulkTexture::Config2D config;
+    VulkTexture::Config config;
     config.format = vk::Format::eR8Unorm;
     config.wrapX = vk::SamplerAddressMode::eRepeat;
     config.wrapY = vk::SamplerAddressMode::eRepeat;
+    config.wrapZ = vk::SamplerAddressMode::eRepeat;
     config.swizzle.r = vk::ComponentSwizzle::eOne;
     config.swizzle.g = vk::ComponentSwizzle::eOne;
     config.swizzle.b = vk::ComponentSwizzle::eOne;
@@ -313,8 +314,10 @@ void VulkGuiSystem::create_objects()
     config.filter = true;
     config.mipmaps = false;
     config.anisotropy = false;
+    config.size = Vec3U(width, height, 1u);
 
-    mFontTexture.load_from_memory_2D(pixels, Vec2U(width, height), config);
+    mFontTexture.initialise_2D(config);
+    mFontTexture.load_from_memory_2D(pixels, config);
 }
 
 //============================================================================//

@@ -146,66 +146,190 @@ VulkTexture::~VulkTexture()
 
 //============================================================================//
 
-void VulkTexture::load_from_memory_2D(void* data, Vec2U size, Config2D config)
+void VulkTexture::initialise_2D(const Config& config)
 {
     SQASSERT(!mImage, "texture already loaded");
 
     const auto& ctx = sq::VulkanContext::get();
 
     std::tie(mImage, mImageMem, mImageView) = vk_create_image_2D (
-        ctx, config.format, size, vk::SampleCountFlagBits::e1,
+        ctx, config.format, Vec2U(config.size), vk::SampleCountFlagBits::e1,
         false, vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
         false, config.swizzle, vk::ImageAspectFlagBits::eColor
     );
 
+    impl_initialise_common(ctx, config);
+}
+
+//============================================================================//
+
+void VulkTexture::load_from_memory_2D(void* data, const Config& config)
+{
+    const auto& ctx = sq::VulkanContext::get();
+
     const auto formatInfo = impl_get_format_info(config.format);
 
-    // load image data via staging buffer
+    auto staging = StagingBuffer(ctx, config.size.x * config.size.y * formatInfo.pixelSize);
+    auto cmdbuf = OneTimeCommands(ctx);
+
+    std::memcpy(staging.memory.map(), data, config.size.x * config.size.y * formatInfo.pixelSize);
+    staging.memory.unmap();
+
+    cmdbuf->pipelineBarrier (
+        vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eTransfer,
+        {}, {}, {},
+        vk::ImageMemoryBarrier {
+            {}, vk::AccessFlagBits::eTransferWrite,
+            vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal,
+            VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, mImage,
+            vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u)
+        }
+    );
+
+    cmdbuf->copyBufferToImage (
+        staging.buffer, mImage, vk::ImageLayout::eTransferDstOptimal,
+        vk::BufferImageCopy {
+            0u, 0u, 0u,
+            vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0u, 0u, 1u),
+            vk::Offset3D(0u, 0u, 0u), vk::Extent3D(config.size.x, config.size.y, 1u)
+        }
+    );
+
+    cmdbuf->pipelineBarrier (
+        vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eAllGraphics,
+        {}, {}, {},
+        vk::ImageMemoryBarrier {
+            vk::AccessFlagBits::eTransferWrite, vk::AccessFlagBits::eShaderRead,
+            vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal,
+            VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, mImage,
+            vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u)
+        }
+    );
+}
+
+//============================================================================//
+
+void VulkTexture::load_from_file_2D(const String& path)
+{
+    const JsonValue json = parse_json_from_file(path + ".json");
+
+    Config config;
+    config.format = impl_string_to_format(json.at("format"));
+    config.wrapX = impl_string_to_wrap(json.at("wrapX"));
+    config.wrapY = impl_string_to_wrap(json.at("wrapY"));
+    config.wrapZ = vk::SamplerAddressMode::eRepeat;
+    config.swizzle = impl_string_to_swizzle(json.at("swizzle"));
+    config.filter = json.at("filter");
+    config.mipmaps = json.at("mipmaps");
+    config.anisotropy = json.at("anisotropy");
+
+    const auto image = impl_load_image(config.format, path + ".png");
+    config.size = Vec3U(image.size, 1u);
+
+    initialise_2D(config);
+    load_from_memory_2D(image.data, config);
+}
+
+//============================================================================//
+
+void VulkTexture::initialise_cube(const Config& config)
+{
+    SQASSERT(!mImage, "texture already loaded");
+
+    const auto& ctx = sq::VulkanContext::get();
+
+    std::tie(mImage, mImageMem, mImageView) = vk_create_image_cube (
+        ctx, config.format, config.size.x, vk::SampleCountFlagBits::e1,
+        false, vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
+        false, config.swizzle, vk::ImageAspectFlagBits::eColor
+    );
+
+    impl_initialise_common(ctx, config);
+}
+
+//============================================================================//
+
+void VulkTexture::load_from_memory_cube(void* data, uint face, const Config& config)
+{
+    const auto& ctx = sq::VulkanContext::get();
+
+    const auto formatInfo = impl_get_format_info(config.format);
+
+    auto staging = StagingBuffer(ctx, config.size.x * config.size.y * formatInfo.pixelSize);
+    auto cmdbuf = OneTimeCommands(ctx);
+
+    std::memcpy(staging.memory.map(), data, config.size.x * config.size.y * formatInfo.pixelSize);
+    staging.memory.unmap();
+
+    cmdbuf->pipelineBarrier (
+        vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eTransfer,
+        {}, {}, {},
+        vk::ImageMemoryBarrier {
+            {}, vk::AccessFlagBits::eTransferWrite,
+            vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal,
+            VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, mImage,
+            vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0u, 1u, face, 1u)
+        }
+    );
+
+    cmdbuf->copyBufferToImage (
+        staging.buffer, mImage, vk::ImageLayout::eTransferDstOptimal,
+        vk::BufferImageCopy {
+            0u, 0u, 0u,
+            vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0u, face, 1u),
+            vk::Offset3D(0u, 0u, 0u), vk::Extent3D(config.size.x, config.size.y, 1u)
+        }
+    );
+
+    cmdbuf->pipelineBarrier (
+        vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eAllGraphics,
+        {}, {}, {},
+        vk::ImageMemoryBarrier {
+            vk::AccessFlagBits::eTransferWrite, vk::AccessFlagBits::eShaderRead,
+            vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal,
+            VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, mImage,
+            vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0u, 1u, face, 1u)
+        }
+    );
+}
+
+//============================================================================//
+
+void VulkTexture::load_from_file_cube(const String& path)
+{
+    const JsonValue json = parse_json_from_file(path + "/TextureCube.json");
+
+    Config config;
+    config.format = impl_string_to_format(json.at("format"));
+    config.wrapX = vk::SamplerAddressMode::eRepeat;
+    config.wrapY = vk::SamplerAddressMode::eRepeat;
+    config.wrapZ = vk::SamplerAddressMode::eRepeat;
+    config.swizzle = impl_string_to_swizzle(json.at("swizzle"));
+    config.filter = json.at("filter");
+    config.mipmaps = json.at("mipmaps");
+    config.anisotropy = json.at("anisotropy");
+    config.size = Vec3U(Vec2U(uint(json.at("size"))), 6u);
+
+    initialise_cube(config);
+
+    for (const char* fname : {"0_right", "1_left", "2_forward", "3_back", "4_up", "5_down"})
     {
-        auto staging = StagingBuffer(ctx, size.x * size.y * formatInfo.pixelSize);
-        auto cmdbuf = OneTimeCommands(ctx);
-
-        std::memcpy(staging.memory.map(), data, size.x * size.y * formatInfo.pixelSize);
-        staging.memory.unmap();
-
-        cmdbuf->pipelineBarrier (
-            vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eTransfer,
-            {}, {}, {},
-            vk::ImageMemoryBarrier {
-                {}, vk::AccessFlagBits::eTransferWrite,
-                vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal,
-                VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, mImage,
-                vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u)
-            }
-        );
-
-        cmdbuf->copyBufferToImage (
-            staging.buffer, mImage, vk::ImageLayout::eTransferDstOptimal,
-            vk::BufferImageCopy {
-                0u, 0u, 0u,
-                vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0u, 0u, 1u),
-                vk::Offset3D(0u, 0u, 0u), vk::Extent3D(size.x, size.y, 1u)
-            }
-        );
-
-        cmdbuf->pipelineBarrier (
-            vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eAllGraphics,
-            {}, {}, {},
-            vk::ImageMemoryBarrier {
-                vk::AccessFlagBits::eTransferWrite, vk::AccessFlagBits::eShaderRead,
-                vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal,
-                VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, mImage,
-                vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u)
-            }
-        );
+        const auto image = impl_load_image(config.format, fmt::format("{}/{}.png", path, fname));
+        SQASSERT(image.size == Vec2U(config.size), "image size does not match json");
+        load_from_memory_cube(image.data, uint(*fname - '0'), config);
     }
+}
 
+//============================================================================//
+
+void VulkTexture::impl_initialise_common(const VulkanContext& ctx, const Config& config)
+{
     mSampler = ctx.device.createSampler (
         vk::SamplerCreateInfo {
             {}, config.filter ? vk::Filter::eLinear : vk::Filter::eNearest,
             config.filter ? vk::Filter::eLinear : vk::Filter::eNearest,
             config.filter ? vk::SamplerMipmapMode::eLinear : vk::SamplerMipmapMode::eNearest,
-            config.wrapX, config.wrapY, vk::SamplerAddressMode::eRepeat,
+            config.wrapX, config.wrapY, config.wrapZ,
             0.f, config.anisotropy, ctx.limits.maxAnisotropy,
             false, vk::CompareOp::eAlways, 0.f, 0.f,
             vk::BorderColor::eFloatTransparentBlack, false
@@ -213,26 +337,4 @@ void VulkTexture::load_from_memory_2D(void* data, Vec2U size, Config2D config)
     );
 
     mDescriptorInfo = vk::DescriptorImageInfo(mSampler, mImageView, vk::ImageLayout::eShaderReadOnlyOptimal);
-}
-
-//============================================================================//
-
-void VulkTexture::load_from_file_2D(const String& path)
-{
-    SQASSERT(!mImage, "texture already loaded");
-
-    const JsonValue json = parse_json_from_file(path + ".json");
-
-    Config2D config;
-    config.format = impl_string_to_format(json.at("format"));
-    config.wrapX = impl_string_to_wrap(json.at("wrapX"));
-    config.wrapY = impl_string_to_wrap(json.at("wrapY"));
-    config.swizzle = impl_string_to_swizzle(json.at("swizzle"));
-    config.filter = json.at("filter");
-    config.mipmaps = json.at("mipmaps");
-    config.anisotropy = json.at("anisotropy");
-
-    const auto image = impl_load_image(config.format, path + ".png");
-
-    load_from_memory_2D(image.data, image.size, config);
 }

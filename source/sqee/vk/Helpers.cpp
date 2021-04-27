@@ -153,6 +153,33 @@ std::tuple<vk::Image, VulkanMemory, vk::ImageView> sq::vk_create_image_2D(const 
 
 //============================================================================//
 
+std::tuple<vk::Image, VulkanMemory, vk::ImageView> sq::vk_create_image_cube(const VulkanContext& ctx, vk::Format format, uint size, vk::SampleCountFlagBits samples, bool linear, vk::ImageUsageFlags usage, bool host, vk::ComponentMapping swizzle, vk::ImageAspectFlags aspect)
+{
+    auto image = ctx.device.createImage (
+        vk::ImageCreateInfo {
+            vk::ImageCreateFlagBits::eCubeCompatible,
+            vk::ImageType::e2D, format, vk::Extent3D(size, size, 1u),
+            1u, 6u, samples,
+            linear ? vk::ImageTiling::eLinear : vk::ImageTiling::eOptimal, usage,
+            vk::SharingMode::eExclusive, {}, vk::ImageLayout::eUndefined
+        }
+    );
+
+    auto memory = ctx.allocator.allocate(ctx.device.getImageMemoryRequirements(image), host);
+    ctx.device.bindImageMemory(image, memory.get_memory(), memory.get_offset());
+
+    auto view = ctx.device.createImageView (
+        vk::ImageViewCreateInfo {
+            {}, image, vk::ImageViewType::eCube, format, swizzle,
+            vk::ImageSubresourceRange(aspect, 0u, 1u, 0u, 6u)
+        }
+    );
+
+    return { image, memory, view };
+}
+
+//============================================================================//
+
 vk::Pipeline sq::vk_create_graphics_pipeline(const VulkanContext& ctx, vk::PipelineLayout layout, vk::RenderPass renderPass, uint32_t subpass, ArrayProxyRef<vk::PipelineShaderStageCreateInfo> stages, const vk::PipelineVertexInputStateCreateInfo& vertexInputState, const vk::PipelineInputAssemblyStateCreateInfo& inputAssemblyState, const vk::PipelineRasterizationStateCreateInfo& rasterizationState, const vk::PipelineMultisampleStateCreateInfo& multisampleState, const vk::PipelineDepthStencilStateCreateInfo& depthStencilState, ArrayProxyRef<vk::Viewport> viewports, ArrayProxyRef<vk::Rect2D> scissors, ArrayProxyRef<vk::PipelineColorBlendAttachmentState> colorBlendAttachments, ArrayProxyRef<vk::DynamicState> dynamicStates)
 {
     const auto viewportState = vk::PipelineViewportStateCreateInfo {

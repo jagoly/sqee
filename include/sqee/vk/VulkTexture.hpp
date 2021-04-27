@@ -16,15 +16,17 @@ class SQEE_API VulkTexture : private MoveOnly
 {
 public: //====================================================//
 
-    struct Config2D
+    struct Config
     {
         vk::Format format;
         vk::SamplerAddressMode wrapX;
         vk::SamplerAddressMode wrapY;
+        vk::SamplerAddressMode wrapZ;
         vk::ComponentMapping swizzle;
         bool filter;
         bool mipmaps;
         bool anisotropy;
+        Vec3U size;
     };
 
     //--------------------------------------------------------//
@@ -38,15 +40,27 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    void load_from_memory_2D(void* data, Vec2U size, Config2D config);
+    void initialise_2D(const Config& config);
+
+    void load_from_memory_2D(void* data, const Config& config);
 
     void load_from_file_2D(const String& path);
+
+    //--------------------------------------------------------//
+
+    void initialise_cube(const Config& config);
+
+    void load_from_memory_cube(void* data, uint face, const Config& config);
+
+    void load_from_file_cube(const String& path);
 
     //--------------------------------------------------------//
 
     const vk::DescriptorImageInfo& get_descriptor_info() const { return mDescriptorInfo; }
 
 protected: //=================================================//
+
+    void impl_initialise_common(const VulkanContext& ctx, const Config& config);
 
     vk::Image mImage;
     VulkanMemory mImageMem;
