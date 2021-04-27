@@ -27,6 +27,7 @@ before_build:
 build_script:
 
   - cd c:/projects/sqee
+  - git submodule update --init --recursive
   - cmake . -DCMAKE_PREFIX_PATH=c:/projects/SFML;c:/projects/glfw -G "Visual Studio 16 2019" -A x64
   - cmake --build . --config Debug
 

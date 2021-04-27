@@ -17,5 +17,6 @@ script:
   - tar -xzf vulkan-sdk.tar.gz
   - source 1.2.170.0/setup-env.sh
 
+  - git submodule update --init --recursive
   - cmake .
   - cmake --build .
