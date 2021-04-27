@@ -4,8 +4,6 @@ project(SQEE_VKDEMO CXX)
 
 set(SHADER_OUTPUT_DIR "${CMAKE_BINARY_DIR}/tests/vkdemo/shaders")
 
-find_program(GLSLC glslc)
-
 function (target_add_shaders TARGET)
     foreach (SHADER ${ARGN})
 
@@ -25,7 +23,7 @@ function (target_add_shaders TARGET)
         file(MAKE_DIRECTORY ${OUTDIR})
 
         add_custom_command( OUTPUT ${OUTPATH}
-                            COMMAND ${GLSLC} ${SHADER} -o ${OUTPATH}
+                            COMMAND glslc ${SHADER} -o ${OUTPATH}
                             DEPENDS ${SHADER}
                             IMPLICIT_DEPENDS CXX ${SHADER}
                             VERBATIM )
@@ -48,6 +46,10 @@ file(GLOB_RECURSE VERT_SHADERS "${PROJECT_SOURCE_DIR}/shaders/*.vert")
 file(GLOB_RECURSE FRAG_SHADERS "${PROJECT_SOURCE_DIR}/shaders/*.frag")
 
 target_add_shaders(sqee-vkdemo ${VERT_SHADERS} ${FRAG_SHADERS})
+
+file(GLOB_RECURSE GLSL_HEADERS "${PROJECT_SOURCE_DIR}/shaders/*.glsl")
+target_sources(sqee-vkdemo PRIVATE ${GLSL_HEADERS})
+source_group("GLSL" FILES ${GLSL_HEADERS})
 
 ################################################################################
 

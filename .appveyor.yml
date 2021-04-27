@@ -8,6 +8,7 @@ before_build:
   - curl -fsSL -o vulkan-sdk.exe https://sdk.lunarg.com/sdk/download/1.2.170.0/windows/VulkanSDK-1.2.170.0-Installer.exe
   - vulkan-sdk.exe /S
   - set VULKAN_SDK=c:/VulkanSDK/1.2.170.0
+  - set PATH=c:/VulkanSDK/1.2.170.0/Bin;%PATH%
 
   - cd c:/projects
   - git clone --depth 1 --branch master https://github.com/SFML/SFML.git
