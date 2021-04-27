@@ -154,12 +154,26 @@ find_package(Vulkan REQUIRED)
 target_link_libraries(sqee PUBLIC ${Vulkan_LIBRARIES})
 target_include_directories(sqee PUBLIC ${Vulkan_INCLUDE_DIRS})
 
-find_library(SpirvCrossCore_LIB NAMES spirv-cross-core PATHS "$ENV{VULKAN_SDK}/lib")
-if (NOT SpirvCrossCore_LIB)
-    message(FATAL_ERROR "could not find Spirv-Cross in $ENV{VULKAN_SDK}/libs")
+################################################################################
+
+set(SPIRV_CROSS_CLI OFF CACHE BOOL "" FORCE)
+set(SPIRV_CROSS_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
+set(SPIRV_CROSS_ENABLE_GLSL OFF CACHE BOOL "" FORCE)
+set(SPIRV_CROSS_ENABLE_HLSL OFF CACHE BOOL "" FORCE)
+set(SPIRV_CROSS_ENABLE_MSL OFF CACHE BOOL "" FORCE)
+set(SPIRV_CROSS_ENABLE_CPP OFF CACHE BOOL "" FORCE)
+set(SPIRV_CROSS_ENABLE_REFLECT OFF CACHE BOOL "" FORCE)
+set(SPIRV_CROSS_ENABLE_C_API OFF CACHE BOOL "" FORCE)
+set(SPIRV_CROSS_ENABLE_UTIL OFF CACHE BOOL "" FORCE)
+
+if (SQEE_STATIC_LIB)
+    set(SPIRV_CROSS_FORCE_PIC OFF CACHE BOOL "" FORCE)
+else ()
+    set(SPIRV_CROSS_FORCE_PIC ON CACHE BOOL "" FORCE)
 endif ()
 
-target_link_libraries(sqee PRIVATE ${SpirvCrossCore_LIB})
+add_subdirectory(libs/SPIRV-Cross)
+target_link_libraries(sqee PRIVATE spirv-cross-core)
 
 ################################################################################
 

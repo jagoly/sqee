@@ -9,7 +9,7 @@
 #include <sqee/vk/Helpers.hpp>
 #include <sqee/vk/VulkMesh.hpp>
 
-#include <spirv_cross/spirv_cross.hpp>
+#include <spirv_cross.hpp>
 
 using namespace sq;
 namespace cross = spirv_cross;
