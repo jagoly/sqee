@@ -18,5 +18,6 @@ script:
   - source 1.2.170.0/setup-env.sh
 
   - git submodule update --init --recursive
-  - cmake .
+  - mkdir build && cd build
+  - cmake ..
   - cmake --build .

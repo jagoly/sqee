@@ -141,7 +141,7 @@ inline void vk_update_descriptor_set_swapper (
 //============================================================================//
 
 inline void vk_update_descriptor_set (
-    const VulkanContext& ctx, vk::DescriptorSet dset, uint binding, uint index, vk::DescriptorType type, ArrayProxyRef<vk::DescriptorImageInfo> imageInfo
+    const VulkanContext& ctx, vk::DescriptorSet& dset, uint binding, uint index, vk::DescriptorType type, ArrayProxyRef<vk::DescriptorImageInfo> imageInfo
 ) {
     ctx.device.updateDescriptorSets (
         vk::WriteDescriptorSet {
@@ -151,7 +151,7 @@ inline void vk_update_descriptor_set (
 }
 
 inline void vk_update_descriptor_set_swapper (
-    const VulkanContext& ctx, Swapper<vk::DescriptorSet> swapper, uint binding, uint index, vk::DescriptorType type, ArrayProxyRef<vk::DescriptorImageInfo> imageInfoFront, ArrayProxyRef<vk::DescriptorImageInfo> imageInfoBack
+    const VulkanContext& ctx, Swapper<vk::DescriptorSet>& swapper, uint binding, uint index, vk::DescriptorType type, ArrayProxyRef<vk::DescriptorImageInfo> imageInfoFront, ArrayProxyRef<vk::DescriptorImageInfo> imageInfoBack
 ) {
     ctx.device.updateDescriptorSets (
         {
