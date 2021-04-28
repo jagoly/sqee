@@ -44,6 +44,8 @@ public: //====================================================//
 
     vk::RenderPass get_render_pass() const { return mRenderPass; }
 
+    Vec2U get_size() const { return { mFramebufferSize.width, mFramebufferSize.height }; }
+
     //--------------------------------------------------------//
 
     void set_title(String title);

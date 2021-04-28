@@ -34,7 +34,7 @@ build_script:
   - cd build
 
   - cmake .. -DCMAKE_PREFIX_PATH=c:/projects/SFML;c:/projects/glfw -G "Visual Studio 16 2019" -A x64
-  - cmake --build .. --config Debug
+  - cmake --build . --config Debug
 
 
 after_build:

@@ -316,7 +316,7 @@ void VulkMesh::impl_load_ascii(const String& path, bool swapYZ)
 
 void VulkMesh::impl_load_final(std::vector<std::byte>& vertexData, std::vector<uint32_t>& indexData)
 {
-    const auto& ctx = sq::VulkanContext::get();
+    const auto& ctx = VulkanContext::get();
 
     const auto setup_buffer = [&ctx](vk::Buffer& buffer, VulkanMemory& memory, vk::BufferUsageFlags usage, void* data, size_t size)
     {

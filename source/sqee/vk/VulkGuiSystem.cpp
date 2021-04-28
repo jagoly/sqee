@@ -479,10 +479,9 @@ bool VulkGuiSystem::handle_event(Event event)
 
 void VulkGuiSystem::finish_handle_events(bool focus)
 {
-    const auto& ctx = VulkanContext::get();
     ImGuiIO& io = ImGui::GetIO();
 
-    const auto displaySize = Vec2F(ctx.window.size);
+    const auto displaySize = Vec2F(window.get_size());
     io.DisplaySize = ImVec2(displaySize.x, displaySize.y);
 
     const auto mousePos = Vec2F(input.get_cursor_location(false));
@@ -529,7 +528,6 @@ void VulkGuiSystem::finish_scene_update(double elapsed)
 void VulkGuiSystem::render_gui(vk::CommandBuffer cmdbuf)
 {
     const auto& drawData = *ImGui::GetDrawData();
-    const auto& ctx = VulkanContext::get();
 
     //--------------------------------------------------------//
 
@@ -554,7 +552,7 @@ void VulkGuiSystem::render_gui(vk::CommandBuffer cmdbuf)
 
     cmdbuf.bindPipeline(vk::PipelineBindPoint::eGraphics, mPipeline);
 
-    cmdbuf.setViewport(0u, vk::Viewport(0.f, 0.f, float(ctx.window.size.x), float(ctx.window.size.y), 0.f, 1.f));
+    cmdbuf.setViewport(0u, vk::Viewport(0.f, 0.f, float(window.get_size().x), float(window.get_size().y), 0.f, 1.f));
 
     cmdbuf.bindVertexBuffers(0u, mVertexBuffer.front(), size_t(0u));
     cmdbuf.bindIndexBuffer(mIndexBuffer.front(), 0u, vk::IndexType::eUint16);
@@ -562,8 +560,8 @@ void VulkGuiSystem::render_gui(vk::CommandBuffer cmdbuf)
     cmdbuf.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, mPipelineLayout, 0u, mDescriptorSet, {});
 
     const auto orthoMatrix = Mat4F (
-        { 2.f / float(ctx.window.size.x), 0.f, 0.f, 0.f },
-        { 0.f, 2.f / float(ctx.window.size.y), 0.f, 0.f },
+        { 2.f / float(window.get_size().x), 0.f, 0.f, 0.f },
+        { 0.f, 2.f / float(window.get_size().y), 0.f, 0.f },
         { 0.f, 0.f, 1.f, 0.f },
         { -1.f, -1.f, 0.f, 1.f }
     );

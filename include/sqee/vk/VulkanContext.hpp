@@ -32,15 +32,6 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    /// Window information that gets updated when the window resizes.
-    struct Window
-    {
-        Vec2U size;
-    }
-    window;
-
-    //--------------------------------------------------------//
-
     /// Relevant hardware limits from device.
     struct
     {

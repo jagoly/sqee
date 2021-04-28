@@ -264,14 +264,14 @@ void DemoApp::create_render_targets()
         if (mMultisampleMode > vk::SampleCountFlagBits::e1)
         {
             std::tie(mMsColourImage, mMsColourImageMem, mMsColourImageView) = sq::vk_create_image_2D (
-                ctx, vk::Format::eB8G8R8A8Srgb, ctx.window.size, mMultisampleMode,
+                ctx, vk::Format::eB8G8R8A8Srgb, mWindow->get_size(), mMultisampleMode,
                 false, vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment,
                 false, {}, vk::ImageAspectFlagBits::eColor
             );
         }
 
         std::tie(mResolveColourImage, mResolveColourImageMem, mResolveColourImageView) = sq::vk_create_image_2D (
-            ctx, vk::Format::eB8G8R8A8Srgb, ctx.window.size, vk::SampleCountFlagBits::e1,
+            ctx, vk::Format::eB8G8R8A8Srgb, mWindow->get_size(), vk::SampleCountFlagBits::e1,
             false, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled,
             false, {}, vk::ImageAspectFlagBits::eColor
         );
@@ -367,7 +367,7 @@ void DemoApp::create_render_targets()
 
             mMsFramebuffer = ctx.device.createFramebuffer (
                 vk::FramebufferCreateInfo {
-                    {}, mMsRenderPass, attachments, ctx.window.size.x, ctx.window.size.y, 1u
+                    {}, mMsRenderPass, attachments, mWindow->get_size().x, mWindow->get_size().y, 1u
                 }
             );
         }
@@ -377,14 +377,14 @@ void DemoApp::create_render_targets()
 
             mMsFramebuffer = ctx.device.createFramebuffer (
                 vk::FramebufferCreateInfo {
-                    {}, mMsRenderPass, attachments, ctx.window.size.x, ctx.window.size.y, 1u
+                    {}, mMsRenderPass, attachments, mWindow->get_size().x, mWindow->get_size().y, 1u
                 }
             );
         }
     }
 
     mResourceCaches.passConfigMap = {
-        { "Opaque", { mMsRenderPass, mMultisampleMode, ctx.window.size } }
+        { "Opaque", { mMsRenderPass, mMultisampleMode, mWindow->get_size() } }
     };
 }
 
@@ -434,8 +434,8 @@ void DemoApp::create_pipelines()
             vk::PipelineDepthStencilStateCreateInfo {
                 {}, false, false, {}, false, false, {}, {}, 0.f, 0.f
             },
-            vk::Viewport { 0.f, 0.f, float(ctx.window.size.x), float(ctx.window.size.y) },
-            vk::Rect2D { {0, 0}, {ctx.window.size.x, ctx.window.size.y} },
+            vk::Viewport { 0.f, 0.f, float(mWindow->get_size().x), float(mWindow->get_size().y) },
+            vk::Rect2D { {0, 0}, {mWindow->get_size().x, mWindow->get_size().y} },
             vk::PipelineColorBlendAttachmentState { false, {}, {}, {}, {}, {}, {}, vk::ColorComponentFlags(0b1111) },
             nullptr
         );
@@ -479,8 +479,6 @@ void DemoApp::update_window_title(double elapsed)
 
 void DemoApp::update_uniform_buffer(double elapsed)
 {
-    const auto& ctx = sq::VulkanContext::get();
-
     static double totalTime = 0.0;
     totalTime += elapsed * 0.2;
 
@@ -503,7 +501,7 @@ void DemoApp::update_uniform_buffer(double elapsed)
     {
         camera.viewMat = maths::look_at_LH(Vec3F(0.f, 0.f, -2.f), Vec3F(0.f, 0.f, 0.f), Vec3F(0.f, 1.f, 0.f));
 
-        const float aspect = float(ctx.window.size.x) / float(ctx.window.size.y);
+        const float aspect = float(mWindow->get_size().x) / float(mWindow->get_size().y);
         camera.projMat = maths::perspective_LH(maths::radians(0.125f), aspect, 0.1f, 10.f);
 
         camera.invViewMat = maths::inverse(camera.viewMat);
@@ -531,21 +529,19 @@ void DemoApp::update_uniform_buffer(double elapsed)
 
 void DemoApp::populate_command_buffer(vk::CommandBuffer cmdbuf, vk::Framebuffer framebuf)
 {
-    const auto& ctx = sq::VulkanContext::get();
-
     cmdbuf.begin({vk::CommandBufferUsageFlagBits::eOneTimeSubmit, nullptr});
 
     // render models to multisample fb
     {
         cmdbuf.beginRenderPass (
             vk::RenderPassBeginInfo {
-                mMsRenderPass, mMsFramebuffer, vk::Rect2D({0, 0}, {ctx.window.size.x, ctx.window.size.y})
+                mMsRenderPass, mMsFramebuffer, vk::Rect2D({0, 0}, {mWindow->get_size().x, mWindow->get_size().y})
             }, vk::SubpassContents::eInline
         );
 
         cmdbuf.clearAttachments (
             vk::ClearAttachment(vk::ImageAspectFlagBits::eColor, 0u, vk::ClearValue(std::array{0.025f, 0.025f, 0.f, 1.f})),
-            vk::ClearRect(vk::Rect2D({0, 0}, {ctx.window.size.x, ctx.window.size.y}), 0u, 1u)
+            vk::ClearRect(vk::Rect2D({0, 0}, {mWindow->get_size().x, mWindow->get_size().y}), 0u, 1u)
         );
 
         cmdbuf.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, mModelPipelineLayout, 0u, mCameraDescriptorSet.front, {});
@@ -566,7 +562,7 @@ void DemoApp::populate_command_buffer(vk::CommandBuffer cmdbuf, vk::Framebuffer 
     {
         cmdbuf.beginRenderPass (
             vk::RenderPassBeginInfo {
-                mWindow->get_render_pass(), framebuf, vk::Rect2D({0, 0}, {ctx.window.size.x, ctx.window.size.y})
+                mWindow->get_render_pass(), framebuf, vk::Rect2D({0, 0}, {mWindow->get_size().x, mWindow->get_size().y})
             }, vk::SubpassContents::eInline
         );
 

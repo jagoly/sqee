@@ -548,7 +548,6 @@ void VulkWindow::create_swapchain_and_friends()
     const auto capabilities = mPhysicalDevice.getSurfaceCapabilitiesKHR(mSurface);
 
     mFramebufferSize = capabilities.currentExtent;
-    VulkanContext::get_mutable().window.size = { mFramebufferSize.width, mFramebufferSize.height };
 
     // create swapchain
     {

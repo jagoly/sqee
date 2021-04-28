@@ -5,7 +5,6 @@
 #include <sqee/core/Types.hpp>
 
 #include <sqee/vk/Vulkan.hpp>
-#include <sqee/vk/VulkanContext.hpp>
 #include <sqee/vk/VulkanMemory.hpp>
 
 namespace sq {
@@ -60,7 +59,7 @@ public: //====================================================//
 
 protected: //=================================================//
 
-    void impl_initialise_common(const VulkanContext& ctx, const Config& config);
+    void impl_initialise_common(const Config& config);
 
     vk::Image mImage;
     VulkanMemory mImageMem;

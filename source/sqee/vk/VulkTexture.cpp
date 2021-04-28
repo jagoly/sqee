@@ -150,7 +150,7 @@ void VulkTexture::initialise_2D(const Config& config)
 {
     SQASSERT(!mImage, "texture already loaded");
 
-    const auto& ctx = sq::VulkanContext::get();
+    const auto& ctx = VulkanContext::get();
 
     std::tie(mImage, mImageMem, mImageView) = vk_create_image_2D (
         ctx, config.format, Vec2U(config.size), vk::SampleCountFlagBits::e1,
@@ -158,14 +158,14 @@ void VulkTexture::initialise_2D(const Config& config)
         false, config.swizzle, vk::ImageAspectFlagBits::eColor
     );
 
-    impl_initialise_common(ctx, config);
+    impl_initialise_common(config);
 }
 
 //============================================================================//
 
 void VulkTexture::load_from_memory_2D(void* data, const Config& config)
 {
-    const auto& ctx = sq::VulkanContext::get();
+    const auto& ctx = VulkanContext::get();
 
     const auto formatInfo = impl_get_format_info(config.format);
 
@@ -236,7 +236,7 @@ void VulkTexture::initialise_cube(const Config& config)
 {
     SQASSERT(!mImage, "texture already loaded");
 
-    const auto& ctx = sq::VulkanContext::get();
+    const auto& ctx = VulkanContext::get();
 
     std::tie(mImage, mImageMem, mImageView) = vk_create_image_cube (
         ctx, config.format, config.size.x, vk::SampleCountFlagBits::e1,
@@ -244,14 +244,14 @@ void VulkTexture::initialise_cube(const Config& config)
         false, config.swizzle, vk::ImageAspectFlagBits::eColor
     );
 
-    impl_initialise_common(ctx, config);
+    impl_initialise_common(config);
 }
 
 //============================================================================//
 
 void VulkTexture::load_from_memory_cube(void* data, uint face, const Config& config)
 {
-    const auto& ctx = sq::VulkanContext::get();
+    const auto& ctx = VulkanContext::get();
 
     const auto formatInfo = impl_get_format_info(config.format);
 
@@ -322,8 +322,10 @@ void VulkTexture::load_from_file_cube(const String& path)
 
 //============================================================================//
 
-void VulkTexture::impl_initialise_common(const VulkanContext& ctx, const Config& config)
+void VulkTexture::impl_initialise_common(const Config& config)
 {
+    const auto& ctx = VulkanContext::get();
+
     mSampler = ctx.device.createSampler (
         vk::SamplerCreateInfo {
             {}, config.filter ? vk::Filter::eLinear : vk::Filter::eNearest,

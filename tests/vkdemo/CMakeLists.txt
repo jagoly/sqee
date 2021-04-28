@@ -16,9 +16,6 @@ function (target_add_shaders TARGET)
             message(FATAL_ERROR "bad shader path '${SHADER}'")
         endif ()
 
-        target_sources(${TARGET} PRIVATE ${SHADER})
-        source_group("GLSL" FILES ${SHADER})
-
         get_filename_component(OUTDIR ${OUTPATH} DIRECTORY)
         file(MAKE_DIRECTORY ${OUTDIR})
 
@@ -29,7 +26,6 @@ function (target_add_shaders TARGET)
                             VERBATIM )
 
         set_source_files_properties(${OUTPATH} PROPERTIES GENERATED True)
-
         target_sources(${TARGET} PRIVATE ${OUTPATH})
 
     endforeach ()
@@ -44,12 +40,12 @@ add_executable(sqee-vkdemo ${HEADERS} ${SOURCES})
 
 file(GLOB_RECURSE VERT_SHADERS "${PROJECT_SOURCE_DIR}/shaders/*.vert")
 file(GLOB_RECURSE FRAG_SHADERS "${PROJECT_SOURCE_DIR}/shaders/*.frag")
+file(GLOB_RECURSE GLSL_HEADERS "${PROJECT_SOURCE_DIR}/shaders/*.glsl")
 
 target_add_shaders(sqee-vkdemo ${VERT_SHADERS} ${FRAG_SHADERS})
 
-file(GLOB_RECURSE GLSL_HEADERS "${PROJECT_SOURCE_DIR}/shaders/*.glsl")
-target_sources(sqee-vkdemo PRIVATE ${GLSL_HEADERS})
-source_group("GLSL" FILES ${GLSL_HEADERS})
+target_sources(sqee-vkdemo PRIVATE ${VERT_SHADERS} ${FRAG_SHADERS} ${GLSL_HEADERS})
+source_group("GLSL" FILES ${VERT_SHADERS} ${FRAG_SHADERS} ${GLSL_HEADERS})
 
 ################################################################################
 

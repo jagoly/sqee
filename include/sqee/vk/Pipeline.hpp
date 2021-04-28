@@ -5,7 +5,6 @@
 #include <sqee/core/Types.hpp>
 
 #include <sqee/vk/Vulkan.hpp>
-#include <sqee/vk/VulkanContext.hpp>
 #include <sqee/vk/VulkanMemory.hpp>
 #include <sqee/vk/PassConfig.hpp>
 
