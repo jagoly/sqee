@@ -1,4 +1,5 @@
 include("@CMAKE_CURRENT_BINARY_DIR@/sqee-exports.cmake")
+include(CMakeFindDependencyMacro)
 
 set(SQEE_STATIC_LIB @SQEE_STATIC_LIB@)
 
@@ -9,8 +10,12 @@ set(SQEE_GNU @SQEE_GNU@)
 set(SQEE_CLANG @SQEE_CLANG@)
 set(SQEE_MSVC @SQEE_MSVC@)
 
-find_package(Vulkan REQUIRED)
+set(CMAKE_PREFIX_PATH @CMAKE_PREFIX_PATH@)
+
+find_dependency(Vulkan)
 
 if (SQEE_STATIC_LIB)
-    find_package(Threads REQUIRED)
+    find_dependency(Threads)
+    find_dependency(SFML 2.5 COMPONENTS window system)
+    find_dependency(glfw3 3.3)
 endif ()
