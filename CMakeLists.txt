@@ -147,8 +147,6 @@ endif ()
 
 ################################################################################
 
-message(STATUS "VULKAN_SDK = $ENV{VULKAN_SDK}")
-
 find_package(Vulkan REQUIRED)
 
 target_link_libraries(sqee PUBLIC ${Vulkan_LIBRARIES})
