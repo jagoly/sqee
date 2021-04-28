@@ -196,7 +196,7 @@ write_basic_package_version_file (
 )
 
 export (
-    TARGETS sqee dearimgui format wren
+    TARGETS sqee spirv-cross-core dearimgui format wren
     FILE "${CMAKE_CURRENT_BINARY_DIR}/sqee-exports.cmake"
 )
 
