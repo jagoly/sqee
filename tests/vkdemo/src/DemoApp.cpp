@@ -77,7 +77,13 @@ void DemoApp::update(double elapsed)
 
         mGuiSystem->finish_handle_events(true);
     }
-    else mGuiSystem->finish_handle_events(false);
+    else
+    {
+        // need to always call glfwPollEvents
+        void(mWindow->fetch_events());
+
+        mGuiSystem->finish_handle_events(false);
+    }
 
     mGuiSystem->show_imgui_demo();
     mGuiSystem->finish_scene_update(elapsed);
