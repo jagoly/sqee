@@ -278,14 +278,9 @@ VulkWindow::VulkWindow(const char* title, Vec2U size, const char* appName, Vec3U
         glfwSetMouseButtonCallback(mGlfwWindow, Implementation::cb_mouse_button);
         glfwSetScrollCallback(mGlfwWindow, Implementation::cb_scroll);
         glfwSetCharCallback(mGlfwWindow, Implementation::cb_char);
-    }
 
-    // initial dispatcher setup
-    {
-        vk::DynamicLoader dl;
-        auto gipa = dl.getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr");
-        VULKAN_HPP_DEFAULT_DISPATCHER.init(gipa);
-        //VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
+        // load functions required to create an instance
+        VULKAN_HPP_DEFAULT_DISPATCHER.init(glfwGetInstanceProcAddress);
     }
 
     // setup instance and debug callback
@@ -296,18 +291,33 @@ VulkWindow::VulkWindow(const char* title, Vec2U size, const char* appName, Vec3U
             VK_API_VERSION_1_2
         };
 
-        const auto layers = std::array { "VK_LAYER_KHRONOS_validation" };
+        const std::vector<const char*> layers = []()
+        {
+            const char* layerName = "VK_LAYER_KHRONOS_validation";
 
-        uint32_t extCount = 0u;
-        const char** extNames = glfwGetRequiredInstanceExtensions(&extCount);
+            for (const auto& layer : vk::enumerateInstanceLayerProperties())
+                if (StringView(layer.layerName) == layerName)
+                    return std::vector { layerName };
 
-        std::vector<const char*> extensions;
-        extensions.reserve(extCount + 1u);
+            sq::log_warning("vulkan validation layer could not be loaded");
+            return std::vector<const char*>();
+        }();
 
-        for (uint32_t i = 0u; i < extCount; ++i)
-            extensions.push_back(extNames[i]);
+        const std::vector<const char*> extensions = []()
+        {
+            uint32_t count = 0u;
+            const char** names = glfwGetRequiredInstanceExtensions(&count);
 
-        extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+            std::vector<const char*> result;
+            result.reserve(count + 1u);
+
+            for (uint32_t i = 0u; i < count; ++i)
+                result.push_back(names[i]);
+
+            result.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+
+            return result;
+        }();
 
         const auto severityFlags = //vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose |
                                    vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
