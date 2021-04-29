@@ -624,11 +624,6 @@ const std::vector<Event>& VulkWindow::fetch_events()
 {
     glfwPollEvents();
 
-    // we don't want to resize more than once at a time
-    const auto predicate = [](Event& event) { return event.type == Event::Type::Window_Resize; };
-    const auto end = std::prev(std::find_if(mEvents.rbegin(), mEvents.rend(), predicate).base());
-    mEvents.erase(std::remove_if(mEvents.begin(), end, predicate), end);
-
     std::swap(mEvents, mEventsOld);
     mEvents.clear();
 
@@ -652,7 +647,8 @@ std::tuple<vk::CommandBuffer, vk::Framebuffer> VulkWindow::begin_frame()
     }
     catch (const vk::OutOfDateKHRError&)
     {
-        mEvents.push_back({Event::Type::Window_Resize, {}});
+        if (algo::find_if(mEvents, [](Event e) { return e.type == Event::Type::Window_Resize; }) == mEvents.end())
+            mEvents.push_back({Event::Type::Window_Resize, {}});
         return { {}, {} }; // EARLY RETURN
     }
 
@@ -688,7 +684,8 @@ void VulkWindow::submit_present_swap()
     }
     catch (const vk::OutOfDateKHRError&)
     {
-        mEvents.push_back({Event::Type::Window_Resize, {}});
+        if (algo::find_if(mEvents, [](Event e) { return e.type == Event::Type::Window_Resize; }) == mEvents.end())
+            mEvents.push_back({Event::Type::Window_Resize, {}});
     }
 
     mCommandBuffer.swap();
