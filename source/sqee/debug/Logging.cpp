@@ -44,7 +44,7 @@ void sq::detail::log_multiline(std::string_view str)
     std::fwrite(str.data(), 1u, lineEnd, stdout);
     size_t lineStart = lineEnd + 1u;
 
-    while (str[lineStart] != '\0')
+    while (lineStart < str.size())
     {
         std::fputs("\n  > ", stdout);
 
