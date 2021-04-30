@@ -32,8 +32,6 @@ private: //===================================================//
 
     //--------------------------------------------------------//
 
-    void swap_resources();
-
     void handle_event(sq::Event event);
 
     void refresh_graphics_config();

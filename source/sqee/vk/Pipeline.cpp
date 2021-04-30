@@ -48,6 +48,29 @@ static vk::PipelineDepthStencilStateCreateInfo impl_make_depth_stencil_state(con
     log_error("invalid pipeline depthTest string '{}'", depthTest);
 }
 
+static vk::PipelineColorBlendAttachmentState impl_make_color_blend_state(const String& blendMode)
+{
+    if (blendMode == "Disable")
+        return vk::PipelineColorBlendAttachmentState {
+            false, {}, {}, {}, {}, {}, {}, vk::ColorComponentFlags(0b1111)
+        };
+    if (blendMode == "Accumulate") // TODO
+        return vk::PipelineColorBlendAttachmentState {
+            false, {}, {}, {}, {}, {}, {}, vk::ColorComponentFlags(0b1111)
+        };
+    if (blendMode == "Alpha")
+        return vk::PipelineColorBlendAttachmentState {
+            true, vk::BlendFactor::eSrcAlpha, vk::BlendFactor::eOneMinusSrcAlpha, vk::BlendOp::eAdd,
+            vk::BlendFactor::eOne, vk::BlendFactor::eZero, vk::BlendOp::eAdd, vk::ColorComponentFlags(0b1111)
+        };
+    if (blendMode == "PremAlpha") // TODO
+        return vk::PipelineColorBlendAttachmentState {
+            false, {}, {}, {}, {}, {}, {}, vk::ColorComponentFlags(0b1111)
+        };
+
+    log_error("invalid pipeline blendMode string '{}'", blendMode);
+}
+
 //============================================================================//
 
 Pipeline::Pipeline(Pipeline&& other)
@@ -174,6 +197,8 @@ void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes
 
     //--------------------------------------------------------//
 
+    const auto& pass = passes.at(json.at("pass"));
+
     const auto& ctx = VulkanContext::get();
 
     const auto vertexShaderCode = get_bytes_from_file(build_string("shaders/", json.at("vertexShader"), ".vert.spv"));
@@ -191,13 +216,16 @@ void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes
     {
         std::array<vk::DescriptorSetLayout, DESCRIPTOR_SET_COUNT> setLayouts;
 
-        for (uint i = 0u; i < DESCRIPTOR_SET_COUNT; ++i)
+        setLayouts[0] = pass.setLayout0;
+        setLayouts[1] = pass.setLayout1;
+
+        for (uint i = 2u; i < DESCRIPTOR_SET_COUNT; ++i)
             setLayouts[i] = vk_create_descriptor_set_layout(ctx, {}, setBindings[i]);
 
         mMaterialSetLayout = setLayouts[MATERIAL_SET_INDEX];
         mPipelineLayout = vk_create_pipeline_layout(ctx, {}, setLayouts, nullptr);
 
-        for (uint i = 0u; i < DESCRIPTOR_SET_COUNT; ++i)
+        for (uint i = 2u; i < DESCRIPTOR_SET_COUNT; ++i)
             if (i != MATERIAL_SET_INDEX)
                 ctx.device.destroy(setLayouts[i]);
     }
@@ -217,8 +245,6 @@ void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes
 
     //--------------------------------------------------------//
 
-    const auto& pass = passes.at(json.at("pass"));
-
     const auto shaderModules = ShaderModules (
         ctx, { reinterpret_cast<const uint32_t*>(vertexShaderCode.data()), vertexShaderCode.size() },
         {}, { reinterpret_cast<const uint32_t*>(fragmentShaderCode.data()), fragmentShaderCode.size() }
@@ -234,7 +260,7 @@ void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes
         impl_make_depth_stencil_state(json.at("depthTest")),
         vk::Viewport { 0.f, float(pass.viewport.y), float(pass.viewport.x), -float(pass.viewport.y), 0.f, 1.f },
         vk::Rect2D { {0, 0}, {pass.viewport.x, pass.viewport.y} },
-        vk::PipelineColorBlendAttachmentState { false, {}, {}, {}, {}, {}, {}, vk::ColorComponentFlags(0b1111) },
+        impl_make_color_blend_state(json.at("blendMode")),
         nullptr
     );
 }

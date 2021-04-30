@@ -1,5 +1,6 @@
 #include <sqee/vk/VulkanMemory.hpp>
 
+#include <sqee/core/Algorithms.hpp>
 #include <sqee/debug/Assert.hpp>
 
 // details:
@@ -8,7 +9,6 @@
 // - allocations bigger than MIN_BLOCK_SIZE get their own blocks
 //
 // todo:
-// - add a method to explicitly free empty blocks
 // - empty blocks should be reusable with different alignment
 // - optimise finding usable chunks
 // - non-fixed chunk alignment for less wasted space
@@ -74,6 +74,7 @@ VulkanMemory VulkanAllocator::allocate(size_t alignment, size_t size, bool host)
     // look for any usable chunk in existing blocks
     for (auto& block : memoryBlocks)
     {
+        // for now, each block has a fixed alignment for all chunks
         if (block->alignment != alignment) continue;
         if (block->size < size) continue;
 
@@ -131,6 +132,34 @@ VulkanMemory VulkanAllocator::allocate(const vk::MemoryRequirements& requirement
 
 //============================================================================//
 
+void VulkanAllocator::free_empty_blocks()
+{
+    const auto predicate = [this](std::unique_ptr<MemoryBlock>& block)
+    {
+        if (block->firstChunk->free && block->firstChunk->next == nullptr)
+        {
+            mDevice.free(block->memory);
+            return true;
+        }
+        return false;
+    };
+
+    algo::erase_if(mHostMemoryBlocks, predicate);
+    algo::erase_if(mDeviceMemoryBlocks, predicate);
+}
+
+size_t VulkanAllocator::get_memory_usage(bool host) const
+{
+    size_t result = 0u;
+
+    for (const auto& block : host ? mHostMemoryBlocks : mDeviceMemoryBlocks)
+        result += block->size;
+
+    return result;
+}
+
+//============================================================================//
+
 VulkanAllocator::Chunk* VulkanAllocator::impl_find_usable_chunk(size_t size, Chunk& chunk)
 {
     if (chunk.free == true && chunk.size >= size)
@@ -146,13 +175,13 @@ VulkanAllocator::Chunk* VulkanAllocator::impl_new_chunk()
 {
     SQASSERT(mNextFreeSlot != nullptr, "");
 
-    auto result = &mNextFreeSlot->chunk;
+    Chunk* chunk = &(mNextFreeSlot->chunk);
     mNextFreeSlot = mNextFreeSlot->nextFreeSlot;
 
-    result->free = true;
-    result->mapped = false;
+    chunk->free = true;
+    chunk->mapped = false;
 
-    return result;
+    return chunk;
 }
 
 void VulkanAllocator::impl_delete_chunk(Chunk* ptr)
@@ -215,39 +244,29 @@ void VulkanMemory::free()
         unmap();
 
     chunk->size = impl_round_up(chunk->size, chunk->block->alignment);
+    chunk->free = true;
 
-    // merge with previous chunk
-    if (chunk->previous != nullptr && chunk->previous->free == true)
-    {
-        auto previous = chunk->previous;
-
-        chunk->offset = previous->offset;
-        chunk->size += previous->size;
-        chunk->previous = previous->previous;
-
-        chunk->block->allocator->impl_delete_chunk(previous);
-
-        if (chunk->previous != nullptr)
-            chunk->previous->next = chunk;
-
-        if (chunk->previous == nullptr)
-            chunk->block->firstChunk = chunk;
-    }
-
-    // merge with next chunk
+    // merge next chunk into this one
     if (chunk->next != nullptr && chunk->next->free == true)
     {
-        auto next = chunk->next;
-
+        VulkanAllocator::Chunk* next = chunk->next;
         chunk->size += next->size;
         chunk->next = next->next;
-
+        if (next->next != nullptr) next->next->previous = chunk;
         chunk->block->allocator->impl_delete_chunk(next);
-
-        if (chunk->next != nullptr)
-            chunk->next->previous = chunk;
     }
 
-    chunk->free = true;
+    // merge this chunk into previous one
+    if (chunk->previous != nullptr && chunk->previous->free == true)
+    {
+        std::swap(chunk, chunk->previous);
+
+        VulkanAllocator::Chunk* next = chunk->next;
+        chunk->size += next->size;
+        chunk->next = next->next;
+        if (next->next != nullptr) next->next->previous = chunk;
+        chunk->block->allocator->impl_delete_chunk(next);
+    }
+
     chunk = nullptr;
 }

@@ -15,6 +15,8 @@ struct PassConfig
     vk::RenderPass renderPass;
     vk::SampleCountFlagBits samples;
     Vec2U viewport;
+    vk::DescriptorSetLayout setLayout0;
+    vk::DescriptorSetLayout setLayout1;
 };
 
 using PassConfigMap = std::map<TinyString, PassConfig>;

@@ -78,7 +78,7 @@ GameScene::~GameScene() = default;
 
 //============================================================================//
 
-void GameScene::refresh_options()
+void GameScene::refresh_options_create()
 {
     const Vec2F size = Vec2F(sq::Context::get().get_ViewPort());
 

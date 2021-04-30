@@ -31,8 +31,9 @@ public: //====================================================//
     /// Create and allocate buffers.
     void initialise(size_t size, vk::BufferUsageFlags usage);
 
-    /// Swap front and back buffers.
-    void swap();
+
+    /// Swap front and back, then map front.
+    std::byte* swap_map();
 
     //--------------------------------------------------------//
 
@@ -41,9 +42,6 @@ public: //====================================================//
 
     /// Access the back buffer object.
     vk::Buffer back() const { return mBuffer.back; }
-
-    /// Access the mapped memory.
-    std::byte* map() { return mBufferPtr.front; }
 
     /// Get descriptor info for the front buffer.
     vk::DescriptorBufferInfo get_descriptor_info_front() const { return { mBuffer.front, 0u, mSize }; }

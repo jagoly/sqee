@@ -40,8 +40,10 @@ void Scene::update_and_integrate(double elapsed)
 
 //============================================================================//
 
-void Scene::handle_event(Event /*event*/) {}
+void Scene::handle_event(Event) {}
 
-void Scene::refresh_options() {}
+void Scene::refresh_options_destroy() {}
+
+void Scene::refresh_options_create() {}
 
 void Scene::show_imgui_widgets() {}

@@ -97,21 +97,6 @@ void DemoApp::update(double elapsed)
         populate_command_buffer(cmdbuf, framebuf);
 
         mWindow->submit_present_swap();
-        swap_resources();
-    }
-}
-
-//============================================================================//
-
-void DemoApp::swap_resources()
-{
-    mCameraUbo.swap();
-    mCameraDescriptorSet.swap();
-
-    for (auto& model : mStaticModels)
-    {
-        model.ubo.swap();
-        model.descriptorSet.swap();
     }
 }
 
@@ -146,17 +131,24 @@ void DemoApp::handle_event(sq::Event event)
 
 void DemoApp::refresh_graphics_config()
 {
+    const auto& ctx = sq::VulkanContext::get();
+
     mWindow->destroy_swapchain_and_friends();
-    mWindow->create_swapchain_and_friends();
-
     destroy_render_targets();
-    create_render_targets();
-
     destroy_pipelines();
+
+    ctx.allocator.free_empty_blocks();
+
+    mWindow->create_swapchain_and_friends();
+    create_render_targets();
     create_pipelines();
 
     mResourceCaches.pipelines.reload_resources();
     mResourceCaches.materials.reload_resources();
+
+    sq::log_debug("vulkan memory usage | host = {:.1f}MiB | device = {:.1f}MiB",
+                  float(ctx.allocator.get_memory_usage(true)) / 1048576.f,
+                  float(ctx.allocator.get_memory_usage(false)) / 1048576.f);
 }
 
 //============================================================================//
@@ -390,7 +382,7 @@ void DemoApp::create_render_targets()
     }
 
     mResourceCaches.passConfigMap = {
-        { "Opaque", { mMsRenderPass, mMultisampleMode, mWindow->get_size() } }
+        { "Opaque", { mMsRenderPass, mMultisampleMode, mWindow->get_size(), mCameraDescriptorSetLayout, mLightDescriptorSetLayout } }
     };
 }
 
@@ -503,7 +495,8 @@ void DemoApp::update_uniform_buffer(double elapsed)
     if (mInputDevices->is_pressed(sq::Keyboard_Key::PageUp))
         modelMat = Mat4F(maths::rotation(Vec3F(0.f, 0.f, 1.f), +float(elapsed) * 0.5f)) * modelMat;
 
-    auto& camera = *reinterpret_cast<CameraBlock*>(mCameraUbo.map());
+    mCameraDescriptorSet.swap();
+    auto& camera = *reinterpret_cast<CameraBlock*>(mCameraUbo.swap_map());
     {
         camera.viewMat = maths::look_at_LH(Vec3F(0.f, 0.f, -2.f), Vec3F(0.f, 0.f, 0.f), Vec3F(0.f, 1.f, 0.f));
 
@@ -514,7 +507,8 @@ void DemoApp::update_uniform_buffer(double elapsed)
         camera.invProjMat = maths::inverse(camera.projMat);
     }
 
-    auto& light = *reinterpret_cast<LightBlock*>(mLightUbo.map());
+    mLightDescriptorSet.swap();
+    auto& light = *reinterpret_cast<LightBlock*>(mLightUbo.swap_map());
     {
         light.ambiColour = { 0.3f, 0.3f, 0.3f };
         light.skyColour = { 0.7f, 0.7f, 0.7f };
@@ -524,7 +518,8 @@ void DemoApp::update_uniform_buffer(double elapsed)
 
     for (auto& model : mStaticModels)
     {
-        auto& block = *reinterpret_cast<StaticBlock*>(model.ubo.map());
+        model.descriptorSet.swap();
+        auto& block = *reinterpret_cast<StaticBlock*>(model.ubo.swap_map());
         //block.matrix = camera.projMat * camera.viewMat * modelMat;
         block.matrix = modelMat;
         block.normMat = Mat34F(maths::normal_matrix(camera.viewMat * modelMat));

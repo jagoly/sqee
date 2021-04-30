@@ -42,7 +42,10 @@ public: //====================================================//
     virtual void handle_event(Event event);
 
     /// Optionally implement for refreshing options.
-    virtual void refresh_options();
+    virtual void refresh_options_destroy();
+
+    /// Optionally implement for refreshing options.
+    virtual void refresh_options_create();
 
     /// Optionally implement for ImGui widgets.
     virtual void show_imgui_widgets();

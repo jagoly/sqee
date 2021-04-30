@@ -41,7 +41,7 @@ MainScene::~MainScene() = default;
 
 //============================================================================//
 
-void MainScene::refresh_options()
+void MainScene::refresh_options_create()
 {
     const Vec2F windowSize ( options.Window_Size );
     world->camera.set_aspect(windowSize.x / windowSize.y);

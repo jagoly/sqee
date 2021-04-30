@@ -26,7 +26,7 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    void refresh_options() override;
+    void refresh_options_create() override;
 
     void set_input_enabled(bool enable);
 

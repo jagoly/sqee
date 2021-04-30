@@ -29,6 +29,10 @@ public: //====================================================//
 
     VulkanMemory allocate(const vk::MemoryRequirements& requirements, bool host);
 
+    void free_empty_blocks();
+
+    size_t get_memory_usage(bool host) const;
+
 private: //===================================================//
 
     struct MemoryBlock;

@@ -93,7 +93,7 @@ void RpgApp::refresh_options()
 {
     mOptions.Window_Size = mWindow->get_window_size();
 
-    mMainScene->refresh_options();
+    mMainScene->refresh_options_create();
 }
 
 //============================================================================//

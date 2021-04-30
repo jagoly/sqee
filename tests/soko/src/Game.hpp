@@ -23,7 +23,7 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    void refresh_options() override;
+    void refresh_options_create() override;
 
     void handle_event(sq::Event event) override;
 

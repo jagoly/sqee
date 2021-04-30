@@ -55,7 +55,7 @@ void SokoApp::refresh_options()
     mAudioContext->play_sound(*mSound, sq::SoundGroup::Menu, 1.f, false);
 
     sq::Context::get().set_ViewPort(mWindow->get_window_size());
-    mGameScene->refresh_options();
+    mGameScene->refresh_options_create();
 }
 
 //============================================================================//

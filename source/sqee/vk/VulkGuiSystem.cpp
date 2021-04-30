@@ -260,6 +260,7 @@ VulkGuiSystem::~VulkGuiSystem()
 {
     const auto& ctx = VulkanContext::get();
 
+    ctx.device.free(ctx.descriptorPool, mDescriptorSet);
     ctx.device.destroy(mDescriptorSetLayout);
 
     ctx.device.destroy(mPipeline);
@@ -533,8 +534,8 @@ void VulkGuiSystem::render_gui(vk::CommandBuffer cmdbuf)
 
     // copy all vertices/indices into same pair of buffers
     {
-        ImDrawVert* vertexPtr = reinterpret_cast<ImDrawVert*>(mVertexBuffer.map());
-        ImDrawIdx* indexPtr = reinterpret_cast<ImDrawIdx*>(mIndexBuffer.map());
+        ImDrawVert* vertexPtr = reinterpret_cast<ImDrawVert*>(mVertexBuffer.swap_map());
+        ImDrawIdx* indexPtr = reinterpret_cast<ImDrawIdx*>(mIndexBuffer.swap_map());
 
         for (int n = 0; n < drawData.CmdListsCount; ++n)
         {
@@ -596,11 +597,6 @@ void VulkGuiSystem::render_gui(vk::CommandBuffer cmdbuf)
             indexOffset += drawData.CmdLists[n]->IdxBuffer.size();
         }
     }
-
-    //--------------------------------------------------------//
-
-    mVertexBuffer.swap();
-    mIndexBuffer.swap();
 }
 
 //============================================================================//
