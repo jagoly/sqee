@@ -59,11 +59,8 @@ public: //====================================================//
     /// Bind vertex and index buffers.
     void bind_buffers(vk::CommandBuffer cmdbuf) const;
 
-    /// Draw the entire mesh.
-    void draw_complete(vk::CommandBuffer cmdbuf) const;
-
-    /// Draw the specified submesh.
-    void draw_submesh(vk::CommandBuffer, uint index) const;
+    /// Draw the entire mesh or a submesh.
+    void draw(vk::CommandBuffer cmdbuf, int subMesh = -1) const;
 
     //--------------------------------------------------------//
 

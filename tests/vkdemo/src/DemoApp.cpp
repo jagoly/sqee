@@ -553,7 +553,7 @@ void DemoApp::populate_command_buffer(vk::CommandBuffer cmdbuf, vk::Framebuffer 
             model.material->bind(cmdbuf);
             model.material->bind_final_descriptor_set(cmdbuf, model.descriptorSet.front);
             model.mesh->bind_buffers(cmdbuf);
-            model.mesh->draw_complete(cmdbuf);
+            model.mesh->draw(cmdbuf);
         }
 
         cmdbuf.endRenderPass();

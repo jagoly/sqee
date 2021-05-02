@@ -28,7 +28,7 @@ public: //====================================================//
     /// Acquire a handle to a resource. Create it if needed.
     Handle<Key, Type> acquire(const Key& key)
     {
-        const auto& [iter, created] = mResourceMap.try_emplace(key);
+        const auto [iter, created] = mResourceMap.try_emplace(key);
         if (created == true)
         {
             SQASSERT(mFactoryFunc != nullptr, "no factory assigned");
@@ -44,6 +44,17 @@ public: //====================================================//
     {
         for (auto& [key, resource] : mResourceMap)
             resource.data = mFactoryFunc(key);
+    }
+
+    /// Free resources that no longer have any handles.
+    void free_unreachable()
+    {
+        for (auto iter = mResourceMap.begin(); iter != mResourceMap.end();)
+        {
+            if (iter->second.count == 0u)
+                iter = mResourceMap.erase(iter);
+            else ++iter;
+        }
     }
 
 private: //===================================================//

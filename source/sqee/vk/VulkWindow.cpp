@@ -399,7 +399,9 @@ VulkWindow::VulkWindow(const char* title, Vec2U size, const char* appName, Vec3U
         auto extensions = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
 
         auto features = vk::PhysicalDeviceFeatures();
+        features.fillModeNonSolid = true;
         features.samplerAnisotropy = true;
+        features.wideLines = true;
 
         mDevice = mPhysicalDevice.createDevice (
             vk::DeviceCreateInfo { {}, queues, {}, extensions, &features }

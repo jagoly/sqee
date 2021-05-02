@@ -102,17 +102,15 @@ void VulkMesh::bind_buffers(vk::CommandBuffer cmdbuf) const
     cmdbuf.bindIndexBuffer(mIndexBuffer, 0u, vk::IndexType::eUint32);
 }
 
-void VulkMesh::draw_complete(vk::CommandBuffer cmdbuf) const
+void VulkMesh::draw(vk::CommandBuffer cmdbuf, int subMesh) const
 {
-    cmdbuf.drawIndexed(mIndexTotal, 1u, 0u, 0, 0u);
-}
-
-void VulkMesh::draw_submesh(vk::CommandBuffer cmdbuf, uint index) const
-{
-    SQASSERT(index < mSubMeshes.size(), "invalid submesh index");
-
-    const SubMesh& sm = mSubMeshes[index];
-    cmdbuf.drawIndexed(sm.indexCount, 1u, sm.firstIndex, 0, 0u);
+    if (subMesh >= 0)
+    {
+        SQASSERT(subMesh < int(mSubMeshes.size()), "invalid submesh");
+        const SubMesh& sm = mSubMeshes[subMesh];
+        cmdbuf.drawIndexed(sm.indexCount, 1u, sm.firstIndex, 0, 0u);
+    }
+    else cmdbuf.drawIndexed(mIndexTotal, 1u, 0u, 0, 0u);
 }
 
 //============================================================================//

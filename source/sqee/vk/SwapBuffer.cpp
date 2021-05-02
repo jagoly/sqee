@@ -47,14 +47,3 @@ void SwapBuffer::initialise(size_t size, vk::BufferUsageFlags usage)
     mBufferPtr.front = mBufferMem.front.map();
     mBufferPtr.back = mBufferMem.back.map();
 }
-
-//============================================================================//
-
-std::byte* SwapBuffer::swap_map()
-{
-    mBuffer.swap();
-    mBufferMem.swap();
-    mBufferPtr.swap();
-
-    return mBufferPtr.front;
-}

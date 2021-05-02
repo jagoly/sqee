@@ -4,6 +4,7 @@
 #include <sqee/core/Macros.hpp>
 #include <sqee/core/Types.hpp>
 #include <sqee/debug/Assert.hpp>
+#include <sqee/maths/Colours.hpp>
 
 #include <sqee/data/UbuntuMinimal.hpp>
 #include <sqee/data/BuiltinShaders.hpp>
@@ -25,23 +26,11 @@ using namespace sq;
 
 static void impl_make_colors_linear(ImVec4* colors)
 {
-    const auto adjust_value = [](float& value)
-    {
-        if (value <= 0.04045f) value = value / 12.92f;
-        else value = std::pow((value + 0.055f) / 1.055f, 2.4f);
-    };
-
-    //const auto adjust_value = [](float& value)
-    //{
-    //    if (value <= 0.0031308f) value = value * 12.92f;
-    //    else value = 1.055f * std::pow(value, 1.f / 2.4f) - 0.055f;
-    //};
-
     for (int i = 0; i != ImGuiCol_COUNT; ++i)
     {
-        adjust_value(colors[i].x);
-        adjust_value(colors[i].y);
-        adjust_value(colors[i].z);
+        colors[i].x = maths::srgb_to_linear(colors[i].x);
+        colors[i].y = maths::srgb_to_linear(colors[i].y);
+        colors[i].z = maths::srgb_to_linear(colors[i].z);
     }
 }
 
@@ -396,7 +385,7 @@ void VulkGuiSystem::create_pipeline()
                 {}, vk::PrimitiveTopology::eTriangleList, false
             },
             vk::PipelineRasterizationStateCreateInfo {
-                {}, false, false, vk::PolygonMode::eFill, vk::CullModeFlagBits::eBack,
+                {}, false, false, vk::PolygonMode::eFill, vk::CullModeFlagBits::eNone,
                 vk::FrontFace::eClockwise, false, 0.f, false, 0.f, 1.f
             },
             vk::PipelineMultisampleStateCreateInfo {
@@ -407,10 +396,8 @@ void VulkGuiSystem::create_pipeline()
             },
             { 1u, nullptr }, { 1u, nullptr },
             vk::PipelineColorBlendAttachmentState {
-                true,
-                vk::BlendFactor::eSrcAlpha, vk::BlendFactor::eOneMinusSrcAlpha, vk::BlendOp::eAdd,
-                vk::BlendFactor::eOneMinusSrcAlpha, vk::BlendFactor::eZero, vk::BlendOp::eAdd,
-                vk::ColorComponentFlags(0b1111)
+                true, vk::BlendFactor::eSrcAlpha, vk::BlendFactor::eOneMinusSrcAlpha, vk::BlendOp::eAdd,
+                vk::BlendFactor::eOne, vk::BlendFactor::eZero, vk::BlendOp::eAdd, vk::ColorComponentFlags(0b1111)
             },
             { vk::DynamicState::eViewport, vk::DynamicState::eScissor }
         );

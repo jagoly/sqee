@@ -31,9 +31,16 @@ public: //====================================================//
     /// Create and allocate buffers.
     void initialise(size_t size, vk::BufferUsageFlags usage);
 
+    //--------------------------------------------------------//
+
+    /// Swap front and back buffers.
+    void swap_only() { mBuffer.swap(); mBufferMem.swap(); mBufferPtr.swap(); }
+
+    /// Map the front buffer's memory.
+    std::byte* map_only() { return mBufferPtr.front; };
 
     /// Swap front and back, then map front.
-    std::byte* swap_map();
+    std::byte* swap_map() { swap_only(); return map_only(); };
 
     //--------------------------------------------------------//
 
