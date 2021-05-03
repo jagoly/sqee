@@ -17,43 +17,35 @@ class SQEE_API DebugOverlay final : public Scene
 {
 public: //====================================================//
 
-    /// Constructor.
     DebugOverlay();
 
-    //--------------------------------------------------------//
-
-    /// Toggle the overlay.
-    void toggle_active() { mActive = !mActive; }
-
-    /// Check if the overlay is active,
-    bool check_active() const { return mActive; }
-
-    //--------------------------------------------------------//
+    void show_imgui_widgets() override;
 
     /// Display a message in the corner.
     void notify(String message);
+
+    /// Toggle drawing the overlay.
+    void toggle_active() { mActive = !mActive; }
+
+    /// Check if the overlay is drawn.
+    bool check_active() const { return mActive; }
 
 private: //===================================================//
 
     void update() override;
 
-    void render(double elapsed) override;
+    void integrate(double elapsed, float blend) override;
 
-    //--------------------------------------------------------//
-
-    struct Notification : MoveOnly
+    struct Notification
     {
-        String message = "";
-        uint timeRemaining = 0u;
+        uint timeRemaining;
+        float width;
+        String message;
     };
 
+    std::vector<double> mFrameTimes;
+    String mFpsString;
     std::vector<Notification> mNotifications;
-
-    double mFrameTime = 0.0;
-
-    size_t mFrameTimeIndex = 0u;
-    std::array<double, 60u> mFrameTimes;
-
     bool mActive = true;
 };
 
