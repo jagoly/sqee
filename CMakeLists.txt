@@ -207,7 +207,7 @@ configure_file (
 
 add_subdirectory("testing")
 
-add_subdirectory("tests/soko")
-add_subdirectory("tests/rpg")
-
 add_subdirectory("tests/vkdemo")
+
+# todo: rpg needs a lot of work to port to vulkan
+#add_subdirectory("tests/rpg")
