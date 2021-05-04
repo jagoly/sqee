@@ -40,56 +40,6 @@ enum class Mouse_Wheel : int8_t
     Vertical, Horizontal
 };
 
-enum class Gamepad_Button : int8_t
-{
-    Unknown = -1,
-    A, B, X, Y, L1, R1,
-    Select, Start, Home
-};
-
-enum class Gamepad_Stick : int8_t
-{
-    Unknown = -1,
-    Left, Right
-};
-
-//============================================================================//
-
-//struct Event_WindowClose {};
-
-//struct Event_WindowResize {};
-
-//struct Event_WindowFocus {};
-
-//struct Event_WindowUnfocus {};
-
-//struct Event_KeyPress { Keyboard_Key key; bool shift, ctrl, alt, super; };
-
-//struct Event_KeyRelease { Keyboard_Key key; bool shift, ctrl, alt, super; };
-
-//struct Event_MousePress { Mouse_Button button; Vec2I position; };
-
-//struct Event_MouseRelease { Mouse_Button button; Vec2I position; };
-
-//struct Event_GamepadPress { int32_t port; Gamepad_Button button; };
-
-//struct Event_GamepadRelease { int32_t port; Gamepad_Button button; };
-
-//struct Event_MouseScroll { Mouse_Wheel wheel; float delta; };
-
-//struct Event_TextEntry { uint32_t unicode; };
-
-////============================================================================//
-
-//using Event = std::variant <
-//    Event_WindowClose, Event_WindowResize,
-//    Event_WindowFocus, Event_WindowUnfocus,
-//    Event_KeyPress, Event_KeyRelease,
-//    Event_MousePress, Event_MouseRelease,
-//    Event_GamepadPress, Event_GamepadRelease,
-//    Event_MouseScroll, Event_TextEntry
-//>;
-
 //============================================================================//
 
 struct Event final
@@ -105,27 +55,22 @@ struct Event final
         Keyboard_Release,
         Mouse_Press,
         Mouse_Release,
-        Gamepad_Press,
-        Gamepad_Release,
         Mouse_Scroll,
         Text_Entry
     };
 
     union Data
     {
-        struct { Vec2U size; }                                     resize;
-        struct { Keyboard_Key key; bool shift, ctrl, alt, super; } keyboard;
-        struct { Mouse_Button button; Vec2I position; }            mouse;
-        struct { int32_t port; Gamepad_Button button; }            gamepad;
-        struct { Mouse_Wheel wheel; float delta; }                 scroll;
-        struct { uint32_t unicode; }                               text;
+        struct { Vec2U size; }                                        resize;
+        struct { Keyboard_Key key; bool shift, ctrl, alt, super; }    keyboard;
+        struct { Mouse_Button button; bool shift, ctrl, alt, super; } mouse;
+        struct { Mouse_Wheel wheel; float delta; }                    scroll;
+        struct { uint32_t unicode; }                                  text;
     };
 
     Type type = Type::Unknown;
     Data data {};
 };
-
-static_assert(sizeof(Event) == 16, "");
 
 //============================================================================//
 

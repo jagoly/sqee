@@ -1,405 +1,727 @@
 #include <sqee/app/Window.hpp>
 
 #include <sqee/app/Event.hpp>
-#include <sqee/core/Macros.hpp>
+#include <sqee/core/Algorithms.hpp>
+#include <sqee/debug/Assert.hpp>
 #include <sqee/debug/Logging.hpp>
-#include <sqee/debug/OpenGL.hpp>
+#include <sqee/vk/VulkanContext.hpp>
 
-#include <sqee/gl/Constants.hpp>
-#include <sqee/gl/Functions.hpp>
-#include <sqee/gl/Loader.hpp>
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
 
-#include <SFML/Config.hpp>
-#include <SFML/System/Vector2.hpp>
-#include <SFML/Window/ContextSettings.hpp>
-#include <SFML/Window/Event.hpp>
-#include <SFML/Window/VideoMode.hpp>
-#include <SFML/Window/Window.hpp>
-#include <SFML/Window/WindowStyle.hpp>
+#include <fmt/chrono.h>
 
 using namespace sq;
 
 //============================================================================//
 
-static constexpr Event::Type conv_sfml_event_type[]
+VKAPI_ATTR VkBool32 VKAPI_CALL impl_vulkan_debug_callback (
+        VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+        VkDebugUtilsMessageTypeFlagsEXT messageType,
+        const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+        void* /*pUserData*/ )
 {
-    Event::Type::Window_Close,      // Closed
-    Event::Type::Window_Resize,     // Resized
-    Event::Type::Window_Unfocus,    // LostFocus
-    Event::Type::Window_Focus,      // GainedFocus
-    Event::Type::Text_Entry,        // TextEntered
-    Event::Type::Keyboard_Press,    // KeyPressed
-    Event::Type::Keyboard_Release,  // KeyReleased
-    Event::Type::Unknown,           // MouseWheelMoved
-    Event::Type::Mouse_Scroll,      // MouseWheelScrolled
-    Event::Type::Mouse_Press,       // Mouse_ButtonPressed
-    Event::Type::Mouse_Release,     // Mouse_ButtonReleased
-    Event::Type::Unknown,           // MouseMoved
-    Event::Type::Unknown,           // MouseEntered
-    Event::Type::Unknown,           // MouseLeft
-    Event::Type::Gamepad_Press,     // JoystickButtonPressed
-    Event::Type::Gamepad_Release,   // JoystickButtonReleased
-    Event::Type::Unknown,           // JoystickMoved
-    Event::Type::Unknown,           // JoystickConnected
-    Event::Type::Unknown,           // JoystickDisconnected
-    Event::Type::Unknown,           // TouchBegan
-    Event::Type::Unknown,           // TouchMoved
-    Event::Type::Unknown,           // TouchEnded
-    Event::Type::Unknown,           // SensorChanged
-};
+    std::time_t now = std::time(nullptr);
+    sq::log_raw_multiline("{:%H:%M:%S} Vulkan: Severity = {} | Type = {}\n{}",
+                          fmt::localtime(now),
+                          vk::to_string(vk::DebugUtilsMessageSeverityFlagBitsEXT(messageSeverity)),
+                          vk::to_string(vk::DebugUtilsMessageTypeFlagsEXT(messageType)),
+                          pCallbackData->pMessage);
+
+    return VK_FALSE;
+}
 
 //============================================================================//
 
-static constexpr Keyboard_Key conv_sfml_keyboard_key[]
+constexpr Keyboard_Key impl_glfw_key_to_sqee(int key)
 {
-    Keyboard_Key::A,            // A
-    Keyboard_Key::B,            // B
-    Keyboard_Key::C,            // C
-    Keyboard_Key::D,            // D
-    Keyboard_Key::E,            // E
-    Keyboard_Key::F,            // F
-    Keyboard_Key::G,            // G
-    Keyboard_Key::H,            // H
-    Keyboard_Key::I,            // I
-    Keyboard_Key::J,            // J
-    Keyboard_Key::K,            // K
-    Keyboard_Key::L,            // L
-    Keyboard_Key::M,            // M
-    Keyboard_Key::N,            // N
-    Keyboard_Key::O,            // O
-    Keyboard_Key::P,            // P
-    Keyboard_Key::Q,            // Q
-    Keyboard_Key::R,            // R
-    Keyboard_Key::S,            // S
-    Keyboard_Key::T,            // T
-    Keyboard_Key::U,            // U
-    Keyboard_Key::V,            // V
-    Keyboard_Key::W,            // W
-    Keyboard_Key::X,            // X
-    Keyboard_Key::Y,            // Y
-    Keyboard_Key::Z,            // Z
-    Keyboard_Key::Num_0,        // Num0
-    Keyboard_Key::Num_1,        // Num1
-    Keyboard_Key::Num_2,        // Num2
-    Keyboard_Key::Num_3,        // Num3
-    Keyboard_Key::Num_4,        // Num4
-    Keyboard_Key::Num_5,        // Num5
-    Keyboard_Key::Num_6,        // Num6
-    Keyboard_Key::Num_7,        // Num7
-    Keyboard_Key::Num_8,        // Num8
-    Keyboard_Key::Num_9,        // Num9
-    Keyboard_Key::Escape,       // Escape
-    Keyboard_Key::Control_L,    // LControl
-    Keyboard_Key::Shift_L,      // LShift
-    Keyboard_Key::Alt_L,        // LAlt
-    Keyboard_Key::Super_L,      // LSystem
-    Keyboard_Key::Control_R,    // RControl
-    Keyboard_Key::Shift_R,      // RShift
-    Keyboard_Key::Alt_R,        // RAlt
-    Keyboard_Key::Super_R,      // RSystem
-    Keyboard_Key::Menu,         // Menu
-    Keyboard_Key::LeftBracket,  // LBracket
-    Keyboard_Key::RightBracket, // RBracket
-    Keyboard_Key::SemiColon,    // SemiColon
-    Keyboard_Key::Comma,        // Comma
-    Keyboard_Key::Period,       // Period
-    Keyboard_Key::Apostrophe,   // Quote
-    Keyboard_Key::Slash,        // Slash
-    Keyboard_Key::BackSlash,    // BackSlash
-    Keyboard_Key::Grave,        // Tilde
-    Keyboard_Key::Equal,        // Equal
-    Keyboard_Key::Dash,         // Dash
-    Keyboard_Key::Space,        // Space
-    Keyboard_Key::Return,       // Return
-    Keyboard_Key::BackSpace,    // BackSpace
-    Keyboard_Key::Tab,          // Tab
-    Keyboard_Key::PageUp,       // PageUp
-    Keyboard_Key::PageDown,     // PageDown
-    Keyboard_Key::End,          // End
-    Keyboard_Key::Home,         // Home
-    Keyboard_Key::Insert,       // Insert
-    Keyboard_Key::Delete,       // Delete
-    Keyboard_Key::Pad_Plus,     // Add
-    Keyboard_Key::Pad_Minus,    // Subtract
-    Keyboard_Key::Pad_Multiply, // Multiply
-    Keyboard_Key::Pad_Divide,   // Divide
-    Keyboard_Key::Arrow_Left,   // Left
-    Keyboard_Key::Arrow_Right,  // Right
-    Keyboard_Key::Arrow_Up,     // Up
-    Keyboard_Key::Arrow_Down,   // Down
-    Keyboard_Key::Pad_0,        // Numpad0
-    Keyboard_Key::Pad_1,        // Numpad1
-    Keyboard_Key::Pad_2,        // Numpad2
-    Keyboard_Key::Pad_3,        // Numpad3
-    Keyboard_Key::Pad_4,        // Numpad4
-    Keyboard_Key::Pad_5,        // Numpad5
-    Keyboard_Key::Pad_6,        // Numpad6
-    Keyboard_Key::Pad_7,        // Numpad7
-    Keyboard_Key::Pad_8,        // Numpad8
-    Keyboard_Key::Pad_9,        // Numpad9
-    Keyboard_Key::F1,           // F1
-    Keyboard_Key::F2,           // F2
-    Keyboard_Key::F3,           // F3
-    Keyboard_Key::F4,           // F4
-    Keyboard_Key::F5,           // F5
-    Keyboard_Key::F6,           // F6
-    Keyboard_Key::F7,           // F7
-    Keyboard_Key::F8,           // F8
-    Keyboard_Key::F9,           // F9
-    Keyboard_Key::F10,          // F10
-    Keyboard_Key::F11,          // F11
-    Keyboard_Key::F12,          // F12
-    Keyboard_Key::Unknown,      // F13
-    Keyboard_Key::Unknown,      // F14
-    Keyboard_Key::Unknown,      // F15
-    Keyboard_Key::Pause,        // Pause
-};
+    switch (key) {
+
+    //case GLFW_KEY_UNKNOWN:        return Keyboard_Key::Unknown;
+    case GLFW_KEY_SPACE:          return Keyboard_Key::Space;
+    case GLFW_KEY_APOSTROPHE:     return Keyboard_Key::Apostrophe;
+    case GLFW_KEY_COMMA:          return Keyboard_Key::Comma;
+    case GLFW_KEY_MINUS:          return Keyboard_Key::Dash;
+    case GLFW_KEY_PERIOD:         return Keyboard_Key::Period;
+    case GLFW_KEY_SLASH:          return Keyboard_Key::Slash;
+    case GLFW_KEY_0:              return Keyboard_Key::Num_0;
+    case GLFW_KEY_1:              return Keyboard_Key::Num_1;
+    case GLFW_KEY_2:              return Keyboard_Key::Num_2;
+    case GLFW_KEY_3:              return Keyboard_Key::Num_3;
+    case GLFW_KEY_4:              return Keyboard_Key::Num_4;
+    case GLFW_KEY_5:              return Keyboard_Key::Num_5;
+    case GLFW_KEY_6:              return Keyboard_Key::Num_6;
+    case GLFW_KEY_7:              return Keyboard_Key::Num_7;
+    case GLFW_KEY_8:              return Keyboard_Key::Num_8;
+    case GLFW_KEY_9:              return Keyboard_Key::Num_9;
+    case GLFW_KEY_SEMICOLON:      return Keyboard_Key::SemiColon;
+    case GLFW_KEY_EQUAL:          return Keyboard_Key::Equal;
+    case GLFW_KEY_A:              return Keyboard_Key::A;
+    case GLFW_KEY_B:              return Keyboard_Key::B;
+    case GLFW_KEY_C:              return Keyboard_Key::C;
+    case GLFW_KEY_D:              return Keyboard_Key::D;
+    case GLFW_KEY_E:              return Keyboard_Key::E;
+    case GLFW_KEY_F:              return Keyboard_Key::F;
+    case GLFW_KEY_G:              return Keyboard_Key::G;
+    case GLFW_KEY_H:              return Keyboard_Key::H;
+    case GLFW_KEY_I:              return Keyboard_Key::I;
+    case GLFW_KEY_J:              return Keyboard_Key::J;
+    case GLFW_KEY_K:              return Keyboard_Key::K;
+    case GLFW_KEY_L:              return Keyboard_Key::L;
+    case GLFW_KEY_M:              return Keyboard_Key::M;
+    case GLFW_KEY_N:              return Keyboard_Key::N;
+    case GLFW_KEY_O:              return Keyboard_Key::O;
+    case GLFW_KEY_P:              return Keyboard_Key::P;
+    case GLFW_KEY_Q:              return Keyboard_Key::Q;
+    case GLFW_KEY_R:              return Keyboard_Key::R;
+    case GLFW_KEY_S:              return Keyboard_Key::S;
+    case GLFW_KEY_T:              return Keyboard_Key::T;
+    case GLFW_KEY_U:              return Keyboard_Key::U;
+    case GLFW_KEY_V:              return Keyboard_Key::V;
+    case GLFW_KEY_W:              return Keyboard_Key::W;
+    case GLFW_KEY_X:              return Keyboard_Key::X;
+    case GLFW_KEY_Y:              return Keyboard_Key::Y;
+    case GLFW_KEY_Z:              return Keyboard_Key::Z;
+    case GLFW_KEY_LEFT_BRACKET:   return Keyboard_Key::LeftBracket;
+    case GLFW_KEY_BACKSLASH:      return Keyboard_Key::BackSlash;
+    case GLFW_KEY_RIGHT_BRACKET:  return Keyboard_Key::RightBracket;
+    case GLFW_KEY_GRAVE_ACCENT:   return Keyboard_Key::Grave;
+    //case GLFW_KEY_WORLD_1:        return Keyboard_Key::Unknown;
+    //case GLFW_KEY_WORLD_2:        return Keyboard_Key::Unknown;
+    case GLFW_KEY_ESCAPE:         return Keyboard_Key::Escape;
+    case GLFW_KEY_ENTER:          return Keyboard_Key::Return;
+    case GLFW_KEY_TAB:            return Keyboard_Key::Tab;
+    case GLFW_KEY_BACKSPACE:      return Keyboard_Key::BackSpace;
+    case GLFW_KEY_INSERT:         return Keyboard_Key::Insert;
+    case GLFW_KEY_DELETE:         return Keyboard_Key::Delete;
+    case GLFW_KEY_RIGHT:          return Keyboard_Key::Arrow_Right;
+    case GLFW_KEY_LEFT:           return Keyboard_Key::Arrow_Left;
+    case GLFW_KEY_DOWN:           return Keyboard_Key::Arrow_Down;
+    case GLFW_KEY_UP:             return Keyboard_Key::Arrow_Up;
+    case GLFW_KEY_PAGE_UP:        return Keyboard_Key::PageUp;
+    case GLFW_KEY_PAGE_DOWN:      return Keyboard_Key::PageDown;
+    case GLFW_KEY_HOME:           return Keyboard_Key::Home;
+    case GLFW_KEY_END:            return Keyboard_Key::End;
+    //case GLFW_KEY_CAPS_LOCK:      return Keyboard_Key::Unknown;
+    //case GLFW_KEY_SCROLL_LOCK:    return Keyboard_Key::Unknown;
+    //case GLFW_KEY_NUM_LOCK:       return Keyboard_Key::Unknown;
+    //case GLFW_KEY_PRINT_SCREEN:   return Keyboard_Key::Unknown;
+    case GLFW_KEY_PAUSE:          return Keyboard_Key::Pause;
+    case GLFW_KEY_F1:             return Keyboard_Key::F1;
+    case GLFW_KEY_F2:             return Keyboard_Key::F2;
+    case GLFW_KEY_F3:             return Keyboard_Key::F3;
+    case GLFW_KEY_F4:             return Keyboard_Key::F4;
+    case GLFW_KEY_F5:             return Keyboard_Key::F5;
+    case GLFW_KEY_F6:             return Keyboard_Key::F6;
+    case GLFW_KEY_F7:             return Keyboard_Key::F7;
+    case GLFW_KEY_F8:             return Keyboard_Key::F8;
+    case GLFW_KEY_F9:             return Keyboard_Key::F9;
+    case GLFW_KEY_F10:            return Keyboard_Key::F10;
+    case GLFW_KEY_F11:            return Keyboard_Key::F11;
+    case GLFW_KEY_F12:            return Keyboard_Key::F12;
+    //case GLFW_KEY_F13:            return Keyboard_Key::Unknown;
+    //case GLFW_KEY_F14:            return Keyboard_Key::Unknown;
+    //case GLFW_KEY_F15:            return Keyboard_Key::Unknown;
+    //case GLFW_KEY_F16:            return Keyboard_Key::Unknown;
+    //case GLFW_KEY_F17:            return Keyboard_Key::Unknown;
+    //case GLFW_KEY_F18:            return Keyboard_Key::Unknown;
+    //case GLFW_KEY_F19:            return Keyboard_Key::Unknown;
+    //case GLFW_KEY_F20:            return Keyboard_Key::Unknown;
+    //case GLFW_KEY_F21:            return Keyboard_Key::Unknown;
+    //case GLFW_KEY_F22:            return Keyboard_Key::Unknown;
+    //case GLFW_KEY_F23:            return Keyboard_Key::Unknown;
+    //case GLFW_KEY_F24:            return Keyboard_Key::Unknown;
+    //case GLFW_KEY_F25:            return Keyboard_Key::Unknown;
+    case GLFW_KEY_KP_0:           return Keyboard_Key::Pad_0;
+    case GLFW_KEY_KP_1:           return Keyboard_Key::Pad_1;
+    case GLFW_KEY_KP_2:           return Keyboard_Key::Pad_2;
+    case GLFW_KEY_KP_3:           return Keyboard_Key::Pad_3;
+    case GLFW_KEY_KP_4:           return Keyboard_Key::Pad_4;
+    case GLFW_KEY_KP_5:           return Keyboard_Key::Pad_5;
+    case GLFW_KEY_KP_6:           return Keyboard_Key::Pad_6;
+    case GLFW_KEY_KP_7:           return Keyboard_Key::Pad_7;
+    case GLFW_KEY_KP_8:           return Keyboard_Key::Pad_8;
+    case GLFW_KEY_KP_9:           return Keyboard_Key::Pad_9;
+    case GLFW_KEY_KP_DECIMAL:     return Keyboard_Key::Pad_Decimal;
+    case GLFW_KEY_KP_DIVIDE:      return Keyboard_Key::Pad_Divide;
+    case GLFW_KEY_KP_MULTIPLY:    return Keyboard_Key::Pad_Multiply;
+    case GLFW_KEY_KP_SUBTRACT:    return Keyboard_Key::Pad_Minus;
+    case GLFW_KEY_KP_ADD:         return Keyboard_Key::Pad_Plus;
+    case GLFW_KEY_KP_ENTER:       return Keyboard_Key::Return;
+    //case GLFW_KEY_KP_EQUAL:       return Keyboard_Key::Unknown;
+    case GLFW_KEY_LEFT_SHIFT:     return Keyboard_Key::Shift_L;
+    case GLFW_KEY_LEFT_CONTROL:   return Keyboard_Key::Control_L;
+    case GLFW_KEY_LEFT_ALT:       return Keyboard_Key::Alt_L;
+    case GLFW_KEY_LEFT_SUPER:     return Keyboard_Key::Super_L;
+    case GLFW_KEY_RIGHT_SHIFT:    return Keyboard_Key::Shift_R;
+    case GLFW_KEY_RIGHT_CONTROL:  return Keyboard_Key::Control_R;
+    case GLFW_KEY_RIGHT_ALT:      return Keyboard_Key::Alt_R;
+    case GLFW_KEY_RIGHT_SUPER:    return Keyboard_Key::Super_R;
+    case GLFW_KEY_MENU:           return Keyboard_Key::Menu;
+
+    default: return Keyboard_Key::Unknown;
+
+    } // switch(key)
+}
 
 //============================================================================//
 
-static constexpr Mouse_Button conv_sfml_mouse_button[]
+constexpr Mouse_Button impl_glfw_mouse_button_to_sqee(int button)
 {
-    Mouse_Button::Left,   // Left
-    Mouse_Button::Right,  // Right
-    Mouse_Button::Middle, // Middle
-    Mouse_Button::ExtraA, // XButton1
-    Mouse_Button::ExtraB, // XButton2
-};
+    switch (button) {
 
-//============================================================================//
+    case GLFW_MOUSE_BUTTON_1: return Mouse_Button::Left;
+    case GLFW_MOUSE_BUTTON_2: return Mouse_Button::Right;
+    case GLFW_MOUSE_BUTTON_3: return Mouse_Button::Middle;
+    case GLFW_MOUSE_BUTTON_4: return Mouse_Button::ExtraA;
+    case GLFW_MOUSE_BUTTON_5: return Mouse_Button::ExtraB;
 
-static constexpr Mouse_Wheel conv_sfml_mouse_wheel[]
-{
-    Mouse_Wheel::Vertical,   // Vertical
-    Mouse_Wheel::Horizontal, // Horizontal
-};
+    default: return Mouse_Button::Unknown;
 
-//============================================================================//
-
-static constexpr Gamepad_Button conv_sfml_gamepad_button[]
-{
-    Gamepad_Button::A,       //  0 - A
-    Gamepad_Button::B,       //  1 - B
-    Gamepad_Button::X,       //  2 - X
-    Gamepad_Button::Y,       //  3 - Y
-    Gamepad_Button::L1,      //  4 - L1
-    Gamepad_Button::R1,      //  5 - R1
-    Gamepad_Button::Select,  //  6 - Select
-    Gamepad_Button::Start,   //  7 - Start
-    Gamepad_Button::Home,    //  8 - Home
-    Gamepad_Button::Unknown, //  9 - L3
-    Gamepad_Button::Unknown, // 10 - R3
-    Gamepad_Button::Unknown, // 11
-    Gamepad_Button::Unknown, // 12
-    Gamepad_Button::Unknown, // 13
-    Gamepad_Button::Unknown, // 14
-    Gamepad_Button::Unknown, // 15
-};
+    } // switch(button)
+}
 
 //============================================================================//
 
 struct Window::Implementation
 {
-    String windowTitle = "";
-    bool vsyncEnabled = false;
-    bool cursorHidden = false;
-    bool keyRepeat = true;
-    sf::Window sfmlWindow;
-    std::vector<Event> events;
+    static void add_event(GLFWwindow* glfwWindow, Event event)
+    {
+        static_cast<Window*>(glfwGetWindowUserPointer(glfwWindow))->mEvents.push_back(event);
+    }
+
+    static void cb_window_close(GLFWwindow* window)
+    {
+        Event event;
+        event.type = Event::Type::Window_Close;
+        add_event(window, event);
+    }
+
+    static void cb_window_focus(GLFWwindow* window, int focused)
+    {
+        Event event;
+        event.type = bool(focused) ? Event::Type::Window_Focus : Event::Type::Window_Unfocus;
+        add_event(window, event);
+    }
+
+    static void cb_key(GLFWwindow* window, int key, int /*scancode*/, int action, int mods)
+    {
+        if (action == GLFW_REPEAT) return;
+        Event event;
+        event.type = bool(action) ? Event::Type::Keyboard_Press : Event::Type::Keyboard_Release;
+        event.data.keyboard.key = impl_glfw_key_to_sqee(key);
+        event.data.keyboard.shift = mods & GLFW_MOD_SHIFT;
+        event.data.keyboard.ctrl = mods & GLFW_MOD_CONTROL;
+        event.data.keyboard.alt = mods & GLFW_MOD_ALT;
+        event.data.keyboard.super = mods & GLFW_MOD_SUPER;
+        add_event(window, event);
+    }
+
+    static void cb_mouse_button(GLFWwindow* window, int button, int action, int mods)
+    {
+        Event event;
+        event.type = bool(action) ? Event::Type::Mouse_Press : Event::Type::Mouse_Release;
+        event.data.mouse.button = impl_glfw_mouse_button_to_sqee(button);
+        event.data.mouse.shift = mods & GLFW_MOD_SHIFT;
+        event.data.mouse.ctrl = mods & GLFW_MOD_CONTROL;
+        event.data.mouse.alt = mods & GLFW_MOD_ALT;
+        event.data.mouse.super = mods & GLFW_MOD_SUPER;
+        add_event(window, event);
+    }
+
+    static void cb_scroll(GLFWwindow* window, double xoffset, double yoffset)
+    {
+        if (xoffset != 0.0)
+        {
+            Event event;
+            event.type = Event::Type::Mouse_Scroll;
+            event.data.scroll.wheel = Mouse_Wheel::Horizontal;
+            event.data.scroll.delta = float(xoffset);
+            add_event(window, event);
+        }
+        if (yoffset != 0.0)
+        {
+            Event event;
+            event.type = Event::Type::Mouse_Scroll;
+            event.data.scroll.wheel = Mouse_Wheel::Vertical;
+            event.data.scroll.delta = float(yoffset);
+            add_event(window, event);
+        }
+    }
+
+    static void cb_char(GLFWwindow* window, uint codepoint)
+    {
+        Event event;
+        event.type = Event::Type::Text_Entry;
+        event.data.text.unicode = codepoint;
+        add_event(window, event);
+    }
 };
 
 //============================================================================//
 
-Window::Window(String title, Vec2U size)
-
-    : impl(std::make_unique<Implementation>())
-    , mSystemWindowPtr(&impl->sfmlWindow)
+Window::Window(const char* title, Vec2U size, const char* appName, Vec3U version)
 {
-    //--------------------------------------------------------//
+    // create glfw window
+    {
+        glfwInit();
 
-    sf::VideoMode mode { size.x, size.y, 32u };
-    sf::Uint32 style = sf::Style::Default;
-    sf::ContextSettings settings { 24u, 8u, 0u, 4u, 5u, sf::ContextSettings::Core | sf::ContextSettings::Debug };
+        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
-    impl->sfmlWindow.create(mode, title, style, settings);
+        mGlfwWindow = glfwCreateWindow(int(size.x), int(size.y), title, nullptr, nullptr);
 
-    impl->windowTitle = std::move(title);
+        glfwSetWindowUserPointer(mGlfwWindow, this);
 
-    //--------------------------------------------------------//
+        glfwSetWindowCloseCallback(mGlfwWindow, Implementation::cb_window_close);
+        glfwSetWindowFocusCallback(mGlfwWindow, Implementation::cb_window_focus);
+        glfwSetKeyCallback(mGlfwWindow, Implementation::cb_key);
+        glfwSetMouseButtonCallback(mGlfwWindow, Implementation::cb_mouse_button);
+        glfwSetScrollCallback(mGlfwWindow, Implementation::cb_scroll);
+        glfwSetCharCallback(mGlfwWindow, Implementation::cb_char);
 
-    if (load_opengl_core45_functions() == false)
-        log_warning("Failed to load some OpenGL functions!");
+        // load functions required to create an instance
+        VULKAN_HPP_DEFAULT_DISPATCHER.init(glfwGetInstanceProcAddress);
+    }
 
-    //--------------------------------------------------------//
+    // setup instance and debug callback
+    {
+        const auto appInfo = vk::ApplicationInfo {
+            appName, VK_MAKE_VERSION(version.x, version.y, version.z),
+            "SQEE", VK_MAKE_VERSION(1u, 2u, 3u),
+            VK_API_VERSION_1_2
+        };
 
-    #ifdef SQEE_DEBUG
+        const std::vector<const char*> layers = []()
+        {
+            const char* layerName = "VK_LAYER_KHRONOS_validation";
 
-    const GLubyte* renderer = gl::GetString(gl::RENDERER);
-    const GLubyte* version = gl::GetString(gl::VERSION);
-    log_info("Renderer: {}", reinterpret_cast<const char*>(renderer));
-    log_info("Version: {}", reinterpret_cast<const char*>(version));
+            for (const auto& layer : vk::enumerateInstanceLayerProperties())
+                if (StringView(layer.layerName) == layerName)
+                    return std::vector { layerName };
 
-    gl::Enable(gl::DEBUG_OUTPUT);
-    gl::Enable(gl::DEBUG_OUTPUT_SYNCHRONOUS);
+            sq::log_warning("vulkan validation layer could not be loaded");
+            return std::vector<const char*>();
+        }();
 
-    // generally, we don't care about notification messages so just ignore them
-    gl::DebugMessageControl(gl::DONT_CARE, gl::DONT_CARE, gl::DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, false);
+        const std::vector<const char*> extensions = []()
+        {
+            uint32_t count = 0u;
+            const char** names = glfwGetRequiredInstanceExtensions(&count);
 
-    // we use glGetShaderInfoLog, but some drivers also send logs to the debug callback
-    //gl::DebugMessageControl(gl::DEBUG_SOURCE_SHADER_COMPILER, gl::DEBUG_TYPE_ERROR, gl::DEBUG_SEVERITY_HIGH, 0, nullptr, false);
+            std::vector<const char*> result;
+            result.reserve(count + 1u);
 
-    gl::DebugMessageCallback(debug_callback, nullptr);
+            for (uint32_t i = 0u; i < count; ++i)
+                result.push_back(names[i]);
 
-    #endif
+            result.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+
+            return result;
+        }();
+
+        const auto severityFlags = //vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose |
+                                   vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
+                                   vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
+
+        const auto typeFlags = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
+                               vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation |
+                               vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance;
+
+        mInstance = vk::createInstance (
+            vk::StructureChain {
+                vk::InstanceCreateInfo { {}, &appInfo, layers, extensions },
+                vk::DebugUtilsMessengerCreateInfoEXT { {}, severityFlags, typeFlags, impl_vulkan_debug_callback }
+            }.get()
+        );
+
+        VULKAN_HPP_DEFAULT_DISPATCHER.init(mInstance);
+
+        mDebugMessenger = mInstance.createDebugUtilsMessengerEXT (
+            vk::DebugUtilsMessengerCreateInfoEXT { {}, severityFlags, typeFlags, impl_vulkan_debug_callback }
+        );
+    }
+
+    // create window surface
+    {
+        auto surfacePtr = reinterpret_cast<VkSurfaceKHR*>(&mSurface);
+        if (glfwCreateWindowSurface(mInstance, mGlfwWindow, nullptr, surfacePtr) != VK_SUCCESS)
+            log_error("failed to create window surface");
+    }
+
+    // setup physical device
+    {
+        const auto physicalDevices = mInstance.enumeratePhysicalDevices();
+        if (physicalDevices.empty())
+            sq::log_error("No GPUs found with Vulkan support");
+
+        for (const auto& physDev : physicalDevices)
+        {
+            sq::log_debug_multiline("Vulkan Physical Device Info\nName:    {} \nQueues:  {}\nPresent: {}",
+                                    physDev.getProperties().deviceName,
+                                    vk::to_string(physDev.getQueueFamilyProperties().front().queueFlags),
+                                    bool(physDev.getSurfaceSupportKHR(0u, mSurface)));
+
+            // check that device is supported
+            {
+                if (!(physDev.getQueueFamilyProperties().front().queueFlags & vk::QueueFlagBits::eGraphics))
+                    continue;
+
+                if (!physDev.getSurfaceSupportKHR(0u, mSurface))
+                    continue;
+
+                const auto formats = physDev.getSurfaceFormatsKHR(mSurface);
+                if (algo::none_of(formats, [](auto& f) { return f.format == vk::Format::eB8G8R8A8Srgb; }))
+                    continue;
+            }
+
+            //const auto preferredType = vk::PhysicalDeviceType::eDiscreteGpu;
+            const auto preferredType = vk::PhysicalDeviceType::eIntegratedGpu;
+
+            if (mPhysicalDevice)
+            {
+                if (mPhysicalDevice.getProperties().deviceType != preferredType)
+                    if (physDev.getProperties().deviceType == preferredType)
+                        mPhysicalDevice = physDev;
+            }
+            else mPhysicalDevice = physDev;
+        }
+
+        if (!mPhysicalDevice)
+            sq::log_error("GPU(s) found, but none are useable");
+
+        sq::log_info("Using Vulkan Device '{}'", mPhysicalDevice.getProperties().deviceName);
+    }
+
+    // setup logical device and queue
+    {
+        auto priorities = std::array { 1.f };
+        auto queues = vk::DeviceQueueCreateInfo { {}, 0u, priorities };
+        auto extensions = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
+
+        auto features = vk::PhysicalDeviceFeatures();
+        features.fillModeNonSolid = true;
+        features.samplerAnisotropy = true;
+        features.wideLines = true;
+
+        mDevice = mPhysicalDevice.createDevice (
+            vk::DeviceCreateInfo { {}, queues, {}, extensions, &features }
+        );
+
+        mQueue = mDevice.getQueue(0u, 0u);
+    }
+
+    // create semaphores and fences
+    {
+        mImageAvailableSemaphore.front = mDevice.createSemaphore({});
+        mImageAvailableSemaphore.back = mDevice.createSemaphore({});
+
+        mRenderFinishedSemaphore.front = mDevice.createSemaphore({});
+        mRenderFinishedSemaphore.back = mDevice.createSemaphore({});
+
+        mRenderFinishedFence.front = mDevice.createFence({vk::FenceCreateFlagBits::eSignaled});
+        mRenderFinishedFence.back = mDevice.createFence({vk::FenceCreateFlagBits::eSignaled});
+    }
+
+    // create command pool and buffers
+    {
+        mCommandPool = mDevice.createCommandPool (
+            vk::CommandPoolCreateInfo { vk::CommandPoolCreateFlagBits::eResetCommandBuffer, 0u }
+        );
+
+        mCommandBuffer.front = mDevice.allocateCommandBuffers (
+            vk::CommandBufferAllocateInfo { mCommandPool, vk::CommandBufferLevel::ePrimary, 1u }
+        ).front();
+
+        mCommandBuffer.back = mDevice.allocateCommandBuffers (
+            vk::CommandBufferAllocateInfo { mCommandPool, vk::CommandBufferLevel::ePrimary, 1u }
+        ).front();
+    }
+
+    // create descriptor pool
+    {
+        // todo: allow these to be configured
+        auto poolSizes = std::array {
+            vk::DescriptorPoolSize { vk::DescriptorType::eUniformBuffer, 240u },
+            vk::DescriptorPoolSize { vk::DescriptorType::eCombinedImageSampler, 320u }
+        };
+
+        mDesciptorPool = mDevice.createDescriptorPool (
+            vk::DescriptorPoolCreateInfo { vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet, 240u, poolSizes }
+        );
+    }
+
+    // create render pass
+    {
+        auto attachments = vk::AttachmentDescription {
+            {}, vk::Format::eB8G8R8A8Srgb, vk::SampleCountFlagBits::e1,
+            vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eStore,
+            vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
+            vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR
+        };
+
+        auto colorAttachments = vk::AttachmentReference {
+            0u, vk::ImageLayout::eColorAttachmentOptimal
+        };
+
+        auto subpasses = vk::SubpassDescription {
+            {}, vk::PipelineBindPoint::eGraphics, {}, colorAttachments, {}, nullptr, {}
+        };
+
+        auto dependencies = std::array {
+            vk::SubpassDependency {
+                VK_SUBPASS_EXTERNAL, 0u,
+                vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eFragmentShader,
+                vk::AccessFlagBits::eColorAttachmentWrite, vk::AccessFlagBits::eShaderRead,
+                vk::DependencyFlagBits::eByRegion
+            }
+        };
+
+        mRenderPass = mDevice.createRenderPass (
+            vk::RenderPassCreateInfo { {}, attachments, subpasses, dependencies }
+        );
+    }
+
+    // create allocator
+    {
+        const auto memoryProps = mPhysicalDevice.getMemoryProperties();
+
+        const auto host = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
+        const auto device = vk::MemoryPropertyFlagBits::eDeviceLocal;
+
+        uint32_t memoryTypeHost = 0u;
+        for (; memoryTypeHost < memoryProps.memoryTypeCount; ++memoryTypeHost)
+            if ((memoryProps.memoryTypes[memoryTypeHost].propertyFlags & host) == host)
+                break;
+
+        uint32_t memoryTypeDevice = 0u;
+        for (; memoryTypeDevice < memoryProps.memoryTypeCount; ++memoryTypeDevice)
+            if ((memoryProps.memoryTypes[memoryTypeDevice].propertyFlags & device) == device)
+                break;
+
+        mAllocator.initialise(mDevice, memoryTypeHost, memoryTypeDevice, 4096u);
+    }
+
+    // setup context
+    {
+        VulkanContext::construct(mAllocator);
+        VulkanContext& context = VulkanContext::get_mutable();
+
+        context.device = mDevice;
+        context.queue = mQueue;
+        context.commandPool = mCommandPool;
+        context.descriptorPool = mDesciptorPool;
+
+        // query limits
+        {
+            const auto limits = mPhysicalDevice.getProperties().limits;
+
+            context.limits.maxAnisotropy = limits.maxSamplerAnisotropy;
+        }
+    }
 }
 
 //============================================================================//
 
-Window::~Window() noexcept = default;
-
-//============================================================================//
-
-void Window::set_window_title(String title)
+Window::~Window()
 {
-    impl->windowTitle = title;
-    impl->sfmlWindow.setTitle(title);
-}
+    mDevice.waitIdle();
 
-void Window::set_window_size(Vec2U size)
-{
-    if (size == get_window_size()) return;
-    impl->sfmlWindow.setSize({size.x, size.y});
-}
+    VulkanContext::destruct();
 
-void Window::set_vsync_enabled(bool enabled)
-{
-    impl->vsyncEnabled = enabled;
-    impl->sfmlWindow.setVerticalSyncEnabled(enabled);
-}
+    mAllocator.destroy();
 
-void Window::set_cursor_hidden(bool hidden)
-{
-    impl->cursorHidden = hidden;
-    impl->sfmlWindow.setMouseCursorVisible(!hidden);
-}
+    destroy_swapchain_and_friends();
 
-void Window::set_key_repeat(bool repeat)
-{
-    impl->keyRepeat = repeat;
-    impl->sfmlWindow.setKeyRepeatEnabled(repeat);
+    mDevice.destroy(mRenderPass);
+
+    mDevice.destroy(mImageAvailableSemaphore.front);
+    mDevice.destroy(mImageAvailableSemaphore.back);
+    mDevice.destroy(mRenderFinishedSemaphore.front);
+    mDevice.destroy(mRenderFinishedSemaphore.back);
+    mDevice.destroy(mRenderFinishedFence.front);
+    mDevice.destroy(mRenderFinishedFence.back);
+
+    mDevice.destroy(mDesciptorPool);
+    mDevice.destroy(mCommandPool);
+    mDevice.destroy();
+
+    mInstance.destroy(mSurface);
+    mInstance.destroy(mDebugMessenger);
+    mInstance.destroy();
+
+    glfwDestroyWindow(mGlfwWindow);
+    glfwTerminate();
 }
 
 //============================================================================//
 
-const String& Window::get_window_title() const
+void Window::create_swapchain_and_friends()
 {
-    return impl->windowTitle;
-}
+    const auto capabilities = mPhysicalDevice.getSurfaceCapabilitiesKHR(mSurface);
 
-Vec2U Window::get_window_size() const
-{
-    auto size = impl->sfmlWindow.getSize();
-    return { size.x, size.y };
-}
+    mFramebufferSize = capabilities.currentExtent;
 
-bool Window::get_vsync_enabled() const
-{
-    return impl->vsyncEnabled;
-}
+    // create swapchain
+    {
+        const auto presentMode = mVsyncEnabled ? vk::PresentModeKHR::eFifo : vk::PresentModeKHR::eImmediate;
 
-bool Window::get_cursor_hidden() const
-{
-    return impl->cursorHidden;
-}
+        mSwapchain = mDevice.createSwapchainKHR (
+            vk::SwapchainCreateInfoKHR {
+                {}, mSurface, capabilities.minImageCount, vk::Format::eB8G8R8A8Srgb,
+                vk::ColorSpaceKHR::eSrgbNonlinear, mFramebufferSize, 1u,
+                vk::ImageUsageFlagBits::eColorAttachment, vk::SharingMode::eExclusive, {},
+                vk::SurfaceTransformFlagBitsKHR::eIdentity, vk::CompositeAlphaFlagBitsKHR::eOpaque,
+                presentMode, true, nullptr
+            }
+        );
 
-bool Window::get_key_repeat() const
-{
-    return impl->keyRepeat;
+        mSwapchainImages = mDevice.getSwapchainImagesKHR(mSwapchain);
+    }
+
+    // create image views and framebuffers
+    {
+        mSwapchainImageViews.reserve(mSwapchainImages.size());
+        mSwapchainFramebuffers.reserve(mSwapchainImageViews.size());
+
+        for (auto& image : mSwapchainImages)
+        {
+            mSwapchainImageViews.emplace_back() = mDevice.createImageView (
+                vk::ImageViewCreateInfo {
+                    {}, image, vk::ImageViewType::e2D, vk::Format::eB8G8R8A8Srgb, {},
+                    vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u)
+                }
+            );
+
+            mSwapchainFramebuffers.emplace_back() = mDevice.createFramebuffer (
+                vk::FramebufferCreateInfo {
+                    {}, mRenderPass, mSwapchainImageViews.back(),
+                    mFramebufferSize.width, mFramebufferSize.height, 1u
+                }
+            );
+        }
+    }
 }
 
 //============================================================================//
 
-bool Window::has_focus() const
+void Window::destroy_swapchain_and_friends()
 {
-    return impl->sfmlWindow.hasFocus();
+    mDevice.waitIdle();
+
+    for (auto& framebuffer : mSwapchainFramebuffers)
+        mDevice.destroy(framebuffer);
+
+    for (auto& imageView : mSwapchainImageViews)
+        mDevice.destroy(imageView);
+
+    mDevice.destroy(mSwapchain);
+
+    mSwapchainFramebuffers.clear();
+    mSwapchainImageViews.clear();
 }
 
 //============================================================================//
 
 const std::vector<Event>& Window::fetch_events()
 {
-    impl->events.clear();
+    glfwPollEvents();
 
-    sf::Event sfe;
+    std::swap(mEvents, mEventsOld);
+    mEvents.clear();
 
-    while (impl->sfmlWindow.pollEvent(sfe))
-    {
-        Event event { conv_sfml_event_type[sfe.type], {} };
-
-        SWITCH ( event.type ) {
-
-        CASE ( Unknown ) continue; // don't do push_back()
-
-        CASE ( Window_Close, Window_Focus, Window_Unfocus ); // no extra data
-
-        CASE ( Window_Resize )
-        {
-            event.data.resize = { { sfe.size.width, sfe.size.height } };
-        }
-
-        CASE ( Keyboard_Press, Keyboard_Release )
-        {
-            event.data.keyboard =
-            {
-                conv_sfml_keyboard_key[sfe.key.code],
-                sfe.key.shift, sfe.key.control, sfe.key.alt, sfe.key.system
-            };
-        }
-
-        CASE ( Mouse_Press, Mouse_Release )
-        {
-            event.data.mouse =
-            {
-                conv_sfml_mouse_button[sfe.mouseButton.button],
-                //{ sfe.mouseButton.x, int(get_window_size().y) - sfe.mouseButton.y }
-                { sfe.mouseButton.x, sfe.mouseButton.y }
-            };
-        }
-
-        CASE ( Gamepad_Press, Gamepad_Release )
-        {
-            event.data.gamepad =
-            {
-                int32_t(sfe.joystickConnect.joystickId),
-                conv_sfml_gamepad_button[sfe.joystickButton.button]
-            };
-        }
-
-        CASE ( Mouse_Scroll )
-        {
-            event.data.scroll =
-            {
-                conv_sfml_mouse_wheel[sfe.mouseWheelScroll.wheel],
-                sfe.mouseWheelScroll.delta
-            };
-        }
-
-        CASE ( Text_Entry )
-        {
-            event.data.text = { sfe.text.unicode };
-        }
-
-        } SWITCH_END;
-
-        impl->events.push_back(event);
-    }
-
-    return impl->events;
+    return mEventsOld;
 }
 
 //============================================================================//
 
-void Window::swap_buffers()
+std::tuple<vk::CommandBuffer, vk::Framebuffer> Window::begin_frame()
 {
-    impl->sfmlWindow.display();
+    auto waitResult = mDevice.waitForFences(mRenderFinishedFence.front, true, UINT64_MAX);
+    SQASSERT(waitResult == vk::Result::eSuccess, "");
+
+    const uint32_t oldImageIndex = mImageIndex;
+
+    try
+    {
+        mImageIndex = mDevice.acquireNextImageKHR (
+            mSwapchain, UINT64_MAX, mImageAvailableSemaphore.front, nullptr
+        ).value;
+    }
+    catch (const vk::OutOfDateKHRError&)
+    {
+        if (algo::find_if(mEvents, [](Event e) { return e.type == Event::Type::Window_Resize; }) == mEvents.end())
+            mEvents.push_back({Event::Type::Window_Resize, {}});
+        return { {}, {} }; // EARLY RETURN
+    }
+
+    if (oldImageIndex == mImageIndex)
+        mDevice.waitIdle();
+
+    mCommandBuffer.front.reset({});
+
+    return { mCommandBuffer.front, mSwapchainFramebuffers[mImageIndex] };
+}
+
+//============================================================================//
+
+void Window::submit_present_swap()
+{
+    mDevice.resetFences(mRenderFinishedFence.front);
+
+    auto waitDstStageMask = vk::Flags(vk::PipelineStageFlagBits::eColorAttachmentOutput);
+    mQueue.submit (
+        vk::SubmitInfo {
+            mImageAvailableSemaphore.front, waitDstStageMask,
+            mCommandBuffer.front, mRenderFinishedSemaphore.front,
+        },
+        mRenderFinishedFence.front
+    );
+
+    try
+    {
+        auto presentResult = mQueue.presentKHR (
+            vk::PresentInfoKHR { mRenderFinishedSemaphore.front, mSwapchain, mImageIndex, {} }
+        );
+        SQASSERT(presentResult == vk::Result::eSuccess, "");
+    }
+    catch (const vk::OutOfDateKHRError&)
+    {
+        if (algo::find_if(mEvents, [](Event e) { return e.type == Event::Type::Window_Resize; }) == mEvents.end())
+            mEvents.push_back({Event::Type::Window_Resize, {}});
+    }
+
+    mCommandBuffer.swap();
+    mImageAvailableSemaphore.swap();
+    mRenderFinishedSemaphore.swap();
+    mRenderFinishedFence.swap();
+}
+
+//============================================================================//
+
+void Window::set_title(String title)
+{
+    mTitle = std::move(title);
+    glfwSetWindowTitle(mGlfwWindow, mTitle.c_str());
+}
+
+// todo: GLFW supports proper raw mouse movement, unlike SFML
+void Window::set_cursor_hidden(bool hidden)
+{
+    if (mCursorHidden == hidden) return;
+
+    mCursorHidden = hidden;
+    glfwSetInputMode(mGlfwWindow, GLFW_CURSOR, hidden ? GLFW_CURSOR_HIDDEN : GLFW_CURSOR_NORMAL);
+}
+
+// todo: Vulkan supports freesync/gsync refresh, unline OpenGL
+void Window::set_vsync_enabled(bool enabled)
+{
+    mVsyncEnabled = enabled;
+}
+
+//============================================================================//
+
+bool Window::has_focus() const
+{
+    return bool(glfwGetWindowAttrib(mGlfwWindow, GLFW_FOCUSED));
 }

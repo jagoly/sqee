@@ -19,16 +19,16 @@ using namespace demo;
 
 void DemoApp::initialise(std::vector<String> /*args*/)
 {
-    mWindow = std::make_unique<sq::VulkWindow> (
+    mWindow = std::make_unique<sq::Window> (
         "Hello Vulkan", Vec2U(800u, 600u), "sqee-vkdemo", Vec3U(0u, 0u, 1u)
     );
 
     mWindow->set_vsync_enabled(true);
     mWindow->create_swapchain_and_friends();
 
-    mInputDevices = std::make_unique<sq::VulkInputDevices>(*mWindow);
+    mInputDevices = std::make_unique<sq::InputDevices>(*mWindow);
 
-    mGuiSystem = std::make_unique<sq::VulkGuiSystem>(*mWindow, *mInputDevices);
+    mGuiSystem = std::make_unique<sq::GuiSystem>(*mWindow, *mInputDevices);
     mGuiSystem->set_style_colours_supertux();
     mGuiSystem->set_style_widgets_supertux();
 

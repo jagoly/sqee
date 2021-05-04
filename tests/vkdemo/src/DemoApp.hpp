@@ -5,11 +5,12 @@
 #include "Resources.hpp"
 
 #include <sqee/app/Application.hpp>
-#include <sqee/vk/VulkGuiSystem.hpp>
-#include <sqee/vk/VulkInputDevices.hpp>
+#include <sqee/app/GuiSystem.hpp>
+#include <sqee/app/InputDevices.hpp>
+#include <sqee/app/Window.hpp>
+
 #include <sqee/vk/VulkMesh.hpp>
 #include <sqee/vk/VulkTexture.hpp>
-#include <sqee/vk/VulkWindow.hpp>
 #include <sqee/vk/Pipeline.hpp>
 #include <sqee/vk/VulkMaterial.hpp>
 #include <sqee/vk/SwapBuffer.hpp>
@@ -66,9 +67,9 @@ private: //===================================================//
 
     vk::SampleCountFlagBits mMultisampleMode = vk::SampleCountFlagBits::e4;
 
-    std::unique_ptr<sq::VulkWindow> mWindow;
-    std::unique_ptr<sq::VulkInputDevices> mInputDevices;
-    std::unique_ptr<sq::VulkGuiSystem> mGuiSystem;
+    std::unique_ptr<sq::Window> mWindow;
+    std::unique_ptr<sq::InputDevices> mInputDevices;
+    std::unique_ptr<sq::GuiSystem> mGuiSystem;
 
     ResourceCaches mResourceCaches;
 

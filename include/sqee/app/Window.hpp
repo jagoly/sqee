@@ -1,90 +1,118 @@
-// Copyright(c) 2020 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 #pragma once
 
 #include <sqee/setup.hpp>
 
+#include <sqee/app/Event.hpp>
 #include <sqee/core/Types.hpp>
 
-namespace sq {
+#include <sqee/vk/Swapper.hpp>
+#include <sqee/vk/VulkanMemory.hpp>
 
 //====== Forward Declarations ================================================//
 
-class InputDevices;
-struct Event;
+extern "C" { typedef struct GLFWwindow GLFWwindow; };
+
+namespace sq {
 
 //============================================================================//
 
-/// The SQEE Window class.
 class SQEE_API Window final : private NonCopyable
 {
 public: //====================================================//
 
-    /// Constructor.
-    Window(String title, Vec2U size);
+    Window(const char* title, Vec2U size, const char* appName, Vec3U version);
 
-    /// Destructor.
-    ~Window() noexcept;
+    ~Window();
 
     //--------------------------------------------------------//
 
-    /// Set the title of the Window.
-    void set_window_title(String title);
+    void create_swapchain_and_friends();
 
-    /// Set the size of the Window.
-    void set_window_size(Vec2U size);
-
-    /// Should swap_buffers synchronise with the display?
-    void set_vsync_enabled(bool enabled);
-
-    /// Should the cursor be hidden within the Window?
-    void set_cursor_hidden(bool hidden);
-
-    /// Should holding a key spawn repeat events?
-    void set_key_repeat(bool repeat);
+    void destroy_swapchain_and_friends();
 
     //--------------------------------------------------------//
 
-    /// Fetch any new events.
     const std::vector<Event>& fetch_events();
 
-    /// Display the newly rendered frame.
-    void swap_buffers();
+    std::tuple<vk::CommandBuffer, vk::Framebuffer> begin_frame();
+
+    void submit_present_swap();
 
     //--------------------------------------------------------//
 
-    /// Get the current title of the Window.
-    const String& get_window_title() const;
+    GLFWwindow* get_glfw_window() { return mGlfwWindow; }
 
-    /// Get the current size of the Window.
-    Vec2U get_window_size() const;
+    vk::RenderPass get_render_pass() const { return mRenderPass; }
 
-    /// Check if display synchronisation is enabled.
-    bool get_vsync_enabled() const;
-
-    /// Check if cursor hiding is enabled.
-    bool get_cursor_hidden() const;
-
-    /// Check if key repeat is enabled.
-    bool get_key_repeat() const;
+    Vec2U get_size() const { return { mFramebufferSize.width, mFramebufferSize.height }; }
 
     //--------------------------------------------------------//
 
-    /// Check if the window has input focus.
+    void set_title(String title);
+
+    void set_cursor_hidden(bool hidden);
+
+    void set_vsync_enabled(bool enabled);
+
+    void set_key_repeat(bool /*repeat*/) {} // todo
+
+    //--------------------------------------------------------//
+
+    const String& get_title() const { return mTitle; };
+
+    bool get_cursor_hidden() const { return mCursorHidden; };
+
+    bool get_vsync_enabled() const { return mVsyncEnabled; };
+
+    //--------------------------------------------------------//
+
     bool has_focus() const;
 
 private: //===================================================//
 
+    GLFWwindow* mGlfwWindow = nullptr;
+
+    vk::Extent2D mFramebufferSize = {};
+    uint32_t mImageIndex = 0u;
+
+    VulkanAllocator mAllocator;
+
+    std::vector<Event> mEvents, mEventsOld;
+
+    //--------------------------------------------------------//
+
+    vk::Instance mInstance;
+    vk::DebugUtilsMessengerEXT mDebugMessenger;
+    vk::SurfaceKHR mSurface;
+    vk::PhysicalDevice mPhysicalDevice;
+    vk::Device mDevice;
+    vk::Queue mQueue;
+
+    vk::CommandPool mCommandPool;
+    vk::DescriptorPool mDesciptorPool;
+
+    vk::RenderPass mRenderPass;
+
+    vk::SwapchainKHR mSwapchain;
+    std::vector<vk::Image> mSwapchainImages;    
+    std::vector<vk::ImageView> mSwapchainImageViews;
+    std::vector<vk::Framebuffer> mSwapchainFramebuffers;
+
+    Swapper<vk::CommandBuffer> mCommandBuffer;
+    Swapper<vk::Semaphore> mImageAvailableSemaphore;
+    Swapper<vk::Semaphore> mRenderFinishedSemaphore;
+    Swapper<vk::Fence> mRenderFinishedFence;
+
+    //--------------------------------------------------------//
+
+    String mTitle;
+    bool mCursorHidden = false;
+    bool mVsyncEnabled = false;
+
+    //--------------------------------------------------------//
+
     struct Implementation;
-    std::unique_ptr<Implementation> impl;
-
-    void* const mSystemWindowPtr;
-
     friend Implementation;
-    friend InputDevices;
 };
 
-//============================================================================//
-
-} // namespace sq
+} // namesapce sq

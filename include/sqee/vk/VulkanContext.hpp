@@ -10,7 +10,7 @@ namespace sq {
 //====== Forward Declarations ================================================//
 
 class VulkanAllocator;
-class VulkWindow;
+class Window;
 
 //============================================================================//
 
@@ -49,7 +49,7 @@ private: //===================================================//
 
     static VulkanContext& get_mutable();
 
-    friend VulkWindow;
+    friend Window;
 };
 
 //============================================================================//

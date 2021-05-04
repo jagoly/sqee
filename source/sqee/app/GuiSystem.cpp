@@ -5,13 +5,18 @@
 #include <sqee/app/Window.hpp>
 #include <sqee/core/Macros.hpp>
 #include <sqee/core/Types.hpp>
-#include <sqee/data/UbuntuMinimal.hpp>
 #include <sqee/debug/Assert.hpp>
-#include <sqee/gl/Context.hpp>
-#include <sqee/gl/FixedBuffer.hpp>
-#include <sqee/gl/Program.hpp>
-#include <sqee/gl/Textures.hpp>
-#include <sqee/gl/VertexArray.hpp>
+#include <sqee/maths/Colours.hpp>
+
+#include <sqee/data/UbuntuMinimal.hpp>
+#include <sqee/data/BuiltinShaders.hpp>
+
+#include <sqee/vk/Helpers.hpp>
+#include <sqee/vk/Swapper.hpp>
+#include <sqee/vk/VulkTexture.hpp>
+#include <sqee/vk/Vulkan.hpp>
+#include <sqee/vk/VulkanContext.hpp>
+#include <sqee/vk/VulkanMemory.hpp>
 
 #include <dearimgui/imgui.h>
 
@@ -19,91 +24,15 @@ using namespace sq;
 
 //============================================================================//
 
-constexpr const char VERTEX_SHADER_SOURCE[] = R"glsl(
-#version 450 core
-
-layout(location=0) in vec2 v_Position;
-layout(location=1) in vec2 v_TexCoord;
-layout(location=2) in vec4 v_Colour;
-
-layout(location=0) uniform mat4 u_Matrix;
-
-out vec2 texcrd;
-out vec4 colour;
-
-void main()
+static void impl_make_colors_linear(ImVec4* colors)
 {
-    texcrd = v_TexCoord;
-    colour = v_Colour;
-
-    gl_Position = u_Matrix * vec4(v_Position, 0.f, 1.f);
+    for (int i = 0; i != ImGuiCol_COUNT; ++i)
+    {
+        colors[i].x = maths::srgb_to_linear(colors[i].x);
+        colors[i].y = maths::srgb_to_linear(colors[i].y);
+        colors[i].z = maths::srgb_to_linear(colors[i].z);
+    }
 }
-)glsl";
-
-//============================================================================//
-
-constexpr const char FRAGMENT_SHADER_SOURCE[] = R"glsl(
-#version 450 core
-
-layout(location=1, binding=0) uniform sampler2D tex_Atlas;
-
-in vec2 texcrd;
-in vec4 colour;
-
-out vec4 frag_Colour;
-
-void main()
-{
-    frag_Colour = colour * texture(tex_Atlas, texcrd);
-}
-)glsl";
-
-//============================================================================//
-
-static GuiSystem* gGuiSystemPtr = nullptr;
-
-//============================================================================//
-
-class GuiSystem::Implementation final
-{
-public: //====================================================//
-
-    Implementation(Window& window, InputDevices& inputDevices);
-
-    ~Implementation() = default;
-
-    //--------------------------------------------------------//
-
-    void create_fonts();
-
-    void create_gl_objects();
-
-    //--------------------------------------------------------//
-
-    bool handle_event(Event event);
-
-    void finish_handle_events(bool focus);
-
-    void finish_scene_update(double elapsed);
-
-    void render_gui();
-
-private: //===================================================//
-
-    Window& window;
-    InputDevices& input;
-
-    ImGuiIO& io;
-    Context& context;
-
-    //--------------------------------------------------------//
-
-    Texture2D mTexture;
-    Program mProgram;
-
-    VertexArray mVAO;
-    FixedBuffer mVBO, mIBO;
-};
 
 //============================================================================//
 
@@ -185,17 +114,23 @@ void GuiSystem::set_style_widgets_supertux()
 
 void GuiSystem::set_style_colours_classic()
 {
-    ImGui::StyleColorsClassic(&ImGui::GetStyle());
+    ImGuiStyle& style = ImGui::GetStyle();
+    ImGui::StyleColorsClassic(&style);
+    impl_make_colors_linear(style.Colors);
 }
 
 void GuiSystem::set_style_colours_dark()
 {
-    ImGui::StyleColorsDark(&ImGui::GetStyle());
+    ImGuiStyle& style = ImGui::GetStyle();
+    ImGui::StyleColorsDark(&style);
+    impl_make_colors_linear(style.Colors);
 }
 
 void GuiSystem::set_style_colours_light()
 {
-    ImGui::StyleColorsLight(&ImGui::GetStyle());
+    ImGuiStyle& style = ImGui::GetStyle();
+    ImGui::StyleColorsLight(&style);
+    impl_make_colors_linear(style.Colors);
 }
 
 void GuiSystem::set_style_colours_supertux()
@@ -252,14 +187,20 @@ void GuiSystem::set_style_colours_supertux()
     colors[ImGuiCol_NavWindowingHighlight]  = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
     colors[ImGuiCol_NavWindowingDimBg]      = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
     colors[ImGuiCol_ModalWindowDimBg]       = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
+
+    // todo: because of correct alpha blending, transparent colours now appear too bright
+    impl_make_colors_linear(colors);
 }
 
 //============================================================================//
 
-GuiSystem::Implementation::Implementation(Window& window, InputDevices& inputDevices)
+GuiSystem::GuiSystem(Window& window, InputDevices& inputDevices)
     : window(window), input(inputDevices)
-    , io(ImGui::GetIO()), context(Context::get())
 {
+    ImGui::SetCurrentContext(ImGui::CreateContext());
+
+    ImGuiIO& io = ImGui::GetIO();
+
     io.KeyMap[ImGuiKey_Tab]         = int(Keyboard_Key::Tab);
     io.KeyMap[ImGuiKey_LeftArrow]   = int(Keyboard_Key::Arrow_Left);
     io.KeyMap[ImGuiKey_RightArrow]  = int(Keyboard_Key::Arrow_Right);
@@ -295,71 +236,180 @@ GuiSystem::Implementation::Implementation(Window& window, InputDevices& inputDev
 
     //--------------------------------------------------------//
 
-    create_fonts();
+    load_ubuntu_fonts();
 
-    create_gl_objects();
+    create_objects();
+    create_descriptor_set();
+    create_pipeline();
 }
 
 //============================================================================//
 
-void GuiSystem::Implementation::create_fonts()
+GuiSystem::~GuiSystem()
 {
+    const auto& ctx = VulkanContext::get();
+
+    ctx.device.free(ctx.descriptorPool, mDescriptorSet);
+    ctx.device.destroy(mDescriptorSetLayout);
+
+    ctx.device.destroy(mPipeline);
+    ctx.device.destroy(mPipelineLayout);
+}
+
+//============================================================================//
+
+void GuiSystem::load_ubuntu_fonts()
+{
+    ImGuiIO& io = ImGui::GetIO();
+
     ImFontConfig fontConfig;
-
     fontConfig.FontDataOwnedByAtlas = false;
-
     fontConfig.OversampleH = 2;
     fontConfig.OversampleV = 2;
 
-    constexpr const size_t MaxNameLen = sizeof(ImFontConfig::Name);
+    const size_t maxNameLen = sizeof(ImFontConfig::Name);
 
-    fontConfig.Name[StringView("Ubuntu Regular").copy(fontConfig.Name, MaxNameLen-1)] = '\0';
+    fontConfig.Name[StringView("Ubuntu Regular").copy(fontConfig.Name, maxNameLen-1)] = '\0';
     io.Fonts->AddFontFromMemoryCompressedTTF(sqee_UbuntuRegular, sqee_UbuntuRegular_size, 16.f, &fontConfig);
 
-    fontConfig.Name[StringView("Ubuntu Bold").copy(fontConfig.Name, MaxNameLen-1)] = '\0';
+    fontConfig.Name[StringView("Ubuntu Bold").copy(fontConfig.Name, maxNameLen-1)] = '\0';
     io.Fonts->AddFontFromMemoryCompressedTTF(sqee_UbuntuBold, sqee_UbuntuBold_size, 16.f, &fontConfig);
 
-    fontConfig.Name[StringView("Ubuntu Italic").copy(fontConfig.Name, MaxNameLen-1)] = '\0';
+    fontConfig.Name[StringView("Ubuntu Italic").copy(fontConfig.Name, maxNameLen-1)] = '\0';
     io.Fonts->AddFontFromMemoryCompressedTTF(sqee_UbuntuItalic, sqee_UbuntuItalic_size, 16.f, &fontConfig);
 
-    fontConfig.Name[StringView("Ubuntu Mono Regular").copy(fontConfig.Name, MaxNameLen-1)] = '\0';
+    fontConfig.Name[StringView("Ubuntu Mono Regular").copy(fontConfig.Name, maxNameLen-1)] = '\0';
     io.Fonts->AddFontFromMemoryCompressedTTF(sqee_UbuntuMonoRegular, sqee_UbuntuMonoRegular_size, 16.f, &fontConfig);
 }
 
 //============================================================================//
 
-void GuiSystem::Implementation::create_gl_objects()
+void GuiSystem::create_objects()
 {
-    mProgram.load_shader(ShaderStage::Vertex, VERTEX_SHADER_SOURCE, "GuiSystem.Vertex");
-    mProgram.load_shader(ShaderStage::Fragment, FRAGMENT_SHADER_SOURCE, "GuiSystem.Fragment");
-    mProgram.link_program_stages();
-
-    mVBO.allocate_dynamic(65536u * 20u);
-    mIBO.allocate_dynamic(65536u * 2u);
-
-    mVAO.set_vertex_buffer(mVBO, 20u);
-    mVAO.set_index_buffer(mIBO);
-
-    mVAO.add_float_attribute(0u, 2u, gl::FLOAT, false, 0u);
-    mVAO.add_float_attribute(1u, 2u, gl::FLOAT, false, 8u);
-    mVAO.add_float_attribute(2u, 4u, gl::UNSIGNED_BYTE, true, 16u);
+    mVertexBuffer.initialise(65536u * sizeof(ImDrawVert), vk::BufferUsageFlagBits::eVertexBuffer);
+    mIndexBuffer.initialise(65536u * sizeof(ImDrawIdx), vk::BufferUsageFlagBits::eIndexBuffer);
 
     uchar* pixels; int width, height;
-    io.Fonts->GetTexDataAsAlpha8(&pixels, &width, &height);
+    ImGui::GetIO().Fonts->GetTexDataAsAlpha8(&pixels, &width, &height);
 
-    mTexture.allocate_storage(TexFormat::R8_UN, {uint(width), uint(height)}, false);
-    mTexture.load_memory(TexFormat::R8_UN, {uint(width), uint(height)}, pixels);
+    VulkTexture::Config config;
+    config.format = vk::Format::eR8Unorm;
+    config.wrapX = vk::SamplerAddressMode::eRepeat;
+    config.wrapY = vk::SamplerAddressMode::eRepeat;
+    config.wrapZ = vk::SamplerAddressMode::eRepeat;
+    config.swizzle.r = vk::ComponentSwizzle::eOne;
+    config.swizzle.g = vk::ComponentSwizzle::eOne;
+    config.swizzle.b = vk::ComponentSwizzle::eOne;
+    config.swizzle.a = vk::ComponentSwizzle::eR;
+    config.filter = true;
+    config.mipmaps = false;
+    config.anisotropy = false;
+    config.size = Vec3U(width, height, 1u);
 
-    mTexture.set_filter_mode(true, false);
-    mTexture.set_swizzle_mode('1', '1', '1', 'R');
-
-    io.Fonts->TexID = static_cast<void*>(&mTexture);
+    mFontTexture.initialise_2D(config);
+    mFontTexture.load_from_memory_2D(pixels, config);
 }
 
 //============================================================================//
 
-bool GuiSystem::Implementation::handle_event(Event event)
+void GuiSystem::create_descriptor_set()
 {
+    const auto& ctx = VulkanContext::get();
+
+    // create descriptor set layout
+    {
+        auto bindings = vk::DescriptorSetLayoutBinding {
+            0u, vk::DescriptorType::eCombinedImageSampler, 1u, vk::ShaderStageFlagBits::eFragment, nullptr
+        };
+
+        mDescriptorSetLayout = ctx.device.createDescriptorSetLayout (
+            vk::DescriptorSetLayoutCreateInfo { {}, bindings }
+        );
+    }
+
+    // create descriptor set
+    {
+        mDescriptorSet = ctx.device.allocateDescriptorSets (
+            vk::DescriptorSetAllocateInfo { ctx.descriptorPool, mDescriptorSetLayout }
+        ).front();
+
+        auto descriptorWrites = vk::WriteDescriptorSet {
+            mDescriptorSet, 0u, 0u, vk::DescriptorType::eCombinedImageSampler,
+            mFontTexture.get_descriptor_info(), {}, {}
+        };
+
+        ctx.device.updateDescriptorSets(descriptorWrites, {});
+    }
+}
+
+//============================================================================//
+
+void GuiSystem::create_pipeline()
+{
+    const auto& ctx = VulkanContext::get();
+
+    // create pipeline layout
+    {
+        const auto pushConstantRanges = std::array {
+            vk::PushConstantRange { vk::ShaderStageFlagBits::eVertex, 0u, sizeof(Mat4F) }
+        };
+
+        mPipelineLayout = ctx.device.createPipelineLayout (
+            vk::PipelineLayoutCreateInfo { {}, mDescriptorSetLayout, pushConstantRanges }
+        );
+    }
+
+    // load shaders and create graphics pipeline
+    {
+        const auto shaderModules = ShaderModules (
+            ctx, std::pair(sqee_GuiSystemVertSpv, sizeof(sqee_GuiSystemVertSpv)),
+            {}, std::pair(sqee_GuiSystemFragSpv, sizeof(sqee_GuiSystemFragSpv))
+        );
+
+        const auto vertexBindingDescriptions = std::array {
+            vk::VertexInputBindingDescription { 0u, sizeof(ImDrawVert), vk::VertexInputRate::eVertex }
+        };
+
+        const auto vertexAttributeDescriptions = std::array {
+            vk::VertexInputAttributeDescription { 0u, 0u, vk::Format::eR32G32Sfloat, 0u },
+            vk::VertexInputAttributeDescription { 1u, 0u, vk::Format::eR32G32Sfloat, 8u },
+            vk::VertexInputAttributeDescription { 2u, 0u, vk::Format::eR8G8B8A8Unorm, 16u }
+        };
+
+        mPipeline = sq::vk_create_graphics_pipeline (
+            ctx, mPipelineLayout, window.get_render_pass(), 0u, shaderModules.stages,
+            vk::PipelineVertexInputStateCreateInfo {
+                {}, vertexBindingDescriptions, vertexAttributeDescriptions
+            },
+            vk::PipelineInputAssemblyStateCreateInfo {
+                {}, vk::PrimitiveTopology::eTriangleList, false
+            },
+            vk::PipelineRasterizationStateCreateInfo {
+                {}, false, false, vk::PolygonMode::eFill, vk::CullModeFlagBits::eNone,
+                vk::FrontFace::eClockwise, false, 0.f, false, 0.f, 1.f
+            },
+            vk::PipelineMultisampleStateCreateInfo {
+                {}, vk::SampleCountFlagBits::e1, false, 0.f, nullptr, false, false
+            },
+            vk::PipelineDepthStencilStateCreateInfo {
+                {}, false, false, {}, false, false, {}, {}, 0.f, 0.f
+            },
+            { 1u, nullptr }, { 1u, nullptr },
+            vk::PipelineColorBlendAttachmentState {
+                true, vk::BlendFactor::eSrcAlpha, vk::BlendFactor::eOneMinusSrcAlpha, vk::BlendOp::eAdd,
+                vk::BlendFactor::eOne, vk::BlendFactor::eZero, vk::BlendOp::eAdd, vk::ColorComponentFlags(0b1111)
+            },
+            { vk::DynamicState::eViewport, vk::DynamicState::eScissor }
+        );
+    }
+}
+
+//============================================================================//
+
+bool GuiSystem::handle_event(Event event)
+{
+    ImGuiIO& io = ImGui::GetIO();
+
     SWITCH ( event.type ) {
 
         CASE ( Mouse_Scroll )
@@ -396,7 +446,7 @@ bool GuiSystem::Implementation::handle_event(Event event)
 
         CASE ( Keyboard_Press, Keyboard_Release )
         {
-            const decltype(Event::Data::keyboard)& data = event.data.keyboard;
+            const auto& data = event.data.keyboard;
 
             io.KeysDown[int(data.key)] = (event.type == Event::Type::Keyboard_Press);
 
@@ -410,16 +460,16 @@ bool GuiSystem::Implementation::handle_event(Event event)
 
     } SWITCH_END;
 
-    //--------------------------------------------------------//
-
     return false;
 }
 
 //============================================================================//
 
-void GuiSystem::Implementation::finish_handle_events(bool focus)
+void GuiSystem::finish_handle_events(bool focus)
 {
-    const auto displaySize = Vec2F(window.get_window_size());
+    ImGuiIO& io = ImGui::GetIO();
+
+    const auto displaySize = Vec2F(window.get_size());
     io.DisplaySize = ImVec2(displaySize.x, displaySize.y);
 
     const auto mousePos = Vec2F(input.get_cursor_location(false));
@@ -444,129 +494,98 @@ void GuiSystem::Implementation::finish_handle_events(bool focus)
         io.KeySuper |= input.is_pressed(Keyboard_Key::Super_R);
     }
 
-    //--------------------------------------------------------//
-
     ImGui::NewFrame();
 }
 
 //============================================================================//
 
-void GuiSystem::Implementation::finish_scene_update(double elapsed)
+void GuiSystem::finish_scene_update(double elapsed)
 {
+    ImGuiIO& io = ImGui::GetIO();
+
     ImGui::Render();
 
-    //--------------------------------------------------------//
-
     io.DeltaTime = float(elapsed);
-
     io.MouseDown[0] = io.MouseDown[1] = io.MouseDown[2] = false;
-
     io.MouseWheel = 0.f;
-
     io.KeyShift = io.KeyCtrl = io.KeyAlt = io.KeySuper = false;
 }
 
 //============================================================================//
 
-void GuiSystem::Implementation::render_gui()
+void GuiSystem::render_gui(vk::CommandBuffer cmdbuf)
 {
-    SQASSERT(ImGui::GetDrawData(), "imgui NewFrame() -> Render() sequence probably wrong");
+    const auto& drawData = *ImGui::GetDrawData();
 
     //--------------------------------------------------------//
 
-    const ImDrawData& drawData = *ImGui::GetDrawData();
-
-    const Vec2U vp = context.get_ViewPort();
-
-    //--------------------------------------------------------//
-
-    context.bind_framebuffer_default(FboTarget::Both);
-
-    context.set_state(ScissorTest::Enable);
-
-    context.set_state(BlendMode::Alpha);
-    context.set_state(CullFace::Disable);
-    context.set_state(DepthTest::Disable);
-
-    const Mat4F orthoMatrix
+    // copy all vertices/indices into same pair of buffers
     {
-        { +2.0f / vp.x, 0.0f, 0.0f, 0.0f },
-        { 0.0f, -2.0f / vp.y, 0.0f, 0.0f },
-        { 0.0f, 0.0f, -1.0f, 0.0f },
-        { -1.0f, +1.0f, 0.0f, +1.0f },
-    };
+        ImDrawVert* vertexPtr = reinterpret_cast<ImDrawVert*>(mVertexBuffer.swap_map());
+        ImDrawIdx* indexPtr = reinterpret_cast<ImDrawIdx*>(mIndexBuffer.swap_map());
 
-    mProgram.update(0, orthoMatrix);
-
-    context.bind_program(mProgram);
-    context.bind_texture(mTexture, 0u);
-    context.bind_vertexarray(mVAO);
-
-    //--------------------------------------------------------//
-
-    for (int n = 0; n < drawData.CmdListsCount; ++n)
-    {
-        const ImDrawList& cmdList = *drawData.CmdLists[n];
-
-        mVBO.update(0u, uint(cmdList.VtxBuffer.Size) * sizeof(ImDrawVert), cmdList.VtxBuffer.Data);
-        mIBO.update(0u, uint(cmdList.IdxBuffer.Size) * sizeof(ImDrawIdx), cmdList.IdxBuffer.Data);
-
-        for (const ImDrawCmd& cmd : cmdList.CmdBuffer)
+        for (int n = 0; n < drawData.CmdListsCount; ++n)
         {
-            if (cmd.UserCallback == nullptr)
-            {
-                const uint clipX = uint(cmd.ClipRect.x);
-                const uint clipY = uint(vp.y - cmd.ClipRect.w);
-                const uint clipW = uint(cmd.ClipRect.z - cmd.ClipRect.x);
-                const uint clipH = uint(cmd.ClipRect.w - cmd.ClipRect.y);
+            const auto& vertexBuffer = drawData.CmdLists[n]->VtxBuffer;
+            std::memcpy(vertexPtr, vertexBuffer.Data, vertexBuffer.size() * sizeof(ImDrawVert));
+            vertexPtr += vertexBuffer.size();
 
-                context.set_scissor_box(clipX, clipY, clipW, clipH);
-
-                context.draw_elements_u16(DrawPrimitive::Triangles, uint16_t(cmd.IdxOffset), uint16_t(cmd.ElemCount));
-            }
-            else cmd.UserCallback(&cmdList, &cmd);
+            const auto& indexBuffer = drawData.CmdLists[n]->IdxBuffer;
+            std::memcpy(indexPtr, indexBuffer.Data, indexBuffer.size() * sizeof(ImDrawIdx));
+            indexPtr += indexBuffer.size();
         }
     }
 
-    context.set_state(ScissorTest::Disable);
+    //--------------------------------------------------------//
+
+    cmdbuf.bindPipeline(vk::PipelineBindPoint::eGraphics, mPipeline);
+
+    cmdbuf.setViewport(0u, vk::Viewport(0.f, 0.f, float(window.get_size().x), float(window.get_size().y), 0.f, 1.f));
+
+    cmdbuf.bindVertexBuffers(0u, mVertexBuffer.front(), size_t(0u));
+    cmdbuf.bindIndexBuffer(mIndexBuffer.front(), 0u, vk::IndexType::eUint16);
+
+    cmdbuf.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, mPipelineLayout, 0u, mDescriptorSet, {});
+
+    const auto orthoMatrix = Mat4F (
+        { 2.f / float(window.get_size().x), 0.f, 0.f, 0.f },
+        { 0.f, 2.f / float(window.get_size().y), 0.f, 0.f },
+        { 0.f, 0.f, 1.f, 0.f },
+        { -1.f, -1.f, 0.f, 1.f }
+    );
+
+    cmdbuf.pushConstants<Mat4F>(mPipelineLayout, vk::ShaderStageFlagBits::eVertex, 0u, orthoMatrix);
+
+    //--------------------------------------------------------//
+
+    // subbmit drawing commands using offsets into buffers
+    {
+        uint32_t vertexOffset = 0u;
+        uint32_t indexOffset = 0u;
+
+        for (int n = 0; n < drawData.CmdListsCount; ++n)
+        {
+            for (const ImDrawCmd& cmd : drawData.CmdLists[n]->CmdBuffer)
+            {
+                if (cmd.UserCallback == nullptr)
+                {
+                    const auto clipX = int32_t(cmd.ClipRect.x);
+                    const auto clipY = int32_t(cmd.ClipRect.y);
+                    const auto clipW = uint32_t(cmd.ClipRect.z - cmd.ClipRect.x);
+                    const auto clipH = uint32_t(cmd.ClipRect.w - cmd.ClipRect.y);
+
+                    cmdbuf.setScissor(0u, vk::Rect2D({clipX, clipY}, {clipW, clipH}));
+                    cmdbuf.drawIndexed(cmd.ElemCount, 1u, indexOffset+cmd.IdxOffset, vertexOffset+cmd.VtxOffset, 0u);
+                }
+                else cmd.UserCallback(drawData.CmdLists[n], &cmd);
+            }
+
+            vertexOffset += drawData.CmdLists[n]->VtxBuffer.size();
+            indexOffset += drawData.CmdLists[n]->IdxBuffer.size();
+        }
+    }
 }
 
 //============================================================================//
-
-GuiSystem& GuiSystem::get()
-{
-    SQASSERT(gGuiSystemPtr != nullptr, "GuiSystem not constructed");
-    return *gGuiSystemPtr;
-}
-
-void GuiSystem::construct(Window& window, InputDevices& inputDevices)
-{
-    SQASSERT(gGuiSystemPtr == nullptr, "GuiSystem::construct() already called");
-
-    ImGui::SetCurrentContext(ImGui::CreateContext());
-
-    gGuiSystemPtr = new GuiSystem();
-
-    gGuiSystemPtr->impl = std::make_unique<Implementation>(window, inputDevices);
-}
-
-void GuiSystem::destruct()
-{
-    SQASSERT(gGuiSystemPtr != nullptr, "GuiSystem::destruct() already called");
-
-    delete gGuiSystemPtr;
-
-    ImGui::DestroyContext(); // todo: imgui probably can't be re-started after this
-}
-
-//============================================================================//
-
-bool GuiSystem::handle_event(Event event) { return impl->handle_event(event); }
-
-void GuiSystem::finish_handle_events(bool focus) { impl->finish_handle_events(focus); }
-
-void GuiSystem::finish_scene_update(double elapsed) { impl->finish_scene_update(elapsed); }
-
-void GuiSystem::render_gui() { impl->render_gui(); }
 
 void GuiSystem::show_imgui_demo() { ImGui::ShowDemoWindow(); }

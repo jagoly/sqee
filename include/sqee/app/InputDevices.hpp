@@ -1,22 +1,20 @@
-// Copyright(c) 2020 James Gangur
-// Part of https://github.com/jagoly/sqee/
-
 #pragma once
 
 #include <sqee/setup.hpp>
 
 #include <sqee/core/Types.hpp>
 
-namespace sq {
-
 //====== Forward Declarations ================================================//
 
-class Window;
+extern "C" { typedef struct GLFWwindow GLFWwindow; };
+
+namespace sq {
 
 enum class Keyboard_Key : int8_t;
 enum class Mouse_Button : int8_t;
-enum class Gamepad_Button : int8_t;
-enum class Gamepad_Stick : int8_t;
+
+class Window;
+struct GamepadState;
 
 //============================================================================//
 
@@ -46,15 +44,12 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    /// Get position of the given analogue stick.
-    Vec2F get_stick_pos(int32_t port, Gamepad_Stick stick) const;
-
-    /// Check if the given button is pressed.
-    bool is_pressed(int32_t port, Gamepad_Button button) const;
+    /// Get the current state of a gamepad.
+    GamepadState poll_gamepad_state(int32_t port) const;
 
 private: //===================================================//
 
-    void* const mSystemWindowPtr;
+    GLFWwindow* const mGlfwWindow;
 };
 
 //============================================================================//

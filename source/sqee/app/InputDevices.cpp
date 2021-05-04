@@ -1,22 +1,18 @@
 #include <sqee/app/InputDevices.hpp>
 
 #include <sqee/app/Event.hpp>
+#include <sqee/app/Gamepad.hpp>
 #include <sqee/app/Window.hpp>
 #include <sqee/debug/Assert.hpp>
 
-#include <SFML/Window/Keyboard.hpp>
-#include <SFML/Window/Mouse.hpp>
-#include <SFML/Window/Joystick.hpp>
-#include <SFML/Window/Window.hpp>
-#include <SFML/System/Vector2.hpp>
+#include <GLFW/glfw3.h>
 
 using namespace sq;
 
 //============================================================================//
 
 InputDevices::InputDevices(Window& window)
-    : mSystemWindowPtr(window.mSystemWindowPtr)
-{}
+    : mGlfwWindow(window.get_glfw_window()) {}
 
 //============================================================================//
 
@@ -24,203 +20,200 @@ bool InputDevices::is_pressed(Keyboard_Key key) const
 {
     SQASSERT(key != Keyboard_Key::Unknown, "");
 
-    constexpr sf::Keyboard::Key sqee_to_sfml[]
+    constexpr int sqee_to_glfw[]
     {
-        sf::Keyboard::Key::Num0,  // Num_0
-        sf::Keyboard::Key::Num1,  // Num_1
-        sf::Keyboard::Key::Num2,  // Num_2
-        sf::Keyboard::Key::Num3,  // Num_3
-        sf::Keyboard::Key::Num4,  // Num_4
-        sf::Keyboard::Key::Num5,  // Num_5
-        sf::Keyboard::Key::Num6,  // Num_6
-        sf::Keyboard::Key::Num7,  // Num_7
-        sf::Keyboard::Key::Num8,  // Num_8
-        sf::Keyboard::Key::Num9,  // Num_9
+        GLFW_KEY_0,  // Num_0
+        GLFW_KEY_1,  // Num_1
+        GLFW_KEY_2,  // Num_2
+        GLFW_KEY_3,  // Num_3
+        GLFW_KEY_4,  // Num_4
+        GLFW_KEY_5,  // Num_5
+        GLFW_KEY_6,  // Num_6
+        GLFW_KEY_7,  // Num_7
+        GLFW_KEY_8,  // Num_8
+        GLFW_KEY_9,  // Num_9
 
-        sf::Keyboard::Key::A,  // A
-        sf::Keyboard::Key::B,  // B
-        sf::Keyboard::Key::C,  // C
-        sf::Keyboard::Key::D,  // D
-        sf::Keyboard::Key::E,  // E
-        sf::Keyboard::Key::F,  // F
-        sf::Keyboard::Key::G,  // G
-        sf::Keyboard::Key::H,  // H
-        sf::Keyboard::Key::I,  // I
-        sf::Keyboard::Key::J,  // J
-        sf::Keyboard::Key::K,  // K
-        sf::Keyboard::Key::L,  // L
-        sf::Keyboard::Key::M,  // M
-        sf::Keyboard::Key::N,  // N
-        sf::Keyboard::Key::O,  // O
-        sf::Keyboard::Key::P,  // P
-        sf::Keyboard::Key::Q,  // Q
-        sf::Keyboard::Key::R,  // R
-        sf::Keyboard::Key::S,  // S
-        sf::Keyboard::Key::T,  // T
-        sf::Keyboard::Key::U,  // U
-        sf::Keyboard::Key::V,  // V
-        sf::Keyboard::Key::W,  // W
-        sf::Keyboard::Key::X,  // X
-        sf::Keyboard::Key::Y,  // Y
-        sf::Keyboard::Key::Z,  // Z
+        GLFW_KEY_A,  // A
+        GLFW_KEY_B,  // B
+        GLFW_KEY_C,  // C
+        GLFW_KEY_D,  // D
+        GLFW_KEY_E,  // E
+        GLFW_KEY_F,  // F
+        GLFW_KEY_G,  // G
+        GLFW_KEY_H,  // H
+        GLFW_KEY_I,  // I
+        GLFW_KEY_J,  // J
+        GLFW_KEY_K,  // K
+        GLFW_KEY_L,  // L
+        GLFW_KEY_M,  // M
+        GLFW_KEY_N,  // N
+        GLFW_KEY_O,  // O
+        GLFW_KEY_P,  // P
+        GLFW_KEY_Q,  // Q
+        GLFW_KEY_R,  // R
+        GLFW_KEY_S,  // S
+        GLFW_KEY_T,  // T
+        GLFW_KEY_U,  // U
+        GLFW_KEY_V,  // V
+        GLFW_KEY_W,  // W
+        GLFW_KEY_X,  // X
+        GLFW_KEY_Y,  // Y
+        GLFW_KEY_Z,  // Z
 
-        sf::Keyboard::Key::Tilde,      // Grave
-        sf::Keyboard::Key::Hyphen,     // Dash
-        sf::Keyboard::Key::Equal,      // Equal
-        sf::Keyboard::Key::LBracket,   // LeftBracket
-        sf::Keyboard::Key::RBracket,   // RightBracket
-        sf::Keyboard::Key::BackSlash,  // BackSlash
+        GLFW_KEY_GRAVE_ACCENT,   // Grave
+        GLFW_KEY_MINUS,          // Dash
+        GLFW_KEY_EQUAL,          // Equal
+        GLFW_KEY_LEFT_BRACKET,   // LeftBracket
+        GLFW_KEY_RIGHT_BRACKET,  // RightBracket
+        GLFW_KEY_BACKSLASH,      // BackSlash
 
-        sf::Keyboard::Key::SemiColon,  // SemiColon
-        sf::Keyboard::Key::Quote,      // Apostrophe
-        sf::Keyboard::Key::Comma,      // Comma
-        sf::Keyboard::Key::Period,     // Period
-        sf::Keyboard::Key::Slash,      // Slash
+        GLFW_KEY_SEMICOLON,   // SemiColon
+        GLFW_KEY_APOSTROPHE,  // Apostrophe
+        GLFW_KEY_COMMA,       // Comma
+        GLFW_KEY_PERIOD,      // Period
+        GLFW_KEY_SLASH,       // Slash
 
-        sf::Keyboard::Key::LShift,    // Shift_L
-        sf::Keyboard::Key::RShift,    // Shift_R
-        sf::Keyboard::Key::LControl,  // Control_L
-        sf::Keyboard::Key::RControl,  // Control_R
-        sf::Keyboard::Key::LAlt,      // Alt_L
-        sf::Keyboard::Key::RAlt,      // Alt_R
-        sf::Keyboard::Key::LSystem,   // Super_L
-        sf::Keyboard::Key::RSystem,   // Super_R
+        GLFW_KEY_LEFT_SHIFT,     // Shift_L
+        GLFW_KEY_RIGHT_SHIFT,    // Shift_R
+        GLFW_KEY_LEFT_CONTROL,   // Control_L
+        GLFW_KEY_RIGHT_CONTROL,  // Control_R
+        GLFW_KEY_LEFT_ALT,       // Alt_L
+        GLFW_KEY_RIGHT_ALT,      // Alt_R
+        GLFW_KEY_LEFT_SUPER,     // Super_L
+        GLFW_KEY_RIGHT_SUPER,    // Super_R
 
-        sf::Keyboard::Key::Menu,       // Menu
-        sf::Keyboard::Key::BackSpace,  // BackSpace
-        sf::Keyboard::Key::Tab,        // Tab
-        sf::Keyboard::Key::Return,     // Return
-        sf::Keyboard::Key::Space,      // Space
-        sf::Keyboard::Key::Escape,     // Escape
-        sf::Keyboard::Key::Pause,      // Pause
+        GLFW_KEY_MENU,       // Menu
+        GLFW_KEY_BACKSPACE,  // BackSpace
+        GLFW_KEY_TAB,        // Tab
+        GLFW_KEY_ENTER,      // Return
+        GLFW_KEY_SPACE,      // Space
+        GLFW_KEY_ESCAPE,     // Escape
+        GLFW_KEY_PAUSE,      // Pause
 
-        sf::Keyboard::Key::Insert,    // Insert
-        sf::Keyboard::Key::Delete,    // Delete
-        sf::Keyboard::Key::Home,      // Home
-        sf::Keyboard::Key::End,       // End
-        sf::Keyboard::Key::PageUp,    // PageUp
-        sf::Keyboard::Key::PageDown,  // PageDown
+        GLFW_KEY_INSERT,     // Insert
+        GLFW_KEY_DELETE,     // Delete
+        GLFW_KEY_HOME,       // Home
+        GLFW_KEY_END,        // End
+        GLFW_KEY_PAGE_UP,    // PageUp
+        GLFW_KEY_PAGE_DOWN,  // PageDown
 
-        sf::Keyboard::Key::Left,   // Arrow_Left
-        sf::Keyboard::Key::Up,     // Arrow_Up
-        sf::Keyboard::Key::Right,  // Arrow_Right
-        sf::Keyboard::Key::Down,   // Arrow_Down
+        GLFW_KEY_LEFT,   // Arrow_Left
+        GLFW_KEY_UP,     // Arrow_Up
+        GLFW_KEY_RIGHT,  // Arrow_Right
+        GLFW_KEY_DOWN,   // Arrow_Down
 
-        sf::Keyboard::Key::Numpad0,  // Pad_0
-        sf::Keyboard::Key::Numpad1,  // Pad_1
-        sf::Keyboard::Key::Numpad2,  // Pad_2
-        sf::Keyboard::Key::Numpad3,  // Pad_3
-        sf::Keyboard::Key::Numpad4,  // Pad_4
-        sf::Keyboard::Key::Numpad5,  // Pad_5
-        sf::Keyboard::Key::Numpad6,  // Pad_6
-        sf::Keyboard::Key::Numpad7,  // Pad_7
-        sf::Keyboard::Key::Numpad8,  // Pad_8
-        sf::Keyboard::Key::Numpad9,  // Pad_9
+        GLFW_KEY_KP_0,  // Pad_0
+        GLFW_KEY_KP_1,  // Pad_1
+        GLFW_KEY_KP_2,  // Pad_2
+        GLFW_KEY_KP_3,  // Pad_3
+        GLFW_KEY_KP_4,  // Pad_4
+        GLFW_KEY_KP_5,  // Pad_5
+        GLFW_KEY_KP_6,  // Pad_6
+        GLFW_KEY_KP_7,  // Pad_7
+        GLFW_KEY_KP_8,  // Pad_8
+        GLFW_KEY_KP_9,  // Pad_9
 
-        sf::Keyboard::Key::Unknown,   // Pad_Decimal (missing from SFML)
-        sf::Keyboard::Key::Add,       // Pad_Plus
-        sf::Keyboard::Key::Subtract,  // Pad_Minus
-        sf::Keyboard::Key::Multiply,  // Pad_Multiply
-        sf::Keyboard::Key::Divide,    // Pad_Divide
+        GLFW_KEY_KP_DECIMAL,   // Pad_Decimal
+        GLFW_KEY_KP_ADD,       // Pad_Plus
+        GLFW_KEY_KP_SUBTRACT,  // Pad_Minus
+        GLFW_KEY_KP_MULTIPLY,  // Pad_Multiply
+        GLFW_KEY_KP_DIVIDE,    // Pad_Divide
 
-        sf::Keyboard::Key::F1,   // F1
-        sf::Keyboard::Key::F2,   // F2
-        sf::Keyboard::Key::F3,   // F3
-        sf::Keyboard::Key::F4,   // F4
-        sf::Keyboard::Key::F5,   // F5
-        sf::Keyboard::Key::F6,   // F6
-        sf::Keyboard::Key::F7,   // F7
-        sf::Keyboard::Key::F8,   // F8
-        sf::Keyboard::Key::F9,   // F9
-        sf::Keyboard::Key::F10,  // F10
-        sf::Keyboard::Key::F11,  // F11
-        sf::Keyboard::Key::F12,  // F12
+        GLFW_KEY_F1,   // F1
+        GLFW_KEY_F2,   // F2
+        GLFW_KEY_F3,   // F3
+        GLFW_KEY_F4,   // F4
+        GLFW_KEY_F5,   // F5
+        GLFW_KEY_F6,   // F6
+        GLFW_KEY_F7,   // F7
+        GLFW_KEY_F8,   // F8
+        GLFW_KEY_F9,   // F9
+        GLFW_KEY_F10,  // F10
+        GLFW_KEY_F11,  // F11
+        GLFW_KEY_F12,  // F12
     };
 
-    return sf::Keyboard::isKeyPressed(sqee_to_sfml[int(key)]);
+    return bool(glfwGetKey(mGlfwWindow, sqee_to_glfw[int(key)]));
 }
 
 //============================================================================//
 
 Vec2I InputDevices::get_cursor_location(bool flipY) const
 {
-    auto window = static_cast<const sf::Window*>(mSystemWindowPtr);
+    double dblX, dblY;
+    glfwGetCursorPos(mGlfwWindow, &dblX, &dblY);
 
-    const sf::Vector2i size ( window->getSize() );
-    sf::Vector2i position = sf::Mouse::getPosition(*window);
+    int resultX = int(std::floor(dblX));
+    int resultY = int(std::floor(dblY));
 
-    if (flipY) position.y = size.y - position.y;
+    if (flipY == true)
+    {
+        int windowWidth, windowHeight;
+        glfwGetWindowSize(mGlfwWindow, &windowWidth, &windowHeight);
+        resultY = windowHeight - resultY;
+    }
 
-    return { position.x, position.y };
+    return { resultX, resultY };
 }
 
 bool InputDevices::is_pressed(Mouse_Button button) const
 {
     SQASSERT(button != Mouse_Button::Unknown, "");
 
-    constexpr sf::Mouse::Button sqee_to_sfml[]
+    constexpr int sqee_to_glfw[]
     {
-        sf::Mouse::Button::Left,      // Left
-        sf::Mouse::Button::Right,     // Right
-        sf::Mouse::Button::Middle,    // Middle
-        sf::Mouse::Button::XButton1,  // ExtraA
-        sf::Mouse::Button::XButton2,  // ExtraB
+        GLFW_MOUSE_BUTTON_1,  // Left
+        GLFW_MOUSE_BUTTON_2,  // Right
+        GLFW_MOUSE_BUTTON_3,  // Middle
+        GLFW_MOUSE_BUTTON_4,  // ExtraA
+        GLFW_MOUSE_BUTTON_5,  // ExtraB
     };
 
-    return sf::Mouse::isButtonPressed(sqee_to_sfml[int(button)]);
+    return bool(glfwGetMouseButton(mGlfwWindow, sqee_to_glfw[int(button)]));
 }
 
 Vec2I InputDevices::cursor_to_centre()
 {
-    auto window = static_cast<sf::Window*>(mSystemWindowPtr);
+    std::abort(); // todo
+//    sf::Vector2i centre ( window->getSize() / 2u );
+//    sf::Vector2i position = sf::Mouse::getPosition(*window);
+//    sf::Mouse::setPosition(centre, *window);
 
-    sf::Vector2i centre ( window->getSize() / 2u );
-    sf::Vector2i position = sf::Mouse::getPosition(*window);
-    sf::Mouse::setPosition(centre, *window);
-
-    //return { centre.x - position.x, -(centre.y - position.y) };
-    return { centre.x - position.x, centre.y - position.y };
+//    //return { centre.x - position.x, -(centre.y - position.y) };
+//    return { centre.x - position.x, centre.y - position.y };
 }
 
 //============================================================================//
 
-Vec2F InputDevices::get_stick_pos(int32_t port, Gamepad_Stick stick) const
+GamepadState InputDevices::poll_gamepad_state(int32_t port) const
 {
-    SQASSERT(port >= 0 && stick != Gamepad_Stick::Unknown, "");
+    GLFWgamepadstate glfw;
+    const int success = glfwGetGamepadState(port, &glfw);
 
-    if (stick == Gamepad_Stick::Left)
-    {
-        const float x = sf::Joystick::getAxisPosition(uint(port), sf::Joystick::X);
-        const float y = sf::Joystick::getAxisPosition(uint(port), sf::Joystick::Y);
-        return Vec2F ( x, -y ) / 100.f;
-    }
+    GamepadState result;
 
-    if (stick == Gamepad_Stick::Right)
-    {
-        const float x = sf::Joystick::getAxisPosition(uint(port), sf::Joystick::U);
-        const float y = sf::Joystick::getAxisPosition(uint(port), sf::Joystick::V);
-        return Vec2F ( x, -y ) / 100.f;
-    }
+    // usually this just means no gamepad is connected
+    if (success == GLFW_FALSE)
+        return result;
 
-    return Vec2F(0.f, 0.f);
-}
+    result.buttons[int8_t(Gamepad_Button::A)]     = glfw.buttons[GLFW_GAMEPAD_BUTTON_A];
+    result.buttons[int8_t(Gamepad_Button::B)]     = glfw.buttons[GLFW_GAMEPAD_BUTTON_B];
+    result.buttons[int8_t(Gamepad_Button::X)]     = glfw.buttons[GLFW_GAMEPAD_BUTTON_X];
+    result.buttons[int8_t(Gamepad_Button::Y)]     = glfw.buttons[GLFW_GAMEPAD_BUTTON_Y];
+    result.buttons[int8_t(Gamepad_Button::LB)]    = glfw.buttons[GLFW_GAMEPAD_BUTTON_LEFT_BUMPER];
+    result.buttons[int8_t(Gamepad_Button::RB)]    = glfw.buttons[GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER];
+    result.buttons[int8_t(Gamepad_Button::Back)]  = glfw.buttons[GLFW_GAMEPAD_BUTTON_BACK];
+    result.buttons[int8_t(Gamepad_Button::Start)] = glfw.buttons[GLFW_GAMEPAD_BUTTON_START];
+    result.buttons[int8_t(Gamepad_Button::Home)]  = glfw.buttons[GLFW_GAMEPAD_BUTTON_GUIDE];
+    result.buttons[int8_t(Gamepad_Button::Up)]    = glfw.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP];
+    result.buttons[int8_t(Gamepad_Button::Right)] = glfw.buttons[GLFW_GAMEPAD_BUTTON_DPAD_RIGHT];
+    result.buttons[int8_t(Gamepad_Button::Down)]  = glfw.buttons[GLFW_GAMEPAD_BUTTON_DPAD_DOWN];
+    result.buttons[int8_t(Gamepad_Button::Left)]  = glfw.buttons[GLFW_GAMEPAD_BUTTON_DPAD_LEFT];
 
-bool InputDevices::is_pressed(int32_t port, Gamepad_Button button) const
-{
-    SQASSERT(port >= 0 && button != Gamepad_Button::Unknown, "");
+    result.axes[int8_t(Gamepad_Axis::LX)] =  glfw.axes[GLFW_GAMEPAD_AXIS_LEFT_X];
+    result.axes[int8_t(Gamepad_Axis::LY)] = -glfw.axes[GLFW_GAMEPAD_AXIS_LEFT_Y];
+    result.axes[int8_t(Gamepad_Axis::RX)] =  glfw.axes[GLFW_GAMEPAD_AXIS_RIGHT_X];
+    result.axes[int8_t(Gamepad_Axis::RY)] = -glfw.axes[GLFW_GAMEPAD_AXIS_RIGHT_Y];
 
-    constexpr uint sqee_to_sfml[]
-    {
-        0u, // A
-        1u, // B
-        2u, // X
-        3u, // Y
-        4u, // L1
-        5u, // R1
-        6u, // Select
-        7u, // Start
-        8u, // Home
-    };
-
-    return sf::Joystick::isButtonPressed(uint(port), sqee_to_sfml[int(button)]);
+    return result;
 }
