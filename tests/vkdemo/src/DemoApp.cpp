@@ -262,14 +262,14 @@ void DemoApp::create_render_targets()
         if (mMultisampleMode > vk::SampleCountFlagBits::e1)
         {
             std::tie(mMsColourImage, mMsColourImageMem, mMsColourImageView) = sq::vk_create_image_2D (
-                ctx, vk::Format::eB8G8R8A8Srgb, mWindow->get_size(), mMultisampleMode,
+                ctx, vk::Format::eB8G8R8A8Srgb, mWindow->get_size(), 1u, mMultisampleMode,
                 false, vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment,
                 false, {}, vk::ImageAspectFlagBits::eColor
             );
         }
 
         std::tie(mResolveColourImage, mResolveColourImageMem, mResolveColourImageView) = sq::vk_create_image_2D (
-            ctx, vk::Format::eB8G8R8A8Srgb, mWindow->get_size(), vk::SampleCountFlagBits::e1,
+            ctx, vk::Format::eB8G8R8A8Srgb, mWindow->get_size(), 1u, vk::SampleCountFlagBits::e1,
             false, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled,
             false, {}, vk::ImageAspectFlagBits::eColor
         );

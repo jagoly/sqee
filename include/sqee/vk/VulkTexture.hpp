@@ -23,9 +23,9 @@ public: //====================================================//
         vk::SamplerAddressMode wrapZ;
         vk::ComponentMapping swizzle;
         bool filter;
-        bool mipmaps;
         bool anisotropy;
         Vec3U size;
+        uint mipLevels;
     };
 
     //--------------------------------------------------------//

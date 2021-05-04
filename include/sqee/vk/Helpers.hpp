@@ -53,7 +53,7 @@ SQEE_API std::tuple<vk::Buffer, VulkanMemory> vk_create_buffer (
 );
 
 SQEE_API std::tuple<vk::Image, VulkanMemory, vk::ImageView> vk_create_image_2D (
-    const VulkanContext& ctx, vk::Format format, Vec2U size, vk::SampleCountFlagBits samples, bool linear, vk::ImageUsageFlags usage, bool host, vk::ComponentMapping swizzle, vk::ImageAspectFlags aspect
+    const VulkanContext& ctx, vk::Format format, Vec2U size, uint mipLevels, vk::SampleCountFlagBits samples, bool linear, vk::ImageUsageFlags usage, bool host, vk::ComponentMapping swizzle, vk::ImageAspectFlags aspect
 );
 
 SQEE_API std::tuple<vk::Image, VulkanMemory, vk::ImageView> vk_create_image_cube (
@@ -162,6 +162,20 @@ inline void vk_update_descriptor_set_swapper (
                 swapper.back, binding, index, uint(imageInfoBack.size()), type, imageInfoBack.data(), nullptr, nullptr
             },
         }, {}
+    );
+}
+
+//============================================================================//
+
+inline void vk_transition_image_memory_layout (
+    vk::CommandBuffer cmdbuf, vk::Image image, vk::PipelineStageFlags srcStageMask, vk::PipelineStageFlags dstStageMask, vk::AccessFlags srcAccessMask, vk::AccessFlags dstAccessMask, vk::ImageLayout oldLayout, vk::ImageLayout newLayout, vk::ImageAspectFlags aspectMask, uint baseMipLevel, uint levelCount, uint baseArrayLayer, uint layerCount
+) {
+    cmdbuf.pipelineBarrier (
+        srcStageMask, dstStageMask, {}, {}, {},
+        vk::ImageMemoryBarrier {
+            srcAccessMask, dstAccessMask, oldLayout, newLayout, VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, image,
+            vk::ImageSubresourceRange(aspectMask, baseMipLevel, levelCount, baseArrayLayer, layerCount)
+        }
     );
 }
 

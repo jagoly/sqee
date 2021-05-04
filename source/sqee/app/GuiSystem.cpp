@@ -294,17 +294,13 @@ void GuiSystem::create_objects()
 
     VulkTexture::Config config;
     config.format = vk::Format::eR8Unorm;
-    config.wrapX = vk::SamplerAddressMode::eRepeat;
-    config.wrapY = vk::SamplerAddressMode::eRepeat;
-    config.wrapZ = vk::SamplerAddressMode::eRepeat;
-    config.swizzle.r = vk::ComponentSwizzle::eOne;
-    config.swizzle.g = vk::ComponentSwizzle::eOne;
-    config.swizzle.b = vk::ComponentSwizzle::eOne;
+    config.wrapX = config.wrapY = config.wrapZ = vk::SamplerAddressMode::eRepeat;
+    config.swizzle.r = config.swizzle.g = config.swizzle.b = vk::ComponentSwizzle::eOne;
     config.swizzle.a = vk::ComponentSwizzle::eR;
     config.filter = true;
-    config.mipmaps = false;
     config.anisotropy = false;
     config.size = Vec3U(width, height, 1u);
+    config.mipLevels = 1u;
 
     mFontTexture.initialise_2D(config);
     mFontTexture.load_from_memory_2D(pixels, config);
