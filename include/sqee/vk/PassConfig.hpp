@@ -13,6 +13,7 @@ namespace sq {
 struct PassConfig
 {
     vk::RenderPass renderPass;
+    uint subpass;
     vk::SampleCountFlagBits samples;
     Vec2U viewport;
     vk::DescriptorSetLayout setLayout0;

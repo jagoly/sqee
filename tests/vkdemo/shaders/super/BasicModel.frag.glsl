@@ -15,16 +15,19 @@
 #include "../headers/blocks/Camera.glsl"
 #include "../headers/blocks/Light.glsl"
 
-layout(std140, set=2, binding=0) uniform MaterialBlock
-{
-  #if !OPTION_TEXTURE_DIFFUSE
-    vec3 diffuse;
-  #endif
-  #if !OPTION_TEXTURE_SPECULAR
-    vec3 specular;
-  #endif
-}
-MB;
+#if !OPTION_TEXTURE_DIFFUSE ||\
+    !OPTION_TEXTURE_SPECULAR
+  layout(std140, set=2, binding=0) uniform MaterialBlock
+  {
+    #if !OPTION_TEXTURE_DIFFUSE
+      vec3 diffuse;
+    #endif
+    #if !OPTION_TEXTURE_SPECULAR
+      vec3 specular;
+    #endif
+  }
+  MB;
+#endif
 
 //============================================================================//
 

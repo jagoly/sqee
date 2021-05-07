@@ -200,8 +200,8 @@ void VulkTexture::load_from_memory_2D(void* data, const Config& config)
     {
         vk_transition_image_memory_layout (
             cmdbuf.cmdbuf, mImage,
-            vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eAllGraphics,
-            vk::AccessFlagBits::eTransferWrite, vk::AccessFlagBits::eShaderRead,
+            vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eBottomOfPipe,
+            vk::AccessFlagBits::eTransferWrite, vk::AccessFlags(),
             vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal,
             vk::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u
         );
@@ -237,8 +237,8 @@ void VulkTexture::load_from_memory_2D(void* data, const Config& config)
 
         vk_transition_image_memory_layout (
             cmdbuf.cmdbuf, mImage,
-            vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eAllGraphics,
-            vk::AccessFlagBits::eTransferRead, vk::AccessFlagBits::eShaderRead,
+            vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eBottomOfPipe,
+            vk::AccessFlagBits::eTransferRead, vk::AccessFlags(),
             vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eShaderReadOnlyOptimal,
             vk::ImageAspectFlagBits::eColor, i - 1u, 1u, 0u, 1u
         );
@@ -248,8 +248,8 @@ void VulkTexture::load_from_memory_2D(void* data, const Config& config)
 
     vk_transition_image_memory_layout (
         cmdbuf.cmdbuf, mImage,
-        vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eAllGraphics,
-        vk::AccessFlagBits::eTransferWrite, vk::AccessFlagBits::eShaderRead,
+        vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eBottomOfPipe,
+        vk::AccessFlagBits::eTransferWrite, vk::AccessFlags(),
         vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal,
         vk::ImageAspectFlagBits::eColor, config.mipLevels - 1u, 1u, 0u, 1u
     );
@@ -276,6 +276,98 @@ void VulkTexture::load_from_file_2D(const String& path)
 
     initialise_2D(config);
     load_from_memory_2D(image.data, config);
+}
+
+//============================================================================//
+
+void VulkTexture::initialise_array(const Config& config)
+{
+    SQASSERT(!mImage, "texture already loaded");
+
+    const auto& ctx = VulkanContext::get();
+
+    std::tie(mImage, mImageMem, mImageView) = vk_create_image_array (
+        ctx, config.format, config.size, vk::SampleCountFlagBits::e1,
+        false, vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
+        false, config.swizzle, vk::ImageAspectFlagBits::eColor
+    );
+
+    impl_initialise_common(config);
+}
+
+//============================================================================//
+
+void VulkTexture::load_from_memory_array(void* data, uint layer, const Config& config)
+{
+    const auto& ctx = VulkanContext::get();
+
+    const auto formatInfo = impl_get_format_info(config.format);
+
+    auto staging = StagingBuffer(ctx, config.size.x * config.size.y * formatInfo.pixelSize);
+    auto cmdbuf = OneTimeCommands(ctx);
+
+    std::memcpy(staging.memory.map(), data, config.size.x * config.size.y * formatInfo.pixelSize);
+    staging.memory.unmap();
+
+    cmdbuf->pipelineBarrier (
+        vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eTransfer,
+        {}, {}, {},
+        vk::ImageMemoryBarrier {
+            {}, vk::AccessFlagBits::eTransferWrite,
+            vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal,
+            VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, mImage,
+            vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0u, 1u, layer, 1u)
+        }
+    );
+
+    cmdbuf->copyBufferToImage (
+        staging.buffer, mImage, vk::ImageLayout::eTransferDstOptimal,
+        vk::BufferImageCopy {
+            0u, 0u, 0u,
+            vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0u, layer, 1u),
+            vk::Offset3D(0u, 0u, 0u), vk::Extent3D(config.size.x, config.size.y, 1u)
+        }
+    );
+
+    cmdbuf->pipelineBarrier (
+        vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eAllGraphics,
+        {}, {}, {},
+        vk::ImageMemoryBarrier {
+            vk::AccessFlagBits::eTransferWrite, vk::AccessFlagBits::eShaderRead,
+            vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal,
+            VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, mImage,
+            vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0u, 1u, layer, 1u)
+        }
+    );
+}
+
+//============================================================================//
+
+void VulkTexture::load_from_file_array(const String& path)
+{
+    const JsonValue json = parse_json_from_file(path + "/TextureArray.json");
+
+    Config config;
+    config.format = impl_string_to_format(json.at("format"));
+    config.wrapX = impl_string_to_wrap(json.at("wrapX"));
+    config.wrapY = impl_string_to_wrap(json.at("wrapY"));
+    config.wrapZ = impl_string_to_wrap(json.at("wrapZ"));
+    config.swizzle = impl_string_to_swizzle(json.at("swizzle"));
+    config.filter = json.at("filter");
+    config.anisotropy = json.at("anisotropy");
+    config.size = json.at("size");
+
+    config.mipLevels = 1u; // todo
+
+    initialise_array(config);
+
+    for (uint layer = 0u; layer < config.size.z; ++layer)
+    {
+        const uint digits = config.size.z > 10u ? config.size.z > 100u ? 3u : 2u : 1u;
+        const auto image = impl_load_image(config.format, fmt::format("{}/{:0>{}}.png", path, layer, digits));
+        SQASSERT(image.size == Vec2U(config.size), "image size does not match json");
+        load_from_memory_array(image.data, layer, config);
+    }
 }
 
 //============================================================================//

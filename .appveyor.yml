@@ -40,7 +40,7 @@ build_script:
 after_build:
 
   - cd c:/projects/sqee/build
-  - 7z a sqee-windows-debug.zip Debug/* libs/dearimgui/Debug/* libs/format/Debug/* libs/wren/Debug/* testing/Debug/* tests/rpg/Debug/* tests/soko/Debug/* tests/vkdemo/Debug/*
+  - 7z a sqee-windows-debug.zip Debug/* libs/dearimgui/Debug/* libs/format/Debug/* libs/wren/Debug/* testing/Debug/* tests/vkdemo/Debug/*
 
 artifacts:
   - path: build/sqee-windows-debug.zip

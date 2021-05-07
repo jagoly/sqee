@@ -320,6 +320,7 @@ Window::Window(const char* title, Vec2U size, const char* appName, Vec3U version
         }();
 
         const auto severityFlags = //vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose |
+                                   //vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo |
                                    vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
                                    vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
 
@@ -327,10 +328,16 @@ Window::Window(const char* title, Vec2U size, const char* appName, Vec3U version
                                vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation |
                                vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance;
 
+//        const auto validationEnables = std::array {
+//            //vk::ValidationFeatureEnableEXT::eBestPractices,
+//            vk::ValidationFeatureEnableEXT::eSynchronizationValidation
+//        };
+
         mInstance = vk::createInstance (
             vk::StructureChain {
                 vk::InstanceCreateInfo { {}, &appInfo, layers, extensions },
-                vk::DebugUtilsMessengerCreateInfoEXT { {}, severityFlags, typeFlags, impl_vulkan_debug_callback }
+                vk::DebugUtilsMessengerCreateInfoEXT { {}, severityFlags, typeFlags, impl_vulkan_debug_callback },
+                //vk::ValidationFeaturesEXT { validationEnables, {} }
             }.get()
         );
 
@@ -402,6 +409,7 @@ Window::Window(const char* title, Vec2U size, const char* appName, Vec3U version
         features.fillModeNonSolid = true;
         features.samplerAnisotropy = true;
         features.wideLines = true;
+        features.geometryShader = true;
 
         mDevice = mPhysicalDevice.createDevice (
             vk::DeviceCreateInfo { {}, queues, {}, extensions, &features }
@@ -467,17 +475,17 @@ Window::Window(const char* title, Vec2U size, const char* appName, Vec3U version
             {}, vk::PipelineBindPoint::eGraphics, {}, colorAttachments, {}, nullptr, {}
         };
 
-        auto dependencies = std::array {
-            vk::SubpassDependency {
-                VK_SUBPASS_EXTERNAL, 0u,
-                vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eFragmentShader,
-                vk::AccessFlagBits::eColorAttachmentWrite, vk::AccessFlagBits::eShaderRead,
-                vk::DependencyFlagBits::eByRegion
-            }
-        };
+//        auto dependencies = std::array {
+//            vk::SubpassDependency {
+//                VK_SUBPASS_EXTERNAL, 0u,
+//                vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eFragmentShader,
+//                vk::AccessFlagBits::eColorAttachmentWrite, vk::AccessFlagBits::eShaderRead,
+//                vk::DependencyFlagBits::eByRegion
+//            }
+//        };
 
         mRenderPass = mDevice.createRenderPass (
-            vk::RenderPassCreateInfo { {}, attachments, subpasses, dependencies }
+            vk::RenderPassCreateInfo { {}, attachments, subpasses, {}/*dependencies*/ }
         );
     }
 

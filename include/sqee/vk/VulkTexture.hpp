@@ -47,6 +47,14 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
+    void initialise_array(const Config& config);
+
+    void load_from_memory_array(void* data, uint layer, const Config& config);
+
+    void load_from_file_array(const String& path);
+
+    //--------------------------------------------------------//
+
     void initialise_cube(const Config& config);
 
     void load_from_memory_cube(void* data, uint face, const Config& config);

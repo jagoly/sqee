@@ -73,6 +73,7 @@ void VulkMaterial::load_from_json(const JsonValue& json, PipelineCache& pipeline
             else log_error("unsupported type for uniform '{}'", key);
         }
     }
+    else if (!json.at("params").empty()) log_error("pipeline has no material params");
 
     for (const auto& [key, value] : json.at("textures").items())
     {

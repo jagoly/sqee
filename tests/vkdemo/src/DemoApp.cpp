@@ -290,7 +290,7 @@ void DemoApp::create_render_targets()
             const auto attachments = std::array {
                 vk::AttachmentDescription {
                     {}, vk::Format::eB8G8R8A8Srgb, mMultisampleMode,
-                    vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eStore,
+                    vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
                     vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
                     vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal
                 },
@@ -382,7 +382,7 @@ void DemoApp::create_render_targets()
     }
 
     mResourceCaches.passConfigMap = {
-        { "Opaque", { mMsRenderPass, mMultisampleMode, mWindow->get_size(), mCameraDescriptorSetLayout, mLightDescriptorSetLayout } }
+        { "Opaque", { mMsRenderPass, 0u, mMultisampleMode, mWindow->get_size(), mCameraDescriptorSetLayout, mLightDescriptorSetLayout } }
     };
 }
 

@@ -253,7 +253,7 @@ void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes
     const auto vertexConfig = VulkMesh::VertexConfig ( attributes );
 
     mPipeline = vk_create_graphics_pipeline (
-        ctx, mPipelineLayout, pass.renderPass, 0u, shaderModules.stages, vertexConfig.state,
+        ctx, mPipelineLayout, pass.renderPass, pass.subpass, shaderModules.stages, vertexConfig.state,
         vk::PipelineInputAssemblyStateCreateInfo { {}, vk::PrimitiveTopology::eTriangleList, false },
         impl_make_rasterization_state(json.at("cullFace")),
         vk::PipelineMultisampleStateCreateInfo { {}, pass.samples, false, 0.f, nullptr, false, false },
