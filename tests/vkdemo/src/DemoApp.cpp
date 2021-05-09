@@ -85,17 +85,18 @@ void DemoApp::update(double elapsed)
         mGuiSystem->finish_handle_events(false);
     }
 
+    mWindow->begin_frame();
+
+    update_window_title(elapsed);
+    update_uniform_buffer(elapsed);
+
     mGuiSystem->show_imgui_demo();
     mGuiSystem->finish_scene_update(elapsed);
 
-    auto [cmdbuf, framebuf] = mWindow->begin_frame();
+    auto [cmdbuf, framebuf] = mWindow->acquire_image();
     if (cmdbuf)
     {
-        update_window_title(elapsed);
-        update_uniform_buffer(elapsed);
-
         populate_command_buffer(cmdbuf, framebuf);
-
         mWindow->submit_present_swap();
     }
 }

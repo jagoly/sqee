@@ -328,16 +328,16 @@ Window::Window(const char* title, Vec2U size, const char* appName, Vec3U version
                                vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation |
                                vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance;
 
-//        const auto validationEnables = std::array {
-//            //vk::ValidationFeatureEnableEXT::eBestPractices,
-//            vk::ValidationFeatureEnableEXT::eSynchronizationValidation
-//        };
+        const auto validationEnables = std::array {
+            //vk::ValidationFeatureEnableEXT::eBestPractices,
+            vk::ValidationFeatureEnableEXT::eSynchronizationValidation
+        };
 
         mInstance = vk::createInstance (
             vk::StructureChain {
                 vk::InstanceCreateInfo { {}, &appInfo, layers, extensions },
                 vk::DebugUtilsMessengerCreateInfoEXT { {}, severityFlags, typeFlags, impl_vulkan_debug_callback },
-                //vk::ValidationFeaturesEXT { validationEnables, {} }
+                vk::ValidationFeaturesEXT { validationEnables, {} }
             }.get()
         );
 
@@ -642,11 +642,16 @@ const std::vector<Event>& Window::fetch_events()
 
 //============================================================================//
 
-std::tuple<vk::CommandBuffer, vk::Framebuffer> Window::begin_frame()
+void Window::begin_frame()
 {
     auto waitResult = mDevice.waitForFences(mRenderFinishedFence.front, true, UINT64_MAX);
     SQASSERT(waitResult == vk::Result::eSuccess, "");
+}
 
+//============================================================================//
+
+std::tuple<vk::CommandBuffer, vk::Framebuffer> Window::acquire_image()
+{
     const uint32_t oldImageIndex = mImageIndex;
 
     try
@@ -657,7 +662,7 @@ std::tuple<vk::CommandBuffer, vk::Framebuffer> Window::begin_frame()
     }
     catch (const vk::OutOfDateKHRError&)
     {
-        if (algo::find_if(mEvents, [](Event e) { return e.type == Event::Type::Window_Resize; }) == mEvents.end())
+        if (algo::none_of(mEvents, [](Event e) { return e.type == Event::Type::Window_Resize; }))
             mEvents.push_back({Event::Type::Window_Resize, {}});
         return { {}, {} }; // EARLY RETURN
     }
@@ -694,7 +699,7 @@ void Window::submit_present_swap()
     }
     catch (const vk::OutOfDateKHRError&)
     {
-        if (algo::find_if(mEvents, [](Event e) { return e.type == Event::Type::Window_Resize; }) == mEvents.end())
+        if (algo::none_of(mEvents, [](Event e) { return e.type == Event::Type::Window_Resize; }))
             mEvents.push_back({Event::Type::Window_Resize, {}});
     }
 

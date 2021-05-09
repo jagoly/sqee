@@ -57,11 +57,11 @@ SQEE_API std::tuple<vk::Image, VulkanMemory, vk::ImageView> vk_create_image_2D (
 );
 
 SQEE_API std::tuple<vk::Image, VulkanMemory, vk::ImageView> vk_create_image_array (
-    const VulkanContext& ctx, vk::Format format, Vec3U size, vk::SampleCountFlagBits samples, bool linear, vk::ImageUsageFlags usage, bool host, vk::ComponentMapping swizzle, vk::ImageAspectFlags aspect
+    const VulkanContext& ctx, vk::Format format, Vec3U size, uint mipLevels, vk::SampleCountFlagBits samples, bool linear, vk::ImageUsageFlags usage, bool host, vk::ComponentMapping swizzle, vk::ImageAspectFlags aspect
 );
 
 SQEE_API std::tuple<vk::Image, VulkanMemory, vk::ImageView> vk_create_image_cube (
-    const VulkanContext& ctx, vk::Format format, uint size, vk::SampleCountFlagBits samples, bool linear, vk::ImageUsageFlags usage, bool host, vk::ComponentMapping swizzle, vk::ImageAspectFlags aspect
+    const VulkanContext& ctx, vk::Format format, uint size, uint mipLevels, vk::SampleCountFlagBits samples, bool linear, vk::ImageUsageFlags usage, bool host, vk::ComponentMapping swizzle, vk::ImageAspectFlags aspect
 );
 
 //============================================================================//

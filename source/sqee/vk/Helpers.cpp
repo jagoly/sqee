@@ -153,12 +153,12 @@ std::tuple<vk::Image, VulkanMemory, vk::ImageView> sq::vk_create_image_2D(const 
 
 //============================================================================//
 
-std::tuple<vk::Image, VulkanMemory, vk::ImageView> sq::vk_create_image_array(const VulkanContext& ctx, vk::Format format, Vec3U size, vk::SampleCountFlagBits samples, bool linear, vk::ImageUsageFlags usage, bool host, vk::ComponentMapping swizzle, vk::ImageAspectFlags aspect)
+std::tuple<vk::Image, VulkanMemory, vk::ImageView> sq::vk_create_image_array(const VulkanContext& ctx, vk::Format format, Vec3U size, uint mipLevels, vk::SampleCountFlagBits samples, bool linear, vk::ImageUsageFlags usage, bool host, vk::ComponentMapping swizzle, vk::ImageAspectFlags aspect)
 {
     auto image = ctx.device.createImage (
         vk::ImageCreateInfo {
             {}, vk::ImageType::e2D, format, vk::Extent3D(size.x, size.y, 1u),
-            1u, size.z, samples,
+            mipLevels, size.z, samples,
             linear ? vk::ImageTiling::eLinear : vk::ImageTiling::eOptimal, usage,
             vk::SharingMode::eExclusive, {}, vk::ImageLayout::eUndefined
         }
@@ -170,7 +170,7 @@ std::tuple<vk::Image, VulkanMemory, vk::ImageView> sq::vk_create_image_array(con
     auto view = ctx.device.createImageView (
         vk::ImageViewCreateInfo {
             {}, image, vk::ImageViewType::e2DArray, format, swizzle,
-            vk::ImageSubresourceRange(aspect, 0u, 1u, 0u, size.z)
+            vk::ImageSubresourceRange(aspect, 0u, mipLevels, 0u, size.z)
         }
     );
 
@@ -179,13 +179,13 @@ std::tuple<vk::Image, VulkanMemory, vk::ImageView> sq::vk_create_image_array(con
 
 //============================================================================//
 
-std::tuple<vk::Image, VulkanMemory, vk::ImageView> sq::vk_create_image_cube(const VulkanContext& ctx, vk::Format format, uint size, vk::SampleCountFlagBits samples, bool linear, vk::ImageUsageFlags usage, bool host, vk::ComponentMapping swizzle, vk::ImageAspectFlags aspect)
+std::tuple<vk::Image, VulkanMemory, vk::ImageView> sq::vk_create_image_cube(const VulkanContext& ctx, vk::Format format, uint size, uint mipLevels, vk::SampleCountFlagBits samples, bool linear, vk::ImageUsageFlags usage, bool host, vk::ComponentMapping swizzle, vk::ImageAspectFlags aspect)
 {
     auto image = ctx.device.createImage (
         vk::ImageCreateInfo {
             vk::ImageCreateFlagBits::eCubeCompatible,
             vk::ImageType::e2D, format, vk::Extent3D(size, size, 1u),
-            1u, 6u, samples,
+            mipLevels, 6u, samples,
             linear ? vk::ImageTiling::eLinear : vk::ImageTiling::eOptimal, usage,
             vk::SharingMode::eExclusive, {}, vk::ImageLayout::eUndefined
         }
@@ -197,7 +197,7 @@ std::tuple<vk::Image, VulkanMemory, vk::ImageView> sq::vk_create_image_cube(cons
     auto view = ctx.device.createImageView (
         vk::ImageViewCreateInfo {
             {}, image, vk::ImageViewType::eCube, format, swizzle,
-            vk::ImageSubresourceRange(aspect, 0u, 1u, 0u, 6u)
+            vk::ImageSubresourceRange(aspect, 0u, mipLevels, 0u, 6u)
         }
     );
 

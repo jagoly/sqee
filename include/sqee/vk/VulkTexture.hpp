@@ -41,15 +41,11 @@ public: //====================================================//
 
     void initialise_2D(const Config& config);
 
-    void load_from_memory_2D(void* data, const Config& config);
-
     void load_from_file_2D(const String& path);
 
     //--------------------------------------------------------//
 
     void initialise_array(const Config& config);
-
-    void load_from_memory_array(void* data, uint layer, const Config& config);
 
     void load_from_file_array(const String& path);
 
@@ -57,9 +53,11 @@ public: //====================================================//
 
     void initialise_cube(const Config& config);
 
-    void load_from_memory_cube(void* data, uint face, const Config& config);
-
     void load_from_file_cube(const String& path);
+
+    //--------------------------------------------------------//
+
+    void load_from_memory(void* data, uint layer, const Config& config);
 
     //--------------------------------------------------------//
 

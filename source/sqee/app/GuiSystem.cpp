@@ -303,7 +303,7 @@ void GuiSystem::create_objects()
     config.mipLevels = 1u;
 
     mFontTexture.initialise_2D(config);
-    mFontTexture.load_from_memory_2D(pixels, config);
+    mFontTexture.load_from_memory(pixels, 0u, config);
 }
 
 //============================================================================//

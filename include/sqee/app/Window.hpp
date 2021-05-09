@@ -34,7 +34,9 @@ public: //====================================================//
 
     const std::vector<Event>& fetch_events();
 
-    std::tuple<vk::CommandBuffer, vk::Framebuffer> begin_frame();
+    void begin_frame();
+
+    std::tuple<vk::CommandBuffer, vk::Framebuffer> acquire_image();
 
     void submit_present_swap();
 
