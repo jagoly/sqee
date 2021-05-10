@@ -11,7 +11,7 @@ namespace sq {
 
 //============================================================================//
 
-class SQEE_API VulkTexture : private MoveOnly
+class SQEE_API Texture : private MoveOnly
 {
 public: //====================================================//
 
@@ -30,12 +30,12 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    VulkTexture() = default;
+    Texture() = default;
 
-    VulkTexture(VulkTexture&& other);
-    VulkTexture& operator=(VulkTexture&& other);
+    Texture(Texture&& other);
+    Texture& operator=(Texture&& other);
 
-    ~VulkTexture();
+    ~Texture();
 
     //--------------------------------------------------------//
 

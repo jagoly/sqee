@@ -5,9 +5,8 @@
 
 #include <sqee/setup.hpp>
 
+#include <sqee/objects/Texture.hpp>
 #include <sqee/vk/SwapBuffer.hpp>
-#include <sqee/vk/VulkTexture.hpp>
-
 #include <sqee/vk/Vulkan.hpp>
 
 namespace sq {
@@ -65,7 +64,7 @@ private: //===================================================//
 
     //--------------------------------------------------------//
 
-    VulkTexture mFontTexture;
+    Texture mFontTexture;
     SwapBuffer mVertexBuffer;
     SwapBuffer mIndexBuffer;
 

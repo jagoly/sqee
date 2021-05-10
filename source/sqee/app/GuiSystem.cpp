@@ -12,11 +12,7 @@
 #include <sqee/data/BuiltinShaders.hpp>
 
 #include <sqee/vk/Helpers.hpp>
-#include <sqee/vk/Swapper.hpp>
-#include <sqee/vk/VulkTexture.hpp>
-#include <sqee/vk/Vulkan.hpp>
 #include <sqee/vk/VulkanContext.hpp>
-#include <sqee/vk/VulkanMemory.hpp>
 
 #include <dearimgui/imgui.h>
 
@@ -292,7 +288,7 @@ void GuiSystem::create_objects()
     uchar* pixels; int width, height;
     ImGui::GetIO().Fonts->GetTexDataAsAlpha8(&pixels, &width, &height);
 
-    VulkTexture::Config config;
+    Texture::Config config;
     config.format = vk::Format::eR8Unorm;
     config.wrapX = config.wrapY = config.wrapZ = vk::SamplerAddressMode::eRepeat;
     config.swizzle.r = config.swizzle.g = config.swizzle.b = vk::ComponentSwizzle::eOne;

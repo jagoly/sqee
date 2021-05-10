@@ -7,8 +7,8 @@
 
 #include <sqee/core/Types.hpp>
 
-#include <sqee/vk/Pipeline.hpp>
-#include <sqee/vk/VulkTexture.hpp>
+#include <sqee/objects/Pipeline.hpp>
+#include <sqee/objects/Texture.hpp>
 
 #include <sqee/misc/ResourceCache.hpp>
 
@@ -17,21 +17,21 @@ namespace sq {
 //============================================================================//
 
 /// The SQEE Material class.
-class SQEE_API VulkMaterial final : private MoveOnly
+class SQEE_API Material final : private MoveOnly
 {
 public: //====================================================//
 
     using PipelineCache = ResourceCache<JsonValue, Pipeline>;
-    using TextureCache = ResourceCache<String, VulkTexture>;
+    using TextureCache = ResourceCache<String, Texture>;
 
     //--------------------------------------------------------//
 
-    VulkMaterial() = default;
+    Material() = default;
 
-    VulkMaterial(VulkMaterial&& other);
-    VulkMaterial& operator=(VulkMaterial&& other);
+    Material(Material&& other);
+    Material& operator=(Material&& other);
 
-    ~VulkMaterial();
+    ~Material();
 
     //--------------------------------------------------------//
 
@@ -47,7 +47,7 @@ public: //====================================================//
 private: //===================================================//
 
     Handle<JsonValue, Pipeline> mPipeline;
-    std::vector<Handle<String, VulkTexture>> mTextures;
+    std::vector<Handle<String, Texture>> mTextures;
 
     vk::Buffer mParamBuffer;
     VulkanMemory mParamBufferMem;

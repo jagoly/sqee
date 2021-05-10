@@ -1,4 +1,4 @@
-#include <sqee/vk/VulkMesh.hpp>
+#include <sqee/objects/Mesh.hpp>
 
 #include <sqee/core/Utilities.hpp>
 #include <sqee/debug/Assert.hpp>
@@ -55,12 +55,12 @@ inline void impl_ascii_append_int8(std::byte*& ptr, StringView sv)
 
 //============================================================================//
 
-VulkMesh::VulkMesh(VulkMesh&& other)
+Mesh::Mesh(Mesh&& other)
 {
     *this = std::move(other);
 }
 
-VulkMesh& VulkMesh::operator=(VulkMesh&& other)
+Mesh& Mesh::operator=(Mesh&& other)
 {
     std::swap(mVertexBuffer, other.mVertexBuffer);
     std::swap(mVertexBufferMem, other.mVertexBufferMem);
@@ -74,7 +74,7 @@ VulkMesh& VulkMesh::operator=(VulkMesh&& other)
     return *this;
 }
 
-VulkMesh::~VulkMesh()
+Mesh::~Mesh()
 {
     const auto& ctx = VulkanContext::get();
     if (mVertexBuffer) ctx.device.destroy(mVertexBuffer);
@@ -85,7 +85,7 @@ VulkMesh::~VulkMesh()
 
 //============================================================================//
 
-void VulkMesh::load_from_file(const String& path, bool swapYZ)
+void Mesh::load_from_file(const String& path, bool swapYZ)
 {
     SQASSERT(!mVertexBuffer, "mesh already loaded");
 
@@ -96,13 +96,13 @@ void VulkMesh::load_from_file(const String& path, bool swapYZ)
 
 //============================================================================//
 
-void VulkMesh::bind_buffers(vk::CommandBuffer cmdbuf) const
+void Mesh::bind_buffers(vk::CommandBuffer cmdbuf) const
 {
     cmdbuf.bindVertexBuffers(0u, mVertexBuffer, size_t(0u));
     cmdbuf.bindIndexBuffer(mIndexBuffer, 0u, vk::IndexType::eUint32);
 }
 
-void VulkMesh::draw(vk::CommandBuffer cmdbuf, int subMesh) const
+void Mesh::draw(vk::CommandBuffer cmdbuf, int subMesh) const
 {
     if (subMesh >= 0)
     {
@@ -115,7 +115,7 @@ void VulkMesh::draw(vk::CommandBuffer cmdbuf, int subMesh) const
 
 //============================================================================//
 
-void VulkMesh::impl_load_ascii(const String& path, bool swapYZ)
+void Mesh::impl_load_ascii(const String& path, bool swapYZ)
 {
     enum class Section { None, Header, Vertices, Indices };
     Section section = Section::None;
@@ -312,7 +312,7 @@ void VulkMesh::impl_load_ascii(const String& path, bool swapYZ)
 
 //============================================================================//
 
-void VulkMesh::impl_load_final(std::vector<std::byte>& vertexData, std::vector<uint32_t>& indexData)
+void Mesh::impl_load_final(std::vector<std::byte>& vertexData, std::vector<uint32_t>& indexData)
 {
     const auto& ctx = VulkanContext::get();
 
@@ -342,7 +342,7 @@ void VulkMesh::impl_load_final(std::vector<std::byte>& vertexData, std::vector<u
 
 //============================================================================//
 
-VulkMesh::VertexConfig::VertexConfig(vk::Flags<Attribute> flags)
+Mesh::VertexConfig::VertexConfig(vk::Flags<Attribute> flags)
 {
     const uint sizePOS = sizeof(float[3]);
     const uint sizeTCRD = sizeof(float[2]) * bool(flags & Attribute::TexCoords);

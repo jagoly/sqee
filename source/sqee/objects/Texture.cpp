@@ -1,4 +1,4 @@
-#include <sqee/vk/VulkTexture.hpp>
+#include <sqee/objects/Texture.hpp>
 
 #include <sqee/debug/Assert.hpp>
 #include <sqee/debug/Logging.hpp>
@@ -123,12 +123,12 @@ static auto impl_load_image(vk::Format format, const String& path)
 
 //============================================================================//
 
-VulkTexture::VulkTexture(VulkTexture&& other)
+Texture::Texture(Texture&& other)
 {
     *this = std::move(other);
 }
 
-VulkTexture& VulkTexture::operator=(VulkTexture&& other)
+Texture& Texture::operator=(Texture&& other)
 {
     std::swap(mImage, other.mImage);
     std::swap(mImageMem, other.mImageMem);
@@ -137,7 +137,7 @@ VulkTexture& VulkTexture::operator=(VulkTexture&& other)
     return *this;
 }
 
-VulkTexture::~VulkTexture()
+Texture::~Texture()
 {
     const auto& ctx = VulkanContext::get();
     if (mSampler) ctx.device.destroy(mSampler);
@@ -148,7 +148,7 @@ VulkTexture::~VulkTexture()
 
 //============================================================================//
 
-void VulkTexture::initialise_2D(const Config& config)
+void Texture::initialise_2D(const Config& config)
 {
     SQASSERT(!mImage, "texture already loaded");
 
@@ -167,7 +167,7 @@ void VulkTexture::initialise_2D(const Config& config)
 
 //============================================================================//
 
-void VulkTexture::load_from_file_2D(const String& path)
+void Texture::load_from_file_2D(const String& path)
 {
     const JsonValue json = parse_json_from_file(path + ".json");
 
@@ -190,7 +190,7 @@ void VulkTexture::load_from_file_2D(const String& path)
 
 //============================================================================//
 
-void VulkTexture::initialise_array(const Config& config)
+void Texture::initialise_array(const Config& config)
 {
     SQASSERT(!mImage, "texture already loaded");
 
@@ -209,7 +209,7 @@ void VulkTexture::initialise_array(const Config& config)
 
 //============================================================================//
 
-void VulkTexture::load_from_file_array(const String& path)
+void Texture::load_from_file_array(const String& path)
 {
     const JsonValue json = parse_json_from_file(path + "/TextureArray.json");
 
@@ -238,7 +238,7 @@ void VulkTexture::load_from_file_array(const String& path)
 
 //============================================================================//
 
-void VulkTexture::initialise_cube(const Config& config)
+void Texture::initialise_cube(const Config& config)
 {
     SQASSERT(!mImage, "texture already loaded");
 
@@ -257,7 +257,7 @@ void VulkTexture::initialise_cube(const Config& config)
 
 //============================================================================//
 
-void VulkTexture::load_from_file_cube(const String& path)
+void Texture::load_from_file_cube(const String& path)
 {
     const JsonValue json = parse_json_from_file(path + "/TextureCube.json");
 
@@ -285,7 +285,7 @@ void VulkTexture::load_from_file_cube(const String& path)
 
 //============================================================================//
 
-void VulkTexture::impl_initialise_common(const Config& config)
+void Texture::impl_initialise_common(const Config& config)
 {
     const auto& ctx = VulkanContext::get();
 
@@ -306,7 +306,7 @@ void VulkTexture::impl_initialise_common(const Config& config)
 
 //============================================================================//
 
-void VulkTexture::load_from_memory(void* data, uint layer, const Config& config)
+void Texture::load_from_memory(void* data, uint layer, const Config& config)
 {
     const auto& ctx = VulkanContext::get();
 

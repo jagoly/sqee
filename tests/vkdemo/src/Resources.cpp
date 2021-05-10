@@ -11,14 +11,14 @@ ResourceCaches::ResourceCaches()
 {
     meshes.assign_factory([](const String& key)
     {
-        auto result = std::make_unique<sq::VulkMesh>();
+        auto result = std::make_unique<sq::Mesh>();
         result->load_from_file(sq::build_string("assets/", key, ".sqm"), false);
         return result;
     });
 
     textures.assign_factory([](const String& key)
     {
-        auto result = std::make_unique<sq::VulkTexture>();
+        auto result = std::make_unique<sq::Texture>();
         result->load_from_file_2D(sq::build_string("assets/", key));
         return result;
     });
@@ -32,7 +32,7 @@ ResourceCaches::ResourceCaches()
 
     materials.assign_factory([this](const JsonValue& key)
     {
-        auto result = std::make_unique<sq::VulkMaterial>();
+        auto result = std::make_unique<sq::Material>();
         result->load_from_json(key, pipelines, textures);
         return result;
     });

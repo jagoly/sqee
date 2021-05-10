@@ -9,10 +9,11 @@
 #include <sqee/app/InputDevices.hpp>
 #include <sqee/app/Window.hpp>
 
-#include <sqee/vk/VulkMesh.hpp>
-#include <sqee/vk/VulkTexture.hpp>
-#include <sqee/vk/Pipeline.hpp>
-#include <sqee/vk/VulkMaterial.hpp>
+#include <sqee/objects/Material.hpp>
+#include <sqee/objects/Mesh.hpp>
+#include <sqee/objects/Pipeline.hpp>
+#include <sqee/objects/Texture.hpp>
+
 #include <sqee/vk/SwapBuffer.hpp>
 
 namespace demo {

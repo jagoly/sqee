@@ -14,7 +14,7 @@ namespace sq {
 
 //============================================================================//
 
-class SQEE_API VulkMesh final : private MoveOnly
+class SQEE_API Mesh final : private MoveOnly
 {
 public: //====================================================//
 
@@ -42,12 +42,12 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    VulkMesh() = default;
+    Mesh() = default;
 
-    VulkMesh(VulkMesh&& other);
-    VulkMesh& operator=(VulkMesh&& other);
+    Mesh(Mesh&& other);
+    Mesh& operator=(Mesh&& other);
 
-    ~VulkMesh();
+    ~Mesh();
 
     //--------------------------------------------------------//
 
@@ -108,9 +108,9 @@ private: //===================================================//
 
 //============================================================================//
 
-inline vk::Flags<VulkMesh::Attribute> operator|(VulkMesh::Attribute lhs, VulkMesh::Attribute rhs)
+inline vk::Flags<Mesh::Attribute> operator|(Mesh::Attribute lhs, Mesh::Attribute rhs)
 {
-    return vk::Flags<VulkMesh::Attribute>(int(lhs) | int(rhs));
+    return vk::Flags<Mesh::Attribute>(int(lhs) | int(rhs));
 }
 
 //============================================================================//

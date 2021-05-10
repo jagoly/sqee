@@ -1,4 +1,4 @@
-#include <sqee/vk/VulkMaterial.hpp>
+#include <sqee/objects/Material.hpp>
 
 #include <sqee/vk/Helpers.hpp>
 
@@ -9,12 +9,12 @@ using namespace sq;
 
 //============================================================================//
 
-VulkMaterial::VulkMaterial(VulkMaterial&& other)
+Material::Material(Material&& other)
 {
     *this = std::move(other);
 }
 
-VulkMaterial& VulkMaterial::operator=(VulkMaterial&& other)
+Material& Material::operator=(Material&& other)
 {
     std::swap(mPipeline, other.mPipeline);
     std::swap(mTextures, other.mTextures);
@@ -24,7 +24,7 @@ VulkMaterial& VulkMaterial::operator=(VulkMaterial&& other)
     return *this;
 }
 
-VulkMaterial::~VulkMaterial()
+Material::~Material()
 {
     const auto& ctx = VulkanContext::get();
     if (mParamBuffer) ctx.device.destroy(mParamBuffer);
@@ -34,7 +34,7 @@ VulkMaterial::~VulkMaterial()
 
 //============================================================================//
 
-void VulkMaterial::load_from_json(const JsonValue& json, PipelineCache& pipelines, TextureCache& textures)
+void Material::load_from_json(const JsonValue& json, PipelineCache& pipelines, TextureCache& textures)
 {
     const auto& ctx = VulkanContext::get();
 
@@ -98,7 +98,7 @@ void VulkMaterial::load_from_json(const JsonValue& json, PipelineCache& pipeline
 
 //============================================================================//
 
-void VulkMaterial::bind(vk::CommandBuffer cmdbuf) const
+void Material::bind(vk::CommandBuffer cmdbuf) const
 {
     cmdbuf.bindPipeline (
         vk::PipelineBindPoint::eGraphics, mPipeline->get_pipeline()
@@ -109,7 +109,7 @@ void VulkMaterial::bind(vk::CommandBuffer cmdbuf) const
     );
 }
 
-void VulkMaterial::bind_final_descriptor_set(vk::CommandBuffer cmdbuf, vk::DescriptorSet dset) const
+void Material::bind_final_descriptor_set(vk::CommandBuffer cmdbuf, vk::DescriptorSet dset) const
 {
     cmdbuf.bindDescriptorSets (
         vk::PipelineBindPoint::eGraphics, mPipeline->get_pipeline_layout(),

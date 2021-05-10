@@ -1,4 +1,4 @@
-#include <sqee/vk/Pipeline.hpp>
+#include <sqee/objects/Pipeline.hpp>
 
 #include <sqee/core/Algorithms.hpp>
 #include <sqee/core/Utilities.hpp>
@@ -6,8 +6,8 @@
 #include <sqee/debug/Logging.hpp>
 #include <sqee/misc/Files.hpp>
 #include <sqee/misc/Json.hpp>
+#include <sqee/objects/Mesh.hpp>
 #include <sqee/vk/Helpers.hpp>
-#include <sqee/vk/VulkMesh.hpp>
 
 #include <spirv_cross.hpp>
 
@@ -234,12 +234,12 @@ void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes
 
     const std::vector<JsonValue>& jsonAttributes = json.at("attributes");
 
-    vk::Flags<VulkMesh::Attribute> attributes {};
-    if (algo::find(jsonAttributes, "TexCoords") != jsonAttributes.end()) attributes |= VulkMesh::Attribute::TexCoords;
-    if (algo::find(jsonAttributes, "Normals") != jsonAttributes.end()) attributes |= VulkMesh::Attribute::Normals;
-    if (algo::find(jsonAttributes, "Tangents") != jsonAttributes.end()) attributes |= VulkMesh::Attribute::Tangents;
-    if (algo::find(jsonAttributes, "Colours") != jsonAttributes.end()) attributes |= VulkMesh::Attribute::Colours;
-    if (algo::find(jsonAttributes, "Bones") != jsonAttributes.end()) attributes |= VulkMesh::Attribute::Bones;
+    vk::Flags<Mesh::Attribute> attributes {};
+    if (algo::find(jsonAttributes, "TexCoords") != jsonAttributes.end()) attributes |= Mesh::Attribute::TexCoords;
+    if (algo::find(jsonAttributes, "Normals") != jsonAttributes.end()) attributes |= Mesh::Attribute::Normals;
+    if (algo::find(jsonAttributes, "Tangents") != jsonAttributes.end()) attributes |= Mesh::Attribute::Tangents;
+    if (algo::find(jsonAttributes, "Colours") != jsonAttributes.end()) attributes |= Mesh::Attribute::Colours;
+    if (algo::find(jsonAttributes, "Bones") != jsonAttributes.end()) attributes |= Mesh::Attribute::Bones;
 
     // todo: cullFace | polygonMode | depthTest | colourBlend
 
@@ -250,7 +250,7 @@ void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes
         {}, { reinterpret_cast<const uint32_t*>(fragmentShaderCode.data()), fragmentShaderCode.size() }
     );
 
-    const auto vertexConfig = VulkMesh::VertexConfig ( attributes );
+    const auto vertexConfig = Mesh::VertexConfig ( attributes );
 
     mPipeline = vk_create_graphics_pipeline (
         ctx, mPipelineLayout, pass.renderPass, pass.subpass, shaderModules.stages, vertexConfig.state,

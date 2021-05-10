@@ -4,9 +4,9 @@
 
 #include <sqee/core/Types.hpp>
 
+#include <sqee/vk/PassConfig.hpp>
 #include <sqee/vk/Vulkan.hpp>
 #include <sqee/vk/VulkanMemory.hpp>
-#include <sqee/vk/PassConfig.hpp>
 
 namespace sq {
 

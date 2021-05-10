@@ -11,7 +11,6 @@
 #include <sqee/vk/Helpers.hpp>
 
 #include <sqee/misc/Json.hpp>
-#include <sqee/vk/Pipeline.hpp>
 
 using namespace demo;
 
