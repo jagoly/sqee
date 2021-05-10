@@ -117,33 +117,9 @@ endif ()
 
 ################################################################################
 
-# for now, don't bother trying to link sfml statically on linux
-if (SQEE_STATIC_LIB AND SQEE_WINDOWS)
-    set(SFML_STATIC_LIBRARIES True)
-endif ()
-
-find_package(SFML 2.5 COMPONENTS window system REQUIRED)
-
-target_include_directories(sqee PRIVATE ${SFML_INCLUDE_DIR})
-target_link_libraries(sqee PRIVATE sfml-window sfml-system)
-
-################################################################################
-
 find_package(glfw3 3.3 REQUIRED)
 
 target_link_libraries(sqee PRIVATE glfw)
-
-################################################################################
-
-set(OpenGL_GL_PREFERENCE "GLVND")
-
-find_package(OpenGL REQUIRED)
-
-if (SQEE_LINUX)
-    target_link_libraries(sqee PUBLIC GL GLX)
-elseif (SQEE_WINDOWS)
-    target_link_libraries(sqee PUBLIC opengl32)
-endif ()
 
 ################################################################################
 

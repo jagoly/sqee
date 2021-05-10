@@ -96,9 +96,6 @@ namespace dop {}
 /// Mathematical classes and functions.
 namespace maths {}
 
-/// OpenGL Core 4.5 constants and functions.
-namespace gl {}
-
 /// A set of core types that get used everywhere.
 namespace coretypes {}
 
