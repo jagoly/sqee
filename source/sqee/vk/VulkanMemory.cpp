@@ -65,6 +65,7 @@ void VulkanAllocator::destroy()
 VulkanMemory VulkanAllocator::allocate(size_t alignment, size_t size, bool host)
 {
     alignment = std::max(alignment, MIN_ALIGNMENT);
+    size = impl_round_up(size, alignment);
 
     auto& memoryBlocks = host ? mHostMemoryBlocks : mDeviceMemoryBlocks;
     const auto memoryTypeIndex = host ? mMemTypeHost : mMemTypeDevice;
@@ -89,7 +90,7 @@ VulkanMemory VulkanAllocator::allocate(size_t alignment, size_t size, bool host)
 
         block->allocator = this;
         block->alignment = alignment;
-        block->size = std::max(impl_round_up(size, alignment), MIN_BLOCK_SIZE);
+        block->size = std::max(size, MIN_BLOCK_SIZE);
         block->memory = mDevice.allocateMemory(vk::MemoryAllocateInfo(block->size, memoryTypeIndex));
         block->mapped = nullptr;
         block->mapCount = 0u;
@@ -104,22 +105,23 @@ VulkanMemory VulkanAllocator::allocate(size_t alignment, size_t size, bool host)
         block->firstChunk = chunk;
     }
 
-    const size_t alignedSize = impl_round_up(size, alignment);
-
     // create new chunk in the space after
-    if (alignedSize != chunk->size)
+    if (size != chunk->size)
     {
         Chunk* next = impl_new_chunk();
         next->block = chunk->block;
-        next->offset = chunk->offset + alignedSize;
-        next->size = chunk->size - alignedSize;
+        next->offset = chunk->offset + size;
+        next->size = chunk->size - size;
         next->previous = chunk;
         next->next = chunk->next;
 
+        if (next->next != nullptr)
+            next->next->previous = next;
+
+        chunk->size = size;
         chunk->next = next;
     }
 
-    chunk->size = size;
     chunk->free = false;
 
     return VulkanMemory(chunk);
@@ -243,7 +245,6 @@ void VulkanMemory::free()
     if (chunk->mapped == true)
         unmap();
 
-    chunk->size = impl_round_up(chunk->size, chunk->block->alignment);
     chunk->free = true;
 
     // merge next chunk into this one
@@ -259,13 +260,11 @@ void VulkanMemory::free()
     // merge this chunk into previous one
     if (chunk->previous != nullptr && chunk->previous->free == true)
     {
-        std::swap(chunk, chunk->previous);
-
-        VulkanAllocator::Chunk* next = chunk->next;
-        chunk->size += next->size;
-        chunk->next = next->next;
-        if (next->next != nullptr) next->next->previous = chunk;
-        chunk->block->allocator->impl_delete_chunk(next);
+        VulkanAllocator::Chunk* previous = chunk->previous;
+        previous->size += chunk->size;
+        previous->next = chunk->next;
+        if (chunk->next != nullptr) chunk->next->previous = previous;
+        chunk->block->allocator->impl_delete_chunk(chunk);
     }
 
     chunk = nullptr;
