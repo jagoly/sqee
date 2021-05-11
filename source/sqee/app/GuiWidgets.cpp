@@ -12,20 +12,7 @@ DISABLE_WARNING_OLD_STYLE_CAST()
 
 namespace { // anonymous
 
-template <class Type>
-constexpr ImGuiDataType_ impl_get_data_type()
-{
-    if (std::is_same_v<Type, int8_t>)   return ImGuiDataType_S8;
-    if (std::is_same_v<Type, uint8_t>)  return ImGuiDataType_U8;
-    if (std::is_same_v<Type, int16_t>)  return ImGuiDataType_S16;
-    if (std::is_same_v<Type, uint16_t>) return ImGuiDataType_U16;
-    if (std::is_same_v<Type, int32_t>)  return ImGuiDataType_S32;
-    if (std::is_same_v<Type, uint32_t>) return ImGuiDataType_U32;
-    if (std::is_same_v<Type, int64_t>)  return ImGuiDataType_S64;
-    if (std::is_same_v<Type, uint64_t>) return ImGuiDataType_U64;
-    if (std::is_same_v<Type, float>)    return ImGuiDataType_Float;
-    if (std::is_same_v<Type, double>)   return ImGuiDataType_Double;
-}
+using namespace ImPlus;
 
 struct impl_InputTextCallbackUserData
 {
@@ -51,62 +38,13 @@ int impl_input_text_callback(ImGuiInputTextCallbackData* data)
     return 0;
 }
 
-union impl_UnionValue
-{
-    int8_t s8; uint8_t u8;
-    int16_t s16; uint16_t u16;
-    int32_t s32; uint32_t u32;
-    int64_t s64; uint64_t u64;
-    float f; double d;
-};
-
-std::array<impl_UnionValue, 4> impl_scalar_range_2_get_ranges(ImGuiDataType data_type, const void* current_min, const void* current_max, const void* min, const void* max)
-{
-    std::array<impl_UnionValue, 4> result;
-
-    // (v_min >= v_max) ? -FLT_MAX : v_min
-    // (v_min >= v_max) ? *v_current_max : ImMin(v_max, *v_current_max)
-    // (v_min >= v_max) ? *v_current_min : ImMax(v_min, *v_current_min)
-    // (v_min >= v_max) ? FLT_MAX : v_max
-
-    #define CASE_FOR_DATA_TYPE(Enum, Type, Member, TypeMin, TypeMax) \
-    if (data_type == Enum) { \
-        if (*(const Type*)(min) >= *(const Type*)(max)) { \
-            result[0].Member = TypeMin; \
-            result[1].Member = *(const Type*)(current_max); \
-            result[2].Member = *(const Type*)(current_min); \
-            result[3].Member = TypeMax; \
-        } else { \
-            result[0].Member = *(const Type*)(min); \
-            result[1].Member = ImMin(*(const Type*)(max), *(const Type*)(current_max)); \
-            result[2].Member = ImMax(*(const Type*)(min), *(const Type*)(current_min)); \
-            result[3].Member = *(const Type*)(max); \
-        } \
-    }
-
-    CASE_FOR_DATA_TYPE(ImGuiDataType_S8, int8_t, s8, SCHAR_MIN, SCHAR_MAX);
-    CASE_FOR_DATA_TYPE(ImGuiDataType_U8, uint8_t, u8, 0u, UCHAR_MAX);
-    CASE_FOR_DATA_TYPE(ImGuiDataType_S16, int16_t, s16, SHRT_MIN, SHRT_MAX);
-    CASE_FOR_DATA_TYPE(ImGuiDataType_U16, uint16_t, u16, 0u, USHRT_MAX);
-    CASE_FOR_DATA_TYPE(ImGuiDataType_S32, int32_t, s32, INT_MIN, INT_MAX);
-    CASE_FOR_DATA_TYPE(ImGuiDataType_U32, uint32_t, u32, 0u, UINT_MAX);
-    CASE_FOR_DATA_TYPE(ImGuiDataType_S64, int64_t, s64, LONG_MIN, LONG_MAX);
-    CASE_FOR_DATA_TYPE(ImGuiDataType_U64, uint64_t, u64, 0u, ULONG_MAX);
-    CASE_FOR_DATA_TYPE(ImGuiDataType_Float, float, f, -FLT_MAX, FLT_MAX);
-    CASE_FOR_DATA_TYPE(ImGuiDataType_Double, double, d, -DBL_MAX, DBL_MAX);
-
-    #undef CASE_FOR_DATA_TYPE
-
-    return result;
-}
-
 template <class Type>
 static bool impl_InputValue(ImPlus::CStrView label, Type& ref, Type step, const char* format)
 {
-    constexpr const auto dataType = impl_get_data_type<Type>();
-    auto temp = ref;
-    ImGui::InputScalar(label, dataType, &temp, step > 0 ? &step : nullptr, nullptr, format);
-    const bool changed = ImGui::IsItemDeactivatedAfterEdit();
+    constexpr ImGuiDataType dataType = impl_get_data_type<Type>();
+    Type temp = ref;
+    bool changed = ImGui::InputScalar(label, dataType, &temp, step > 0 ? &step : nullptr, nullptr, format);
+    if (changed) changed = ImGui::IsItemDeactivatedAfterEdit();
     if (changed) ref = temp;
     return changed;
 }
@@ -114,85 +52,41 @@ static bool impl_InputValue(ImPlus::CStrView label, Type& ref, Type step, const 
 template <class Type>
 static bool impl_DragValue(ImPlus::CStrView label, Type& ref, Type min, Type max, float speed, const char* format)
 {
-    constexpr const auto dataType = impl_get_data_type<Type>();
-    auto temp = ref;
-    const bool tempInputTextActive = GImGui->TempInputId != 0 && ImGui::TempInputIsActive(GImGui->CurrentWindow->GetID(label));
-    bool changed = ImGui::DragScalar(label, dataType, &temp, speed, &min, &max, format);
-    if (tempInputTextActive) changed = ImGui::IsItemDeactivatedAfterEdit();
-    if (changed) ref = sq::maths::clamp(temp, min, max);
+    constexpr ImGuiDataType dataType = impl_get_data_type<Type>();
+    Type temp = ref;
+    bool changed = ImGui::DragScalar(label, dataType, &temp, speed, &min, &max, format, ImGuiSliderFlags_AlwaysClamp);
+    if (changed && GImGui->TempInputId != 0) changed = ImGui::IsItemDeactivatedAfterEdit();
+    if (changed) ref = temp;
     return changed;
 }
 
 template <class Type>
 static bool impl_SliderValue(ImPlus::CStrView label, Type& ref, Type min, Type max, const char* format)
 {
-    constexpr const auto dataType = impl_get_data_type<Type>();
-    auto temp = ref;
-    const bool tempInputActive = GImGui->TempInputId != 0 && ImGui::TempInputIsActive(GImGui->CurrentWindow->GetID(label));
-    bool changed = ImGui::SliderScalar(label, dataType, &temp, &min, &max, format);
-    if (tempInputActive) changed = ImGui::IsItemDeactivatedAfterEdit();
-    if (changed) ref = sq::maths::clamp(temp, min, max);
+    constexpr ImGuiDataType dataType = impl_get_data_type<Type>();
+    Type temp = ref;
+    bool changed = ImGui::SliderScalar(label, dataType, &temp, &min, &max, format, ImGuiSliderFlags_AlwaysClamp);
+    if (changed && GImGui->TempInputId != 0) changed = ImGui::IsItemDeactivatedAfterEdit();
+    if (changed) ref = temp;
     return changed;
-}
-
-template <class Type>
-static bool impl_InputValueRange2(ImPlus::CStrView label, Type& refMin, Type& refMax, Type step, const char* format)
-{
-    constexpr const auto dataType = impl_get_data_type<Type>();
-    Type temp[2] = { refMin, refMax };
-    ImGui::InputScalarN(label, dataType, temp, 2, step > 0 ? &step : nullptr, nullptr, format);
-    if (ImGui::IsItemDeactivatedAfterEdit())
-    {
-        const bool overlap = temp[0] > temp[1];
-        if (overlap && temp[0] != refMin) temp[1] = temp[0];
-        else if (overlap && temp[1] != refMax) temp[0] = temp[1];
-        refMin = temp[0]; refMax = temp[1];
-        return true;
-    }
-    return false;
 }
 
 template <class Type>
 static bool impl_DragValueRange2(ImPlus::CStrView label, Type& refMin, Type& refMax, Type min, Type max, float speed, const char* format)
 {
-    constexpr const auto dataType = impl_get_data_type<Type>();
+    constexpr ImGuiDataType dataType = impl_get_data_type<Type>();
     Type temp[2] = { refMin, refMax };
-    const bool changed = ImGui::DragScalarN(label, dataType, temp, 2, speed, &min, &max, format);
-    if (changed && (GImGui->TempInputId == 0 || ImGui::IsItemDeactivatedAfterEdit()))
-    {
-        const bool overlap = temp[0] > temp[1];
-        if (overlap && temp[0] != refMin) temp[0] = temp[1];
-        else if (overlap && temp[1] != refMax) temp[1] = temp[0];
-        refMin = sq::maths::clamp(temp[0], min, max);
-        refMax = sq::maths::clamp(temp[1], min, max);
-        return true;
-    }
-    return false;
-}
-
-template <class Type>
-static bool impl_SliderValueRange2(ImPlus::CStrView label, Type& refMin, Type& refMax, Type min, Type max, const char* format)
-{
-    constexpr const auto dataType = impl_get_data_type<Type>();
-    Type temp[2] = { refMin, refMax };
-    const bool changed = ImGui::SliderScalarN(label, dataType, temp, 2, &min, &max, format);
-    if (changed && (GImGui->TempInputId == 0 || ImGui::IsItemDeactivatedAfterEdit()))
-    {
-        const bool overlap = temp[0] > temp[1];
-        if (overlap && temp[0] != refMin) temp[0] = temp[1];
-        else if (overlap && temp[1] != refMax) temp[1] = temp[0];
-        refMin = sq::maths::clamp(temp[0], min, max);
-        refMax = sq::maths::clamp(temp[1], min, max);
-        return true;
-    }
-    return false;
+    bool changed = ImGui::DragScalarRange2(label, dataType, &temp[0], &temp[1], speed, &min, &max, format, format, ImGuiSliderFlags_AlwaysClamp);
+    if (changed && GImGui->TempInputId != 0) changed = ImGui::IsItemDeactivatedAfterEdit();
+    if (changed) { refMin = temp[0]; refMax = temp[1]; }
+    return changed;
 }
 
 } // anonymous namespace
 
 //============================================================================//
 
-bool ImGui::DragScalarRange2(const char* label, ImGuiDataType data_type, void* p_current_min, void* p_current_max, float v_speed, const void* p_min, const void* p_max, const char* format, float power)
+bool ImGui::DragScalarRange2(const char* label, ImGuiDataType data_type, void* p_current_min, void* p_current_max, float v_speed, const void* p_min, const void* p_max, const char* format, const char* format_max, ImGuiSliderFlags flags)
 {
     ImGuiWindow* window = GetCurrentWindow();
     if (window->SkipItems)
@@ -203,23 +97,63 @@ bool ImGui::DragScalarRange2(const char* label, ImGuiDataType data_type, void* p
     BeginGroup();
     PushMultiItemsWidths(2, CalcItemWidth());
 
-    const auto ranges = impl_scalar_range_2_get_ranges(data_type, p_current_min, p_current_max, p_min, p_max);
+    ImU64 min_min = 0, min_max = 0, max_min = 0, max_max = 0;
 
-    bool value_changed = false;
-    value_changed |= DragScalar("##min", data_type, p_current_min, v_speed, &ranges[0], &ranges[1], format, power);
+    #define IMGUI_CASE_FOR_DATA_TYPE(Enum, Type, TypeMin, TypeMax) \
+    case Enum: { \
+        const Type v_min = p_min ? *(const Type*)(p_min) : TypeMin; \
+        const Type v_max = p_max ? *(const Type*)(p_max) : TypeMax; \
+        const Type v_current_min = *(const Type*)(p_current_min); \
+        const Type v_current_max = *(const Type*)(p_current_max); \
+        if (v_min >= v_max) { \
+            (Type&)min_min = TypeMin; \
+            (Type&)min_max = v_current_max; \
+            (Type&)max_min = v_current_min; \
+            (Type&)max_max = TypeMax; \
+        } else { \
+            (Type&)min_min = v_min; \
+            (Type&)min_max = ImMin(v_max, v_current_max); \
+            (Type&)max_min = ImMax(v_min, v_current_min); \
+            (Type&)max_max = v_max; \
+        } \
+        break; \
+    }
+
+    switch (data_type)
+    {
+        IMGUI_CASE_FOR_DATA_TYPE(ImGuiDataType_S8,     ImS8,   INT8_MIN,  INT8_MAX)
+        IMGUI_CASE_FOR_DATA_TYPE(ImGuiDataType_U8,     ImU8,   0u,        UINT8_MAX)
+        IMGUI_CASE_FOR_DATA_TYPE(ImGuiDataType_S16,    ImS16,  INT16_MIN, INT16_MAX)
+        IMGUI_CASE_FOR_DATA_TYPE(ImGuiDataType_U16,    ImU16,  0u,        UINT16_MAX)
+        IMGUI_CASE_FOR_DATA_TYPE(ImGuiDataType_S32,    ImS32,  INT32_MIN, INT32_MAX)
+        IMGUI_CASE_FOR_DATA_TYPE(ImGuiDataType_U32,    ImU32,  0u,        UINT32_MAX)
+        IMGUI_CASE_FOR_DATA_TYPE(ImGuiDataType_S64,    ImS64,  INT64_MIN, INT64_MAX)
+        IMGUI_CASE_FOR_DATA_TYPE(ImGuiDataType_U64,    ImU64,  0u,        UINT64_MAX)
+        IMGUI_CASE_FOR_DATA_TYPE(ImGuiDataType_Float,  float,  -FLT_MAX,  FLT_MAX)
+        IMGUI_CASE_FOR_DATA_TYPE(ImGuiDataType_Double, double, -DBL_MAX,  DBL_MAX)
+        default: IM_ASSERT(0);
+    }
+
+    #undef IMGUI_CASE_FOR_DATA_TYPE
+
+    ImGuiSliderFlags min_flags = flags | (min_min == min_max ? ImGuiSliderFlags_ReadOnly : 0);
+    bool value_changed = DragScalar("##min", data_type, p_current_min, v_speed, &min_min, &min_max, format, min_flags);
     PopItemWidth();
     SameLine(0, g.Style.ItemInnerSpacing.x);
-    value_changed |= DragScalar("##max", data_type, p_current_max, v_speed, &ranges[2], &ranges[3], format, power);
+
+    ImGuiSliderFlags max_flags = flags | (max_min == max_max ? ImGuiSliderFlags_ReadOnly : 0);
+    value_changed |= DragScalar("##max", data_type, p_current_max, v_speed, &max_min, &max_max, format_max ? format_max : format, max_flags);
     PopItemWidth();
     SameLine(0, g.Style.ItemInnerSpacing.x);
 
     TextEx(label, FindRenderedTextEnd(label));
     EndGroup();
     PopID();
+
     return value_changed;
 }
 
-//----------------------------------------------------------------------------//
+//============================================================================//
 
 bool ImPlus::InputString(CStrView label, std::string& str, ImGuiInputTextFlags flags,
                          ImGuiInputTextCallback callback, void* userData)
@@ -239,6 +173,26 @@ bool ImPlus::InputStringMultiline(CStrView label, std::string& str, ImVec2 size,
 
     impl_InputTextCallbackUserData cbUserData = { str, callback, userData };
     return ImGui::InputTextMultiline(label, str.data(), str.capacity() + 1, size, flags, impl_input_text_callback, &cbUserData);
+}
+
+//----------------------------------------------------------------------------//
+
+bool ImPlus::InputColour(CStrView label, sq::Vec3F& colour, ImGuiColorEditFlags flags)
+{
+    sq::Vec3F temp = colour;
+    bool changed = ImGui::ColorEdit3(label, temp.data, flags);
+    if (changed && GImGui->TempInputId != 0) changed = ImGui::IsItemDeactivatedAfterEdit();
+    if (changed) colour = temp;
+    return changed;
+}
+
+bool ImPlus::InputColour(CStrView label, sq::Vec4F& colour, ImGuiColorEditFlags flags)
+{
+    sq::Vec4F temp = colour;
+    bool changed = ImGui::ColorEdit4(label, temp.data, flags);
+    if (changed && GImGui->TempInputId != 0) changed = ImGui::IsItemDeactivatedAfterEdit();
+    if (changed) colour = temp;
+    return changed;
 }
 
 //----------------------------------------------------------------------------//
@@ -399,17 +353,9 @@ bool ImPlus::DragValue(CStrView label, Type& ref, Type min, Type max, float spee
 bool ImPlus::SliderValue(CStrView label, Type& ref, Type min, Type max, const char* format) \
 { return impl_SliderValue(label, ref, min, max, format); }
 
-#define IMPLUS_INPUT_VALUE_RANGE2_DEFINITION(Type) \
-bool ImPlus::InputValueRange2(CStrView label, Type& refMin, Type& refMax, Type step, const char* format) \
-{ return impl_InputValueRange2(label, refMin, refMax, step, format); }
-
 #define IMPLUS_DRAG_VALUE_RANGE2_DEFINITION(Type) \
 bool ImPlus::DragValueRange2(CStrView label, Type& refMin, Type& refMax, Type min, Type max, float speed, const char* format) \
 { return impl_DragValueRange2(label, refMin, refMax, min, max, speed, format); }
-
-#define IMPLUS_SLIDER_VALUE_RANGE2_DEFINITION(Type) \
-bool ImPlus::SliderValueRange2(CStrView label, Type& refMin, Type& refMax, Type min, Type max, const char* format) \
-{ return impl_SliderValueRange2(label, refMin, refMax, min, max, format); }
 
 //----------------------------------------------------------------------------//
 
@@ -417,9 +363,7 @@ bool ImPlus::SliderValueRange2(CStrView label, Type& refMin, Type& refMax, Type 
 IMPLUS_INPUT_VALUE_DEFINITION(Type) \
 IMPLUS_DRAG_VALUE_DEFINITION(Type) \
 IMPLUS_SLIDER_VALUE_DEFINITION(Type) \
-IMPLUS_INPUT_VALUE_RANGE2_DEFINITION(Type) \
-IMPLUS_DRAG_VALUE_RANGE2_DEFINITION(Type) \
-IMPLUS_SLIDER_VALUE_RANGE2_DEFINITION(Type)
+IMPLUS_DRAG_VALUE_RANGE2_DEFINITION(Type)
 
 IMPLUS_INPUT_FUNCTION_DEFINITIONS(int8_t)
 IMPLUS_INPUT_FUNCTION_DEFINITIONS(uint8_t)

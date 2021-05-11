@@ -16,7 +16,8 @@
 namespace ImGui {
 
 // Like DragIntRange2 or DragFloatRange2, but supporting other types.
-SQEE_API bool DragScalarRange2(const char* label, ImGuiDataType data_type, void* p_current_min, void* p_current_max, float v_speed, const void* p_min, const void* p_max, const char* format = NULL, float power = 1.0f);
+// todo: get this merged into imgui itself
+SQEE_API bool DragScalarRange2(const char* label, ImGuiDataType data_type, void* p_current_min, void* p_current_max, float v_speed = 1.0f, const void* p_min = NULL, const void* p_max = NULL, const char* format = NULL, const char* format_max = NULL, ImGuiSliderFlags flags = 0);
 
 } // namespace ImGui
 
@@ -128,8 +129,6 @@ inline bool Selectable(CStrView label, bool selected = false, ImGuiSelectableFla
 // Widgets: List Boxes
 //inline bool ListBox(CStrView label, int* current_item, const char* const items[], int items_count, int height_in_items = -1) { return ImGui::ListBox(label, current_item, items, items_count, height_in_items); }
 //inline bool ListBox(CStrView label, int* current_item, bool (*items_getter)(void* data, int idx, const char** out_text), void* data, int items_count, int height_in_items = -1) { return ImGui::ListBox(label, current_item, items_getter, data, items_count, height_in_items); }
-inline bool ListBoxHeader(CStrView label, ImVec2 size = {0,0}) { return ImGui::ListBoxHeader(label, size); }
-inline bool ListBoxHeader(CStrView label, int items_count, int height_in_items = -1) { return ImGui::ListBoxHeader(label, items_count, height_in_items); }
 
 // Widgets: Data Plotting
 //inline void PlotLines(CStrView label, const float* values, int values_count, int values_offset = 0, CStrView overlay_text = nullptr, float scale_min = FLT_MAX, float scale_max = FLT_MAX, ImVec2 graph_size = {0,0}, int stride = sizeof(float)) { ImGui::PlotLines(label, values, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, stride); }
@@ -211,6 +210,12 @@ SQEE_API bool InputString(CStrView label, std::string& str, ImGuiInputTextFlags 
 SQEE_API bool InputStringMultiline(CStrView label, std::string& str, ImVec2 size, ImGuiInputTextFlags flags = 0,
                                    ImGuiInputTextCallback callback = nullptr, void* userData = nullptr);
 
+/// ColorEdit3 that behaves like other ImPlus input widgets.
+SQEE_API bool InputColour(CStrView label, sq::Vec3F& colour, ImGuiColorEditFlags flags = 0);
+
+/// ColorEdit4 that behaves like other ImPlus input widgets.
+SQEE_API bool InputColour(CStrView label, sq::Vec4F& colour, ImGuiColorEditFlags flags = 0);
+
 /// Show a dialog prompting the user for confirmation.
 SQEE_API DialogResult DialogConfirmation(CStrView title, CStrView message = nullptr);
 
@@ -237,32 +242,14 @@ constexpr inline ImGuiDataType_ impl_get_data_type()
 #define IMPLUS_INPUT_VALUE_DECLARATION(Type) \
 SQEE_API bool InputValue(CStrView label, Type& ref, Type step = 0, const char* format = nullptr);
 
-//template <class Type>
-//SQEE_API bool InputValue(const char* label, Type& ref, decltype(Type()) min, decltype(Type()) max, decltype(Type()) step = 0, const char* format = nullptr);
-
-//template <class Type>
-//SQEE_API bool DragValue(const char* label, Type& ref, float speed, const char* format = nullptr);
-
 #define IMPLUS_DRAG_VALUE_DECLARATION(Type) \
 SQEE_API bool DragValue(CStrView label, Type& ref, Type min, Type max, float speed, const char* format = nullptr);
 
 #define IMPLUS_SLIDER_VALUE_DECLARATION(Type) \
 SQEE_API bool SliderValue(CStrView label, Type& ref, Type min, Type max, const char* format = nullptr);
 
-#define IMPLUS_INPUT_VALUE_RANGE2_DECLARATION(Type) \
-SQEE_API bool InputValueRange2(CStrView label, Type& refMin, Type& refMax, Type step = 0, const char* format = nullptr);
-
-//template <class Type>
-//SQEE_API bool InputValueRange2(CStrView label, Type& refMin, Type& refMax, decltype(Type()) min, decltype(Type()) max, decltype(Type()) step = 0, const char* format = nullptr);
-
-//template <class Type>
-//SQEE_API bool DragValueRange2(CStrView label, Type& refMin, Type& refMax, float speed, const char* format = nullptr);
-
 #define IMPLUS_DRAG_VALUE_RANGE2_DECLARATION(Type) \
 SQEE_API bool DragValueRange2(CStrView label, Type& refMin, Type& refMax, Type min, Type max, float speed, const char* format = nullptr);
-
-#define IMPLUS_SLIDER_VALUE_RANGE2_DECLARATION(Type) \
-SQEE_API bool SliderValueRange2(CStrView label, Type& refMin, Type& refMax, Type min, Type max, const char* format = nullptr);
 
 //----------------------------------------------------------------------------//
 
@@ -270,9 +257,7 @@ SQEE_API bool SliderValueRange2(CStrView label, Type& refMin, Type& refMax, Type
 IMPLUS_INPUT_VALUE_DECLARATION(Type) \
 IMPLUS_DRAG_VALUE_DECLARATION(Type) \
 IMPLUS_SLIDER_VALUE_DECLARATION(Type) \
-IMPLUS_INPUT_VALUE_RANGE2_DECLARATION(Type) \
-IMPLUS_DRAG_VALUE_RANGE2_DECLARATION(Type) \
-IMPLUS_SLIDER_VALUE_RANGE2_DECLARATION(Type)
+IMPLUS_DRAG_VALUE_RANGE2_DECLARATION(Type)
 
 IMPLUS_INPUT_FUNCTION_DECLARATIONS(int8_t)
 IMPLUS_INPUT_FUNCTION_DECLARATIONS(uint8_t)
@@ -290,16 +275,14 @@ IMPLUS_INPUT_FUNCTION_DECLARATIONS(double)
 #undef IMPLUS_INPUT_VALUE_DECLARATION
 #undef IMPLUS_DRAG_VALUE_DECLARATION
 #undef IMPLUS_SLIDER_VALUE_DECLARATION
-#undef IMPLUS_INPUT_VALUE_RANGE2_DECLARATION
 #undef IMPLUS_DRAG_VALUE_RANGE2_DECLARATION
-#undef IMPLUS_SLIDER_VALUE_RANGE2_DECLARATION
 
 //----------------------------------------------------------------------------//
 
 template <int Size, class Type>
 inline bool InputVector(CStrView label, sq::maths::Vector<Size, Type>& ref, decltype(Type()) step = 0, const char* format = nullptr)
 {
-    constexpr const auto dataType = impl_get_data_type<Type>();
+    constexpr auto dataType = impl_get_data_type<Type>();
     auto temp = ref;
     ImGui::InputScalarN(label, dataType, temp.data, Size, step > 0 ? &step : nullptr, nullptr, format);
     const bool changed = ImGui::IsItemDeactivatedAfterEdit();
@@ -311,7 +294,7 @@ inline bool InputVector(CStrView label, sq::maths::Vector<Size, Type>& ref, decl
 template <class Type>
 inline bool InputQuaternion(CStrView label, sq::maths::Quaternion<Type>& ref, decltype(Type()) step = 0, const char* format = nullptr)
 {
-    constexpr const auto dataType = impl_get_data_type<Type>();
+    constexpr auto dataType = impl_get_data_type<Type>();
     auto temp = ref;
     ImGui::InputScalarN(label, dataType, temp.data, 4, step > 0 ? &step : nullptr, nullptr, format);
     const bool changed = ImGui::IsItemDeactivatedAfterEdit();

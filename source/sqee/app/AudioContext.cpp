@@ -69,7 +69,9 @@ AudioContext::AudioContext() : impl(std::make_unique<Implementation>())
     impl->config.pUserData = this;
 
     if (auto ec = ma_device_init(NULL, &impl->config, &impl->device); ec != MA_SUCCESS)
-        sq::log_error("failed to initialise audio: error code {}", ec);
+        log_error("failed to initialise audio: error code {}", ec);
+
+    log_info("Using MiniAudio Backend '{}'", ma_get_backend_name(impl->device.pContext->backend));
 
     ma_device_start(&impl->device);
 }

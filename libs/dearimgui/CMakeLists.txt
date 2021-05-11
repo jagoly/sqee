@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.16)
 project(DearImGui CXX)
 
 ################################################################################
@@ -12,9 +12,13 @@ if (SQEE_STATIC_LIB)
 else ()
     add_library(dearimgui SHARED ${HEADERS} ${SOURCES})
     target_compile_definitions(dearimgui PRIVATE SQEE_IMGUI_EXPORT)
+    if (SQEE_GNU OR SQEE_CLANG)
+        target_compile_options(dearimgui PRIVATE -fvisibility=hidden)
+    endif ()
 endif ()
 
 target_include_directories(dearimgui PUBLIC "${PROJECT_SOURCE_DIR}/include")
+target_include_directories(dearimgui PRIVATE "${PROJECT_SOURCE_DIR}/include/dearimgui")
 
 set_property(TARGET dearimgui PROPERTY CXX_STANDARD 17)
 set_property(TARGET dearimgui PROPERTY CXX_STANDARD_REQUIRED True)
