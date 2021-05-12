@@ -60,7 +60,10 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    /// Pause or resume one or more sound groups.
+    /// Do not start sounds from one or more groups.
+    void set_groups_ignored(SoundGroups groups, bool ignore);
+
+    /// Pause sounds from one or more sound groups.
     void set_groups_paused(SoundGroups groups, bool pause);
 
     /// Remove all sounds in the specified groups.
@@ -83,6 +86,7 @@ private: //===================================================//
 
     int64_t mCurrentId = -1;
 
+    SoundGroups mIgnoredGroups {};
     SoundGroups mPausedGroups {};
 
     void impl_reset_sound(const Sound* old, const Sound* fresh = nullptr);

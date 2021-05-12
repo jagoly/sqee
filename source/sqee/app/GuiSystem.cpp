@@ -38,10 +38,10 @@ void GuiSystem::set_style_widgets_default()
 
     style.Alpha                     = 1.f;
     style.WindowPadding             = { 8.f, 8.f };
-    style.WindowRounding            = 7.f;
+    style.WindowRounding            = 0.f;
     style.WindowBorderSize          = 1.f;
     style.WindowMinSize             = { 32.f, 32.f };
-    style.WindowTitleAlign          = { 0.f, 0.f };
+    style.WindowTitleAlign          = { 0.f, 0.5f };
     style.WindowMenuButtonPosition  = ImGuiDir_Left;
     style.ChildRounding             = 0.f;
     style.ChildBorderSize           = 1.f;
@@ -52,6 +52,7 @@ void GuiSystem::set_style_widgets_default()
     style.FrameBorderSize           = 0.f;
     style.ItemSpacing               = { 8.f, 4.f };
     style.ItemInnerSpacing          = { 4.f, 4.f };
+    style.CellPadding               = { 4.f, 2.f };
     style.TouchExtraPadding         = { 0.f, 0.f };
     style.IndentSpacing             = 21.f;
     style.ColumnsMinSpacing         = 6.f;
@@ -59,8 +60,10 @@ void GuiSystem::set_style_widgets_default()
     style.ScrollbarRounding         = 9.f;
     style.GrabMinSize               = 10.f;
     style.GrabRounding              = 0.f;
+    style.LogSliderDeadzone         = 4.f;
     style.TabRounding               = 4.f;
     style.TabBorderSize             = 0.f;
+    style.TabMinWidthForCloseButton = 0.f;
     style.ColorButtonPosition       = ImGuiDir_Right;
     style.ButtonTextAlign           = { 0.5f, 0.5f };
     style.SelectableTextAlign       = { 0.f, 0.f };
@@ -73,37 +76,40 @@ void GuiSystem::set_style_widgets_supertux()
 {
     ImGuiStyle& style = ImGui::GetStyle();
 
-    style.Alpha                    = 1.f;
-    style.WindowPadding            = { 6.f, 6.f };
-    style.WindowRounding           = 8.f;
-    style.WindowBorderSize         = 0.f;
-    style.WindowMinSize            = { 32.f, 32.f };
-    style.WindowTitleAlign         = { 0.f, 0.5f };
-    style.WindowMenuButtonPosition = ImGuiDir_Left;
-    style.ChildRounding            = 4.f;
-    style.ChildBorderSize          = 0.f;
-    style.PopupRounding            = 0.f;
-    style.PopupBorderSize          = 1.f;
-    style.FramePadding             = { 6.f, 6.f };
-    style.FrameRounding            = 4.f;
-    style.FrameBorderSize          = 0.f;
-    style.ItemSpacing              = { 6.f, 6.f };
-    style.ItemInnerSpacing         = { 6.f, 6.f };
-    style.TouchExtraPadding        = { 0.f, 0.f };
-    style.IndentSpacing            = 20.f;
-    style.ColumnsMinSpacing        = 6.f;
-    style.ScrollbarSize            = 16.f;
-    style.ScrollbarRounding        = 8.f;
-    style.GrabMinSize              = 8.f;
-    style.GrabRounding             = 4.f;
-    style.TabRounding              = 4.f;
-    style.TabBorderSize            = 0.f;
-    style.ColorButtonPosition      = ImGuiDir_Right;
-    style.ButtonTextAlign          = { 0.5f, 0.5f };
-    style.SelectableTextAlign      = { 0.f, 0.f };
-    style.DisplayWindowPadding     = { 20.f, 20.f };
-    style.DisplaySafeAreaPadding   = { 4.f, 4.f };
-    style.MouseCursorScale         = 1.f;
+    style.Alpha                     = 1.f;
+    style.WindowPadding             = { 6.f, 6.f };
+    style.WindowRounding            = 8.f;
+    style.WindowBorderSize          = 0.f;
+    style.WindowMinSize             = { 32.f, 32.f };
+    style.WindowTitleAlign          = { 0.f, 0.5f };
+    style.WindowMenuButtonPosition  = ImGuiDir_Left;
+    style.ChildRounding             = 4.f;
+    style.ChildBorderSize           = 0.f;
+    style.PopupRounding             = 0.f;
+    style.PopupBorderSize           = 1.f;
+    style.FramePadding              = { 6.f, 6.f };
+    style.FrameRounding             = 4.f;
+    style.FrameBorderSize           = 0.f;
+    style.ItemSpacing               = { 6.f, 6.f };
+    style.ItemInnerSpacing          = { 6.f, 6.f };
+    style.CellPadding               = { 4.f, 4.f };
+    style.TouchExtraPadding         = { 0.f, 0.f };
+    style.IndentSpacing             = 20.f;
+    style.ColumnsMinSpacing         = 6.f;
+    style.ScrollbarSize             = 16.f;
+    style.ScrollbarRounding         = 8.f;
+    style.GrabMinSize               = 8.f;
+    style.GrabRounding              = 4.f;
+    style.LogSliderDeadzone         = 4.f;
+    style.TabRounding               = 4.f;
+    style.TabBorderSize             = 0.f;
+    style.TabMinWidthForCloseButton = 0.f;
+    style.ColorButtonPosition       = ImGuiDir_Right;
+    style.ButtonTextAlign           = { 0.5f, 0.5f };
+    style.SelectableTextAlign       = { 0.f, 0.f };
+    style.DisplayWindowPadding      = { 20.f, 20.f };
+    style.DisplaySafeAreaPadding    = { 4.f, 4.f };
+    style.MouseCursorScale          = 1.f;
 }
 
 //============================================================================//
@@ -177,6 +183,11 @@ void GuiSystem::set_style_colours_supertux()
     colors[ImGuiCol_PlotLinesHovered]       = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
     colors[ImGuiCol_PlotHistogram]          = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
     colors[ImGuiCol_PlotHistogramHovered]   = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
+    colors[ImGuiCol_TableHeaderBg]          = ImVec4(0.40f, 0.30f, 0.20f, 0.40f);
+    colors[ImGuiCol_TableBorderStrong]      = ImVec4(0.80f, 0.80f, 0.80f, 1.00f);
+    colors[ImGuiCol_TableBorderLight]       = ImVec4(0.80f, 0.80f, 0.80f, 0.80f);
+    colors[ImGuiCol_TableRowBg]             = ImVec4(0.00f, 0.00f, 0.00f, 0.01f);
+    colors[ImGuiCol_TableRowBgAlt]          = ImVec4(1.00f, 1.00f, 1.00f, 0.01f);
     colors[ImGuiCol_TextSelectedBg]         = ImVec4(0.30f, 0.50f, 0.70f, 0.40f);
     colors[ImGuiCol_DragDropTarget]         = ImVec4(1.00f, 1.00f, 0.00f, 0.90f);
     colors[ImGuiCol_NavHighlight]           = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);

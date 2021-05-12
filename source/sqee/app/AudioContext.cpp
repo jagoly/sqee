@@ -37,7 +37,7 @@ void AudioContext::Implementation::data_callback(ma_device* pDevice, void* pOutp
 
     for (ActiveSound& snd : context->mActiveSounds)
     {
-        if (snd.paused || uint8_t(snd.group) & context->mPausedGroups.value)
+        if (snd.paused || context->mPausedGroups.value & uint8_t(snd.group))
             continue;
 
         const size_t framesAvailable = snd.sound->mAudioFrames.size() - snd.cursor;
@@ -87,6 +87,9 @@ AudioContext::~AudioContext()
 
 int64_t AudioContext::play_sound(const Sound& sound, SoundGroup group, float volume, bool loop)
 {
+    if (mIgnoredGroups.value & uint8_t(group))
+        return -1;
+
     const auto lock = std::lock_guard(impl->mutex);
 
     mActiveSounds.push_back({++mCurrentId, &sound, group, volume, loop, false, 0u});
@@ -118,6 +121,12 @@ void AudioContext::stop_sound(int64_t id)
 }
 
 //============================================================================//
+
+void AudioContext::set_groups_ignored(SoundGroups groups, bool ignore)
+{
+    if (ignore) mIgnoredGroups = SoundGroups(mIgnoredGroups.value | groups.value);
+    else mIgnoredGroups = SoundGroups(mIgnoredGroups.value & ~groups.value);
+}
 
 void AudioContext::set_groups_paused(SoundGroups groups, bool pause)
 {

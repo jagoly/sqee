@@ -206,9 +206,8 @@ struct Window::Implementation
 
     static void cb_key(GLFWwindow* window, int key, int /*scancode*/, int action, int mods)
     {
-        if (action == GLFW_REPEAT) return;
         Event event;
-        event.type = bool(action) ? Event::Type::Keyboard_Press : Event::Type::Keyboard_Release;
+        event.type = Event::Type(int(Event::Type::Keyboard_Release) + action);
         event.data.keyboard.key = impl_glfw_key_to_sqee(key);
         event.data.keyboard.shift = mods & GLFW_MOD_SHIFT;
         event.data.keyboard.ctrl = mods & GLFW_MOD_CONTROL;

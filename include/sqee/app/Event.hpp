@@ -51,10 +51,11 @@ struct Event final
         Window_Resize,
         Window_Focus,
         Window_Unfocus,
-        Keyboard_Press,
         Keyboard_Release,
-        Mouse_Press,
+        Keyboard_Press,
+        Keyboard_Repeat,
         Mouse_Release,
+        Mouse_Press,
         Mouse_Scroll,
         Text_Entry
     };

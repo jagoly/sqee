@@ -206,15 +206,19 @@ ImPlus::DialogResult ImPlus::DialogConfirmation(CStrView title, CStrView message
 
     if (ImGui::BeginPopupModal(title, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
     {
-        if (message != nullptr) ImGui::TextUnformatted(message);
+        // ignore key if window just appeared, for when a key press triggered the dialog
+        const bool acceptKeyPress = !ImGui::IsWindowAppearing();
 
-        if (ImGui::Button("Confirm") || ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Enter)))
+        if (message != nullptr)
+            ImGui::TextUnformatted(message);
+
+        if (ImGui::Button("Confirm") || (acceptKeyPress && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Enter), false)))
         {
             result = DialogResult::Confirm;
             ImGui::CloseCurrentPopup();
         }
         ImGui::SameLine();
-        if (ImGui::Button("Cancel") || ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape)))
+        if (ImGui::Button("Cancel") || (acceptKeyPress && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape), false)))
         {
             result = DialogResult::Cancel;
             ImGui::CloseCurrentPopup();
