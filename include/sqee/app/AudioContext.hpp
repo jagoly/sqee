@@ -74,7 +74,8 @@ private: //===================================================//
     struct ActiveSound
     {
         int64_t id;
-        const Sound* sound;
+        const float* frames;
+        size_t frameCount;
         SoundGroup group;
         float volume;
         bool loop;
@@ -89,12 +90,12 @@ private: //===================================================//
     SoundGroups mIgnoredGroups {};
     SoundGroups mPausedGroups {};
 
-    void impl_reset_sound(const Sound* old, const Sound* fresh = nullptr);
-    friend Sound;
-
     struct Implementation;
     std::unique_ptr<Implementation> impl;
     friend Implementation;
+
+    void impl_destroy_sound(const Sound& sound);
+    friend Sound;
 };
 
 //============================================================================//

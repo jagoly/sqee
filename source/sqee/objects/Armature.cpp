@@ -132,7 +132,20 @@ int8_t Armature::get_bone_parent(int8_t index) const
 
 //============================================================================//
 
-Armature::Animation Armature::make_animation(const String& path) const
+Animation Armature::load_animation_from_file(const String& path) const
+{
+    if (auto text = try_read_text_from_file(path + ".sqa"))
+        return impl_load_animation_text(std::move(*text));
+
+    else if (auto text = try_read_text_from_file(path))
+        return impl_load_animation_text(std::move(*text));
+
+    else SQEE_THROW("could not find animation '{}'", path);
+}
+
+//============================================================================//
+
+Animation Armature::impl_load_animation_text(String&& text) const
 {
     enum class Section { None, Header, BaseTracks, ExtraTracks };
     Section section = Section::None;
@@ -149,7 +162,7 @@ Armature::Animation Armature::make_animation(const String& path) const
 
     //--------------------------------------------------------//
 
-    for (const auto& [line, num] : tokenise_file(path).lines)
+    for (const auto& [line, num] : TokenisedFile::from_string(std::move(text)).lines)
     {
         const auto& key = line.front();
 
@@ -160,7 +173,7 @@ Armature::Animation Armature::make_animation(const String& path) const
             if (line[1] == "Header") section = Section::Header;
             else if (line[1] == "BaseTracks") section = Section::BaseTracks;
             else if (line[1] == "ExtraTracks") section = Section::ExtraTracks;
-            else log_error("'{}':{}: invalid section", path, num);
+            else SQEE_THROW("{}: invalid section", num);
         }
 
         else if (section == Section::Header)
@@ -169,7 +182,7 @@ Armature::Animation Armature::make_animation(const String& path) const
             {
                 result.boneCount = sv_to_u(line[1]);
                 if (result.boneCount != get_bone_count())
-                    log_error("'{}':{}: bone count mismatch", path, num);
+                    SQEE_THROW("{}: bone count mismatch", num);
                 result.bones.resize(result.boneCount, {});
             }
 
@@ -178,7 +191,7 @@ Armature::Animation Armature::make_animation(const String& path) const
                 result.frameCount = sv_to_u(line[1]);
             }
 
-            else log_error("'{}':{}: invalid header key", path, num);
+            else SQEE_THROW("{}: invalid header key", num);
         }
 
         else if (section == Section::BaseTracks)
@@ -187,12 +200,12 @@ Armature::Animation Armature::make_animation(const String& path) const
             {
                 const int8_t boneIndex = get_bone_index(line[1]);
                 if (boneIndex == -1)
-                    log_error("'{}':{}: invalid bone name", path, num);
+                    SQEE_THROW("{}: invalid bone name", num);
 
                 if (line[2] == "offset") baseTrack = BaseTrack::Offset;
                 else if (line[2] == "rotation") baseTrack = BaseTrack::Rotation;
                 else if (line[2] == "scale") baseTrack = BaseTrack::Scale;
-                else log_error("'{}':{}: unknown base track name", path, num);
+                else SQEE_THROW("{}: unknown base track name", num);
 
                 track = &result.bones[uint(boneIndex)].emplace_back();
                 track->key = line[2];
@@ -233,7 +246,7 @@ Armature::Animation Armature::make_animation(const String& path) const
             {
                 const uint frame = sv_to_u(key);
                 if (frame > result.frameCount)
-                    log_error("'{}':{}: frame out of range", path, num);
+                    SQEE_THROW("{}: frame out of range", num);
 
                 if (baseTrack == BaseTrack::Offset)
                     parse_tokens(reinterpret_cast<Vec3F*>(track->track.data())[frame], line[1], line[2], line[3]);
@@ -252,11 +265,11 @@ Armature::Animation Armature::make_animation(const String& path) const
             {
                 const int8_t boneIndex = get_bone_index(line[1]);
                 if (boneIndex == -1)
-                    log_error("'{}':{}: invalid bone name", path, num);
+                    SQEE_THROW("{}: invalid bone name", num);
 
                 if (line[3] == "Float") extraTrack = ExtraTrack::Float;
                 else if (line[3] == "Vec4F") extraTrack = ExtraTrack::Vec4F;
-                else log_error("'{}':{}: unknown extra track type", path, num);
+                else SQEE_THROW("{}: unknown extra track type", num);
 
                 track = &result.bones[uint(boneIndex)].emplace_back();
                 track->key = line[2];
@@ -286,7 +299,7 @@ Armature::Animation Armature::make_animation(const String& path) const
             {
                 const uint frame = sv_to_u(key);
                 if (frame > result.frameCount)
-                    log_error("'{}':{}: frame out of range", path, num);
+                    SQEE_THROW("{}: frame out of range", num);
 
                 if (extraTrack == ExtraTrack::Float)
                     parse_tokens(reinterpret_cast<float*>(track->track.data())[frame], line[1]);
@@ -296,7 +309,7 @@ Armature::Animation Armature::make_animation(const String& path) const
             }
         }
 
-        else log_error("'{}': missing SECTION", path);
+        else SQEE_THROW("missing SECTION");
     }
 
     //--------------------------------------------------------//

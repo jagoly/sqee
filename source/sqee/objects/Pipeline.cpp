@@ -24,7 +24,7 @@ static vk::PipelineRasterizationStateCreateInfo impl_make_rasterization_state(co
             if (cullFace == "Disable") return vk::CullModeFlagBits::eNone;
             if (cullFace == "Back")    return vk::CullModeFlagBits::eBack;
             if (cullFace == "Front")   return vk::CullModeFlagBits::eFront;
-            log_error("invalid pipeline cullFace string '{}'", cullFace);
+            SQEE_THROW("invalid pipeline cullFace string '{}'", cullFace);
         }(),
         vk::FrontFace::eClockwise, false, 0.f, false, 0.f, 1.f
     };
@@ -45,7 +45,7 @@ static vk::PipelineDepthStencilStateCreateInfo impl_make_depth_stencil_state(con
             {}, true, true, vk::CompareOp::eLess, false, false, {}, {}, 0.f, 0.f
         };
 
-    log_error("invalid pipeline depthTest string '{}'", depthTest);
+    SQEE_THROW("invalid pipeline depthTest string '{}'", depthTest);
 }
 
 static vk::PipelineColorBlendAttachmentState impl_make_color_blend_state(const String& blendMode)
@@ -68,7 +68,7 @@ static vk::PipelineColorBlendAttachmentState impl_make_color_blend_state(const S
             false, {}, {}, {}, {}, {}, {}, vk::ColorComponentFlags(0b1111)
         };
 
-    log_error("invalid pipeline blendMode string '{}'", blendMode);
+    SQEE_THROW("invalid pipeline blendMode string '{}'", blendMode);
 }
 
 //============================================================================//
@@ -155,7 +155,7 @@ void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes
                 SQASSERT(memberType.columns == 1u, "material block must not contain matrices");
 
                 const TinyString name = compiler.get_member_name(uboType.self, i);
-                const TinyString type = [&memberType]() {
+                const TinyString type = [&memberType]() -> TinyString {
                     if (memberType.basetype == cross::SPIRType::Int && memberType.vecsize == 1u) return "int";
                     if (memberType.basetype == cross::SPIRType::Int && memberType.vecsize == 2u) return "Vec2I";
                     if (memberType.basetype == cross::SPIRType::Int && memberType.vecsize == 3u) return "Vec3I";
@@ -201,10 +201,10 @@ void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes
 
     const auto& ctx = VulkanContext::get();
 
-    const auto vertexShaderCode = get_bytes_from_file(build_string("shaders/", json.at("vertexShader"), ".vert.spv"));
+    const auto vertexShaderCode = read_bytes_from_file(build_string("shaders/", json.at("vertexShader"), ".vert.spv"));
     reflect_shader(vertexShaderCode, vk::ShaderStageFlagBits::eVertex);
 
-    const auto fragmentShaderCode = get_bytes_from_file(build_string("shaders/", json.at("fragmentShader"), ".frag.spv"));
+    const auto fragmentShaderCode = read_bytes_from_file(build_string("shaders/", json.at("fragmentShader"), ".frag.spv"));
     reflect_shader(fragmentShaderCode, vk::ShaderStageFlagBits::eFragment);
 
     // make sure unused bindings have correct binding index

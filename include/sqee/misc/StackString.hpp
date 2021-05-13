@@ -26,7 +26,9 @@ public: //====================================================//
 
     using Traits = std::char_traits<char>;
 
-    template <class CharT> using EnableIfChar = std::enable_if_t<std::is_same_v<CharT, char>>;
+    // methods taking c strings are templates to reduce overload priority
+    template <class CharT>
+    using EnableIfChar = std::enable_if_t<std::is_same_v<CharT, char>>;
 
     static constexpr size_t capacity() { return Capacity; }
     static constexpr size_t buffer_size() { return Capacity + 1u; }
@@ -42,19 +44,17 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    /// Construct from a string literal. Always constexpr.
-    template <size_t Size>
-    constexpr StackString(const char(&chars)[Size]) noexcept
+    /// Construct from a string literal.
+    template <size_t BufSize>
+    constexpr StackString(const char(&chars)[BufSize]) noexcept
     {
-        constexpr const size_t numChars = Size - 1u;
+        static_assert(BufSize <= buffer_size(), "literal too long");
 
-        static_assert(numChars <= Capacity, "string literal too long");
-
-        for (size_t i = 0u; i < numChars; ++i)
+        for (size_t i = 0u; i < BufSize; ++i)
             mData[i] = chars[i];
     }
 
-    /// Construct from a const char ptr. Ugly signature reduces overload priority.
+    /// Construct from a const char ptr.
     template <class CharT, class = EnableIfChar<CharT>>
     StackString(const CharT* const& cstr)
     {
@@ -93,17 +93,16 @@ public: //====================================================//
         return Traits::compare(mData, other.mData, buffer_size());
     }
 
-    template <size_t Size>
-    constexpr int compare(const char(&chars)[Size]) const
+    template <size_t BufSize>
+    constexpr int compare(const char(&chars)[BufSize]) const
     {
-        if (Size >= buffer_size())
+        if constexpr (BufSize >= buffer_size())
             return Traits::compare(mData, chars, buffer_size());
 
-        const int cmp = Traits::compare(mData, chars, Size);
+        const int cmp = Traits::compare(mData, chars, BufSize);
         if (cmp != 0) return cmp;
 
-        const size_t len = Traits::length(mData) + 1u;
-        return len < Size ? -1 : len > Size ? +1 : 0;
+        return int(Traits::length(mData)) - int(BufSize) + 1;
     }
 
     template <class CharT, class = EnableIfChar<CharT>>
@@ -120,8 +119,7 @@ public: //====================================================//
         const int cmp = Traits::compare(mData, other.data(), other.length());
         if (cmp != 0) return cmp;
 
-        const size_t len = Traits::length(mData);
-        return len < other.length() ? -1 : len > other.length() ? +1 : 0;
+        return int(Traits::length(mData)) - int(other.length());
     }
 
     int compare(const std::string& other) const
@@ -177,9 +175,6 @@ public: //====================================================//
     constexpr char* data() { return mData; }
 
     //--------------------------------------------------------//
-
-    // not having this overload is annoying, but MSVC has trouble disambiguating it
-    //operator std::string() const { return std::string(mData); }
 
     constexpr operator const char*() const { return mData; }
 

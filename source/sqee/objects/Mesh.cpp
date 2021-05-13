@@ -69,7 +69,8 @@ Mesh& Mesh::operator=(Mesh&& other)
     mVertexSize = other.mVertexSize;
     mVertexTotal = other.mVertexTotal;
     mIndexTotal = other.mIndexTotal;
-    mAttributeFlags = other.mAttributeFlags;
+    mAttributes = other.mAttributes;
+    mBounds = other.mBounds;
     mSubMeshes = std::move(other.mSubMeshes);
     return *this;
 }
@@ -89,9 +90,13 @@ void Mesh::load_from_file(const String& path, bool swapYZ)
 {
     SQASSERT(!mVertexBuffer, "mesh already loaded");
 
-    if (check_file_exists(path)) impl_load_ascii(path, swapYZ);
-    else if (auto _path = path + ".sqm"; check_file_exists(_path)) impl_load_ascii(_path, swapYZ);
-    else log_error("Failed to find mesh '{}'", path);
+    if (auto text = try_read_text_from_file(path + ".sqm"))
+        impl_load_text(std::move(*text), swapYZ);
+
+    else if (auto text = try_read_text_from_file(path))
+        impl_load_text(std::move(*text), swapYZ);
+
+    else SQEE_THROW("could not find mesh '{}'", path);
 }
 
 //============================================================================//
@@ -115,7 +120,7 @@ void Mesh::draw(vk::CommandBuffer cmdbuf, int subMesh) const
 
 //============================================================================//
 
-void Mesh::impl_load_ascii(const String& path, bool swapYZ)
+void Mesh::impl_load_text(String&& text, bool swapYZ)
 {
     enum class Section { None, Header, Vertices, Indices };
     Section section = Section::None;
@@ -123,15 +128,16 @@ void Mesh::impl_load_ascii(const String& path, bool swapYZ)
     std::vector<std::byte> vertexData;
     std::vector<uint32_t> indexData;
 
-    bool allocatedVertices = false;
-    bool allocatedIndices = false;
-
     std::byte* vertexPtr = nullptr;
     uint32_t* indexPtr = nullptr;
 
+    // all meshes will have position data
+    mVertexSize = sizeof(float[3]);
+    size_t numValuesPerVertex = 3u;
+
     //--------------------------------------------------------//
 
-    for (const auto& [line, num] : tokenise_file(path).lines)
+    for (const auto& [line, num] : TokenisedFile::from_string(std::move(text)).lines)
     {
         const auto& key = line.front();
 
@@ -143,10 +149,8 @@ void Mesh::impl_load_ascii(const String& path, bool swapYZ)
             else if (line[1] == "Vertices") section = Section::Vertices;
             else if (line[1] == "Indices")  section = Section::Indices;
 
-            else log_error("invalid section '{}' in mesh '{}'", line[1], path);
+            else SQEE_THROW("invalid section '{}'", line[1]);
         }
-
-        //--------------------------------------------------------//
 
         else if (section == Section::Header)
         {
@@ -154,13 +158,40 @@ void Mesh::impl_load_ascii(const String& path, bool swapYZ)
             {
                 for (uint i = 1u; i < line.size(); ++i)
                 {
-                    if      (line[i] == "TCRD") mAttributeFlags |= Attribute::TexCoords;
-                    else if (line[i] == "NORM") mAttributeFlags |= Attribute::Normals;
-                    else if (line[i] == "TANG") mAttributeFlags |= Attribute::Tangents;
-                    else if (line[i] == "COLR") mAttributeFlags |= Attribute::Colours;
-                    else if (line[i] == "BONE") mAttributeFlags |= Attribute::Bones;
+                    if (line[i] == "TCRD")
+                    {
+                        mAttributes |= Attribute::TexCoords;
+                        mVertexSize += sizeof(float[2]);
+                        numValuesPerVertex += 2u;
+                    }
+                    else if (line[i] == "NORM")
+                    {
+                        mAttributes |= Attribute::Normals;
+                        mVertexSize += sizeof(uint32_t);
+                        numValuesPerVertex += 3u;
+                    }
+                    else if (line[i] == "TANG")
+                    {
+                        mAttributes |= Attribute::Tangents;
+                        mVertexSize += sizeof(uint32_t);
+                        numValuesPerVertex += 4u;
+                    }
+                    // todo: colour should have a few formats for different usages (srgb/linear, alpha)
+                    // current format is linear rgb compressed to 8bpc, which is very bad
+                    else if (line[i] == "COLR")
+                    {
+                        mAttributes |= Attribute::Colours;
+                        mVertexSize += sizeof(uint8_t[4]);
+                        numValuesPerVertex += 3u;
+                    }
+                    else if (line[i] == "BONE")
+                    {
+                        mAttributes |= Attribute::Bones;
+                        mVertexSize += sizeof(int8_t[4]) + sizeof(uint8_t[4]);
+                        numValuesPerVertex += 8u;
+                    }
 
-                    else log_warning("unknown attribute '{}' in mesh '{}'", line[i], path);
+                    else SQEE_THROW("unknown attribute '{}'", line[i]);
                 }
             }
 
@@ -190,27 +221,19 @@ void Mesh::impl_load_ascii(const String& path, bool swapYZ)
                 mIndexTotal += indexCount;
             }
 
-            else log_warning("unknown header key '{}' in mesh '{}'", key, path);
+            else SQEE_THROW("unknown header key '{}'", key);
         }
-
-        //--------------------------------------------------------//
 
         else if (section == Section::Vertices)
         {
-            if (allocatedVertices == false)
+            if (vertexPtr == nullptr)
             {
-                mVertexSize = sizeof(float[3]);
-                if (mAttributeFlags & Attribute::TexCoords) mVertexSize += sizeof(float[2]);
-                if (mAttributeFlags & Attribute::Normals) mVertexSize += sizeof(uint32_t);
-                if (mAttributeFlags & Attribute::Tangents) mVertexSize += sizeof(uint32_t);
-                if (mAttributeFlags & Attribute::Colours) mVertexSize += sizeof(uint8_t[4]);
-                if (mAttributeFlags & Attribute::Bones) mVertexSize += sizeof(int8_t[4]);
-                if (mAttributeFlags & Attribute::Bones) mVertexSize += sizeof(uint8_t[4]);
-
                 vertexData.resize(mVertexTotal * mVertexSize);
                 vertexPtr = vertexData.data();
-                allocatedVertices = true;
             }
+
+            SQASSERT(vertexPtr < vertexData.data() + vertexData.size(), "too many vertices");
+            SQASSERT(line.size() == numValuesPerVertex, "wrong number of values");
 
             uint index = 0u;
 
@@ -226,13 +249,13 @@ void Mesh::impl_load_ascii(const String& path, bool swapYZ)
                 impl_ascii_append_float(vertexPtr, line[index++]);
             }
 
-            if (mAttributeFlags & Attribute::TexCoords)
+            if (mAttributes & Attribute::TexCoords)
             {
                 impl_ascii_append_float(vertexPtr, line[index++]);
                 impl_ascii_append_float(vertexPtr, line[index++]);
             }
 
-            if (mAttributeFlags & Attribute::Normals)
+            if (mAttributes & Attribute::Normals)
             {
                 const auto x = line[index++];
                 const auto y = line[index++];
@@ -240,7 +263,7 @@ void Mesh::impl_load_ascii(const String& path, bool swapYZ)
                 impl_ascii_append_normal(vertexPtr, x, y, z, {}, swapYZ);
             }
 
-            if (mAttributeFlags & Attribute::Tangents)
+            if (mAttributes & Attribute::Tangents)
             {
                 const auto x = line[index++];
                 const auto y = line[index++];
@@ -249,16 +272,15 @@ void Mesh::impl_load_ascii(const String& path, bool swapYZ)
                 impl_ascii_append_normal(vertexPtr, x, y, z, w, swapYZ);
             }
 
-            if (mAttributeFlags & Attribute::Colours)
+            if (mAttributes & Attribute::Colours)
             {
                 impl_ascii_append_unorm8(vertexPtr, line[index++]);
                 impl_ascii_append_unorm8(vertexPtr, line[index++]);
                 impl_ascii_append_unorm8(vertexPtr, line[index++]);
-                // todo: change colour in file format to rgba
                 impl_ascii_append_unorm8(vertexPtr, "1.0");
             }
 
-            if (mAttributeFlags & Attribute::Bones)
+            if (mAttributes & Attribute::Bones)
             {
                 impl_ascii_append_int8(vertexPtr, line[index++]);
                 impl_ascii_append_int8(vertexPtr, line[index++]);
@@ -272,16 +294,16 @@ void Mesh::impl_load_ascii(const String& path, bool swapYZ)
             }
         }
 
-        //--------------------------------------------------------//
-
         else if (section == Section::Indices)
         {
-            if (allocatedIndices == false)
+            if (indexPtr == nullptr)
             {
                 indexData.resize(mIndexTotal);
                 indexPtr = indexData.data();
-                allocatedIndices = true;
             }
+
+            SQASSERT(indexPtr < indexData.data() + indexData.size(), "too many indices");
+            SQASSERT(line.size() == 3u, "wrong number of values");
 
             // swap indices to make sure winding order is clockwise
             *(indexPtr++) = sv_to_u(line[0]);
@@ -297,15 +319,13 @@ void Mesh::impl_load_ascii(const String& path, bool swapYZ)
             }
         }
 
-        //--------------------------------------------------------//
-
-        else log_error("missing SECTION in mesh '{}'", path);
+        else SQEE_THROW("missing SECTION");
     }
 
     //--------------------------------------------------------//
 
-    SQASSERT(vertexPtr == std::next(&vertexData.back()), "vertex count mismatch");
-    SQASSERT(indexPtr == std::next(&indexData.back()), "index count mismatch");
+    SQASSERT(vertexPtr == vertexData.data() + vertexData.size(), "not enough vertices");
+    SQASSERT(indexPtr == indexData.data() + indexData.size(), "not enough indices");
 
     impl_load_final(vertexData, indexData);
 }
@@ -336,7 +356,7 @@ void Mesh::impl_load_final(std::vector<std::byte>& vertexData, std::vector<uint3
 
     setup_buffer (
         mIndexBuffer, mIndexBufferMem, vk::BufferUsageFlagBits::eIndexBuffer,
-        indexData.data(), indexData.size() * 4u
+        indexData.data(), indexData.size() * sizeof(uint32_t)
     );
 }
 

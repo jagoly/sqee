@@ -101,7 +101,7 @@ WrenLoadModuleResult WrenPlusVM::impl_load_module_fn(WrenVM*, const char* name)
 {
     const auto path = sq::build_string("wren/", name, ".wren");
 
-    const auto maybe = sq::try_get_string_from_file(path);
+    const auto maybe = sq::try_read_text_from_file(path);
 
     if (maybe.has_value() == false)
         return { nullptr, nullptr, nullptr };

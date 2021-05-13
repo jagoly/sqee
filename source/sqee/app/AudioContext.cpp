@@ -1,7 +1,6 @@
 #include <sqee/app/AudioContext.hpp>
 
 #include <sqee/core/Algorithms.hpp>
-#include <sqee/core/Macros.hpp>
 #include <sqee/debug/Assert.hpp>
 #include <sqee/debug/Logging.hpp>
 #include <sqee/objects/Sound.hpp>
@@ -40,20 +39,19 @@ void AudioContext::Implementation::data_callback(ma_device* pDevice, void* pOutp
         if (snd.paused || context->mPausedGroups.value & uint8_t(snd.group))
             continue;
 
-        const size_t framesAvailable = snd.sound->mAudioFrames.size() - snd.cursor;
+        const size_t framesAvailable = snd.frameCount - snd.cursor;
         const size_t framesToRead = std::min(framesAvailable, maxFramesToRead);
 
         for (size_t frame = 0u; frame < framesToRead; ++frame, ++snd.cursor)
-            output[frame] += snd.sound->mAudioFrames[snd.cursor] * snd.volume;
+            output[frame] += snd.frames[snd.cursor] * snd.volume;
 
-        if (snd.loop && snd.cursor == snd.sound->mAudioFrames.size())
+        if (snd.loop && snd.cursor == snd.frameCount)
             snd.cursor = 0u;
     }
 
-    const auto predicate = [](const ActiveSound& snd) { return snd.cursor == snd.sound->mAudioFrames.size(); };
+    const auto predicate = [](const ActiveSound& snd) { return snd.cursor == snd.frameCount; };
     algo::erase_if(context->mActiveSounds, predicate);
 }
-
 
 //============================================================================//
 
@@ -69,7 +67,7 @@ AudioContext::AudioContext() : impl(std::make_unique<Implementation>())
     impl->config.pUserData = this;
 
     if (auto ec = ma_device_init(NULL, &impl->config, &impl->device); ec != MA_SUCCESS)
-        log_error("failed to initialise audio: error code {}", ec);
+        log_error("failed to initialise audio: {}", ma_result_description(ec));
 
     log_info("Using MiniAudio Backend '{}'", ma_get_backend_name(impl->device.pContext->backend));
 
@@ -92,7 +90,16 @@ int64_t AudioContext::play_sound(const Sound& sound, SoundGroup group, float vol
 
     const auto lock = std::lock_guard(impl->mutex);
 
-    mActiveSounds.push_back({++mCurrentId, &sound, group, volume, loop, false, 0u});
+    ActiveSound& snd = mActiveSounds.emplace_back();
+    snd.id = ++mCurrentId;
+    snd.frames = sound.mAudioFrames.data();
+    snd.frameCount = sound.mAudioFrames.size();
+    snd.group = group;
+    snd.volume = volume;
+    snd.loop = loop;
+    snd.paused = false;
+    snd.cursor = 0u;
+
     return mCurrentId;
 }
 
@@ -100,7 +107,8 @@ int64_t AudioContext::play_sound(const Sound& sound, SoundGroup group, float vol
 
 void AudioContext::set_sound_paused(int64_t id, bool paused)
 {
-    SQASSERT(id >= 0 && id <= mCurrentId, "invalid sound id");
+    SQASSERT(id <= mCurrentId, "invalid sound id");
+    if (id < 0) return;
 
     const auto lock = std::lock_guard(impl->mutex);
 
@@ -111,7 +119,8 @@ void AudioContext::set_sound_paused(int64_t id, bool paused)
 
 void AudioContext::stop_sound(int64_t id)
 {
-    SQASSERT(id >= 0 && id <= mCurrentId, "invalid sound id");
+    SQASSERT(id <= mCurrentId, "invalid sound id");
+    if (id < 0) return;
 
     const auto lock = std::lock_guard(impl->mutex);
 
@@ -146,19 +155,10 @@ void AudioContext::stop_groups(SoundGroups groups)
 
 //============================================================================//
 
-void AudioContext::impl_reset_sound(const Sound* old, const Sound* fresh)
+void AudioContext::impl_destroy_sound(const Sound& sound)
 {
     const auto lock = std::lock_guard(impl->mutex);
 
-    if (fresh != nullptr)
-    {
-        for (ActiveSound& snd : mActiveSounds)
-            if (snd.sound == old) snd.sound = fresh;
-    }
-    else
-    {
-        // maybe this should be an error instead?
-        const auto predicate = [=](const ActiveSound& snd) { return snd.sound == old; };
-        algo::erase_if(mActiveSounds, predicate);
-    }
+    const auto predicate = [&](const ActiveSound& snd) { return snd.frames == sound.mAudioFrames.data(); };
+    algo::erase_if(mActiveSounds, predicate);
 }

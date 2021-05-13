@@ -70,7 +70,7 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    Animation make_animation(const String& path) const;
+    Animation load_animation_from_file(const String& path) const;
 
     Animation make_null_animation(uint length) const;
 
@@ -106,6 +106,10 @@ private: //===================================================//
 
     std::vector<Mat4F> mBaseMats;
     std::vector<Mat4F> mInverseMats;
+
+    //--------------------------------------------------------//
+
+    Animation impl_load_animation_text(String&& text) const;
 };
 
 //============================================================================//

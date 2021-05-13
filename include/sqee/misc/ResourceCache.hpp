@@ -5,6 +5,7 @@
 
 #include <sqee/setup.hpp>
 
+#include <sqee/debug/Logging.hpp>
 #include <sqee/misc/ResourceHandle.hpp>
 
 namespace sq {
@@ -34,6 +35,25 @@ public: //====================================================//
             SQASSERT(mFactoryFunc != nullptr, "no factory assigned");
             iter->second.key = &iter->first;
             iter->second.data = mFactoryFunc(key);
+            iter->second.count = 0u;
+        }
+        return Handle<Key, Type>(iter->second);
+    }
+
+    /// Try to acquire a resource. Return a null handle on failure.
+    Handle<Key, Type> try_acquire(const Key& key, bool silent = false)
+    {
+        const auto [iter, created] = mResourceMap.try_emplace(key);
+        if (created == true)
+        {
+            SQASSERT(mFactoryFunc != nullptr, "no factory assigned");
+            iter->second.key = &iter->first;
+            try { iter->second.data = mFactoryFunc(key); }
+            catch (const std::exception& e)
+            {
+                if (!silent) log_warning_multiline("could not load resource '{}':\n{}", key, e.what());
+                mResourceMap.erase(iter); return nullptr;
+            }
             iter->second.count = 0u;
         }
         return Handle<Key, Type>(iter->second);

@@ -22,11 +22,11 @@ VKAPI_ATTR VkBool32 VKAPI_CALL impl_vulkan_debug_callback (
         void* /*pUserData*/ )
 {
     std::time_t now = std::time(nullptr);
-    sq::log_raw_multiline("{:%H:%M:%S} Vulkan: Severity = {} | Type = {}\n{}",
-                          fmt::localtime(now),
-                          vk::to_string(vk::DebugUtilsMessageSeverityFlagBitsEXT(messageSeverity)),
-                          vk::to_string(vk::DebugUtilsMessageTypeFlagsEXT(messageType)),
-                          pCallbackData->pMessage);
+    log_raw_multiline("{:%H:%M:%S} Vulkan: Severity = {} | Type = {}\n{}",
+                      fmt::localtime(now),
+                      vk::to_string(vk::DebugUtilsMessageSeverityFlagBitsEXT(messageSeverity)),
+                      vk::to_string(vk::DebugUtilsMessageTypeFlagsEXT(messageType)),
+                      pCallbackData->pMessage);
 
     return VK_FALSE;
 }
@@ -298,7 +298,7 @@ Window::Window(const char* title, Vec2U size, const char* appName, Vec3U version
                 if (StringView(layer.layerName) == layerName)
                     return std::vector { layerName };
 
-            sq::log_warning("vulkan validation layer could not be loaded");
+            log_warning("vulkan validation layer could not be loaded");
             return std::vector<const char*>();
         }();
 
@@ -358,14 +358,14 @@ Window::Window(const char* title, Vec2U size, const char* appName, Vec3U version
     {
         const auto physicalDevices = mInstance.enumeratePhysicalDevices();
         if (physicalDevices.empty())
-            sq::log_error("No GPUs found with Vulkan support");
+            log_error("No GPUs found with Vulkan support");
 
         for (const auto& physDev : physicalDevices)
         {
-            sq::log_debug_multiline("Vulkan Physical Device Info\nName:    {} \nQueues:  {}\nPresent: {}",
-                                    physDev.getProperties().deviceName,
-                                    vk::to_string(physDev.getQueueFamilyProperties().front().queueFlags),
-                                    bool(physDev.getSurfaceSupportKHR(0u, mSurface)));
+            log_debug_multiline("Vulkan Physical Device Info\nName:    {} \nQueues:  {}\nPresent: {}",
+                                physDev.getProperties().deviceName,
+                                vk::to_string(physDev.getQueueFamilyProperties().front().queueFlags),
+                                bool(physDev.getSurfaceSupportKHR(0u, mSurface)));
 
             // check that device is supported
             {
@@ -393,9 +393,9 @@ Window::Window(const char* title, Vec2U size, const char* appName, Vec3U version
         }
 
         if (!mPhysicalDevice)
-            sq::log_error("GPU(s) found, but none are useable");
+            log_error("GPU(s) found, but none are useable");
 
-        sq::log_info("Using Vulkan Device '{}'", mPhysicalDevice.getProperties().deviceName);
+        log_info("Using Vulkan Device '{}'", mPhysicalDevice.getProperties().deviceName);
     }
 
     // setup logical device and queue

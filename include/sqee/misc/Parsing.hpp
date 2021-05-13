@@ -35,19 +35,19 @@ inline void parse_tokens(float& out, StringView token) { out = sv_to_f(token); }
 inline std::optional<int> safe_sv_to_i(StringView sv)
 {
     try { return int(std::stol(String(sv))); }
-    catch (std::invalid_argument&) { return std::nullopt; }
+    catch (const std::invalid_argument&) { return std::nullopt; }
 }
 
 inline std::optional<uint> safe_sv_to_u(StringView sv)
 {
     try { return uint(std::stoul(String(sv))); }
-    catch (std::invalid_argument&) { return std::nullopt; }
+    catch (const std::invalid_argument&) { return std::nullopt; }
 }
 
 inline std::optional<float> safe_sv_to_f(StringView sv)
 {
     try { return float(std::stof(String(sv))); }
-    catch (std::invalid_argument&) { return std::nullopt; }
+    catch (const std::invalid_argument&) { return std::nullopt; }
 }
 
 //============================================================================//

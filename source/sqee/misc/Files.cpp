@@ -1,114 +1,134 @@
 #include <sqee/misc/Files.hpp>
 
-#include <sqee/core/Utilities.hpp>
-#include <sqee/debug/Assert.hpp>
 #include <sqee/debug/Logging.hpp>
-
-#include <fstream>
-#include <locale>
-#include <sstream>
 
 using namespace sq;
 
 //============================================================================//
 
-bool sq::check_file_exists(const String& path)
+String sq::read_text_from_file(const String& path)
 {
-    return std::ifstream(path).good();
-}
-
-//============================================================================//
-
-String sq::get_string_from_file(const String& path)
-{
-    // todo: profile and try to optimise file loading
-    // STS is starting to take a while to load, especially on windows
-
-    // todo: need to check or convert line endings
-    // hasn't been a problem yet, but sqee can't deal with \r\n
-
-    // todo: make this function abort or throw on failure
-    // should use the try_ version most of the time
-
-    auto src = std::ifstream(path, std::ios::in);
-
-    if (src.good() == false)
-    {
-        log_warning("could not open file '{}'", path);
-        return {};
-    }
-
-    std::stringstream stream;
-    stream << src.rdbuf();
-    return String(stream.str());
-}
-
-//============================================================================//
-
-std::optional<String> sq::try_get_string_from_file(const String& path)
-{
-    if (auto src = std::ifstream(path, std::ios::in);
-        src.good() == true)
-    {
-        std::stringstream stream;
-        stream << src.rdbuf();
-        return String(stream.str());
-    }
-
-    return std::nullopt;
-}
-
-//============================================================================//
-
-void sq::save_string_to_file(const String& path, StringView str)
-{
-    auto dest = std::ofstream(path, std::ios::out);
-
-    if (dest.good() == false)
-    {
-        log_warning("could not open file for writing '%s'", path);
-        return;
-    }
-
-    dest << str;
-}
-
-//============================================================================//
-
-std::vector<std::byte> sq::get_bytes_from_file(const String& path)
-{
-    FILE* file = std::fopen(path.c_str(), "rb");
+    FILE* file = std::fopen(path.c_str(), "r");
 
     if (file == NULL)
-        throw std::runtime_error(fmt::format("could not open file '{}'", path));
+        SQEE_THROW("could not read file '{}'", path);
 
     std::fseek(file, 0, SEEK_END);
     const size_t fileSize = std::ftell(file);
 
-    auto result = std::vector<std::byte>(fileSize);
-
+    auto buffer = std::vector<char>(fileSize);
     std::fseek(file, 0, SEEK_SET);
-    std::fread(result.data(), 1u, result.size(), file);
-
+    std::fread(buffer.data(), 1u, buffer.size(), file);
     std::fclose(file);
 
-    return result;
+    return String(buffer.data(), buffer.data() + buffer.size());
 }
 
 //============================================================================//
 
-TokenisedFile sq::tokenise_file(const String& path)
+std::vector<std::byte> sq::read_bytes_from_file(const String& path)
+{
+    FILE* file = std::fopen(path.c_str(), "rb");
+
+    if (file == NULL)
+        SQEE_THROW("could not read file '{}'", path);
+
+    std::fseek(file, 0, SEEK_END);
+    const size_t fileSize = std::ftell(file);
+
+    auto buffer = std::vector<std::byte>(fileSize);
+    std::fseek(file, 0, SEEK_SET);
+    std::fread(buffer.data(), 1u, buffer.size(), file);
+    std::fclose(file);
+
+    return buffer;
+}
+
+//============================================================================//
+
+std::optional<String> sq::try_read_text_from_file(const String& path)
+{
+    FILE* file = std::fopen(path.c_str(), "r");
+
+    if (file == NULL)
+        return std::nullopt;
+
+    std::fseek(file, 0, SEEK_END);
+    const size_t fileSize = std::ftell(file);
+
+    auto buffer = std::vector<char>(fileSize);
+    std::fseek(file, 0, SEEK_SET);
+    std::fread(buffer.data(), 1u, buffer.size(), file);
+    std::fclose(file);
+
+    return String(buffer.data(), buffer.data() + buffer.size());
+}
+
+//============================================================================//
+
+std::optional<std::vector<std::byte>> sq::try_read_bytes_from_file(const String& path)
+{
+    FILE* file = std::fopen(path.c_str(), "r");
+
+    if (file == NULL)
+        return std::nullopt;
+
+    std::fseek(file, 0, SEEK_END);
+    const size_t fileSize = std::ftell(file);
+
+    auto buffer = std::vector<std::byte>(fileSize);
+    std::fseek(file, 0, SEEK_SET);
+    std::fread(buffer.data(), 1u, buffer.size(), file);
+    std::fclose(file);
+
+    return buffer;
+}
+
+//============================================================================//
+
+void sq::write_text_to_file(const String& path, StringView text)
+{
+    FILE* file = std::fopen(path.c_str(), "w");
+
+    if (file == NULL)
+        SQEE_THROW("could not write file '{}'", path);
+
+    std::fwrite(text.data(), 1u, text.size(), file);
+    std::fclose(file);
+}
+
+//============================================================================//
+
+void sq::write_bytes_to_file(const String& path, const void* bytes, size_t size)
+{
+    FILE* file = std::fopen(path.c_str(), "wb");
+
+    if (file == NULL)
+        SQEE_THROW("could not write file '{}'", path);
+
+    std::fwrite(bytes, 1u, size, file);
+    std::fclose(file);
+}
+
+//============================================================================//
+
+TokenisedFile TokenisedFile::from_file(const String& path)
+{
+    return from_string(read_text_from_file(path));
+}
+
+//============================================================================//
+
+TokenisedFile TokenisedFile::from_string(String&& text)
 {
     TokenisedFile result;
 
-    result.fullString = get_string_from_file(path);
-    const String& str = result.fullString;
-
-    if (str.empty()) return result;
+    result.source = std::move(text);
+    if (result.source.empty()) return result;
 
     size_t tokenStart = 0u;
-    size_t nextLine = str.find('\n');
-    size_t nextSpace = str.find(' ');
+    size_t nextLine = result.source.find('\n');
+    size_t nextSpace = result.source.find(' ');
 
     result.lines.push_back({ {}, 1u });
 
@@ -118,23 +138,23 @@ TokenisedFile sq::tokenise_file(const String& path)
         {
             if (size_t tokenLen = nextSpace - tokenStart; tokenLen != 0u)
             {
-                const char* startPtr = str.data() + tokenStart;
+                const char* startPtr = result.source.data() + tokenStart;
                 result.lines.back().tokens.emplace_back(startPtr, tokenLen);
             }
 
             tokenStart = ++nextSpace;
-            nextSpace = str.find(' ', nextSpace);
+            nextSpace = result.source.find(' ', nextSpace);
         }
-        else if (nextLine < nextSpace)
+        else
         {
             if (size_t tokenLen = nextLine - tokenStart; tokenLen != 0u)
             {
-                const char* startPtr = str.data() + tokenStart;
+                const char* startPtr = result.source.data() + tokenStart;
                 result.lines.back().tokens.emplace_back(startPtr, tokenLen);
             }
 
             tokenStart = ++nextLine;
-            nextLine = str.find('\n', nextLine);
+            nextLine = result.source.find('\n', nextLine);
 
             if (result.lines.back().tokens.empty() == false)
             {
@@ -145,12 +165,11 @@ TokenisedFile sq::tokenise_file(const String& path)
 
             ++result.lines.back().num;
         }
-        else SQASSERT(false, "");
     }
 
-    if (size_t tokenLen = str.length() - tokenStart; tokenLen != 0u)
+    if (size_t tokenLen = result.source.length() - tokenStart; tokenLen != 0u)
     {
-        const char* startPtr = str.data() + tokenStart;
+        const char* startPtr = result.source.data() + tokenStart;
         result.lines.back().tokens.emplace_back(startPtr, tokenLen);
     }
 
@@ -158,55 +177,4 @@ TokenisedFile sq::tokenise_file(const String& path)
         result.lines.pop_back();
 
     return result;
-}
-
-//============================================================================//
-
-StringView sq::path_extract_file(StringView path)
-{
-    const size_t splitPos = path.rfind('/');
-    if (splitPos == path.size() - 1u) return StringView();
-    return path.substr(splitPos + 1u);
-}
-
-StringView sq::path_extract_directory(StringView path)
-{
-    const size_t splitPos = path.rfind('/');
-    if (splitPos == StringView::npos) return StringView();
-    return path.substr(0u, splitPos + 1u);
-}
-
-StringView sq::path_extract_extension(StringView path)
-{
-    const size_t splitPos = path.find_last_of("./");
-    if (splitPos == StringView::npos || splitPos == 0u || path[splitPos] == '/') return StringView();
-    return path.substr(splitPos);
-}
-
-//============================================================================//
-
-String sq::compute_resource_path(StringView key,
-                                 std::initializer_list<StringView> prefixes,
-                                 std::initializer_list<StringView> extensions)
-{
-    SQASSERT(key.front() != '/', "resource keys cannot be absolute");
-    SQASSERT(path_extract_extension(key).empty(), "resource keys cannot have extensions");
-    SQASSERT(prefixes.size() > 0u, "no prefixes given");
-    SQASSERT(extensions.size() > 0u, "no extensions given");
-
-    for (const StringView& prefix : prefixes)
-    {
-        SQASSERT(!prefix.empty() && prefix.back() == '/', "invalid prefix");
-
-        for (const StringView& extension : extensions)
-        {
-            SQASSERT(!extension.empty() && extension.front() == '.', "invalid extension");
-
-            String result = build_string(prefix, key, extension);
-            if (check_file_exists(result)) return result;
-        }
-    }
-
-    // return the key so that the resource can use it to print a useful error message
-    return String(key);
 }

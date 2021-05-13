@@ -16,8 +16,8 @@ Material::Material(Material&& other)
 
 Material& Material::operator=(Material&& other)
 {
-    std::swap(mPipeline, other.mPipeline);
-    std::swap(mTextures, other.mTextures);
+    mPipeline = std::move(other.mPipeline);
+    mTextures = std::move(other.mTextures);
     std::swap(mParamBuffer, other.mParamBuffer);
     std::swap(mParamBufferMem, other.mParamBufferMem);
     std::swap(mDescriptorSet, other.mDescriptorSet);
@@ -59,7 +59,7 @@ void Material::load_from_json(const JsonValue& json, PipelineCache& pipelines, T
         for (const auto& [key, value] : json.at("params").items())
         {
             const auto info = mPipeline->get_param_info(key);
-            if (!info.has_value()) log_error("pipeline does not have param '{}'", key);
+            if (!info.has_value()) SQEE_THROW("pipeline does not have param '{}'", key);
 
             if      (info->type == "int")   value.get_to(*reinterpret_cast<int*>  (block + info->offset));
             else if (info->type == "Vec2I") value.get_to(*reinterpret_cast<Vec2I*>(block + info->offset));
@@ -70,15 +70,15 @@ void Material::load_from_json(const JsonValue& json, PipelineCache& pipelines, T
             else if (info->type == "Vec3F") value.get_to(*reinterpret_cast<Vec3F*>(block + info->offset));
             else if (info->type == "Vec4F") value.get_to(*reinterpret_cast<Vec4F*>(block + info->offset));
 
-            else log_error("unsupported type for uniform '{}'", key);
+            else SQEE_THROW("unsupported type for uniform '{}'", key);
         }
     }
-    else if (!json.at("params").empty()) log_error("pipeline has no material params");
+    else if (!json.at("params").empty()) SQEE_THROW("material params given, but pipeline has none");
 
     for (const auto& [key, value] : json.at("textures").items())
     {
         const auto info = mPipeline->get_texture_info(key);
-        if (!info.has_value()) log_error("pipeline does not have texture '{}'", key);
+        if (!info.has_value()) SQEE_THROW("pipeline does not have texture '{}'", key);
 
         if (info->type == "Texture2D")
         {
@@ -89,10 +89,10 @@ void Material::load_from_json(const JsonValue& json, PipelineCache& pipelines, T
                 mTextures.back()->get_descriptor_info()
             );
         }
-        else if (info->type == "TextureArray") log_error("todo: texarrays in materials");
-        else if (info->type == "TextureCube") log_error("todo: texcubes in materials");
+        else if (info->type == "TextureArray") SQEE_THROW("todo: texarrays in materials");
+        else if (info->type == "TextureCube") SQEE_THROW("todo: texcubes in materials");
 
-        else log_error("unsupported type for texture '{}'", key);
+        else SQEE_THROW("unsupported type for texture '{}'", key);
     }
 }
 

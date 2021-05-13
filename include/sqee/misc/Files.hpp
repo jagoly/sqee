@@ -11,65 +11,46 @@
 // Windows is kind enough to work just fine with unix paths, so there's no need
 // for anything platform specific.
 
-// todo: in general, file loading in sqee is pretty bad.
-//  - compute_resource_path requires opening and closing files an extra time
-//  - check_file_exists requires opening and closing a file an extra time
-
 namespace sq {
 
 //============================================================================//
 
-/// Check if a file exists.
-SQEE_API bool check_file_exists(const String& path);
-
 /// Load a text file into a string.
-SQEE_API String get_string_from_file(const String& path);
-
-/// If it exists, load a text file into a string.
-SQEE_API std::optional<String> try_get_string_from_file(const String& path);
+SQEE_API String read_text_from_file(const String& path);
 
 /// Load a binary file into a vector of bytes.
-SQEE_API std::vector<std::byte> get_bytes_from_file(const String& path);
+SQEE_API std::vector<std::byte> read_bytes_from_file(const String& path);
+
+/// If it exists, load a text file into a string.
+SQEE_API std::optional<String> try_read_text_from_file(const String& path);
+
+/// If it exists, load a binary file into a vector of bytes.
+SQEE_API std::optional<std::vector<std::byte>> try_read_bytes_from_file(const String& path);
 
 /// Save a string to a text file.
-SQEE_API void save_string_to_file(const String& path, StringView str);
+SQEE_API void write_text_to_file(const String& path, StringView text);
+
+/// Save some bytes to a binary file.
+SQEE_API void write_bytes_to_file(const String& path, const void* bytes, size_t size);
 
 //============================================================================//
 
-struct TokenisedFile : private sq::MoveOnly
+struct SQEE_API TokenisedFile : private MoveOnly
 {
+    /// Load a text file and tokenise it.
+    static TokenisedFile from_file(const String& path);
+
+    /// Take ownership of a string and tokenise it.
+    static TokenisedFile from_string(String&& text);
+
+    //--------------------------------------------------------//
+
     using Tokens = std::vector<StringView>;
     struct Line { Tokens tokens; size_t num; };
 
-    String fullString;
+    String source;
     std::vector<Line> lines;
 };
-
-/// Load a text file into an easy to parse structure
-SQEE_API TokenisedFile tokenise_file(const String& path);
-
-//============================================================================//
-
-/// Extract file portion from a path
-SQEE_API StringView path_extract_file(StringView path);
-
-/// Extract directory portion from a path
-SQEE_API StringView path_extract_directory(StringView path);
-
-/// Extract the file extension from a path
-SQEE_API StringView path_extract_extension(StringView path);
-
-//============================================================================//
-
-/// Compute the path to a file using its key, or just the key if none found.
-///
-/// @param key        the path with no prefix or extension
-/// @param prefixes   directories to search in, highest priority first
-/// @param extensions extensions to check, hightet priority first
-///
-SQEE_API String compute_resource_path(StringView key,
-                                      std::initializer_list<StringView> prefixes,
-                                      std::initializer_list<StringView> extensions);
 
 //============================================================================//
 

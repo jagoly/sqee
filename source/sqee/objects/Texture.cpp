@@ -2,9 +2,11 @@
 
 #include <sqee/debug/Assert.hpp>
 #include <sqee/debug/Logging.hpp>
+#include <sqee/misc/Files.hpp>
 #include <sqee/misc/Json.hpp>
-#include <sqee/redist/stb_image.hpp>
 #include <sqee/vk/Helpers.hpp>
+
+#include <sqee/redist/stb_image.hpp>
 
 using namespace sq;
 
@@ -26,7 +28,7 @@ static vk::Format impl_string_to_format(const String& arg)
     if (arg == "2x8_Snorm") return vk::Format::eR8G8Snorm;
     if (arg == "4x8_Snorm") return vk::Format::eR8G8B8A8Snorm;
 
-    log_error("invalid texture format string '{}'", arg);
+    SQEE_THROW("invalid texture format string '{}'", arg);
 }
 
 static vk::SamplerAddressMode impl_string_to_wrap(const String& arg)
@@ -36,7 +38,7 @@ static vk::SamplerAddressMode impl_string_to_wrap(const String& arg)
     if (arg == "Clamp") return vk::SamplerAddressMode::eClampToEdge;
     if (arg == "MirrorClamp") return vk::SamplerAddressMode::eMirrorClampToEdge;
 
-    log_error("invalid texture wrap string '{}'", arg);
+    SQEE_THROW("invalid texture wrap string '{}'", arg);
 }
 
 static vk::ComponentMapping impl_string_to_swizzle(const String& arg)
@@ -50,11 +52,11 @@ static vk::ComponentMapping impl_string_to_swizzle(const String& arg)
         if (c == 'B') return vk::ComponentSwizzle::eB;
         if (c == 'A') return vk::ComponentSwizzle::eA;
 
-        log_error("invalid texture swizzle char '{}'", c);
+        SQEE_THROW("invalid texture swizzle char '{}'", c);
     };
 
     if (arg.size() != 4u)
-        log_error("invalid texture swizzle string '{}'", arg);
+        SQEE_THROW("invalid texture swizzle string '{}'", arg);
 
     const auto swizzleR = char_to_swizzle(arg[0]);
     const auto swizzleG = char_to_swizzle(arg[1]);
@@ -96,12 +98,17 @@ static auto impl_load_image(vk::Format format, const String& path)
     };
 
     const auto formatInfo = impl_get_format_info(format);
+    const auto bytes = read_bytes_from_file(path);
 
     int width, height, channels;
-    uint8_t* data = stbi_load(path.c_str(), &width, &height, &channels, formatInfo.channels);
+
+    uint8_t* data = stbi_load_from_memory (
+        reinterpret_cast<const uint8_t*>(bytes.data()), bytes.size(),
+        &width, &height, &channels, formatInfo.channels
+    );
 
     if (data == nullptr)
-        log_error_multiline("Error loading image '{}':\n{}", path, stbi_failure_reason());
+        SQEE_THROW("image load failure: {}", stbi_failure_reason());
 
     // todo: allow signed textures that aren't normal maps
     if (formatInfo.isSigned == true)

@@ -53,6 +53,9 @@ typedef unsigned int  uint;
 // sometimes want to have this as a member variable
 typedef unsigned int ImGuiID;
 
+// mostly just to save on typing
+#define SQEE_THROW(...) throw std::runtime_error(fmt::format(__VA_ARGS__))
+
 //============================================================================//
 
 namespace sq {

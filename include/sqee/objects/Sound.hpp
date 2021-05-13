@@ -20,20 +20,21 @@ class SQEE_API Sound final : private MoveOnly
 {
 public: //====================================================//
 
-    Sound(AudioContext& context); ///< Constructor.
+    Sound(AudioContext& context);
 
-    Sound(Sound&& other) noexcept; ///< Move Constructor.
+    Sound(Sound&& other);
+    Sound& operator=(Sound&& other);
 
-    Sound& operator=(Sound&& other) noexcept; ///< Move Assignment.
+    ~Sound();
 
-    ~Sound() noexcept; ///< Destructor.
+    //--------------------------------------------------------//
 
     /// Load sound data from the specified file.
     void load_from_file(const String& path);
 
 private: //===================================================//
 
-    AudioContext& mContext;
+    AudioContext* mContext = nullptr;
 
     std::vector<float> mAudioFrames;
 

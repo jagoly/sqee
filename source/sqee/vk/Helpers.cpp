@@ -63,7 +63,7 @@ ShaderModules::ShaderModules(const VulkanContext& _ctx, const String& vertex, co
 
     const auto load_shader = [this](const String& source, vk::ShaderStageFlagBits stage)
     {
-        auto shaderCode = sq::get_bytes_from_file(source);
+        auto shaderCode = sq::read_bytes_from_file(source);
 
         auto shaderModule = ctx.device.createShaderModule (
             vk::ShaderModuleCreateInfo { {}, shaderCode.size(), reinterpret_cast<uint32_t*>(shaderCode.data()) }

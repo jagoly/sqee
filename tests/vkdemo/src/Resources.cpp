@@ -12,14 +12,14 @@ ResourceCaches::ResourceCaches()
     meshes.assign_factory([](const String& key)
     {
         auto result = std::make_unique<sq::Mesh>();
-        result->load_from_file(sq::build_string("assets/", key, ".sqm"), false);
+        result->load_from_file("assets/" + key, false);
         return result;
     });
 
     textures.assign_factory([](const String& key)
     {
         auto result = std::make_unique<sq::Texture>();
-        result->load_from_file_2D(sq::build_string("assets/", key));
+        result->load_from_file_2D("assets/" + key);
         return result;
     });
 

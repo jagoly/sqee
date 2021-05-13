@@ -27,18 +27,20 @@ public: //====================================================//
         Bones     = 0b10000
     };
 
-    struct SubMesh
-    {
-        uint firstVertex, vertexCount;
-        uint firstIndex, indexCount;
-    };
-
     struct Bounds
     {
         Vec3F origin = {};
         Vec3F extents = {};
         float radius = 0.f;
     };
+
+    struct SubMesh
+    {
+        uint firstVertex, vertexCount;
+        uint firstIndex, indexCount;
+    };
+
+    using Attributes = vk::Flags<Attribute>;
 
     //--------------------------------------------------------//
 
@@ -68,7 +70,7 @@ public: //====================================================//
     const std::vector<SubMesh>& get_sub_meshes() const { return mSubMeshes; }
 
     /// Check what attributes the mesh contains.
-    vk::Flags<Attribute> get_attribute_flags() const { return mAttributeFlags; }
+    Attributes get_attributes() const { return mAttributes; }
 
     /// Access the mesh's bounding box.
     const Bounds& get_bounds() const { return mBounds; }
@@ -77,7 +79,7 @@ public: //====================================================//
 
     struct VertexConfig
     {
-        VertexConfig(vk::Flags<Attribute> flags);
+        VertexConfig(Attributes flags);
 
         vk::VertexInputBindingDescription binding;
         std::vector<vk::VertexInputAttributeDescription> attributes;
@@ -87,30 +89,30 @@ public: //====================================================//
 private: //===================================================//
 
     vk::Buffer mVertexBuffer;
-    sq::VulkanMemory mVertexBufferMem;
+    VulkanMemory mVertexBufferMem;
     vk::Buffer mIndexBuffer;
-    sq::VulkanMemory mIndexBufferMem;
+    VulkanMemory mIndexBufferMem;
 
     uint mVertexSize = 0u;
     uint mVertexTotal = 0u;
     uint mIndexTotal = 0u;
 
-    vk::Flags<Attribute> mAttributeFlags;
-    std::vector<SubMesh> mSubMeshes;
+    Attributes mAttributes;
     Bounds mBounds;
+    std::vector<SubMesh> mSubMeshes;
 
     //--------------------------------------------------------//
 
-    void impl_load_ascii(const String& path, bool swapYZ);
+    void impl_load_text(String&& text, bool swapYZ);
 
     void impl_load_final(std::vector<std::byte>& vertexData, std::vector<uint32_t>& indexData);
 };
 
 //============================================================================//
 
-inline vk::Flags<Mesh::Attribute> operator|(Mesh::Attribute lhs, Mesh::Attribute rhs)
+inline Mesh::Attributes operator|(Mesh::Attribute lhs, Mesh::Attribute rhs)
 {
-    return vk::Flags<Mesh::Attribute>(int(lhs) | int(rhs));
+    return Mesh::Attributes(int(lhs) | int(rhs));
 }
 
 //============================================================================//

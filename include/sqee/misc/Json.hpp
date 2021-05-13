@@ -14,10 +14,9 @@ namespace sq {
 
 //============================================================================//
 
-// todo: make a better api, some kind of MaybeError class would be good
-// or, the rest of the json api uses exceptions, so why not just make this throw?
-
 SQEE_API JsonValue parse_json_from_file(const String& path);
+
+SQEE_API std::optional<JsonValue> try_parse_json_from_file(const String& path);
 
 //============================================================================//
 
@@ -25,7 +24,7 @@ template <size_t Capacity>
 void from_json(const JsonValue& j, StackString<Capacity>& str)
 {
     if (j.is_string() == false || j.size() > Capacity)
-        throw std::invalid_argument(fmt::format("from_json: {} -> {}", j.dump(), type_to_string(StackString<Capacity>())));
+        SQEE_THROW("from_json: {} -> {}", j.dump(), type_to_string(StackString<Capacity>()));
     str = j.get_ref<const String&>();
 }
 
@@ -49,7 +48,7 @@ template <int Size, class Type>
 inline void from_json(const JsonValue& json, Vector<Size, Type>& vec)
 {
     if (json.is_array() == false || json.size() != Size)
-        throw std::invalid_argument(fmt::format("from_json: {} -> {}", json.dump(), type_to_string(Vector<Size, Type>())));
+        SQEE_THROW("from_json: {} -> {}", json.dump(), type_to_string(Vector<Size, Type>()));
 
     json[0].get_to(vec.x);
     json[1].get_to(vec.y);
@@ -71,7 +70,7 @@ template <class Type>
 inline void from_json(const JsonValue& json, Quaternion<Type>& quat)
 {
     if (json.is_array() == false || json.size() != 4)
-        throw std::invalid_argument(fmt::format("from_json: {} -> {}", json.dump(), type_to_string(Quaternion<Type>())));
+        SQEE_THROW("from_json: {} -> {}", json.dump(), type_to_string(Quaternion<Type>()));
 
     json[0].get_to(quat.x);
     json[1].get_to(quat.y);
@@ -91,7 +90,7 @@ template <class Type>
 inline void from_json(const JsonValue& json, RandomRange<Type>& range)
 {
     if (json.is_array() == false || json.size() != 2u)
-        throw std::invalid_argument(fmt::format("from_json: {} -> {}", json.dump(), type_to_string(RandomRange<Type>())));
+        SQEE_THROW("from_json: {} -> {}", json.dump(), type_to_string(RandomRange<Type>()));
 
     json[0].get_to(range.min);
     json[1].get_to(range.max);
