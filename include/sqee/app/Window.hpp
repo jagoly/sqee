@@ -10,7 +10,7 @@
 
 //====== Forward Declarations ================================================//
 
-extern "C" { typedef struct GLFWwindow GLFWwindow; };
+extern "C" { typedef struct GLFWwindow GLFWwindow; }
 
 namespace sq {
 

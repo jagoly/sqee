@@ -50,7 +50,7 @@ static inline void impl_compute_blended_value(float factor, uint frameA, uint fr
     }
     else // track is constant
         ref = *reinterpret_cast<const Type*>(track.track.data());
-};
+}
 
 template <class Type>
 static inline void impl_compute_discrete_value(uint time, const Track& track, Type& ref)
@@ -60,7 +60,7 @@ static inline void impl_compute_discrete_value(uint time, const Track& track, Ty
 
     else // track is constant
         ref = *reinterpret_cast<const Type*>(track.track.data());
-};
+}
 
 //============================================================================//
 

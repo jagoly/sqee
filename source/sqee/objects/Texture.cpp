@@ -103,7 +103,7 @@ static auto impl_load_image(vk::Format format, const String& path)
     int width, height, channels;
 
     uint8_t* data = stbi_load_from_memory (
-        reinterpret_cast<const uint8_t*>(bytes.data()), bytes.size(),
+        reinterpret_cast<const uint8_t*>(bytes.data()), int(bytes.size()),
         &width, &height, &channels, formatInfo.channels
     );
 
