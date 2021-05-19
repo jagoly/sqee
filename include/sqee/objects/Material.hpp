@@ -16,7 +16,11 @@ namespace sq {
 
 //============================================================================//
 
-/// The SQEE Material class.
+/// Information needed to render objects, defined in JSON.
+///
+/// Contains a Pipeline Handle, a set of Texture Handles, and a Uniform Buffer.
+/// Remember to delete your Material cache before your Pipeline and Texture caches.
+///
 class SQEE_API Material final : private MoveOnly
 {
 public: //====================================================//
@@ -43,6 +47,9 @@ public: //====================================================//
 
     /// Bind the per object descriptor set.
     void bind_final_descriptor_set(vk::CommandBuffer cmdbuf, vk::DescriptorSet dset) const;
+
+    /// Access the pipeline resource.
+    const Pipeline& get_pipeline() const { return *mPipeline; }
 
 private: //===================================================//
 

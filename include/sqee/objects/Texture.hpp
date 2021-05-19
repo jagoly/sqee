@@ -11,6 +11,11 @@ namespace sq {
 
 //============================================================================//
 
+/// Image and Sampler, with metadata loaded from JSON.
+///
+/// Supports 2D, Array, and Cube textures,
+/// Will automatically generate mipmaps if requested.
+///
 class SQEE_API Texture : private MoveOnly
 {
 public: //====================================================//

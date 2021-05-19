@@ -11,11 +11,15 @@ namespace sq {
 
 //============================================================================//
 
-/// The SQEE Armature class.
+/// Asset defining a skeleton for animation.
+///
+/// This class contains no vulkan objects, a seperate UBO is required for use.
+///
 class SQEE_API Armature final : private MoveOnly
 {
 public: //====================================================//
 
+    /// Local transform for a single bone.
     struct Bone
     {
         Vec3F offset { nullptr };
@@ -23,16 +27,18 @@ public: //====================================================//
         Vec3F scale { nullptr };
     };
 
+    /// Local transforms for all bones in an armature.
     using Pose = std::vector<Bone>;
 
     //--------------------------------------------------------//
 
-    // todo: investigate using std::pmr for allocating tracks
+    /// A set of tracks that can be sampled to get a Pose.
     struct Animation
     {
+        // todo: investigate using std::pmr for allocating tracks
         struct Track
         {
-            TinyString key = "";
+            TinyString key;
             std::vector<std::byte> track;
         };
 
@@ -41,7 +47,7 @@ public: //====================================================//
         std::vector<std::vector<Track>> bones;
 
         /// Helper to access an extra track by name.
-        const Track* find_extra(int8_t bone, TinyString key);
+        const Track* find_extra(int8_t bone, TinyString key) const;
     };
 
     //--------------------------------------------------------//

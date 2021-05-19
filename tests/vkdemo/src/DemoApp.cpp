@@ -382,7 +382,7 @@ void DemoApp::create_render_targets()
     }
 
     mResourceCaches.passConfigMap = {
-        { "Opaque", { mMsRenderPass, 0u, mMultisampleMode, mWindow->get_size(), mCameraDescriptorSetLayout, mLightDescriptorSetLayout } }
+        { "Opaque", { mMsRenderPass, 0u, mMultisampleMode, mWindow->get_size(), mCameraDescriptorSetLayout, mLightDescriptorSetLayout, {} } }
     };
 }
 

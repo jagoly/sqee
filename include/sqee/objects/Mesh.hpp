@@ -14,6 +14,7 @@ namespace sq {
 
 //============================================================================//
 
+/// Asset with vertex layouts, bounding info, and sub meshes.
 class SQEE_API Mesh final : private MoveOnly
 {
 public: //====================================================//
@@ -36,6 +37,7 @@ public: //====================================================//
 
     struct SubMesh
     {
+        TinyString name;
         uint firstVertex, vertexCount;
         uint firstIndex, indexCount;
     };
@@ -54,29 +56,30 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     /// Load the mesh from an SQM file.
-    void load_from_file(const String& path, bool swapYZ = false);
+    void load_from_file(const String& path);
 
     //--------------------------------------------------------//
+
+    /// Get the index of sub mesh by name, -1 on failure.
+    int get_sub_mesh_index(TinyString name) const;
 
     /// Bind vertex and index buffers.
     void bind_buffers(vk::CommandBuffer cmdbuf) const;
 
-    /// Draw the entire mesh or a submesh.
+    /// Draw the entire mesh, or a sub mesh.
     void draw(vk::CommandBuffer cmdbuf, int subMesh = -1) const;
 
     //--------------------------------------------------------//
 
-    /// Access vector of sub mesh offsets and sizes.
-    const std::vector<SubMesh>& get_sub_meshes() const { return mSubMeshes; }
-
     /// Check what attributes the mesh contains.
     Attributes get_attributes() const { return mAttributes; }
 
-    /// Access the mesh's bounding box.
+    /// Access the mesh's bounding information.
     const Bounds& get_bounds() const { return mBounds; }
 
     //--------------------------------------------------------//
 
+    /// Vertex Layout information, ready for vulkan.
     struct VertexConfig
     {
         VertexConfig(Attributes flags);
@@ -103,7 +106,7 @@ private: //===================================================//
 
     //--------------------------------------------------------//
 
-    void impl_load_text(String&& text, bool swapYZ);
+    void impl_load_text(String&& text);
 
     void impl_load_final(std::vector<std::byte>& vertexData, std::vector<uint32_t>& indexData);
 };

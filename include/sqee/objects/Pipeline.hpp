@@ -12,22 +12,31 @@ namespace sq {
 
 //============================================================================//
 
+/// A Vulkan Pipeline defined in JSON, with reflection data.
+///
+/// Shader descriptor sets are expected to be as follows:
+///  0: shared data, like camera and world info
+///  1: pass data, like light info and shadow maps
+///  2: material data, loaded from JSON by Material
+///  3: object data, like model matrix and bones
+///
 class SQEE_API Pipeline : private MoveOnly
 {
 public: //====================================================//
-
-    // shader ubos/samplers are expected to be as follows:
-    // - set 0 contains data shared between passes, like camera info and global options
-    // - set 1 contains data specific to the pass, like light info and special textures
-    // - set 2 contains material data, and is loaded from json
-    // - set 3 contains data for the object being drawn, like model mat or bones
 
     static constexpr uint DESCRIPTOR_SET_COUNT = 4u;
     static constexpr uint MATERIAL_SET_INDEX = 2u;
 
     //--------------------------------------------------------//
 
-    struct ParamInfo
+    //struct PushConstantInfo
+    //{
+    //    TinyString type;
+    //    vk::ShaderStageFlags stages;
+    //    uint offset;
+    //};
+
+    struct MaterialParamInfo
     {
         TinyString type;
         uint offset;
@@ -60,14 +69,21 @@ public: //====================================================//
 
     vk::Pipeline get_pipeline() const { return mPipeline; }
 
-    size_t get_param_block_size() const { return mParamBlockSize; }
+    size_t get_material_param_block_size() const { return mMaterialParamBlockSize; }
 
     //--------------------------------------------------------//
 
-    std::optional<ParamInfo> get_param_info(TinyString name) const
+    //std::optional<PushConstantInfo> get_push_constant_info(TinyString name) const
+    //{
+    //    const auto iter = mPushConstantMap.find(name);
+    //    if (iter != mPushConstantMap.end()) return iter->second;
+    //    return std::nullopt;
+    //}
+
+    std::optional<MaterialParamInfo> get_material_param_info(TinyString name) const
     {
-        const auto iter = mParamMap.find(name);
-        if (iter != mParamMap.end()) return iter->second;
+        const auto iter = mMaterialParamMap.find(name);
+        if (iter != mMaterialParamMap.end()) return iter->second;
         return std::nullopt;
     }
 
@@ -85,10 +101,11 @@ protected: //=================================================//
 
     vk::Pipeline mPipeline;
 
-    std::map<TinyString, ParamInfo> mParamMap;
+    //std::map<TinyString, PushConstantInfo> mPushConstantMap;
+    std::map<TinyString, MaterialParamInfo> mMaterialParamMap;
     std::map<TinyString, TextureInfo> mTextureMap;
 
-    size_t mParamBlockSize = 0u;
+    size_t mMaterialParamBlockSize = 0u;
 };
 
 //============================================================================//

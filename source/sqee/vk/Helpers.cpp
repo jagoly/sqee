@@ -55,13 +55,13 @@ OneTimeCommands::~OneTimeCommands()
 
 //============================================================================//
 
-ShaderModules::ShaderModules(const VulkanContext& _ctx, const String& vertex, const String& geometry, const String& fragment)
+ShaderModules::ShaderModules(const VulkanContext& _ctx, const String& vertex, const String& geometry, const String& fragment, const vk::SpecializationInfo* specialisation)
     : ctx(_ctx)
 {
     modules.reserve(size_t(!vertex.empty() + !geometry.empty() + !fragment.empty()));
     stages.reserve(size_t(!vertex.empty() + !geometry.empty() + !fragment.empty()));
 
-    const auto load_shader = [this](const String& source, vk::ShaderStageFlagBits stage)
+    const auto load_shader = [&](const String& source, vk::ShaderStageFlagBits stage)
     {
         auto shaderCode = sq::read_bytes_from_file(source);
 
@@ -69,7 +69,7 @@ ShaderModules::ShaderModules(const VulkanContext& _ctx, const String& vertex, co
             vk::ShaderModuleCreateInfo { {}, shaderCode.size(), reinterpret_cast<uint32_t*>(shaderCode.data()) }
         );
 
-        auto shaderStage = vk::PipelineShaderStageCreateInfo { {}, stage, shaderModule, "main", nullptr };
+        auto shaderStage = vk::PipelineShaderStageCreateInfo { {}, stage, shaderModule, "main", specialisation };
 
         modules.push_back(shaderModule);
         stages.push_back(shaderStage);
@@ -80,19 +80,19 @@ ShaderModules::ShaderModules(const VulkanContext& _ctx, const String& vertex, co
     if (fragment.empty() == false) load_shader(fragment, vk::ShaderStageFlagBits::eFragment);
 }
 
-ShaderModules::ShaderModules(const VulkanContext& _ctx, ShaderData vertex, ShaderData geometry, ShaderData fragment)
+ShaderModules::ShaderModules(const VulkanContext& _ctx, ShaderData vertex, ShaderData geometry, ShaderData fragment, const vk::SpecializationInfo* specialisation)
     : ctx(_ctx)
 {
     modules.reserve(size_t(bool(vertex.first) + bool(geometry.first) + bool(fragment.first)));
     stages.reserve(size_t(bool(vertex.first) + bool(geometry.first) + bool(fragment.first)));
 
-    const auto load_shader = [this](const ShaderData& source, vk::ShaderStageFlagBits stage)
+    const auto load_shader = [&](const ShaderData& source, vk::ShaderStageFlagBits stage)
     {
         auto shaderModule = ctx.device.createShaderModule (
             vk::ShaderModuleCreateInfo { {}, std::get<1>(source), std::get<0>(source) }
         );
 
-        auto shaderStage = vk::PipelineShaderStageCreateInfo { {}, stage, shaderModule, "main", nullptr };
+        auto shaderStage = vk::PipelineShaderStageCreateInfo { {}, stage, shaderModule, "main", specialisation };
 
         modules.push_back(shaderModule);
         stages.push_back(shaderStage);

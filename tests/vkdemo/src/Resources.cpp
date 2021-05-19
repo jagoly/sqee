@@ -12,7 +12,7 @@ ResourceCaches::ResourceCaches()
     meshes.assign_factory([](const String& key)
     {
         auto result = std::make_unique<sq::Mesh>();
-        result->load_from_file("assets/" + key, false);
+        result->load_from_file("assets/" + key);
         return result;
     });
 

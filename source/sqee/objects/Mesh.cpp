@@ -12,16 +12,12 @@ using namespace sq;
 
 //============================================================================//
 
-inline void impl_ascii_append_normal(std::byte*& ptr, StringView svx, StringView svy, StringView svz, StringView svw, bool swapYZ)
+inline void impl_ascii_append_normal(std::byte*& ptr, StringView svx, StringView svy, StringView svz, StringView svw)
 {
-    // swapping yz requires inverting bitangtent sign
-    const float fw = svw.empty() ? 0.f : (sv_to_f(svw) * (swapYZ ? -1.f : 1.f));
-
-    // invert tangent to accomodate blender's Y=up tangent space
-    // todo: move tangent inversion to the export script
-    const float fx = std::round(sv_to_f(svx               ) * 511.f) * (svw.empty() ? 1.f : -1.f);
-    const float fy = std::round(sv_to_f(swapYZ ? svz : svy) * 511.f) * (svw.empty() ? 1.f : -1.f);
-    const float fz = std::round(sv_to_f(swapYZ ? svy : svz) * 511.f) * (svw.empty() ? 1.f : -1.f);
+    const float fw = svw.empty() ? 0.f : sv_to_f(svw);
+    const float fx = std::round(sv_to_f(svx) * 511.f);
+    const float fy = std::round(sv_to_f(svy) * 511.f);
+    const float fz = std::round(sv_to_f(svz) * 511.f);
 
     const uint32_t uw = (int32_t(fw) &   1) << 30 | (fw < 0.f) << 31;
     const uint32_t ux = (int32_t(fx) & 511) << 20 | (fx < 0.f) << 29;
@@ -86,20 +82,28 @@ Mesh::~Mesh()
 
 //============================================================================//
 
-void Mesh::load_from_file(const String& path, bool swapYZ)
+void Mesh::load_from_file(const String& path)
 {
     SQASSERT(!mVertexBuffer, "mesh already loaded");
 
     if (auto text = try_read_text_from_file(path + ".sqm"))
-        impl_load_text(std::move(*text), swapYZ);
+        impl_load_text(std::move(*text));
 
     else if (auto text = try_read_text_from_file(path))
-        impl_load_text(std::move(*text), swapYZ);
+        impl_load_text(std::move(*text));
 
     else SQEE_THROW("could not find mesh '{}'", path);
 }
 
 //============================================================================//
+
+int Mesh::get_sub_mesh_index(TinyString name) const
+{
+    for (size_t i = 0u; i < mSubMeshes.size(); ++i)
+        if (name == mSubMeshes[i].name)
+            return int(i);
+    return -1;
+}
 
 void Mesh::bind_buffers(vk::CommandBuffer cmdbuf) const
 {
@@ -120,7 +124,7 @@ void Mesh::draw(vk::CommandBuffer cmdbuf, int subMesh) const
 
 //============================================================================//
 
-void Mesh::impl_load_text(String&& text, bool swapYZ)
+void Mesh::impl_load_text(String&& text)
 {
     enum class Section { None, Header, Vertices, Indices };
     Section section = Section::None;
@@ -154,23 +158,23 @@ void Mesh::impl_load_text(String&& text, bool swapYZ)
 
         else if (section == Section::Header)
         {
-            if (key == "Attrs")
+            if (key == "Attributes")
             {
                 for (uint i = 1u; i < line.size(); ++i)
                 {
-                    if (line[i] == "TCRD")
+                    if (line[i] == "TexCoords")
                     {
                         mAttributes |= Attribute::TexCoords;
                         mVertexSize += sizeof(float[2]);
                         numValuesPerVertex += 2u;
                     }
-                    else if (line[i] == "NORM")
+                    else if (line[i] == "Normals")
                     {
                         mAttributes |= Attribute::Normals;
                         mVertexSize += sizeof(uint32_t);
                         numValuesPerVertex += 3u;
                     }
-                    else if (line[i] == "TANG")
+                    else if (line[i] == "Tangents")
                     {
                         mAttributes |= Attribute::Tangents;
                         mVertexSize += sizeof(uint32_t);
@@ -178,13 +182,13 @@ void Mesh::impl_load_text(String&& text, bool swapYZ)
                     }
                     // todo: colour should have a few formats for different usages (srgb/linear, alpha)
                     // current format is linear rgb compressed to 8bpc, which is very bad
-                    else if (line[i] == "COLR")
+                    else if (line[i] == "Colours")
                     {
                         mAttributes |= Attribute::Colours;
                         mVertexSize += sizeof(uint8_t[4]);
                         numValuesPerVertex += 3u;
                     }
-                    else if (line[i] == "BONE")
+                    else if (line[i] == "Bones")
                     {
                         mAttributes |= Attribute::Bones;
                         mVertexSize += sizeof(int8_t[4]) + sizeof(uint8_t[4]);
@@ -196,29 +200,26 @@ void Mesh::impl_load_text(String&& text, bool swapYZ)
             }
 
             else if (key == "Origin")
-            {
-                if (swapYZ) sq::parse_tokens(mBounds.origin, line[1], line[3], line[2]);
-                else sq::parse_tokens(mBounds.origin, line[1], line[2], line[3]);
-            }
+                parse_tokens(mBounds.origin, line[1], line[2], line[3]);
+
             else if (key == "Extents")
-            {
-                if (swapYZ) sq::parse_tokens(mBounds.extents, line[1], line[3], line[2]);
-                else sq::parse_tokens(mBounds.extents, line[1], line[2], line[3]);
-            }
-            else if (key == "Radius") sq::parse_tokens(mBounds.radius, line[1]);
+                parse_tokens(mBounds.extents, line[1], line[2], line[3]);
+
+            else if (key == "Radius")
+                parse_tokens(mBounds.radius, line[1]);
 
             else if (key == "SubMesh")
             {
-                const uint firstVertex = mVertexTotal;
-                const uint firstIndex = mIndexTotal;
+                SubMesh& sm = mSubMeshes.emplace_back();
 
-                const uint vertexCount = sv_to_u(line[1]);
-                const uint indexCount = sv_to_u(line[2]);
+                sm.name = line[1];
+                sm.firstVertex = mVertexTotal;
+                sm.vertexCount = sv_to_u(line[2]);
+                sm.firstIndex = mIndexTotal;
+                sm.indexCount = sv_to_u(line[3]);
 
-                mSubMeshes.push_back({firstVertex, vertexCount, firstIndex, indexCount});
-
-                mVertexTotal += vertexCount;
-                mIndexTotal += indexCount;
+                mVertexTotal += sm.vertexCount;
+                mIndexTotal += sm.indexCount;
             }
 
             else SQEE_THROW("unknown header key '{}'", key);
@@ -238,16 +239,8 @@ void Mesh::impl_load_text(String&& text, bool swapYZ)
             uint index = 0u;
 
             impl_ascii_append_float(vertexPtr, line[index++]);
-            if (swapYZ)
-            {
-                impl_ascii_append_float(vertexPtr, line[index++ +1u]);
-                impl_ascii_append_float(vertexPtr, line[index++ -1u]);
-            }
-            else
-            {
-                impl_ascii_append_float(vertexPtr, line[index++]);
-                impl_ascii_append_float(vertexPtr, line[index++]);
-            }
+            impl_ascii_append_float(vertexPtr, line[index++]);
+            impl_ascii_append_float(vertexPtr, line[index++]);
 
             if (mAttributes & Attribute::TexCoords)
             {
@@ -260,7 +253,7 @@ void Mesh::impl_load_text(String&& text, bool swapYZ)
                 const auto x = line[index++];
                 const auto y = line[index++];
                 const auto z = line[index++];
-                impl_ascii_append_normal(vertexPtr, x, y, z, {}, swapYZ);
+                impl_ascii_append_normal(vertexPtr, x, y, z, {});
             }
 
             if (mAttributes & Attribute::Tangents)
@@ -269,7 +262,7 @@ void Mesh::impl_load_text(String&& text, bool swapYZ)
                 const auto y = line[index++];
                 const auto z = line[index++];
                 const auto w = line[index++];
-                impl_ascii_append_normal(vertexPtr, x, y, z, w, swapYZ);
+                impl_ascii_append_normal(vertexPtr, x, y, z, w);
             }
 
             if (mAttributes & Attribute::Colours)
@@ -305,18 +298,9 @@ void Mesh::impl_load_text(String&& text, bool swapYZ)
             SQASSERT(indexPtr < indexData.data() + indexData.size(), "too many indices");
             SQASSERT(line.size() == 3u, "wrong number of values");
 
-            // swap indices to make sure winding order is clockwise
             *(indexPtr++) = sv_to_u(line[0]);
-            if (swapYZ)
-            {
-                *(indexPtr++) = sv_to_u(line[2]);
-                *(indexPtr++) = sv_to_u(line[1]);
-            }
-            else
-            {
-                *(indexPtr++) = sv_to_u(line[1]);
-                *(indexPtr++) = sv_to_u(line[2]);
-            }
+            *(indexPtr++) = sv_to_u(line[1]);
+            *(indexPtr++) = sv_to_u(line[2]);
         }
 
         else SQEE_THROW("missing SECTION");

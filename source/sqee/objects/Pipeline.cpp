@@ -30,6 +30,24 @@ static vk::PipelineRasterizationStateCreateInfo impl_make_rasterization_state(co
     };
 }
 
+static vk::PipelineMultisampleStateCreateInfo impl_make_multisample_state(vk::SampleCountFlagBits samples, const String& alphaCoverage)
+{
+    if (alphaCoverage == "Disable")
+        return vk::PipelineMultisampleStateCreateInfo {
+            {}, samples, false, 0.f, nullptr, false, false
+        };
+    if (alphaCoverage == "Enable")
+        return vk::PipelineMultisampleStateCreateInfo {
+            {}, samples, false, 0.f, nullptr, true, false
+        };
+    if (alphaCoverage == "Conditional")
+        return vk::PipelineMultisampleStateCreateInfo {
+            {}, samples, false, 0.f, nullptr, samples > vk::SampleCountFlagBits::e1, false
+        };
+
+    SQEE_THROW("invalid pipeline alphaCoverage string '{}'", alphaCoverage);
+}
+
 static vk::PipelineDepthStencilStateCreateInfo impl_make_depth_stencil_state(const String& depthTest)
 {
     if (depthTest == "Disable")
@@ -48,27 +66,27 @@ static vk::PipelineDepthStencilStateCreateInfo impl_make_depth_stencil_state(con
     SQEE_THROW("invalid pipeline depthTest string '{}'", depthTest);
 }
 
-static vk::PipelineColorBlendAttachmentState impl_make_color_blend_state(const String& blendMode)
+static vk::PipelineColorBlendAttachmentState impl_make_color_blend_state(const String& colourBlend)
 {
-    if (blendMode == "Disable")
+    if (colourBlend == "Disable")
         return vk::PipelineColorBlendAttachmentState {
             false, {}, {}, {}, {}, {}, {}, vk::ColorComponentFlags(0b1111)
         };
-    if (blendMode == "Accumulate") // TODO
+    if (colourBlend == "Accumulate") // TODO
         return vk::PipelineColorBlendAttachmentState {
             false, {}, {}, {}, {}, {}, {}, vk::ColorComponentFlags(0b1111)
         };
-    if (blendMode == "Alpha")
+    if (colourBlend == "Alpha")
         return vk::PipelineColorBlendAttachmentState {
             true, vk::BlendFactor::eSrcAlpha, vk::BlendFactor::eOneMinusSrcAlpha, vk::BlendOp::eAdd,
             vk::BlendFactor::eOne, vk::BlendFactor::eZero, vk::BlendOp::eAdd, vk::ColorComponentFlags(0b1111)
         };
-    if (blendMode == "PremAlpha") // TODO
+    if (colourBlend == "PremAlpha") // TODO
         return vk::PipelineColorBlendAttachmentState {
             false, {}, {}, {}, {}, {}, {}, vk::ColorComponentFlags(0b1111)
         };
 
-    SQEE_THROW("invalid pipeline blendMode string '{}'", blendMode);
+    SQEE_THROW("invalid pipeline colourBlend string '{}'", colourBlend);
 }
 
 //============================================================================//
@@ -117,6 +135,8 @@ void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes
         else dslb = { binding, type, 1u, stage, nullptr };
     };
 
+    //std::vector<vk::PushConstantRange> pushConstantRanges;
+
     //--------------------------------------------------------//
 
     const auto reflect_shader = [&](const std::vector<std::byte>& code, vk::ShaderStageFlagBits stage)
@@ -130,9 +150,43 @@ void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes
         SQASSERT(resources.storage_buffers.empty(), "todo");
         SQASSERT(resources.atomic_counters.empty(), "todo");
         SQASSERT(resources.acceleration_structures.empty(), "todo");
-        SQASSERT(resources.push_constant_buffers.empty(), "todo");
         SQASSERT(resources.separate_images.empty(), "todo");
         SQASSERT(resources.separate_samplers.empty(), "todo");
+
+        SQASSERT(resources.push_constant_buffers.empty(), "todo");
+        //for (const auto& pcb : resources.push_constant_buffers)
+        //{
+        //    const auto& blockType = compiler.get_type(pcb.type_id);
+        //
+        //    // for ease of use, this range includes members that aren't used
+        //    vk::PushConstantRange& range = pushConstantRanges.emplace_back(stage, 256u, 0u);
+        //
+        //    for (uint i = 0u; i < blockType.member_types.size(); ++i)
+        //    {
+        //        const auto& mt = compiler.get_type(blockType.member_types[i]);
+        //        SQASSERT(mt.array.empty(), "push constant block must not contain arrays");
+        //
+        //        PushConstantInfo& entry = mPushConstantMap[compiler.get_member_name(blockType.self, i)];
+        //        entry.type = [&mt]() -> TinyString {
+        //            if (mt.columns == 1u && mt.basetype == cross::SPIRType::Int && mt.vecsize == 1u) return "int";
+        //            if (mt.columns == 1u && mt.basetype == cross::SPIRType::Int && mt.vecsize == 2u) return "Vec2I";
+        //            if (mt.columns == 1u && mt.basetype == cross::SPIRType::Int && mt.vecsize == 3u) return "Vec3I";
+        //            if (mt.columns == 1u && mt.basetype == cross::SPIRType::Int && mt.vecsize == 4u) return "Vec4I";
+        //            if (mt.columns == 1u && mt.basetype == cross::SPIRType::Float && mt.vecsize == 1u) return "float";
+        //            if (mt.columns == 1u && mt.basetype == cross::SPIRType::Float && mt.vecsize == 2u) return "Vec2F";
+        //            if (mt.columns == 1u && mt.basetype == cross::SPIRType::Float && mt.vecsize == 3u) return "Vec3F";
+        //            if (mt.columns == 1u && mt.basetype == cross::SPIRType::Float && mt.vecsize == 4u) return "Vec4F";
+        //            if (mt.columns == 3u && mt.basetype == cross::SPIRType::Float && mt.vecsize == 4u) return "Mat34F";
+        //            if (mt.columns == 4u && mt.basetype == cross::SPIRType::Float && mt.vecsize == 4u) return "Mat4F";
+        //            SQASSERT(false, "push constant block member has invalid type"); return "";
+        //        }();
+        //        entry.stages = entry.stages | stage;
+        //        entry.offset = compiler.type_struct_member_offset(blockType, i);
+        //
+        //        range.offset = std::min(range.offset, entry.offset);
+        //        range.size = std::max(range.size, entry.offset + mt.columns * mt.vecsize * 4u);
+        //    }
+        //}
 
         for (const auto& ubo : resources.uniform_buffers)
         {
@@ -140,35 +194,37 @@ void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes
             const uint binding = compiler.get_decoration(ubo.id, spv::DecorationBinding);
 
             add_descriptor(set, binding, vk::DescriptorType::eUniformBuffer, stage);
+
+            // only need to reflect the material param block
             if (set != MATERIAL_SET_INDEX) continue;
+
+            // already found material block in another shader stage
+            if (mMaterialParamMap.empty() == false) continue;
 
             SQASSERT(binding == 0u, "material block binding must be zero");
 
-            const auto& uboType = compiler.get_type(ubo.type_id);
-            mParamBlockSize = compiler.get_declared_struct_size(uboType);
+            const auto& blockType = compiler.get_type(ubo.type_id);
+            mMaterialParamBlockSize = compiler.get_declared_struct_size(blockType);
 
-            for (uint i = 0u; i < uboType.member_types.size(); ++i)
+            for (uint i = 0u; i < blockType.member_types.size(); ++i)
             {
-                const auto& memberType = compiler.get_type(uboType.member_types[i]);
+                const auto& mt = compiler.get_type(blockType.member_types[i]);
+                SQASSERT(mt.array.empty(), "material block must not contain arrays");
+                SQASSERT(mt.columns == 1u, "material block must not contain matrices");
 
-                SQASSERT(memberType.array.empty(), "material block must not contain arrays");
-                SQASSERT(memberType.columns == 1u, "material block must not contain matrices");
-
-                const TinyString name = compiler.get_member_name(uboType.self, i);
-                const TinyString type = [&memberType]() -> TinyString {
-                    if (memberType.basetype == cross::SPIRType::Int && memberType.vecsize == 1u) return "int";
-                    if (memberType.basetype == cross::SPIRType::Int && memberType.vecsize == 2u) return "Vec2I";
-                    if (memberType.basetype == cross::SPIRType::Int && memberType.vecsize == 3u) return "Vec3I";
-                    if (memberType.basetype == cross::SPIRType::Int && memberType.vecsize == 4u) return "Vec4I";
-                    if (memberType.basetype == cross::SPIRType::Float && memberType.vecsize == 1u) return "float";
-                    if (memberType.basetype == cross::SPIRType::Float && memberType.vecsize == 2u) return "Vec2F";
-                    if (memberType.basetype == cross::SPIRType::Float && memberType.vecsize == 3u) return "Vec3F";
-                    if (memberType.basetype == cross::SPIRType::Float && memberType.vecsize == 4u) return "Vec4F";
+                MaterialParamInfo& entry = mMaterialParamMap[compiler.get_member_name(blockType.self, i)];
+                entry.type = [&mt]() -> TinyString {
+                    if (mt.basetype == cross::SPIRType::Int && mt.vecsize == 1u) return "int";
+                    if (mt.basetype == cross::SPIRType::Int && mt.vecsize == 2u) return "Vec2I";
+                    if (mt.basetype == cross::SPIRType::Int && mt.vecsize == 3u) return "Vec3I";
+                    if (mt.basetype == cross::SPIRType::Int && mt.vecsize == 4u) return "Vec4I";
+                    if (mt.basetype == cross::SPIRType::Float && mt.vecsize == 1u) return "float";
+                    if (mt.basetype == cross::SPIRType::Float && mt.vecsize == 2u) return "Vec2F";
+                    if (mt.basetype == cross::SPIRType::Float && mt.vecsize == 3u) return "Vec3F";
+                    if (mt.basetype == cross::SPIRType::Float && mt.vecsize == 4u) return "Vec4F";
                     SQASSERT(false, "material block member has invalid type"); return "";
                 }();
-                const uint offset = compiler.type_struct_member_offset(uboType, i);
-
-                mParamMap[name] = ParamInfo { type, offset };
+                entry.offset = compiler.type_struct_member_offset(blockType, i);
             }
         }
 
@@ -178,6 +234,8 @@ void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes
             const uint binding = compiler.get_decoration(tex.id, spv::DecorationBinding);
 
             add_descriptor(set, binding, vk::DescriptorType::eCombinedImageSampler, stage);
+
+            // only need to reflect material set textures
             if (set != MATERIAL_SET_INDEX) continue;
 
             const auto& texType = compiler.get_type(tex.type_id);
@@ -223,6 +281,7 @@ void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes
             setLayouts[i] = vk_create_descriptor_set_layout(ctx, {}, setBindings[i]);
 
         mMaterialSetLayout = setLayouts[MATERIAL_SET_INDEX];
+        //mPipelineLayout = vk_create_pipeline_layout(ctx, {}, setLayouts, pushConstantRanges);
         mPipelineLayout = vk_create_pipeline_layout(ctx, {}, setLayouts, nullptr);
 
         for (uint i = 2u; i < DESCRIPTOR_SET_COUNT; ++i)
@@ -233,34 +292,38 @@ void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes
     //--------------------------------------------------------//
 
     const std::vector<JsonValue>& jsonAttributes = json.at("attributes");
+    Mesh::Attributes attributes = {};
 
-    vk::Flags<Mesh::Attribute> attributes {};
     if (algo::find(jsonAttributes, "TexCoords") != jsonAttributes.end()) attributes |= Mesh::Attribute::TexCoords;
     if (algo::find(jsonAttributes, "Normals") != jsonAttributes.end()) attributes |= Mesh::Attribute::Normals;
     if (algo::find(jsonAttributes, "Tangents") != jsonAttributes.end()) attributes |= Mesh::Attribute::Tangents;
     if (algo::find(jsonAttributes, "Colours") != jsonAttributes.end()) attributes |= Mesh::Attribute::Colours;
     if (algo::find(jsonAttributes, "Bones") != jsonAttributes.end()) attributes |= Mesh::Attribute::Bones;
 
-    // todo: cullFace | polygonMode | depthTest | colourBlend
+    const auto vertexConfig = Mesh::VertexConfig ( attributes );
 
-    //--------------------------------------------------------//
+    // todo: constants from json
+    const auto specialisation = SpecialisationConstants (
+        0u, int(pass.samples), 1u, Vec2F(pass.viewport), pass.constants
+    );
 
     const auto shaderModules = ShaderModules (
         ctx, { reinterpret_cast<const uint32_t*>(vertexShaderCode.data()), vertexShaderCode.size() },
-        {}, { reinterpret_cast<const uint32_t*>(fragmentShaderCode.data()), fragmentShaderCode.size() }
+        {}, { reinterpret_cast<const uint32_t*>(fragmentShaderCode.data()), fragmentShaderCode.size() },
+        &specialisation.info
     );
 
-    const auto vertexConfig = Mesh::VertexConfig ( attributes );
+    //--------------------------------------------------------//
 
     mPipeline = vk_create_graphics_pipeline (
         ctx, mPipelineLayout, pass.renderPass, pass.subpass, shaderModules.stages, vertexConfig.state,
         vk::PipelineInputAssemblyStateCreateInfo { {}, vk::PrimitiveTopology::eTriangleList, false },
         impl_make_rasterization_state(json.at("cullFace")),
-        vk::PipelineMultisampleStateCreateInfo { {}, pass.samples, false, 0.f, nullptr, false, false },
+        impl_make_multisample_state(pass.samples, json.at("alphaCoverage")),
         impl_make_depth_stencil_state(json.at("depthTest")),
         vk::Viewport { 0.f, float(pass.viewport.y), float(pass.viewport.x), -float(pass.viewport.y), 0.f, 1.f },
         vk::Rect2D { {0, 0}, {pass.viewport.x, pass.viewport.y} },
-        impl_make_color_blend_state(json.at("blendMode")),
+        impl_make_color_blend_state(json.at("colourBlend")),
         nullptr
     );
 }

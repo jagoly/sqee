@@ -38,8 +38,8 @@ struct SQEE_API OneTimeCommands
 struct SQEE_API ShaderModules
 {
     using ShaderData = std::pair<const uint32_t*, size_t>;
-    ShaderModules(const VulkanContext& ctx, const String& vertex, const String& geometry, const String& fragment);
-    ShaderModules(const VulkanContext& ctx, ShaderData vertex, ShaderData geometry, ShaderData fragment);
+    ShaderModules(const VulkanContext& ctx, const String& vertex, const String& geometry, const String& fragment, const vk::SpecializationInfo* specialisation = nullptr);
+    ShaderModules(const VulkanContext& ctx, ShaderData vertex, ShaderData geometry, ShaderData fragment, const vk::SpecializationInfo* specialisation = nullptr);
     ~ShaderModules();
     const VulkanContext& ctx;
     std::vector<vk::ShaderModule> modules;

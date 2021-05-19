@@ -478,11 +478,11 @@ void Armature::compute_ubo_data(const Pose& pose, Mat34F* out, uint len) const
 
 //============================================================================//
 
-const Armature::Animation::Track* Armature::Animation::find_extra(int8_t bone, TinyString key)
+const Armature::Animation::Track* Armature::Animation::find_extra(int8_t bone, TinyString key) const
 {
     SQASSERT(bone >= 0 && uint(bone) < bones.size(), "invalid bone index");
 
-    std::vector<Track>& tracks = bones[uint(bone)];
+    const std::vector<Track>& tracks = bones[uint(bone)];
 
     // skip over pos/rot/sca tracks
     for (uint i = 3u; i < tracks.size(); ++i)

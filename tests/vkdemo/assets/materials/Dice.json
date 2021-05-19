@@ -5,8 +5,9 @@
     "vertexShader": "super/BasicModel/VertTangents",
     "fragmentShader": "super/BasicModel/FragDiffuseNormal",
     "cullFace": "Back",
+    "alphaCoverage": "Disable",
     "depthTest": "Replace",
-    "blendMode": "Disable"
+    "colourBlend": "Disable"
   },
   "params": {
     "specular": [ 0.5, 0.5, 0.5 ]

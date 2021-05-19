@@ -42,23 +42,23 @@ void Material::load_from_json(const JsonValue& json, PipelineCache& pipelines, T
 
     mDescriptorSet = vk_allocate_descriptor_set(ctx, mPipeline->get_material_set_layout());
 
-    if (mPipeline->get_param_block_size() > 0u)
+    if (mPipeline->get_material_param_block_size() > 0u)
     {
         // todo: params don't change, so buffer should be on device memory
         std::tie(mParamBuffer, mParamBufferMem) = vk_create_buffer (
-            ctx, mPipeline->get_param_block_size(), vk::BufferUsageFlagBits::eUniformBuffer, true
+            ctx, mPipeline->get_material_param_block_size(), vk::BufferUsageFlagBits::eUniformBuffer, true
         );
 
         vk_update_descriptor_set (
             ctx, mDescriptorSet, 0u, 0u, vk::DescriptorType::eUniformBuffer,
-            vk::DescriptorBufferInfo { mParamBuffer, 0u, mPipeline->get_param_block_size() }
+            vk::DescriptorBufferInfo { mParamBuffer, 0u, mPipeline->get_material_param_block_size() }
         );
 
         std::byte* block = mParamBufferMem.map();
 
         for (const auto& [key, value] : json.at("params").items())
         {
-            const auto info = mPipeline->get_param_info(key);
+            const auto info = mPipeline->get_material_param_info(key);
             if (!info.has_value()) SQEE_THROW("pipeline does not have param '{}'", key);
 
             if      (info->type == "int")   value.get_to(*reinterpret_cast<int*>  (block + info->offset));
