@@ -20,6 +20,10 @@ class SQEE_API Texture : private MoveOnly
 {
 public: //====================================================//
 
+    enum class FilterMode : int8_t { Nearest, Linear, Anisotropic };
+
+    enum class MipmapsMode : int8_t { Disable, Generate, Load };
+
     struct Config
     {
         vk::Format format;
@@ -27,8 +31,8 @@ public: //====================================================//
         vk::SamplerAddressMode wrapY;
         vk::SamplerAddressMode wrapZ;
         vk::ComponentMapping swizzle;
-        bool filter;
-        bool anisotropy;
+        FilterMode filter;
+        MipmapsMode mipmaps;
         Vec3U size;
         uint mipLevels;
     };
@@ -62,7 +66,7 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    void load_from_memory(void* data, uint layer, const Config& config);
+    void load_from_memory(void* data, uint level, uint layer, const Config& config);
 
     //--------------------------------------------------------//
 

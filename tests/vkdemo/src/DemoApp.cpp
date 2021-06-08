@@ -382,7 +382,7 @@ void DemoApp::create_render_targets()
     }
 
     mResourceCaches.passConfigMap = {
-        { "Opaque", { mMsRenderPass, 0u, mMultisampleMode, mWindow->get_size(), mCameraDescriptorSetLayout, mLightDescriptorSetLayout, {} } }
+        { "Opaque", { mMsRenderPass, 0u, mMultisampleMode, {}, mWindow->get_size(), mCameraDescriptorSetLayout, mLightDescriptorSetLayout, {} } }
     };
 }
 
@@ -550,8 +550,9 @@ void DemoApp::populate_command_buffer(vk::CommandBuffer cmdbuf, vk::Framebuffer 
 
         for (const auto& model : mStaticModels)
         {
-            model.material->bind(cmdbuf);
-            model.material->bind_final_descriptor_set(cmdbuf, model.descriptorSet.front);
+            model.material->get_pipeline().bind(cmdbuf);
+            model.material->bind_material_set(cmdbuf);
+            model.material->bind_object_set(cmdbuf, model.descriptorSet.front);
             model.mesh->bind_buffers(cmdbuf);
             model.mesh->draw(cmdbuf);
         }

@@ -42,11 +42,11 @@ public: //====================================================//
     /// Load the material from a json object.
     void load_from_json(const JsonValue& json, PipelineCache& pipelines, TextureCache& textures);
 
-    /// Bind the material to the context.
-    void bind(vk::CommandBuffer cmdbuf) const;
+    /// Bind the material descriptor set.
+    void bind_material_set(vk::CommandBuffer cmdbuf) const;
 
-    /// Bind the per object descriptor set.
-    void bind_final_descriptor_set(vk::CommandBuffer cmdbuf, vk::DescriptorSet dset) const;
+    /// Bind an object's descriptor set.
+    void bind_object_set(vk::CommandBuffer cmdbuf, vk::DescriptorSet dset) const;
 
     /// Access the pipeline resource.
     const Pipeline& get_pipeline() const { return *mPipeline; }

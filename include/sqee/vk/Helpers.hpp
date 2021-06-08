@@ -122,7 +122,7 @@ inline void vk_update_descriptor_set (
 ) {
     ctx.device.updateDescriptorSets (
         vk::WriteDescriptorSet {
-            dset, binding, index, bufferInfo.size(), type, nullptr, bufferInfo.data(), nullptr
+            dset, binding, index, uint(bufferInfo.size()), type, nullptr, bufferInfo.data(), nullptr
         }, {}
     );
 }
@@ -133,10 +133,10 @@ inline void vk_update_descriptor_set_swapper (
     ctx.device.updateDescriptorSets (
         {
             vk::WriteDescriptorSet {
-                swapper.front, binding, index, bufferInfoFront.size(), type, nullptr, bufferInfoFront.data(), nullptr
+                swapper.front, binding, index, uint(bufferInfoFront.size()), type, nullptr, bufferInfoFront.data(), nullptr
             },
             vk::WriteDescriptorSet {
-                swapper.back, binding, index, bufferInfoBack.size(), type, nullptr, bufferInfoBack.data(), nullptr
+                swapper.back, binding, index, uint(bufferInfoBack.size()), type, nullptr, bufferInfoBack.data(), nullptr
             },
         }, {}
     );

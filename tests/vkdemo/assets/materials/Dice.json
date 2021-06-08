@@ -7,7 +7,7 @@
     "cullFace": "Back",
     "alphaCoverage": "Disable",
     "depthTest": "Replace",
-    "colourBlend": "Disable"
+    "colourBlend": [ "Disable" ]
   },
   "params": {
     "specular": [ 0.5, 0.5, 0.5 ]

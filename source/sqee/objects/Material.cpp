@@ -98,18 +98,15 @@ void Material::load_from_json(const JsonValue& json, PipelineCache& pipelines, T
 
 //============================================================================//
 
-void Material::bind(vk::CommandBuffer cmdbuf) const
+void Material::bind_material_set(vk::CommandBuffer cmdbuf) const
 {
-    cmdbuf.bindPipeline (
-        vk::PipelineBindPoint::eGraphics, mPipeline->get_pipeline()
-    );
     cmdbuf.bindDescriptorSets (
         vk::PipelineBindPoint::eGraphics, mPipeline->get_pipeline_layout(),
         Pipeline::MATERIAL_SET_INDEX, mDescriptorSet, nullptr
     );
 }
 
-void Material::bind_final_descriptor_set(vk::CommandBuffer cmdbuf, vk::DescriptorSet dset) const
+void Material::bind_object_set(vk::CommandBuffer cmdbuf, vk::DescriptorSet dset) const
 {
     cmdbuf.bindDescriptorSets (
         vk::PipelineBindPoint::eGraphics, mPipeline->get_pipeline_layout(),

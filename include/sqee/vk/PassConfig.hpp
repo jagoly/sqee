@@ -67,6 +67,7 @@ struct PassConfig final
     vk::RenderPass renderPass;
     uint subpass;
     vk::SampleCountFlagBits samples;
+    vk::StencilOpState stencil;
     Vec2U viewport;
 
     vk::DescriptorSetLayout setLayout0;

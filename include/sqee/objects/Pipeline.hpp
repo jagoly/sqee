@@ -59,9 +59,15 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
+    /// Load the pipeline from a json object.
     void load_from_json(const JsonValue& json, const PassConfigMap& passes);
 
+    /// Bind the pipeline for rendering.
+    void bind(vk::CommandBuffer cmdbuf) const;
+
     //--------------------------------------------------------//
+
+    const PassConfig* get_pass_config() const { return mPassConfig; }
 
     vk::DescriptorSetLayout get_material_set_layout() const { return mMaterialSetLayout; }
 
@@ -95,6 +101,8 @@ public: //====================================================//
     }
 
 protected: //=================================================//
+
+    const PassConfig* mPassConfig = nullptr;
 
     vk::DescriptorSetLayout mMaterialSetLayout;
     vk::PipelineLayout mPipelineLayout;

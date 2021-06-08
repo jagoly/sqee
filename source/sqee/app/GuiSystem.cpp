@@ -304,13 +304,13 @@ void GuiSystem::create_objects()
     config.wrapX = config.wrapY = config.wrapZ = vk::SamplerAddressMode::eRepeat;
     config.swizzle.r = config.swizzle.g = config.swizzle.b = vk::ComponentSwizzle::eOne;
     config.swizzle.a = vk::ComponentSwizzle::eR;
-    config.filter = true;
-    config.anisotropy = false;
+    config.filter = Texture::FilterMode::Linear;
+    config.mipmaps = Texture::MipmapsMode::Disable;
     config.size = Vec3U(width, height, 1u);
     config.mipLevels = 1u;
 
     mFontTexture.initialise_2D(config);
-    mFontTexture.load_from_memory(pixels, 0u, config);
+    mFontTexture.load_from_memory(pixels, 0u, 0u, config);
 }
 
 //============================================================================//

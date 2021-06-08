@@ -28,6 +28,8 @@ static vk::Format impl_string_to_format(const String& arg)
     if (arg == "2x8_Snorm") return vk::Format::eR8G8Snorm;
     if (arg == "4x8_Snorm") return vk::Format::eR8G8B8A8Snorm;
 
+    if (arg == "5999_Hdr") return vk::Format::eE5B9G9R9UfloatPack32;
+
     SQEE_THROW("invalid texture format string '{}'", arg);
 }
 
@@ -66,25 +68,67 @@ static vk::ComponentMapping impl_string_to_swizzle(const String& arg)
     return { swizzleR, swizzleG, swizzleB, swizzleA };
 }
 
+static Texture::FilterMode impl_string_to_filter(const String& arg)
+{
+    if (arg == "Nearest") return Texture::FilterMode::Nearest;
+    if (arg == "Linear") return Texture::FilterMode::Linear;
+    if (arg == "Anisotropic") return Texture::FilterMode::Anisotropic;
+
+    SQEE_THROW("invalid texture mipmaps string '{}'", arg);
+}
+
+static Texture::MipmapsMode impl_string_to_mipmaps(const String& arg)
+{
+    if (arg == "Disable") return Texture::MipmapsMode::Disable;
+    if (arg == "Generate") return Texture::MipmapsMode::Generate;
+    if (arg == "Load") return Texture::MipmapsMode::Load;
+
+    SQEE_THROW("invalid texture mipmaps string '{}'", arg);
+}
+
 //============================================================================//
 
 inline auto impl_get_format_info(vk::Format format)
 {
     struct Result { int channels; size_t pixelSize; bool isSigned; };
 
-    if (format == vk::Format::eR8Srgb) return Result { 1u, 1u, false };
-    if (format == vk::Format::eR8G8Srgb) return Result { 2u, 2u, false };
-    if (format == vk::Format::eR8G8B8A8Srgb) return Result { 4u, 4u, false };
+    if (format == vk::Format::eR8Srgb) return Result { 1, 1, false };
+    if (format == vk::Format::eR8G8Srgb) return Result { 2, 2, false };
+    if (format == vk::Format::eR8G8B8A8Srgb) return Result { 4, 4, false };
 
-    if (format == vk::Format::eR8Unorm) return Result { 1u, 1u, false };
-    if (format == vk::Format::eR8G8Unorm) return Result { 2u, 2u, false };
-    if (format == vk::Format::eR8G8B8A8Unorm) return Result { 4u, 4u, false };
+    if (format == vk::Format::eR8Unorm) return Result { 1, 1, false };
+    if (format == vk::Format::eR8G8Unorm) return Result { 2, 2, false };
+    if (format == vk::Format::eR8G8B8A8Unorm) return Result { 4, 4, false };
 
-    if (format == vk::Format::eR8Snorm) return Result { 1u, 1u, true };
-    if (format == vk::Format::eR8G8Snorm) return Result { 2u, 2u, true };
-    if (format == vk::Format::eR8G8B8A8Snorm) return Result { 4u, 4u, true };
+    if (format == vk::Format::eR8Snorm) return Result { 1, 1, true };
+    if (format == vk::Format::eR8G8Snorm) return Result { 2, 2, true };
+    if (format == vk::Format::eR8G8B8A8Snorm) return Result { 4, 4, true };
+
+    if (format == vk::Format::eE5B9G9R9UfloatPack32) return Result { 3, 4, false };
+
+    if (format == vk::Format::eR16Unorm) return Result { 1, 2, false };
+    if (format == vk::Format::eR16G16Unorm) return Result { 2, 4, false };
+    if (format == vk::Format::eR16G16B16A16Unorm) return Result { 4, 8, false };
 
     return Result {};
+}
+
+//============================================================================//
+
+inline uint32_t vec3_to_e5bgr9(Vec3F rgb)
+{
+    constexpr float MAX_VALUE = float((1<<9)-1) / float(1<<9) * float(1<<5);
+
+    const Vec3F clamped = maths::clamp(rgb, Vec3F(0.f), Vec3F(MAX_VALUE));
+    const float maxComponent = maths::max(clamped.r, clamped.g, clamped.b);
+
+    const float prelimExponent = std::max(-15.f - 1.f, std::floor(std::log2(maxComponent))) + 1.f + 15.f;
+    const float maxExponent = std::floor(maxComponent / std::pow(2.f, (prelimExponent - 15.f - 9.f)) + 0.5f);
+    const float exponent = maxExponent < std::pow(2.f, 9.f) ? prelimExponent : prelimExponent + 1.f;
+
+    const Vec3U values = Vec3U(clamped / std::pow(2.f, (exponent - 15.f - 9.f)) + 0.5f);
+
+    return uint(exponent) << 27 | values.b << 18 | values.g << 9 | values.r;
 }
 
 //============================================================================//
@@ -93,7 +137,7 @@ static auto impl_load_image(vk::Format format, const String& path)
 {
     struct Image
     {
-        ~Image() { stbi_image_free(data); };
+        ~Image() { std::free(data); };
         void* data; Vec2U size;
     };
 
@@ -102,30 +146,57 @@ static auto impl_load_image(vk::Format format, const String& path)
 
     int width, height, channels;
 
-    uint8_t* data = stbi_load_from_memory (
-        reinterpret_cast<const uint8_t*>(bytes.data()), int(bytes.size()),
-        &width, &height, &channels, formatInfo.channels
-    );
-
-    if (data == nullptr)
-        SQEE_THROW("image load failure: {}", stbi_failure_reason());
-
-    // todo: allow signed textures that aren't normal maps
-    if (formatInfo.isSigned == true)
+    if (format == vk::Format::eE5B9G9R9UfloatPack32)
     {
-        int8_t* begin = reinterpret_cast<int8_t*>(data);
-        int8_t* end = begin + width * height * formatInfo.channels;
+        float* floats = stbi_loadf_from_memory (
+            reinterpret_cast<const uint8_t*>(bytes.data()), int(bytes.size()),
+            &width, &height, &channels, formatInfo.channels
+        );
 
-        // convert values to signed twos compliment values from -127 to +127
-        for (int8_t* p = begin; p != end; ++p)
-            *p += *p >= 0 ? -127 : +128;
+        if (floats == nullptr)
+            SQEE_THROW("image load failure: {}", stbi_failure_reason());
 
-        // normal maps have opengl style +Y, so invert it
-        for (int8_t* p = begin+1; p != end+1 ; p += formatInfo.channels)
-            *p = -*p;
+        // use malloc so that we can use free instead of delete
+        uint32_t* data = static_cast<uint32_t*>(std::malloc(width * height * sizeof(uint32_t)));
+
+        std::transform (
+            reinterpret_cast<Vec3F*>(floats), reinterpret_cast<Vec3F*>(floats) + width * height,
+            data, vec3_to_e5bgr9
+        );
+
+        std::free(floats);
+
+        return Image { data, Vec2U(width, height) };
     }
+    else
+    {
+        SQASSERT(formatInfo.channels == int(formatInfo.pixelSize), "todo: loading 16bit images");
 
-    return Image { data, Vec2U(width, height) };
+        uint8_t* data = stbi_load_from_memory (
+            reinterpret_cast<const uint8_t*>(bytes.data()), int(bytes.size()),
+            &width, &height, &channels, formatInfo.channels
+        );
+
+        if (data == nullptr)
+            SQEE_THROW("image load failure: {}", stbi_failure_reason());
+
+        // todo: allow signed textures that aren't normal maps
+        if (formatInfo.isSigned == true)
+        {
+            int8_t* const begin = reinterpret_cast<int8_t*>(data);
+            int8_t* const end = begin + width * height * formatInfo.channels;
+
+            // convert values to signed twos compliment values from -127 to +127
+            for (int8_t* p = begin; p != end; ++p)
+                *p += *p >= 0 ? -127 : +128;
+
+            // normal maps have opengl style +Y, so invert it
+            for (int8_t* p = begin+1; p != end+1 ; p += formatInfo.channels)
+                *p = -*p;
+        }
+
+        return Image { data, Vec2U(width, height) };
+    }
 }
 
 //============================================================================//
@@ -184,15 +255,19 @@ void Texture::load_from_file_2D(const String& path)
     config.wrapY = impl_string_to_wrap(json.at("wrapY"));
     config.wrapZ = vk::SamplerAddressMode::eRepeat;
     config.swizzle = impl_string_to_swizzle(json.at("swizzle"));
-    config.filter = json.at("filter");
-    config.anisotropy = json.at("anisotropy");
+    config.filter = impl_string_to_filter(json.at("filter"));
+    config.mipmaps = impl_string_to_mipmaps(json.at("mipmaps"));
 
     const auto image = impl_load_image(config.format, path + ".png");
     config.size = Vec3U(image.size, 1u);
-    config.mipLevels = json.at("mipmaps") ? 1u + uint(std::floor(std::log2(std::max(config.size.x, config.size.y)))) : 1u;
+
+    if (config.mipmaps == MipmapsMode::Disable) config.mipLevels = 1u;
+    else config.mipLevels = 1u + uint(std::floor(std::log2(std::max(config.size.x, config.size.y))));
+
+    SQASSERT(config.mipmaps != MipmapsMode::Load, "todo: 2D mipmap load");
 
     initialise_2D(config);
-    load_from_memory(image.data, 0u, config);
+    load_from_memory(image.data, 0u, 0u, config);
 }
 
 //============================================================================//
@@ -226,20 +301,25 @@ void Texture::load_from_file_array(const String& path)
     config.wrapY = impl_string_to_wrap(json.at("wrapY"));
     config.wrapZ = impl_string_to_wrap(json.at("wrapZ"));
     config.swizzle = impl_string_to_swizzle(json.at("swizzle"));
-    config.filter = json.at("filter");
-    config.anisotropy = json.at("anisotropy");
+    config.filter = impl_string_to_filter(json.at("filter"));
+    config.mipmaps = impl_string_to_mipmaps(json.at("mipmaps"));
     config.size = json.at("size");
 
-    config.mipLevels = json.at("mipmaps") ? 1u + uint(std::floor(std::log2(std::max(config.size.x, config.size.y)))) : 1u;
+    if (config.mipmaps == MipmapsMode::Disable) config.mipLevels = 1u;
+    else config.mipLevels = 1u + uint(std::floor(std::log2(std::max(config.size.x, config.size.y))));
+
+    SQASSERT(config.mipmaps != MipmapsMode::Load, "todo: array mipmap load");
 
     initialise_array(config);
 
+    const auto formatStr = config.format == vk::Format::eE5B9G9R9UfloatPack32 ? "{}/{:0>{}}.hdr" : "{}/{:0>{}}.png";
+    const uint digits = config.size.z > 10u ? config.size.z > 100u ? 3u : 2u : 1u;
+
     for (uint layer = 0u; layer < config.size.z; ++layer)
     {
-        const uint digits = config.size.z > 10u ? config.size.z > 100u ? 3u : 2u : 1u;
-        const auto image = impl_load_image(config.format, fmt::format("{}/{:0>{}}.png", path, layer, digits));
+        const auto image = impl_load_image(config.format, fmt::format(formatStr, path, layer, digits));
         SQASSERT(image.size == Vec2U(config.size), "image size does not match json");
-        load_from_memory(image.data, layer, config);
+        load_from_memory(image.data, 0u, layer, config);
     }
 }
 
@@ -274,19 +354,37 @@ void Texture::load_from_file_cube(const String& path)
     config.wrapY = vk::SamplerAddressMode::eRepeat;
     config.wrapZ = vk::SamplerAddressMode::eRepeat;
     config.swizzle = impl_string_to_swizzle(json.at("swizzle"));
-    config.filter = json.at("filter");
-    config.anisotropy = json.at("anisotropy");
+    config.filter = impl_string_to_filter(json.at("filter"));
+    config.mipmaps = impl_string_to_mipmaps(json.at("mipmaps"));
     config.size = Vec3U(Vec2U(uint(json.at("size"))), 6u);
 
-    config.mipLevels = json.at("mipmaps") ? 1u + uint(std::floor(std::log2(config.size.x))) : 1u;
+    if (config.mipmaps == MipmapsMode::Disable) config.mipLevels = 1u;
+    else config.mipLevels = 1u + uint(std::floor(std::log2(config.size.x)));
 
     initialise_cube(config);
 
-    for (const char* fname : {"0_right", "1_left", "2_down", "3_up", "4_forward", "5_back"})
+    if (config.mipmaps == MipmapsMode::Load)
     {
-        const auto image = impl_load_image(config.format, fmt::format("{}/{}.png", path, fname));
-        SQASSERT(image.size == Vec2U(config.size), "image size does not match json");
-        load_from_memory(image.data, uint(*fname - '0'), config);
+        const auto formatStr = config.format == vk::Format::eE5B9G9R9UfloatPack32 ? "{}/{}/{}.hdr" : "{}/{}/{}.png";
+        for (const auto faceName : {"0_right", "1_left", "2_down", "3_up", "4_forward", "5_back"})
+        {
+            for (uint level = 0u; level < config.mipLevels; ++level)
+            {
+                const auto image = impl_load_image(config.format, fmt::format(formatStr, path, level, faceName));
+                SQASSERT(image.size == Vec2U(config.size) / uint(std::exp2(level)), "image size does not match level");
+                load_from_memory(image.data, level, uint(*faceName - '0'), config);
+            }
+        }
+    }
+    else // disabled or generated mipmaps
+    {
+        const auto formatStr = config.format == vk::Format::eE5B9G9R9UfloatPack32 ? "{}/{}.hdr" : "{}/{}.png";
+        for (const auto faceName : {"0_right", "1_left", "2_down", "3_up", "4_forward", "5_back"})
+        {
+            const auto image = impl_load_image(config.format, fmt::format(formatStr, path, faceName));
+            SQASSERT(image.size == Vec2U(config.size), "image size does not match json");
+            load_from_memory(image.data, 0u, uint(*faceName - '0'), config);
+        }
     }
 }
 
@@ -298,12 +396,12 @@ void Texture::impl_initialise_common(const Config& config)
 
     mSampler = ctx.device.createSampler (
         vk::SamplerCreateInfo {
-            {}, config.filter ? vk::Filter::eLinear : vk::Filter::eNearest,
-            config.filter ? vk::Filter::eLinear : vk::Filter::eNearest,
-            config.filter ? vk::SamplerMipmapMode::eLinear : vk::SamplerMipmapMode::eNearest,
+            {}, config.filter != FilterMode::Nearest ? vk::Filter::eLinear : vk::Filter::eNearest,
+            config.filter != FilterMode::Nearest ? vk::Filter::eLinear : vk::Filter::eNearest,
+            config.filter != FilterMode::Nearest ? vk::SamplerMipmapMode::eLinear : vk::SamplerMipmapMode::eNearest,
             config.wrapX, config.wrapY, config.wrapZ,
-            0.f, config.anisotropy, ctx.limits.maxAnisotropy,
-            false, vk::CompareOp::eAlways, 0.f, 0.f,
+            0.f, config.filter == FilterMode::Anisotropic, ctx.limits.maxAnisotropy,
+            false, vk::CompareOp::eAlways, 0.f, float(config.mipLevels) - 1.f,
             vk::BorderColor::eFloatTransparentBlack, false
         }
     );
@@ -313,16 +411,19 @@ void Texture::impl_initialise_common(const Config& config)
 
 //============================================================================//
 
-void Texture::load_from_memory(void* data, uint layer, const Config& config)
+void Texture::load_from_memory(void* data, uint level, uint layer, const Config& config)
 {
+    SQASSERT(level == 0u || config.mipmaps != MipmapsMode::Generate, "cannot manually load generated mipmaps");
+
     const auto& ctx = VulkanContext::get();
 
     const auto formatInfo = impl_get_format_info(config.format);
+    const Vec2U size = Vec2U(config.size) / uint(std::exp2(level));
 
-    auto staging = StagingBuffer(ctx, config.size.x * config.size.y * formatInfo.pixelSize);
+    auto staging = StagingBuffer(ctx, size.x * size.y * formatInfo.pixelSize);
     auto cmdbuf = OneTimeCommands(ctx);
 
-    std::memcpy(staging.memory.map(), data, config.size.x * config.size.y * formatInfo.pixelSize);
+    std::memcpy(staging.memory.map(), data, size.x * size.y * formatInfo.pixelSize);
     staging.memory.unmap();
 
     vk_transition_image_memory_layout (
@@ -330,26 +431,27 @@ void Texture::load_from_memory(void* data, uint layer, const Config& config)
         vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eTransfer,
         vk::AccessFlags(), vk::AccessFlagBits::eTransferWrite,
         vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal,
-        vk::ImageAspectFlagBits::eColor, 0u, config.mipLevels, layer, 1u
+        vk::ImageAspectFlagBits::eColor,
+        level, config.mipmaps == MipmapsMode::Generate ? config.mipLevels : 1u, layer, 1u
     );
 
     cmdbuf->copyBufferToImage (
         staging.buffer, mImage, vk::ImageLayout::eTransferDstOptimal,
         vk::BufferImageCopy {
             0u, 0u, 0u,
-            vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0u, layer, 1u),
-            vk::Offset3D(0, 0, 0), vk::Extent3D(config.size.x, config.size.y, 1u)
+            vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, level, layer, 1u),
+            vk::Offset3D(0, 0, 0), vk::Extent3D(size.x, size.y, 1u)
         }
     );
 
-    if (config.mipLevels == 1u)
+    if (config.mipmaps != MipmapsMode::Generate)
     {
         vk_transition_image_memory_layout (
             cmdbuf.cmdbuf, mImage,
             vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eBottomOfPipe,
             vk::AccessFlagBits::eTransferWrite, vk::AccessFlags(),
             vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal,
-            vk::ImageAspectFlagBits::eColor, 0u, 1u, layer, 1u
+            vk::ImageAspectFlagBits::eColor, level, 1u, layer, 1u
         );
         return; // no mipmap generation
     }

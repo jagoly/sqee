@@ -48,19 +48,21 @@ static vk::PipelineMultisampleStateCreateInfo impl_make_multisample_state(vk::Sa
     SQEE_THROW("invalid pipeline alphaCoverage string '{}'", alphaCoverage);
 }
 
-static vk::PipelineDepthStencilStateCreateInfo impl_make_depth_stencil_state(const String& depthTest)
+static vk::PipelineDepthStencilStateCreateInfo impl_make_depth_stencil_state(vk::StencilOpState stencil, const String& depthTest)
 {
+    const bool stencilEnable = (stencil != vk::StencilOpState());
+
     if (depthTest == "Disable")
         return vk::PipelineDepthStencilStateCreateInfo {
-            {}, false, false, {}, false, false, {}, {}, 0.f, 0.f
+            {}, false, false, {}, false, stencilEnable, stencil, stencil, 0.f, 0.f
         };
     if (depthTest == "Keep")
         return vk::PipelineDepthStencilStateCreateInfo {
-            {}, true, false, vk::CompareOp::eLessOrEqual, false, false, {}, {}, 0.f, 0.f
+            {}, true, false, vk::CompareOp::eLessOrEqual, false, stencilEnable, stencil, stencil, 0.f, 0.f
         };
     if (depthTest == "Replace")
         return vk::PipelineDepthStencilStateCreateInfo {
-            {}, true, true, vk::CompareOp::eLess, false, false, {}, {}, 0.f, 0.f
+            {}, true, true, vk::CompareOp::eLess, false, stencilEnable, stencil, stencil, 0.f, 0.f
         };
 
     SQEE_THROW("invalid pipeline depthTest string '{}'", depthTest);
@@ -113,6 +115,8 @@ Pipeline::~Pipeline()
 }
 
 //============================================================================//
+
+// todo: remove asserts relating to shaders, to support live editing
 
 void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes)
 {
@@ -255,7 +259,14 @@ void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes
 
     //--------------------------------------------------------//
 
-    const auto& pass = passes.at(json.at("pass"));
+    // setup pass config, with a useful error message
+    {
+        const String& key = json.at("pass");
+        const auto iter = passes.find(key);
+
+        if (iter != passes.end()) mPassConfig = &iter->second;
+        else SQEE_THROW("unknown pass config '{}'", key);
+    }
 
     const auto& ctx = VulkanContext::get();
 
@@ -274,8 +285,8 @@ void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes
     {
         std::array<vk::DescriptorSetLayout, DESCRIPTOR_SET_COUNT> setLayouts;
 
-        setLayouts[0] = pass.setLayout0;
-        setLayouts[1] = pass.setLayout1;
+        setLayouts[0] = mPassConfig->setLayout0;
+        setLayouts[1] = mPassConfig->setLayout1;
 
         for (uint i = 2u; i < DESCRIPTOR_SET_COUNT; ++i)
             setLayouts[i] = vk_create_descriptor_set_layout(ctx, {}, setBindings[i]);
@@ -304,7 +315,7 @@ void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes
 
     // todo: constants from json
     const auto specialisation = SpecialisationConstants (
-        0u, int(pass.samples), 1u, Vec2F(pass.viewport), pass.constants
+        0u, int(mPassConfig->samples), 1u, Vec2F(mPassConfig->viewport), mPassConfig->constants
     );
 
     const auto shaderModules = ShaderModules (
@@ -313,17 +324,30 @@ void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes
         &specialisation.info
     );
 
+    const std::vector<JsonValue>& jsonColourBlend = json.at("colourBlend");
+    std::vector<vk::PipelineColorBlendAttachmentState> colourBlendAttachments;
+    colourBlendAttachments.reserve(jsonColourBlend.size());
+
+    for (const JsonValue& colourBlend : jsonColourBlend)
+        colourBlendAttachments.emplace_back(impl_make_color_blend_state(colourBlend));
+
     //--------------------------------------------------------//
 
     mPipeline = vk_create_graphics_pipeline (
-        ctx, mPipelineLayout, pass.renderPass, pass.subpass, shaderModules.stages, vertexConfig.state,
+        ctx, mPipelineLayout, mPassConfig->renderPass, mPassConfig->subpass, shaderModules.stages, vertexConfig.state,
         vk::PipelineInputAssemblyStateCreateInfo { {}, vk::PrimitiveTopology::eTriangleList, false },
         impl_make_rasterization_state(json.at("cullFace")),
-        impl_make_multisample_state(pass.samples, json.at("alphaCoverage")),
-        impl_make_depth_stencil_state(json.at("depthTest")),
-        vk::Viewport { 0.f, float(pass.viewport.y), float(pass.viewport.x), -float(pass.viewport.y), 0.f, 1.f },
-        vk::Rect2D { {0, 0}, {pass.viewport.x, pass.viewport.y} },
-        impl_make_color_blend_state(json.at("colourBlend")),
-        nullptr
+        impl_make_multisample_state(mPassConfig->samples, json.at("alphaCoverage")),
+        impl_make_depth_stencil_state(mPassConfig->stencil, json.at("depthTest")),
+        vk::Viewport { 0.f, float(mPassConfig->viewport.y), float(mPassConfig->viewport.x), -float(mPassConfig->viewport.y), 0.f, 1.f },
+        vk::Rect2D { {0, 0}, {mPassConfig->viewport.x, mPassConfig->viewport.y} },
+        colourBlendAttachments, {}
     );
+}
+
+//============================================================================//
+
+void Pipeline::bind(vk::CommandBuffer cmdbuf) const
+{
+    cmdbuf.bindPipeline(vk::PipelineBindPoint::eGraphics, mPipeline);
 }
