@@ -21,7 +21,12 @@ VKAPI_ATTR VkBool32 VKAPI_CALL impl_vulkan_debug_callback (
         const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
         void* /*pUserData*/ )
 {
+    // annoying warning I always get, ignore it so that it doesn't trigger the breakpoint
+    if (StringView("/usr/lib32/libvulkan_intel.so: wrong ELF class: ELFCLASS32") == pCallbackData->pMessage)
+        return VK_FALSE;
+
     std::time_t now = std::time(nullptr);
+
     log_raw_multiline("{:%H:%M:%S} Vulkan: Severity = {} | Type = {}\n{}",
                       fmt::localtime(now),
                       vk::to_string(vk::DebugUtilsMessageSeverityFlagBitsEXT(messageSeverity)),
@@ -523,6 +528,7 @@ Window::Window(const char* title, Vec2U size, const char* appName, Vec3U version
             const auto limits = mPhysicalDevice.getProperties().limits;
 
             context.limits.maxAnisotropy = limits.maxSamplerAnisotropy;
+            context.limits.timestampPeriod = limits.timestampPeriod;
         }
     }
 }

@@ -21,6 +21,9 @@ public: //====================================================//
 
     void show_imgui_widgets() override;
 
+    void set_sub_timers(std::initializer_list<const char*> names);
+    void update_sub_timers(const double* times);
+
     /// Display a message in the corner.
     void notify(String message);
 
@@ -47,6 +50,16 @@ private: //===================================================//
     String mFpsString;
     std::vector<Notification> mNotifications;
     bool mActive = true;
+
+    struct FrameSubTimer
+    {
+        String name;
+        std::vector<double> times;
+        String display;
+    };
+
+    std::vector<FrameSubTimer> mFrameSubTimers;
+    String mFrameSubTimerTotalDisplay;
 };
 
 //============================================================================//

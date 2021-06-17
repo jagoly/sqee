@@ -36,6 +36,7 @@ public: //====================================================//
     struct
     {
         float maxAnisotropy;
+        float timestampPeriod;
     }
     limits;
 

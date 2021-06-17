@@ -27,6 +27,28 @@ void DebugOverlay::update()
         mFrameTimes.clear();
     }
     else mFpsString = "0";
+
+    if (mFrameSubTimers.empty() == false)
+    {
+        double total = 0.0;
+
+        for (auto& timer : mFrameSubTimers)
+        {
+            if (timer.times.empty() == false)
+            {
+                const double totalTime = std::accumulate(timer.times.begin(), timer.times.end(), 0.0);
+                const double averageTime = totalTime / double(timer.times.size());
+                total += averageTime;
+                timer.display = fmt::format("{:>7.4f}ms {}", averageTime, timer.name);
+                timer.times.clear();
+            }
+            else timer.display = fmt::format(" 0.0000ms {}", timer.name);
+        }
+
+        mFrameSubTimerTotalDisplay = total > 0.0 ?
+            fmt::format("TOTAL: {:>.2f}ms / {:.1f}fps", total, 1000.0 / total) :
+            "TOTAL: 0.00ms / 0.0fps";
+    }
 }
 
 //============================================================================//
@@ -56,14 +78,32 @@ void DebugOverlay::show_imgui_widgets()
 
         const char* fpsEnd = mFpsString.data() + mFpsString.length();
 
-        // inefficent but simple way to do text outline, fine for just a few characters
+        // inefficent but simple way to do text shadow, fine for just a few characters
         drawList->AddText(ImVec2(14, ImPlus::FromScreenBottom(58)), IM_COL32_BLACK, mFpsString.data(), fpsEnd);
-        drawList->AddText(ImVec2(14, ImPlus::FromScreenBottom(62)), IM_COL32_BLACK, mFpsString.data(), fpsEnd);
-        drawList->AddText(ImVec2(18, ImPlus::FromScreenBottom(58)), IM_COL32_BLACK, mFpsString.data(), fpsEnd);
-        drawList->AddText(ImVec2(18, ImPlus::FromScreenBottom(62)), IM_COL32_BLACK, mFpsString.data(), fpsEnd);
+        drawList->AddText(ImVec2(16, ImPlus::FromScreenBottom(60)), IM_COL32_BLACK, mFpsString.data(), fpsEnd);
         drawList->AddText(ImVec2(16, ImPlus::FromScreenBottom(60)), IM_COL32_WHITE, mFpsString.data(), fpsEnd);
 
         fontRegular->Scale = 1.f;
+    }
+
+    // show frame sub timers above FPS
+    if (mFrameSubTimers.empty() == false)
+    {
+        const ImPlus::ScopeFont font = ImGui::GetIO().Fonts->Fonts[ImPlus::FONT_MONO];
+
+        for (size_t lineNum = 0u; lineNum < mFrameSubTimers.size(); ++lineNum)
+        {
+            const auto& display = mFrameSubTimers[mFrameSubTimers.size() - lineNum - 1u].display;
+            const char* strEnd = display.data() + display.length();
+            drawList->AddText(ImVec2(15, ImPlus::FromScreenBottom(95 + lineNum * 16)), IM_COL32_BLACK, display.data(), strEnd);
+            drawList->AddText(ImVec2(16, ImPlus::FromScreenBottom(96 + lineNum * 16)), IM_COL32_BLACK, display.data(), strEnd);
+            drawList->AddText(ImVec2(16, ImPlus::FromScreenBottom(96 + lineNum * 16)), IM_COL32_WHITE, display.data(), strEnd);
+        }
+
+        const char* strEnd = mFrameSubTimerTotalDisplay.data() + mFrameSubTimerTotalDisplay.length();
+        drawList->AddText(ImVec2(15, ImPlus::FromScreenBottom(79)), IM_COL32_BLACK, mFrameSubTimerTotalDisplay.data(), strEnd);
+        drawList->AddText(ImVec2(16, ImPlus::FromScreenBottom(80)), IM_COL32_BLACK, mFrameSubTimerTotalDisplay.data(), strEnd);
+        drawList->AddText(ImVec2(16, ImPlus::FromScreenBottom(80)), IM_COL32_WHITE, mFrameSubTimerTotalDisplay.data(), strEnd);
     }
 
     // show notification window in bottom right corner
@@ -107,4 +147,19 @@ void DebugOverlay::notify(String message)
         entry.width = ImGui::CalcTextSize(message.data(), message.data() + message.length()).x * 2.f;
         entry.message = std::move(message);
     }
+}
+
+//============================================================================//
+
+void DebugOverlay::set_sub_timers(std::initializer_list<const char*> names)
+{
+    mFrameSubTimers.clear();
+    for (const char* const name : names)
+        mFrameSubTimers.emplace_back().name = name;
+}
+
+void DebugOverlay::update_sub_timers(const double* times)
+{
+    for (size_t i = 0u; i < mFrameSubTimers.size(); ++i)
+        mFrameSubTimers[i].times.push_back(times[i]);
 }

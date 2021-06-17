@@ -315,7 +315,7 @@ void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes
 
     // todo: constants from json
     const auto specialisation = SpecialisationConstants (
-        0u, int(mPassConfig->samples), 1u, Vec2F(mPassConfig->viewport), mPassConfig->constants
+        0u, int(mPassConfig->viewport.x), 1u, int(mPassConfig->viewport.y), 2u, int(mPassConfig->samples), mPassConfig->constants
     );
 
     const auto shaderModules = ShaderModules (
