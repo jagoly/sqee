@@ -159,45 +159,37 @@ void DemoApp::initialise_layouts()
 
     // model pipeline
     {
-        mCameraDescriptorSetLayout = sq::vk_create_descriptor_set_layout (
-            ctx, {}, {
-                vk::DescriptorSetLayoutBinding {
-                    0u, vk::DescriptorType::eUniformBuffer, 1u, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, nullptr
-                }
+        mCameraDescriptorSetLayout = ctx.create_descriptor_set_layout ({
+            vk::DescriptorSetLayoutBinding {
+                0u, vk::DescriptorType::eUniformBuffer, 1u, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment
             }
-        );
-        mLightDescriptorSetLayout = sq::vk_create_descriptor_set_layout (
-            ctx, {}, {
-                vk::DescriptorSetLayoutBinding {
-                    0u, vk::DescriptorType::eUniformBuffer, 1u, vk::ShaderStageFlagBits::eFragment, nullptr
-                }
+        });
+        mLightDescriptorSetLayout = ctx.create_descriptor_set_layout ({
+            vk::DescriptorSetLayoutBinding {
+                0u, vk::DescriptorType::eUniformBuffer, 1u, vk::ShaderStageFlagBits::eFragment
             }
-        );
-        mModelDescriptorSetLayout = sq::vk_create_descriptor_set_layout (
-            ctx, {}, {
-                vk::DescriptorSetLayoutBinding {
-                    0u, vk::DescriptorType::eUniformBuffer, 1u, vk::ShaderStageFlagBits::eVertex, nullptr
-                }
+        });
+        mModelDescriptorSetLayout = ctx.create_descriptor_set_layout ({
+            vk::DescriptorSetLayoutBinding {
+                0u, vk::DescriptorType::eUniformBuffer, 1u, vk::ShaderStageFlagBits::eVertex
             }
-        );
+        });
 
-        mModelPipelineLayout = sq::vk_create_pipeline_layout (
-            ctx, {}, { mCameraDescriptorSetLayout, mLightDescriptorSetLayout }, {}
+        mModelPipelineLayout = ctx.create_pipeline_layout (
+            { mCameraDescriptorSetLayout, mLightDescriptorSetLayout }, {}
         );
     }
 
     // composite pipeline
     {
-        mCompositeDescriptorSetLayout = sq::vk_create_descriptor_set_layout (
-            ctx, {}, {
-                vk::DescriptorSetLayoutBinding {
-                    0u, vk::DescriptorType::eCombinedImageSampler, 1u, vk::ShaderStageFlagBits::eFragment, nullptr
-                }
+        mCompositeDescriptorSetLayout = ctx.create_descriptor_set_layout ({
+            vk::DescriptorSetLayoutBinding {
+                0u, vk::DescriptorType::eCombinedImageSampler, 1u, vk::ShaderStageFlagBits::eFragment, nullptr
             }
-        );
+        });
 
-        mCompositePipelineLayout = sq::vk_create_pipeline_layout (
-            ctx, {}, { mCompositeDescriptorSetLayout }, {}
+        mCompositePipelineLayout = ctx.create_pipeline_layout (
+            { mCompositeDescriptorSetLayout }, {}
         );
 
         mCompositeDescriptorSet = sq::vk_allocate_descriptor_set(ctx, mCompositeDescriptorSetLayout);
@@ -214,16 +206,16 @@ void DemoApp::initialise_camera()
     mCameraDescriptorSet = sq::vk_allocate_descriptor_set_swapper(ctx, mCameraDescriptorSetLayout);
 
     sq::vk_update_descriptor_set_swapper (
-        ctx, mCameraDescriptorSet, 0u, 0u, vk::DescriptorType::eUniformBuffer,
-        mCameraUbo.get_descriptor_info_front(), mCameraUbo.get_descriptor_info_back()
+        ctx, mCameraDescriptorSet,
+        sq::DescriptorUniformBuffer(0u, 0u, mCameraUbo.get_descriptor_info())
     );
 
     mLightUbo.initialise(sizeof(LightBlock), vk::BufferUsageFlagBits::eUniformBuffer);
     mLightDescriptorSet = sq::vk_allocate_descriptor_set_swapper(ctx, mLightDescriptorSetLayout);
 
     sq::vk_update_descriptor_set_swapper (
-        ctx, mLightDescriptorSet, 0u, 0u, vk::DescriptorType::eUniformBuffer,
-        mLightUbo.get_descriptor_info_front(), mLightUbo.get_descriptor_info_back()
+        ctx, mLightDescriptorSet,
+        sq::DescriptorUniformBuffer(0u, 0u, mLightUbo.get_descriptor_info())
     );
 }
 
@@ -244,9 +236,8 @@ void DemoApp::initialise_models()
         model.descriptorSet = sq::vk_allocate_descriptor_set_swapper(ctx, mModelDescriptorSetLayout);
 
         sq::vk_update_descriptor_set_swapper (
-            ctx, model.descriptorSet, 0u, 0u, vk::DescriptorType::eUniformBuffer,
-            model.ubo.get_descriptor_info_front(),
-            model.ubo.get_descriptor_info_back()
+            ctx, model.descriptorSet,
+            sq::DescriptorUniformBuffer(0u, 0u, model.ubo.get_descriptor_info())
         );
     }
 }
@@ -261,25 +252,23 @@ void DemoApp::create_render_targets()
     {
         if (mMultisampleMode > vk::SampleCountFlagBits::e1)
         {
-            std::tie(mMsColourImage, mMsColourImageMem, mMsColourImageView) = sq::vk_create_image_2D (
+            mMsColourImage.initialise_2D (
                 ctx, vk::Format::eB8G8R8A8Srgb, mWindow->get_size(), 1u, mMultisampleMode,
-                false, vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment,
+                vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment,
                 false, {}, vk::ImageAspectFlagBits::eColor
             );
         }
 
-        std::tie(mResolveColourImage, mResolveColourImageMem, mResolveColourImageView) = sq::vk_create_image_2D (
+        mResolveColourImage.initialise_2D (
             ctx, vk::Format::eB8G8R8A8Srgb, mWindow->get_size(), 1u, vk::SampleCountFlagBits::e1,
-            false, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled,
+            vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled,
             false, {}, vk::ImageAspectFlagBits::eColor
         );
 
-        mResolveColourSampler = ctx.device.createSampler (
-            vk::SamplerCreateInfo {
-                {}, vk::Filter::eNearest, vk::Filter::eNearest, vk::SamplerMipmapMode::eNearest,
-                vk::SamplerAddressMode::eRepeat, vk::SamplerAddressMode::eRepeat, vk::SamplerAddressMode::eRepeat,
-                0.f, false, 0.f, false, {}, 0.f, 0.f, {}, false
-            }
+        mResolveColourSampler = ctx.create_sampler (
+            vk::Filter::eNearest, vk::Filter::eNearest, {},
+            vk::SamplerAddressMode::eClampToEdge, vk::SamplerAddressMode::eClampToEdge, {},
+            0.f, 0u, 0u, false, false
         );
     }
 
@@ -302,27 +291,22 @@ void DemoApp::create_render_targets()
                 }
             };
 
-            const auto colorAttachments = std::array {
-                vk::AttachmentReference { 0u, vk::ImageLayout::eColorAttachmentOptimal }
+            const auto colourReference  = vk::AttachmentReference { 0u, vk::ImageLayout::eColorAttachmentOptimal };
+            const auto resolveReference = vk::AttachmentReference { 1u, vk::ImageLayout::eColorAttachmentOptimal };
+
+            const auto subpass = vk::SubpassDescription {
+                {}, vk::PipelineBindPoint::eGraphics, nullptr, colourReference, resolveReference, nullptr, nullptr
             };
 
-            const auto resolveAttachments = std::array {
-                vk::AttachmentReference { 1u, vk::ImageLayout::eColorAttachmentOptimal }
-            };
-
-            const auto subpasses = vk::SubpassDescription {
-                {}, vk::PipelineBindPoint::eGraphics, nullptr, colorAttachments, resolveAttachments, nullptr, {}
-            };
-
-            const auto dependencies = vk::SubpassDependency {
+            const auto dependency = vk::SubpassDependency {
                 0u, VK_SUBPASS_EXTERNAL,
                 vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eFragmentShader,
                 vk::AccessFlagBits::eColorAttachmentWrite, vk::AccessFlagBits::eShaderRead,
                 vk::DependencyFlagBits::eByRegion
             };
 
-            mMsRenderPass = ctx.device.createRenderPass (
-                vk::RenderPassCreateInfo { {}, attachments, subpasses, dependencies }
+            mMsRenderPass.initialise (
+                ctx, attachments, subpass, dependency, mWindow->get_size(), 1u, { mMsColourImage.view, mResolveColourImage.view }
             );
         }
         else // no multisample
@@ -336,53 +320,27 @@ void DemoApp::create_render_targets()
                 }
             };
 
-            const auto colorAttachments = std::array {
-                vk::AttachmentReference { 0u, vk::ImageLayout::eColorAttachmentOptimal }
+            const auto colourReference = vk::AttachmentReference { 0u, vk::ImageLayout::eColorAttachmentOptimal };
+
+            const auto subpass = vk::SubpassDescription {
+                {}, vk::PipelineBindPoint::eGraphics, nullptr, colourReference, nullptr, nullptr, nullptr
             };
 
-            const auto subpasses = vk::SubpassDescription {
-                {}, vk::PipelineBindPoint::eGraphics, nullptr, colorAttachments, nullptr, nullptr, {}
-            };
-
-            const auto dependencies = vk::SubpassDependency {
+            const auto dependency = vk::SubpassDependency {
                 0u, VK_SUBPASS_EXTERNAL,
                 vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eFragmentShader,
                 vk::AccessFlagBits::eColorAttachmentWrite, vk::AccessFlagBits::eShaderRead,
                 vk::DependencyFlagBits::eByRegion
             };
 
-            mMsRenderPass = ctx.device.createRenderPass (
-                vk::RenderPassCreateInfo { {}, attachments, subpasses, dependencies }
+            mMsRenderPass.initialise (
+                ctx, attachments, subpass, dependency, mWindow->get_size(), 1u, mResolveColourImage.view
             );
         }
     }
 
-    // create ms framebuffer
-    {
-        if (mMultisampleMode > vk::SampleCountFlagBits::e1)
-        {
-            const auto attachments = std::array { mMsColourImageView, mResolveColourImageView };
-
-            mMsFramebuffer = ctx.device.createFramebuffer (
-                vk::FramebufferCreateInfo {
-                    {}, mMsRenderPass, attachments, mWindow->get_size().x, mWindow->get_size().y, 1u
-                }
-            );
-        }
-        else // no multisample
-        {
-            const auto attachments = std::array { mResolveColourImageView };
-
-            mMsFramebuffer = ctx.device.createFramebuffer (
-                vk::FramebufferCreateInfo {
-                    {}, mMsRenderPass, attachments, mWindow->get_size().x, mWindow->get_size().y, 1u
-                }
-            );
-        }
-    }
-
-    mResourceCaches.passConfigMap = {
-        { "Opaque", { mMsRenderPass, 0u, mMultisampleMode, {}, mWindow->get_size(), mCameraDescriptorSetLayout, mLightDescriptorSetLayout, {} } }
+    mResourceCaches.passConfigMap["Opaque"] = sq::PassConfig {
+        mMsRenderPass.pass, 0u, mMultisampleMode, {}, mWindow->get_size(), mCameraDescriptorSetLayout, mLightDescriptorSetLayout, {}
     };
 }
 
@@ -392,17 +350,12 @@ void DemoApp::destroy_render_targets()
 {
     const auto& ctx = sq::VulkanContext::get();
 
-    if (mMsColourImageMem) ctx.device.destroy(mMsColourImageView);
-    if (mMsColourImageMem) ctx.device.destroy(mMsColourImage);
-    if (mMsColourImageMem) mMsColourImageMem.free();
+    if (mMsColourImage.memory)
+        mMsColourImage.destroy(ctx);
 
+    mResolveColourImage.destroy(ctx);
     ctx.device.destroy(mResolveColourSampler);
-    ctx.device.destroy(mResolveColourImageView);
-    ctx.device.destroy(mResolveColourImage);
-    mResolveColourImageMem.free();
-
-    ctx.device.destroy(mMsFramebuffer);
-    ctx.device.destroy(mMsRenderPass);
+    mMsRenderPass.destroy(ctx);
 }
 
 //============================================================================//
@@ -439,10 +392,8 @@ void DemoApp::create_pipelines()
         );
 
         sq::vk_update_descriptor_set (
-            ctx, mCompositeDescriptorSet, 0u, 0u, vk::DescriptorType::eCombinedImageSampler,
-            vk::DescriptorImageInfo {
-                mResolveColourSampler, mResolveColourImageView, vk::ImageLayout::eShaderReadOnlyOptimal
-            }
+            ctx, mCompositeDescriptorSet,
+            sq::DescriptorImageSampler(0u, 0u, mResolveColourSampler, mResolveColourImage.view, vk::ImageLayout::eShaderReadOnlyOptimal)
         );
     }
 }
@@ -536,7 +487,7 @@ void DemoApp::populate_command_buffer(vk::CommandBuffer cmdbuf, vk::Framebuffer 
     {
         cmdbuf.beginRenderPass (
             vk::RenderPassBeginInfo {
-                mMsRenderPass, mMsFramebuffer, vk::Rect2D({0, 0}, {mWindow->get_size().x, mWindow->get_size().y})
+                mMsRenderPass.pass, mMsRenderPass.framebuf, vk::Rect2D({0, 0}, {mWindow->get_size().x, mWindow->get_size().y})
             }, vk::SubpassContents::eInline
         );
 

@@ -191,7 +191,7 @@ static auto impl_load_image(vk::Format format, const String& path)
                 *p += *p >= 0 ? -127 : +128;
 
             // normal maps have opengl style +Y, so invert it
-            for (int8_t* p = begin+1; p != end+1 ; p += formatInfo.channels)
+            for (int8_t* p = begin+1; p != end+1; p += formatInfo.channels)
                 *p = -*p;
         }
 
@@ -208,39 +208,36 @@ Texture::Texture(Texture&& other)
 
 Texture& Texture::operator=(Texture&& other)
 {
-    std::swap(mImage, other.mImage);
-    std::swap(mImageMem, other.mImageMem);
-    std::swap(mImageView, other.mImageView);
+    std::swap(mStuff, other.mStuff);
     std::swap(mSampler, other.mSampler);
     return *this;
 }
 
 Texture::~Texture()
 {
+    if (!mStuff.image) return;
     const auto& ctx = VulkanContext::get();
-    if (mSampler) ctx.device.destroy(mSampler);
-    if (mImageView) ctx.device.destroy(mImageView);
-    if (mImage) ctx.device.destroy(mImage);
-    if (mImageMem) mImageMem.free();
+    mStuff.destroy(ctx);
+    ctx.device.destroy(mSampler);
 }
 
 //============================================================================//
 
 void Texture::initialise_2D(const Config& config)
 {
-    SQASSERT(!mImage, "texture already loaded");
+    SQASSERT(!mStuff.image, "texture already loaded");
 
     const auto& ctx = VulkanContext::get();
 
     auto usageFlags = vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled;
     if (config.mipLevels > 1u) usageFlags |= vk::ImageUsageFlagBits::eTransferSrc;
 
-    std::tie(mImage, mImageMem, mImageView) = vk_create_image_2D (
+    mStuff.initialise_2D (
         ctx, config.format, Vec2U(config.size), config.mipLevels, vk::SampleCountFlagBits::e1,
-        false, usageFlags, false, config.swizzle, vk::ImageAspectFlagBits::eColor
+        usageFlags, false, config.swizzle, vk::ImageAspectFlagBits::eColor
     );
 
-    impl_initialise_common(config);
+    impl_initialise_sampler(config);
 }
 
 //============================================================================//
@@ -274,19 +271,19 @@ void Texture::load_from_file_2D(const String& path)
 
 void Texture::initialise_array(const Config& config)
 {
-    SQASSERT(!mImage, "texture already loaded");
+    SQASSERT(!mStuff.image, "texture already loaded");
 
     const auto& ctx = VulkanContext::get();
 
     auto usageFlags = vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled;
     if (config.mipLevels > 1u) usageFlags |= vk::ImageUsageFlagBits::eTransferSrc;
 
-    std::tie(mImage, mImageMem, mImageView) = vk_create_image_array (
+    mStuff.initialise_array (
         ctx, config.format, config.size, config.mipLevels, vk::SampleCountFlagBits::e1,
-        false, usageFlags, false, config.swizzle, vk::ImageAspectFlagBits::eColor
+        usageFlags, false, config.swizzle, vk::ImageAspectFlagBits::eColor
     );
 
-    impl_initialise_common(config);
+    impl_initialise_sampler(config);
 }
 
 //============================================================================//
@@ -327,19 +324,19 @@ void Texture::load_from_file_array(const String& path)
 
 void Texture::initialise_cube(const Config& config)
 {
-    SQASSERT(!mImage, "texture already loaded");
+    SQASSERT(!mStuff.image, "texture already loaded");
 
     const auto& ctx = VulkanContext::get();
 
     auto usageFlags = vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled;
     if (config.mipLevels > 1u) usageFlags |= vk::ImageUsageFlagBits::eTransferSrc;
 
-    std::tie(mImage, mImageMem, mImageView) = vk_create_image_cube (
+    mStuff.initialise_cube (
         ctx, config.format, config.size.x, config.mipLevels, vk::SampleCountFlagBits::e1,
-        false, usageFlags, false, config.swizzle, vk::ImageAspectFlagBits::eColor
+        usageFlags, false, config.swizzle, vk::ImageAspectFlagBits::eColor
     );
 
-    impl_initialise_common(config);
+    impl_initialise_sampler(config);
 }
 
 //============================================================================//
@@ -390,23 +387,18 @@ void Texture::load_from_file_cube(const String& path)
 
 //============================================================================//
 
-void Texture::impl_initialise_common(const Config& config)
+void Texture::impl_initialise_sampler(const Config& config)
 {
     const auto& ctx = VulkanContext::get();
 
-    mSampler = ctx.device.createSampler (
-        vk::SamplerCreateInfo {
-            {}, config.filter != FilterMode::Nearest ? vk::Filter::eLinear : vk::Filter::eNearest,
-            config.filter != FilterMode::Nearest ? vk::Filter::eLinear : vk::Filter::eNearest,
-            config.filter != FilterMode::Nearest ? vk::SamplerMipmapMode::eLinear : vk::SamplerMipmapMode::eNearest,
-            config.wrapX, config.wrapY, config.wrapZ,
-            0.f, config.filter == FilterMode::Anisotropic, ctx.limits.maxAnisotropy,
-            false, vk::CompareOp::eAlways, 0.f, float(config.mipLevels) - 1.f,
-            vk::BorderColor::eFloatTransparentBlack, false
-        }
+    mSampler = ctx.create_sampler (
+        config.filter != FilterMode::Nearest ? vk::Filter::eLinear : vk::Filter::eNearest,
+        config.filter != FilterMode::Nearest ? vk::Filter::eLinear : vk::Filter::eNearest,
+        config.filter != FilterMode::Nearest ? vk::SamplerMipmapMode::eLinear : vk::SamplerMipmapMode::eNearest,
+        config.wrapX, config.wrapY, config.wrapZ,
+        0.f, 0u, config.mipLevels - 1u,
+        config.filter == FilterMode::Anisotropic, false
     );
-
-    mDescriptorInfo = vk::DescriptorImageInfo(mSampler, mImageView, vk::ImageLayout::eShaderReadOnlyOptimal);
 }
 
 //============================================================================//
@@ -426,17 +418,17 @@ void Texture::load_from_memory(void* data, uint level, uint layer, const Config&
     std::memcpy(staging.memory.map(), data, size.x * size.y * formatInfo.pixelSize);
     staging.memory.unmap();
 
-    vk_transition_image_memory_layout (
-        cmdbuf.cmdbuf, mImage,
+    vk_pipeline_barrier_image_memory (
+        cmdbuf.cmdbuf, mStuff.image, vk::DependencyFlags(),
         vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eTransfer,
         vk::AccessFlags(), vk::AccessFlagBits::eTransferWrite,
         vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal,
-        vk::ImageAspectFlagBits::eColor,
-        level, config.mipmaps == MipmapsMode::Generate ? config.mipLevels : 1u, layer, 1u
+        vk::ImageAspectFlagBits::eColor, level,
+        config.mipmaps == MipmapsMode::Generate ? config.mipLevels : 1u, layer, 1u
     );
 
     cmdbuf->copyBufferToImage (
-        staging.buffer, mImage, vk::ImageLayout::eTransferDstOptimal,
+        staging.buffer, mStuff.image, vk::ImageLayout::eTransferDstOptimal,
         vk::BufferImageCopy {
             0u, 0u, 0u,
             vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, level, layer, 1u),
@@ -446,8 +438,8 @@ void Texture::load_from_memory(void* data, uint level, uint layer, const Config&
 
     if (config.mipmaps != MipmapsMode::Generate)
     {
-        vk_transition_image_memory_layout (
-            cmdbuf.cmdbuf, mImage,
+        vk_pipeline_barrier_image_memory (
+            cmdbuf.cmdbuf, mStuff.image, vk::DependencyFlags(),
             vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eBottomOfPipe,
             vk::AccessFlagBits::eTransferWrite, vk::AccessFlags(),
             vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal,
@@ -464,8 +456,8 @@ void Texture::load_from_memory(void* data, uint level, uint layer, const Config&
     {
         const Vec2I levelSize = maths::max(Vec2I(1, 1), sourceSize / 2);
 
-        vk_transition_image_memory_layout (
-            cmdbuf.cmdbuf, mImage,
+        vk_pipeline_barrier_image_memory (
+            cmdbuf.cmdbuf, mStuff.image, vk::DependencyFlags(),
             vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer,
             vk::AccessFlagBits::eTransferWrite, vk::AccessFlagBits::eTransferRead,
             vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eTransferSrcOptimal,
@@ -473,7 +465,7 @@ void Texture::load_from_memory(void* data, uint level, uint layer, const Config&
         );
 
         cmdbuf->blitImage (
-            mImage, vk::ImageLayout::eTransferSrcOptimal, mImage, vk::ImageLayout::eTransferDstOptimal,
+            mStuff.image, vk::ImageLayout::eTransferSrcOptimal, mStuff.image, vk::ImageLayout::eTransferDstOptimal,
             vk::ImageBlit {
                 vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, i - 1u, layer, 1u),
                 std::array { vk::Offset3D(0, 0, 0), vk::Offset3D(sourceSize.x, sourceSize.y, 1) },
@@ -483,8 +475,8 @@ void Texture::load_from_memory(void* data, uint level, uint layer, const Config&
             vk::Filter::eLinear
         );
 
-        vk_transition_image_memory_layout (
-            cmdbuf.cmdbuf, mImage,
+        vk_pipeline_barrier_image_memory (
+            cmdbuf.cmdbuf, mStuff.image, vk::DependencyFlags(),
             vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eBottomOfPipe,
             vk::AccessFlagBits::eTransferRead, vk::AccessFlags(),
             vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eShaderReadOnlyOptimal,
@@ -494,8 +486,8 @@ void Texture::load_from_memory(void* data, uint level, uint layer, const Config&
         sourceSize = levelSize;
     }
 
-    vk_transition_image_memory_layout (
-        cmdbuf.cmdbuf, mImage,
+    vk_pipeline_barrier_image_memory (
+        cmdbuf.cmdbuf, mStuff.image, vk::DependencyFlags(),
         vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eBottomOfPipe,
         vk::AccessFlagBits::eTransferWrite, vk::AccessFlags(),
         vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal,

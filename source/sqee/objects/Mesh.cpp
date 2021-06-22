@@ -59,9 +59,7 @@ Mesh::Mesh(Mesh&& other)
 Mesh& Mesh::operator=(Mesh&& other)
 {
     std::swap(mVertexBuffer, other.mVertexBuffer);
-    std::swap(mVertexBufferMem, other.mVertexBufferMem);
     std::swap(mIndexBuffer, other.mIndexBuffer);
-    std::swap(mIndexBufferMem, other.mIndexBufferMem);
     mVertexSize = other.mVertexSize;
     mVertexTotal = other.mVertexTotal;
     mIndexTotal = other.mIndexTotal;
@@ -73,18 +71,17 @@ Mesh& Mesh::operator=(Mesh&& other)
 
 Mesh::~Mesh()
 {
+    if (!mVertexBuffer.buffer) return;
     const auto& ctx = VulkanContext::get();
-    if (mVertexBuffer) ctx.device.destroy(mVertexBuffer);
-    if (mIndexBuffer) ctx.device.destroy(mIndexBuffer);
-    if (mVertexBufferMem) mVertexBufferMem.free();
-    if (mIndexBufferMem) mIndexBufferMem.free();
+    mVertexBuffer.destroy(ctx);
+    mIndexBuffer.destroy(ctx);
 }
 
 //============================================================================//
 
 void Mesh::load_from_file(const String& path)
 {
-    SQASSERT(!mVertexBuffer, "mesh already loaded");
+    SQASSERT(!mVertexBuffer.buffer, "mesh already loaded");
 
     if (auto text = try_read_text_from_file(path + ".sqm"))
         impl_load_text(std::move(*text));
@@ -107,8 +104,8 @@ int Mesh::get_sub_mesh_index(TinyString name) const
 
 void Mesh::bind_buffers(vk::CommandBuffer cmdbuf) const
 {
-    cmdbuf.bindVertexBuffers(0u, mVertexBuffer, size_t(0u));
-    cmdbuf.bindIndexBuffer(mIndexBuffer, 0u, vk::IndexType::eUint32);
+    cmdbuf.bindVertexBuffers(0u, mVertexBuffer.buffer, size_t(0u));
+    cmdbuf.bindIndexBuffer(mIndexBuffer.buffer, 0u, vk::IndexType::eUint32);
 }
 
 void Mesh::draw(vk::CommandBuffer cmdbuf, int subMesh) const
@@ -320,9 +317,9 @@ void Mesh::impl_load_final(std::vector<std::byte>& vertexData, std::vector<uint3
 {
     const auto& ctx = VulkanContext::get();
 
-    const auto setup_buffer = [&ctx](vk::Buffer& buffer, VulkanMemory& memory, vk::BufferUsageFlags usage, void* data, size_t size)
+    const auto setup_buffer = [&ctx](BufferStuff& stuff, vk::BufferUsageFlags usage, void* data, size_t size)
     {
-        std::tie(buffer, memory) = vk_create_buffer(ctx, size, usage | vk::BufferUsageFlagBits::eTransferDst, false);
+        stuff.initialise(ctx, size, usage | vk::BufferUsageFlagBits::eTransferDst, false);
 
         auto staging = StagingBuffer(ctx, size);
         auto cmdbuf = OneTimeCommands(ctx);
@@ -330,18 +327,11 @@ void Mesh::impl_load_final(std::vector<std::byte>& vertexData, std::vector<uint3
         std::memcpy(staging.memory.map(), data, size);
         staging.memory.unmap();
 
-        cmdbuf->copyBuffer(staging.buffer, buffer, vk::BufferCopy(0u, 0u, size));
+        cmdbuf->copyBuffer(staging.buffer, stuff.buffer, vk::BufferCopy(0u, 0u, size));
     };
 
-    setup_buffer (
-        mVertexBuffer, mVertexBufferMem, vk::BufferUsageFlagBits::eVertexBuffer,
-        vertexData.data(), vertexData.size()
-    );
-
-    setup_buffer (
-        mIndexBuffer, mIndexBufferMem, vk::BufferUsageFlagBits::eIndexBuffer,
-        indexData.data(), indexData.size() * sizeof(uint32_t)
-    );
+    setup_buffer(mVertexBuffer, vk::BufferUsageFlagBits::eVertexBuffer, vertexData.data(), vertexData.size());
+    setup_buffer(mIndexBuffer, vk::BufferUsageFlagBits::eIndexBuffer, indexData.data(), indexData.size() * sizeof(uint32_t));
 }
 
 //============================================================================//

@@ -19,7 +19,6 @@ Material& Material::operator=(Material&& other)
     mPipeline = std::move(other.mPipeline);
     mTextures = std::move(other.mTextures);
     std::swap(mParamBuffer, other.mParamBuffer);
-    std::swap(mParamBufferMem, other.mParamBufferMem);
     std::swap(mDescriptorSet, other.mDescriptorSet);
     return *this;
 }
@@ -27,8 +26,7 @@ Material& Material::operator=(Material&& other)
 Material::~Material()
 {
     const auto& ctx = VulkanContext::get();
-    if (mParamBuffer) ctx.device.destroy(mParamBuffer);
-    if (mParamBufferMem) mParamBufferMem.free();
+    if (mParamBuffer.buffer) mParamBuffer.destroy(ctx);
     if (mDescriptorSet) ctx.device.free(ctx.descriptorPool, mDescriptorSet);
 }
 
@@ -36,6 +34,8 @@ Material::~Material()
 
 void Material::load_from_json(const JsonValue& json, PipelineCache& pipelines, TextureCache& textures)
 {
+    SQASSERT(!mDescriptorSet, "material already loaded");
+
     const auto& ctx = VulkanContext::get();
 
     mPipeline = pipelines.acquire(json.at("pipeline"));
@@ -45,16 +45,15 @@ void Material::load_from_json(const JsonValue& json, PipelineCache& pipelines, T
     if (mPipeline->get_material_param_block_size() > 0u)
     {
         // todo: params don't change, so buffer should be on device memory
-        std::tie(mParamBuffer, mParamBufferMem) = vk_create_buffer (
+        mParamBuffer.initialise (
             ctx, mPipeline->get_material_param_block_size(), vk::BufferUsageFlagBits::eUniformBuffer, true
         );
 
         vk_update_descriptor_set (
-            ctx, mDescriptorSet, 0u, 0u, vk::DescriptorType::eUniformBuffer,
-            vk::DescriptorBufferInfo { mParamBuffer, 0u, mPipeline->get_material_param_block_size() }
+            ctx, mDescriptorSet, DescriptorUniformBuffer(0u, 0u, mParamBuffer.buffer, 0u, mPipeline->get_material_param_block_size())
         );
 
-        std::byte* block = mParamBufferMem.map();
+        std::byte* block = mParamBuffer.memory.map();
 
         for (const auto& [key, value] : json.at("params").items())
         {
@@ -85,8 +84,7 @@ void Material::load_from_json(const JsonValue& json, PipelineCache& pipelines, T
             mTextures.emplace_back(textures.acquire(value));
 
             vk_update_descriptor_set (
-                ctx, mDescriptorSet, info->binding, 0u, vk::DescriptorType::eCombinedImageSampler,
-                mTextures.back()->get_descriptor_info()
+                ctx, mDescriptorSet, DescriptorImageSampler(info->binding, 0u, mTextures.back()->get_descriptor_info())
             );
         }
         else if (info->type == "TextureArray") SQEE_THROW("todo: texarrays in materials");

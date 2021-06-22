@@ -1,6 +1,5 @@
 ﻿#include <sqee/vk/Helpers.hpp>
 
-#include <sqee/debug/Assert.hpp>
 #include <sqee/misc/Files.hpp>
 
 using namespace sq;
@@ -111,101 +110,6 @@ ShaderModules::~ShaderModules()
 
 //============================================================================//
 
-std::tuple<vk::Buffer, VulkanMemory> sq::vk_create_buffer(const VulkanContext& ctx, size_t size, vk::BufferUsageFlags usage, bool host)
-{
-    auto buffer = ctx.device.createBuffer (
-        vk::BufferCreateInfo {
-            {}, size, usage, vk::SharingMode::eExclusive, {}
-        }
-    );
-
-    auto memory = ctx.allocator.allocate(ctx.device.getBufferMemoryRequirements(buffer), host);
-    ctx.device.bindBufferMemory(buffer, memory.get_memory(), memory.get_offset());
-
-    return { buffer, memory };
-}
-
-//============================================================================//
-
-std::tuple<vk::Image, VulkanMemory, vk::ImageView> sq::vk_create_image_2D(const VulkanContext& ctx, vk::Format format, Vec2U size, uint mipLevels, vk::SampleCountFlagBits samples, bool linear, vk::ImageUsageFlags usage, bool host, vk::ComponentMapping swizzle, vk::ImageAspectFlags aspect)
-{
-    auto image = ctx.device.createImage (
-        vk::ImageCreateInfo {
-            {}, vk::ImageType::e2D, format, vk::Extent3D(size.x, size.y, 1u),
-            mipLevels, 1u, samples,
-            linear ? vk::ImageTiling::eLinear : vk::ImageTiling::eOptimal, usage,
-            vk::SharingMode::eExclusive, {}, vk::ImageLayout::eUndefined
-        }
-    );
-
-    auto memory = ctx.allocator.allocate(ctx.device.getImageMemoryRequirements(image), host);
-    ctx.device.bindImageMemory(image, memory.get_memory(), memory.get_offset());
-
-    auto view = ctx.device.createImageView (
-        vk::ImageViewCreateInfo {
-            {}, image, vk::ImageViewType::e2D, format, swizzle,
-            vk::ImageSubresourceRange(aspect, 0u, mipLevels, 0u, 1u)
-        }
-    );
-
-    return { image, memory, view };
-}
-
-//============================================================================//
-
-std::tuple<vk::Image, VulkanMemory, vk::ImageView> sq::vk_create_image_array(const VulkanContext& ctx, vk::Format format, Vec3U size, uint mipLevels, vk::SampleCountFlagBits samples, bool linear, vk::ImageUsageFlags usage, bool host, vk::ComponentMapping swizzle, vk::ImageAspectFlags aspect)
-{
-    auto image = ctx.device.createImage (
-        vk::ImageCreateInfo {
-            {}, vk::ImageType::e2D, format, vk::Extent3D(size.x, size.y, 1u),
-            mipLevels, size.z, samples,
-            linear ? vk::ImageTiling::eLinear : vk::ImageTiling::eOptimal, usage,
-            vk::SharingMode::eExclusive, {}, vk::ImageLayout::eUndefined
-        }
-    );
-
-    auto memory = ctx.allocator.allocate(ctx.device.getImageMemoryRequirements(image), host);
-    ctx.device.bindImageMemory(image, memory.get_memory(), memory.get_offset());
-
-    auto view = ctx.device.createImageView (
-        vk::ImageViewCreateInfo {
-            {}, image, vk::ImageViewType::e2DArray, format, swizzle,
-            vk::ImageSubresourceRange(aspect, 0u, mipLevels, 0u, size.z)
-        }
-    );
-
-    return { image, memory, view };
-}
-
-//============================================================================//
-
-std::tuple<vk::Image, VulkanMemory, vk::ImageView> sq::vk_create_image_cube(const VulkanContext& ctx, vk::Format format, uint size, uint mipLevels, vk::SampleCountFlagBits samples, bool linear, vk::ImageUsageFlags usage, bool host, vk::ComponentMapping swizzle, vk::ImageAspectFlags aspect)
-{
-    auto image = ctx.device.createImage (
-        vk::ImageCreateInfo {
-            vk::ImageCreateFlagBits::eCubeCompatible,
-            vk::ImageType::e2D, format, vk::Extent3D(size, size, 1u),
-            mipLevels, 6u, samples,
-            linear ? vk::ImageTiling::eLinear : vk::ImageTiling::eOptimal, usage,
-            vk::SharingMode::eExclusive, {}, vk::ImageLayout::eUndefined
-        }
-    );
-
-    auto memory = ctx.allocator.allocate(ctx.device.getImageMemoryRequirements(image), host);
-    ctx.device.bindImageMemory(image, memory.get_memory(), memory.get_offset());
-
-    auto view = ctx.device.createImageView (
-        vk::ImageViewCreateInfo {
-            {}, image, vk::ImageViewType::eCube, format, swizzle,
-            vk::ImageSubresourceRange(aspect, 0u, mipLevels, 0u, 6u)
-        }
-    );
-
-    return { image, memory, view };
-}
-
-//============================================================================//
-
 vk::Pipeline sq::vk_create_graphics_pipeline(const VulkanContext& ctx, vk::PipelineLayout layout, vk::RenderPass renderPass, uint32_t subpass, ArrayProxyRef<vk::PipelineShaderStageCreateInfo> stages, const vk::PipelineVertexInputStateCreateInfo& vertexInputState, const vk::PipelineInputAssemblyStateCreateInfo& inputAssemblyState, const vk::PipelineRasterizationStateCreateInfo& rasterizationState, const vk::PipelineMultisampleStateCreateInfo& multisampleState, const vk::PipelineDepthStencilStateCreateInfo& depthStencilState, ArrayProxyRef<vk::Viewport> viewports, ArrayProxyRef<vk::Rect2D> scissors, ArrayProxyRef<vk::PipelineColorBlendAttachmentState> colorBlendAttachments, ArrayProxyRef<vk::DynamicState> dynamicStates)
 {
     const auto viewportState = vk::PipelineViewportStateCreateInfo {
@@ -230,7 +134,7 @@ vk::Pipeline sq::vk_create_graphics_pipeline(const VulkanContext& ctx, vk::Pipel
     );
 
     if (result.result != vk::Result::eSuccess)
-        vk::throwResultException(result.result, "sq::vk_create_gfx_pipeline");
+        vk::throwResultException(result.result, "sq::vk_create_graphics_pipeline");
 
     return result.value;
 }

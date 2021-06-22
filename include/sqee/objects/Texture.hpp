@@ -5,7 +5,7 @@
 #include <sqee/core/Types.hpp>
 
 #include <sqee/vk/Vulkan.hpp>
-#include <sqee/vk/VulkanMemory.hpp>
+#include <sqee/vk/Wrappers.hpp>
 
 namespace sq {
 
@@ -70,18 +70,18 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    const vk::DescriptorImageInfo& get_descriptor_info() const { return mDescriptorInfo; }
+    /// Get info needed to update a descriptor set.
+    vk::DescriptorImageInfo get_descriptor_info() const
+    {
+        return { mSampler, mStuff.view, vk::ImageLayout::eShaderReadOnlyOptimal };
+    }
 
 protected: //=================================================//
 
-    void impl_initialise_common(const Config& config);
+    void impl_initialise_sampler(const Config& config);
 
-    vk::Image mImage;
-    VulkanMemory mImageMem;
-    vk::ImageView mImageView;
+    ImageStuff mStuff;
     vk::Sampler mSampler;
-
-    vk::DescriptorImageInfo mDescriptorInfo;
 };
 
 //============================================================================//

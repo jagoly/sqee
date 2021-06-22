@@ -2,6 +2,8 @@
 
 #include <sqee/export.hpp>
 
+#include <sqee/core/Utilities.hpp>
+
 #include <sqee/vk/Swapper.hpp>
 #include <sqee/vk/VulkanContext.hpp>
 #include <sqee/vk/VulkanMemory.hpp>
@@ -48,21 +50,28 @@ struct SQEE_API ShaderModules
 
 //============================================================================//
 
-SQEE_API std::tuple<vk::Buffer, VulkanMemory> vk_create_buffer (
-    const VulkanContext& ctx, size_t size, vk::BufferUsageFlags usage, bool host
-);
+template <class... Values> struct SpecialisationInfo
+{
+    static_assert (
+        ((std::is_same_v<int, Values> || std::is_same_v<float, Values>) && ...),
+        "specialisation constants can only be ints or floats"
+    );
 
-SQEE_API std::tuple<vk::Image, VulkanMemory, vk::ImageView> vk_create_image_2D (
-    const VulkanContext& ctx, vk::Format format, Vec2U size, uint mipLevels, vk::SampleCountFlagBits samples, bool linear, vk::ImageUsageFlags usage, bool host, vk::ComponentMapping swizzle, vk::ImageAspectFlags aspect
-);
+    template <size_t... Indices>
+    SpecialisationInfo(Values... values, std::index_sequence<Indices...>)
+        : data { values... }
+        , map { vk::SpecializationMapEntry(Indices, Indices * 4u, 4u)... }
+        , info ( sizeof...(Values), map.data(), sizeof(data), &data ) {}
 
-SQEE_API std::tuple<vk::Image, VulkanMemory, vk::ImageView> vk_create_image_array (
-    const VulkanContext& ctx, vk::Format format, Vec3U size, uint mipLevels, vk::SampleCountFlagBits samples, bool linear, vk::ImageUsageFlags usage, bool host, vk::ComponentMapping swizzle, vk::ImageAspectFlags aspect
-);
+    SpecialisationInfo(Values... values)
+        : SpecialisationInfo(values..., std::index_sequence_for<Values...>()) {}
 
-SQEE_API std::tuple<vk::Image, VulkanMemory, vk::ImageView> vk_create_image_cube (
-    const VulkanContext& ctx, vk::Format format, uint size, uint mipLevels, vk::SampleCountFlagBits samples, bool linear, vk::ImageUsageFlags usage, bool host, vk::ComponentMapping swizzle, vk::ImageAspectFlags aspect
-);
+    Structure<Values...> data;
+    std::array<vk::SpecializationMapEntry, sizeof...(Values)> map;
+    vk::SpecializationInfo info;
+};
+
+template<class... Values> SpecialisationInfo(Values...) -> SpecialisationInfo<Values...>;
 
 //============================================================================//
 
@@ -80,31 +89,6 @@ SQEE_API vk::Pipeline vk_create_graphics_pipeline (
     ArrayProxyRef<vk::DynamicState> dynamicStates
 );
 
-// todo: don't want to try to wrap this until I know what I'm doing
-//SQEE_API vk::RenderPass vk_create_render_pass ();
-
-//============================================================================//
-
-inline vk::DescriptorSetLayout vk_create_descriptor_set_layout (
-    const VulkanContext& ctx, vk::DescriptorSetLayoutCreateFlags flags, ArrayProxyRef<vk::DescriptorSetLayoutBinding> bindings
-) {
-    return ctx.device.createDescriptorSetLayout (
-        vk::DescriptorSetLayoutCreateInfo {
-            flags, bindings.size(), bindings.data()
-        }
-    );
-}
-
-inline vk::PipelineLayout vk_create_pipeline_layout (
-    const VulkanContext& ctx, vk::PipelineLayoutCreateFlags flags, ArrayProxyRef<vk::DescriptorSetLayout> setLayouts, ArrayProxyRef<vk::PushConstantRange> pushConstantRanges
-) {
-    return ctx.device.createPipelineLayout (
-        vk::PipelineLayoutCreateInfo {
-            flags, setLayouts.size(), setLayouts.data(), pushConstantRanges.size(), pushConstantRanges.data()
-        }
-    );
-}
-
 //============================================================================//
 
 SQEE_API vk::DescriptorSet vk_allocate_descriptor_set (
@@ -117,65 +101,92 @@ SQEE_API Swapper<vk::DescriptorSet> vk_allocate_descriptor_set_swapper (
 
 //============================================================================//
 
-inline void vk_update_descriptor_set (
-    const VulkanContext& ctx, vk::DescriptorSet& dset, uint binding, uint index, vk::DescriptorType type, ArrayProxyRef<vk::DescriptorBufferInfo> bufferInfo
-) {
+struct DescriptorUniformBuffer
+{
+    DescriptorUniformBuffer(uint _binding, uint _index, vk::DescriptorBufferInfo info)
+        : binding(_binding), index(_index), front(info), back(info) {}
+
+    DescriptorUniformBuffer(uint _binding, uint _index, vk::Buffer buffer, size_t offset, size_t range)
+        : binding(_binding), index(_index), front(buffer, offset, range), back(buffer, offset, range) {}
+
+    DescriptorUniformBuffer(uint _binding, uint _index, Swapper<vk::DescriptorBufferInfo> info)
+        : binding(_binding), index(_index), front(info.front), back(info.back) {}
+
+    uint binding, index;
+    vk::DescriptorBufferInfo front, back;
+};
+
+struct DescriptorImageSampler
+{
+    DescriptorImageSampler(uint _binding, uint _index, vk::DescriptorImageInfo info)
+        : binding(_binding), index(_index), front(info), back(info) {}
+
+    DescriptorImageSampler(uint _binding, uint _index, vk::Sampler sampler, vk::ImageView view, vk::ImageLayout layout)
+        : binding(_binding), index(_index), front(sampler, view, layout), back(sampler, view, layout) {}
+
+    DescriptorImageSampler(uint _binding, uint _index, Swapper<vk::DescriptorImageInfo> info)
+        : binding(_binding), index(_index), front(info.front), back(info.back) {}
+
+    uint binding, index;
+    vk::DescriptorImageInfo front, back;
+};
+
+//============================================================================//
+
+namespace detail {
+
+inline vk::WriteDescriptorSet make_write_descriptor_set(vk::DescriptorSet dset, const DescriptorUniformBuffer& descriptor, bool back)
+{
+    return vk::WriteDescriptorSet {
+        dset, descriptor.binding, descriptor.index, 1u, vk::DescriptorType::eUniformBuffer,
+        nullptr, back ? &descriptor.back : &descriptor.front, nullptr
+    };
+}
+
+inline vk::WriteDescriptorSet make_write_descriptor_set(vk::DescriptorSet dset, const DescriptorImageSampler& descriptor, bool back)
+{
+    return vk::WriteDescriptorSet {
+        dset, descriptor.binding, descriptor.index, 1u, vk::DescriptorType::eCombinedImageSampler,
+        back ? &descriptor.back : &descriptor.front, nullptr, nullptr
+    };
+}
+
+} // namespace detail
+
+//============================================================================//
+
+template <class... Descriptors>
+inline void vk_update_descriptor_set(const VulkanContext& ctx, vk::DescriptorSet dset, Descriptors... descriptors)
+{
+    const auto writes = std::array {
+        detail::make_write_descriptor_set(dset, descriptors, false)...
+    };
+
     ctx.device.updateDescriptorSets (
-        vk::WriteDescriptorSet {
-            dset, binding, index, uint(bufferInfo.size()), type, nullptr, bufferInfo.data(), nullptr
-        }, {}
+        uint(writes.size()), writes.data(), 0u, nullptr
     );
 }
 
-inline void vk_update_descriptor_set_swapper (
-    const VulkanContext& ctx, Swapper<vk::DescriptorSet>& swapper, uint binding, uint index, vk::DescriptorType type, ArrayProxyRef<vk::DescriptorBufferInfo> bufferInfoFront, ArrayProxyRef<vk::DescriptorBufferInfo> bufferInfoBack
-) {
+template <class... Descriptors>
+inline void vk_update_descriptor_set_swapper(const VulkanContext& ctx, Swapper<vk::DescriptorSet> swapper, Descriptors... descriptors)
+{
+    const auto writes = std::array {
+        detail::make_write_descriptor_set(swapper.front, descriptors, false)...,
+        detail::make_write_descriptor_set(swapper.back, descriptors, true)...
+    };
+
     ctx.device.updateDescriptorSets (
-        {
-            vk::WriteDescriptorSet {
-                swapper.front, binding, index, uint(bufferInfoFront.size()), type, nullptr, bufferInfoFront.data(), nullptr
-            },
-            vk::WriteDescriptorSet {
-                swapper.back, binding, index, uint(bufferInfoBack.size()), type, nullptr, bufferInfoBack.data(), nullptr
-            },
-        }, {}
+        uint(writes.size()), writes.data(), 0u, nullptr
     );
 }
 
 //============================================================================//
 
-inline void vk_update_descriptor_set (
-    const VulkanContext& ctx, vk::DescriptorSet& dset, uint binding, uint index, vk::DescriptorType type, ArrayProxyRef<vk::DescriptorImageInfo> imageInfo
-) {
-    ctx.device.updateDescriptorSets (
-        vk::WriteDescriptorSet {
-            dset, binding, index, uint(imageInfo.size()), type, imageInfo.data(), nullptr, nullptr
-        }, {}
-    );
-}
-
-inline void vk_update_descriptor_set_swapper (
-    const VulkanContext& ctx, Swapper<vk::DescriptorSet>& swapper, uint binding, uint index, vk::DescriptorType type, ArrayProxyRef<vk::DescriptorImageInfo> imageInfoFront, ArrayProxyRef<vk::DescriptorImageInfo> imageInfoBack
-) {
-    ctx.device.updateDescriptorSets (
-        {
-            vk::WriteDescriptorSet {
-                swapper.front, binding, index, uint(imageInfoFront.size()), type, imageInfoFront.data(), nullptr, nullptr
-            },
-            vk::WriteDescriptorSet {
-                swapper.back, binding, index, uint(imageInfoBack.size()), type, imageInfoBack.data(), nullptr, nullptr
-            },
-        }, {}
-    );
-}
-
-//============================================================================//
-
-inline void vk_transition_image_memory_layout (
-    vk::CommandBuffer cmdbuf, vk::Image image, vk::PipelineStageFlags srcStageMask, vk::PipelineStageFlags dstStageMask, vk::AccessFlags srcAccessMask, vk::AccessFlags dstAccessMask, vk::ImageLayout oldLayout, vk::ImageLayout newLayout, vk::ImageAspectFlags aspectMask, uint baseMipLevel, uint levelCount, uint baseArrayLayer, uint layerCount
+inline void vk_pipeline_barrier_image_memory (
+    vk::CommandBuffer cmdbuf, vk::Image image, vk::DependencyFlags dependencyFlags, vk::PipelineStageFlags srcStageMask, vk::PipelineStageFlags dstStageMask, vk::AccessFlags srcAccessMask, vk::AccessFlags dstAccessMask, vk::ImageLayout oldLayout, vk::ImageLayout newLayout, vk::ImageAspectFlags aspectMask, uint baseMipLevel, uint levelCount, uint baseArrayLayer, uint layerCount
 ) {
     cmdbuf.pipelineBarrier (
-        srcStageMask, dstStageMask, {}, {}, {},
+        srcStageMask, dstStageMask, dependencyFlags, {}, {},
         vk::ImageMemoryBarrier {
             srcAccessMask, dstAccessMask, oldLayout, newLayout, VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, image,
             vk::ImageSubresourceRange(aspectMask, baseMipLevel, levelCount, baseArrayLayer, layerCount)

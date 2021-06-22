@@ -319,30 +319,15 @@ void GuiSystem::create_descriptor_set()
 {
     const auto& ctx = VulkanContext::get();
 
-    // create descriptor set layout
-    {
-        auto bindings = vk::DescriptorSetLayoutBinding {
-            0u, vk::DescriptorType::eCombinedImageSampler, 1u, vk::ShaderStageFlagBits::eFragment, nullptr
-        };
+    mDescriptorSetLayout = ctx.create_descriptor_set_layout ({
+        vk::DescriptorSetLayoutBinding(0u, vk::DescriptorType::eCombinedImageSampler, 1u, vk::ShaderStageFlagBits::eFragment)
+    });
 
-        mDescriptorSetLayout = ctx.device.createDescriptorSetLayout (
-            vk::DescriptorSetLayoutCreateInfo { {}, bindings }
-        );
-    }
+    mDescriptorSet = vk_allocate_descriptor_set(ctx, mDescriptorSetLayout);
 
-    // create descriptor set
-    {
-        mDescriptorSet = ctx.device.allocateDescriptorSets (
-            vk::DescriptorSetAllocateInfo { ctx.descriptorPool, mDescriptorSetLayout }
-        ).front();
-
-        auto descriptorWrites = vk::WriteDescriptorSet {
-            mDescriptorSet, 0u, 0u, vk::DescriptorType::eCombinedImageSampler,
-            mFontTexture.get_descriptor_info(), {}, {}
-        };
-
-        ctx.device.updateDescriptorSets(descriptorWrites, {});
-    }
+    vk_update_descriptor_set (
+        ctx, mDescriptorSet, DescriptorImageSampler(0u, 0u, mFontTexture.get_descriptor_info())
+    );
 }
 
 //============================================================================//
@@ -351,16 +336,9 @@ void GuiSystem::create_pipeline()
 {
     const auto& ctx = VulkanContext::get();
 
-    // create pipeline layout
-    {
-        const auto pushConstantRanges = std::array {
-            vk::PushConstantRange { vk::ShaderStageFlagBits::eVertex, 0u, sizeof(Mat4F) }
-        };
-
-        mPipelineLayout = ctx.device.createPipelineLayout (
-            vk::PipelineLayoutCreateInfo { {}, mDescriptorSetLayout, pushConstantRanges }
-        );
-    }
+    mPipelineLayout = ctx.create_pipeline_layout (
+        mDescriptorSetLayout, vk::PushConstantRange(vk::ShaderStageFlagBits::eVertex, 0u, sizeof(Mat4F))
+    );
 
     // load shaders and create graphics pipeline
     {

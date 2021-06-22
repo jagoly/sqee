@@ -8,7 +8,7 @@
 #include <sqee/core/Types.hpp>
 
 #include <sqee/vk/Vulkan.hpp>
-#include <sqee/vk/VulkanMemory.hpp>
+#include <sqee/vk/Wrappers.hpp>
 
 namespace sq {
 
@@ -91,10 +91,8 @@ public: //====================================================//
 
 private: //===================================================//
 
-    vk::Buffer mVertexBuffer;
-    VulkanMemory mVertexBufferMem;
-    vk::Buffer mIndexBuffer;
-    VulkanMemory mIndexBufferMem;
+    BufferStuff mVertexBuffer;
+    BufferStuff mIndexBuffer;
 
     uint mVertexSize = 0u;
     uint mVertexTotal = 0u;

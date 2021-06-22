@@ -6,9 +6,8 @@
 #include <sqee/setup.hpp>
 
 #include <sqee/vk/Swapper.hpp>
-#include <sqee/vk/VulkanMemory.hpp>
-
 #include <sqee/vk/Vulkan.hpp>
+#include <sqee/vk/Wrappers.hpp>
 
 namespace sq {
 
@@ -34,10 +33,10 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     /// Swap front and back buffers.
-    void swap_only() { mBuffer.swap(); mBufferMem.swap(); mBufferPtr.swap(); }
+    void swap_only() { mStuff.swap(); mPointer.swap(); }
 
     /// Map the front buffer's memory.
-    std::byte* map_only() { return mBufferPtr.front; };
+    std::byte* map_only() { return mPointer.front; };
 
     /// Swap front and back, then map front.
     std::byte* swap_map() { swap_only(); return map_only(); };
@@ -45,24 +44,23 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     /// Access the front buffer object.
-    vk::Buffer front() const { return mBuffer.front; }
+    vk::Buffer front() const { return mStuff.front.buffer; }
 
     /// Access the back buffer object.
-    vk::Buffer back() const { return mBuffer.back; }
+    vk::Buffer back() const { return mStuff.back.buffer; }
 
-    /// Get descriptor info for the front buffer.
-    vk::DescriptorBufferInfo get_descriptor_info_front() const { return { mBuffer.front, 0u, mSize }; }
-
-    /// Get descriptor info for the back buffer.
-    vk::DescriptorBufferInfo get_descriptor_info_back() const { return { mBuffer.back, 0u, mSize }; }
+    /// Get info needed to update a descriptor set.
+    Swapper<vk::DescriptorBufferInfo> get_descriptor_info() const
+    {
+        return { {mStuff.front.buffer, 0u, mSize}, {mStuff.back.buffer, 0u, mSize} };
+    }
 
 private: //===================================================//
 
-    size_t mSize = 0u;
+    Swapper<BufferStuff> mStuff;
+    Swapper<std::byte*> mPointer;
 
-    Swapper<vk::Buffer> mBuffer;
-    Swapper<VulkanMemory> mBufferMem;
-    Swapper<std::byte*> mBufferPtr;
+    size_t mSize = 0u;
 };
 
 //============================================================================//

@@ -6,7 +6,6 @@
 
 #include <sqee/vk/PassConfig.hpp>
 #include <sqee/vk/Vulkan.hpp>
-#include <sqee/vk/VulkanMemory.hpp>
 
 namespace sq {
 

@@ -289,11 +289,11 @@ void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes
         setLayouts[1] = mPassConfig->setLayout1;
 
         for (uint i = 2u; i < DESCRIPTOR_SET_COUNT; ++i)
-            setLayouts[i] = vk_create_descriptor_set_layout(ctx, {}, setBindings[i]);
+            setLayouts[i] = ctx.create_descriptor_set_layout(setBindings[i]);
 
         mMaterialSetLayout = setLayouts[MATERIAL_SET_INDEX];
-        //mPipelineLayout = vk_create_pipeline_layout(ctx, {}, setLayouts, pushConstantRanges);
-        mPipelineLayout = vk_create_pipeline_layout(ctx, {}, setLayouts, nullptr);
+        //mPipelineLayout = ctx.create_pipeline_layout(setLayouts, pushConstantRanges);
+        mPipelineLayout = ctx.create_pipeline_layout(setLayouts, nullptr);
 
         for (uint i = 2u; i < DESCRIPTOR_SET_COUNT; ++i)
             if (i != MATERIAL_SET_INDEX)

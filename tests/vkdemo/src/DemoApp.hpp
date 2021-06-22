@@ -105,21 +105,10 @@ private: //===================================================//
 
     //--------------------------------------------------------//
 
-    vk::Image mMsColourImage;
-    sq::VulkanMemory mMsColourImageMem;
-    vk::ImageView mMsColourImageView;
-
-    vk::Image mResolveColourImage;
-    sq::VulkanMemory mResolveColourImageMem;
-    vk::ImageView mResolveColourImageView;
+    sq::ImageStuff mMsColourImage;
+    sq::ImageStuff mResolveColourImage;
     vk::Sampler mResolveColourSampler;
-
-    vk::RenderPass mMsRenderPass;
-    vk::Framebuffer mMsFramebuffer;
-
-    //vk::Image mDepthImage;
-    //sq::VulkanMemory mDepthImageMem;
-    //vk::ImageView mDepthImageView;
+    sq::RenderPassStuff mMsRenderPass;
 
     //--------------------------------------------------------//
 

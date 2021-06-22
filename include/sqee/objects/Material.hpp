@@ -12,6 +12,9 @@
 
 #include <sqee/misc/ResourceCache.hpp>
 
+#include <sqee/vk/Vulkan.hpp>
+#include <sqee/vk/Wrappers.hpp>
+
 namespace sq {
 
 //============================================================================//
@@ -56,9 +59,7 @@ private: //===================================================//
     Handle<JsonValue, Pipeline> mPipeline;
     std::vector<Handle<String, Texture>> mTextures;
 
-    vk::Buffer mParamBuffer;
-    VulkanMemory mParamBufferMem;
-
+    BufferStuff mParamBuffer;
     vk::DescriptorSet mDescriptorSet;
 };
 
