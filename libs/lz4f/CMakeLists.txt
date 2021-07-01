@@ -10,7 +10,6 @@ file(GLOB_RECURSE SOURCES "${PROJECT_SOURCE_DIR}/source/*.c")
 
 if (SQEE_STATIC_LIB)
     add_library(lz4f STATIC ${HEADERS} ${SOURCES})
-    target_compile_definitions(lz4f PUBLIC LZ4FLIB_VISIBILITY)
 else ()
     add_library(lz4f SHARED ${HEADERS} ${SOURCES})
     if (SQEE_GNU OR SQEE_CLANG)
