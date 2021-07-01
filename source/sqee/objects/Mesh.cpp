@@ -321,7 +321,7 @@ void Mesh::impl_load_final(std::vector<std::byte>& vertexData, std::vector<uint3
     {
         stuff.initialise(ctx, size, usage | vk::BufferUsageFlagBits::eTransferDst, false);
 
-        auto staging = StagingBuffer(ctx, size);
+        auto staging = StagingBuffer(ctx, true, false, size);
         auto cmdbuf = OneTimeCommands(ctx);
 
         std::memcpy(staging.memory.map(), data, size);

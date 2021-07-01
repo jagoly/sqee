@@ -2,11 +2,13 @@
 
 #include <sqee/debug/Assert.hpp>
 #include <sqee/debug/Logging.hpp>
+#include <sqee/maths/Colours.hpp>
 #include <sqee/misc/Files.hpp>
 #include <sqee/misc/Json.hpp>
 #include <sqee/vk/Helpers.hpp>
 
 #include <sqee/redist/stb_image.hpp>
+#include <lz4frame.h>
 
 using namespace sq;
 
@@ -27,6 +29,10 @@ static vk::Format impl_string_to_format(const String& arg)
     if (arg == "1x8_Snorm") return vk::Format::eR8Snorm;
     if (arg == "2x8_Snorm") return vk::Format::eR8G8Snorm;
     if (arg == "4x8_Snorm") return vk::Format::eR8G8B8A8Snorm;
+
+    if (arg == "1x16_Unorm") return vk::Format::eR16Unorm;
+    if (arg == "2x16_Unorm") return vk::Format::eR16G16Unorm;
+    if (arg == "4x16_Unorm") return vk::Format::eR16G16B16A16Unorm;
 
     if (arg == "5999_Hdr") return vk::Format::eE5B9G9R9UfloatPack32;
 
@@ -88,7 +94,7 @@ static Texture::MipmapsMode impl_string_to_mipmaps(const String& arg)
 
 //============================================================================//
 
-inline auto impl_get_format_info(vk::Format format)
+static auto impl_get_format_info(vk::Format format)
 {
     struct Result { int channels; size_t pixelSize; bool isSigned; };
 
@@ -104,31 +110,13 @@ inline auto impl_get_format_info(vk::Format format)
     if (format == vk::Format::eR8G8Snorm) return Result { 2, 2, true };
     if (format == vk::Format::eR8G8B8A8Snorm) return Result { 4, 4, true };
 
-    if (format == vk::Format::eE5B9G9R9UfloatPack32) return Result { 3, 4, false };
-
     if (format == vk::Format::eR16Unorm) return Result { 1, 2, false };
     if (format == vk::Format::eR16G16Unorm) return Result { 2, 4, false };
     if (format == vk::Format::eR16G16B16A16Unorm) return Result { 4, 8, false };
 
-    return Result {};
-}
+    if (format == vk::Format::eE5B9G9R9UfloatPack32) return Result { 3, 4, false };
 
-//============================================================================//
-
-inline uint32_t vec3_to_e5bgr9(Vec3F rgb)
-{
-    constexpr float MAX_VALUE = float((1<<9)-1) / float(1<<9) * float(1<<5);
-
-    const Vec3F clamped = maths::clamp(rgb, Vec3F(0.f), Vec3F(MAX_VALUE));
-    const float maxComponent = maths::max(clamped.r, clamped.g, clamped.b);
-
-    const float prelimExponent = std::max(-15.f - 1.f, std::floor(std::log2(maxComponent))) + 1.f + 15.f;
-    const float maxExponent = std::floor(maxComponent / std::pow(2.f, (prelimExponent - 15.f - 9.f)) + 0.5f);
-    const float exponent = maxExponent < std::pow(2.f, 9.f) ? prelimExponent : prelimExponent + 1.f;
-
-    const Vec3U values = Vec3U(clamped / std::pow(2.f, (exponent - 15.f - 9.f)) + 0.5f);
-
-    return uint(exponent) << 27 | values.b << 18 | values.g << 9 | values.r;
+    SQEE_THROW("invalid format '{}'", vk::to_string(format));
 }
 
 //============================================================================//
@@ -138,7 +126,7 @@ static auto impl_load_image(vk::Format format, const String& path)
     struct Image
     {
         ~Image() { std::free(data); };
-        void* data; Vec2U size;
+        void* data; size_t length; Vec2U size;
     };
 
     const auto formatInfo = impl_get_format_info(format);
@@ -156,17 +144,17 @@ static auto impl_load_image(vk::Format format, const String& path)
         if (floats == nullptr)
             SQEE_THROW("image load failure: {}", stbi_failure_reason());
 
-        // use malloc so that we can use free instead of delete
-        uint32_t* data = static_cast<uint32_t*>(std::malloc(width * height * sizeof(uint32_t)));
+        // use malloc to match stb_image allocations
+        void* data = std::malloc(width * height * sizeof(uint32_t));
 
         std::transform (
             reinterpret_cast<Vec3F*>(floats), reinterpret_cast<Vec3F*>(floats) + width * height,
-            data, vec3_to_e5bgr9
+            static_cast<uint32_t*>(data), maths::hdr_to_e5bgr9
         );
 
         std::free(floats);
 
-        return Image { data, Vec2U(width, height) };
+        return Image { data, width * height * formatInfo.pixelSize, Vec2U(width, height) };
     }
     else
     {
@@ -195,8 +183,22 @@ static auto impl_load_image(vk::Format format, const String& path)
                 *p = -*p;
         }
 
-        return Image { data, Vec2U(width, height) };
+        return Image { data, width * height * formatInfo.pixelSize, Vec2U(width, height) };
     }
+}
+
+//============================================================================//
+
+static vk::Sampler impl_create_sampler(const VulkanContext& ctx, const Texture::Config& config)
+{
+    return ctx.create_sampler (
+        config.filter != Texture::FilterMode::Nearest ? vk::Filter::eLinear : vk::Filter::eNearest,
+        config.filter != Texture::FilterMode::Nearest ? vk::Filter::eLinear : vk::Filter::eNearest,
+        config.filter != Texture::FilterMode::Nearest ? vk::SamplerMipmapMode::eLinear : vk::SamplerMipmapMode::eNearest,
+        config.wrapX, config.wrapY, config.wrapZ,
+        0.f, 0u, config.mipLevels - 1u,
+        config.filter == Texture::FilterMode::Anisotropic, false
+    );
 }
 
 //============================================================================//
@@ -229,15 +231,13 @@ void Texture::initialise_2D(const Config& config)
 
     const auto& ctx = VulkanContext::get();
 
-    auto usageFlags = vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled;
-    if (config.mipLevels > 1u) usageFlags |= vk::ImageUsageFlagBits::eTransferSrc;
-
     mStuff.initialise_2D (
         ctx, config.format, Vec2U(config.size), config.mipLevels, vk::SampleCountFlagBits::e1,
-        usageFlags, false, config.swizzle, vk::ImageAspectFlagBits::eColor
+        vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
+        false, config.swizzle, vk::ImageAspectFlagBits::eColor
     );
 
-    impl_initialise_sampler(config);
+    mSampler = impl_create_sampler(ctx, config);
 }
 
 //============================================================================//
@@ -254,17 +254,22 @@ void Texture::load_from_file_2D(const String& path)
     config.swizzle = impl_string_to_swizzle(json.at("swizzle"));
     config.filter = impl_string_to_filter(json.at("filter"));
     config.mipmaps = impl_string_to_mipmaps(json.at("mipmaps"));
-
-    const auto image = impl_load_image(config.format, path + ".png");
-    config.size = Vec3U(image.size, 1u);
+    config.size = Vec3U(Vec2U(json.at("size")), 1u);
 
     if (config.mipmaps == MipmapsMode::Disable) config.mipLevels = 1u;
     else config.mipLevels = 1u + uint(std::floor(std::log2(std::max(config.size.x, config.size.y))));
 
+    initialise_2D(config);
+
+    if (try_load_from_compressed(path, config))
+        return; // success
+
     SQASSERT(config.mipmaps != MipmapsMode::Load, "todo: 2D mipmap load");
 
-    initialise_2D(config);
-    load_from_memory(image.data, 0u, 0u, config);
+    const auto image = impl_load_image(config.format, path + ".png");
+    SQASSERT(image.size == Vec2U(config.size), "image size does not match json");
+
+    load_from_memory(image.data, image.length, 0u, 0u, config);
 }
 
 //============================================================================//
@@ -275,22 +280,20 @@ void Texture::initialise_array(const Config& config)
 
     const auto& ctx = VulkanContext::get();
 
-    auto usageFlags = vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled;
-    if (config.mipLevels > 1u) usageFlags |= vk::ImageUsageFlagBits::eTransferSrc;
-
     mStuff.initialise_array (
         ctx, config.format, config.size, config.mipLevels, vk::SampleCountFlagBits::e1,
-        usageFlags, false, config.swizzle, vk::ImageAspectFlagBits::eColor
+        vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
+        false, config.swizzle, vk::ImageAspectFlagBits::eColor
     );
 
-    impl_initialise_sampler(config);
+    mSampler = impl_create_sampler(ctx, config);
 }
 
 //============================================================================//
 
 void Texture::load_from_file_array(const String& path)
 {
-    const JsonValue json = parse_json_from_file(path + "/TextureArray.json");
+    const JsonValue json = parse_json_from_file(path + ".json");
 
     Config config;
     config.format = impl_string_to_format(json.at("format"));
@@ -305,9 +308,12 @@ void Texture::load_from_file_array(const String& path)
     if (config.mipmaps == MipmapsMode::Disable) config.mipLevels = 1u;
     else config.mipLevels = 1u + uint(std::floor(std::log2(std::max(config.size.x, config.size.y))));
 
-    SQASSERT(config.mipmaps != MipmapsMode::Load, "todo: array mipmap load");
-
     initialise_array(config);
+
+    if (try_load_from_compressed(path, config))
+        return; // success
+
+    SQASSERT(config.mipmaps != MipmapsMode::Load, "todo: array mipmap load");
 
     const auto formatStr = config.format == vk::Format::eE5B9G9R9UfloatPack32 ? "{}/{:0>{}}.hdr" : "{}/{:0>{}}.png";
     const uint digits = config.size.z > 10u ? config.size.z > 100u ? 3u : 2u : 1u;
@@ -316,7 +322,7 @@ void Texture::load_from_file_array(const String& path)
     {
         const auto image = impl_load_image(config.format, fmt::format(formatStr, path, layer, digits));
         SQASSERT(image.size == Vec2U(config.size), "image size does not match json");
-        load_from_memory(image.data, 0u, layer, config);
+        load_from_memory(image.data, image.length, 0u, layer, config);
     }
 }
 
@@ -328,28 +334,24 @@ void Texture::initialise_cube(const Config& config)
 
     const auto& ctx = VulkanContext::get();
 
-    auto usageFlags = vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled;
-    if (config.mipLevels > 1u) usageFlags |= vk::ImageUsageFlagBits::eTransferSrc;
-
     mStuff.initialise_cube (
         ctx, config.format, config.size.x, config.mipLevels, vk::SampleCountFlagBits::e1,
-        usageFlags, false, config.swizzle, vk::ImageAspectFlagBits::eColor
+        vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
+        false, config.swizzle, vk::ImageAspectFlagBits::eColor
     );
 
-    impl_initialise_sampler(config);
+    mSampler = impl_create_sampler(ctx, config);
 }
 
 //============================================================================//
 
 void Texture::load_from_file_cube(const String& path)
 {
-    const JsonValue json = parse_json_from_file(path + "/TextureCube.json");
+    const JsonValue json = parse_json_from_file(path + ".json");
 
     Config config;
     config.format = impl_string_to_format(json.at("format"));
-    config.wrapX = vk::SamplerAddressMode::eRepeat;
-    config.wrapY = vk::SamplerAddressMode::eRepeat;
-    config.wrapZ = vk::SamplerAddressMode::eRepeat;
+    config.wrapX = config.wrapY = config.wrapZ = vk::SamplerAddressMode::eClampToEdge;
     config.swizzle = impl_string_to_swizzle(json.at("swizzle"));
     config.filter = impl_string_to_filter(json.at("filter"));
     config.mipmaps = impl_string_to_mipmaps(json.at("mipmaps"));
@@ -360,6 +362,9 @@ void Texture::load_from_file_cube(const String& path)
 
     initialise_cube(config);
 
+    if (try_load_from_compressed(path, config))
+        return; // success
+
     if (config.mipmaps == MipmapsMode::Load)
     {
         const auto formatStr = config.format == vk::Format::eE5B9G9R9UfloatPack32 ? "{}/{}/{}.hdr" : "{}/{}/{}.png";
@@ -369,7 +374,7 @@ void Texture::load_from_file_cube(const String& path)
             {
                 const auto image = impl_load_image(config.format, fmt::format(formatStr, path, level, faceName));
                 SQASSERT(image.size == Vec2U(config.size) / uint(std::exp2(level)), "image size does not match level");
-                load_from_memory(image.data, level, uint(*faceName - '0'), config);
+                load_from_memory(image.data, image.length, level, uint(*faceName - '0'), config);
             }
         }
     }
@@ -380,42 +385,29 @@ void Texture::load_from_file_cube(const String& path)
         {
             const auto image = impl_load_image(config.format, fmt::format(formatStr, path, faceName));
             SQASSERT(image.size == Vec2U(config.size), "image size does not match json");
-            load_from_memory(image.data, 0u, uint(*faceName - '0'), config);
+            load_from_memory(image.data, image.length, 0u, uint(*faceName - '0'), config);
         }
     }
 }
 
 //============================================================================//
 
-void Texture::impl_initialise_sampler(const Config& config)
-{
-    const auto& ctx = VulkanContext::get();
-
-    mSampler = ctx.create_sampler (
-        config.filter != FilterMode::Nearest ? vk::Filter::eLinear : vk::Filter::eNearest,
-        config.filter != FilterMode::Nearest ? vk::Filter::eLinear : vk::Filter::eNearest,
-        config.filter != FilterMode::Nearest ? vk::SamplerMipmapMode::eLinear : vk::SamplerMipmapMode::eNearest,
-        config.wrapX, config.wrapY, config.wrapZ,
-        0.f, 0u, config.mipLevels - 1u,
-        config.filter == FilterMode::Anisotropic, false
-    );
-}
-
-//============================================================================//
-
-void Texture::load_from_memory(void* data, uint level, uint layer, const Config& config)
+void Texture::load_from_memory(const void* data, size_t length, uint level, uint layer, const Config& config)
 {
     SQASSERT(level == 0u || config.mipmaps != MipmapsMode::Generate, "cannot manually load generated mipmaps");
 
     const auto& ctx = VulkanContext::get();
 
-    const auto formatInfo = impl_get_format_info(config.format);
     const Vec2U size = Vec2U(config.size) / uint(std::exp2(level));
+    const size_t pixelSize = impl_get_format_info(config.format).pixelSize;
+    const size_t bufferSize = size.x * size.y * pixelSize;
 
-    auto staging = StagingBuffer(ctx, size.x * size.y * formatInfo.pixelSize);
+    SQASSERT(bufferSize == length, "length does not match expectation");
+
+    auto staging = StagingBuffer(ctx, true, false, bufferSize);
     auto cmdbuf = OneTimeCommands(ctx);
 
-    std::memcpy(staging.memory.map(), data, size.x * size.y * formatInfo.pixelSize);
+    std::memcpy(staging.memory.map(), data, bufferSize);
     staging.memory.unmap();
 
     vk_pipeline_barrier_image_memory (
@@ -429,11 +421,11 @@ void Texture::load_from_memory(void* data, uint level, uint layer, const Config&
 
     cmdbuf->copyBufferToImage (
         staging.buffer, mStuff.image, vk::ImageLayout::eTransferDstOptimal,
-        vk::BufferImageCopy {
+        vk::BufferImageCopy (
             0u, 0u, 0u,
             vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, level, layer, 1u),
             vk::Offset3D(0, 0, 0), vk::Extent3D(size.x, size.y, 1u)
-        }
+        )
     );
 
     if (config.mipmaps != MipmapsMode::Generate)
@@ -466,12 +458,12 @@ void Texture::load_from_memory(void* data, uint level, uint layer, const Config&
 
         cmdbuf->blitImage (
             mStuff.image, vk::ImageLayout::eTransferSrcOptimal, mStuff.image, vk::ImageLayout::eTransferDstOptimal,
-            vk::ImageBlit {
+            vk::ImageBlit (
                 vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, i - 1u, layer, 1u),
                 std::array { vk::Offset3D(0, 0, 0), vk::Offset3D(sourceSize.x, sourceSize.y, 1) },
                 vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, i, layer, 1u),
                 std::array { vk::Offset3D(0, 0, 0), vk::Offset3D(levelSize.x, levelSize.y, 1) }
-            },
+            ),
             vk::Filter::eLinear
         );
 
@@ -493,4 +485,179 @@ void Texture::load_from_memory(void* data, uint level, uint layer, const Config&
         vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal,
         vk::ImageAspectFlagBits::eColor, config.mipLevels - 1u, 1u, layer, 1u
     );
+}
+
+//============================================================================//
+
+void Texture::load_from_memory(const void* data, size_t length, const Config& config)
+{
+    SQASSERT(config.mipmaps != MipmapsMode::Generate, "cannot manually load generated mipmaps");
+
+    const auto& ctx = VulkanContext::get();
+
+    const size_t pixelSize = impl_get_format_info(config.format).pixelSize;
+    const size_t bufferSize = compute_buffer_size(config.size, config.mipLevels, pixelSize);
+
+    SQASSERT(bufferSize == length, "length does not match expectation");
+
+    auto staging = StagingBuffer(ctx, true, false, bufferSize);
+    auto cmdbuf = OneTimeCommands(ctx);
+
+    std::memcpy(staging.memory.map(), data, bufferSize);
+    staging.memory.unmap();
+
+    vk_pipeline_barrier_image_memory (
+        cmdbuf.cmdbuf, mStuff.image, vk::DependencyFlags(),
+        vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eTransfer,
+        vk::AccessFlags(), vk::AccessFlagBits::eTransferWrite,
+        vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal,
+        vk::ImageAspectFlagBits::eColor, 0u, config.mipLevels, 0u, config.size.z
+    );
+
+    size_t levelBufferOffset = 0u;
+    Vec2U levelSize = Vec2U(config.size.x, config.size.y);
+
+    for (uint level = 0u; level < config.mipLevels; ++level)
+    {
+        cmdbuf->copyBufferToImage (
+            staging.buffer, mStuff.image, vk::ImageLayout::eTransferDstOptimal,
+            vk::BufferImageCopy (
+                levelBufferOffset, 0u, 0u,
+                vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, level, 0u, config.size.z),
+                vk::Offset3D(0, 0, 0), vk::Extent3D(levelSize.x, levelSize.y, 1u)
+            )
+        );
+
+        levelBufferOffset += levelSize.x * levelSize.y * config.size.z * pixelSize;
+        levelSize = maths::max(Vec2U(1u, 1u), levelSize / 2u);
+    }
+
+    vk_pipeline_barrier_image_memory (
+        cmdbuf.cmdbuf, mStuff.image, vk::DependencyFlags(),
+        vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eBottomOfPipe,
+        vk::AccessFlagBits::eTransferWrite, vk::AccessFlags(),
+        vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal,
+        vk::ImageAspectFlagBits::eColor, 0u, config.mipLevels, 0u, config.size.z
+    );
+}
+
+//============================================================================//
+
+bool Texture::try_load_from_compressed(const String& path, const Config& config)
+{
+    const auto compressed = try_read_bytes_from_file(path + ".lz4");
+    if (compressed.has_value() == false)
+        return false; // fall back to regular image files
+
+    const size_t pixelSize = impl_get_format_info(config.format).pixelSize;
+    const size_t decompressedSize = compute_buffer_size(config.size, config.mipLevels, pixelSize);
+
+    // wrapped in a unique_ptr so we can throw exceptions
+    auto dctx = []() {
+        LZ4F_dctx* raw; LZ4F_createDecompressionContext(&raw, LZ4F_VERSION);
+        return std::unique_ptr<LZ4F_dctx, decltype(&LZ4F_freeDecompressionContext)>(raw, &LZ4F_freeDecompressionContext);
+    }();
+
+    auto decompressed = std::unique_ptr<std::byte[]>(new std::byte[decompressedSize]());
+    {
+        size_t dstSize = decompressedSize;
+        size_t srcSize = compressed->size();
+
+        if ( auto error = LZ4F_decompress(dctx.get(), decompressed.get(), &dstSize, compressed->data(), &srcSize, nullptr);
+             LZ4F_isError(error) )
+            SQEE_THROW("'{}.lz4': Decompression error ({})", path, LZ4F_getErrorName(error));
+
+        if (dstSize < decompressedSize)
+            SQEE_THROW("'{}.lz4': Decompressed data has incorrect size (too small)", path);
+
+        if (srcSize < compressed->size())
+            SQEE_THROW("'{}.lz4': Decompressed data has incorrect size (too large)", path);
+    }
+
+    load_from_memory(decompressed.get(), decompressedSize, config);
+
+    return true;
+}
+
+//============================================================================//
+
+void Texture::save_as_compressed(const String& path, vk::Format format, Vec3U size, uint mipLevels)
+{
+    const auto& ctx = VulkanContext::get();
+
+    const size_t pixelSize = impl_get_format_info(format).pixelSize;
+    const size_t bufferSize = compute_buffer_size(size, mipLevels, pixelSize);
+
+    // copy all mip levels into a host buffer
+    auto buffer = StagingBuffer(ctx, false, true, bufferSize);
+    {
+        auto cmdbuf = OneTimeCommands(ctx);
+
+        vk_pipeline_barrier_image_memory (
+            cmdbuf.cmdbuf, mStuff.image, vk::DependencyFlags(),
+            vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eTransfer,
+            vk::AccessFlags(), vk::AccessFlagBits::eTransferRead,
+            vk::ImageLayout::eShaderReadOnlyOptimal, vk::ImageLayout::eTransferSrcOptimal,
+            vk::ImageAspectFlagBits::eColor, 0u, mipLevels, 0u, size.z
+        );
+
+        size_t levelBufferOffset = 0u;
+        Vec2U levelSize = Vec2U(size.x, size.y);
+
+        for (uint level = 0u; level < mipLevels; ++level)
+        {
+            cmdbuf->copyImageToBuffer (
+                mStuff.image, vk::ImageLayout::eTransferSrcOptimal, buffer.buffer,
+                vk::BufferImageCopy (
+                    levelBufferOffset, 0u, 0u,
+                    vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, level, 0u, size.z),
+                    vk::Offset3D(0, 0, 0), vk::Extent3D(levelSize.x, levelSize.y, 1u)
+                )
+            );
+
+            levelBufferOffset += levelSize.x * levelSize.y * size.z * pixelSize;
+            levelSize = maths::max(Vec2U(1u, 1u), levelSize / 2u);
+        }
+
+        vk_pipeline_barrier_image_memory (
+            cmdbuf.cmdbuf, mStuff.image, vk::DependencyFlags(),
+            vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eBottomOfPipe,
+            vk::AccessFlagBits::eTransferRead, vk::AccessFlags(),
+            vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eShaderReadOnlyOptimal,
+            vk::ImageAspectFlagBits::eColor, 0u, mipLevels, 0u, size.z
+        );
+    }
+
+    // compress the data with lz4 and save it to a file
+    {
+        LZ4F_preferences_t preferences = LZ4F_INIT_PREFERENCES;
+        preferences.compressionLevel = 9;
+
+        const size_t maxCompressedSize = LZ4F_compressFrameBound(bufferSize, &preferences);
+        std::byte* compressed = new std::byte[maxCompressedSize];
+
+        const size_t compressedSize = LZ4F_compressFrame (
+            compressed, maxCompressedSize, buffer.memory.map(), bufferSize, &preferences
+        );
+        buffer.memory.unmap();
+
+        write_bytes_to_file(path, compressed, compressedSize);
+        delete[] compressed;
+    }
+}
+
+//============================================================================//
+
+size_t Texture::compute_buffer_size(Vec3U size, uint mipLevels, size_t pixelSize)
+{
+    size_t bufferTotalSize = 0u;
+    Vec2U levelSize = Vec2U(size.x, size.y);
+
+    for (uint level = 0u; level < mipLevels; ++level)
+    {
+        bufferTotalSize += levelSize.x * levelSize.y * size.z * pixelSize;
+        levelSize = maths::max(Vec2U(1u, 1u), levelSize / 2u);
+    };
+
+    return bufferTotalSize;
 }

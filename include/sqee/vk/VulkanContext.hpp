@@ -60,6 +60,18 @@ public: //====================================================//
         vk::Filter magFilter, vk::Filter minFilter, vk::SamplerMipmapMode mipmapMode, vk::SamplerAddressMode wrapX, vk::SamplerAddressMode wrapY, vk::SamplerAddressMode wrapZ, float lodBias, uint minLod, uint maxLod, bool anisotropic, bool depthCompare
     ) const;
 
+    vk::RenderPass create_render_pass (
+        ArrayProxyRef<vk::AttachmentDescription> attachments, ArrayProxyRef<vk::SubpassDescription> subpasses, ArrayProxyRef<vk::SubpassDependency> dependencies
+    ) const;
+
+    vk::Framebuffer create_framebuffer (
+        vk::RenderPass renderPass, ArrayProxyRef<vk::ImageView> imageViews, Vec2U size, uint layers
+    ) const;
+
+    vk::DescriptorSet allocate_descriptor_set (
+        vk::DescriptorPool pool, vk::DescriptorSetLayout layout
+    ) const;
+
     //--------------------------------------------------------//
 
     /// Give an object a human readable name for debugging.
@@ -114,6 +126,24 @@ inline vk::Sampler VulkanContext::create_sampler(vk::Filter magFilter, vk::Filte
     return device.createSampler (
         vk::SamplerCreateInfo (
             {}, magFilter, minFilter, mipmapMode, wrapX, wrapY, wrapZ, lodBias, anisotropic, limits.maxAnisotropy, shadow, vk::CompareOp::eLess, float(minLod), float(maxLod), {}, false
+        )
+    );
+}
+
+inline vk::RenderPass VulkanContext::create_render_pass(ArrayProxyRef<vk::AttachmentDescription> attachments, ArrayProxyRef<vk::SubpassDescription> subpasses, ArrayProxyRef<vk::SubpassDependency> dependencies) const
+{
+    return device.createRenderPass (
+        vk::RenderPassCreateInfo (
+            {}, attachments.size(), attachments.data(), subpasses.size(), subpasses.data(), dependencies.size(), dependencies.data()
+        )
+    );
+}
+
+inline vk::Framebuffer VulkanContext::create_framebuffer(vk::RenderPass renderPass, ArrayProxyRef<vk::ImageView> imageViews, Vec2U size, uint layers) const
+{
+    return device.createFramebuffer (
+        vk::FramebufferCreateInfo (
+            {}, renderPass, imageViews.size(), imageViews.data(), size.x, size.y, layers
         )
     );
 }

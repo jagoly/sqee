@@ -158,6 +158,9 @@ target_link_libraries(sqee PUBLIC dearimgui)
 add_subdirectory(libs/format)
 target_link_libraries(sqee PUBLIC format)
 
+add_subdirectory(libs/lz4f)
+target_link_libraries(sqee PUBLIC lz4f)
+
 add_subdirectory(libs/wren)
 target_link_libraries(sqee PUBLIC wren)
 
@@ -172,7 +175,7 @@ write_basic_package_version_file (
 )
 
 export (
-    TARGETS sqee spirv-cross-core dearimgui format wren
+    TARGETS sqee spirv-cross-core dearimgui format lz4f wren
     FILE "${CMAKE_CURRENT_BINARY_DIR}/sqee-exports.cmake"
 )
 

@@ -34,7 +34,9 @@ public: //====================================================//
         {
             SQASSERT(mFactoryFunc != nullptr, "no factory assigned");
             iter->second.key = &iter->first;
-            iter->second.data = mFactoryFunc(key);
+            try { iter->second.data = mFactoryFunc(key); }
+            catch (const std::exception& e)
+            { log_error_multiline("unhandled exception when loading resource\nkey:  {}\nwhat: {}", key, e.what()); }
             iter->second.count = 0u;
         }
         return Handle<Key, Type>(iter->second);

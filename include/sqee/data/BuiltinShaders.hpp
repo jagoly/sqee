@@ -7,6 +7,6 @@
 
 //============================================================================//
 
-SQEE_API extern const uint32_t sqee_GuiSystemVertSpv[237];
+SQEE_API extern const uint32_t sqee_GuiSystemVertSpv[234];
 
 SQEE_API extern const uint32_t sqee_GuiSystemFragSpv[142];

@@ -246,7 +246,6 @@ GuiSystem::GuiSystem(Window& window, InputDevices& inputDevices)
     load_ubuntu_fonts();
 
     create_objects();
-    create_descriptor_set();
     create_pipeline();
 }
 
@@ -310,13 +309,8 @@ void GuiSystem::create_objects()
     config.mipLevels = 1u;
 
     mFontTexture.initialise_2D(config);
-    mFontTexture.load_from_memory(pixels, 0u, 0u, config);
-}
+    mFontTexture.load_from_memory(pixels, size_t(width * height), config);
 
-//============================================================================//
-
-void GuiSystem::create_descriptor_set()
-{
     const auto& ctx = VulkanContext::get();
 
     mDescriptorSetLayout = ctx.create_descriptor_set_layout ({
@@ -328,6 +322,8 @@ void GuiSystem::create_descriptor_set()
     vk_update_descriptor_set (
         ctx, mDescriptorSet, DescriptorImageSampler(0u, 0u, mFontTexture.get_descriptor_info())
     );
+
+    ImGui::GetIO().Fonts->TexID = &mDescriptorSet;
 }
 
 //============================================================================//
@@ -337,7 +333,7 @@ void GuiSystem::create_pipeline()
     const auto& ctx = VulkanContext::get();
 
     mPipelineLayout = ctx.create_pipeline_layout (
-        mDescriptorSetLayout, vk::PushConstantRange(vk::ShaderStageFlagBits::eVertex, 0u, sizeof(Mat4F))
+        mDescriptorSetLayout, vk::PushConstantRange(vk::ShaderStageFlagBits::eVertex, 0u, sizeof(Vec2F))
     );
 
     // load shaders and create graphics pipeline
@@ -526,20 +522,14 @@ void GuiSystem::render_gui(vk::CommandBuffer cmdbuf)
     cmdbuf.bindVertexBuffers(0u, mVertexBuffer.front(), size_t(0u));
     cmdbuf.bindIndexBuffer(mIndexBuffer.front(), 0u, vk::IndexType::eUint16);
 
-    cmdbuf.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, mPipelineLayout, 0u, mDescriptorSet, {});
+    const Vec2F invWindowSize2 = Vec2F(2.f, 2.f) / Vec2F(window.get_size());
+    cmdbuf.pushConstants<Vec2F>(mPipelineLayout, vk::ShaderStageFlagBits::eVertex, 0u, invWindowSize2);
 
-    const auto orthoMatrix = Mat4F (
-        { 2.f / float(window.get_size().x), 0.f, 0.f, 0.f },
-        { 0.f, 2.f / float(window.get_size().y), 0.f, 0.f },
-        { 0.f, 0.f, 1.f, 0.f },
-        { -1.f, -1.f, 0.f, 1.f }
-    );
-
-    cmdbuf.pushConstants<Mat4F>(mPipelineLayout, vk::ShaderStageFlagBits::eVertex, 0u, orthoMatrix);
+    const vk::DescriptorSet* boundTexture = nullptr;
 
     //--------------------------------------------------------//
 
-    // subbmit drawing commands using offsets into buffers
+    // submit drawing commands using offsets into buffers
     {
         uint32_t vertexOffset = 0u;
         uint32_t indexOffset = 0u;
@@ -548,6 +538,12 @@ void GuiSystem::render_gui(vk::CommandBuffer cmdbuf)
         {
             for (const ImDrawCmd& cmd : drawData.CmdLists[n]->CmdBuffer)
             {
+                if (cmd.TextureId != boundTexture)
+                {
+                    boundTexture = static_cast<const vk::DescriptorSet*>(cmd.TextureId);
+                    cmdbuf.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, mPipelineLayout, 0u, *boundTexture, {});
+                }
+
                 if (cmd.UserCallback == nullptr)
                 {
                     const auto clipX = int32_t(cmd.ClipRect.x);

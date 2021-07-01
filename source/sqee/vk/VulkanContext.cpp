@@ -28,3 +28,18 @@ void VulkanContext::destruct()
 }
 
 VulkanContext& VulkanContext::get_mutable() { return *gContextPtr; }
+
+//============================================================================//
+
+vk::DescriptorSet VulkanContext::allocate_descriptor_set(vk::DescriptorPool pool, vk::DescriptorSetLayout layout) const
+{
+    const auto info = vk::DescriptorSetAllocateInfo { pool, layout };
+
+    vk::DescriptorSet descriptorSet;
+
+    const auto result = device.allocateDescriptorSets(&info, &descriptorSet);
+    if (result != vk::Result::eSuccess)
+        vk::throwResultException(result, "VulkanContext::allocate_descriptor_set");
+
+    return descriptorSet;
+}

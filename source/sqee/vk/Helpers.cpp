@@ -6,12 +6,16 @@ using namespace sq;
 
 //============================================================================//
 
-StagingBuffer::StagingBuffer(const VulkanContext& _ctx, size_t size)
+StagingBuffer::StagingBuffer(const VulkanContext& _ctx, bool source, bool destination, size_t size)
     : ctx(_ctx)
 {
+    vk::BufferUsageFlags usageFlags;
+    if (source) usageFlags |= vk::BufferUsageFlagBits::eTransferSrc;
+    if (destination) usageFlags |= vk::BufferUsageFlagBits::eTransferDst;
+
     buffer = ctx.device.createBuffer (
         vk::BufferCreateInfo {
-            {}, size, vk::BufferUsageFlagBits::eTransferSrc, vk::SharingMode::eExclusive, {}
+            {}, size, usageFlags, vk::SharingMode::eExclusive, {}
         }
     );
     memory = ctx.allocator.allocate(ctx.device.getBufferMemoryRequirements(buffer), true);

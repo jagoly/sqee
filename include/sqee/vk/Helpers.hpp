@@ -21,7 +21,7 @@ using ArrayProxyRef = const vk::ArrayProxy<const T>&;
 
 struct SQEE_API StagingBuffer
 {
-    StagingBuffer(const VulkanContext& ctx, size_t size);
+    StagingBuffer(const VulkanContext& ctx, bool source, bool destination, size_t size);
     ~StagingBuffer();
     const VulkanContext& ctx;
     vk::Buffer buffer;

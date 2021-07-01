@@ -66,7 +66,19 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    void load_from_memory(void* data, uint level, uint layer, const Config& config);
+    /// Upload data to one layer of one level of the image. Will generate mipmaps if requested.
+    void load_from_memory(const void* data, size_t length, uint level, uint layer, const Config& config);
+
+    /// Upload the entire image's data all at once.
+    void load_from_memory(const void* data, size_t length, const Config& config);
+
+    //--------------------------------------------------------//
+
+    /// Load image data from a compressed binary file. Return false if file does not exist.
+    bool try_load_from_compressed(const String& path, const Config& config);
+
+    /// Save image data to a binary file compressed with lz4.
+    void save_as_compressed(const String& path, vk::Format format, Vec3U size, uint mipLevels);
 
     //--------------------------------------------------------//
 
@@ -76,9 +88,16 @@ public: //====================================================//
         return { mSampler, mStuff.view, vk::ImageLayout::eShaderReadOnlyOptimal };
     }
 
-protected: //=================================================//
+    vk::Image get_image() const { return mStuff.image; }
 
-    void impl_initialise_sampler(const Config& config);
+    vk::Sampler get_sampler() const { return mSampler; }
+
+    //--------------------------------------------------------//
+
+    /// Compute the total size of a texture, in bytes.
+    static size_t compute_buffer_size(Vec3U size, uint mipLevels, size_t pixelSize);
+
+protected: //=================================================//
 
     ImageStuff mStuff;
     vk::Sampler mSampler;

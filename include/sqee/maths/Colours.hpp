@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <sqee/maths/Vectors.hpp>
+#include <sqee/core/Types.hpp>
 
 namespace sq::maths {
 
@@ -63,6 +63,25 @@ template <class T> constexpr Vector4<T> srgb_to_linear(Vector4<T> rgba)
     const T b = srgb_to_linear(rgba.b);
 
     return { r, g, b, rgba.a };
+}
+
+//============================================================================//
+
+/// Compress a hdr colour into a 32 bit unsigned integer.
+inline uint32_t hdr_to_e5bgr9(Vec3F rgb)
+{
+    constexpr float MAX_VALUE = float((1<<9)-1) / float(1<<9) * float(1<<5);
+
+    const Vec3F clamped = maths::clamp(rgb, Vec3F(0.f), Vec3F(MAX_VALUE));
+    const float maxComponent = maths::max(clamped.r, clamped.g, clamped.b);
+
+    const float prelimExponent = std::max(-15.f - 1.f, std::floor(std::log2(maxComponent))) + 1.f + 15.f;
+    const float maxExponent = std::floor(maxComponent / std::pow(2.f, (prelimExponent - 15.f - 9.f)) + 0.5f);
+    const float exponent = maxExponent < std::pow(2.f, 9.f) ? prelimExponent : prelimExponent + 1.f;
+
+    const Vec3U values = Vec3U(clamped / std::pow(2.f, (exponent - 15.f - 9.f)) + 0.5f);
+
+    return uint(exponent) << 27 | values.b << 18 | values.g << 9 | values.r;
 }
 
 //============================================================================//

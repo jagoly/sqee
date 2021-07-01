@@ -49,6 +49,11 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
+    /// Contains a single CombinedImageSampler.
+    vk::DescriptorSetLayout get_descriptor_set_layout() const { return mDescriptorSetLayout; }
+
+    //--------------------------------------------------------//
+
     void show_imgui_demo();
 
 private: //===================================================//
@@ -56,7 +61,6 @@ private: //===================================================//
     void load_ubuntu_fonts();
 
     void create_objects();
-    void create_descriptor_set();
     void create_pipeline();
 
     Window& window;

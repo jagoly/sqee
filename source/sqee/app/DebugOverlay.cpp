@@ -95,9 +95,9 @@ void DebugOverlay::show_imgui_widgets()
         {
             const auto& display = mFrameSubTimers[mFrameSubTimers.size() - lineNum - 1u].display;
             const char* strEnd = display.data() + display.length();
-            drawList->AddText(ImVec2(15, ImPlus::FromScreenBottom(95 + lineNum * 16)), IM_COL32_BLACK, display.data(), strEnd);
-            drawList->AddText(ImVec2(16, ImPlus::FromScreenBottom(96 + lineNum * 16)), IM_COL32_BLACK, display.data(), strEnd);
-            drawList->AddText(ImVec2(16, ImPlus::FromScreenBottom(96 + lineNum * 16)), IM_COL32_WHITE, display.data(), strEnd);
+            drawList->AddText(ImVec2(15, ImPlus::FromScreenBottom(float(95 + lineNum * 16))), IM_COL32_BLACK, display.data(), strEnd);
+            drawList->AddText(ImVec2(16, ImPlus::FromScreenBottom(float(96 + lineNum * 16))), IM_COL32_BLACK, display.data(), strEnd);
+            drawList->AddText(ImVec2(16, ImPlus::FromScreenBottom(float(96 + lineNum * 16))), IM_COL32_WHITE, display.data(), strEnd);
         }
 
         const char* strEnd = mFrameSubTimerTotalDisplay.data() + mFrameSubTimerTotalDisplay.length();
