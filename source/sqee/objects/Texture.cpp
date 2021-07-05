@@ -256,18 +256,26 @@ void Texture::load_from_file_2D(const String& path)
     config.mipmaps = impl_string_to_mipmaps(json.at("mipmaps"));
     config.size = Vec3U(Vec2U(json.at("size")), 1u);
 
-    if (config.mipmaps == MipmapsMode::Disable) config.mipLevels = 1u;
-    else config.mipLevels = 1u + uint(std::floor(std::log2(std::max(config.size.x, config.size.y))));
+    if (config.mipmaps != MipmapsMode::Disable)
+    {
+        const auto iter = json.find("mipLevels");
+        if (iter != json.end()) config.mipLevels = *iter;
+        else config.mipLevels = 1u + uint(std::log2(std::max(config.size.x, config.size.y)));
+    }
+    else config.mipLevels = 1u;
 
     initialise_2D(config);
 
     if (try_load_from_compressed(path, config))
         return; // success
 
-    SQASSERT(config.mipmaps != MipmapsMode::Load, "todo: 2D mipmap load");
+    if (config.mipmaps == MipmapsMode::Load)
+        SQEE_THROW("mipmaps can only be loaded from lz4 archives");
 
     const auto image = impl_load_image(config.format, path + ".png");
-    SQASSERT(image.size == Vec2U(config.size), "image size does not match json");
+
+    if (image.size != Vec2U(config.size))
+        SQEE_THROW("image size does not match json");
 
     load_from_memory(image.data, image.length, 0u, 0u, config);
 }
@@ -305,15 +313,21 @@ void Texture::load_from_file_array(const String& path)
     config.mipmaps = impl_string_to_mipmaps(json.at("mipmaps"));
     config.size = json.at("size");
 
-    if (config.mipmaps == MipmapsMode::Disable) config.mipLevels = 1u;
-    else config.mipLevels = 1u + uint(std::floor(std::log2(std::max(config.size.x, config.size.y))));
+    if (config.mipmaps != MipmapsMode::Disable)
+    {
+        const auto iter = json.find("mipLevels");
+        if (iter != json.end()) config.mipLevels = *iter;
+        else config.mipLevels = 1u + uint(std::log2(std::max(config.size.x, config.size.y)));
+    }
+    else config.mipLevels = 1u;
 
     initialise_array(config);
 
     if (try_load_from_compressed(path, config))
         return; // success
 
-    SQASSERT(config.mipmaps != MipmapsMode::Load, "todo: array mipmap load");
+    if (config.mipmaps == MipmapsMode::Load)
+        SQEE_THROW("mipmaps can only be loaded from lz4 archives");
 
     const auto formatStr = config.format == vk::Format::eE5B9G9R9UfloatPack32 ? "{}/{:0>{}}.hdr" : "{}/{:0>{}}.png";
     const uint digits = config.size.z > 10u ? config.size.z > 100u ? 3u : 2u : 1u;
@@ -321,7 +335,10 @@ void Texture::load_from_file_array(const String& path)
     for (uint layer = 0u; layer < config.size.z; ++layer)
     {
         const auto image = impl_load_image(config.format, fmt::format(formatStr, path, layer, digits));
-        SQASSERT(image.size == Vec2U(config.size), "image size does not match json");
+
+        if (image.size != Vec2U(config.size))
+            SQEE_THROW("layer {}: image size does not match json", layer);
+
         load_from_memory(image.data, image.length, 0u, layer, config);
     }
 }
@@ -351,14 +368,20 @@ void Texture::load_from_file_cube(const String& path)
 
     Config config;
     config.format = impl_string_to_format(json.at("format"));
-    config.wrapX = config.wrapY = config.wrapZ = vk::SamplerAddressMode::eClampToEdge;
+    config.wrapX = config.wrapY = vk::SamplerAddressMode::eClampToEdge;
+    config.wrapZ = vk::SamplerAddressMode::eRepeat;
     config.swizzle = impl_string_to_swizzle(json.at("swizzle"));
     config.filter = impl_string_to_filter(json.at("filter"));
     config.mipmaps = impl_string_to_mipmaps(json.at("mipmaps"));
     config.size = Vec3U(Vec2U(uint(json.at("size"))), 6u);
 
-    if (config.mipmaps == MipmapsMode::Disable) config.mipLevels = 1u;
-    else config.mipLevels = 1u + uint(std::floor(std::log2(config.size.x)));
+    if (config.mipmaps != MipmapsMode::Disable)
+    {
+        const auto iter = json.find("mipLevels");
+        if (iter != json.end()) config.mipLevels = *iter;
+        else config.mipLevels = 1u + uint(std::log2(config.size.x));
+    }
+    else config.mipLevels = 1u;
 
     initialise_cube(config);
 
@@ -366,27 +389,19 @@ void Texture::load_from_file_cube(const String& path)
         return; // success
 
     if (config.mipmaps == MipmapsMode::Load)
+        SQEE_THROW("mipmaps can only be loaded from lz4 archives");
+
+    const auto formatStr = config.format == vk::Format::eE5B9G9R9UfloatPack32 ? "{}/{}.hdr" : "{}/{}.png";
+    const auto faceNames = std::array { "0_right", "1_left", "2_down", "3_up", "4_forward", "5_back"};
+
+    for (uint face = 0u; face < 6u; ++face)
     {
-        const auto formatStr = config.format == vk::Format::eE5B9G9R9UfloatPack32 ? "{}/{}/{}.hdr" : "{}/{}/{}.png";
-        for (const auto faceName : {"0_right", "1_left", "2_down", "3_up", "4_forward", "5_back"})
-        {
-            for (uint level = 0u; level < config.mipLevels; ++level)
-            {
-                const auto image = impl_load_image(config.format, fmt::format(formatStr, path, level, faceName));
-                SQASSERT(image.size == Vec2U(config.size) / uint(std::exp2(level)), "image size does not match level");
-                load_from_memory(image.data, image.length, level, uint(*faceName - '0'), config);
-            }
-        }
-    }
-    else // disabled or generated mipmaps
-    {
-        const auto formatStr = config.format == vk::Format::eE5B9G9R9UfloatPack32 ? "{}/{}.hdr" : "{}/{}.png";
-        for (const auto faceName : {"0_right", "1_left", "2_down", "3_up", "4_forward", "5_back"})
-        {
-            const auto image = impl_load_image(config.format, fmt::format(formatStr, path, faceName));
-            SQASSERT(image.size == Vec2U(config.size), "image size does not match json");
-            load_from_memory(image.data, image.length, 0u, uint(*faceName - '0'), config);
-        }
+        const auto image = impl_load_image(config.format, fmt::format(formatStr, path, faceNames[face]));
+
+        if (image.size != Vec2U(config.size))
+            SQEE_THROW("face {}: image size does not match json", face);
+
+        load_from_memory(image.data, image.length, 0u, face, config);
     }
 }
 
