@@ -131,6 +131,21 @@ struct DescriptorImageSampler
     vk::DescriptorImageInfo front, back;
 };
 
+struct DescriptorInputAttachment
+{
+    DescriptorInputAttachment(uint _binding, uint _index, vk::DescriptorImageInfo info)
+        : binding(_binding), index(_index), front(info), back(info) {}
+
+    DescriptorInputAttachment(uint _binding, uint _index, vk::ImageView view, vk::ImageLayout layout)
+        : binding(_binding), index(_index), front({}, view, layout), back({}, view, layout) {}
+
+    DescriptorInputAttachment(uint _binding, uint _index, Swapper<vk::DescriptorImageInfo> info)
+        : binding(_binding), index(_index), front(info.front), back(info.back) {}
+
+    uint binding, index;
+    vk::DescriptorImageInfo front, back;
+};
+
 //============================================================================//
 
 namespace detail {
@@ -147,6 +162,14 @@ inline vk::WriteDescriptorSet make_write_descriptor_set(vk::DescriptorSet dset, 
 {
     return vk::WriteDescriptorSet {
         dset, descriptor.binding, descriptor.index, 1u, vk::DescriptorType::eCombinedImageSampler,
+        back ? &descriptor.back : &descriptor.front, nullptr, nullptr
+    };
+}
+
+inline vk::WriteDescriptorSet make_write_descriptor_set(vk::DescriptorSet dset, const DescriptorInputAttachment& descriptor, bool back)
+{
+    return vk::WriteDescriptorSet {
+        dset, descriptor.binding, descriptor.index, 1u, vk::DescriptorType::eInputAttachment,
         back ? &descriptor.back : &descriptor.front, nullptr, nullptr
     };
 }

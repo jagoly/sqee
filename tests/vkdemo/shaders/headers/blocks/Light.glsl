@@ -1,6 +1,6 @@
 // GLSL Uniform Block
 
-layout(std140, set=1, binding=0) uniform LightBlock
+layout(std140, set=0, binding=1) uniform LightBlock
 {
     vec3 ambiColour;
     vec3 skyColour;

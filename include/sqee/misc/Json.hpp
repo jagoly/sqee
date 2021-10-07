@@ -120,3 +120,16 @@ template<> struct nlohmann::adl_serializer<Type> \
         sq::enum_from_string(j.get_ref<const std::string&>(), e); \
     } \
 };
+
+//============================================================================//
+
+template<> struct fmt::formatter<sq::JsonValue> : fmt::formatter<std::string>
+{
+    template <class FormatContext>
+    auto format(const sq::JsonValue& json, FormatContext& ctx)
+    {
+        return formatter<std::string>::format(impl_dump(json), ctx);
+    }
+
+    SQEE_API std::string impl_dump(const sq::JsonValue& json);
+};

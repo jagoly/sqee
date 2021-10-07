@@ -76,16 +76,14 @@ private: //===================================================//
 
     //--------------------------------------------------------//
 
-    vk::DescriptorSetLayout mCameraDescriptorSetLayout;
-    vk::DescriptorSetLayout mLightDescriptorSetLayout;
+    vk::DescriptorSetLayout mPassDescriptorSetLayout;
     vk::DescriptorSetLayout mModelDescriptorSetLayout;
     vk::PipelineLayout mModelPipelineLayout;
 
     vk::DescriptorSetLayout mCompositeDescriptorSetLayout;
     vk::PipelineLayout mCompositePipelineLayout;
 
-    sq::Swapper<vk::DescriptorSet> mCameraDescriptorSet;
-    sq::Swapper<vk::DescriptorSet> mLightDescriptorSet;
+    sq::Swapper<vk::DescriptorSet> mPassDescriptorSet;
     vk::DescriptorSet mCompositeDescriptorSet;
 
     //--------------------------------------------------------//

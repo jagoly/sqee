@@ -17,7 +17,7 @@
 
 #if !OPTION_TEXTURE_DIFFUSE ||\
     !OPTION_TEXTURE_SPECULAR
-  layout(std140, set=2, binding=0) uniform MaterialBlock
+  layout(std140, set=1, binding=0) uniform MaterialBlock
   {
     #if !OPTION_TEXTURE_DIFFUSE
       vec3 diffuse;
@@ -32,19 +32,19 @@
 //============================================================================//
 
 #if OPTION_TEXTURE_DIFFUSE
-  layout(set=2, binding=1) uniform sampler2D tx_Diffuse;
+  layout(set=1, binding=1) uniform sampler2D tx_Diffuse;
 #endif
 
 #if OPTION_TEXTURE_SPECULAR
-  layout(set=2, binding=2) uniform sampler2D tx_Specular;
+  layout(set=1, binding=2) uniform sampler2D tx_Specular;
 #endif
 
 #if OPTION_TEXTURE_MASK
-  layout(set=2, binding=3) uniform sampler2D tx_Mask;
+  layout(set=1, binding=3) uniform sampler2D tx_Mask;
 #endif
 
 #if OPTION_TEXTURE_NORMAL
-  layout(set=2, binding=4) uniform sampler2D tx_Normal;
+  layout(set=1, binding=4) uniform sampler2D tx_Normal;
 #endif
 
 layout(location=0) in vec3 io_ViewPos;

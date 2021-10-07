@@ -22,6 +22,7 @@ void DemoApp::initialise(std::vector<String> /*args*/)
         "Hello Vulkan", Vec2U(800u, 600u), "sqee-vkdemo", Vec3U(0u, 0u, 1u)
     );
 
+    mWindow->set_size_limits(Vec2U(200u, 150u), std::nullopt);
     mWindow->set_vsync_enabled(true);
     mWindow->create_swapchain_and_friends();
 
@@ -48,16 +49,14 @@ DemoApp::~DemoApp()
 
     ctx.device.waitIdle();
 
-    ctx.device.destroy(mCameraDescriptorSetLayout);
-    ctx.device.destroy(mLightDescriptorSetLayout);
+    ctx.device.destroy(mPassDescriptorSetLayout);
     ctx.device.destroy(mModelDescriptorSetLayout);
     ctx.device.destroy(mCompositeDescriptorSetLayout);
 
     ctx.device.destroy(mModelPipelineLayout);
     ctx.device.destroy(mCompositePipelineLayout);
 
-    ctx.device.free(ctx.descriptorPool, {mCameraDescriptorSet.front, mCameraDescriptorSet.back});
-    ctx.device.free(ctx.descriptorPool, {mLightDescriptorSet.front, mLightDescriptorSet.back});
+    ctx.device.free(ctx.descriptorPool, {mPassDescriptorSet.front, mPassDescriptorSet.back});
     ctx.device.free(ctx.descriptorPool, mCompositeDescriptorSet);
 
     destroy_render_targets();
@@ -159,25 +158,22 @@ void DemoApp::initialise_layouts()
 
     // model pipeline
     {
-        mCameraDescriptorSetLayout = ctx.create_descriptor_set_layout ({
+        mPassDescriptorSetLayout = ctx.create_descriptor_set_layout ({
             vk::DescriptorSetLayoutBinding {
                 0u, vk::DescriptorType::eUniformBuffer, 1u, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment
-            }
-        });
-        mLightDescriptorSetLayout = ctx.create_descriptor_set_layout ({
+            },
             vk::DescriptorSetLayoutBinding {
-                0u, vk::DescriptorType::eUniformBuffer, 1u, vk::ShaderStageFlagBits::eFragment
+                1u, vk::DescriptorType::eUniformBuffer, 1u, vk::ShaderStageFlagBits::eFragment
             }
         });
+
         mModelDescriptorSetLayout = ctx.create_descriptor_set_layout ({
             vk::DescriptorSetLayoutBinding {
                 0u, vk::DescriptorType::eUniformBuffer, 1u, vk::ShaderStageFlagBits::eVertex
             }
         });
 
-        mModelPipelineLayout = ctx.create_pipeline_layout (
-            { mCameraDescriptorSetLayout, mLightDescriptorSetLayout }, {}
-        );
+        mModelPipelineLayout = ctx.create_pipeline_layout(mPassDescriptorSetLayout, {});
     }
 
     // composite pipeline
@@ -188,9 +184,7 @@ void DemoApp::initialise_layouts()
             }
         });
 
-        mCompositePipelineLayout = ctx.create_pipeline_layout (
-            { mCompositeDescriptorSetLayout }, {}
-        );
+        mCompositePipelineLayout = ctx.create_pipeline_layout(mCompositeDescriptorSetLayout, {});
 
         mCompositeDescriptorSet = sq::vk_allocate_descriptor_set(ctx, mCompositeDescriptorSetLayout);
     }
@@ -203,19 +197,14 @@ void DemoApp::initialise_camera()
     const auto& ctx = sq::VulkanContext::get();
 
     mCameraUbo.initialise(sizeof(CameraBlock), vk::BufferUsageFlagBits::eUniformBuffer);
-    mCameraDescriptorSet = sq::vk_allocate_descriptor_set_swapper(ctx, mCameraDescriptorSetLayout);
-
-    sq::vk_update_descriptor_set_swapper (
-        ctx, mCameraDescriptorSet,
-        sq::DescriptorUniformBuffer(0u, 0u, mCameraUbo.get_descriptor_info())
-    );
-
     mLightUbo.initialise(sizeof(LightBlock), vk::BufferUsageFlagBits::eUniformBuffer);
-    mLightDescriptorSet = sq::vk_allocate_descriptor_set_swapper(ctx, mLightDescriptorSetLayout);
+
+    mPassDescriptorSet = sq::vk_allocate_descriptor_set_swapper(ctx, mPassDescriptorSetLayout);
 
     sq::vk_update_descriptor_set_swapper (
-        ctx, mLightDescriptorSet,
-        sq::DescriptorUniformBuffer(0u, 0u, mLightUbo.get_descriptor_info())
+        ctx, mPassDescriptorSet,
+        sq::DescriptorUniformBuffer(0u, 0u, mCameraUbo.get_descriptor_info()),
+        sq::DescriptorUniformBuffer(1u, 0u, mLightUbo.get_descriptor_info())
     );
 }
 
@@ -268,7 +257,7 @@ void DemoApp::create_render_targets()
         mResolveColourSampler = ctx.create_sampler (
             vk::Filter::eNearest, vk::Filter::eNearest, {},
             vk::SamplerAddressMode::eClampToEdge, vk::SamplerAddressMode::eClampToEdge, {},
-            0.f, 0u, 0u, false, false
+            0.f, 0u, 0u, false, false, {}
         );
     }
 
@@ -340,7 +329,7 @@ void DemoApp::create_render_targets()
     }
 
     mResourceCaches.passConfigMap["Opaque"] = sq::PassConfig {
-        mMsRenderPass.pass, 0u, mMultisampleMode, {}, mWindow->get_size(), mCameraDescriptorSetLayout, mLightDescriptorSetLayout, {}
+        mMsRenderPass.pass, 0u, mMultisampleMode, {}, mWindow->get_size(), mPassDescriptorSetLayout, {}
     };
 }
 
@@ -446,7 +435,8 @@ void DemoApp::update_uniform_buffer(double elapsed)
     if (mInputDevices->is_pressed(sq::Keyboard_Key::PageUp))
         modelMat = Mat4F(maths::rotation(Vec3F(0.f, 0.f, 1.f), +float(elapsed) * 0.5f)) * modelMat;
 
-    mCameraDescriptorSet.swap();
+    mPassDescriptorSet.swap();
+
     auto& camera = *reinterpret_cast<CameraBlock*>(mCameraUbo.swap_map());
     {
         camera.viewMat = maths::look_at_LH(Vec3F(0.f, 0.f, -2.f), Vec3F(0.f, 0.f, 0.f), Vec3F(0.f, 1.f, 0.f));
@@ -458,7 +448,6 @@ void DemoApp::update_uniform_buffer(double elapsed)
         camera.invProjMat = maths::inverse(camera.projMat);
     }
 
-    mLightDescriptorSet.swap();
     auto& light = *reinterpret_cast<LightBlock*>(mLightUbo.swap_map());
     {
         light.ambiColour = { 0.3f, 0.3f, 0.3f };
@@ -496,14 +485,13 @@ void DemoApp::populate_command_buffer(vk::CommandBuffer cmdbuf, vk::Framebuffer 
             vk::ClearRect(vk::Rect2D({0, 0}, {mWindow->get_size().x, mWindow->get_size().y}), 0u, 1u)
         );
 
-        cmdbuf.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, mModelPipelineLayout, 0u, mCameraDescriptorSet.front, {});
-        cmdbuf.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, mModelPipelineLayout, 1u, mLightDescriptorSet.front, {});
+        cmdbuf.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, mModelPipelineLayout, 0u, mPassDescriptorSet.front, {});
 
         for (const auto& model : mStaticModels)
         {
-            model.material->get_pipeline().bind(cmdbuf);
-            model.material->bind_material_set(cmdbuf);
-            model.material->bind_object_set(cmdbuf, model.descriptorSet.front);
+            model.material->get_pipeline(0u).bind(cmdbuf);
+            model.material->bind_material_set(cmdbuf, 0u);
+            model.material->bind_object_set(cmdbuf, 0u, model.descriptorSet.front);
             model.mesh->bind_buffers(cmdbuf);
             model.mesh->draw(cmdbuf);
         }

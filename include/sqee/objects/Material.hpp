@@ -21,7 +21,8 @@ namespace sq {
 
 /// Information needed to render objects, defined in JSON.
 ///
-/// Contains a Pipeline Handle, a set of Texture Handles, and a Uniform Buffer.
+/// Each material consists of one or more passes.
+/// Each pass has a Pipeline Handle, a set of Texture Handles, and a Uniform Buffer.
 /// Remember to delete your Material cache before your Pipeline and Texture caches.
 ///
 class SQEE_API Material final : private MoveOnly
@@ -45,22 +46,31 @@ public: //====================================================//
     /// Load the material from a json object.
     void load_from_json(const JsonValue& json, PipelineCache& pipelines, TextureCache& textures);
 
-    /// Bind the material descriptor set.
-    void bind_material_set(vk::CommandBuffer cmdbuf) const;
+    /// Bind the material descriptor set of the specified pass.
+    void bind_material_set(vk::CommandBuffer cmdbuf, uint8_t pass) const;
 
-    /// Bind an object's descriptor set.
-    void bind_object_set(vk::CommandBuffer cmdbuf, vk::DescriptorSet dset) const;
+    /// Bind an object descriptor set for the specified pass.
+    void bind_object_set(vk::CommandBuffer cmdbuf, uint8_t pass, vk::DescriptorSet objectSet) const;
 
-    /// Access the pipeline resource.
-    const Pipeline& get_pipeline() const { return *mPipeline; }
+    /// Access the pipeline resource of the specified pass.
+    const Pipeline& get_pipeline(uint8_t pass) const { return mPasses[pass].pipeline.get(); }
+
+    /// Get the number of material passes.
+    uint8_t get_pass_count() const { return uint8_t(mPasses.size()); }
 
 private: //===================================================//
 
-    Handle<JsonValue, Pipeline> mPipeline;
-    std::vector<Handle<String, Texture>> mTextures;
+    void impl_load_pass_from_json(const JsonValue& json, PipelineCache& pipelines, TextureCache& textures);
 
-    BufferStuff mParamBuffer;
-    vk::DescriptorSet mDescriptorSet;
+    struct MaterialPass
+    {
+        Handle<JsonValue, Pipeline> pipeline;
+        std::vector<Handle<String, Texture>> textures;
+        BufferStuff paramBuffer;
+        vk::DescriptorSet descriptorSet;
+    };
+
+    std::vector<MaterialPass> mPasses;
 };
 
 //============================================================================//

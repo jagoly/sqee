@@ -32,3 +32,39 @@ std::optional<JsonValue> sq::try_parse_json_from_file(const String& path)
         return std::nullopt;
     }
 }
+
+//============================================================================//
+
+std::string fmt::formatter<sq::JsonValue>::impl_dump(const sq::JsonValue& json)
+{
+    const std::string dumped = json.dump();
+
+    std::string result;
+
+    char previous = '0';
+    bool quoted = false;
+
+    for (const auto& character : dumped)
+    {
+        if (quoted == false)
+        {
+            if ((character == '}' && previous != '{') || (character == ']' && previous != '['))
+                result.push_back(' ');
+
+            else if ((previous == '{' && character != '}') || (previous == '[' && character != ']'))
+                result.push_back(' ');
+
+            else if (previous == ':' || previous == ',')
+                result.push_back(' ');
+        }
+
+        result.push_back(character);
+
+        if (character == '"' && previous != '\\')
+            quoted = !quoted;
+
+        previous = character;
+    }
+
+    return result;
+}

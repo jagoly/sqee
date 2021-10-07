@@ -94,11 +94,11 @@ void Mesh::load_from_file(const String& path)
 
 //============================================================================//
 
-int Mesh::get_sub_mesh_index(TinyString name) const
+int8_t Mesh::get_sub_mesh_index(TinyString name) const
 {
     for (size_t i = 0u; i < mSubMeshes.size(); ++i)
         if (name == mSubMeshes[i].name)
-            return int(i);
+            return int8_t(i);
     return -1;
 }
 
@@ -108,11 +108,11 @@ void Mesh::bind_buffers(vk::CommandBuffer cmdbuf) const
     cmdbuf.bindIndexBuffer(mIndexBuffer.buffer, 0u, vk::IndexType::eUint32);
 }
 
-void Mesh::draw(vk::CommandBuffer cmdbuf, int subMesh) const
+void Mesh::draw(vk::CommandBuffer cmdbuf, int8_t subMesh) const
 {
     if (subMesh >= 0)
     {
-        SQASSERT(subMesh < int(mSubMeshes.size()), "invalid submesh");
+        SQASSERT(size_t(subMesh) < mSubMeshes.size(), "invalid submesh");
         const SubMesh& sm = mSubMeshes[subMesh];
         cmdbuf.drawIndexed(sm.indexCount, 1u, sm.firstIndex, 0, 0u);
     }
@@ -336,7 +336,7 @@ void Mesh::impl_load_final(std::vector<std::byte>& vertexData, std::vector<uint3
 
 //============================================================================//
 
-Mesh::VertexConfig::VertexConfig(vk::Flags<Attribute> flags)
+Mesh::VertexConfig::VertexConfig(vk::Flags<Attribute> flags, vk::Flags<Attribute> ignored)
 {
     const uint sizePOS = sizeof(float[3]);
     const uint sizeTCRD = sizeof(float[2]) * bool(flags & Attribute::TexCoords);
@@ -359,20 +359,20 @@ Mesh::VertexConfig::VertexConfig(vk::Flags<Attribute> flags)
 
     attributes.push_back({0u, 0u, vk::Format::eR32G32B32Sfloat, 0u});
 
-    if (flags & Attribute::TexCoords)
+    if (flags & Attribute::TexCoords & (ignored ^ Attribute::TexCoords))
         attributes.push_back({1u, 0u, vk::Format::eR32G32Sfloat, offsetTCRD});
 
-    if (flags & Attribute::Normals)
+    if (flags & Attribute::Normals & (ignored ^ Attribute::Normals))
         attributes.push_back({2u, 0u, vk::Format::eA2R10G10B10SnormPack32, offsetNORM});
 
-    if (flags & Attribute::Tangents)
+    if (flags & Attribute::Tangents & (ignored ^ Attribute::Tangents))
         attributes.push_back({3u, 0u, vk::Format::eA2R10G10B10SnormPack32, offsetTANG});
 
     // todo: use eA2R10G10B10UnormPack32 if alpha is not needed
-    if (flags & Attribute::Colours)
+    if (flags & Attribute::Colours & (ignored ^ Attribute::Colours))
         attributes.push_back({4u, 0u, vk::Format::eR8G8B8A8Unorm, offsetCOLR});
 
-    if (flags & Attribute::Bones)
+    if (flags & Attribute::Bones & (ignored ^ Attribute::Bones))
     {
         attributes.push_back({5u, 0u, vk::Format::eR8G8B8A8Sint, offsetBONEI});
         attributes.push_back({6u, 0u, vk::Format::eR8G8B8A8Unorm, offsetBONEW});

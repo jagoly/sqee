@@ -214,8 +214,8 @@ Matrix44<T> perspective_RH(T fov, T aspect, Vector2<T> range)
 template <class T> inline
 Matrix44<T> ortho_LH(T l, T r, T b, T t, T n, T f)
 {
-    T ax = T(2.0) / (r-l); T by = T(2.0) / (t-b);  T cz = T(+2.0) / (f-n);
-    Vector4<T> colD { -(r+l) / (r-l), -(t+b) / (t-b), -(f+n) / (f-n), 1.0 };
+    T ax = T(2.0) / (r-l); T by = T(2.0) / (t-b); T cz = T(1.0) / (f-n);
+    Vector4<T> colD { -(r+l) / (r-l), -(t+b) / (t-b), -n / (f-n), 1.0 };
     return Matrix44<T> ( {ax, 0, 0, 0}, {0, by, 0, 0}, {0, 0, cz, 0}, colD );
 }
 
@@ -223,6 +223,7 @@ Matrix44<T> ortho_LH(T l, T r, T b, T t, T n, T f)
 template <class T> inline
 Matrix44<T> ortho_RH(T l, T r, T b, T t, T n, T f)
 {
+    // todo: needs updating for vulkan conventions
     T ax = T(2.0) / (r-l); T by = T(2.0) / (t-b); T cz = T(-2.0) / (f-n);
     Vector4<T> colD { -(r+l) / (r-l), -(t+b) / (t-b), -(f+n) / (f-n), 1.0 };
     return Matrix44<T> ( {ax, 0, 0, 0}, {0, by, 0, 0}, {0, 0, cz, 0}, colD );

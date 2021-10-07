@@ -26,6 +26,10 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
+    void set_size_limits(std::optional<Vec2U> minimum, std::optional<Vec2U> maximum);
+
+    //--------------------------------------------------------//
+
     void create_swapchain_and_friends();
 
     void destroy_swapchain_and_friends();
@@ -110,6 +114,8 @@ private: //===================================================//
     String mTitle;
     bool mCursorHidden = false;
     bool mVsyncEnabled = false;
+
+    bool mPendingResize = true;
 
     //--------------------------------------------------------//
 

@@ -19,14 +19,14 @@ namespace cross = spirv_cross;
 static vk::PipelineRasterizationStateCreateInfo impl_make_rasterization_state(const String& cullFace)
 {
     return vk::PipelineRasterizationStateCreateInfo {
-        {}, false, false, vk::PolygonMode::eFill,
+        {}, true, false, vk::PolygonMode::eFill,
         [&]() {
             if (cullFace == "Disable") return vk::CullModeFlagBits::eNone;
             if (cullFace == "Back")    return vk::CullModeFlagBits::eBack;
             if (cullFace == "Front")   return vk::CullModeFlagBits::eFront;
             SQEE_THROW("invalid pipeline cullFace string '{}'", cullFace);
         }(),
-        vk::FrontFace::eClockwise, false, 0.f, false, 0.f, 1.f
+        vk::FrontFace::eClockwise, false, 0.f, 0.f, 0.f, 1.f
     };
 }
 
@@ -120,6 +120,20 @@ Pipeline::~Pipeline()
 
 void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes)
 {
+    // setup pass config, with a useful error message
+    {
+        const String& key = json.at("pass");
+        const auto iter = passes.find(key);
+
+        if (iter != passes.end()) mPassConfig = &iter->second;
+        else SQEE_THROW("unknown pass config '{}'", key);
+
+        if (bool(mPassConfig->renderPass) == false)
+            return; // disabled render pass
+    }
+
+    //--------------------------------------------------------//
+
     std::array<std::vector<vk::DescriptorSetLayoutBinding>, DESCRIPTOR_SET_COUNT> setBindings;
 
     const auto add_descriptor = [&setBindings](uint set, uint binding, vk::DescriptorType type, vk::ShaderStageFlagBits stage)
@@ -259,15 +273,6 @@ void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes
 
     //--------------------------------------------------------//
 
-    // setup pass config, with a useful error message
-    {
-        const String& key = json.at("pass");
-        const auto iter = passes.find(key);
-
-        if (iter != passes.end()) mPassConfig = &iter->second;
-        else SQEE_THROW("unknown pass config '{}'", key);
-    }
-
     const auto& ctx = VulkanContext::get();
 
     const auto vertexShaderCode = read_bytes_from_file(build_string("shaders/", json.at("vertexShader"), ".vert.spv"));
@@ -285,17 +290,16 @@ void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes
     {
         std::array<vk::DescriptorSetLayout, DESCRIPTOR_SET_COUNT> setLayouts;
 
-        setLayouts[0] = mPassConfig->setLayout0;
-        setLayouts[1] = mPassConfig->setLayout1;
+        setLayouts[0] = mPassConfig->setLayout;
 
-        for (uint i = 2u; i < DESCRIPTOR_SET_COUNT; ++i)
+        for (uint i = 1u; i < DESCRIPTOR_SET_COUNT; ++i)
             setLayouts[i] = ctx.create_descriptor_set_layout(setBindings[i]);
 
         mMaterialSetLayout = setLayouts[MATERIAL_SET_INDEX];
         //mPipelineLayout = ctx.create_pipeline_layout(setLayouts, pushConstantRanges);
         mPipelineLayout = ctx.create_pipeline_layout(setLayouts, nullptr);
 
-        for (uint i = 2u; i < DESCRIPTOR_SET_COUNT; ++i)
+        for (uint i = 1u; i < DESCRIPTOR_SET_COUNT; ++i)
             if (i != MATERIAL_SET_INDEX)
                 ctx.device.destroy(setLayouts[i]);
     }
@@ -304,14 +308,27 @@ void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes
 
     const std::vector<JsonValue>& jsonAttributes = json.at("attributes");
     Mesh::Attributes attributes = {};
+    Mesh::Attributes ignoredAttributes = {};
 
-    if (algo::find(jsonAttributes, "TexCoords") != jsonAttributes.end()) attributes |= Mesh::Attribute::TexCoords;
-    if (algo::find(jsonAttributes, "Normals") != jsonAttributes.end()) attributes |= Mesh::Attribute::Normals;
-    if (algo::find(jsonAttributes, "Tangents") != jsonAttributes.end()) attributes |= Mesh::Attribute::Tangents;
-    if (algo::find(jsonAttributes, "Colours") != jsonAttributes.end()) attributes |= Mesh::Attribute::Colours;
-    if (algo::find(jsonAttributes, "Bones") != jsonAttributes.end()) attributes |= Mesh::Attribute::Bones;
+    for (const auto& jsonAttribute : jsonAttributes)
+    {
+        StringView sv = jsonAttribute;
+        const bool ignored = sv.front() == '#';
+        if (ignored) sv.remove_prefix(1u);
 
-    const auto vertexConfig = Mesh::VertexConfig ( attributes );
+        Mesh::Attribute attribute;
+        if      (sv == "TexCoords") attribute = Mesh::Attribute::TexCoords;
+        else if (sv == "Normals")   attribute = Mesh::Attribute::Normals;
+        else if (sv == "Tangents")  attribute = Mesh::Attribute::Tangents;
+        else if (sv == "Colours")   attribute = Mesh::Attribute::Colours;
+        else if (sv == "Bones")     attribute = Mesh::Attribute::Bones;
+        else SQEE_THROW("invalid mesh attribute '{}'", sv);
+
+        attributes |= attribute;
+        if (ignored) ignoredAttributes |= attribute;
+    }
+
+    const auto vertexConfig = Mesh::VertexConfig(attributes, ignoredAttributes);
 
     // todo: constants from json
     const auto specialisation = SpecialisationConstants (

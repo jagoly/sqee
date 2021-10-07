@@ -61,13 +61,13 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     /// Get the index of sub mesh by name, -1 on failure.
-    int get_sub_mesh_index(TinyString name) const;
+    int8_t get_sub_mesh_index(TinyString name) const;
 
     /// Bind vertex and index buffers.
     void bind_buffers(vk::CommandBuffer cmdbuf) const;
 
     /// Draw the entire mesh, or a sub mesh.
-    void draw(vk::CommandBuffer cmdbuf, int subMesh = -1) const;
+    void draw(vk::CommandBuffer cmdbuf, int8_t subMesh = -1) const;
 
     //--------------------------------------------------------//
 
@@ -82,7 +82,7 @@ public: //====================================================//
     /// Vertex Layout information, ready for vulkan.
     struct VertexConfig
     {
-        VertexConfig(Attributes flags);
+        VertexConfig(Attributes flags, Attributes ignored);
 
         vk::VertexInputBindingDescription binding;
         std::vector<vk::VertexInputAttributeDescription> attributes;

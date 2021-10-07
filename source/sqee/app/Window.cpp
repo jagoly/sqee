@@ -414,6 +414,7 @@ Window::Window(const char* title, Vec2U size, const char* appName, Vec3U version
         features.samplerAnisotropy = true;
         features.wideLines = true;
         features.geometryShader = true;
+        features.depthClamp = true;
 
         mDevice = mPhysicalDevice.createDevice (
             vk::DeviceCreateInfo { {}, queues, {}, extensions, &features }
@@ -568,6 +569,18 @@ Window::~Window()
 
 //============================================================================//
 
+void Window::set_size_limits(std::optional<Vec2U> minimum, std::optional<Vec2U> maximum)
+{
+    // intended to be called before creating the swapchain
+
+    const Vec2I signedMin = minimum.has_value() ? Vec2I(minimum.value()) : Vec2I(GLFW_DONT_CARE);
+    const Vec2I signedMax = maximum.has_value() ? Vec2I(maximum.value()) : Vec2I(GLFW_DONT_CARE);
+
+    glfwSetWindowSizeLimits(mGlfwWindow, signedMin.x, signedMin.y, signedMax.x, signedMax.y);
+}
+
+//============================================================================//
+
 void Window::create_swapchain_and_friends()
 {
     const auto capabilities = mPhysicalDevice.getSurfaceCapabilitiesKHR(mSurface);
@@ -613,6 +626,8 @@ void Window::create_swapchain_and_friends()
             );
         }
     }
+
+    mPendingResize = false;
 }
 
 //============================================================================//
@@ -639,6 +654,19 @@ const std::vector<Event>& Window::fetch_events()
 {
     glfwPollEvents();
 
+    // some drivers don't request resize after acquire or present
+    if (mPendingResize == false)
+    {
+        int newWidth, newHeight;
+        glfwGetFramebufferSize(mGlfwWindow, &newWidth, &newHeight);
+
+        if (mFramebufferSize != vk::Extent2D(uint(newWidth), uint(newHeight)))
+        {
+            mEvents.push_back({Event::Type::Window_Resize, {}});
+            mPendingResize = true;
+        }
+    }
+
     std::swap(mEvents, mEventsOld);
     mEvents.clear();
 
@@ -657,19 +685,25 @@ void Window::begin_frame()
 
 std::tuple<vk::CommandBuffer, vk::Framebuffer> Window::acquire_image()
 {
+    if (mPendingResize == true)
+        return { {}, {} }; // EARLY RETURN
+
     const uint32_t oldImageIndex = mImageIndex;
 
-    try
+    // use non-throwing function so that resizing doesn't trigger a break
     {
-        mImageIndex = mDevice.acquireNextImageKHR (
-            mSwapchain, UINT64_MAX, mImageAvailableSemaphore.front, nullptr
-        ).value;
-    }
-    catch (const vk::OutOfDateKHRError&)
-    {
-        if (algo::none_of(mEvents, [](Event e) { return e.type == Event::Type::Window_Resize; }))
+        auto result = mDevice.acquireNextImageKHR (
+            mSwapchain, UINT64_MAX, mImageAvailableSemaphore.front, nullptr, &mImageIndex
+        );
+
+        if (result == vk::Result::eErrorOutOfDateKHR)
+        {
             mEvents.push_back({Event::Type::Window_Resize, {}});
-        return { {}, {} }; // EARLY RETURN
+            mPendingResize = true;
+
+            return { {}, {} }; // EARLY RETURN
+        }
+        else SQASSERT(result == vk::Result::eSuccess || result == vk::Result::eSuboptimalKHR, "");
     }
 
     if (oldImageIndex == mImageIndex)
@@ -684,6 +718,8 @@ std::tuple<vk::CommandBuffer, vk::Framebuffer> Window::acquire_image()
 
 void Window::submit_present_swap()
 {
+    SQASSERT(mPendingResize == false, "attempt to present during resize");
+
     mDevice.resetFences(mRenderFinishedFence.front);
 
     auto waitDstStageMask = vk::Flags(vk::PipelineStageFlagBits::eColorAttachmentOutput);
@@ -695,17 +731,17 @@ void Window::submit_present_swap()
         mRenderFinishedFence.front
     );
 
-    try
+    // use non-throwing function so that resizing doesn't trigger a break
     {
-        auto presentResult = mQueue.presentKHR (
-            vk::PresentInfoKHR { mRenderFinishedSemaphore.front, mSwapchain, mImageIndex, {} }
-        );
-        SQASSERT(presentResult == vk::Result::eSuccess, "");
-    }
-    catch (const vk::OutOfDateKHRError&)
-    {
-        if (algo::none_of(mEvents, [](Event e) { return e.type == Event::Type::Window_Resize; }))
+        auto presentInfo = vk::PresentInfoKHR { mRenderFinishedSemaphore.front, mSwapchain, mImageIndex, {} };
+        auto result = mQueue.presentKHR(&presentInfo);
+
+        if (result == vk::Result::eErrorOutOfDateKHR)
+        {
             mEvents.push_back({Event::Type::Window_Resize, {}});
+            mPendingResize = true;
+        }
+        else SQASSERT(result == vk::Result::eSuccess || result == vk::Result::eSuboptimalKHR, "");
     }
 
     mCommandBuffer.swap();

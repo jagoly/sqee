@@ -197,7 +197,7 @@ static vk::Sampler impl_create_sampler(const VulkanContext& ctx, const Texture::
         config.filter != Texture::FilterMode::Nearest ? vk::SamplerMipmapMode::eLinear : vk::SamplerMipmapMode::eNearest,
         config.wrapX, config.wrapY, config.wrapZ,
         0.f, 0u, config.mipLevels - 1u,
-        config.filter == Texture::FilterMode::Anisotropic, false
+        config.filter == Texture::FilterMode::Anisotropic, false, {}
     );
 }
 

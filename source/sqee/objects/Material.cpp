@@ -16,48 +16,67 @@ Material::Material(Material&& other)
 
 Material& Material::operator=(Material&& other)
 {
-    mPipeline = std::move(other.mPipeline);
-    mTextures = std::move(other.mTextures);
-    std::swap(mParamBuffer, other.mParamBuffer);
-    std::swap(mDescriptorSet, other.mDescriptorSet);
+    std::swap(mPasses, other.mPasses);
     return *this;
 }
 
 Material::~Material()
 {
+    if (mPasses.empty()) return;
     const auto& ctx = VulkanContext::get();
-    if (mParamBuffer.buffer) mParamBuffer.destroy(ctx);
-    if (mDescriptorSet) ctx.device.free(ctx.descriptorPool, mDescriptorSet);
+    for (MaterialPass& pass : mPasses)
+    {
+        // have to check here in case loading threw an exception before creating things
+        if (pass.paramBuffer.buffer) pass.paramBuffer.destroy(ctx);
+        if (pass.descriptorSet) ctx.device.free(ctx.descriptorPool, pass.descriptorSet);
+    }
 }
 
 //============================================================================//
 
 void Material::load_from_json(const JsonValue& json, PipelineCache& pipelines, TextureCache& textures)
 {
-    SQASSERT(!mDescriptorSet, "material already loaded");
+    SQASSERT(mPasses.empty(), "material already loaded");
 
+    if (json.is_object() == true)
+        impl_load_pass_from_json(json, pipelines, textures);
+
+    else for (const JsonValue& jsonObject : json)
+        impl_load_pass_from_json(jsonObject, pipelines, textures);
+}
+
+//============================================================================//
+
+void Material::impl_load_pass_from_json(const JsonValue& json, PipelineCache& pipelines, TextureCache& textures)
+{
     const auto& ctx = VulkanContext::get();
 
-    mPipeline = pipelines.acquire(json.at("pipeline"));
+    MaterialPass& pass = mPasses.emplace_back();
 
-    mDescriptorSet = vk_allocate_descriptor_set(ctx, mPipeline->get_material_set_layout());
+    pass.pipeline = pipelines.acquire(json.at("pipeline"));
 
-    if (mPipeline->get_material_param_block_size() > 0u)
+    if (bool(pass.pipeline->get_pass_config()->renderPass) == false)
+        return; // disabled render pass
+
+    pass.descriptorSet = vk_allocate_descriptor_set(ctx, pass.pipeline->get_material_set_layout());
+
+    if (pass.pipeline->get_material_param_block_size() > 0u)
     {
         // todo: params don't change, so buffer should be on device memory
-        mParamBuffer.initialise (
-            ctx, mPipeline->get_material_param_block_size(), vk::BufferUsageFlagBits::eUniformBuffer, true
+        pass.paramBuffer.initialise (
+            ctx, pass.pipeline->get_material_param_block_size(), vk::BufferUsageFlagBits::eUniformBuffer, true
         );
 
         vk_update_descriptor_set (
-            ctx, mDescriptorSet, DescriptorUniformBuffer(0u, 0u, mParamBuffer.buffer, 0u, mPipeline->get_material_param_block_size())
+            ctx, pass.descriptorSet,
+            DescriptorUniformBuffer(0u, 0u, pass.paramBuffer.buffer, 0u, pass.pipeline->get_material_param_block_size())
         );
 
-        std::byte* block = mParamBuffer.memory.map();
+        std::byte* block = pass.paramBuffer.memory.map();
 
         for (const auto& [key, value] : json.at("params").items())
         {
-            const auto info = mPipeline->get_material_param_info(key);
+            const auto info = pass.pipeline->get_material_param_info(key);
             if (!info.has_value()) SQEE_THROW("pipeline does not have param '{}'", key);
 
             if      (info->type == "int")   value.get_to(*reinterpret_cast<int*>  (block + info->offset));
@@ -76,15 +95,16 @@ void Material::load_from_json(const JsonValue& json, PipelineCache& pipelines, T
 
     for (const auto& [key, value] : json.at("textures").items())
     {
-        const auto info = mPipeline->get_texture_info(key);
+        const auto info = pass.pipeline->get_texture_info(key);
         if (!info.has_value()) SQEE_THROW("pipeline does not have texture '{}'", key);
 
         if (info->type == "Texture2D")
         {
-            mTextures.emplace_back(textures.acquire(value));
+            pass.textures.emplace_back(textures.acquire(value));
 
             vk_update_descriptor_set (
-                ctx, mDescriptorSet, DescriptorImageSampler(info->binding, 0u, mTextures.back()->get_descriptor_info())
+                ctx, pass.descriptorSet,
+                DescriptorImageSampler(info->binding, 0u, pass.textures.back()->get_descriptor_info())
             );
         }
         else if (info->type == "TextureArray") SQEE_THROW("todo: texarrays in materials");
@@ -96,18 +116,18 @@ void Material::load_from_json(const JsonValue& json, PipelineCache& pipelines, T
 
 //============================================================================//
 
-void Material::bind_material_set(vk::CommandBuffer cmdbuf) const
+void Material::bind_material_set(vk::CommandBuffer cmdbuf, uint8_t pass) const
 {
     cmdbuf.bindDescriptorSets (
-        vk::PipelineBindPoint::eGraphics, mPipeline->get_pipeline_layout(),
-        Pipeline::MATERIAL_SET_INDEX, mDescriptorSet, nullptr
+        vk::PipelineBindPoint::eGraphics, mPasses[pass].pipeline->get_pipeline_layout(),
+        Pipeline::MATERIAL_SET_INDEX, mPasses[pass].descriptorSet, nullptr
     );
 }
 
-void Material::bind_object_set(vk::CommandBuffer cmdbuf, vk::DescriptorSet dset) const
+void Material::bind_object_set(vk::CommandBuffer cmdbuf, uint8_t pass, vk::DescriptorSet objectSet) const
 {
     cmdbuf.bindDescriptorSets (
-        vk::PipelineBindPoint::eGraphics, mPipeline->get_pipeline_layout(),
-        Pipeline::MATERIAL_SET_INDEX + 1u, dset, nullptr
+        vk::PipelineBindPoint::eGraphics, mPasses[pass].pipeline->get_pipeline_layout(),
+        Pipeline::MATERIAL_SET_INDEX + 1u, objectSet, nullptr
     );
 }

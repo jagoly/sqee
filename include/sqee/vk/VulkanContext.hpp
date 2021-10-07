@@ -57,7 +57,7 @@ public: //====================================================//
     ) const;
 
     vk::Sampler create_sampler (
-        vk::Filter magFilter, vk::Filter minFilter, vk::SamplerMipmapMode mipmapMode, vk::SamplerAddressMode wrapX, vk::SamplerAddressMode wrapY, vk::SamplerAddressMode wrapZ, float lodBias, uint minLod, uint maxLod, bool anisotropic, bool depthCompare
+        vk::Filter magFilter, vk::Filter minFilter, vk::SamplerMipmapMode mipmapMode, vk::SamplerAddressMode wrapX, vk::SamplerAddressMode wrapY, vk::SamplerAddressMode wrapZ, float lodBias, uint minLod, uint maxLod, bool anisotropic, bool shadow, vk::BorderColor border
     ) const;
 
     vk::RenderPass create_render_pass (
@@ -121,11 +121,11 @@ inline vk::ImageView VulkanContext::create_image_view(vk::Image image, vk::Image
     );
 }
 
-inline vk::Sampler VulkanContext::create_sampler(vk::Filter magFilter, vk::Filter minFilter, vk::SamplerMipmapMode mipmapMode, vk::SamplerAddressMode wrapX, vk::SamplerAddressMode wrapY, vk::SamplerAddressMode wrapZ, float lodBias, uint minLod, uint maxLod, bool anisotropic, bool shadow) const
+inline vk::Sampler VulkanContext::create_sampler(vk::Filter magFilter, vk::Filter minFilter, vk::SamplerMipmapMode mipmapMode, vk::SamplerAddressMode wrapX, vk::SamplerAddressMode wrapY, vk::SamplerAddressMode wrapZ, float lodBias, uint minLod, uint maxLod, bool anisotropic, bool shadow, vk::BorderColor border) const
 {
     return device.createSampler (
         vk::SamplerCreateInfo (
-            {}, magFilter, minFilter, mipmapMode, wrapX, wrapY, wrapZ, lodBias, anisotropic, limits.maxAnisotropy, shadow, vk::CompareOp::eLess, float(minLod), float(maxLod), {}, false
+            {}, magFilter, minFilter, mipmapMode, wrapX, wrapY, wrapZ, lodBias, anisotropic, limits.maxAnisotropy, shadow, vk::CompareOp::eLessOrEqual, float(minLod), float(maxLod), border, false
         )
     );
 }

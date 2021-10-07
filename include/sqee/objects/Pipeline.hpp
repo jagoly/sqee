@@ -15,16 +15,15 @@ namespace sq {
 ///
 /// Shader descriptor sets are expected to be as follows:
 ///  0: shared data, like camera and world info
-///  1: pass data, like light info and shadow maps
-///  2: material data, loaded from JSON by Material
-///  3: object data, like model matrix and bones
+///  1: material data, loaded from JSON by Material
+///  2: object data, like model matrix and bones
 ///
 class SQEE_API Pipeline : private MoveOnly
 {
 public: //====================================================//
 
-    static constexpr uint DESCRIPTOR_SET_COUNT = 4u;
-    static constexpr uint MATERIAL_SET_INDEX = 2u;
+    static constexpr uint DESCRIPTOR_SET_COUNT = 3u;
+    static constexpr uint MATERIAL_SET_INDEX = 1u;
 
     //--------------------------------------------------------//
 
