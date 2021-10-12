@@ -1,22 +1,18 @@
-image:
-  - Visual Studio 2019
-
+image: Visual Studio 2019
 
 before_build:
 
   - cd c:/projects
   - curl -fsSL -o vulkan-sdk.exe https://sdk.lunarg.com/sdk/download/1.2.189.2/windows/VulkanSDK-1.2.189.2-Installer.exe
-  - vulkan-sdk.exe /S
+  - vulkan-sdk.exe --accept-licenses --default-answer --confirm-command install
   - set VULKAN_SDK=c:/VulkanSDK/1.2.189.2
   - set PATH=c:/VulkanSDK/1.2.189.2/Bin;%PATH%
 
   - cd c:/projects
   - git clone --depth 1 --branch 3.3.4 https://github.com/glfw/glfw.git
   - cd c:/projects/glfw
-  #- cmake . -DBUILD_SHARED_LIBS=False -DUSE_MSVC_RUNTIME_LIBRARY_DLL=False -DGLFW_BUILD_DOCS=False -DGLFW_BUILD_EXAMPLES=False -DGLFW_BUILD_TESTS=False -DCMAKE_INSTALL_PREFIX=.
   - cmake . -DBUILD_SHARED_LIBS=True -DUSE_MSVC_RUNTIME_LIBRARY_DLL=True -DGLFW_BUILD_DOCS=False -DGLFW_BUILD_EXAMPLES=False -DGLFW_BUILD_TESTS=False -DCMAKE_INSTALL_PREFIX=.
-  - cmake --build . --config Debug --target install
-
+  - cmake --build . --target install --config Debug
 
 build_script:
 
@@ -29,12 +25,12 @@ build_script:
   - cmake .. -DCMAKE_PREFIX_PATH=c:/projects/glfw -G "Visual Studio 16 2019" -A x64
   - cmake --build . --config Debug
 
-
 after_build:
 
   - cd c:/projects/sqee/build
-  - 7z a sqee-windows-debug.zip out/*
+  - 7z a sqee-windows-debug.zip Debug/*
 
 artifacts:
+
   - path: build/sqee-windows-debug.zip
     name: sqee-windows-debug
