@@ -80,7 +80,7 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     /// Vertex Layout information, ready for vulkan.
-    struct VertexConfig
+    struct SQEE_API VertexConfig
     {
         VertexConfig(Attributes flags, Attributes ignored);
 

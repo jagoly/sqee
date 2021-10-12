@@ -1,0 +1,14 @@
+{
+    "cmake.configureOnOpen": false,
+    "cmake.configureSettings": {
+        "CMAKE_PREFIX_PATH" : "c:/Projects/glfw"
+    },
+    "cmake.buildDirectory": "c:/Projects/sqee/build",
+    "cmake.debugConfig": {
+        "cwd": "${command:cmake.launchTargetDirectory}",
+        "environment": [
+            { "name": "PATH", "value": "c:/Projects/sqee/build/${command:cmake.buildType}" }
+        ],
+        "console": "integratedTerminal"
+    }
+}

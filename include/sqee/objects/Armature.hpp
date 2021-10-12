@@ -33,7 +33,7 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     /// A set of tracks that can be sampled to get a Pose.
-    struct Animation
+    struct SQEE_API Animation
     {
         // todo: investigate using std::pmr for allocating tracks
         struct Track

@@ -18,10 +18,10 @@ String sq::read_text_from_file(const String& path)
 
     auto buffer = std::vector<char>(fileSize);
     std::fseek(file, 0, SEEK_SET);
-    std::fread(buffer.data(), 1u, buffer.size(), file);
+    const size_t stringSize = std::fread(buffer.data(), 1u, buffer.size(), file);
     std::fclose(file);
 
-    return String(buffer.data(), buffer.data() + buffer.size());
+    return String(buffer.data(), buffer.data() + stringSize);
 }
 
 //============================================================================//
@@ -58,17 +58,17 @@ std::optional<String> sq::try_read_text_from_file(const String& path)
 
     auto buffer = std::vector<char>(fileSize);
     std::fseek(file, 0, SEEK_SET);
-    std::fread(buffer.data(), 1u, buffer.size(), file);
+    const size_t stringSize = std::fread(buffer.data(), 1u, buffer.size(), file);
     std::fclose(file);
 
-    return String(buffer.data(), buffer.data() + buffer.size());
+    return String(buffer.data(), buffer.data() + stringSize);
 }
 
 //============================================================================//
 
 std::optional<std::vector<std::byte>> sq::try_read_bytes_from_file(const String& path)
 {
-    FILE* file = std::fopen(path.c_str(), "r");
+    FILE* file = std::fopen(path.c_str(), "rb");
 
     if (file == NULL)
         return std::nullopt;

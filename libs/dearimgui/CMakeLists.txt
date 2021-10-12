@@ -1,4 +1,3 @@
-cmake_minimum_required(VERSION 3.16)
 project(DearImGui CXX)
 
 ################################################################################
@@ -23,8 +22,14 @@ target_include_directories(dearimgui PRIVATE "${PROJECT_SOURCE_DIR}/include/dear
 set_property(TARGET dearimgui PROPERTY CXX_STANDARD 17)
 set_property(TARGET dearimgui PROPERTY CXX_STANDARD_REQUIRED True)
 
-# force use of the static msvc runtime so we don't need a bunch of extra dlls
-set_property(TARGET dearimgui PROPERTY MSVC_RUNTIME_LIBRARY MultiThreaded$<$<CONFIG:Debug>:Debug>)
+################################################################################
+
+if (SQEE_GNU OR SQEE_CLANG)
+    target_compile_options(dearimgui PRIVATE -Wall -Wextra)
+elseif (SQEE_MSVC)
+    target_compile_options(dearimgui PRIVATE /W3)
+    target_set_msvc_options(dearimgui)
+endif ()
 
 ################################################################################
 
@@ -32,8 +37,6 @@ if (SQEE_LINUX)
     target_compile_definitions(dearimgui PRIVATE SQEE_LINUX)
 elseif (SQEE_WINDOWS)
     target_compile_definitions(dearimgui PRIVATE SQEE_WINDOWS)
-else ()
-    message(FATAL_ERROR "could not detect platform")
 endif ()
 
 if (SQEE_GNU)
@@ -42,14 +45,4 @@ elseif (SQEE_CLANG)
     target_compile_definitions(dearimgui PRIVATE SQEE_CLANG)
 elseif (SQEE_MSVC)
     target_compile_definitions(dearimgui PRIVATE SQEE_MSVC)
-else ()
-    message(FATAL_ERROR "could not detect compiler")
-endif ()
-
-################################################################################
-
-if (SQEE_GNU OR SQEE_CLANG)
-    target_compile_options(dearimgui PRIVATE -Wall -Wextra)
-elseif (SQEE_MSVC)
-    target_compile_options(dearimgui PRIVATE /W3)
 endif ()

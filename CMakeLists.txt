@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.20)
 project(SQEE CXX)
 
 ################################################################################
@@ -7,8 +7,9 @@ option(SQEE_STATIC_LIB "Build SQEE as a static library" False)
 
 ################################################################################
 
-set(CMAKE_MODULE_PATH APPEND "${PROJECT_SOURCE_DIR}/cmake/modules")
-set(CMAKE_INCLUDE_PATH APPEND "${PROJECT_SOURCE_DIR}/cmake")
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+
+include(sqeeHelpers)
 
 ################################################################################
 
@@ -26,6 +27,8 @@ else ()
     target_compile_definitions(sqee PRIVATE SQEE_EXPORT_LIB)
 
 endif ()
+
+target_set_output_directory(sqee "")
 
 target_include_directories(sqee PUBLIC "${PROJECT_SOURCE_DIR}/include")
 
@@ -46,18 +49,12 @@ set_property(TARGET sqee PROPERTY CXX_STANDARD_REQUIRED True)
 
 target_compile_definitions(sqee PUBLIC $<$<CONFIG:Debug>:SQEE_DEBUG>)
 
-# force use of the static msvc runtime so we don't need a bunch of extra dlls
-set_property(TARGET sqee PROPERTY MSVC_RUNTIME_LIBRARY MultiThreaded$<$<CONFIG:Debug>:Debug>)
-
 ################################################################################
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
 
     set(SQEE_LINUX True)
     target_compile_definitions(sqee PUBLIC SQEE_LINUX)
-
-    # required for stack traces from backward.hpp
-    #target_link_libraries(sqee PUBLIC $<$<CONFIG:Debug>:dw>)
 
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
 
@@ -105,14 +102,19 @@ elseif (SQEE_MSVC)
     target_compile_options(sqee PRIVATE /bigobj)
     target_compile_options(sqee PRIVATE /W3 /wd4251 /wd4996)
 
+    target_set_msvc_options(sqee)
+
 endif ()
 
 ################################################################################
 
 if (SQEE_STATIC_LIB)
+
     find_package(Threads REQUIRED)
+
     target_link_libraries(sqee PUBLIC Threads::Threads)
     target_link_libraries(sqee PUBLIC ${CMAKE_DL_LIBS})
+
 endif ()
 
 ################################################################################
@@ -147,7 +149,8 @@ else ()
 endif ()
 
 add_subdirectory(libs/SPIRV-Cross)
-set_property(TARGET spirv-cross-core PROPERTY MSVC_RUNTIME_LIBRARY MultiThreaded$<$<CONFIG:Debug>:Debug>)
+target_set_msvc_options(spirv-cross-core)
+
 target_link_libraries(sqee PRIVATE spirv-cross-core)
 
 ################################################################################
@@ -163,6 +166,13 @@ target_link_libraries(sqee PUBLIC lz4f)
 
 add_subdirectory(libs/wren)
 target_link_libraries(sqee PUBLIC wren)
+
+if (NOT SQEE_STATIC_LIB)
+    target_set_output_directory(dearimgui "")
+    target_set_output_directory(format "")
+    target_set_output_directory(lz4f "")
+    target_set_output_directory(wren "")
+endif ()
 
 ################################################################################
 

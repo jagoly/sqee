@@ -1,4 +1,3 @@
-cmake_minimum_required(VERSION 3.16)
 project(FormatLib CXX)
 
 ################################################################################
@@ -19,15 +18,11 @@ target_include_directories(format PUBLIC "${PROJECT_SOURCE_DIR}/include")
 set_property(TARGET format PROPERTY CXX_STANDARD 17)
 set_property(TARGET format PROPERTY CXX_STANDARD_REQUIRED True)
 
-# force use of the static msvc runtime so we don't need a bunch of extra dlls
-set_property(TARGET format PROPERTY MSVC_RUNTIME_LIBRARY MultiThreaded$<$<CONFIG:Debug>:Debug>)
-
 ################################################################################
 
 if (SQEE_GNU OR SQEE_CLANG)
     target_compile_options(format PRIVATE -Wall -Wextra)
 elseif (SQEE_MSVC)
     target_compile_options(format PRIVATE /W3)
-else ()
-    message(FATAL_ERROR "could not detect compiler")
+    target_set_msvc_options(format)
 endif ()
