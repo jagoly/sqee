@@ -88,8 +88,9 @@ public: //====================================================//
     Type& emplace_back(Args&&... args)
     {
         assert(!full());
-        new (end()) Type(std::forward<Args>(args)...);
+        Type& result = new (end()) Type(std::forward<Args>(args)...);
         ++mSize;
+        return result;
     }
 
     void push_back(const Type& value)

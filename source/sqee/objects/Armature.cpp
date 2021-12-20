@@ -323,7 +323,7 @@ Armature::Animation Armature::make_null_animation(uint length) const
 {
     Animation result;
 
-    result.boneCount = get_bone_count();
+    result.boneCount = uint(get_bone_count());
     result.frameCount = length;
 
     result.bones.resize(result.boneCount, {});
