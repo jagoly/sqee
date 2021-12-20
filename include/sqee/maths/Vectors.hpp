@@ -563,25 +563,27 @@ constexpr const char* type_to_string(maths::Vector<S, T>)
 
 namespace detail {
 
-template <class T> struct VectorTraits
-{
-    static constexpr bool value = false;
-};
+template <class T>
+struct VectorTraits : std::false_type {};
 
 template <class T>
 struct VectorTraits<const T> : VectorTraits<T> {};
 
 template <int S, class T>
-struct VectorTraits<maths::Vector<S, T>>
+struct VectorTraits<maths::Vector<S, T>> : std::true_type
 {
-    static constexpr bool value = true;
     static constexpr int size = S;
     using type = T;
 };
 
-template <class T> constexpr auto is_vector_v = VectorTraits<T>::value;
-template <class T> constexpr auto vector_size_v = VectorTraits<T>::size;
-template <class T> using vector_type_t = typename VectorTraits<T>::type;
+template <class T>
+constexpr bool is_vector_v = VectorTraits<T>::value;
+
+template <class T>
+constexpr int vector_size_v = VectorTraits<T>::size;
+
+template <class T>
+using vector_type_t = typename VectorTraits<T>::type;
 
 }} // namespace sq::detail
 

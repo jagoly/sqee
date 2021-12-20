@@ -143,7 +143,7 @@ void GuiSystem::set_style_colours_supertux()
     colors[ImGuiCol_TextDisabled]           = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
     colors[ImGuiCol_WindowBg]               = ImVec4(0.10f, 0.10f, 0.10f, 0.75f);
     colors[ImGuiCol_ChildBg]                = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-    colors[ImGuiCol_PopupBg]                = ImVec4(0.15f, 0.15f, 0.15f, 0.75f);
+    colors[ImGuiCol_PopupBg]                = ImVec4(0.15f, 0.15f, 0.15f, 0.90f);
     colors[ImGuiCol_Border]                 = ImVec4(0.80f, 0.80f, 0.80f, 0.50f);
     colors[ImGuiCol_BorderShadow]           = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
     colors[ImGuiCol_FrameBg]                = ImVec4(0.70f, 0.50f, 0.40f, 0.40f);
@@ -223,7 +223,7 @@ GuiSystem::GuiSystem(Window& window, InputDevices& inputDevices)
     io.KeyMap[ImGuiKey_Space]       = int(Keyboard_Key::Space);
     io.KeyMap[ImGuiKey_Enter]       = int(Keyboard_Key::Return);
     io.KeyMap[ImGuiKey_Escape]      = int(Keyboard_Key::Escape);
-    //io.KeyMap[ImGuiKey_KeyPadEnter] = int(Keyboard_Key::);
+    io.KeyMap[ImGuiKey_KeyPadEnter] = int(Keyboard_Key::Pad_Return);
     io.KeyMap[ImGuiKey_A]           = int(Keyboard_Key::A);
     io.KeyMap[ImGuiKey_C]           = int(Keyboard_Key::C);
     io.KeyMap[ImGuiKey_V]           = int(Keyboard_Key::V);
@@ -273,18 +273,16 @@ void GuiSystem::load_ubuntu_fonts()
     fontConfig.OversampleH = 2;
     fontConfig.OversampleV = 2;
 
-    const size_t maxNameLen = sizeof(ImFontConfig::Name);
-
-    fontConfig.Name[StringView("Ubuntu Regular").copy(fontConfig.Name, maxNameLen-1)] = '\0';
+    std::strcpy(fontConfig.Name, "Ubuntu Regular");
     io.Fonts->AddFontFromMemoryCompressedTTF(sqee_UbuntuRegular, sqee_UbuntuRegular_size, 16.f, &fontConfig);
 
-    fontConfig.Name[StringView("Ubuntu Bold").copy(fontConfig.Name, maxNameLen-1)] = '\0';
+    std::strcpy(fontConfig.Name, "Ubuntu Bold");
     io.Fonts->AddFontFromMemoryCompressedTTF(sqee_UbuntuBold, sqee_UbuntuBold_size, 16.f, &fontConfig);
 
-    fontConfig.Name[StringView("Ubuntu Italic").copy(fontConfig.Name, maxNameLen-1)] = '\0';
+    std::strcpy(fontConfig.Name, "Ubuntu Italic");
     io.Fonts->AddFontFromMemoryCompressedTTF(sqee_UbuntuItalic, sqee_UbuntuItalic_size, 16.f, &fontConfig);
 
-    fontConfig.Name[StringView("Ubuntu Mono Regular").copy(fontConfig.Name, maxNameLen-1)] = '\0';
+    std::strcpy(fontConfig.Name, "Ubuntu Mono Regular");
     io.Fonts->AddFontFromMemoryCompressedTTF(sqee_UbuntuMonoRegular, sqee_UbuntuMonoRegular_size, 16.f, &fontConfig);
 }
 
@@ -389,55 +387,48 @@ bool GuiSystem::handle_event(Event event)
 
     SWITCH ( event.type ) {
 
-        CASE ( Mouse_Scroll )
-        {
-            if (event.data.scroll.wheel == Mouse_Wheel::Vertical)
-                io.MouseWheel += event.data.scroll.delta;
+    CASE ( Keyboard_Release, Keyboard_Press )
+    {
+        const auto& data = event.data.keyboard;
 
-            if (event.data.scroll.wheel == Mouse_Wheel::Horizontal)
-                io.MouseWheelH += event.data.scroll.delta;
+        io.KeysDown[int(data.key)] = (event.type == Event::Type::Keyboard_Press);
 
-            return io.WantCaptureMouse;
-        }
+        io.KeyShift = data.shift; io.KeyCtrl = data.ctrl;
+        io.KeyAlt = data.alt; io.KeySuper = data.super;
 
-        CASE ( Mouse_Press )
-        {
-            const Mouse_Button button = event.data.mouse.button;
+        return io.WantCaptureKeyboard;
+    }
 
-            io.MouseDown[0] |= (button == Mouse_Button::Left);
-            io.MouseDown[1] |= (button == Mouse_Button::Right);
-            io.MouseDown[2] |= (button == Mouse_Button::Middle);
+    CASE ( Mouse_Press )
+    {
+        const auto& data = event.data.mouse;
 
-            return io.WantCaptureMouse;
-        }
+        io.MouseDown[int(data.button)] = true;
 
-        CASE ( Text_Entry )
-        {
-            const uint32_t code = event.data.text.unicode;
+        return io.WantCaptureMouse;
+    }
 
-            if (code < 128u && std::isprint(char(code)))
-                io.AddInputCharacter(static_cast<ImWchar>(code));
+    CASE ( Mouse_Scroll )
+    {
+        io.MouseWheel += event.data.scroll.delta.y;
+        io.MouseWheelH += event.data.scroll.delta.x;
 
-            return io.WantTextInput;
-        }
+        return io.WantCaptureMouse;
+    }
 
-        CASE ( Keyboard_Press, Keyboard_Release )
-        {
-            const auto& data = event.data.keyboard;
+    CASE ( Text_Entry )
+    {
+        const uint32_t code = event.data.text.unicode;
 
-            io.KeysDown[int(data.key)] = (event.type == Event::Type::Keyboard_Press);
+        if (code < 128u && std::isprint(char(code)))
+            io.AddInputCharacter(static_cast<ImWchar>(code));
 
-            io.KeyShift = data.shift; io.KeyCtrl = data.ctrl;
-            io.KeyAlt = data.alt; io.KeySuper = data.super;
+        return io.WantTextInput;
+    }
 
-            return io.WantCaptureKeyboard;
-        }
-
-        CASE_DEFAULT { return false; }
+    CASE_DEFAULT { return false; }
 
     } SWITCH_END;
-
-    return false;
 }
 
 //============================================================================//
@@ -457,6 +448,8 @@ void GuiSystem::finish_handle_events(bool focus)
         io.MouseDown[0] |= input.is_pressed(Mouse_Button::Left);
         io.MouseDown[1] |= input.is_pressed(Mouse_Button::Right);
         io.MouseDown[2] |= input.is_pressed(Mouse_Button::Middle);
+        io.MouseDown[3] |= input.is_pressed(Mouse_Button::ExtraA);
+        io.MouseDown[4] |= input.is_pressed(Mouse_Button::ExtraB);
 
         io.KeyShift |= input.is_pressed(Keyboard_Key::Shift_L);
         io.KeyShift |= input.is_pressed(Keyboard_Key::Shift_R);
@@ -469,6 +462,11 @@ void GuiSystem::finish_handle_events(bool focus)
 
         io.KeySuper |= input.is_pressed(Keyboard_Key::Super_L);
         io.KeySuper |= input.is_pressed(Keyboard_Key::Super_R);
+    }
+    else
+    {
+        // ugly hack to fix stuck keys when losing focus
+        std::fill_n(io.KeysDown, sq::enum_count_v<Keyboard_Key>, false);
     }
 
     ImGui::NewFrame();
@@ -483,8 +481,8 @@ void GuiSystem::finish_scene_update(double elapsed)
     ImGui::Render();
 
     io.DeltaTime = float(elapsed);
-    io.MouseDown[0] = io.MouseDown[1] = io.MouseDown[2] = false;
-    io.MouseWheel = 0.f;
+    io.MouseDown[0] = io.MouseDown[1] = io.MouseDown[2] = io.MouseDown[3] = io.MouseDown[4] = false;
+    io.MouseWheel = io.MouseWheelH = 0.f;
     io.KeyShift = io.KeyCtrl = io.KeyAlt = io.KeySuper = false;
 }
 

@@ -200,6 +200,18 @@ Quaternion<T> normalize(Quaternion<T> quat)
 
 //============================================================================//
 
+/// Compute the angular difference between two quaternions.
+template <class T> inline
+T angular_difference(Quaternion<T> a, Quaternion<T> b)
+{
+    Quaternion rot = maths::inverse(a) * b;
+    Vector3<T> vec = { rot.x, rot.y, rot.z };
+
+    return maths::cycles(T(2.0) * std::atan2(maths::length(vec), rot.w));
+}
+
+//============================================================================//
+
 /// Linearly interpolate between two quaternions.
 template <class T> inline
 Quaternion<T> lerp(Quaternion<T> a, Quaternion<T> b, T factor)
@@ -223,14 +235,15 @@ Quaternion<T> slerp(Quaternion<T> a, Quaternion<T> b, T factor)
     T cosine = maths::dot(a, b);
     T absCosine = std::abs(cosine);
 
+    // don't go the long way around
+    if (cosine < T(0.0)) b = -b;
+
     // lerp to prevent division by zero
     if (T(1.0) - absCosine <= std::numeric_limits<T>::epsilon())
         return maths::normalize(maths::lerp(a, b, factor));
 
-    // don't go the long way around
-    if (cosine < T(0.0)) b = -b;
-
-    T angle = std::acos(absCosine), sine = std::sin(angle);
+    T angle = std::acos(absCosine);
+    T sine = std::sin(angle);
     T factorA = std::sin(angle * (T(1.0) - factor)) / sine;
     T factorB = std::sin(angle * factor) / sine;
 
@@ -241,6 +254,41 @@ Quaternion<T> slerp(Quaternion<T> a, Quaternion<T> b, T factor)
 
     // if a and b were normalised, this will be too
     return Quaternion<T> { x, y, z, w };
+}
+
+//============================================================================//
+
+/// Lerp between two quaternions using the shorter path.
+template <class T> inline
+Quaternion<T> lerp_shortest(Quaternion<T> a, Quaternion<T> b, T factor)
+{
+    // don't go the long way around
+    if (maths::dot(a, b) < T(0.0)) b = -b;
+
+    return maths::normalize(maths::lerp(a, b, factor));
+}
+
+//============================================================================//
+
+/// Lerp between two quaternions in whichever direction is closest to the guide.
+template <class T> inline
+Quaternion<T> lerp_guided(Quaternion<T> a, Quaternion<T> b, T factor, Quaternion<T> guide)
+{
+    Quaternion<T> resultPos = maths::lerp(a, +b, factor);
+    Quaternion<T> resultNeg = maths::lerp(a, -b, factor);
+
+    Quaternion<T> invGuide = maths::inverse(guide);
+
+    Quaternion<T> rotPos = resultPos * invGuide;
+    Quaternion<T> rotNeg = resultNeg * invGuide;
+
+    T lengthPos = maths::length(Vector3<T>(rotPos.x, rotPos.y, rotPos.z));
+    T lengthNeg = maths::length(Vector3<T>(rotNeg.x, rotNeg.y, rotNeg.z));
+
+    T diffPos = std::abs(std::atan2(lengthPos, rotPos.w));
+    T diffNeg = std::abs(std::atan2(lengthNeg, rotNeg.w));
+
+    return maths::normalize(diffPos < diffNeg ? resultPos : resultNeg);
 }
 
 //============================================================================//
@@ -258,23 +306,24 @@ constexpr const char* type_to_string(maths::Quaternion<T>)
 
 namespace detail {
 
-template <class T> struct QuaternionTraits
-{
-    static constexpr bool value = false;
-};
+template <class T>
+struct QuaternionTraits : std::false_type {};
 
 template <class T>
 struct QuaternionTraits<const T> : QuaternionTraits<T> {};
 
 template <class T>
-struct QuaternionTraits<maths::Quaternion<T>>
+struct QuaternionTraits<maths::Quaternion<T>> : std::true_type
 {
     static constexpr bool value = true;
     using type = T;
 };
 
-template <class T> constexpr auto is_quaternion_v = QuaternionTraits<T>::value;
-template <class T> using quaternion_type_t = typename QuaternionTraits<T>::type;
+template <class T>
+constexpr bool is_quaternion_v = QuaternionTraits<T>::value;
+
+template <class T>
+using quaternion_type_t = typename QuaternionTraits<T>::type;
 
 }} // namespace sq::detail
 

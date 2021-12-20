@@ -3,22 +3,17 @@
 
 #pragma once
 
-#include <fmt/format.h>
-
-#include <cstring>
+#include <functional>
 #include <stdexcept>
 #include <string>
 #include <string_view>
-#include <utility>
+#include <type_traits>
 
 namespace sq {
 
 //============================================================================//
 
 /// Fast stack only string type, useful for keys.
-///
-/// Unused bytes are guarenteed to be zero, which enables faster comparisons.
-///
 template <size_t Capacity>
 class StackString final
 {
@@ -26,57 +21,70 @@ public: //====================================================//
 
     using Traits = std::char_traits<char>;
 
-    // methods taking c strings are templates to reduce overload priority
-    template <class CharT>
-    using EnableIfChar = std::enable_if_t<std::is_same_v<CharT, char>>;
-
     static constexpr size_t capacity() { return Capacity; }
+
     static constexpr size_t buffer_size() { return Capacity + 1u; }
 
-    // compiler can better optimise with multiples of 8
-    static_assert(buffer_size() % 8u == 0u, "invalid capacity");
+    //--------------------------------------------------------//
+
+    constexpr char* data() { return mData; }
+
+    constexpr const char* data() const { return mData; }
+
+    constexpr const char* c_str() const { return mData; }
+
+    constexpr size_t length() const { return Traits::length(mData); }
+
+    constexpr bool empty() const { return *mData == '\0'; }
+
+    constexpr void clear() { *this = StackString(); }
 
     //--------------------------------------------------------//
 
     constexpr StackString() noexcept = default;
 
-    constexpr StackString(const StackString& other) noexcept = default;
+    constexpr StackString(const StackString&) noexcept = default;
+    constexpr StackString(StackString&&) noexcept = default;
+
+    constexpr StackString& operator=(const StackString&) noexcept = default;
+    constexpr StackString& operator=(StackString&&) noexcept = default;
 
     //--------------------------------------------------------//
 
-    /// Construct from a string literal.
     template <size_t BufSize>
     constexpr StackString(const char(&chars)[BufSize]) noexcept
     {
         static_assert(BufSize <= buffer_size(), "literal too long");
 
-        for (size_t i = 0u; i < BufSize; ++i)
+        for (size_t i = 0u; i < BufSize - 1u; ++i)
             mData[i] = chars[i];
+        //Traits::copy(mData, chars, BufSize - 1u);
     }
 
-    /// Construct from a const char ptr.
-    template <class CharT, class = EnableIfChar<CharT>>
-    StackString(const CharT* const& cstr)
+    template <class CharT, class = std::enable_if_t<std::is_same_v<CharT, char>>>
+    constexpr StackString(const CharT* const& cstr)
     {
         const size_t numChars = Traits::length(cstr);
 
         if (numChars > Capacity)
             throw std::invalid_argument("c string too long");
 
-        Traits::copy(mData, cstr, numChars);
+        for (size_t i = 0u; i < numChars; ++i)
+            mData[i] = cstr[i];
+        //Traits::copy(mData, cstr, numChars);
     }
 
-    //--------------------------------------------------------//
-
-    StackString(const std::string_view& sv)
+    constexpr StackString(const std::string_view& sv)
     {
         if (sv.length() > Capacity)
             throw std::invalid_argument("string_view too long");
 
-        Traits::copy(mData, sv.data(), sv.length());
+        for (size_t i = 0u; i < sv.length(); ++i)
+            mData[i] = sv.data()[i];
+        //Traits::copy(mData, sv.data(), sv.length());
     }
 
-    StackString(const std::string& str)
+    /*constexpr*/ StackString(const std::string& str)
     {
         if (str.length() > Capacity)
             throw std::invalid_argument("string too long");
@@ -86,8 +94,6 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    // todo: compare stack strings with different capacities, for now not needed
-
     constexpr int compare(const StackString& other) const
     {
         return Traits::compare(mData, other.mData, buffer_size());
@@ -96,92 +102,159 @@ public: //====================================================//
     template <size_t BufSize>
     constexpr int compare(const char(&chars)[BufSize]) const
     {
-        if constexpr (BufSize >= buffer_size())
-            return Traits::compare(mData, chars, buffer_size());
-
-        const int cmp = Traits::compare(mData, chars, BufSize);
-        if (cmp != 0) return cmp;
-
-        return int(Traits::length(mData)) - int(BufSize) + 1;
+        constexpr size_t n = BufSize < buffer_size() ? BufSize : buffer_size();
+        return Traits::compare(mData, chars, n);
     }
 
-    template <class CharT, class = EnableIfChar<CharT>>
-    int compare(const CharT* const& other) const
+    template <class CharT, class = std::enable_if_t<std::is_same_v<CharT, char>>>
+    constexpr int compare(const CharT* const& cstr) const
     {
-        return std::strncmp(mData, other, buffer_size());
+        // simplified strcmp
+        auto ptrL = mData, ptrR = cstr;
+        unsigned char charL {}, charR {};
+        do
+        {
+            charL = static_cast<unsigned char>(*ptrL++);
+            charR = static_cast<unsigned char>(*ptrR++);
+        }
+        while (charL != '\0' && charL == charR);
+        return charL - charR;
     }
 
-    int compare(const std::string_view& other) const
+    constexpr int compare(const std::string_view& sv) const
     {
-        if (other.length() >= buffer_size())
-            return Traits::compare(mData, other.data(), buffer_size());
-
-        const int cmp = Traits::compare(mData, other.data(), other.length());
-        if (cmp != 0) return cmp;
-
-        return int(Traits::length(mData)) - int(other.length());
+        // simplified strncmp
+        auto ptrL = mData, ptrR = sv.data();
+        const auto ptrEnd = sv.data() + sv.length();
+        unsigned char charL {}, charR {};
+        while (ptrR != ptrEnd)
+        {
+            charL = static_cast<unsigned char>(*ptrL++);
+            charR = static_cast<unsigned char>(*ptrR++);
+            if (charL != charR)
+                return charL - charR;
+        }
+        return *ptrL;
     }
 
-    int compare(const std::string& other) const
+    /*constexpr*/ int compare(const std::string& str) const
     {
-        return std::strncmp(mData, other.c_str(), buffer_size());
+        // null terminated algo is a tiny bit faster
+        return compare(str.c_str());
     }
 
     //--------------------------------------------------------//
 
-    constexpr bool operator==(const StackString& other) const { return compare(other) == 0; }
-    constexpr bool operator!=(const StackString& other) const { return compare(other) != 0; }
-    constexpr bool operator<(const StackString& other) const { return compare(other) < 0; }
-    constexpr bool operator>(const StackString& other) const { return compare(other) > 0; }
+    constexpr bool starts_with(std::string_view prefix) const
+    {
+        if (prefix.length() > Capacity) return false;
+        return Traits::compare(mData, prefix.data(), prefix.length()) == 0;
+    }
 
-    template <size_t BufSize>
-    constexpr bool operator==(const char(&other)[BufSize]) const { return compare(other) == 0; }
-    template <size_t BufSize>
-    constexpr bool operator!=(const char(&other)[BufSize]) const { return compare(other) != 0; }
-    template <size_t BufSize>
-    constexpr bool operator<(const char(&other)[BufSize]) const { return compare(other) < 0; }
-    template <size_t BufSize>
-    constexpr bool operator>(const char(&other)[BufSize]) const { return compare(other) > 0; }
+    constexpr bool ends_with(std::string_view suffix) const
+    {
+        if (suffix.length() > Capacity) return false;
+        return Traits::compare(mData + Capacity - suffix.length(), suffix.data(), suffix.length()) == 0;
+    }
 
-    template <class CharT, class = EnableIfChar<CharT>>
-    bool operator==(const CharT* const& other) const { return compare(other) == 0; }
-    template <class CharT, class = EnableIfChar<CharT>>
-    bool operator!=(const CharT* const& other) const { return compare(other) != 0; }
-    template <class CharT, class = EnableIfChar<CharT>>
-    bool operator<(const CharT* const& other) const { return compare(other) < 0; }
-    template <class CharT, class = EnableIfChar<CharT>>
-    bool operator>(const CharT* const& other) const { return compare(other) > 0; }
-
-    bool operator==(const std::string_view& other) const { return compare(other) == 0; }
-    bool operator!=(const std::string_view& other) const { return compare(other) != 0; }
-    bool operator<(const std::string_view& other) const { return compare(other) < 0; }
-    bool operator>(const std::string_view& other) const { return compare(other) > 0; }
-
-    bool operator==(const std::string& other) const { return compare(other) == 0; }
-    bool operator!=(const std::string& other) const { return compare(other) != 0; }
-    bool operator<(const std::string& other) const { return compare(other) < 0; }
-    bool operator>(const std::string& other) const { return compare(other) > 0; }
+    //constexpr std::string_view substr(size_t pos, size_t count) const
+    //{
+    //    // let string_view do the bounds checking for us
+    //    return std::string_view(mData, length()).substr(pos, count);
+    //}
 
     //--------------------------------------------------------//
 
-    constexpr bool empty() const { return mData[0] == '\0'; }
-
-    constexpr void clear() { *this = {}; }
-
-    constexpr size_t length() const { return Traits::length(mData); }
-
-    constexpr const char* c_str() const { return mData; }
-
-    constexpr char* data() { return mData; }
-
-    //--------------------------------------------------------//
-
-    constexpr operator const char*() const { return mData; }
+    constexpr operator std::string_view() const noexcept
+    {
+        return std::string_view(mData, length());
+    }
 
 private: //===================================================//
 
-    char mData[buffer_size()] {}; // initialize to zeros
+    char mData[buffer_size()] {}; // initialise with zeros
 };
+
+//============================================================================//
+
+// plz c++20 save me
+
+template <size_t Capacity> constexpr
+bool operator==(const StackString<Capacity>& lhs, const StackString<Capacity>& rhs) { return lhs.compare(rhs) == 0; }
+template <size_t Capacity> constexpr
+bool operator!=(const StackString<Capacity>& lhs, const StackString<Capacity>& rhs) { return lhs.compare(rhs) != 0; }
+template <size_t Capacity> constexpr
+bool operator<(const StackString<Capacity>& lhs, const StackString<Capacity>& rhs) { return lhs.compare(rhs) < 0; }
+template <size_t Capacity> constexpr
+bool operator>(const StackString<Capacity>& lhs, const StackString<Capacity>& rhs) { return lhs.compare(rhs) > 0; }
+
+template <size_t Capacity, size_t BufSize> constexpr
+bool operator==(const StackString<Capacity>& lhs, const char(&rhs)[BufSize]) { return lhs.compare(rhs) == 0; }
+template <size_t Capacity, size_t BufSize> constexpr
+bool operator!=(const StackString<Capacity>& lhs, const char(&rhs)[BufSize]) { return lhs.compare(rhs) != 0; }
+template <size_t Capacity, size_t BufSize> constexpr
+bool operator<(const StackString<Capacity>& lhs, const char(&rhs)[BufSize]) { return lhs.compare(rhs) < 0; }
+template <size_t Capacity, size_t BufSize> constexpr
+bool operator>(const StackString<Capacity>& lhs, const char(&rhs)[BufSize]) { return lhs.compare(rhs) > 0; }
+template <size_t Capacity, size_t BufSize> constexpr
+bool operator==(const char(&lhs)[BufSize], const StackString<Capacity>& rhs) { return rhs.compare(lhs) == 0; }
+template <size_t Capacity, size_t BufSize> constexpr
+bool operator!=(const char(&lhs)[BufSize], const StackString<Capacity>& rhs) { return rhs.compare(lhs) != 0; }
+template <size_t Capacity, size_t BufSize> constexpr
+bool operator<(const char(&lhs)[BufSize], const StackString<Capacity>& rhs) { return rhs.compare(lhs) > 0; }
+template <size_t Capacity, size_t BufSize> constexpr
+bool operator>(const char(&lhs)[BufSize], const StackString<Capacity>& rhs) { return rhs.compare(lhs) < 0; }
+
+template <size_t Capacity, class CharT, class = std::enable_if_t<std::is_same_v<CharT, char>>> constexpr
+bool operator==(const StackString<Capacity>& lhs, const CharT* const& rhs) { return lhs.compare(rhs) == 0; }
+template <size_t Capacity, class CharT, class = std::enable_if_t<std::is_same_v<CharT, char>>> constexpr
+bool operator!=(const StackString<Capacity>& lhs, const CharT* const& rhs) { return lhs.compare(rhs) != 0; }
+template <size_t Capacity, class CharT, class = std::enable_if_t<std::is_same_v<CharT, char>>> constexpr
+bool operator<(const StackString<Capacity>& lhs, const CharT* const& rhs) { return lhs.compare(rhs) < 0; }
+template <size_t Capacity, class CharT, class = std::enable_if_t<std::is_same_v<CharT, char>>> constexpr
+bool operator>(const StackString<Capacity>& lhs, const CharT* const& rhs) { return lhs.compare(rhs) > 0; }
+template <size_t Capacity, class CharT, class = std::enable_if_t<std::is_same_v<CharT, char>>> constexpr
+bool operator==(const CharT* const& lhs, const StackString<Capacity>& rhs) { return rhs.compare(lhs) == 0; }
+template <size_t Capacity, class CharT, class = std::enable_if_t<std::is_same_v<CharT, char>>> constexpr
+bool operator!=(const CharT* const& lhs, const StackString<Capacity>& rhs) { return rhs.compare(lhs) != 0; }
+template <size_t Capacity, class CharT, class = std::enable_if_t<std::is_same_v<CharT, char>>> constexpr
+bool operator<(const CharT* const& lhs, const StackString<Capacity>& rhs) { return rhs.compare(lhs) > 0; }
+template <size_t Capacity, class CharT, class = std::enable_if_t<std::is_same_v<CharT, char>>> constexpr
+bool operator>(const CharT* const& lhs, const StackString<Capacity>& rhs) { return rhs.compare(lhs) < 0; }
+
+template <size_t Capacity> constexpr
+bool operator==(const StackString<Capacity>& lhs, const std::string_view& rhs) { return lhs.compare(rhs) == 0; }
+template <size_t Capacity> constexpr
+bool operator!=(const StackString<Capacity>& lhs, const std::string_view& rhs) { return lhs.compare(rhs) != 0; }
+template <size_t Capacity> constexpr
+bool operator<(const StackString<Capacity>& lhs, const std::string_view& rhs) { return lhs.compare(rhs) < 0; }
+template <size_t Capacity> constexpr
+bool operator>(const StackString<Capacity>& lhs, const std::string_view& rhs) { return lhs.compare(rhs) > 0; }
+template <size_t Capacity> constexpr
+bool operator==(const std::string_view& lhs, const StackString<Capacity>& rhs) { return rhs.compare(lhs) == 0; }
+template <size_t Capacity> constexpr
+bool operator!=(const std::string_view& lhs, const StackString<Capacity>& rhs) { return rhs.compare(lhs) != 0; }
+template <size_t Capacity> constexpr
+bool operator<(const std::string_view& lhs, const StackString<Capacity>& rhs) { return rhs.compare(lhs) > 0; }
+template <size_t Capacity> constexpr
+bool operator>(const std::string_view& lhs, const StackString<Capacity>& rhs) { return rhs.compare(lhs) < 0; }
+
+template <size_t Capacity> inline
+bool operator==(const StackString<Capacity>& lhs, const std::string& rhs) { return lhs.compare(rhs) == 0; }
+template <size_t Capacity> inline
+bool operator!=(const StackString<Capacity>& lhs, const std::string& rhs) { return lhs.compare(rhs) != 0; }
+template <size_t Capacity> inline
+bool operator<(const StackString<Capacity>& lhs, const std::string& rhs) { return lhs.compare(rhs) < 0; }
+template <size_t Capacity> inline
+bool operator>(const StackString<Capacity>& lhs, const std::string& rhs) { return lhs.compare(rhs) > 0; }
+template <size_t Capacity> inline
+bool operator==(const std::string& lhs, const StackString<Capacity>& rhs) { return rhs.compare(lhs) == 0; }
+template <size_t Capacity> inline
+bool operator!=(const std::string& lhs, const StackString<Capacity>& rhs) { return rhs.compare(lhs) != 0; }
+template <size_t Capacity> inline
+bool operator<(const std::string& lhs, const StackString<Capacity>& rhs) { return rhs.compare(lhs) > 0; }
+template <size_t Capacity> inline
+bool operator>(const std::string& lhs, const StackString<Capacity>& rhs) { return rhs.compare(lhs) < 0; }
 
 //============================================================================//
 
@@ -189,25 +262,19 @@ template <size_t Capacity>
 constexpr const char* type_to_string(StackString<Capacity>)
 {
     if constexpr (Capacity == 15u) return "TinyString";
-    if constexpr (Capacity == 31u) return "SmallString";
-    return "StackString<C>";
+    if constexpr (Capacity == 23u) return "SmallString";
+    return "StackString";
 }
 
 //============================================================================//
 
 } // namespace sq
 
-//============================================================================//
-
-namespace std {
-
 template <size_t Capacity>
-struct hash<sq::StackString<Capacity>>
+struct std::hash<sq::StackString<Capacity>>
 {
-    size_t operator()(const sq::StackString<Capacity>& str) const
+    size_t operator()(const sq::StackString<Capacity>& str) const noexcept
     {
-        return hash<std::string_view>()(std::string_view(str.c_str()));
+        return hash<std::string_view>()(str);
     }
 };
-
-} // namespace std

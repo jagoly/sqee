@@ -37,11 +37,14 @@ std::optional<JsonValue> sq::try_parse_json_from_file(const String& path)
 
 std::string fmt::formatter<sq::JsonValue>::impl_dump(const sq::JsonValue& json)
 {
-    const std::string dumped = json.dump();
+    std::string dumped = json.dump();
+
+    if (json.is_structured() == false)
+        return dumped;
 
     std::string result;
 
-    char previous = '0';
+    char previous = '\0';
     bool quoted = false;
 
     for (const auto& character : dumped)

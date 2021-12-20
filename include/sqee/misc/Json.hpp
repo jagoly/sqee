@@ -5,7 +5,15 @@
 
 #include <sqee/setup.hpp>
 
+#include <sqee/core/EnumHelper.hpp>
 #include <sqee/core/Types.hpp>
+
+// sqee doesn't use iostreams anywhere
+#define JSON_NO_IO 1
+
+// implicit conversions don't play nice with fmtlib
+#define JSON_USE_IMPLICIT_CONVERSIONS 0
+
 #include <sqee/redist/json.hpp> // IWYU pragma: export
 
 #include <fmt/core.h>
@@ -108,17 +116,17 @@ inline void to_json(JsonValue& json, const RandomRange<Type>& range)
 
 //============================================================================//
 
-#define SQEE_ENUM_JSON_CONVERSIONS(Type) \
-template<> struct nlohmann::adl_serializer<Type> \
-{ \
-    static void to_json(sq::JsonValue& j, const Type& e) \
-    { \
-        j = sq::enum_to_string(e); \
-    } \
-    static void from_json(const sq::JsonValue& j, Type& e) \
-    { \
-        sq::enum_from_string(j.get_ref<const std::string&>(), e); \
-    } \
+template <class EnumT>
+struct nlohmann::adl_serializer<EnumT, std::enable_if_t<sq::has_enum_traits_v<EnumT>>>
+{
+    static void to_json(sq::JsonValue& json, const EnumT& e)
+    {
+        json = sq::enum_to_string(e);
+    }
+    static void from_json(const sq::JsonValue& json, EnumT& e)
+    {
+        e = sq::enum_from_string<EnumT>(json.get_ref<const std::string&>());
+    }
 };
 
 //============================================================================//

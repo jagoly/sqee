@@ -111,7 +111,7 @@ constexpr Keyboard_Key impl_glfw_key_to_sqee(int key)
     //case GLFW_KEY_SCROLL_LOCK:    return Keyboard_Key::Unknown;
     //case GLFW_KEY_NUM_LOCK:       return Keyboard_Key::Unknown;
     //case GLFW_KEY_PRINT_SCREEN:   return Keyboard_Key::Unknown;
-    case GLFW_KEY_PAUSE:          return Keyboard_Key::Pause;
+    //case GLFW_KEY_PAUSE:          return Keyboard_Key::Unknown;
     case GLFW_KEY_F1:             return Keyboard_Key::F1;
     case GLFW_KEY_F2:             return Keyboard_Key::F2;
     case GLFW_KEY_F3:             return Keyboard_Key::F3;
@@ -152,7 +152,7 @@ constexpr Keyboard_Key impl_glfw_key_to_sqee(int key)
     case GLFW_KEY_KP_MULTIPLY:    return Keyboard_Key::Pad_Multiply;
     case GLFW_KEY_KP_SUBTRACT:    return Keyboard_Key::Pad_Minus;
     case GLFW_KEY_KP_ADD:         return Keyboard_Key::Pad_Plus;
-    case GLFW_KEY_KP_ENTER:       return Keyboard_Key::Return;
+    case GLFW_KEY_KP_ENTER:       return Keyboard_Key::Pad_Return;
     //case GLFW_KEY_KP_EQUAL:       return Keyboard_Key::Unknown;
     case GLFW_KEY_LEFT_SHIFT:     return Keyboard_Key::Shift_L;
     case GLFW_KEY_LEFT_CONTROL:   return Keyboard_Key::Control_L;
@@ -205,7 +205,7 @@ struct Window::Implementation
     static void cb_window_focus(GLFWwindow* window, int focused)
     {
         Event event;
-        event.type = bool(focused) ? Event::Type::Window_Focus : Event::Type::Window_Unfocus;
+        event.type = Event::Type(int(Event::Type::Window_Unfocus) + focused);
         add_event(window, event);
     }
 
@@ -224,7 +224,7 @@ struct Window::Implementation
     static void cb_mouse_button(GLFWwindow* window, int button, int action, int mods)
     {
         Event event;
-        event.type = bool(action) ? Event::Type::Mouse_Press : Event::Type::Mouse_Release;
+        event.type = Event::Type(int(Event::Type::Mouse_Release) + action);
         event.data.mouse.button = impl_glfw_mouse_button_to_sqee(button);
         event.data.mouse.shift = mods & GLFW_MOD_SHIFT;
         event.data.mouse.ctrl = mods & GLFW_MOD_CONTROL;
@@ -235,22 +235,11 @@ struct Window::Implementation
 
     static void cb_scroll(GLFWwindow* window, double xoffset, double yoffset)
     {
-        if (xoffset != 0.0)
-        {
-            Event event;
-            event.type = Event::Type::Mouse_Scroll;
-            event.data.scroll.wheel = Mouse_Wheel::Horizontal;
-            event.data.scroll.delta = float(xoffset);
-            add_event(window, event);
-        }
-        if (yoffset != 0.0)
-        {
-            Event event;
-            event.type = Event::Type::Mouse_Scroll;
-            event.data.scroll.wheel = Mouse_Wheel::Vertical;
-            event.data.scroll.delta = float(yoffset);
-            add_event(window, event);
-        }
+        Event event;
+        event.type = Event::Type::Mouse_Scroll;
+        event.data.scroll.delta.x = float(xoffset);
+        event.data.scroll.delta.y = float(yoffset);
+        add_event(window, event);
     }
 
     static void cb_char(GLFWwindow* window, uint codepoint)
@@ -385,8 +374,8 @@ Window::Window(const char* title, Vec2U size, const char* appName, Vec3U version
                     continue;
             }
 
-            //const auto preferredType = vk::PhysicalDeviceType::eDiscreteGpu;
-            const auto preferredType = vk::PhysicalDeviceType::eIntegratedGpu;
+            const auto preferredType = vk::PhysicalDeviceType::eDiscreteGpu;
+            //const auto preferredType = vk::PhysicalDeviceType::eIntegratedGpu;
 
             if (mPhysicalDevice)
             {

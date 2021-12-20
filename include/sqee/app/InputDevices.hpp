@@ -44,8 +44,11 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
+    /// Check if a gamepad is connected.
+    bool check_gamepad_connected(int port) const;
+
     /// Get the current state of a gamepad.
-    GamepadState poll_gamepad_state(int32_t port) const;
+    GamepadState poll_gamepad_state(int port) const;
 
 private: //===================================================//
 

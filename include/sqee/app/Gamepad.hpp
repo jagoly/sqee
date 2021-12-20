@@ -5,6 +5,7 @@
 
 #include <sqee/setup.hpp>
 
+#include <sqee/core/EnumHelper.hpp>
 #include <sqee/core/Types.hpp>
 
 namespace sq {
@@ -14,28 +15,35 @@ namespace sq {
 enum class Gamepad_Button : int8_t
 {
     Unknown = -1,
-    A, B, X, Y, LB, RB,
-    Back, Start, Home,
+    A, B, X, Y,
+    LeftBump, RightBump,
+    Back, Start, Guide,
+    LeftStick, RightStick,
     Up, Right, Down, Left
 };
 
 enum class Gamepad_Axis : int8_t
 {
     Unknown = -1,
-    LX, LY, RX, RY
+    LeftX, LeftY,
+    RightX, RightY,
+    LeftTrigger,
+    RightTrigger
 };
 
 //============================================================================//
 
+/// The raw state of a gamepad.
 struct GamepadState
 {
     /// Was the button held during the most recent poll.
-    std::array<bool, 13> buttons {};
+    std::array<bool, 15> buttons {};
 
     /// Maximum absolute value over all polls.
-    std::array<float, 4> axes {};
+    std::array<float, 6> axes {};
 };
 
+/// The state of a gamepad, including press and release data.
 struct Gamepad : public GamepadState
 {
     /// Did button go from not held to held since the last clear.
@@ -56,6 +64,7 @@ struct Gamepad : public GamepadState
 
         for (size_t i = 0u; i < 4u; ++i)
         {
+            // greater or equal, so in case of a tie use most recent
             if (std::abs(state.axes[i]) >= std::abs(axes[i]))
                 axes[i] = state.axes[i];
         }
@@ -73,3 +82,25 @@ struct Gamepad : public GamepadState
 //============================================================================//
 
 } // namespace sq
+
+SQEE_ENUM_HELPER
+(
+    sq::Gamepad_Button,
+    Unknown,
+    A, B, X, Y,
+    LeftBump, RightBump,
+    Back, Start, Guide,
+    LeftStick, RightStick,
+    Up, Right, Down, Left
+)
+
+
+SQEE_ENUM_HELPER
+(
+    sq::Gamepad_Axis,
+    Unknown,
+    LeftX, LeftY,
+    RightX, RightY,
+    LeftTrigger,
+    RightTrigger
+)

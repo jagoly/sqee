@@ -247,19 +247,19 @@ void Texture::load_from_file_2D(const String& path)
     const JsonValue json = parse_json_from_file(path + ".json");
 
     Config config;
-    config.format = impl_string_to_format(json.at("format"));
-    config.wrapX = impl_string_to_wrap(json.at("wrapX"));
-    config.wrapY = impl_string_to_wrap(json.at("wrapY"));
+    config.format = impl_string_to_format(json.at("format").get_ref<const String&>());
+    config.wrapX = impl_string_to_wrap(json.at("wrapX").get_ref<const String&>());
+    config.wrapY = impl_string_to_wrap(json.at("wrapY").get_ref<const String&>());
     config.wrapZ = vk::SamplerAddressMode::eRepeat;
-    config.swizzle = impl_string_to_swizzle(json.at("swizzle"));
-    config.filter = impl_string_to_filter(json.at("filter"));
-    config.mipmaps = impl_string_to_mipmaps(json.at("mipmaps"));
+    config.swizzle = impl_string_to_swizzle(json.at("swizzle").get_ref<const String&>());
+    config.filter = impl_string_to_filter(json.at("filter").get_ref<const String&>());
+    config.mipmaps = impl_string_to_mipmaps(json.at("mipmaps").get_ref<const String&>());
     config.size = Vec3U(Vec2U(json.at("size")), 1u);
 
     if (config.mipmaps != MipmapsMode::Disable)
     {
         const auto iter = json.find("mipLevels");
-        if (iter != json.end()) config.mipLevels = *iter;
+        if (iter != json.end()) config.mipLevels = uint(*iter);
         else config.mipLevels = 1u + uint(std::log2(std::max(config.size.x, config.size.y)));
     }
     else config.mipLevels = 1u;
@@ -304,19 +304,19 @@ void Texture::load_from_file_array(const String& path)
     const JsonValue json = parse_json_from_file(path + ".json");
 
     Config config;
-    config.format = impl_string_to_format(json.at("format"));
-    config.wrapX = impl_string_to_wrap(json.at("wrapX"));
-    config.wrapY = impl_string_to_wrap(json.at("wrapY"));
-    config.wrapZ = impl_string_to_wrap(json.at("wrapZ"));
-    config.swizzle = impl_string_to_swizzle(json.at("swizzle"));
-    config.filter = impl_string_to_filter(json.at("filter"));
-    config.mipmaps = impl_string_to_mipmaps(json.at("mipmaps"));
-    config.size = json.at("size");
+    config.format = impl_string_to_format(json.at("format").get_ref<const String&>());
+    config.wrapX = impl_string_to_wrap(json.at("wrapX").get_ref<const String&>());
+    config.wrapY = impl_string_to_wrap(json.at("wrapY").get_ref<const String&>());
+    config.wrapZ = impl_string_to_wrap(json.at("wrapZ").get_ref<const String&>());
+    config.swizzle = impl_string_to_swizzle(json.at("swizzle").get_ref<const String&>());
+    config.filter = impl_string_to_filter(json.at("filter").get_ref<const String&>());
+    config.mipmaps = impl_string_to_mipmaps(json.at("mipmaps").get_ref<const String&>());
+    config.size = Vec3U(json.at("size"));
 
     if (config.mipmaps != MipmapsMode::Disable)
     {
         const auto iter = json.find("mipLevels");
-        if (iter != json.end()) config.mipLevels = *iter;
+        if (iter != json.end()) config.mipLevels = uint(*iter);
         else config.mipLevels = 1u + uint(std::log2(std::max(config.size.x, config.size.y)));
     }
     else config.mipLevels = 1u;
@@ -367,18 +367,18 @@ void Texture::load_from_file_cube(const String& path)
     const JsonValue json = parse_json_from_file(path + ".json");
 
     Config config;
-    config.format = impl_string_to_format(json.at("format"));
+    config.format = impl_string_to_format(json.at("format").get_ref<const String&>());
     config.wrapX = config.wrapY = vk::SamplerAddressMode::eClampToEdge;
     config.wrapZ = vk::SamplerAddressMode::eRepeat;
-    config.swizzle = impl_string_to_swizzle(json.at("swizzle"));
-    config.filter = impl_string_to_filter(json.at("filter"));
-    config.mipmaps = impl_string_to_mipmaps(json.at("mipmaps"));
+    config.swizzle = impl_string_to_swizzle(json.at("swizzle").get_ref<const String&>());
+    config.filter = impl_string_to_filter(json.at("filter").get_ref<const String&>());
+    config.mipmaps = impl_string_to_mipmaps(json.at("mipmaps").get_ref<const String&>());
     config.size = Vec3U(Vec2U(uint(json.at("size"))), 6u);
 
     if (config.mipmaps != MipmapsMode::Disable)
     {
         const auto iter = json.find("mipLevels");
-        if (iter != json.end()) config.mipLevels = *iter;
+        if (iter != json.end()) config.mipLevels = uint(*iter);
         else config.mipLevels = 1u + uint(std::log2(config.size.x));
     }
     else config.mipLevels = 1u;

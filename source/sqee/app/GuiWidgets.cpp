@@ -1,7 +1,5 @@
 #include <sqee/app/GuiWidgets.hpp>
 
-#include <sqee/core/Macros.hpp>
-
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <dearimgui/imgui_internal.h>
 #include <dearimgui/imgui.h>
@@ -10,20 +8,18 @@ DISABLE_WARNING_OLD_STYLE_CAST()
 
 //============================================================================//
 
-namespace { // anonymous
+namespace ImPlus::detail {
 
-using namespace ImPlus;
-
-struct impl_InputTextCallbackUserData
+struct InputTextCallbackUserData
 {
     std::string& str;
     ImGuiInputTextCallback chainCallback;
     void* chainCallbackUserData;
 };
 
-int impl_input_text_callback(ImGuiInputTextCallbackData* data)
+int input_text_callback(ImGuiInputTextCallbackData* data)
 {
-    auto userData = static_cast<impl_InputTextCallbackUserData*>(data->UserData);
+    auto userData = static_cast<InputTextCallbackUserData*>(data->UserData);
     if (data->EventFlag == ImGuiInputTextFlags_CallbackResize)
     {
         IM_ASSERT(data->Buf == userData->str.data());
@@ -38,51 +34,12 @@ int impl_input_text_callback(ImGuiInputTextCallbackData* data)
     return 0;
 }
 
-template <class Type>
-static bool impl_InputValue(ImPlus::CStrView label, Type& ref, Type step, const char* format)
-{
-    constexpr ImGuiDataType dataType = impl_get_data_type<Type>();
-    Type temp = ref;
-    bool changed = ImGui::InputScalar(label, dataType, &temp, step > 0 ? &step : nullptr, nullptr, format);
-    if (changed) changed = ImGui::IsItemDeactivatedAfterEdit();
-    if (changed) ref = temp;
-    return changed;
-}
+} // ImPlus::detail
 
-template <class Type>
-static bool impl_DragValue(ImPlus::CStrView label, Type& ref, Type min, Type max, float speed, const char* format)
+bool ImPlus::detail::is_temp_input_open()
 {
-    constexpr ImGuiDataType dataType = impl_get_data_type<Type>();
-    Type temp = ref;
-    bool changed = ImGui::DragScalar(label, dataType, &temp, speed, &min, &max, format, ImGuiSliderFlags_AlwaysClamp);
-    if (changed && GImGui->TempInputId != 0) changed = ImGui::IsItemDeactivatedAfterEdit();
-    if (changed) ref = temp;
-    return changed;
+    return GImGui->TempInputId != 0;
 }
-
-template <class Type>
-static bool impl_SliderValue(ImPlus::CStrView label, Type& ref, Type min, Type max, const char* format)
-{
-    constexpr ImGuiDataType dataType = impl_get_data_type<Type>();
-    Type temp = ref;
-    bool changed = ImGui::SliderScalar(label, dataType, &temp, &min, &max, format, ImGuiSliderFlags_AlwaysClamp);
-    if (changed && GImGui->TempInputId != 0) changed = ImGui::IsItemDeactivatedAfterEdit();
-    if (changed) ref = temp;
-    return changed;
-}
-
-template <class Type>
-static bool impl_DragValueRange2(ImPlus::CStrView label, Type& refMin, Type& refMax, Type min, Type max, float speed, const char* format)
-{
-    constexpr ImGuiDataType dataType = impl_get_data_type<Type>();
-    Type temp[2] = { refMin, refMax };
-    bool changed = ImGui::DragScalarRange2(label, dataType, &temp[0], &temp[1], speed, &min, &max, format, format, ImGuiSliderFlags_AlwaysClamp);
-    if (changed && GImGui->TempInputId != 0) changed = ImGui::IsItemDeactivatedAfterEdit();
-    if (changed) { refMin = temp[0]; refMax = temp[1]; }
-    return changed;
-}
-
-} // anonymous namespace
 
 //============================================================================//
 
@@ -161,8 +118,8 @@ bool ImPlus::InputString(CStrView label, std::string& str, ImGuiInputTextFlags f
     IM_ASSERT((flags & ImGuiInputTextFlags_CallbackResize) == 0);
     flags |= ImGuiInputTextFlags_CallbackResize;
 
-    impl_InputTextCallbackUserData cbUserData = { str, callback, userData };
-    return ImGui::InputText(label, str.data(), str.capacity() + 1, flags, impl_input_text_callback, &cbUserData);
+    detail::InputTextCallbackUserData cbUserData = { str, callback, userData };
+    return ImGui::InputText(label, str.data(), str.capacity() + 1, flags, detail::input_text_callback, &cbUserData);
 }
 
 bool ImPlus::InputStringMultiline(CStrView label, std::string& str, ImVec2 size, ImGuiInputTextFlags flags,
@@ -171,8 +128,8 @@ bool ImPlus::InputStringMultiline(CStrView label, std::string& str, ImVec2 size,
     IM_ASSERT((flags & ImGuiInputTextFlags_CallbackResize) == 0);
     flags |= ImGuiInputTextFlags_CallbackResize;
 
-    impl_InputTextCallbackUserData cbUserData = { str, callback, userData };
-    return ImGui::InputTextMultiline(label, str.data(), str.capacity() + 1, size, flags, impl_input_text_callback, &cbUserData);
+    detail::InputTextCallbackUserData cbUserData = { str, callback, userData };
+    return ImGui::InputTextMultiline(label, str.data(), str.capacity() + 1, size, flags, detail::input_text_callback, &cbUserData);
 }
 
 //----------------------------------------------------------------------------//
@@ -291,6 +248,8 @@ void ImPlus::TextWrapped(std::string_view text)
         ImGui::PopTextWrapPos();
 }
 
+//----------------------------------------------------------------------------//
+
 void ImPlus::LabelText(CStrView label, std::string_view text)
 {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
@@ -342,40 +301,3 @@ void ImPlus::SetTooltip(std::string_view text)
     ImGui::TextUnformatted(text.data(), text.data() + text.length());
     ImGui::EndTooltip();
 }
-
-//----------------------------------------------------------------------------//
-
-#define IMPLUS_INPUT_VALUE_DEFINITION(Type) \
-bool ImPlus::InputValue(CStrView label, Type& ref, Type step, const char* format) \
-{ return impl_InputValue(label, ref, step, format); }
-
-#define IMPLUS_DRAG_VALUE_DEFINITION(Type) \
-bool ImPlus::DragValue(CStrView label, Type& ref, Type min, Type max, float speed, const char* format) \
-{ return impl_DragValue(label, ref, min, max, speed, format); }
-
-#define IMPLUS_SLIDER_VALUE_DEFINITION(Type) \
-bool ImPlus::SliderValue(CStrView label, Type& ref, Type min, Type max, const char* format) \
-{ return impl_SliderValue(label, ref, min, max, format); }
-
-#define IMPLUS_DRAG_VALUE_RANGE2_DEFINITION(Type) \
-bool ImPlus::DragValueRange2(CStrView label, Type& refMin, Type& refMax, Type min, Type max, float speed, const char* format) \
-{ return impl_DragValueRange2(label, refMin, refMax, min, max, speed, format); }
-
-//----------------------------------------------------------------------------//
-
-#define IMPLUS_INPUT_FUNCTION_DEFINITIONS(Type) \
-IMPLUS_INPUT_VALUE_DEFINITION(Type) \
-IMPLUS_DRAG_VALUE_DEFINITION(Type) \
-IMPLUS_SLIDER_VALUE_DEFINITION(Type) \
-IMPLUS_DRAG_VALUE_RANGE2_DEFINITION(Type)
-
-IMPLUS_INPUT_FUNCTION_DEFINITIONS(int8_t)
-IMPLUS_INPUT_FUNCTION_DEFINITIONS(uint8_t)
-IMPLUS_INPUT_FUNCTION_DEFINITIONS(int16_t)
-IMPLUS_INPUT_FUNCTION_DEFINITIONS(uint16_t)
-IMPLUS_INPUT_FUNCTION_DEFINITIONS(int32_t)
-IMPLUS_INPUT_FUNCTION_DEFINITIONS(uint32_t)
-IMPLUS_INPUT_FUNCTION_DEFINITIONS(int64_t)
-IMPLUS_INPUT_FUNCTION_DEFINITIONS(uint64_t)
-IMPLUS_INPUT_FUNCTION_DEFINITIONS(float)
-IMPLUS_INPUT_FUNCTION_DEFINITIONS(double)

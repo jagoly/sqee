@@ -9,25 +9,25 @@ using namespace sq;
 void sq::detail::log_time_info()
 {
     std::time_t now = std::time(nullptr);
-    fmt::print("{:%H:%M:%S} INFO: ", fmt::localtime(now));
+    fmt::print(stdout, "{:%H:%M:%S} INFO: ", fmt::localtime(now));
 }
 
 void sq::detail::log_time_warning()
 {
     std::time_t now = std::time(nullptr);
-    fmt::print("{:%H:%M:%S} WARNING: ", fmt::localtime(now));
+    fmt::print(stdout, "{:%H:%M:%S} WARNING: ", fmt::localtime(now));
 }
 
 void sq::detail::log_time_error()
 {
     std::time_t now = std::time(nullptr);
-    fmt::print("{:%H:%M:%S} ERROR: ", fmt::localtime(now));
+    fmt::print(stdout, "{:%H:%M:%S} ERROR: ", fmt::localtime(now));
 }
 
 void sq::detail::log_time_debug()
 {
     std::time_t now = std::time(nullptr);
-    fmt::print("{:%H:%M:%S} DEBUG: ", fmt::localtime(now));
+    fmt::print(stdout, "{:%H:%M:%S} DEBUG: ", fmt::localtime(now));
 }
 
 //============================================================================//

@@ -28,11 +28,6 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    /// Call to update and then render the scene.
-    void update_and_render(double elapsed);
-
-    //--------------------------------------------------------//
-
     /// Call to update and then integrate the scene.
     void update_and_integrate(double elapsed);
 
@@ -53,8 +48,7 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     /// Call between cmdbuf.begin() and cmdbuf.end() for drawing commands.
-    //virtual void populate_command_buffer(vk::CommandBuffer cmdbuf, vk::Framebuffer framebuf) = 0;
-    virtual void populate_command_buffer(vk::CommandBuffer /*cmdbuf*/, vk::Framebuffer /*framebuf*/) {}
+    virtual void populate_command_buffer(vk::CommandBuffer cmdbuf, vk::Framebuffer framebuf) = 0;
 
 protected: //=================================================//
 
@@ -62,17 +56,16 @@ protected: //=================================================//
     virtual void update() = 0;
 
     /// Implement to prepare for render.
-    //virtual void integrate(double elapsed, float blend) = 0;
-    virtual void integrate(double /*elapsed*/, float /*blend*/) {}
-
-    /// Implement to render the scene.
-    virtual void render(double /*elapsed*/) {}
+    virtual void integrate(double elapsed, float blend) = 0;
 
     //--------------------------------------------------------//
 
     double mTickTime;
 
     double mAccumulation;
+
+    /// Set just after loading screens to prevent time jumps.
+    bool mJustLoaded = true;
 };
 
 //============================================================================//

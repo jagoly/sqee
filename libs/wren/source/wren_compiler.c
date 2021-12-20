@@ -3130,6 +3130,16 @@ static void ifStatement(Compiler* compiler)
   // Compile the then branch.
   statement(compiler);
   
+  // Look ahead past one or more newlines for an else branch.
+  while (peek(compiler) == TOKEN_LINE && peekNext(compiler) == TOKEN_LINE)
+  {
+    nextToken(compiler->parser);
+  }
+  if (peek(compiler) == TOKEN_LINE && peekNext(compiler) == TOKEN_ELSE)
+  {
+    nextToken(compiler->parser);
+  }
+  
   // Compile the else branch if there is one.
   if (match(compiler, TOKEN_ELSE))
   {

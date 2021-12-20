@@ -1,19 +1,30 @@
 // Copyright(c) 2020 James Gangur
 // Part of https://github.com/jagoly/sqee
 
-// based on https://github.com/gnzlbg/static_vector/blob/master/include/experimental/fixed_capacity_vector
-
 #pragma once
 
-#include <sqee/debug/Assert.hpp>
-
-#include <cstdint>    // fixed-width integer types
-#include <algorithm>  // equal
-#include <functional> // less, equal_to
-#include <iterator>   // reverse_iterator, iterator traits
-#include <stdexcept>  // length_error
+#include <algorithm>
+#include <cassert>
+#include <cstdint>
+#include <iterator>
+#include <limits>
+#include <memory>
+#include <type_traits>
 
 namespace sq {
+
+//============================================================================//
+
+namespace detail {
+
+template <size_t Value> using smallest_unsigned_int_t =
+    std::conditional_t<Value <= std::numeric_limits<uint8_t>::max(), uint8_t,
+    std::conditional_t<Value <= std::numeric_limits<uint16_t>::max(), uint16_t,
+    std::conditional_t<Value <= std::numeric_limits<uint32_t>::max(), uint32_t,
+    std::conditional_t<Value <= std::numeric_limits<uint64_t>::max(), uint64_t,
+    size_t>>>>;
+
+} // namespace detail
 
 //============================================================================//
 
@@ -23,224 +34,193 @@ struct StackVector final
 {
 public: //====================================================//
 
-    static_assert(std::is_nothrow_destructible_v<Type>, "make sure Type is defined in this context");
-    static_assert(Capacity != 0, "Capacity must be non-zero.");
+    static_assert(Capacity != 0u, "capacity must be non-zero");
 
-    using value_type       = Type;
-    using difference_type  = ptrdiff_t;
-    using reference        = Type&;
-    using const_reference  = const Type&;
-    using pointer          = Type*;
-    using const_pointer    = const Type*;
-    using iterator         = Type*;
-    using const_iterator   = const Type*;
+    using value_type      = Type;
+    using difference_type = ptrdiff_t;
+    using reference       = Type&;
+    using const_reference = const Type&;
+    using pointer         = Type*;
+    using const_pointer   = const Type*;
+    using iterator        = Type*;
+    using const_iterator  = const Type*;
 
-    // 255 because the past the end index must also be valid
-    using size_type = std::conditional_t<Capacity < 255u, uint8_t, size_t>;
-
-    using reverse_iterator = std::reverse_iterator<iterator>;
+    using reverse_iterator       = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-    //--------------------------------------------------------//
+    using size_type = detail::smallest_unsigned_int_t<Capacity>;
 
-    Type* data() noexcept { return reinterpret_cast<Type*>(mData); }
-
-    const Type* data() const noexcept { return reinterpret_cast<const Type*>(mData); }
-
-    size_type size() const noexcept { return mSize; }
-
-    static size_type capacity() noexcept { return Capacity; }
-
-    bool empty() const noexcept { return size() == 0u; }
-
-    bool full() const noexcept { return size() == Capacity; }
+    static size_type capacity() { return Capacity; }
 
     //--------------------------------------------------------//
 
-    iterator begin() noexcept { return data(); }
+    Type* data() { return reinterpret_cast<Type*>(mData); }
 
-    const_iterator begin() const noexcept { return data(); }
+    const Type* data() const { return reinterpret_cast<const Type*>(mData); }
 
-    iterator end() noexcept { return data() + size(); }
+    size_type size() const { return mSize; }
 
-    const_iterator end() const noexcept { return data() + size(); }
+    bool empty() const { return mSize == 0u; }
 
-    reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
+    bool full() const { return mSize == Capacity; }
 
-    const_reverse_iterator rbegin() const noexcept { return const_reverse_iterator(end()); }
+    //--------------------------------------------------------//
 
-    reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
+    iterator begin() { return data(); }
+    const_iterator begin() const { return data(); }
+    const_iterator cbegin() const { return begin(); }
 
-    const_reverse_iterator rend() const noexcept { return const_reverse_iterator(begin()); }
+    iterator end() { return data() + size(); }
+    const_iterator end() const { return data() + size(); }
+    const_iterator cend() const { return end(); }
 
-    const_iterator cbegin() const noexcept { return begin(); }
+    reverse_iterator rbegin() { return reverse_iterator(end()); }
+    const_reverse_iterator rbegin() const { return const_reverse_iterator(end()); }
+    const_reverse_iterator crbegin() const { return rbegin(); }
 
-    const_iterator cend() const noexcept { return end(); }
+    reverse_iterator rend() { return reverse_iterator(begin()); }
+    const_reverse_iterator rend() const { return const_reverse_iterator(begin()); }
+    const_reverse_iterator crend() const { return rend(); }
 
     //--------------------------------------------------------//
 
     template <class... Args>
-    void emplace_back(Args&&... args)
+    Type& emplace_back(Args&&... args)
     {
-        SQASSERT(!full(), "vector is full");
-        if constexpr (std::is_trivially_destructible_v<Type>)
-            *end() = Type(std::forward<Args>(args)...);
-        else new (end()) Type(std::forward<Args>(args)...);
+        assert(!full());
+        new (end()) Type(std::forward<Args>(args)...);
         ++mSize;
     }
 
-    template <class Other>
-    void push_back(Other&& value)
+    void push_back(const Type& value)
     {
-        static_assert(std::is_convertible_v<Other, Type>);
-        emplace_back(std::forward<Other>(value));
+        emplace_back(value);
     }
 
-    void pop_back()
+    void push_back(Type&& value)
     {
-        SQASSERT(!empty(), "vector is empty");
-        std::destroy_at(end()-1);
-        --mSize;
+        emplace_back(std::move(value));
     }
 
-    template <class Other>
-    iterator insert(iterator iter, Other&& value)
+    //--------------------------------------------------------//
+
+    template <class... Args>
+    iterator emplace(iterator iter, Args&&... args)
     {
-        SQASSERT(!full(), "vector is full");
-        SQASSERT(iter >= begin() && iter <= end(), "iter out of range");
+        assert(!full() && iter >= begin() && iter <= end());
         std::move_backward(iter, end(), end()+1);
-        new (iter) Type(std::forward<Other>(value));
+        new (iter) Type(std::forward<Args>(args)...);
         ++mSize;
         return iter;
     }
 
+    iterator insert(iterator iter, const Type& value)
+    {
+        return emplace(iter, value);
+    }
+
+    iterator insert(iterator iter, Type&& value)
+    {
+        return emplace(iter, std::move(value));
+    }
+
+    //--------------------------------------------------------//
+
+    void pop_back()
+    {
+        assert(!empty());
+        std::destroy_at(end()-1);
+        --mSize;
+    }
+
     iterator erase(iterator iter)
     {
-        SQASSERT(iter >= begin() && iter < end(), "iter out of range");
+        assert(!empty() && iter >= begin() && iter < end());
         std::move(iter+1, end(), iter);
-        pop_back();
+        std::destroy_at(end()-1);
+        --mSize;
         return iter;
     }
 
     iterator erase(iterator first, iterator last)
     {
-        SQASSERT(first >= begin() && last < end() && first <= last, "invalid range");
-        auto newEnd = std::move(last, end(), first);
+        assert(first <= last && first >= begin() && last <= end());
+        const auto newEnd = std::move(last, end(), first);
         std::destroy(newEnd, end());
-        mSize = std::distance(begin(), newEnd);
+        mSize = size_type(newEnd - begin());
         return first;
     }
 
-    void clear() noexcept
-    {
-        std::destroy(begin(), end());
-        mSize = 0u;
-    }
+    //--------------------------------------------------------//
+
+    Type& operator[](size_type pos) { assert(pos < size()); return data()[pos]; }
+    const Type& operator[](size_type pos) const { assert(pos < size()); return data()[pos]; }
+
+    Type& front() { assert(!empty()); return data()[0]; }
+    const Type& front() const { assert(!empty()); return data()[0]; }
+
+    Type& back() { assert(!empty()); return data()[size()-1]; }
+    const Type& back() const { assert(!empty()); return data()[size()-1]; }
 
     //--------------------------------------------------------//
 
-    Type& operator[](size_type pos) noexcept
-    {
-        return data()[pos];
-    }
-
-    const Type& operator[](size_type pos) const noexcept
-    {
-        return data()[pos];
-    }
-
-    Type& at(size_type pos)
-    {
-        if (pos >= size())
-            throw std::out_of_range("StackVector::at");
-
-        return data()[pos];
-    }
-
-    const Type& at(size_type pos) const
-    {
-        if (pos >= size())
-            throw std::out_of_range("StackVector::at");
-
-        return data()[pos];
-    }
-
-    Type& front() noexcept
-    {
-        SQASSERT(!empty(), "calling front on an empty vector");
-        return data()[0];
-    }
-
-    const Type& front() const noexcept
-    {
-        SQASSERT(!empty(), "calling front on an empty vector");
-        return data()[0];
-    }
-
-    Type& back() noexcept
-    {
-
-        SQASSERT(!empty(), "calling back on an empty vector");
-        return data()[size() - 1u];
-    }
-
-    const Type& back() const noexcept
-    {
-        SQASSERT(!empty(), "calling back on an empty vector");
-        return data()[size() - 1u];
-    }
-
-    //--------------------------------------------------------//
-
-    StackVector() = default;
+    StackVector() noexcept = default;
 
     StackVector(const StackVector& other)
     {
-        static_assert(std::is_copy_constructible_v<Type>);
-        for (size_type i = 0u; i < other.size(); ++i)
-            emplace_back(other[i]);
+        std::uninitialized_copy_n(other.data(), other.size(), data());
+        mSize = other.size();
     }
 
-    StackVector(StackVector&& other) noexcept
+    StackVector(StackVector&& other)
     {
-        static_assert(std::is_nothrow_move_constructible_v<Type>);
-        for (size_type i = 0u; i < other.size(); ++i)
-            emplace_back(std::move(other[i]));
+        std::uninitialized_move_n(other.data(), other.size(), data());
+        mSize = other.mSize; other.mSize = 0u;
     }
 
     StackVector(std::initializer_list<Type> il)
     {
-        SQASSERT(il.size() <= Capacity, "init list exceeds capacity");
-        for (const Type& elem : il)
-            emplace_back(elem);
+        assert(il.size() <= capacity());
+        std::uninitialized_copy_n(il.begin(), il.size(), data());
+        mSize = size_type(il.size());
     }
 
     template <class Iter>
     StackVector(Iter first, Iter last)
     {
-        static_assert(std::is_convertible_v<decltype(*first), Type>);
-        SQASSERT(std::distance(first, last) <= Capacity, "iter range exceeds capacity");
+        // todo: specialise for contiguous iters
         for (auto iter = first; iter != last; ++iter)
             emplace_back(*iter);
     }
 
     //--------------------------------------------------------//
 
+    ~StackVector()
+    {
+        std::destroy_n(data(), size());
+    }
+
+    void clear()
+    {
+        std::destroy_n(data(), size());
+        mSize = 0u;
+    }
+
+    //--------------------------------------------------------//
+
     StackVector& operator=(const StackVector& other)
     {
-        static_assert(std::is_copy_constructible_v<Type>);
-        clear();
-        for (size_type i = 0u; i < other.size(); ++i)
-            emplace_back(other[i]);
+        std::destroy_n(data(), size());
+        std::uninitialized_copy_n(other.data(), other.size(), data());
+        mSize = other.mSize;
         return *this;
     }
 
-    StackVector& operator=(StackVector&& other) noexcept
+    StackVector& operator=(StackVector&& other)
     {
-        static_assert(std::is_nothrow_move_constructible_v<Type>);
-        clear();
-        for (size_type i = 0u; i < other.size(); ++i)
-            emplace_back(std::move(other[i]));
+        std::destroy_n(data(), size());
+        std::uninitialized_move_n(other.data(), other.size(), data());
+        mSize = other.mSize; other.mSize = 0u;
         return *this;
     }
 
@@ -258,7 +238,7 @@ public: //====================================================//
 
 private: //===================================================//
 
-    std::aligned_storage_t<sizeof(Type), alignof(Type)> mData[Capacity] {};
+    std::aligned_storage_t<sizeof(Type), alignof(Type)> mData[Capacity];
 
     size_type mSize = 0u;
 };

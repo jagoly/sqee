@@ -34,9 +34,12 @@ public: //====================================================//
         {
             SQASSERT(mFactoryFunc != nullptr, "no factory assigned");
             iter->second.key = &iter->first;
-            try { iter->second.data = mFactoryFunc(key); }
-            catch (const std::exception& e)
-            { log_error_multiline("unhandled exception when loading resource\nkey:  {}\nwhat: {}", key, e.what()); }
+            try {
+                iter->second.data = mFactoryFunc(key);
+            }
+            catch (const std::exception& ex) {
+                log_error_multiline("unhandled exception when loading resource\nkey:  {}\nwhat: {}", key, ex.what());
+            }
             iter->second.count = 0u;
         }
         return Handle<Key, Type>(iter->second);
@@ -50,10 +53,11 @@ public: //====================================================//
         {
             SQASSERT(mFactoryFunc != nullptr, "no factory assigned");
             iter->second.key = &iter->first;
-            try { iter->second.data = mFactoryFunc(key); }
-            catch (const std::exception& e)
-            {
-                if (!silent) log_warning_multiline("could not load resource '{}':\n{}", key, e.what());
+            try {
+                iter->second.data = mFactoryFunc(key);
+            }
+            catch (const std::exception& ex) {
+                if (!silent) log_warning_multiline("exception when loading resource\nkey:  {}:\nwhat: {}", key, ex.what());
                 mResourceMap.erase(iter); return nullptr;
             }
             iter->second.count = 0u;

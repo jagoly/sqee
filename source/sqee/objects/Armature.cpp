@@ -78,7 +78,7 @@ void Armature::load_from_file(const String& path)
 
     for (const auto& jb : json)
     {
-        mBoneNames.push_back(jb.at("name"));
+        mBoneNames.emplace_back(jb.at("name").get_ref<const String&>());
 
         if (const auto& parent = jb.at("parent"); parent.is_null() == false)
         {
@@ -207,7 +207,7 @@ Animation Armature::impl_load_animation_text(String&& text) const
                 else if (line[2] == "scale") baseTrack = BaseTrack::Scale;
                 else SQEE_THROW("{}: unknown base track name", num);
 
-                track = &result.bones[uint(boneIndex)].emplace_back();
+                track = &result.bones[size_t(boneIndex)].emplace_back();
                 track->key = line[2];
 
                 if (baseTrack == BaseTrack::Offset)
@@ -271,7 +271,7 @@ Animation Armature::impl_load_animation_text(String&& text) const
                 else if (line[3] == "Vec4F") extraTrack = ExtraTrack::Vec4F;
                 else SQEE_THROW("{}: unknown extra track type", num);
 
-                track = &result.bones[uint(boneIndex)].emplace_back();
+                track = &result.bones[size_t(boneIndex)].emplace_back();
                 track->key = line[2];
 
                 if (extraTrack == ExtraTrack::Float)
@@ -328,7 +328,7 @@ Armature::Animation Armature::make_null_animation(uint length) const
 
     result.bones.resize(result.boneCount, {});
 
-    for (uint index = 0; index < get_bone_count(); ++index)
+    for (size_t index = 0u; index < get_bone_count(); ++index)
     {
         Animation::Track& offsetTrack = result.bones[index].emplace_back();
         offsetTrack.key = "offset";
@@ -357,7 +357,7 @@ Armature::Pose Armature::blend_poses(const Pose& a, const Pose& b, float factor)
 
     Pose result { a.size() };
 
-    for (uint index = 0u; index < a.size(); ++index)
+    for (size_t index = 0u; index < a.size(); ++index)
     {
         result[index].offset = maths::mix(a[index].offset, b[index].offset, factor);
         result[index].rotation = maths::slerp(a[index].rotation, b[index].rotation, factor);
@@ -424,7 +424,7 @@ void Armature::compute_extra_discrete(Vec4F& result, const Animation::Track& tra
 Mat4F Armature::compute_bone_matrix(const Pose& pose, int8_t index) const
 {
     SQASSERT(get_bone_count() == pose.size(), "bone count mismatch");
-    SQASSERT(index >= 0 && uint(index) < pose.size(), "invalid bone index");
+    SQASSERT(index >= 0 && size_t(index) < pose.size(), "invalid bone index");
 
     Mat4F result = maths::transform(pose[index].offset, pose[index].rotation, pose[index].scale);
 
@@ -446,7 +446,7 @@ std::vector<Mat4F> Armature::compute_skeleton_matrices(const Pose& pose) const
     std::vector<Mat4F> result;
     result.reserve(get_bone_count());
 
-    for (uint i = 0u; i < get_bone_count(); ++i)
+    for (size_t i = 0u; i < get_bone_count(); ++i)
     {
         const Bone& bone = pose[i];
         const int8_t parentIndex = mBoneParents[i];
@@ -462,14 +462,14 @@ std::vector<Mat4F> Armature::compute_skeleton_matrices(const Pose& pose) const
 
 //============================================================================//
 
-void Armature::compute_ubo_data(const Pose& pose, Mat34F* out, uint len) const
+void Armature::compute_ubo_data(const Pose& pose, Mat34F* out, size_t len) const
 {
     SQASSERT(get_bone_count() == pose.size(), "bone count mismatch");
     SQASSERT(get_bone_count() <= len, "too many bones for output buffer");
 
     const std::vector<Mat4F> absMatrices = compute_skeleton_matrices(pose);
 
-    for (uint i = 0u; i < get_bone_count(); ++i)
+    for (size_t i = 0u; i < get_bone_count(); ++i)
     {
         const Mat4F skinMatrix = absMatrices[i] * mInverseMats[i];
         out[i] = Mat34F(maths::transpose(skinMatrix));
@@ -480,12 +480,12 @@ void Armature::compute_ubo_data(const Pose& pose, Mat34F* out, uint len) const
 
 const Armature::Animation::Track* Armature::Animation::find_extra(int8_t bone, TinyString key) const
 {
-    SQASSERT(bone >= 0 && uint(bone) < bones.size(), "invalid bone index");
+    SQASSERT(bone >= 0 && size_t(bone) < bones.size(), "invalid bone index");
 
-    const std::vector<Track>& tracks = bones[uint(bone)];
+    const std::vector<Track>& tracks = bones[size_t(bone)];
 
     // skip over pos/rot/sca tracks
-    for (uint i = 3u; i < tracks.size(); ++i)
+    for (size_t i = 3u; i < tracks.size(); ++i)
         if (tracks[i].key == key)
             return &tracks[i];
 

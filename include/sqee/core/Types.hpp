@@ -21,6 +21,7 @@
 
 //============================================================================//
 
+typedef unsigned char uchar;
 typedef unsigned int uint;
 
 //============================================================================//
@@ -31,7 +32,7 @@ using String = std::string;
 using StringView = std::string_view;
 
 using TinyString = StackString<15u>;
-using SmallString = StackString<31u>;
+using SmallString = StackString<23u>;
 
 using Vec2I = maths::Vector<2, int>;
 using Vec3I = maths::Vector<3, int>;

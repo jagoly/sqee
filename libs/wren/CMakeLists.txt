@@ -26,14 +26,15 @@ set_property(TARGET wren PROPERTY C_STANDARD_REQUIRED True)
 
 ################################################################################
 
+# SuperTuxSmash does not need these modules
 target_compile_definitions(wren PRIVATE WREN_OPT_META=0)
 target_compile_definitions(wren PRIVATE WREN_OPT_RANDOM=0)
 
-# uncomment for easier debugging of wren itself
-#target_compile_definitions(wren PRIVATE WREN_NAN_TAGGING=0)
-
 # for some reason wren uses DEBUG rather than NDEBUG
 target_compile_definitions(wren PRIVATE $<$<CONFIG:Debug>:DEBUG>)
+
+# allow easier debugging of wren internals
+target_compile_definitions(wren PRIVATE $<$<CONFIG:Debug>:WREN_NAN_TAGGING=0>)
 
 ################################################################################
 

@@ -35,7 +35,6 @@ public: //====================================================//
     /// A set of tracks that can be sampled to get a Pose.
     struct SQEE_API Animation
     {
-        // todo: investigate using std::pmr for allocating tracks
         struct Track
         {
             TinyString key;
@@ -57,7 +56,7 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    uint get_bone_count() const { return uint(mRestPose.size()); }
+    size_t get_bone_count() const { return mRestPose.size(); }
 
     const Pose& get_rest_pose() const { return mRestPose; }
 
@@ -82,6 +81,8 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
+    // todo: poses are big objects and should probably not be reallocated constantly
+
     static Pose blend_poses(const Pose& a, const Pose& b, float factor);
 
     static Pose compute_pose_continuous(const Animation& animation, float time);
@@ -101,7 +102,7 @@ public: //====================================================//
     std::vector<Mat4F> compute_skeleton_matrices(const Pose& pose) const;
 
     /// Compute transposed pose matrices, ready for a shader.
-    void compute_ubo_data(const Pose& pose, Mat34F* out, uint len) const;
+    void compute_ubo_data(const Pose& pose, Mat34F* out, size_t len) const;
 
 private: //===================================================//
 

@@ -21,7 +21,7 @@ String sq::read_text_from_file(const String& path)
     const size_t stringSize = std::fread(buffer.data(), 1u, buffer.size(), file);
     std::fclose(file);
 
-    return String(buffer.data(), buffer.data() + stringSize);
+    return String(buffer.data(), stringSize);
 }
 
 //============================================================================//
@@ -61,7 +61,7 @@ std::optional<String> sq::try_read_text_from_file(const String& path)
     const size_t stringSize = std::fread(buffer.data(), 1u, buffer.size(), file);
     std::fclose(file);
 
-    return String(buffer.data(), buffer.data() + stringSize);
+    return String(buffer.data(), stringSize);
 }
 
 //============================================================================//

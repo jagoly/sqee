@@ -20,7 +20,7 @@ bool InputDevices::is_pressed(Keyboard_Key key) const
 {
     SQASSERT(key != Keyboard_Key::Unknown, "");
 
-    constexpr int sqee_to_glfw[]
+    constexpr int sqee_to_glfw[enum_count_v<Keyboard_Key>]
     {
         GLFW_KEY_0,  // Num_0
         GLFW_KEY_1,  // Num_1
@@ -88,7 +88,6 @@ bool InputDevices::is_pressed(Keyboard_Key key) const
         GLFW_KEY_ENTER,      // Return
         GLFW_KEY_SPACE,      // Space
         GLFW_KEY_ESCAPE,     // Escape
-        GLFW_KEY_PAUSE,      // Pause
 
         GLFW_KEY_INSERT,     // Insert
         GLFW_KEY_DELETE,     // Delete
@@ -118,6 +117,7 @@ bool InputDevices::is_pressed(Keyboard_Key key) const
         GLFW_KEY_KP_SUBTRACT,  // Pad_Minus
         GLFW_KEY_KP_MULTIPLY,  // Pad_Multiply
         GLFW_KEY_KP_DIVIDE,    // Pad_Divide
+        GLFW_KEY_KP_ENTER,     // Pad_Return
 
         GLFW_KEY_F1,   // F1
         GLFW_KEY_F2,   // F2
@@ -160,7 +160,7 @@ bool InputDevices::is_pressed(Mouse_Button button) const
 {
     SQASSERT(button != Mouse_Button::Unknown, "");
 
-    constexpr int sqee_to_glfw[]
+    constexpr int sqee_to_glfw[enum_count_v<Mouse_Button>]
     {
         GLFW_MOUSE_BUTTON_1,  // Left
         GLFW_MOUSE_BUTTON_2,  // Right
@@ -185,35 +185,27 @@ Vec2I InputDevices::cursor_to_centre()
 
 //============================================================================//
 
-GamepadState InputDevices::poll_gamepad_state(int32_t port) const
+bool InputDevices::check_gamepad_connected(int port) const
 {
-    GLFWgamepadstate glfw;
-    const int success = glfwGetGamepadState(port, &glfw);
+    return glfwJoystickIsGamepad(port) == GLFW_TRUE;
+}
+
+GamepadState InputDevices::poll_gamepad_state(int port) const
+{
+    // sq::GamepadState and GLFWgamepadState are identical
+    static_assert(sizeof(GamepadState) == sizeof(GLFWgamepadstate), "");
+    static_assert(alignof(GamepadState) == alignof(GLFWgamepadstate), "");
 
     GamepadState result;
 
-    // usually this just means no gamepad is connected
-    if (success == GLFW_FALSE)
-        return result;
+    const int success = glfwGetGamepadState(port, reinterpret_cast<GLFWgamepadstate*>(&result));
 
-    result.buttons[int8_t(Gamepad_Button::A)]     = glfw.buttons[GLFW_GAMEPAD_BUTTON_A];
-    result.buttons[int8_t(Gamepad_Button::B)]     = glfw.buttons[GLFW_GAMEPAD_BUTTON_B];
-    result.buttons[int8_t(Gamepad_Button::X)]     = glfw.buttons[GLFW_GAMEPAD_BUTTON_X];
-    result.buttons[int8_t(Gamepad_Button::Y)]     = glfw.buttons[GLFW_GAMEPAD_BUTTON_Y];
-    result.buttons[int8_t(Gamepad_Button::LB)]    = glfw.buttons[GLFW_GAMEPAD_BUTTON_LEFT_BUMPER];
-    result.buttons[int8_t(Gamepad_Button::RB)]    = glfw.buttons[GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER];
-    result.buttons[int8_t(Gamepad_Button::Back)]  = glfw.buttons[GLFW_GAMEPAD_BUTTON_BACK];
-    result.buttons[int8_t(Gamepad_Button::Start)] = glfw.buttons[GLFW_GAMEPAD_BUTTON_START];
-    result.buttons[int8_t(Gamepad_Button::Home)]  = glfw.buttons[GLFW_GAMEPAD_BUTTON_GUIDE];
-    result.buttons[int8_t(Gamepad_Button::Up)]    = glfw.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP];
-    result.buttons[int8_t(Gamepad_Button::Right)] = glfw.buttons[GLFW_GAMEPAD_BUTTON_DPAD_RIGHT];
-    result.buttons[int8_t(Gamepad_Button::Down)]  = glfw.buttons[GLFW_GAMEPAD_BUTTON_DPAD_DOWN];
-    result.buttons[int8_t(Gamepad_Button::Left)]  = glfw.buttons[GLFW_GAMEPAD_BUTTON_DPAD_LEFT];
+    // if the call failed it just means no gamepad is connected
+    (void)(success);
 
-    result.axes[int8_t(Gamepad_Axis::LX)] =  glfw.axes[GLFW_GAMEPAD_AXIS_LEFT_X];
-    result.axes[int8_t(Gamepad_Axis::LY)] = -glfw.axes[GLFW_GAMEPAD_AXIS_LEFT_Y];
-    result.axes[int8_t(Gamepad_Axis::RX)] =  glfw.axes[GLFW_GAMEPAD_AXIS_RIGHT_X];
-    result.axes[int8_t(Gamepad_Axis::RY)] = -glfw.axes[GLFW_GAMEPAD_AXIS_RIGHT_Y];
+    // sqee expects positive Y to be up
+    result.axes[int(Gamepad_Axis::LeftY)] *= -1.f;
+    result.axes[int(Gamepad_Axis::RightY)] *= -1.f;
 
     return result;
 }

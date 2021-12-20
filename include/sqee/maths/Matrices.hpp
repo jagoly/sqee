@@ -359,27 +359,31 @@ constexpr const char* type_to_string(maths::Matrix<W, H, T>)
 
 namespace detail {
 
-template <class T> struct MatrixTraits
-{
-   static constexpr bool value = false;
-};
+template <class T>
+struct MatrixTraits : std::false_type {};
 
 template <class T>
 struct MatrixTraits<const T> : MatrixTraits<T> {};
 
 template <int W, int H, class T>
-struct MatrixTraits<maths::Matrix<W, H, T>>
+struct MatrixTraits<maths::Matrix<W, H, T>> : std::true_type
 {
-   static constexpr bool value = true;
    static constexpr int width = W;
    static constexpr int height = H;
    using type = T;
 };
 
-template <class T> constexpr auto is_matrix_v = MatrixTraits<T>::value;
-template <class T> constexpr auto matrix_width_v = MatrixTraits<T>::width;
-template <class T> constexpr auto matrix_height_v = MatrixTraits<T>::height;
-template <class T> using matrix_type_t = typename MatrixTraits<T>::type;
+template <class T>
+constexpr bool is_matrix_v = MatrixTraits<T>::value;
+
+template <class T>
+constexpr int matrix_width_v = MatrixTraits<T>::width;
+
+template <class T>
+constexpr int matrix_height_v = MatrixTraits<T>::height;
+
+template <class T>
+using matrix_type_t = typename MatrixTraits<T>::type;
 
 }} // namespace sq::detail
 

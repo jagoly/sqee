@@ -2,7 +2,6 @@
 
 #include <sqee/core/Types.hpp>
 #include <sqee/maths/Approx.hpp>
-#include <sqee/misc/DopClasses.hpp>
 
 #include <ostream>
 
@@ -12,7 +11,6 @@ using namespace sq::coretypes;
 using sq::maths::Approx;
 
 namespace detail = sq::detail;
-namespace dop = sq::dop;
 namespace maths = sq::maths;
 
 constexpr const float PI = 3.14159265358979323846f;

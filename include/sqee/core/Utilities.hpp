@@ -5,18 +5,32 @@
 
 #include <sqee/core/Types.hpp>
 
-#include <memory>
-#include <type_traits>
+#include <fmt/core.h>
 
 #include <cstddef>
 #include <cstring>
+#include <memory>
+#include <type_traits>
 
 namespace sq {
 
 //============================================================================//
 
-inline const char* to_c_string(const char* arg) { return arg; }
-inline const char* to_c_string(const String& arg) { return arg.c_str(); }
+inline const char* to_c_string(const char* arg)
+{
+    return arg;
+}
+
+inline const char* to_c_string(const String& arg)
+{
+    return arg.c_str();
+}
+
+template <size_t Capacity>
+inline const char* to_c_string(const StackString<Capacity>& arg)
+{
+    return arg.c_str();
+}
 
 //============================================================================//
 
@@ -49,8 +63,6 @@ template<class... Elements> Structure(const Elements&...) -> Structure<Elements.
 
 //============================================================================//
 
-namespace detail {
-
 template <size_t Size>
 constexpr size_t string_length(const char(&)[Size])
 {
@@ -79,8 +91,6 @@ inline size_t string_length(const CharT* const& cstr)
     return std::strlen(cstr);
 }
 
-} // namespace detail
-
 //----------------------------------------------------------------------------//
 
 /// Function to join a bunch of strings with a single allocation.
@@ -88,9 +98,19 @@ template <class... Args>
 inline String build_string(Args&&... args)
 {
     String result;
-    result.reserve((detail::string_length(std::forward<Args>(args)) + ...));
+    result.reserve((string_length(std::forward<Args>(args)) + ...));
     ((result += args), ...);
     return result;
+}
+
+//============================================================================//
+
+/// Slightly more ergonomic wrapper around fmt::format_to.
+template <class... Args>
+inline String& format_append(String& output, StringView str, const Args&... args)
+{
+    fmt::format_to(std::back_inserter(output), str, args...);
+    return output;
 }
 
 //============================================================================//

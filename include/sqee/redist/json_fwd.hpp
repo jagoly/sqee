@@ -16,6 +16,7 @@ namespace nlohmann
 {
 /*!
 @brief default JSONSerializer template argument
+
 This serializer ignores the template arguments and uses ADL
 ([argument-dependent lookup](https://en.cppreference.com/w/cpp/language/adl))
 for serialization.
@@ -38,10 +39,13 @@ class basic_json;
 
 /*!
 @brief JSON Pointer
+
 A JSON pointer defines a string syntax for identifying a specific value
 within a JSON document. It can be used with functions `at` and
 `operator[]`. Furthermore, JSON pointers are the base for JSON patches.
+
 @sa [RFC 6901](https://tools.ietf.org/html/rfc6901)
+
 @since version 2.0.0
 */
 template<typename BasicJsonType>
@@ -49,8 +53,10 @@ class json_pointer;
 
 /*!
 @brief default JSON class
+
 This type is the default specialization of the @ref basic_json class which
 uses the standard template types.
+
 @since version 1.0.0
 */
 using json = basic_json<>;
@@ -60,7 +66,9 @@ struct ordered_map;
 
 /*!
 @brief ordered JSON class
+
 This type preserves the insertion order of object keys.
+
 @since version 3.9.0
 */
 using ordered_json = basic_json<nlohmann::ordered_map>;

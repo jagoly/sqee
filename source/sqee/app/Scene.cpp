@@ -10,23 +10,15 @@ Scene::Scene(double tickTime) : mTickTime(tickTime), mAccumulation(tickTime) {}
 
 //============================================================================//
 
-void Scene::update_and_render(double elapsed)
-{
-    mAccumulation += elapsed;
-
-    while (mAccumulation >= mTickTime)
-    {
-        mAccumulation -= mTickTime;
-        update();
-    }
-
-    render(elapsed);
-}
-
-//============================================================================//
-
 void Scene::update_and_integrate(double elapsed)
 {
+    // prevent jumping ahead after a long loading screen
+    if (mJustLoaded == true)
+    {
+        elapsed = 0.0;
+        mJustLoaded = false;
+    }
+
     mAccumulation += elapsed;
 
     while (mAccumulation >= mTickTime)

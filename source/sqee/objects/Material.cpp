@@ -100,7 +100,7 @@ void Material::impl_load_pass_from_json(const JsonValue& json, PipelineCache& pi
 
         if (info->type == "Texture2D")
         {
-            pass.textures.emplace_back(textures.acquire(value));
+            pass.textures.emplace_back(textures.acquire(value.get_ref<const String&>()));
 
             vk_update_descriptor_set (
                 ctx, pass.descriptorSet,

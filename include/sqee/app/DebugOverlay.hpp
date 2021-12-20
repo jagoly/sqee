@@ -39,6 +39,8 @@ private: //===================================================//
 
     void integrate(double elapsed, float blend) override;
 
+    void populate_command_buffer(vk::CommandBuffer, vk::Framebuffer) override {};
+
     struct Notification
     {
         uint timeRemaining;

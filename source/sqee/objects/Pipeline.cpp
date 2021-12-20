@@ -122,7 +122,7 @@ void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes
 {
     // setup pass config, with a useful error message
     {
-        const String& key = json.at("pass");
+        const auto& key = json.at("pass").get_ref<const String&>();
         const auto iter = passes.find(key);
 
         if (iter != passes.end()) mPassConfig = &iter->second;
@@ -275,10 +275,14 @@ void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes
 
     const auto& ctx = VulkanContext::get();
 
-    const auto vertexShaderCode = read_bytes_from_file(build_string("shaders/", json.at("vertexShader"), ".vert.spv"));
+    const auto vertexShaderCode = read_bytes_from_file (
+        build_string("shaders/", json.at("vertexShader").get_ref<const String&>(), ".vert.spv")
+    );
     reflect_shader(vertexShaderCode, vk::ShaderStageFlagBits::eVertex);
 
-    const auto fragmentShaderCode = read_bytes_from_file(build_string("shaders/", json.at("fragmentShader"), ".frag.spv"));
+    const auto fragmentShaderCode = read_bytes_from_file (
+        build_string("shaders/", json.at("fragmentShader").get_ref<const String&>(), ".frag.spv")
+    );
     reflect_shader(fragmentShaderCode, vk::ShaderStageFlagBits::eFragment);
 
     // make sure unused bindings have correct binding index
@@ -306,13 +310,13 @@ void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes
 
     //--------------------------------------------------------//
 
-    const std::vector<JsonValue>& jsonAttributes = json.at("attributes");
+    const auto& jsonAttributes = json.at("attributes").get_ref<const std::vector<JsonValue>&>();
     Mesh::Attributes attributes = {};
     Mesh::Attributes ignoredAttributes = {};
 
     for (const auto& jsonAttribute : jsonAttributes)
     {
-        StringView sv = jsonAttribute;
+        StringView sv = jsonAttribute.get_ref<const String&>();
         const bool ignored = sv.front() == '#';
         if (ignored) sv.remove_prefix(1u);
 
@@ -341,21 +345,21 @@ void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes
         &specialisation.info
     );
 
-    const std::vector<JsonValue>& jsonColourBlend = json.at("colourBlend");
+    const auto& jsonColourBlend = json.at("colourBlend").get_ref<const std::vector<JsonValue>&>();
     std::vector<vk::PipelineColorBlendAttachmentState> colourBlendAttachments;
     colourBlendAttachments.reserve(jsonColourBlend.size());
 
-    for (const JsonValue& colourBlend : jsonColourBlend)
-        colourBlendAttachments.emplace_back(impl_make_color_blend_state(colourBlend));
+    for (const JsonValue& element : jsonColourBlend)
+        colourBlendAttachments.emplace_back(impl_make_color_blend_state(element.get_ref<const String&>()));
 
     //--------------------------------------------------------//
 
     mPipeline = vk_create_graphics_pipeline (
         ctx, mPipelineLayout, mPassConfig->renderPass, mPassConfig->subpass, shaderModules.stages, vertexConfig.state,
         vk::PipelineInputAssemblyStateCreateInfo { {}, vk::PrimitiveTopology::eTriangleList, false },
-        impl_make_rasterization_state(json.at("cullFace")),
-        impl_make_multisample_state(mPassConfig->samples, json.at("alphaCoverage")),
-        impl_make_depth_stencil_state(mPassConfig->stencil, json.at("depthTest")),
+        impl_make_rasterization_state(json.at("cullFace").get_ref<const String&>()),
+        impl_make_multisample_state(mPassConfig->samples, json.at("alphaCoverage").get_ref<const String&>()),
+        impl_make_depth_stencil_state(mPassConfig->stencil, json.at("depthTest").get_ref<const String&>()),
         vk::Viewport { 0.f, float(mPassConfig->viewport.y), float(mPassConfig->viewport.x), -float(mPassConfig->viewport.y), 0.f, 1.f },
         vk::Rect2D { {0, 0}, {mPassConfig->viewport.x, mPassConfig->viewport.y} },
         colourBlendAttachments, {}

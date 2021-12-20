@@ -6,285 +6,143 @@
 
 #pragma once
 
-#include <sqee/export.hpp>
+#include <sqee/app/WrenForward.hpp>
 
 #include <wren.hpp> // IWYU pragma: export
 
 #include <fmt/format.h>
 
+#include <cassert>
 #include <exception>
 #include <functional>
+#include <map>
 #include <optional>
 #include <string>
 #include <string_view>
 #include <type_traits>
-#include <utility>
 
 namespace wren {
 
 //============================================================================//
 
-/// Specialise this for each foreign class you want to add to wren.
-template <class Type> struct Traits : std::false_type {};
-
-/// Check if Traits has been specialised for a given type.
-template <class Type> constexpr bool has_traits_v = Traits<Type>::value;
-
-/// Overloads for getting, setting and checking wren slots.
-template <class Type, class = void> struct SlotHelper;
-
-/// Convert a normal c++ function to a WrenForeignMethodFn.
-template <class Callable, Callable> struct MethodWrapper;
-
-/// Pass to call helpers instead of using wrenGetVariable.
-struct GetVar { const char* const module; const char* const name; };
-
-//============================================================================//
-
-/// Basically a crappy Either type, good enough for now.
-template <class T> struct SafeResult
-{
-    SafeResult(std::optional<T> _value) : value(_value) {}
-    SafeResult(std::string&& _errors) : errors(_errors) {}
-    std::optional<T> value = std::nullopt;
-    std::string errors = "";
-};
-
-//============================================================================//
-
 /// General exception to throw from functions bound to wren.
-class Exception : public std::exception
+struct Exception final : public std::exception
 {
-public: //====================================================//
-
-    Exception(std::string&& str) : mMessage(str) {}
+    Exception(std::string str) : message(std::move(str)) {}
 
     template <class... Args>
-    Exception(std::string_view str, Args&&... args) : mMessage(fmt::format(str, std::forward<Args>(args)...)) {}
+    Exception(std::string_view sv, Args&&... args) : message(fmt::format(sv, std::forward<Args>(args)...)) {}
 
-    const char* what() const noexcept override { return mMessage.c_str(); }
+    const char* what() const noexcept override { return message.c_str(); }
 
-private: //===================================================//
-
-    std::string mMessage;
+    std::string message;
 };
 
-//============================================================================//
-
-/// Specialisation for registered foreign classes.
-template <class Ptr>
-struct SlotHelper<Ptr, std::enable_if_t<has_traits_v<std::remove_pointer_t<Ptr>>>>
-{
-    // todo: this should check for the right kind of foreign object
-    static bool check(WrenVM* vm, int slot)
-    {
-        return wrenGetSlotType(vm, slot) == WREN_TYPE_FOREIGN;
-    }
-
-    static Ptr get(WrenVM* vm, int slot)
-    {
-        return *static_cast<Ptr*>(wrenGetSlotForeign(vm, slot));
-    }
-
-    // todo: could be better, find a way to cache the class lookup
-    static void set(WrenVM* vm, int slot, Ptr ptr)
-    {
-        using Type = std::remove_pointer_t<Ptr>;
-        wrenGetVariable(vm, wren::Traits<Type>::module, wren::Traits<Type>::className, slot);
-        void* ptrToPtr = wrenSetSlotNewForeign(vm, slot, slot, sizeof(void*));
-        *static_cast<Ptr*>(ptrToPtr) = ptr;
-    }
-};
-
-/// Specialisation for number and bool types.
+/// Minimal either type used for returning errors as strings.
 template <class Type>
-struct SlotHelper<Type, std::enable_if_t<std::is_arithmetic_v<Type>>>
+struct SafeResult
 {
-    static bool check(WrenVM* vm, int slot)
+    struct ValueTag {}; struct ErrorTag {};
+
+    template <class Arg>
+    SafeResult(ValueTag, Arg&& arg) : value(std::forward<Arg>(arg)), ok(true) {}
+
+    template <class Arg>
+    SafeResult(ErrorTag, Arg&& arg) : error(std::forward<Arg>(arg)), ok(false) {}
+
+    ~SafeResult() { if (ok) value.~Type(); else error.~basic_string(); }
+
+    union { Type value; std::string error; };
+    const bool ok;
+};
+
+/// Pass to call methods instead of using wrenGetVariable.
+struct GetVar
+{
+    GetVar(const char* module, const char* name) : module(module), name(name) {}
+
+    const char* const module;
+    const char* const name;
+};
+
+//============================================================================//
+
+namespace detail {
+
+/// Convert a c++ callable to a WrenForeignMethodFn.
+template <class Callable, Callable> struct MethodWrapper;
+
+/// Allow using c++ member object pointers with MethodWrapper.
+template <auto FieldPtr> struct FieldHelper;
+
+template <class Object, class Field, Field Object::*FieldPtr>
+struct FieldHelper<FieldPtr>
+{
+    static auto get(Object* self)
     {
-        if constexpr (std::is_same_v<Type, bool>) return wrenGetSlotType(vm, slot) == WREN_TYPE_BOOL;
-        else return wrenGetSlotType(vm, slot) == WREN_TYPE_NUM;
+        if constexpr (has_traits_v<Field>) return &(self->*FieldPtr);
+        else return self->*FieldPtr;
     }
 
-    static Type get(WrenVM* vm, int slot)
+    static void set(Object* self, Field value)
     {
-        if constexpr (std::is_same_v<Type, bool>) return wrenGetSlotBool(vm, slot);
-        else return static_cast<Type>(wrenGetSlotDouble(vm, slot));
-    }
-
-    static void set(WrenVM* vm, int slot, Type value)
-    {
-        if constexpr (std::is_same_v<Type, bool>) wrenSetSlotBool(vm, slot, value);
-        else wrenSetSlotDouble(vm, slot, static_cast<double>(value));
+        self->*FieldPtr = value;
     }
 };
 
-/// Specialisation for c strings.
-template <>
-struct SlotHelper<const char*>
+} // namespace detail
+
+//============================================================================//
+
+/// Create a new SafeResult with either a value or an error.
+template <class Type, bool Ok, class Arg>
+inline SafeResult<Type> make_safe_result(Arg&& arg)
 {
-    static bool check(WrenVM* vm, int slot)
-    {
-        return wrenGetSlotType(vm, slot) == WREN_TYPE_STRING;
-    }
+    if constexpr (Ok == true)
+        return SafeResult<Type>(typename SafeResult<Type>::ValueTag(), std::forward<Arg>(arg));
 
-    static const char* get(WrenVM* vm, int slot)
-    {
-        return wrenGetSlotString(vm, slot);
-    }
+    if constexpr (Ok == false)
+        return SafeResult<Type>(typename SafeResult<Type>::ErrorTag(), std::forward<Arg>(arg));
+}
 
-    static void set(WrenVM* vm, int slot, const char* cstr)
-    {
-        wrenSetSlotString(vm, slot, cstr);
-    }
-};
-
-/// Specialisation for generic wren handles.
-template <>
-struct SlotHelper<WrenHandle*>
-{
-    static bool check(WrenVM* vm, int slot)
-    {
-        return wrenGetSlotType(vm, slot) == WREN_TYPE_UNKNOWN;
-    }
-
-    static WrenHandle* get(WrenVM* vm, int slot)
-    {
-        return wrenGetSlotHandle(vm, slot);
-    }
-
-    static void set(WrenVM* vm, int slot, WrenHandle* handle)
-    {
-        wrenSetSlotHandle(vm, slot, handle);
-    }
-};
-
-/// Specialisation for get variable helpers.
-template <>
-struct SlotHelper<GetVar>
-{
-    static bool check(WrenVM* vm, int slot) = delete;
-
-    static WrenHandle* get(WrenVM* vm, int slot) = delete;
-
-    static void set(WrenVM* vm, int slot, const GetVar& var)
-    {
-        wrenGetVariable(vm, var.module, var.name, slot);
-    }
-};
-
-/// Specialisation for c++ string views.
-template <>
-struct SlotHelper<std::string_view>
-{
-    static bool check(WrenVM* vm, int slot)
-    {
-        return wrenGetSlotType(vm, slot) == WREN_TYPE_STRING;
-    }
-
-    static std::string_view get(WrenVM* vm, int slot)
-    {
-        int len; auto cstr = wrenGetSlotBytes(vm, slot, &len);
-        return std::string_view(cstr, size_t(len));
-    }
-
-    static void set(WrenVM* vm, int slot, const std::string_view& sv)
-    {
-        wrenSetSlotBytes(vm, slot, sv.data(), sv.length());
-    }
-};
-
-/// Specialisation for c++ strings.
-template <>
-struct SlotHelper<std::string>
-{
-    static bool check(WrenVM* vm, int slot)
-    {
-        return wrenGetSlotType(vm, slot) == WREN_TYPE_STRING;
-    }
-
-    static std::string get(WrenVM* vm, int slot)
-    {
-        int len; auto cstr = wrenGetSlotBytes(vm, slot, &len);
-        return std::string(cstr, size_t(len));
-    }
-
-    static void set(WrenVM* vm, int slot, const std::string& str)
-    {
-        wrenSetSlotBytes(vm, slot, str.data(), str.length());
-    }
-};
-
-/// Specialisation for c++ optionals.
+/// Get a value of the given type from the specified slot.
 template <class Type>
-struct SlotHelper<std::optional<Type>>
+inline std::decay_t<Type> get_slot(WrenVM* vm, int slot)
 {
-    static bool check(WrenVM* vm, int slot)
-    {
-        return wrenGetSlotType(vm, slot) == WREN_TYPE_NULL || SlotHelper<Type>::check(vm, slot);
-    }
-
-    static std::optional<Type> get(WrenVM* vm, int slot)
-    {
-        if (wrenGetSlotType(vm, slot) == WREN_TYPE_NULL) return std::nullopt;
-        else return SlotHelper<Type>::get(vm, slot);
-    }
-
-    static void set(WrenVM* vm, int slot, std::optional<Type> value)
-    {
-        if (value == std::nullopt) wrenSetSlotNull(vm, slot);
-        else SlotHelper<Type>::set(vm, slot, *value);
-    }
-};
-
-//============================================================================//
-
-template <class... Args, size_t... Slots>
-inline bool impl_check_slots(WrenVM* vm, std::index_sequence<Slots...>)
-{
-    return ( SlotHelper<Args>::check(vm, Slots) && ... );
+    // decay so that we also support const Type&, Type&&, etc.
+    return SlotHelper<std::decay_t<Type>>::get(vm, slot, wrenGetSlotType(vm, slot));
 }
 
-template <class... Args, size_t... Slots>
-inline std::tuple<Args...> impl_get_slots(WrenVM* vm, std::index_sequence<Slots...>)
+/// Set receiver and argument slots for calling a wren method.
+template <class Receiver, class... Args>
+inline void set_call_slots(WrenVM* vm, Receiver receiver, const Args&... args)
 {
-    return std::tuple(SlotHelper<Args>::get(vm, Slots)...);
+    static_assert (
+        has_traits_v<std::remove_pointer_t<Receiver>> ||
+        std::is_same_v<Receiver, WrenHandle*> || std::is_same_v<Receiver, GetVar>,
+        "unsupported receiver, must be an Object*, WrenHandle*, or GetVar"
+    );
+
+    // todo: should be a mutable reference, not a pointer
+    if constexpr (has_traits_v<std::remove_pointer_t<Receiver>>)
+        assert(receiver != nullptr);
+
+    wrenEnsureSlots(vm, 1 + sizeof...(Args));
+    SlotHelper<Receiver>::set(vm, 0, receiver);
+    int slot = 1;
+    (SlotHelper<Args>::set(vm, slot++, args), ...);
 }
 
-template <class... Args, size_t... Slots>
-inline void impl_set_slots(WrenVM* vm, Args... args, std::index_sequence<Slots...>)
-{
-    ( SlotHelper<Args>::set(vm, Slots, args), ... );
-}
+/// Wrap a member object pointer for use with WrenPlusVM::register_method.
+template <auto FieldPtr> constexpr auto FieldGetter = &detail::FieldHelper<FieldPtr>::get;
 
-//============================================================================//
-
-/// Check if wren slots hold the given types.
-template <class... Args>
-inline bool check_slots(WrenVM* vm)
-{
-    return impl_check_slots<Args...>(vm, std::make_index_sequence<sizeof...(Args)>());
-}
-
-/// Get a tuple with the given types from wren slots.
-template <class... Args>
-inline std::tuple<Args...> get_slots(WrenVM* vm)
-{
-    return impl_get_slots<Args...>(vm, std::make_index_sequence<sizeof...(Args)>());
-}
-
-/// Set wren slots to the given arguments.
-template <class... Args>
-inline void set_slots(WrenVM* vm, Args... args)
-{
-    wrenEnsureSlots(vm, sizeof...(Args));
-    impl_set_slots<Args...>(vm, args..., std::make_index_sequence<sizeof...(Args)>());
-}
+/// Wrap a member object pointer for use with WrenPlusVM::register_method.
+template <auto FieldPtr> constexpr auto FieldSetter = &detail::FieldHelper<FieldPtr>::set;
 
 //============================================================================//
 
 /// RAII wrapper for WrenVM, with some nice extra features.
-class SQEE_API WrenPlusVM final
+class WRENPLUS_API WrenPlusVM
 {
 public: //====================================================//
 
@@ -311,63 +169,115 @@ public: //====================================================//
         return *static_cast<WrenPlusVM*>(wrenGetUserData(vm));
     }
 
+    /// Get the class handle for a registered foreign class.
+    template <class Object>
+    WrenHandle* get_class_handle() const
+    {
+        return mForeignClassHandles[Traits<Object>::index];
+    }
+
     //--------------------------------------------------------//
 
-    /// Define a foreign method using a member function pointer.
-    template <auto FnPtr>
-    void add_foreign_method(const char* signature)
+    /// Set the list of directories in which wren should search for modules.
+    void set_module_import_dirs(std::vector<std::string> dirs)
     {
-        // todo: c++20 template lambdas so this can be one function
-        impl_add_foreign_method(signature, FnPtr, &wren::MethodWrapper<decltype(FnPtr), FnPtr>::call);
+        mModuleImportDirs = std::move(dirs);
+    }
+
+    /// Define a foreign method using either a member or free function pointer.
+    template <auto FnPtr>
+    void register_method(const char* signature)
+    {
+        static_assert (
+            (std::is_member_function_pointer_v<decltype(FnPtr)>) ||
+            (std::is_pointer_v<decltype(FnPtr)> && std::is_function_v<std::remove_pointer_t<decltype(FnPtr)>>),
+            "FnPtr must be a member function pointer or free function"
+        );
+
+        using Wrapper = detail::MethodWrapper<decltype(FnPtr), FnPtr>;
+        using Object = typename Wrapper::object_type;
+
+        static_assert(has_traits_v<Object>, "missing specialisation for wren::Traits");
+
+        impl_register_method(Traits<Object>::module, Traits<Object>::className, signature, &Wrapper::call);
+    }
+
+    /// Allow foreign object pointers to be tested for equality and inequality.
+    template <class Object>
+    void register_pointer_comparison_operators()
+    {
+        static_assert(has_traits_v<Object>, "Object must be a foreign class");
+
+        impl_register_method(Traits<Object>::module, Traits<Object>::className, "==(_)", &impl_pointer_equality_operator);
+        impl_register_method(Traits<Object>::module, Traits<Object>::className, "!=(_)", &impl_pointer_inequality_operator);
+    }
+
+    /// Cache the class handles for one or more classes.
+    template <class... Objects>
+    void cache_handles()
+    {
+        static_assert((has_traits_v<Objects> && ...), "missing traits for one or more types");
+
+        (impl_cache_handle(Traits<Objects>::module, Traits<Objects>::className, Traits<Objects>::index), ...);
     }
 
     //--------------------------------------------------------//
 
     /// Call a wren method with the given arguments and return the result.
-    template <class Result, class... Args>
-    Result call(WrenHandle* method, Args... args)
+    template <class Result, class Receiver, class... Args>
+    Result call(WrenHandle* method, Receiver receiver, const Args&... args)
     {
-        set_slots(*this, args...);
+        set_call_slots<Receiver, Args...>(mWrenVM, receiver, args...);
         mErrorString.clear();
-        if (wrenCall(*this, method) != WREN_RESULT_SUCCESS)
+
+        if (wrenCall(mWrenVM, method) != WREN_RESULT_SUCCESS)
             throw Exception(std::move(mErrorString));
-        return SlotHelper<Result>::get(*this, 0);
+
+        return get_slot<Result>(mWrenVM, 0);
     }
 
     /// Call a wren method with the given arguments.
-    template <class... Args>
-    void call_void(WrenHandle* method, Args... args)
+    template <class Receiver, class... Args>
+    void call_void(WrenHandle* method, Receiver receiver, const Args&... args)
     {
-        set_slots(*this, args...);
+        set_call_slots<Receiver, Args...>(mWrenVM, receiver, args...);
         mErrorString.clear();
-        if (wrenCall(*this, method) != WREN_RESULT_SUCCESS)
+
+        if (wrenCall(mWrenVM, method) != WREN_RESULT_SUCCESS)
             throw Exception(std::move(mErrorString));
     }
 
     //--------------------------------------------------------//
 
     /// Call a wren method with the given arguments and return the result or any errors.
-    template <class Result, class... Args>
-    SafeResult<Result> safe_call[[nodiscard]](WrenHandle* method, Args... args)
+    template <class Result, class Receiver, class... Args>
+    SafeResult<Result> safe_call[[nodiscard]](WrenHandle* method, Receiver receiver, const Args&... args) noexcept
     {
-        set_slots(*this, args...);
+        set_call_slots<Receiver, Args...>(mWrenVM, receiver, args...);
         mErrorString.clear();
-        if (wrenCall(*this, method) != WREN_RESULT_SUCCESS)
-            return std::move(mErrorString);
-        if (SlotHelper<Result>::check(*this, 0) == false)
-            return std::string("result type mismatch");
-        return std::optional(SlotHelper<Result>::get(*this, 0));
+
+        if (wrenCall(mWrenVM, method) != WREN_RESULT_SUCCESS)
+            return make_safe_result<Result, false>(std::move(mErrorString));
+
+        try {
+            return make_safe_result<Result, true>(get_slot<Result>(mWrenVM, 0));
+        }
+        catch (const std::exception& ex) {
+            return make_safe_result<Result, false>(ex.what());
+        }
     }
 
-    /// Call a wren method with the given arguments and return errors as a string.
-    template <class... Args>
-    std::optional<std::string> safe_call_void[[nodiscard]](WrenHandle* method, Args... args)
+    /// Call a wren method with the given arguments and return any errors.
+    template <class Receiver, class... Args>
+    std::string safe_call_void[[nodiscard]](WrenHandle* method, Receiver receiver, const Args&... args) noexcept
     {
-        set_slots(*this, args...);
+        set_call_slots<Receiver, Args...>(mWrenVM, receiver, args...);
         mErrorString.clear();
-        if (wrenCall(*this, method) != WREN_RESULT_SUCCESS)
+
+        if (wrenCall(mWrenVM, method) != WREN_RESULT_SUCCESS)
             return std::move(mErrorString);
-        return std::nullopt;
+
+        return std::string();
     }
 
     //--------------------------------------------------------//
@@ -376,18 +286,24 @@ public: //====================================================//
     void interpret(const char* module, const char* source);
 
     /// Wrapper for wrenInterpret that returns errors as a string.
-    std::optional<std::string> safe_interpret[[nodiscard]](const char* module, const char* source);
+    std::string safe_interpret[[nodiscard]](const char* module, const char* source);
+
+    /// Interpret a module from file, as if using import.
+    void load_module(const char* module);
+
+    /// Makes sure that no foreign class indices are missing.
+    void validate_class_handle_cache();
 
     //--------------------------------------------------------//
 
     /// Abort the current wren fiber with a formatted error message.
     template <class... Args>
-    void abort(std::string_view str, const Args&... args)
+    void abort(std::string_view str, const Args&... args) noexcept
     {
         const std::string message = fmt::format(str, args...);
-        wrenEnsureSlots(*this, 1);
-        wrenSetSlotBytes(*this, 0, message.data(), message.length());
-        wrenAbortFiber(*this, 0);
+        wrenEnsureSlots(mWrenVM, 1);
+        wrenSetSlotBytes(mWrenVM, 0, message.data(), message.length());
+        wrenAbortFiber(mWrenVM, 0);
     }
 
 private: //===================================================//
@@ -400,90 +316,402 @@ private: //===================================================//
 
     static WrenForeignMethodFn impl_bind_foreign_method_fn(WrenVM*, const char*, const char*, bool, const char*);
 
-    static WrenLoadModuleResult impl_load_module_fn(WrenVM* vm, const char* name);
+    static WrenLoadModuleResult impl_load_module_fn(WrenVM*, const char*);
 
     //--------------------------------------------------------//
 
-    template <class Object, class Result, class... Args>
-    void impl_add_foreign_method(const char* signature, Result(Object::*)(Args...), WrenForeignMethodFn func)
-    {
-        static_assert(wren::has_traits_v<Object>, "missing wren::Traits specialisation");
-        impl_register_method(Traits<Object>::module, Traits<Object>::className, signature, func);
-    }
-
     void impl_register_method(const char* module, const char* className, const char* signature, WrenForeignMethodFn func);
+
+    void impl_cache_handle(const char* module, const char* className, size_t index);
+
+    //--------------------------------------------------------//
+
+    static void impl_pointer_equality_operator(WrenVM* vm);
+
+    static void impl_pointer_inequality_operator(WrenVM* vm);
 
     //--------------------------------------------------------//
 
     WrenVM* mWrenVM = nullptr;
 
-    std::unordered_map<std::string, WrenForeignMethodFn> mForiegnMethods;
+    std::vector<std::string> mModuleImportDirs;
+
+    std::map<std::string, WrenForeignMethodFn> mForiegnMethods;
+
+    std::vector<WrenHandle*> mForeignClassHandles;
 
     std::string mErrorString;
 };
 
 //============================================================================//
 
-template <class Result, class... Args, class Func>
-inline void impl_apply_helper(WrenVM* vm, Func func)
-{
-    if (check_slots<Args...>(vm) == false)
-        WrenPlusVM::access(vm).abort("argument type mismatch"); // todo: more detail
+namespace detail {
 
-    else try
+/// Generate a new unique index for a foreign type.
+WRENPLUS_API size_t generate_type_index() noexcept;
+
+/// Handled in a seperate function to reduce code bloat.
+WRENPLUS_API void exception_handler(WrenVM* vm, const std::exception& ex) noexcept;
+
+/// Calls a function with arguments from slots and captures exceptions.
+template <class Result, class Object, class... Args, class Func, int... Slots>
+inline void invoke_helper(WrenVM* vm, Func func, std::integer_sequence<int, Slots...>) noexcept
+{
+    // don't need to do any checks since we already know the slot is correct
+    Object* self = *static_cast<Object**>(wrenGetSlotForeign(vm, 0));
+
+    try // capture any exceptions and pass them to the handler
     {
-        if constexpr (std::is_void_v<Result>) std::apply(func, get_slots<Args...>(vm));
-        else SlotHelper<Result>::set(vm, 0, std::apply(func, get_slots<Args...>(vm)));
+        if constexpr (std::is_void_v<Result>)
+            std::invoke(func, self, get_slot<Args>(vm, 1 + Slots)...);
+
+        else // set return value
+            SlotHelper<Result>::set(vm, 0, std::invoke(func, self, get_slot<Args>(vm, 1 + Slots)...));
     }
-    catch (const std::exception& ex)
-    {
-        WrenPlusVM::access(vm).abort(fmt::format("caught exception: {}", ex.what()));
-    }
+    catch (const std::exception& ex) { exception_handler(vm, ex); }
 }
 
-//============================================================================//
-
-/// Wrapper for normal member functions.
+/// Wrapper for member functions.
 template <class Result, class Object, class... Args, Result(Object::*FnPtr)(Args...)>
 struct MethodWrapper<Result(Object::*)(Args...), FnPtr>
 {
-    static void call(WrenVM* vm)
+    using object_type = Object;
+
+    static void call(WrenVM* vm) noexcept
     {
-        impl_apply_helper<Result, Object*, Args...>(vm, FnPtr);
+        invoke_helper<Result, Object, Args...>(vm, FnPtr, std::make_integer_sequence<int, sizeof...(Args)>());
     }
 };
 
-// todo: wrappers for other kinds of functions
+/// Wrapper for free functions.
+template <class Result, class Object, class... Args, Result(*FnPtr)(Object*, Args...)>
+struct MethodWrapper<Result(*)(Object*, Args...), FnPtr>
+{
+    using object_type = Object;
 
-//============================================================================//
+    static void call(WrenVM* vm) noexcept
+    {
+        invoke_helper<Result, Object, Args...>(vm, FnPtr, std::make_integer_sequence<int, sizeof...(Args)>());
+    }
+};
+
+} // namespace detail
 
 } // namespace wren
 
-//===== SQEE SPECIFIC EXTRAS =================================================//
+//===== STANDARD SLOT HELPERS ================================================//
 
-#include <sqee/misc/StackString.hpp>
-
-namespace wren {
-
-/// Specialisation for sqee stack strings.
-template <size_t Capacity>
-struct SlotHelper<sq::StackString<Capacity>>
+/// Specialisation for compile-time null.
+template <>
+struct wren::SlotHelper<std::nullptr_t>
 {
-    // todo: this should check that the string is short enough
-    static bool check(WrenVM* vm, int slot)
+    static void set(WrenVM* vm, int slot, std::nullptr_t)
     {
-        return wrenGetSlotType(vm, slot) == WREN_TYPE_STRING;
+        wrenSetSlotNull(vm, slot);
+    }
+};
+
+/// Specialisation for registered foreign classes.
+template <class Object>
+struct wren::SlotHelper<Object*, std::enable_if_t<wren::has_traits_v<Object>>>
+{
+    struct TaggedPointer { Object* ptr; size_t index; };
+
+    static Object* get(WrenVM* vm, int slot, WrenType slotType)
+    {
+        if (slotType == WREN_TYPE_NULL)
+            return nullptr;
+
+        if (slotType == WREN_TYPE_FOREIGN)
+        {
+            const auto& data = *static_cast<TaggedPointer*>(wrenGetSlotForeign(vm, slot));
+            if (data.index != Traits<Object>::index)
+                throw Exception("slot holds different type of Object");
+            return data.ptr;
+        }
+
+        throw Exception("slot does not hold Object*");
     }
 
-    static sq::StackString<Capacity> get(WrenVM* vm, int slot)
+    static void set(WrenVM* vm, int slot, Object* ptr)
     {
-        return SlotHelper<std::string_view>::get(vm, slot);
+        if (ptr != nullptr)
+        {
+            wrenSetSlotHandle(vm, slot, WrenPlusVM::access(vm).get_class_handle<Object>());
+            auto& data = *static_cast<TaggedPointer*>(wrenSetSlotNewForeign(vm, slot, slot, sizeof(TaggedPointer)));
+            data = { ptr, Traits<Object>::index };
+        }
+        else wrenSetSlotNull(vm, slot);
+    }
+};
+
+/// Specialisation for bools.
+template <>
+struct wren::SlotHelper<bool>
+{
+    static bool get(WrenVM* vm, int slot, WrenType slotType)
+    {
+        if (slotType == WREN_TYPE_BOOL)
+            return wrenGetSlotBool(vm, slot);
+
+        throw Exception("slot does not hold Bool");
     }
 
-    static void set(WrenVM* vm, int slot, const sq::StackString<Capacity>& str)
+    static void set(WrenVM* vm, int slot, bool value)
+    {
+        wrenSetSlotBool(vm, slot, value);
+    }
+};
+
+/// Specialisation for numbers.
+template <class Number>
+struct wren::SlotHelper<Number, std::enable_if_t<std::is_arithmetic_v<Number>>>
+{
+    static Number get(WrenVM* vm, int slot, WrenType slotType)
+    {
+        if (slotType == WREN_TYPE_NUM)
+        {
+            const double value = wrenGetSlotDouble(vm, slot);
+
+            #ifdef WRENPLUS_DEBUG
+            if constexpr (std::is_signed_v<Number> == false)
+                if (std::signbit(value) == true)
+                    throw Exception("number is not positive");
+
+            if constexpr (std::is_integral_v<Number> == true)
+                if (std::trunc(value) != value)
+                    throw Exception("number is not an integer");
+            #endif
+
+            return static_cast<Number>(value);
+        }
+
+        throw Exception("slot does not hold Number");
+    }
+
+    static void set(WrenVM* vm, int slot, Number value)
+    {
+        wrenSetSlotDouble(vm, slot, static_cast<double>(value));
+    }
+};
+
+/// Specialisation for c strings.
+template <>
+struct wren::SlotHelper<const char*>
+{
+    static const char* get(WrenVM* vm, int slot, WrenType slotType)
+    {
+        if (slotType == WREN_TYPE_STRING)
+            return wrenGetSlotString(vm, slot);
+
+        throw Exception("slot does not hold String");
+    }
+
+    static void set(WrenVM* vm, int slot, const char* cstr)
+    {
+        wrenSetSlotString(vm, slot, cstr);
+    }
+};
+
+/// Specialisation for c++ string views.
+template <>
+struct wren::SlotHelper<std::string_view>
+{
+    static std::string_view get(WrenVM* vm, int slot, WrenType slotType)
+    {
+        if (slotType == WREN_TYPE_STRING)
+        {
+            int len; auto cstr = wrenGetSlotBytes(vm, slot, &len);
+            return std::string_view(cstr, size_t(len));
+        }
+
+        throw Exception("slot does not hold String");
+    }
+
+    static void set(WrenVM* vm, int slot, const std::string_view& sv)
+    {
+        wrenSetSlotBytes(vm, slot, sv.data(), sv.length());
+    }
+};
+
+/// Specialisation for c++ strings.
+template <>
+struct wren::SlotHelper<std::string>
+{
+    static std::string get(WrenVM* vm, int slot, WrenType slotType)
+    {
+        if (slotType == WREN_TYPE_STRING)
+        {
+            int len; auto cstr = wrenGetSlotBytes(vm, slot, &len);
+            return std::string(cstr, size_t(len));
+        }
+
+        throw Exception("slot does not hold String");
+    }
+
+    static void set(WrenVM* vm, int slot, const std::string& str)
     {
         wrenSetSlotBytes(vm, slot, str.data(), str.length());
     }
 };
 
-} // namespace wren
+/// Specialisation for opaque wren handles.
+template <>
+struct wren::SlotHelper<WrenHandle*>
+{
+    static WrenHandle* get(WrenVM* vm, int slot, WrenType slotType)
+    {
+        if (slotType == WREN_TYPE_UNKNOWN)
+            return wrenGetSlotHandle(vm, slot);
+
+        throw Exception("slot does not hold WrenHandle");
+    }
+
+    static void set(WrenVM* vm, int slot, WrenHandle* handle)
+    {
+        wrenSetSlotHandle(vm, slot, handle);
+    }
+};
+
+/// Specialisation for the get variable helper (set only).
+template <>
+struct wren::SlotHelper<wren::GetVar>
+{
+    static void set(WrenVM* vm, int slot, const wren::GetVar& var)
+    {
+        wrenGetVariable(vm, var.module, var.name, slot);
+    }
+};
+
+/// Specialisation for c++ optionals.
+template <class Type>
+struct wren::SlotHelper<std::optional<Type>>
+{
+    static std::optional<Type> get(WrenVM* vm, int slot, WrenType slotType)
+    {
+        if (slotType == WREN_TYPE_NULL)
+            return std::nullopt;
+
+        return SlotHelper<Type>::get(vm, slot, slotType);
+    }
+
+    static void set(WrenVM* vm, int slot, const std::optional<Type>& opt)
+    {
+        if (opt.has_value() == true)
+            SlotHelper<Type>::set(vm, slot, *opt);
+
+        else wrenSetSlotNull(vm, slot);
+    }
+};
+
+/// Specialisation for c++ vectors.
+template <class Type>
+struct wren::SlotHelper<std::vector<Type>>
+{
+    static std::vector<Type> get(WrenVM* vm, int slot, WrenType slotType)
+    {
+        if (slotType == WREN_TYPE_LIST)
+        {
+            const int elemCount = wrenGetListCount(vm, slot);
+
+            std::vector<Type> result;
+            result.reserve(size_t(elemCount));
+
+            for (int i = 0; i < elemCount; ++i)
+            {
+                wrenGetListElement(vm, slot, i, 0);
+                result.emplace_back(SlotHelper<Type>::get(vm, 0, wrenGetSlotType(vm, 0)));
+            }
+
+            return result;
+        }
+
+        throw Exception("slot does not hold List");
+    }
+
+    // todo: compilicated since we need an extra slot for insertion
+    //static void set(WrenVM* vm, int slot, const std::vector<Type>& vec)
+    //{
+    //    wrenSetSlotNewList(vm, slot);
+    //}
+};
+
+//===== SQEE SLOT HELPERS ====================================================//
+
+#include <sqee/core/EnumHelper.hpp>
+
+/// Specialisation for the sqee enum helper.
+template <class Enum>
+struct wren::SlotHelper<Enum, std::enable_if_t<sq::has_enum_traits_v<Enum>>>
+{
+    static Enum get(WrenVM* vm, int slot, WrenType slotType)
+    {
+        if (slotType == WREN_TYPE_STRING)
+        {
+            const auto sv = SlotHelper<std::string_view>::get(vm, slot, WREN_TYPE_STRING);
+            return sq::enum_from_string<Enum>(sv); // throw if invalid
+        }
+
+        throw Exception("slot does not hold Enum (String)");
+    }
+
+    static void set(WrenVM* vm, int slot, Enum value)
+    {
+        const auto str = sq::enum_to_string_safe(value);
+        assert(str.has_value() == true);
+        SlotHelper<std::string_view>::set(vm, slot, *str);
+    }
+};
+
+#include <sqee/misc/StackString.hpp>
+
+/// Specialisation for sqee stack strings.
+template <size_t Capacity>
+struct wren::SlotHelper<sq::StackString<Capacity>>
+{
+    static sq::StackString<Capacity> get(WrenVM* vm, int slot, WrenType slotType)
+    {
+        return SlotHelper<std::string_view>::get(vm, slot, slotType);
+    }
+
+    static void set(WrenVM* vm, int slot, const sq::StackString<Capacity>& str)
+    {
+        SlotHelper<const char*>::set(vm, slot, str.c_str());
+    }
+};
+
+#include <sqee/misc/StackVector.hpp>
+
+/// Specialisation for sqee stack vectors.
+template <class Type, size_t Capacity>
+struct wren::SlotHelper<sq::StackVector<Type, Capacity>>
+{
+    static sq::StackVector<Type, Capacity> get(WrenVM* vm, int slot, WrenType slotType)
+    {
+        if (slotType == WREN_TYPE_LIST)
+        {
+            const int elemCount = wrenGetListCount(vm, slot);
+
+            if (elemCount > Capacity)
+                throw Exception("too many elements for StackVector");
+
+            sq::StackVector<Type, Capacity> result;
+
+            for (int i = 0; i < elemCount; ++i)
+            {
+                wrenGetListElement(vm, slot, i, 0);
+                result.emplace_back(SlotHelper<Type>::get(vm, 0, wrenGetSlotType(vm, 0)));
+            }
+
+            return result;
+        }
+
+        throw Exception("slot does not hold List");
+    }
+
+    // todo: compilicated since we need an extra slot for insertion
+    //static void set(WrenVM* vm, int slot, const sq::StackVector<Type, Capacity>& vec)
+    //{
+    //    wrenSetSlotNewList(vm, slot);
+    //}
+};

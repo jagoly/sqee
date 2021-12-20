@@ -27,10 +27,10 @@ build_script:
 
 after_build:
 
-  - cd c:/projects/sqee/build
-  - 7z a sqee-windows-debug.zip Debug/*
+  - cd c:/projects/sqee/build/Debug
+  - 7z a sqee-windows-debug.zip *
 
 artifacts:
 
-  - path: build/sqee-windows-debug.zip
+  - path: build/Debug/sqee-windows-debug.zip
     name: sqee-windows-debug

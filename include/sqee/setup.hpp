@@ -42,13 +42,13 @@
 typedef std::ptrdiff_t ptrdiff_t;
 typedef std::size_t size_t;
 
-// sqee shouldn't make these assumptions, but right now it does
-static_assert(sizeof(int)    == 4);
+// sqee does not support 32bit platforms
+static_assert(sizeof(int) == 4);
 static_assert(sizeof(size_t) == 8);
 
 // these are not standard c++ so make sure they are defined
 typedef unsigned char uchar;
-typedef unsigned int  uint;
+typedef unsigned int uint;
 
 // sometimes want to have this as a member variable
 typedef unsigned int ImGuiID;
@@ -92,9 +92,6 @@ struct MoveOnly
 
 /// Some very basic generic algorithms.
 namespace algo {}
-
-/// Utilities for data oriented programming.
-namespace dop {}
 
 /// Mathematical classes and functions.
 namespace maths {}

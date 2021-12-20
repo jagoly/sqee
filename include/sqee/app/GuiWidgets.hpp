@@ -45,8 +45,6 @@ private:
     const char* const mCharPtr;
 };
 
-static_assert(sizeof(CStrView) == sizeof(const char*));
-
 //----------------------------------------------------------------------------//
 
 constexpr const int FONT_REGULAR = 0;
@@ -191,7 +189,16 @@ inline float FromScreenBottom(float offset)
 /// Display a tooltip if the mouse is over the last item.
 inline void HoverTooltip(std::string_view text)
 {
-    if (ImGui::IsItemHovered()) ImPlus::SetTooltip(text);
+    if (!ImGui::IsItemHovered()) return;
+    ImPlus::SetTooltip(text);
+}
+
+/// Display a tooltip at a fixed location, below the item.
+inline void HoverTooltipFixed(std::string_view text)
+{
+    if (!ImGui::IsItemHovered()) return;
+    ImGui::SetNextWindowPos(ImGui::GetCursorScreenPos());
+    ImPlus::SetTooltip(text);
 }
 
 /// Version of PushFont taking the index of a font.
@@ -224,77 +231,105 @@ SQEE_API bool CloseButton(CStrView label);
 
 //----------------------------------------------------------------------------//
 
+namespace detail {
+
 template <class Type>
-constexpr inline ImGuiDataType_ impl_get_data_type()
+constexpr ImGuiDataType_ get_data_type()
 {
-    if (std::is_same_v<Type, int8_t>)   return ImGuiDataType_S8;
-    if (std::is_same_v<Type, uint8_t>)  return ImGuiDataType_U8;
-    if (std::is_same_v<Type, int16_t>)  return ImGuiDataType_S16;
-    if (std::is_same_v<Type, uint16_t>) return ImGuiDataType_U16;
-    if (std::is_same_v<Type, int32_t>)  return ImGuiDataType_S32;
-    if (std::is_same_v<Type, uint32_t>) return ImGuiDataType_U32;
-    if (std::is_same_v<Type, int64_t>)  return ImGuiDataType_S64;
-    if (std::is_same_v<Type, uint64_t>) return ImGuiDataType_U64;
-    if (std::is_same_v<Type, float>)    return ImGuiDataType_Float;
-    if (std::is_same_v<Type, double>)   return ImGuiDataType_Double;
+    if constexpr (std::is_same_v<Type, int8_t>)   return ImGuiDataType_S8;
+    if constexpr (std::is_same_v<Type, uint8_t>)  return ImGuiDataType_U8;
+    if constexpr (std::is_same_v<Type, int16_t>)  return ImGuiDataType_S16;
+    if constexpr (std::is_same_v<Type, uint16_t>) return ImGuiDataType_U16;
+    if constexpr (std::is_same_v<Type, int32_t>)  return ImGuiDataType_S32;
+    if constexpr (std::is_same_v<Type, uint32_t>) return ImGuiDataType_U32;
+    if constexpr (std::is_same_v<Type, int64_t>)  return ImGuiDataType_S64;
+    if constexpr (std::is_same_v<Type, uint64_t>) return ImGuiDataType_U64;
+    if constexpr (std::is_same_v<Type, float>)    return ImGuiDataType_Float;
+    if constexpr (std::is_same_v<Type, double>)   return ImGuiDataType_Double;
 }
 
-#define IMPLUS_INPUT_VALUE_DECLARATION(Type) \
-SQEE_API bool InputValue(CStrView label, Type& ref, Type step = 0, const char* format = nullptr);
+SQEE_API bool is_temp_input_open();
 
-#define IMPLUS_DRAG_VALUE_DECLARATION(Type) \
-SQEE_API bool DragValue(CStrView label, Type& ref, Type min, Type max, float speed, const char* format = nullptr);
-
-#define IMPLUS_SLIDER_VALUE_DECLARATION(Type) \
-SQEE_API bool SliderValue(CStrView label, Type& ref, Type min, Type max, const char* format = nullptr);
-
-#define IMPLUS_DRAG_VALUE_RANGE2_DECLARATION(Type) \
-SQEE_API bool DragValueRange2(CStrView label, Type& refMin, Type& refMax, Type min, Type max, float speed, const char* format = nullptr);
+} // namespace detail
 
 //----------------------------------------------------------------------------//
 
-#define IMPLUS_INPUT_FUNCTION_DECLARATIONS(Type) \
-IMPLUS_INPUT_VALUE_DECLARATION(Type) \
-IMPLUS_DRAG_VALUE_DECLARATION(Type) \
-IMPLUS_SLIDER_VALUE_DECLARATION(Type) \
-IMPLUS_DRAG_VALUE_RANGE2_DECLARATION(Type)
+// note: all of the Input* widgets currently suffer from https://github.com/ocornut/imgui/issues/4714
+// not worrying about it for now, will hopefully be fixed soon
 
-IMPLUS_INPUT_FUNCTION_DECLARATIONS(int8_t)
-IMPLUS_INPUT_FUNCTION_DECLARATIONS(uint8_t)
-IMPLUS_INPUT_FUNCTION_DECLARATIONS(int16_t)
-IMPLUS_INPUT_FUNCTION_DECLARATIONS(uint16_t)
-IMPLUS_INPUT_FUNCTION_DECLARATIONS(int32_t)
-IMPLUS_INPUT_FUNCTION_DECLARATIONS(uint32_t)
-IMPLUS_INPUT_FUNCTION_DECLARATIONS(int64_t)
-IMPLUS_INPUT_FUNCTION_DECLARATIONS(uint64_t)
-IMPLUS_INPUT_FUNCTION_DECLARATIONS(float)
-IMPLUS_INPUT_FUNCTION_DECLARATIONS(double)
+template <class Type>
+inline bool InputValue(CStrView label, Type& ref, decltype(Type()) step, const char* format = nullptr)
+{
+    constexpr auto dataType = detail::get_data_type<Type>();
+    Type temp = ref;
+    bool changed = ImGui::InputScalar(label, dataType, &temp, step > 0 ? &step : nullptr, nullptr, format);
+    if (changed) changed = ImGui::IsItemDeactivatedAfterEdit();
+    if (changed) ref = temp;
+    return changed;
+}
 
-#undef IMPLUS_INPUT_FUNCTION_DECLARATIONS
+template <class Type>
+inline bool DragValue(CStrView label, Type& ref, float speed, decltype(Type()) min, decltype(Type()) max, const char* format = nullptr)
+{
+    constexpr auto dataType = detail::get_data_type<Type>();
+    Type temp = ref;
+    bool changed = ImGui::DragScalar(label, dataType, &temp, speed, &min, &max, format, ImGuiSliderFlags_AlwaysClamp);
+    if (changed && detail::is_temp_input_open()) changed = ImGui::IsItemDeactivatedAfterEdit();
+    if (changed) ref = temp;
+    return changed;
+}
 
-#undef IMPLUS_INPUT_VALUE_DECLARATION
-#undef IMPLUS_DRAG_VALUE_DECLARATION
-#undef IMPLUS_SLIDER_VALUE_DECLARATION
-#undef IMPLUS_DRAG_VALUE_RANGE2_DECLARATION
+template <class Type>
+inline bool SliderValue(CStrView label, Type& ref, decltype(Type()) min, decltype(Type()) max, const char* format = nullptr)
+{
+    constexpr auto dataType = detail::get_data_type<Type>();
+    Type temp = ref;
+    bool changed = ImGui::SliderScalar(label, dataType, &temp, &min, &max, format, ImGuiSliderFlags_AlwaysClamp);
+    if (changed && detail::is_temp_input_open()) changed = ImGui::IsItemDeactivatedAfterEdit();
+    if (changed) ref = temp;
+    return changed;
+}
+
+template <class Type>
+inline bool DragValueRange2(CStrView label, Type& refMin, Type& refMax, float speed, decltype(Type()) min, decltype(Type()) max, const char* format = nullptr)
+{
+    constexpr auto dataType = detail::get_data_type<Type>();
+    Type temp[2] = { refMin, refMax };
+    bool changed = ImGui::DragScalarRange2(label, dataType, &temp[0], &temp[1], speed, &min, &max, format, format, ImGuiSliderFlags_AlwaysClamp);
+    if (changed && detail::is_temp_input_open()) changed = ImGui::IsItemDeactivatedAfterEdit();
+    if (changed) { refMin = temp[0]; refMax = temp[1]; }
+    return changed;
+}
 
 //----------------------------------------------------------------------------//
 
 template <int Size, class Type>
-inline bool InputVector(CStrView label, sq::maths::Vector<Size, Type>& ref, decltype(Type()) step = 0, const char* format = nullptr)
+inline bool InputVector(CStrView label, sq::maths::Vector<Size, Type>& ref, decltype(Type()) step, const char* format = nullptr)
 {
-    constexpr auto dataType = impl_get_data_type<Type>();
+    constexpr auto dataType = detail::get_data_type<Type>();
     auto temp = ref;
-    ImGui::InputScalarN(label, dataType, temp.data, Size, step > 0 ? &step : nullptr, nullptr, format);
-    const bool changed = ImGui::IsItemDeactivatedAfterEdit();
+    bool changed = ImGui::InputScalarN(label, dataType, temp.data, Size, step > 0 ? &step : nullptr, nullptr, format);
+    if (changed) changed = ImGui::IsItemDeactivatedAfterEdit();
+    if (changed) ref = temp;
+    return changed;
+}
+
+template <int Size, class Type>
+inline bool DragVector(CStrView label, sq::maths::Vector<Size, Type>& ref, float speed, const char* format = nullptr)
+{
+    constexpr auto dataType = detail::get_data_type<Type>();
+    auto temp = ref;
+    bool changed = ImGui::DragScalarN(label, dataType, temp.data, Size, speed, nullptr, nullptr, format);
+    if (changed && detail::is_temp_input_open()) changed = ImGui::IsItemDeactivatedAfterEdit();
     if (changed) ref = temp;
     return changed;
 }
 
 // todo: make widget fancy, allow to switch input mode to euler XYZ
 template <class Type>
-inline bool InputQuaternion(CStrView label, sq::maths::Quaternion<Type>& ref, decltype(Type()) step = 0, const char* format = nullptr)
+inline bool InputQuaternion(CStrView label, sq::maths::Quaternion<Type>& ref, decltype(Type()) step, const char* format = nullptr)
 {
-    constexpr auto dataType = impl_get_data_type<Type>();
+    constexpr auto dataType = detail::get_data_type<Type>();
     auto temp = ref;
     ImGui::InputScalarN(label, dataType, temp.data, 4, step > 0 ? &step : nullptr, nullptr, format);
     const bool changed = ImGui::IsItemDeactivatedAfterEdit();
@@ -328,7 +363,7 @@ inline bool Combo(CStrView label, const Container& container, Index& ref, CStrVi
         ImGui::EndCombo();
     }
 
-    // only return true if new selection has changed, unlike ImGui::Combo
+    // only return true if selection has changed, unlike ImGui::Combo
     return ref != oldValue;
 }
 
@@ -347,7 +382,7 @@ inline bool ComboEnum(CStrView label, EnumType& ref, ImGuiComboFlags flags = 0)
         ImGui::EndCombo();
     }
 
-    // only return true if new selection is different, unlike ImGui::Combo
+    // only return true if selection has changed, unlike ImGui::Combo
     return ref != oldValue;
 }
 
@@ -452,9 +487,10 @@ void if_TabItemChild(CStrView label, ImGuiTabItemFlags flags, Body body)
 /// Wrapper for PushID, PopID.
 struct ScopeID final : sq::NonCopyable
 {
+    ScopeID(const char* cstr_id) { ImGui::PushID(cstr_id); }
+    ScopeID(std::string_view sv_id) { ImGui::PushID(sv_id.data(), sv_id.data() + sv_id.length()); }
+    ScopeID(const void* ptr_id) { ImGui::PushID(ptr_id); }
     ScopeID(int int_id) { ImGui::PushID(int_id); }
-    ScopeID(CStrView str_id) { ImGui::PushID(str_id); }
-    //ScopeID(const void* ptr_id) { ImGui::PushID(ptr_id); }
     ~ScopeID() { ImGui::PopID(); }
 };
 
@@ -509,6 +545,7 @@ struct ScopeStyleVec final : sq::NonCopyable
 
 using Style_ButtonTextAlign = ScopeStyleVec<ImGuiStyleVar_ButtonTextAlign>;
 using Style_SelectableTextAlign = ScopeStyleVec<ImGuiStyleVar_SelectableTextAlign>;
+using Style_FramePadding = ScopeStyleVec<ImGuiStyleVar_FramePadding>;
 
 //============================================================================//
 
