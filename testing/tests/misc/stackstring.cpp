@@ -1,6 +1,8 @@
 #include "../../catch.hpp"
 #include "../../Common.hpp"
 
+#include <sqee/misc/StackString.hpp>
+
 //============================================================================//
 
 constexpr const char CHAR_ARRAY[] = "abcdefghijklmno";
