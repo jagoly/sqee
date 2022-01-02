@@ -87,7 +87,7 @@ void GuiSystem::set_style_widgets_supertux()
     style.ChildBorderSize           = 0.f;
     style.PopupRounding             = 0.f;
     style.PopupBorderSize           = 1.f;
-    style.FramePadding              = { 6.f, 6.f };
+    style.FramePadding              = { 6.f, 4.f };
     style.FrameRounding             = 4.f;
     style.FrameBorderSize           = 0.f;
     style.ItemSpacing               = { 6.f, 6.f };

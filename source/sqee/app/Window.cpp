@@ -443,12 +443,12 @@ Window::Window(const char* title, Vec2U size, const char* appName, Vec3U version
     {
         // todo: allow these to be configured
         auto poolSizes = std::array {
-            vk::DescriptorPoolSize { vk::DescriptorType::eUniformBuffer, 240u },
-            vk::DescriptorPoolSize { vk::DescriptorType::eCombinedImageSampler, 320u }
+            vk::DescriptorPoolSize { vk::DescriptorType::eUniformBuffer, 512u },
+            vk::DescriptorPoolSize { vk::DescriptorType::eCombinedImageSampler, 512u }
         };
 
         mDesciptorPool = mDevice.createDescriptorPool (
-            vk::DescriptorPoolCreateInfo { vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet, 240u, poolSizes }
+            vk::DescriptorPoolCreateInfo { vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet, 512u, poolSizes }
         );
     }
 

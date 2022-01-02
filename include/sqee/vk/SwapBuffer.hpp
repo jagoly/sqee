@@ -38,6 +38,9 @@ public: //====================================================//
     /// Map the front buffer's memory.
     std::byte* map_only() { return mPointer.front; };
 
+    /// Map the front buffer's memory (const).
+    const std::byte* map_only() const { return mPointer.front; };
+
     /// Swap front and back, then map front.
     std::byte* swap_map() { swap_only(); return map_only(); };
 

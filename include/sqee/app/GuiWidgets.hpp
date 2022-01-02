@@ -210,12 +210,10 @@ inline void PushFont(int fontIndex)
 //----------------------------------------------------------------------------//
 
 /// InputText operating on an auto-resizing std::string.
-SQEE_API bool InputString(CStrView label, std::string& str, ImGuiInputTextFlags flags = 0,
-                          ImGuiInputTextCallback callback = nullptr, void* userData = nullptr);
+SQEE_API bool InputString(CStrView label, std::string& str, ImGuiInputTextFlags flags = 0, ImGuiInputTextCallback callback = nullptr, void* userData = nullptr);
 
 /// InputTextMultiline operating on an auto-resizing std::string.
-SQEE_API bool InputStringMultiline(CStrView label, std::string& str, ImVec2 size, ImGuiInputTextFlags flags = 0,
-                                   ImGuiInputTextCallback callback = nullptr, void* userData = nullptr);
+SQEE_API bool InputStringMultiline(CStrView label, std::string& str, ImVec2 size, ImGuiInputTextFlags flags = 0, ImGuiInputTextCallback callback = nullptr, void* userData = nullptr);
 
 /// ColorEdit3 that behaves like other ImPlus input widgets.
 SQEE_API bool InputColour(CStrView label, sq::Vec3F& colour, ImGuiColorEditFlags flags = 0);
@@ -435,9 +433,9 @@ void if_Popup(CStrView id, ImGuiWindowFlags flags, Body body)
 
 /// Wrapper for BeginPopupContextItem, EndPopup.
 template <class Body> inline
-void if_PopupContextItem(CStrView id, int button, Body body)
+void if_PopupContextItem(CStrView id, ImGuiPopupFlags flags, Body body)
 {
-    if (ImGui::BeginPopupContextItem(id, button)) { body(); ImGui::EndPopup(); }
+    if (ImGui::BeginPopupContextItem(id, flags)) { body(); ImGui::EndPopup(); }
 }
 
 /// Wrapper for BeginTabBar, EndTabBar.

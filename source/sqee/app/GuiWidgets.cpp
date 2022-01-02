@@ -10,16 +10,16 @@ DISABLE_WARNING_OLD_STYLE_CAST()
 
 namespace ImPlus::detail {
 
-struct InputTextCallbackUserData
+struct InputStringCallbackUserData
 {
     std::string& str;
     ImGuiInputTextCallback chainCallback;
     void* chainCallbackUserData;
 };
 
-int input_text_callback(ImGuiInputTextCallbackData* data)
+int input_string_callback(ImGuiInputTextCallbackData* data)
 {
-    auto userData = static_cast<InputTextCallbackUserData*>(data->UserData);
+    auto userData = static_cast<InputStringCallbackUserData*>(data->UserData);
     if (data->EventFlag == ImGuiInputTextFlags_CallbackResize)
     {
         IM_ASSERT(data->Buf == userData->str.data());
@@ -112,24 +112,20 @@ bool ImGui::DragScalarRange2(const char* label, ImGuiDataType data_type, void* p
 
 //============================================================================//
 
-bool ImPlus::InputString(CStrView label, std::string& str, ImGuiInputTextFlags flags,
-                         ImGuiInputTextCallback callback, void* userData)
+bool ImPlus::InputString(CStrView label, std::string& str, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* userData)
 {
-    IM_ASSERT((flags & ImGuiInputTextFlags_CallbackResize) == 0);
     flags |= ImGuiInputTextFlags_CallbackResize;
 
-    detail::InputTextCallbackUserData cbUserData = { str, callback, userData };
-    return ImGui::InputText(label, str.data(), str.capacity() + 1, flags, detail::input_text_callback, &cbUserData);
+    detail::InputStringCallbackUserData cbUserData = { str, callback, userData };
+    return ImGui::InputTextEx(label, NULL, str.data(), int(str.capacity()) + 1, ImVec2(), flags, detail::input_string_callback, &cbUserData);
 }
 
-bool ImPlus::InputStringMultiline(CStrView label, std::string& str, ImVec2 size, ImGuiInputTextFlags flags,
-                                  ImGuiInputTextCallback callback, void* userData)
+bool ImPlus::InputStringMultiline(CStrView label, std::string& str, ImVec2 size, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* userData)
 {
-    IM_ASSERT((flags & ImGuiInputTextFlags_CallbackResize) == 0);
-    flags |= ImGuiInputTextFlags_CallbackResize;
+    flags |= ImGuiInputTextFlags_CallbackResize | ImGuiInputTextFlags_Multiline;
 
-    detail::InputTextCallbackUserData cbUserData = { str, callback, userData };
-    return ImGui::InputTextMultiline(label, str.data(), str.capacity() + 1, size, flags, detail::input_text_callback, &cbUserData);
+    detail::InputStringCallbackUserData cbUserData = { str, callback, userData };
+    return ImGui::InputTextEx(label, NULL, str.data(), int(str.capacity()) + 1, size, flags, detail::input_string_callback, &cbUserData);
 }
 
 //----------------------------------------------------------------------------//

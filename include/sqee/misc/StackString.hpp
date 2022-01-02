@@ -273,8 +273,9 @@ constexpr const char* type_to_string(StackString<Capacity>)
 template <size_t Capacity>
 struct std::hash<sq::StackString<Capacity>>
 {
-    size_t operator()(const sq::StackString<Capacity>& str) const noexcept
+    size_t operator()(const sq::StackString<Capacity>& ss) const noexcept
     {
-        return hash<std::string_view>()(str);
+        auto sv = std::string_view(ss.data(), ss.buffer_size());
+        return hash<std::string_view>()(sv);
     }
 };

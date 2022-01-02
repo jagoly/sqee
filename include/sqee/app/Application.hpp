@@ -27,6 +27,9 @@ public: //====================================================//
     /// Launch the main application loop.
     int run(int argc, char** argv);
 
+    /// Close the application.
+    void quit() { mReturnCode = 0; }
+
 protected: //=================================================//
 
     /// Called once before the main loop starts.
@@ -39,6 +42,9 @@ protected: //=================================================//
 
     /// Set to a non-negative value to quit.
     int mReturnCode = -1;
+
+    /// Used for changing scenes.
+    std::function<void()> mCallNextFrame = nullptr;
 };
 
 //============================================================================//
