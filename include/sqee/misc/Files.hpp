@@ -28,7 +28,7 @@ SQEE_API std::optional<String> try_read_text_from_file(const String& path);
 SQEE_API std::optional<std::vector<std::byte>> try_read_bytes_from_file(const String& path);
 
 /// Save a string to a text file.
-SQEE_API void write_text_to_file(const String& path, StringView text);
+SQEE_API void write_text_to_file(const String& path, StringView text, bool endNewLine);
 
 /// Save some bytes to a binary file.
 SQEE_API void write_bytes_to_file(const String& path, const void* bytes, size_t size);

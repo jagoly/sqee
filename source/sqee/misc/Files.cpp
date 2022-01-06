@@ -86,7 +86,7 @@ std::optional<std::vector<std::byte>> sq::try_read_bytes_from_file(const String&
 
 //============================================================================//
 
-void sq::write_text_to_file(const String& path, StringView text)
+void sq::write_text_to_file(const String& path, StringView text, bool endNewLine)
 {
     FILE* file = std::fopen(path.c_str(), "w");
 
@@ -94,6 +94,10 @@ void sq::write_text_to_file(const String& path, StringView text)
         SQEE_THROW("could not write file '{}'", path);
 
     std::fwrite(text.data(), 1u, text.size(), file);
+
+    if (endNewLine == true && text.back() != '\n')
+        std::fputc('\n', file);
+
     std::fclose(file);
 }
 
