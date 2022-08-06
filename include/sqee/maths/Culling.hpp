@@ -5,6 +5,19 @@
 
 #include <sqee/maths/Volumes.hpp>
 
+// todo: do a pass over this file for consistency
+//
+// test_inout_*:
+//   - return -1, 0 or +1 for outside, intersects, inside
+//   - for early out in more complex tests
+// intersect_:
+//   - return true if intersects or inside, false if outside
+//   - for general intersection tests
+// cull_:
+//   - return false if intersects or inside, true if outside
+//   - for frustum culling
+//   - written ages ago, might miss some edge cases
+
 namespace sq::maths {
 
 //============================================================================//
@@ -16,7 +29,7 @@ namespace sq::maths {
 ///
 /// @result -1 if outside, 0 if intersects, +1 if inside
 
-inline int8_t intersect_sphere_sphere(Sphere first, Sphere second)
+inline int8_t test_inout_sphere_sphere(Sphere first, Sphere second)
 {
     const float dist = maths::distance_squared(first.origin, second.origin);
 
@@ -41,7 +54,7 @@ inline int8_t intersect_sphere_sphere(Sphere first, Sphere second)
 ///
 /// @result -1 if outside, 0 if intersects, +1 if inside
 
-inline int8_t intersect_sphere_capsule(Sphere sphere, Capsule capsule)
+inline int8_t test_inout_sphere_capsule(Sphere sphere, Capsule capsule)
 {
     const Vec3F lineVec = capsule.originB - capsule.originA;
     const float distOnLine = maths::dot(sphere.origin - capsule.originA, lineVec);
@@ -70,7 +83,7 @@ inline int8_t intersect_sphere_capsule(Sphere sphere, Capsule capsule)
 ///
 /// @result -1 if outside, 0 if intersects, +1 if inside
 
-inline int8_t intersect_sphere_ortho(Sphere sphere, Ortho2D ortho)
+inline int8_t test_inout_sphere_ortho(Sphere sphere, Ortho2D ortho)
 {
     const float dotX = maths::dot(sphere.origin, ortho.normalX);
     const float dotY = maths::dot(sphere.origin, ortho.normalY);
@@ -102,6 +115,81 @@ inline int8_t intersect_sphere_ortho(Sphere sphere, Ortho2D ortho)
 
 //============================================================================//
 
+/// Check for intersection between a @ref Capsule and a @ref Capsule.
+///
+/// @param first the capsule to check
+/// @param second the capsule to check against
+///
+/// @result true if the objects intersect
+
+inline bool intersect_capsule_capsule(Capsule capsuleA, Capsule capsuleB)
+{
+    constexpr float EPSILON = 0.00001f;
+
+    const Vec3F dirA = capsuleA.originB - capsuleA.originA;
+    const Vec3F dirB = capsuleB.originB - capsuleB.originA;
+
+    const float lenSquareA = maths::length_squared(dirA);
+    const float lenSquareB = maths::length_squared(dirB);
+
+    const Vec3F dirR = capsuleA.originB - capsuleB.originB;
+
+    const float rDotA = maths::dot(dirR, dirA);
+    const float rDotB = maths::dot(dirR, dirB);
+
+    const bool isPointA = lenSquareA <= EPSILON;
+    const bool isPointB = lenSquareB <= EPSILON;
+
+    float timeA = 0.f;
+    float timeB = 0.f;
+
+    // both segments are points
+    if (isPointA == true && isPointB == true) {}
+
+    // segment A is a point, only compute timeB
+    else if (isPointA == true) timeB = maths::clamp(rDotB / lenSquareB, 0.f, 1.f);
+
+    // segment B is a point, only compute timeA
+    else if (isPointB == true) timeA = maths::clamp(-rDotA / lenSquareA, 0.f, 1.f);
+
+    // neither segment is a point
+    else
+    {
+        const float ab = maths::dot(dirA, dirB);
+        const float denom = lenSquareA * lenSquareB - ab * ab;
+
+        // segments are not parallel
+        if (denom != 0.f) timeA = maths::clamp((ab * rDotB - rDotA * lenSquareB) / denom, 0.f, 1.f);
+
+        // segments are parallel (timeA doesn't matter)
+        else timeA = 0.5f;
+
+        timeB = (ab * timeA + rDotB) / lenSquareB;
+
+        // clamp timeB, recompute timeA with new timeB (0 or 1, so factored out)
+        if (timeB < 0.f)
+        {
+            timeA = maths::clamp(-rDotA / lenSquareA, 0.f, 1.f);
+            timeB = 0.f;
+        }
+        else if (timeB > 1.f)
+        {
+            timeA = maths::clamp((ab - rDotA) / lenSquareA, 0.f, 1.f);
+            timeB = 1.f;
+        }
+    }
+
+    const Vec3F closestA = capsuleA.originA + dirA * timeA;
+    const Vec3F closestB = capsuleB.originA + dirB * timeB;
+
+    const float distSquare = maths::distance_squared(closestA, closestB);
+    const float radiusSum = capsuleA.radius + capsuleB.radius;
+
+    return distSquare <= radiusSum * radiusSum;
+}
+
+//============================================================================//
+
 /// Check if a @ref Sphere and a @ref Sphere do not intersect.
 ///
 /// @param first the sphere to check
@@ -111,10 +199,10 @@ inline int8_t intersect_sphere_ortho(Sphere sphere, Ortho2D ortho)
 
 inline bool cull_sphere_sphere(Sphere first, Sphere second)
 {
-    const float dist = maths::distance_squared(first.origin, second.origin);
+    const float distSquare = maths::distance_squared(first.origin, second.origin);
     const float radiusSum = first.radius + second.radius;
 
-    return dist > radiusSum * radiusSum;
+    return distSquare > radiusSum * radiusSum;
 }
 
 //============================================================================//
@@ -128,7 +216,7 @@ inline bool cull_sphere_sphere(Sphere first, Sphere second)
 
 inline bool cull_box_sphere(Box box, Sphere sphere)
 {
-    const int8_t sphereTest = intersect_sphere_sphere({box.origin, box.radius}, sphere);
+    const int8_t sphereTest = test_inout_sphere_sphere({box.origin, box.radius}, sphere);
     if (sphereTest != 0) return sphereTest < 0; // early exit if fully out or in
 
     const float boxOffsetX = maths::dot(box.basis[0], box.origin + (box.basis[0] * box.extents.x));
@@ -141,7 +229,7 @@ inline bool cull_box_sphere(Box box, Sphere sphere)
 
     if (offsetX < sphere.radius || offsetX > box.extents.x + box.extents.x + sphere.radius) return true;
     if (offsetY < sphere.radius || offsetY > box.extents.y + box.extents.y + sphere.radius) return true;
-    if (offsetZ < sphere.radius || offsetZ > box.extents.z + box.extents.z + sphere.radius) return true;\
+    if (offsetZ < sphere.radius || offsetZ > box.extents.z + box.extents.z + sphere.radius) return true;
 
     return false;
 }
@@ -160,16 +248,14 @@ inline bool cull_sphere_ortho(Sphere sphere, Ortho2D ortho)
     const float dotX = maths::dot(sphere.origin, ortho.normalX);
     const float dotY = maths::dot(sphere.origin, ortho.normalY);
 
-    const float offsetZ = maths::dot(sphere.origin, ortho.planeZ.normal) + ortho.planeZ.offset;
-
     if (+dotX + ortho.offsetsX[0] >= sphere.radius) return true;
     if (-dotX + ortho.offsetsX[1] >= sphere.radius) return true;
     if (+dotY + ortho.offsetsY[0] >= sphere.radius) return true;
     if (-dotY + ortho.offsetsY[1] >= sphere.radius) return true;
 
-    if (offsetZ >= sphere.radius) return true;
+    const float dotZ = maths::dot(sphere.origin, ortho.planeZ.normal);
 
-    return false;
+    return dotZ + ortho.planeZ.offset >= sphere.radius;
 }
 
 //============================================================================//
@@ -183,7 +269,7 @@ inline bool cull_sphere_ortho(Sphere sphere, Ortho2D ortho)
 
 inline bool cull_box_ortho(Box box, Ortho2D ortho)
 {
-    const int8_t sphereTest = intersect_sphere_ortho({box.origin, box.radius}, ortho);
+    const int8_t sphereTest = test_inout_sphere_ortho({box.origin, box.radius}, ortho);
     if (sphereTest != 0) return sphereTest < 0; // early exit if fully out or in
 
     //--------------------------------------------------------//
@@ -228,7 +314,7 @@ inline bool cull_box_ortho(Box box, Ortho2D ortho)
         bitsNegY |= (-pointOffset + ortho.offsetsY[1] < 0.f) << i;
     }
 
-    if (bitsPosX == 0u || bitsNegX == 0u) return true;
+    if (bitsPosY == 0u || bitsNegY == 0u) return true;
 
     //--------------------------------------------------------//
 
@@ -246,8 +332,8 @@ inline bool cull_box_ortho(Box box, Ortho2D ortho)
 
     return false;
 
-    /* the rest of this is pointless, but I wrote it because I planned my time poorly
-     * it's still got some useful snippets so I'm not deleting it yet
+    /* don't remember what the deal was with the rest of this,
+     * leaving it here for now until I write unit tests
 
     //--------------------------------------------------------//
 

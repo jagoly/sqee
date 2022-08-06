@@ -162,12 +162,12 @@ TokenisedFile TokenisedFile::from_string(String&& text)
 
             if (result.lines.back().tokens.empty() == false)
             {
-                size_t prevLineNum = result.lines.back().num;
+                size_t prevLineNum = result.lines.back().lineNum;
                 result.lines.emplace_back();
-                result.lines.back().num = prevLineNum;
+                result.lines.back().lineNum = prevLineNum;
             }
 
-            ++result.lines.back().num;
+            ++result.lines.back().lineNum;
         }
     }
 

@@ -7,6 +7,8 @@
 
 #include <sqee/core/Types.hpp>
 
+#include <charconv>
+
 namespace sq {
 
 //============================================================================//
@@ -22,129 +24,87 @@ SQEE_API std::vector<StringView> tokenise_string_lines(StringView sv);
 
 //============================================================================//
 
-// todo: make this all use std::from_chars once compiler support is better
-
-inline int sv_to_i(StringView sv) { return int(std::stoi(String(sv))); }
-inline uint sv_to_u(StringView sv) { return uint(std::stoul(String(sv))); }
-inline float sv_to_f(StringView sv) { return float(std::stof(String(sv))); }
-
-inline void parse_tokens(int& out, StringView token) { out = sv_to_i(token); }
-inline void parse_tokens(uint& out, StringView token) { out = sv_to_u(token); }
-inline void parse_tokens(float& out, StringView token) { out = sv_to_f(token); }
-
-inline std::optional<int> safe_sv_to_i(StringView sv)
+template <class Number>
+inline Number parse_number(StringView sv)
 {
-    try { return int(std::stol(String(sv))); }
-    catch (const std::invalid_argument&) { return std::nullopt; }
+    Number number;
+    auto result = std::from_chars(sv.data(), sv.data() + sv.size(), number);
+    if (result.ec == std::errc::invalid_argument) throw std::invalid_argument("parse_number");
+    if (result.ec == std::errc::result_out_of_range) throw std::out_of_range("parse_number");
+    return number;
 }
 
-inline std::optional<uint> safe_sv_to_u(StringView sv)
+template <class Number>
+inline void parse_number(Number& out, StringView sv)
 {
-    try { return uint(std::stoul(String(sv))); }
-    catch (const std::invalid_argument&) { return std::nullopt; }
-}
-
-inline std::optional<float> safe_sv_to_f(StringView sv)
-{
-    try { return float(std::stof(String(sv))); }
-    catch (const std::invalid_argument&) { return std::nullopt; }
+    auto result = std::from_chars(sv.data(), sv.data() + sv.size(), out);
+    if (result.ec == std::errc::invalid_argument) throw std::invalid_argument("parse_number");
+    if (result.ec == std::errc::result_out_of_range) throw std::out_of_range("parse_number");
 }
 
 //============================================================================//
 
 template <class T>
-inline void parse_tokens(maths::Vector<2, T>& out, StringView x, StringView y)
+inline void parse_numbers(maths::Vector<2, T>& out, StringView x, StringView y)
 {
-    parse_tokens(out.x, x);
-    parse_tokens(out.y, y);
+    parse_number(out.x, x);
+    parse_number(out.y, y);
 }
 
 template <class T>
-inline void parse_tokens(maths::Vector<3, T>& out, StringView x, StringView y, StringView z)
+inline void parse_numbers(maths::Vector<3, T>& out, StringView x, StringView y, StringView z)
 {
-    parse_tokens(out.x, x);
-    parse_tokens(out.y, y);
-    parse_tokens(out.z, z);
+    parse_number(out.x, x);
+    parse_number(out.y, y);
+    parse_number(out.z, z);
 }
 
 template <class T>
-inline void parse_tokens(maths::Vector<4, T>& out, StringView x, StringView y, StringView z, StringView w)
+inline void parse_numbers(maths::Vector<4, T>& out, StringView x, StringView y, StringView z, StringView w)
 {
-    parse_tokens(out.x, x);
-    parse_tokens(out.y, y);
-    parse_tokens(out.z, z);
-    parse_tokens(out.w, w);
+    parse_number(out.x, x);
+    parse_number(out.y, y);
+    parse_number(out.z, z);
+    parse_number(out.w, w);
 }
 
 template <class T>
-inline void parse_tokens(maths::Quaternion<T>& out, StringView x, StringView y, StringView z, StringView w)
+inline void parse_numbers(maths::Quaternion<T>& out, StringView x, StringView y, StringView z, StringView w)
 {
-    parse_tokens(out.x, x);
-    parse_tokens(out.y, y);
-    parse_tokens(out.z, z);
-    parse_tokens(out.w, w);
+    parse_number(out.x, x);
+    parse_number(out.y, y);
+    parse_number(out.z, z);
+    parse_number(out.w, w);
 }
 
 //============================================================================//
 
 template <class T>
-inline void parse_tokens_normalize(maths::Vector<2, T>& out, StringView x, StringView y)
+inline void parse_numbers_normalize(maths::Vector<2, T>& out, StringView x, StringView y)
 {
-    parse_tokens(out, x, y);
+    parse_numbers(out, x, y);
     out = maths::normalize(out);
 }
 
 template <class T>
-inline void parse_tokens_normalize(maths::Vector<3, T>& out, StringView x, StringView y, StringView z)
+inline void parse_numbers_normalize(maths::Vector<3, T>& out, StringView x, StringView y, StringView z)
 {
-    parse_tokens(out, x, y, z);
+    parse_numbers(out, x, y, z);
     out = maths::normalize(out);
 }
 
 template <class T>
-inline void parse_tokens_normalize(maths::Vector<4, T>& out, StringView x, StringView y, StringView z, StringView w)
+inline void parse_numbers_normalize(maths::Vector<4, T>& out, StringView x, StringView y, StringView z, StringView w)
 {
-    parse_tokens(out, x, y, z, w);
+    parse_numbers(out, x, y, z, w);
     out = maths::normalize(out);
 }
 
 template <class T>
-inline void parse_tokens_normalize(maths::Quaternion<T>& out, StringView x, StringView y, StringView z, StringView w)
+inline void parse_numbers_normalize(maths::Quaternion<T>& out, StringView x, StringView y, StringView z, StringView w)
 {
-    parse_tokens(out, x, y, z, w);
+    parse_numbers(out, x, y, z, w);
     out = maths::normalize(out);
-}
-
-//============================================================================//
-
-/// Count the number of tokens in a StringView.
-inline size_t count_tokens_in_string(StringView sv, char dlm)
-{
-    size_t result = 0u;
-    size_t begin = 0u, end = 0u;
-
-    while (true)
-    {
-        if ((begin = sv.find_first_not_of(dlm, end)) == StringView::npos) break;
-        ++result;
-        if ((end = sv.find_first_of(dlm, begin)) == StringView::npos) break;
-    }
-
-    return result;
-}
-
-//===========================================================================
-
-template <size_t S, class T>
-inline maths::Vector<S, T> from_string(StringView sv)
-{
-    const auto tokens = tokenise_string(sv, ' ');
-
-    maths::Vector<S, T> result;
-    if constexpr (S == 2) parse_tokens(result, tokens[0], tokens[1]);
-    if constexpr (S == 3) parse_tokens(result, tokens[0], tokens[1], tokens[2]);
-    if constexpr (S == 4) parse_tokens(result, tokens[0], tokens[1], tokens[2], tokens[3]);
-    return result;
 }
 
 //============================================================================//

@@ -27,6 +27,7 @@ TEST_CASE("quaternion constructor tests", "[maths]")
     SECTION("matrix constructor")
     {
         REQUIRE(QuatF(Mat3F()) == Approx(QuatF(0.0f, 0.0f, 0.0f, 1.0f)));
+        REQUIRE(QuatF(Mat3F(QuatF(0.1f, 0.2f, 0.3f))) == Approx(QuatF(0.1f, 0.2f, 0.3f)));
     }
 }
 

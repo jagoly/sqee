@@ -92,6 +92,10 @@ public: //====================================================//
 
     vk::Sampler get_sampler() const { return mSampler; }
 
+    void add_to_bindless_descriptor_set(vk::DescriptorSet dset, uint32_t index);
+
+    std::optional<uint32_t> get_bindless_descriptor_index() const { return mBindlessDescriptorIndex; }
+
     //--------------------------------------------------------//
 
     /// Compute the total size of a texture, in bytes.
@@ -101,6 +105,8 @@ protected: //=================================================//
 
     ImageStuff mStuff;
     vk::Sampler mSampler;
+
+    std::optional<uint32_t> mBindlessDescriptorIndex;
 };
 
 //============================================================================//

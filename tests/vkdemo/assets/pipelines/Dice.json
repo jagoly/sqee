@@ -1,0 +1,10 @@
+{
+  "attributes": [ "TexCoords", "Normals", "Tangents" ],
+  "pass": "Opaque",
+  "vertexShader": "super/BasicModel/VertTangents",
+  "fragmentShader": "super/BasicModel/FragNormal",
+  "cullFace": "Back",
+  "alphaCoverage": "Disable",
+  "depthTest": "Replace",
+  "colourBlend": [ "Disable" ]
+}

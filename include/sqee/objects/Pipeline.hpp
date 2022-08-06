@@ -13,37 +13,27 @@ namespace sq {
 
 /// A Vulkan Pipeline defined in JSON, with reflection data.
 ///
-/// Shader descriptor sets are expected to be as follows:
-///  0: shared data, like camera and world info
-///  1: material data, loaded from JSON by Material
-///  2: object data, like model matrix and bones
+/// Only push constant blocks are reflected. Textures must use descriptor
+/// indexing with push constants. Every pipeline uses the same 128 byte push
+/// constant range for all shader stages, regardless of what the shaders
+/// actually use. This is to maintain layout compatibility.
 ///
 class SQEE_API Pipeline : private MoveOnly
 {
 public: //====================================================//
 
-    static constexpr uint DESCRIPTOR_SET_COUNT = 3u;
-    static constexpr uint MATERIAL_SET_INDEX = 1u;
-
-    //--------------------------------------------------------//
-
-    //struct PushConstantInfo
-    //{
-    //    TinyString type;
-    //    vk::ShaderStageFlags stages;
-    //    uint offset;
-    //};
-
-    struct MaterialParamInfo
+    enum class PushConstantType : uint8_t
     {
-        TinyString type;
-        uint offset;
+        Int, Vec2I, Vec3I, Vec4I,
+        Uint, Vec2U, Vec3U, Vec4U,
+        Float, Vec2F, Vec3F, Vec4F,
+        Mat23F, Mat34F, Mat4F
     };
 
-    struct TextureInfo
+    struct PushConstantInfo
     {
-        TinyString type;
-        uint binding;
+        PushConstantType type;
+        uint8_t offset;
     };
 
     //--------------------------------------------------------//
@@ -67,51 +57,17 @@ public: //====================================================//
 
     const PassConfig* get_pass_config() const { return mPassConfig; }
 
-    vk::DescriptorSetLayout get_material_set_layout() const { return mMaterialSetLayout; }
-
-    vk::PipelineLayout get_pipeline_layout() const { return mPipelineLayout; }
-
     vk::Pipeline get_pipeline() const { return mPipeline; }
 
-    size_t get_material_param_block_size() const { return mMaterialParamBlockSize; }
-
-    //--------------------------------------------------------//
-
-    //std::optional<PushConstantInfo> get_push_constant_info(TinyString name) const
-    //{
-    //    const auto iter = mPushConstantMap.find(name);
-    //    if (iter != mPushConstantMap.end()) return iter->second;
-    //    return std::nullopt;
-    //}
-
-    std::optional<MaterialParamInfo> get_material_param_info(TinyString name) const
-    {
-        const auto iter = mMaterialParamMap.find(name);
-        if (iter != mMaterialParamMap.end()) return iter->second;
-        return std::nullopt;
-    }
-
-    std::optional<TextureInfo> get_texture_info(TinyString name) const
-    {
-        const auto iter = mTextureMap.find(name);
-        if (iter != mTextureMap.end()) return iter->second;
-        return std::nullopt;
-    }
+    PushConstantInfo get_push_constant_info(SmallString name) const;
 
 protected: //=================================================//
 
     const PassConfig* mPassConfig = nullptr;
 
-    vk::DescriptorSetLayout mMaterialSetLayout;
-    vk::PipelineLayout mPipelineLayout;
-
     vk::Pipeline mPipeline;
 
-    //std::map<TinyString, PushConstantInfo> mPushConstantMap;
-    std::map<TinyString, MaterialParamInfo> mMaterialParamMap;
-    std::map<TinyString, TextureInfo> mTextureMap;
-
-    size_t mMaterialParamBlockSize = 0u;
+    std::map<SmallString, PushConstantInfo> mPushConstantMap;
 };
 
 //============================================================================//

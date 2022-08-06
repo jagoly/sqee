@@ -185,7 +185,7 @@ public: //====================================================//
     }
 
     /// Define a foreign method using either a member or free function pointer.
-    template <auto FnPtr>
+    template <auto FnPtr, class Object>
     void register_method(const char* signature)
     {
         static_assert (
@@ -193,11 +193,9 @@ public: //====================================================//
             (std::is_pointer_v<decltype(FnPtr)> && std::is_function_v<std::remove_pointer_t<decltype(FnPtr)>>),
             "FnPtr must be a member function pointer or free function"
         );
+        static_assert(has_traits_v<Object>, "missing specialisation for wren::Traits");
 
         using Wrapper = detail::MethodWrapper<decltype(FnPtr), FnPtr>;
-        using Object = typename Wrapper::object_type;
-
-        static_assert(has_traits_v<Object>, "missing specialisation for wren::Traits");
 
         impl_register_method(Traits<Object>::module, Traits<Object>::className, signature, &Wrapper::call);
     }
@@ -285,14 +283,22 @@ public: //====================================================//
     /// Wrapper for wrenInterpret that throws.
     void interpret(const char* module, const char* source);
 
-    /// Wrapper for wrenInterpret that returns errors as a string.
+    /// Same as interpret, but return errors as a string.
     std::string safe_interpret[[nodiscard]](const char* module, const char* source);
 
     /// Interpret a module from file, as if using import.
     void load_module(const char* module);
 
+    /// Same as load_module, but return errors as a string.
+    std::string safe_load_module(const char* module);
+
     /// Makes sure that no foreign class indices are missing.
     void validate_class_handle_cache();
+
+    //--------------------------------------------------------//
+
+    /// Lookup a variable that is known to exist.
+    WrenHandle* get_variable(const char* module, const char* variable);
 
     //--------------------------------------------------------//
 
@@ -366,7 +372,7 @@ inline void invoke_helper(WrenVM* vm, Func func, std::integer_sequence<int, Slot
             std::invoke(func, self, get_slot<Args>(vm, 1 + Slots)...);
 
         else // set return value
-            SlotHelper<Result>::set(vm, 0, std::invoke(func, self, get_slot<Args>(vm, 1 + Slots)...));
+            SlotHelper<std::decay_t<Result>>::set(vm, 0, std::invoke(func, self, get_slot<Args>(vm, 1 + Slots)...));
     }
     catch (const std::exception& ex) { exception_handler(vm, ex); }
 }
@@ -375,8 +381,6 @@ inline void invoke_helper(WrenVM* vm, Func func, std::integer_sequence<int, Slot
 template <class Result, class Object, class... Args, Result(Object::*FnPtr)(Args...)>
 struct MethodWrapper<Result(Object::*)(Args...), FnPtr>
 {
-    using object_type = Object;
-
     static void call(WrenVM* vm) noexcept
     {
         invoke_helper<Result, Object, Args...>(vm, FnPtr, std::make_integer_sequence<int, sizeof...(Args)>());
@@ -387,8 +391,6 @@ struct MethodWrapper<Result(Object::*)(Args...), FnPtr>
 template <class Result, class Object, class... Args, Result(*FnPtr)(Object*, Args...)>
 struct MethodWrapper<Result(*)(Object*, Args...), FnPtr>
 {
-    using object_type = Object;
-
     static void call(WrenVM* vm) noexcept
     {
         invoke_helper<Result, Object, Args...>(vm, FnPtr, std::make_integer_sequence<int, sizeof...(Args)>());
@@ -419,9 +421,6 @@ struct wren::SlotHelper<Object*, std::enable_if_t<wren::has_traits_v<Object>>>
 
     static Object* get(WrenVM* vm, int slot, WrenType slotType)
     {
-        if (slotType == WREN_TYPE_NULL)
-            return nullptr;
-
         if (slotType == WREN_TYPE_FOREIGN)
         {
             const auto& data = *static_cast<TaggedPointer*>(wrenGetSlotForeign(vm, slot));
@@ -429,6 +428,9 @@ struct wren::SlotHelper<Object*, std::enable_if_t<wren::has_traits_v<Object>>>
                 throw Exception("slot holds different type of Object");
             return data.ptr;
         }
+
+        if (slotType == WREN_TYPE_NULL)
+            return nullptr;
 
         throw Exception("slot does not hold Object*");
     }
@@ -564,12 +566,16 @@ struct wren::SlotHelper<WrenHandle*>
         if (slotType == WREN_TYPE_UNKNOWN)
             return wrenGetSlotHandle(vm, slot);
 
+        if (slotType == WREN_TYPE_NULL)
+            return nullptr;
+
         throw Exception("slot does not hold WrenHandle");
     }
 
     static void set(WrenVM* vm, int slot, WrenHandle* handle)
     {
-        wrenSetSlotHandle(vm, slot, handle);
+        if (handle != nullptr) wrenSetSlotHandle(vm, slot, handle);
+        else wrenSetSlotNull(vm, slot);
     }
 };
 

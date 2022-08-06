@@ -7,112 +7,171 @@
 
 #include <sqee/core/Types.hpp>
 
+#include <sqee/vk/Vulkan.hpp> // Flags
+
 namespace sq {
 
 //============================================================================//
 
-/// Asset defining a skeleton for animation.
-///
-/// This class contains no vulkan objects, a seperate UBO is required for use.
-///
-class SQEE_API Armature final : private MoveOnly
+/// A set of tracks that can be used to get an AnimSample.
+struct SQEE_API Animation
+{
+    struct Track
+    {
+        // todo: replace with std::span
+        Track(const std::byte* data, size_t size) : data(data), size(size) {}
+        const std::byte* data;
+        size_t size;
+    };
+
+    struct SampleTime
+    {
+        uint frameA;  ///< Index of the first frame.
+        uint frameB;  ///< Index of the second frame.
+        float factor; ///< Mix factor between the frames.
+    };
+
+    uint frameCount = 0u;
+    //uint flags = 0u;
+
+    std::vector<std::byte> bytes;
+    std::vector<Track> tracks;
+
+    SampleTime compute_sample_time(float time) const;
+};
+
+/// A sample from every bone and block track in an armature.
+using AnimSample = std::vector<std::byte>;
+
+//============================================================================//
+
+/// Asset defining bones and other animation tracks.
+class SQEE_API Armature : private MoveOnly
 {
 public: //====================================================//
 
-    /// Local transform for a single bone.
+    enum class TrackType : uint8_t
+    {
+        Float, Float2, Float3, Float4, // linear interpolation
+        Int, Int2, Int3, Int4,         // no interpolation
+        Angle, Quaternion              // fancy interpolation
+    };
+
+    enum class BoneFlag : uint8_t
+    {
+        Billboard = 1 << 0, ///< Bone should always face the camera.
+    };
+
+    using BoneFlags = vk::Flags<BoneFlag>;
+
+    struct BoneInfo
+    {
+        int8_t parent;
+        BoneFlags flags;
+    };
+
+    struct TrackInfo
+    {
+        int8_t boneIndex;
+        int8_t blockIndex;
+        TrackType type;
+        uint32_t offset;
+    };
+
     struct Bone
     {
-        Vec3F offset { nullptr };
-        QuatF rotation { nullptr };
-        Vec3F scale { nullptr };
-    };
-
-    /// Local transforms for all bones in an armature.
-    using Pose = std::vector<Bone>;
-
-    //--------------------------------------------------------//
-
-    /// A set of tracks that can be sampled to get a Pose.
-    struct SQEE_API Animation
-    {
-        struct Track
-        {
-            TinyString key;
-            std::vector<std::byte> track;
-        };
-
-        uint boneCount = 0u;
-        uint frameCount = 0u;
-        std::vector<std::vector<Track>> bones;
-
-        /// Helper to access an extra track by name.
-        const Track* find_extra(int8_t bone, TinyString key) const;
+        Vec3F offset;
+        QuatF rotation;
+        Vec3F scale;
     };
 
     //--------------------------------------------------------//
 
-    /// Load bones and rest pose from a json file.
+    Armature() = default;
+    Armature(const String& path) { load_from_file(path); }
+
+    /// Load the armature from JSON.
     void load_from_file(const String& path);
 
     //--------------------------------------------------------//
 
-    size_t get_bone_count() const { return mRestPose.size(); }
+    size_t get_bone_count() const { return mBoneInfos.size(); }
 
-    const Pose& get_rest_pose() const { return mRestPose; }
+    const AnimSample& get_rest_sample() const { return mRestSample; }
+
+    const std::vector<BoneInfo>& get_bone_infos() const { return mBoneInfos; }
+
+    const std::vector<TrackInfo>& get_track_infos() const { return mTrackInfos; }
 
     const std::vector<TinyString>& get_bone_names() const { return mBoneNames; }
 
-    //--------------------------------------------------------//
+    const std::vector<TinyString>& get_block_names() const { return mBlockNames; }
 
-    /// Get the name of a bone by index, empty str on failure.
-    TinyString get_bone_name(int8_t index) const;
-
-    /// Get the index of a bone by name, -1 on failure.
-    int8_t get_bone_index(TinyString name) const;
-
-    /// Get the index of a bone's parent, -1 on failure.
-    int8_t get_bone_parent(int8_t index) const;
+    const std::vector<TinyString>& get_track_names() const { return mBlockNames; }
 
     //--------------------------------------------------------//
 
+    /// Get the index of a bone by name, throw on failure.
+    uint8_t get_bone_index(TinyString name) const;
+
+    /// Get the index of a block by name, throw on failure.
+    uint8_t get_block_index(TinyString name) const;
+
+    /// Get the index of a block's track by name, throw on failure.
+    uint16_t get_block_track_index(uint8_t blockIndex, TinyString trackName) const;
+
+    //--------------------------------------------------------//
+
+    int8_t bone_from_json(const JsonValue& json) const;
+
+    JsonValue bone_to_json(int8_t bone) const;
+
+    //--------------------------------------------------------//
+
+    /// Load an associated animation from an SQA file.
     Animation load_animation_from_file(const String& path) const;
 
-    Animation make_null_animation(uint length) const;
+    /// Generate an animation contaning N frames of the rest pose.
+    Animation make_null_animation(uint frameCount) const;
 
     //--------------------------------------------------------//
 
-    // todo: poses are big objects and should probably not be reallocated constantly
+    /// Sample an animation at the given time.
+    void compute_sample(const Animation& animation, float time, AnimSample& out) const;
 
-    static Pose blend_poses(const Pose& a, const Pose& b, float factor);
-
-    static Pose compute_pose_continuous(const Animation& animation, float time);
-
-    static void compute_extra_continuous(Vec4F& result, const Animation::Track& track, float time);
-
-    static Pose compute_pose_discrete(const Animation& animation, uint time);
-
-    static void compute_extra_discrete(Vec4F& result, const Animation::Track& track, uint time);
+    /// Blend between two animation samples.
+    void blend_samples(const AnimSample& a, const AnimSample& b, float factor, AnimSample& out) const;
 
     //--------------------------------------------------------//
 
     /// Compute the absolute transform of a bone.
-    Mat4F compute_bone_matrix(const Pose& pose, int8_t index) const;
+    Mat4F compute_bone_matrix(const AnimSample& sample, uint8_t index) const;
 
-    /// Compute the absolute transforms for a pose.
-    std::vector<Mat4F> compute_skeleton_matrices(const Pose& pose) const;
+    /// Compute the absolute transforms for all bones.
+    std::vector<Mat4F> compute_skeleton_matrices(const AnimSample& sample) const;
 
-    /// Compute transposed pose matrices, ready for a shader.
-    void compute_ubo_data(const Pose& pose, Mat34F* out, size_t len) const;
+    /// Compute the model matrix of a single bone.
+    Mat4F compute_model_matrix(const AnimSample& sample, Mat4F modelMatrix, uint8_t index) const;
+
+    /// Compute model matrices for all bones, transposed for shaders.
+    void compute_model_matrices (
+        const AnimSample& sample, Mat4F viewMatrix, Mat4F invViewMatrix, Mat4F modelMatrix, Vec2F billboardScale, Mat34F* modelMats, size_t len
+    ) const;
 
 private: //===================================================//
 
-    Pose mRestPose;
+    AnimSample mRestSample;
 
-    std::vector<TinyString> mBoneNames;
-    std::vector<int8_t> mBoneParents;
+    std::vector<BoneInfo> mBoneInfos;
 
     std::vector<Mat4F> mBaseMats;
     std::vector<Mat4F> mInverseMats;
+
+    std::vector<TrackInfo> mTrackInfos;
+
+    std::vector<TinyString> mBoneNames;
+    std::vector<TinyString> mBlockNames;
+    std::vector<TinyString> mTrackNames;
 
     //--------------------------------------------------------//
 

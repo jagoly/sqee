@@ -8,9 +8,8 @@
 #include <sqee/debug/Logging.hpp>
 #include <sqee/maths/Functions.hpp>
 #include <sqee/misc/Files.hpp>
-#include <sqee/vk/Helpers.hpp>
-
 #include <sqee/misc/Json.hpp>
+#include <sqee/vk/Helpers.hpp>
 
 using namespace demo;
 
@@ -32,6 +31,10 @@ void DemoApp::initialise(std::vector<String> /*args*/)
     mGuiSystem->set_style_colours_supertux();
     mGuiSystem->set_style_widgets_supertux();
 
+    mCaches = std::make_unique<ResourceCaches>();
+
+    mPassConfigOpaque = &mCaches->passConfigMap["Opaque"];
+
     initialise_layouts();
     initialise_camera();
 
@@ -49,14 +52,13 @@ DemoApp::~DemoApp()
 
     ctx.device.waitIdle();
 
-    ctx.device.destroy(mPassDescriptorSetLayout);
     ctx.device.destroy(mModelDescriptorSetLayout);
     ctx.device.destroy(mCompositeDescriptorSetLayout);
 
     ctx.device.destroy(mModelPipelineLayout);
     ctx.device.destroy(mCompositePipelineLayout);
 
-    ctx.device.free(ctx.descriptorPool, {mPassDescriptorSet.front, mPassDescriptorSet.back});
+    ctx.device.free(ctx.descriptorPool, {mModelDescriptorSet.front, mModelDescriptorSet.back});
     ctx.device.free(ctx.descriptorPool, mCompositeDescriptorSet);
 
     destroy_render_targets();
@@ -142,8 +144,7 @@ void DemoApp::refresh_graphics_config()
     create_render_targets();
     create_pipelines();
 
-    mResourceCaches.pipelines.reload_resources();
-    mResourceCaches.materials.reload_resources();
+    mCaches->pipelines.reload_resources();
 
     sq::log_debug("vulkan memory usage | host = {:.1f}MiB | device = {:.1f}MiB",
                   float(ctx.allocator.get_memory_usage(true)) / 1048576.f,
@@ -158,22 +159,23 @@ void DemoApp::initialise_layouts()
 
     // model pipeline
     {
-        mPassDescriptorSetLayout = ctx.create_descriptor_set_layout ({
+        mModelDescriptorSetLayout = ctx.create_descriptor_set_layout ({
             vk::DescriptorSetLayoutBinding {
                 0u, vk::DescriptorType::eUniformBuffer, 1u, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment
             },
             vk::DescriptorSetLayoutBinding {
                 1u, vk::DescriptorType::eUniformBuffer, 1u, vk::ShaderStageFlagBits::eFragment
-            }
-        });
-
-        mModelDescriptorSetLayout = ctx.create_descriptor_set_layout ({
+            },
             vk::DescriptorSetLayoutBinding {
-                0u, vk::DescriptorType::eUniformBuffer, 1u, vk::ShaderStageFlagBits::eVertex
+                2u, vk::DescriptorType::eStorageBuffer, 1u, vk::ShaderStageFlagBits::eVertex
             }
         });
 
-        mModelPipelineLayout = ctx.create_pipeline_layout(mPassDescriptorSetLayout, {});
+        const auto pushConstantRange = vk::PushConstantRange(vk::ShaderStageFlagBits::eAllGraphics, 0u, 128u);
+
+        mModelPipelineLayout = ctx.create_pipeline_layout (
+            {mModelDescriptorSetLayout, mCaches->bindlessTextureSetLayout}, pushConstantRange
+        );
     }
 
     // composite pipeline
@@ -198,13 +200,15 @@ void DemoApp::initialise_camera()
 
     mCameraUbo.initialise(sizeof(CameraBlock), vk::BufferUsageFlagBits::eUniformBuffer);
     mLightUbo.initialise(sizeof(LightBlock), vk::BufferUsageFlagBits::eUniformBuffer);
+    mMatrixUbo.initialise(65536u, vk::BufferUsageFlagBits::eStorageBuffer);
 
-    mPassDescriptorSet = sq::vk_allocate_descriptor_set_swapper(ctx, mPassDescriptorSetLayout);
+    mModelDescriptorSet = sq::vk_allocate_descriptor_set_swapper(ctx, mModelDescriptorSetLayout);
 
     sq::vk_update_descriptor_set_swapper (
-        ctx, mPassDescriptorSet,
+        ctx, mModelDescriptorSet,
         sq::DescriptorUniformBuffer(0u, 0u, mCameraUbo.get_descriptor_info()),
-        sq::DescriptorUniformBuffer(1u, 0u, mLightUbo.get_descriptor_info())
+        sq::DescriptorUniformBuffer(1u, 0u, mLightUbo.get_descriptor_info()),
+        sq::DescriptorStorageBuffer(2u, 0u, mMatrixUbo.get_descriptor_info())
     );
 }
 
@@ -212,22 +216,15 @@ void DemoApp::initialise_camera()
 
 void DemoApp::initialise_models()
 {
-    const auto& ctx = sq::VulkanContext::get();
-
-    // todo: more than one model
+    // todo: load a bunch of DrawItems from a Render.json file
     {
         auto& model = mStaticModels.emplace_back();
 
-        model.mesh = mResourceCaches.meshes.acquire("meshes/Dice");
-        model.material = mResourceCaches.materials.acquire(sq::parse_json_from_file("assets/materials/Dice.json"));
-
-        model.ubo.initialise(sizeof(StaticBlock), vk::BufferUsageFlagBits::eUniformBuffer);
-        model.descriptorSet = sq::vk_allocate_descriptor_set_swapper(ctx, mModelDescriptorSetLayout);
-
-        sq::vk_update_descriptor_set_swapper (
-            ctx, model.descriptorSet,
-            sq::DescriptorUniformBuffer(0u, 0u, model.ubo.get_descriptor_info())
-        );
+        model.mesh = mCaches->meshes.acquire("meshes/Dice");
+        model.texDiffuse = mCaches->textures.acquire("textures/Dice_diff");
+        model.texSpecular = mCaches->textures.acquire("textures/Gray60");
+        model.texNormal = mCaches->textures.acquire("textures/Dice_norm");
+        model.pipeline = mCaches->pipelines.acquire(sq::parse_json_from_file("assets/pipelines/Dice.json"));
     }
 }
 
@@ -328,8 +325,8 @@ void DemoApp::create_render_targets()
         }
     }
 
-    mResourceCaches.passConfigMap["Opaque"] = sq::PassConfig {
-        mMsRenderPass.pass, 0u, mMultisampleMode, {}, mWindow->get_size(), mPassDescriptorSetLayout, {}
+    *mPassConfigOpaque = sq::PassConfig {
+        mMsRenderPass.pass, 0u, mMultisampleMode, {}, mWindow->get_size(), mModelPipelineLayout, {}
     };
 }
 
@@ -417,9 +414,6 @@ void DemoApp::update_window_title(double elapsed)
 
 void DemoApp::update_uniform_buffer(double elapsed)
 {
-    static double totalTime = 0.0;
-    totalTime += elapsed * 0.2;
-
     static Mat4F modelMat;
 
     if (mInputDevices->is_pressed(sq::Keyboard_Key::Arrow_Down))
@@ -435,7 +429,12 @@ void DemoApp::update_uniform_buffer(double elapsed)
     if (mInputDevices->is_pressed(sq::Keyboard_Key::PageUp))
         modelMat = Mat4F(maths::rotation(Vec3F(0.f, 0.f, 1.f), +float(elapsed) * 0.5f)) * modelMat;
 
-    mPassDescriptorSet.swap();
+    if (mInputDevices->is_pressed(sq::Keyboard_Key::LeftBracket))
+        modelMat = Mat4F(maths::scale(modelMat, Vec3F(1.f, 1.f, 1.f - float(elapsed))));
+    if (mInputDevices->is_pressed(sq::Keyboard_Key::RightBracket))
+        modelMat = Mat4F(maths::scale(modelMat, Vec3F(1.f, 1.f, 1.f / (1.f - float(elapsed)))));
+
+    mModelDescriptorSet.swap();
 
     auto& camera = *reinterpret_cast<CameraBlock*>(mCameraUbo.swap_map());
     {
@@ -456,13 +455,15 @@ void DemoApp::update_uniform_buffer(double elapsed)
         light.skyMatrix = Mat4F();
     }
 
+    Mat34F* mats = reinterpret_cast<Mat34F*>(mMatrixUbo.swap_map());
+    int matIndex = -1;
+
     for (auto& model : mStaticModels)
     {
-        model.descriptorSet.swap();
-        auto& block = *reinterpret_cast<StaticBlock*>(model.ubo.swap_map());
-        //block.matrix = camera.projMat * camera.viewMat * modelMat;
-        block.matrix = modelMat;
-        block.normMat = Mat34F(maths::normal_matrix(camera.viewMat * modelMat));
+        model.modelMatIndex = ++matIndex;
+        mats[matIndex] = Mat34F(maths::transpose(modelMat));
+        model.normalMatIndex = ++matIndex;
+        mats[matIndex] = Mat34F(maths::inverse(camera.viewMat * modelMat));
     }
 }
 
@@ -485,14 +486,34 @@ void DemoApp::populate_command_buffer(vk::CommandBuffer cmdbuf, vk::Framebuffer 
             vk::ClearRect(vk::Rect2D({0, 0}, {mWindow->get_size().x, mWindow->get_size().y}), 0u, 1u)
         );
 
-        cmdbuf.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, mModelPipelineLayout, 0u, mPassDescriptorSet.front, {});
+        cmdbuf.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, mModelPipelineLayout, 0u, mModelDescriptorSet.front, {});
+        cmdbuf.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, mModelPipelineLayout, 1u, mCaches->bindlessTextureSet, {});
 
         for (const auto& model : mStaticModels)
         {
-            model.material->get_pipeline(0u).bind(cmdbuf);
-            model.material->bind_material_set(cmdbuf, 0u);
-            model.material->bind_object_set(cmdbuf, 0u, model.descriptorSet.front);
+            model.pipeline->bind(cmdbuf);
             model.mesh->bind_buffers(cmdbuf);
+
+            struct {
+                uint modelMatIndex, normalMatIndex;
+                uint diffuseTexIndex, specularTexIndex;
+                uint maskTexIndex, normalTexIndex;
+            } pc;
+
+            pc.modelMatIndex = model.modelMatIndex;
+            pc.normalMatIndex = model.normalMatIndex;
+            pc.diffuseTexIndex = *model.texDiffuse->get_bindless_descriptor_index();
+            pc.specularTexIndex = *model.texSpecular->get_bindless_descriptor_index();
+            if (model.texMask != nullptr)
+                pc.maskTexIndex = *model.texMask->get_bindless_descriptor_index();
+            if (model.texNormal != nullptr)
+                pc.normalTexIndex = *model.texNormal->get_bindless_descriptor_index();
+
+            cmdbuf.pushConstants (
+                mPassConfigOpaque->pipelineLayout, vk::ShaderStageFlagBits::eAllGraphics,
+                0u, sizeof(pc), &pc
+            );
+
             model.mesh->draw(cmdbuf);
         }
 

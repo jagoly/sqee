@@ -17,12 +17,22 @@ namespace sq {
 
 namespace detail {
 
-template <size_t Value> using smallest_unsigned_int_t =
-    std::conditional_t<Value <= std::numeric_limits<uint8_t>::max(), uint8_t,
-    std::conditional_t<Value <= std::numeric_limits<uint16_t>::max(), uint16_t,
-    std::conditional_t<Value <= std::numeric_limits<uint32_t>::max(), uint32_t,
-    std::conditional_t<Value <= std::numeric_limits<uint64_t>::max(), uint64_t,
-    size_t>>>>;
+template <class Type> using alignment_size_t =
+    std::conditional_t<alignof(Type) <= alignof(uint8_t), uint8_t,
+    std::conditional_t<alignof(Type) <= alignof(uint16_t), uint16_t,
+    std::conditional_t<alignof(Type) <= alignof(uint32_t), uint32_t,
+    size_t>>>;
+
+template <size_t Capacity> using capacity_size_t =
+    std::conditional_t<Capacity <= std::numeric_limits<uint8_t>::max(), uint8_t,
+    std::conditional_t<Capacity <= std::numeric_limits<uint16_t>::max(), uint16_t,
+    std::conditional_t<Capacity <= std::numeric_limits<uint32_t>::max(), uint32_t,
+    size_t>>>;
+
+template <class Type, size_t Capacity>
+using stackvector_size_t = std::conditional_t <
+    sizeof(alignment_size_t<Type>) >= sizeof(capacity_size_t<Capacity>),
+    alignment_size_t<Type>, capacity_size_t<Capacity> >;
 
 } // namespace detail
 
@@ -48,7 +58,7 @@ public: //====================================================//
     using reverse_iterator       = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-    using size_type = detail::smallest_unsigned_int_t<Capacity>;
+    using size_type = detail::stackvector_size_t<Type, Capacity>;
 
     static size_type capacity() { return Capacity; }
 
@@ -239,10 +249,34 @@ public: //====================================================//
 
 private: //===================================================//
 
-    std::aligned_storage_t<sizeof(Type), alignof(Type)> mData[Capacity];
-
     size_type mSize = 0u;
+
+    std::aligned_storage_t<sizeof(Type), alignof(Type)> mData[Capacity];
 };
+
+//============================================================================//
+
+namespace algo {
+
+template <class Type, size_t Capacity, class Value>
+inline auto erase(StackVector<Type, Capacity>& container, const Value& value)
+{
+    const auto iter = std::remove(container.begin(), container.end(), value);
+    const auto distance = std::distance(iter, container.end());
+    container.erase(iter, container.end());
+    return distance;
+}
+
+template <class Type, size_t Capacity, class Predicate>
+inline auto erase_if(StackVector<Type, Capacity>& container, Predicate pred)
+{
+    const auto iter = std::remove_if(container.begin(), container.end(), pred);
+    const auto distance = std::distance(iter, container.end());
+    container.erase(iter, container.end());
+    return distance;
+}
+
+} // namespace algo
 
 //============================================================================//
 

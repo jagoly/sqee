@@ -26,7 +26,7 @@ struct Resource final : private NonCopyable
 template <class Key, class Type>
 class Handle final
 {
-public: //====================================================
+public: //====================================================//
 
     Handle(std::nullptr_t = nullptr)
     {
@@ -45,11 +45,25 @@ public: //====================================================
         if (mResourcePtr) ++mResourcePtr->count;
     }
 
+    Handle(Handle&& other)
+    {
+        mResourcePtr = other.mResourcePtr;
+        other.mResourcePtr = nullptr;
+    }
+
     Handle& operator=(const Handle& other)
     {
         if (mResourcePtr) --mResourcePtr->count;
         mResourcePtr = other.mResourcePtr;
         if (mResourcePtr) ++mResourcePtr->count;
+        return *this;
+    }
+
+    Handle& operator=(Handle&& other)
+    {
+        if (mResourcePtr) --mResourcePtr->count;
+        mResourcePtr = other.mResourcePtr;
+        other.mResourcePtr = nullptr;
         return *this;
     }
 
@@ -86,10 +100,8 @@ public: //====================================================
 
     //--------------------------------------------------------//
 
-    /// Equality Operator.
     bool operator==(const Handle& other) const { return mResourcePtr == other.mResourcePtr; }
 
-    /// Inequality Operator.
     bool operator!=(const Handle& other) const { return mResourcePtr != other.mResourcePtr; }
 
 private: //===================================================//

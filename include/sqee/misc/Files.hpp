@@ -46,7 +46,7 @@ struct SQEE_API TokenisedFile : private MoveOnly
     //--------------------------------------------------------//
 
     using Tokens = std::vector<StringView>;
-    struct Line { Tokens tokens; size_t num; };
+    struct Line { Tokens tokens; size_t lineNum; };
 
     String source;
     std::vector<Line> lines;

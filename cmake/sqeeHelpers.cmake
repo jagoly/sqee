@@ -54,7 +54,7 @@ function (target_add_shaders TARGET)
 
         add_custom_command( OUTPUT ${OUTPATH}
                             COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTDIR}
-                            COMMAND glslc ${SHADER} -o ${OUTPATH}
+                            COMMAND glslc --target-env=vulkan1.2 ${SHADER} -o ${OUTPATH}
                             DEPENDS ${SHADER}
                             IMPLICIT_DEPENDS CXX ${SHADER}
                             VERBATIM )

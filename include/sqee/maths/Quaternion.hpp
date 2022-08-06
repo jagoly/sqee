@@ -21,11 +21,12 @@ template <class T> struct Quaternion
     constexpr Quaternion() : data { T(0), T(0), T(0), T(1) } {}
     constexpr Quaternion(T x, T y, T z, T w) : data { x, y, z, w } {}
 
-    // Copy Constructor
-    constexpr Quaternion(const Quaternion& q) = default;
+    // Uninitialised Constructor
+    Quaternion(std::nullptr_t) {}
 
-    // Uninitialise Constructor
-    constexpr Quaternion(std::nullptr_t) {}
+    // Copy Constructor and Assignment
+    constexpr Quaternion(const Quaternion& q) = default;
+    constexpr Quaternion& operator=(const Quaternion& q) = default;
 
     /// Construct a quaternion from an XYZ euler rotation.
     inline explicit Quaternion(T rx, T ry, T rz)
@@ -44,20 +45,18 @@ template <class T> struct Quaternion
     /// Construct a quaternion from a 3x3 rotation matrix.
     inline explicit Quaternion(const Matrix33<T>& m)
     {
-        T biggest = m[0][0] + m[1][1] + m[2][2]; int index = 0;
-        if (T x = m[0][0] - m[1][1] - m[2][2] > biggest) { biggest = x; index = 1; } // fixme
-        if (T y = m[1][1] - m[0][0] - m[2][2] > biggest) { biggest = y; index = 2; } // fixme
-        if (T z = m[2][2] - m[0][0] - m[1][1] > biggest) { biggest = z; index = 3; } // fixme
-        biggest = std::sqrt(biggest + T(1.0)) * T(0.5);
+        T biggest = m[0][0] + m[1][1] + m[2][2]; int index = 0; // w
+        if (T bx = m[0][0] - m[1][1] - m[2][2]; bx > biggest) { biggest = bx; index = 1; }
+        if (T by = m[1][1] - m[0][0] - m[2][2]; by > biggest) { biggest = by; index = 2; }
+        if (T bz = m[2][2] - m[0][0] - m[1][1]; bz > biggest) { biggest = bz; index = 3; }
 
-        T valueA = (T(0.25) / biggest) * (m[0][1] - m[1][0]);
-        T valueB = (T(0.25) / biggest) * (m[1][2] - m[2][1]);
-        T valueC = (T(0.25) / biggest) * (m[2][0] - m[0][2]);
+        T value = std::sqrt(biggest + T(1.0)) * T(0.5);
+        T mul = T(0.25) / value;
 
-        if (index == 0) { x = valueB;  y = valueC;  z = valueA;  w = biggest; }
-        if (index == 1) { x = biggest; y = valueA;  z = valueC;  w = valueB;  }
-        if (index == 2) { x = valueA;  y = biggest; z = valueB;  w = valueC;  }
-        if (index == 3) { x = valueC;  y = valueB;  z = biggest; w = valueA;  }
+        if (index == 0) { x = (m[1][2] - m[2][1]) * mul; y = (m[2][0] - m[0][2]) * mul; z = (m[0][1] - m[1][0]) * mul; w = value; }
+        if (index == 1) { x = value; y = (m[0][1] + m[1][0]) * mul; z = (m[2][0] + m[0][2]) * mul; w = (m[1][2] - m[2][1]) * mul; }
+        if (index == 2) { x = (m[0][1] + m[1][0]) * mul; y = value; z = (m[1][2] + m[2][1]) * mul; w = (m[2][0] - m[0][2]) * mul; }
+        if (index == 3) { x = (m[2][0] + m[0][2]) * mul; y = (m[1][2] + m[2][1]) * mul; z = value; w = (m[0][1] - m[1][0]) * mul; }
     }
 
     /// Convert a quaternion to a 3x3 rotation matrix.

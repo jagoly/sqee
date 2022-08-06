@@ -9,7 +9,6 @@
 #include <sqee/app/InputDevices.hpp>
 #include <sqee/app/Window.hpp>
 
-#include <sqee/objects/Material.hpp>
 #include <sqee/objects/Mesh.hpp>
 #include <sqee/objects/Pipeline.hpp>
 #include <sqee/objects/Texture.hpp>
@@ -72,31 +71,38 @@ private: //===================================================//
     std::unique_ptr<sq::InputDevices> mInputDevices;
     std::unique_ptr<sq::GuiSystem> mGuiSystem;
 
-    ResourceCaches mResourceCaches;
+    std::unique_ptr<ResourceCaches> mCaches;
 
     //--------------------------------------------------------//
 
-    vk::DescriptorSetLayout mPassDescriptorSetLayout;
     vk::DescriptorSetLayout mModelDescriptorSetLayout;
     vk::PipelineLayout mModelPipelineLayout;
 
     vk::DescriptorSetLayout mCompositeDescriptorSetLayout;
     vk::PipelineLayout mCompositePipelineLayout;
 
-    sq::Swapper<vk::DescriptorSet> mPassDescriptorSet;
+    sq::Swapper<vk::DescriptorSet> mModelDescriptorSet;
     vk::DescriptorSet mCompositeDescriptorSet;
+
+    sq::PassConfig* mPassConfigOpaque = nullptr;
 
     //--------------------------------------------------------//
 
     sq::SwapBuffer mCameraUbo;
     sq::SwapBuffer mLightUbo;
+    sq::SwapBuffer mMatrixUbo;
 
+    // todo: replace with DrawItem
     struct StaticModel
     {
         MeshHandle mesh;
-        MaterialHandle material;
-        sq::SwapBuffer ubo;
-        sq::Swapper<vk::DescriptorSet> descriptorSet;
+        PipelineHandle pipeline;
+        TextureHandle texDiffuse;
+        TextureHandle texSpecular;
+        TextureHandle texMask;
+        TextureHandle texNormal;
+        uint modelMatIndex;
+        uint normalMatIndex;
     };
 
     std::vector<StaticModel> mStaticModels;

@@ -70,7 +70,8 @@ struct PassConfig final
     vk::StencilOpState stencil;
     Vec2U viewport;
 
-    vk::DescriptorSetLayout setLayout;
+    vk::PipelineLayout pipelineLayout;
+
     SpecialisationConstants constants;
 };
 

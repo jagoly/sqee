@@ -126,4 +126,23 @@ template <class T> constexpr T cycles(T radians)
 
 //============================================================================//
 
+/// Interpolate between two angles by the shortest path.
+template <class T> constexpr T mix_radians(T a, T b, T factor)
+{
+    static_assert(std::is_floating_point_v<T>);
+
+    constexpr double pi = 3.14159265358979323846;
+    return (std::fmod(std::fmod(b - a, T(2.0 * pi)) + T(3.0 * pi), T(2.0 * pi)) - T(pi)) * factor;
+}
+
+/*/// Interpolate between two angles by the shortest path.
+template <class T> constexpr T mix_degrees(T a, T b, T factor)
+{
+    static_assert(std::is_floating_point_v<T>);
+
+    return (std::fmod(std::fmod(b - a, T(360.0)) + T(540.0), T(360.0)) - T(180.0)) * factor;
+}*/
+
+//============================================================================//
+
 } // namespace sq::maths

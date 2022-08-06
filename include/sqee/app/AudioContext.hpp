@@ -48,15 +48,25 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     /// Play a sound using the next available id.
-    int64_t play_sound(const Sound& sound, SoundGroup group, float volume, bool loop);
+    int32_t play_sound(const Sound& sound, SoundGroup group, float volume, bool loop);
 
     //--------------------------------------------------------//
 
     /// Pause or resume an individual sound.
-    void set_sound_paused(int64_t id, bool pause);
+    void set_sound_paused(int32_t id, bool pause);
 
     /// Remove an individual sound.
-    void stop_sound(int64_t id);
+    void stop_sound(int32_t id);
+
+    //--------------------------------------------------------//
+
+    // todo: c++20 span
+
+    /// Pause or resume zero or more sounds.
+    void set_sounds_paused(const int32_t* begin, const int32_t* end, bool pause);
+
+    /// Remove zero or more sounds.
+    void stop_sounds(const int32_t* begin, const int32_t* end);
 
     //--------------------------------------------------------//
 
@@ -73,19 +83,19 @@ private: //===================================================//
 
     struct ActiveSound
     {
-        int64_t id;
+        int32_t id;
+        uint cursor;
         const float* frames;
-        size_t frameCount;
-        SoundGroup group;
+        uint frameCount;
         float volume;
+        SoundGroup group;
         bool loop;
         bool paused;
-        size_t cursor;
     };
 
     std::vector<ActiveSound> mActiveSounds;
 
-    int64_t mCurrentId = -1;
+    int32_t mCurrentId = -1;
 
     SoundGroups mIgnoredGroups {};
     SoundGroups mPausedGroups {};

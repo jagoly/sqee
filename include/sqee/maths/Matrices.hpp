@@ -27,13 +27,15 @@ template <class T> struct Matrix<3, 3, T>
     // Column Type Alias
     using Column = Vector<3, T>;
 
-    // Default and Copy Constructors
+    // Default Constructor (Identity)
     constexpr Matrix() : data { 1,0,0, 0,1,0, 0,0,1 } {}
-    constexpr Matrix(const Matrix& m) : columns { m[0], m[1], m[2] } {}
-    constexpr Matrix& operator=(const Matrix& m) = default;
 
-    // Uninitialise Constructor
-    constexpr Matrix(std::nullptr_t) {}
+    // Uninitialised Constructor
+    Matrix(std::nullptr_t) {}
+
+    // Copy Constructor and Assignment
+    constexpr Matrix(const Matrix& m) = default;
+    constexpr Matrix& operator=(const Matrix& m) = default;
 
     // Scalar and Vector Constructors
     constexpr explicit Matrix(T s) : data { s,0,0, 0,s,0, 0,0,s } {}
@@ -47,7 +49,7 @@ template <class T> struct Matrix<3, 3, T>
     constexpr Column& operator[](int index) { return columns[index]; }
     constexpr const Column& operator[](int index) const { return columns[index]; }
 
-    union { T data[3*3]; Column columns[3] { nullptr, nullptr, nullptr }; };
+    union { T data[3*3]; Column columns[3]; };
 };
 
 //============================================================================//
@@ -59,13 +61,15 @@ template <class T> struct Matrix<3, 4, T>
     // Column Type Alias
     using Column = Vector<4, T>;
 
-    // Default and Copy Constructors
+    // Default Constructor (Identity)
     constexpr Matrix() : data { 1,0,0,0, 0,1,0,0, 0,0,1,0 } {}
-    constexpr Matrix(const Matrix& m) : columns { m[0], m[1], m[2] } {}
-    constexpr Matrix& operator=(const Matrix& m) = default;
 
-    // Uninitialise Constructor
-    constexpr Matrix(std::nullptr_t) {}
+    // Uninitialised Constructor
+    Matrix(std::nullptr_t) {}
+
+    // Copy Constructor and Assignment
+    constexpr Matrix(const Matrix& m) = default;
+    constexpr Matrix& operator=(const Matrix& m) = default;
 
     // Scalar and Vector Constructors
     constexpr explicit Matrix(T s) : data { s,0,0,0, 0,s,0,0, 0,0,s,0 } {}
@@ -79,7 +83,7 @@ template <class T> struct Matrix<3, 4, T>
     constexpr Column& operator[](int index) { return columns[index]; }
     constexpr const Column& operator[](int index) const { return columns[index]; }
 
-    union { T data[3*4]; Column columns[3] { nullptr, nullptr, nullptr }; };
+    union { T data[3*4]; Column columns[3]; };
 };
 
 //============================================================================//
@@ -91,13 +95,15 @@ template <class T> struct Matrix<4, 4, T>
     // Column Type Alias
     using Column = Vector<4, T>;
 
-    // Default and Copy Constructors
+    // Default Constructor (Identity)
     constexpr Matrix() : data { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 } {}
-    constexpr Matrix(const Matrix& m) : columns { m[0], m[1], m[2], m[3] } {}
-    constexpr Matrix& operator=(const Matrix& m) = default;
 
-    // Uninitialise Constructor
-    constexpr Matrix(std::nullptr_t) {}
+    // Uninitialised Constructor
+    Matrix(std::nullptr_t) {}
+
+    // Copy Constructor and Assignment
+    constexpr Matrix(const Matrix& m) = default;
+    constexpr Matrix& operator=(const Matrix& m) = default;
 
     // Scalar and Vector Constructors
     constexpr explicit Matrix(T s) : data { s,0,0,0, 0,s,0,0, 0,0,s,0, 0,0,0,s } {}
@@ -111,7 +117,7 @@ template <class T> struct Matrix<4, 4, T>
     constexpr Column& operator[](int index) { return columns[index]; }
     constexpr const Column& operator[](int index) const { return columns[index]; }
 
-    union { T data[4*4]; Column columns[4] { nullptr, nullptr, nullptr, nullptr }; };
+    union { T data[4*4]; Column columns[4]; };
 };
 
 //============================================================================//

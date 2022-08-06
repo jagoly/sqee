@@ -62,13 +62,13 @@ const size_t wren::Traits<Type>::index = wren::detail::generate_type_index();
 //============================================================================//
 
 #define WRENPLUS_ADD_METHOD(Pvm, Class, Method, Signature) \
-  Pvm.register_method<&Class::Method>(Signature)
+  Pvm.register_method<&Class::Method, Class>(Signature)
 
 #define WRENPLUS_ADD_FIELD_R(Pvm, Class, Field, Name) \
-  Pvm.register_method<wren::FieldGetter<&Class::Field>>(Name)
+  Pvm.register_method<wren::FieldGetter<&Class::Field>, Class>(Name)
 
 #define WRENPLUS_ADD_FIELD_W(Pvm, Class, Field, Name) \
-  Pvm.register_method<wren::FieldSetter<&Class::Field>>(Name"=(_)")
+  Pvm.register_method<wren::FieldSetter<&Class::Field>, Class>(Name"=(_)")
 
 #define WRENPLUS_ADD_FIELD_RW(Pvm, Class, Field, Name) \
   do { \

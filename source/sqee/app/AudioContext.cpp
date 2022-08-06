@@ -30,7 +30,7 @@ void AudioContext::Implementation::data_callback(ma_device* pDevice, void* pOutp
     auto context = static_cast<AudioContext*>(pDevice->pUserData);
     auto output = static_cast<float*>(pOutput);
 
-    const size_t maxFramesToRead = size_t(frameCount);
+    const uint maxFramesToRead = frameCount;
 
     const auto lock = std::lock_guard(context->impl->mutex);
 
@@ -39,10 +39,10 @@ void AudioContext::Implementation::data_callback(ma_device* pDevice, void* pOutp
         if (snd.paused || context->mPausedGroups.value & uint8_t(snd.group))
             continue;
 
-        const size_t framesAvailable = snd.frameCount - snd.cursor;
-        const size_t framesToRead = std::min(framesAvailable, maxFramesToRead);
+        const uint framesAvailable = snd.frameCount - snd.cursor;
+        const uint framesToRead = std::min(framesAvailable, maxFramesToRead);
 
-        for (size_t frame = 0u; frame < framesToRead; ++frame, ++snd.cursor)
+        for (uint frame = 0u; frame < framesToRead; ++frame, ++snd.cursor)
             output[frame] += snd.frames[snd.cursor] * snd.volume;
 
         if (snd.loop && snd.cursor == snd.frameCount)
@@ -83,7 +83,7 @@ AudioContext::~AudioContext()
 
 //============================================================================//
 
-int64_t AudioContext::play_sound(const Sound& sound, SoundGroup group, float volume, bool loop)
+int32_t AudioContext::play_sound(const Sound& sound, SoundGroup group, float volume, bool loop)
 {
     if (mIgnoredGroups.value & uint8_t(group))
         return -1;
@@ -92,41 +92,66 @@ int64_t AudioContext::play_sound(const Sound& sound, SoundGroup group, float vol
 
     ActiveSound& snd = mActiveSounds.emplace_back();
     snd.id = ++mCurrentId;
+    snd.cursor = 0u;
     snd.frames = sound.mAudioFrames.data();
-    snd.frameCount = sound.mAudioFrames.size();
+    snd.frameCount = uint(sound.mAudioFrames.size());
     snd.group = group;
     snd.volume = volume;
     snd.loop = loop;
     snd.paused = false;
-    snd.cursor = 0u;
 
     return mCurrentId;
 }
 
 //============================================================================//
 
-void AudioContext::set_sound_paused(int64_t id, bool paused)
+void AudioContext::set_sound_paused(int32_t id, bool paused)
 {
-    SQASSERT(id <= mCurrentId, "invalid sound id");
+    SQASSERT(id <= mCurrentId, "invalid id");
     if (id < 0) return;
 
     const auto lock = std::lock_guard(impl->mutex);
 
-    const auto predicate = [=](const ActiveSound& snd) { return snd.id == id; };
-    if (auto iter = algo::find_if(mActiveSounds, predicate); iter != mActiveSounds.end())
-        iter->paused = paused;
+    for (ActiveSound& snd : mActiveSounds)
+        if (snd.id == id) { snd.paused = paused; break; }
 }
 
-void AudioContext::stop_sound(int64_t id)
+void AudioContext::stop_sound(int32_t id)
 {
-    SQASSERT(id <= mCurrentId, "invalid sound id");
+    SQASSERT(id <= mCurrentId, "invalid id");
     if (id < 0) return;
 
     const auto lock = std::lock_guard(impl->mutex);
 
-    const auto predicate = [=](const ActiveSound& snd) { return snd.id == id; };
-    if (auto iter = algo::find_if(mActiveSounds, predicate); iter != mActiveSounds.end())
-        mActiveSounds.erase(iter);
+    for (auto iter = mActiveSounds.begin(); iter != mActiveSounds.end(); ++iter)
+        if (iter->id == id) { mActiveSounds.erase(iter); break; }
+}
+
+//============================================================================//
+
+// todo: could optimise these, since the ranges are all sorted
+
+void AudioContext::set_sounds_paused(const int32_t* begin, const int32_t* end, bool paused)
+{
+    SQASSERT(std::all_of(begin, end, [this](int32_t id) { return id <= mCurrentId; }), "invalid id");
+    if (begin == end) return;
+
+    const auto lock = std::lock_guard(impl->mutex);
+
+    for (ActiveSound& snd : mActiveSounds)
+        if (std::find(begin, end, snd.id) != end)
+            snd.paused = paused;
+}
+
+void AudioContext::stop_sounds(const int32_t* begin, const int32_t* end)
+{
+    SQASSERT(std::all_of(begin, end, [this](int32_t id) { return id <= mCurrentId; }), "invalid id");
+    if (begin == end) return;
+
+    const auto lock = std::lock_guard(impl->mutex);
+
+    const auto predicate = [=](const ActiveSound& snd) { return std::find(begin, end, snd.id) != end; };
+    algo::erase_if(mActiveSounds, predicate);
 }
 
 //============================================================================//

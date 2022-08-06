@@ -14,39 +14,36 @@ using namespace sq;
 
 inline void impl_ascii_append_normal(std::byte*& ptr, StringView svx, StringView svy, StringView svz, StringView svw)
 {
-    const float fw = svw.empty() ? 0.f : sv_to_f(svw);
-    const float fx = std::round(sv_to_f(svx) * 511.f);
-    const float fy = std::round(sv_to_f(svy) * 511.f);
-    const float fz = std::round(sv_to_f(svz) * 511.f);
+    const float fw = svw.empty() ? 0.f : parse_number<float>(svw);
+    const float fx = std::round(parse_number<float>(svx) * 511.f);
+    const float fy = std::round(parse_number<float>(svy) * 511.f);
+    const float fz = std::round(parse_number<float>(svz) * 511.f);
 
     const uint32_t uw = (int32_t(fw) &   1) << 30 | (fw < 0.f) << 31;
     const uint32_t ux = (int32_t(fx) & 511) << 20 | (fx < 0.f) << 29;
     const uint32_t uy = (int32_t(fy) & 511) << 10 | (fy < 0.f) << 19;
     const uint32_t uz = (int32_t(fz) & 511) <<  0 | (fz < 0.f) <<  9;
 
-    reinterpret_cast<uint32_t&>(*ptr) = uw | ux | uy | uz;
-    std::advance(ptr, sizeof(uint32_t));
+    *reinterpret_cast<uint32_t*>(ptr) = uw | ux | uy | uz;
+    ptr += sizeof(uint32_t);
 }
 
 inline void impl_ascii_append_float(std::byte*& ptr, StringView sv)
 {
-    const auto value = float(sv_to_f(sv));
-    reinterpret_cast<float&>(*ptr) = value;
-    std::advance(ptr, sizeof(float));
+    *reinterpret_cast<float*>(ptr) = parse_number<float>(sv);
+    ptr += sizeof(float);
 }
 
 inline void impl_ascii_append_unorm8(std::byte*& ptr, StringView sv)
 {
-    const auto value = uint8_t(sv_to_f(sv) * 255.f);
-    reinterpret_cast<uint8_t&>(*ptr) = value;
-    std::advance(ptr, sizeof(uint8_t));
+    *reinterpret_cast<uint8_t*>(ptr) = uint8_t(parse_number<float>(sv) * 255.f);
+    ptr += sizeof(uint8_t);
 }
 
 inline void impl_ascii_append_int8(std::byte*& ptr, StringView sv)
 {
-    const auto value = int8_t(sv_to_i(sv));
-    reinterpret_cast<int8_t&>(*ptr) = value;
-    std::advance(ptr, sizeof(int8_t));
+    *reinterpret_cast<int8_t*>(ptr) = parse_number<int8_t>(sv);
+    ptr += sizeof(int8_t);
 }
 
 //============================================================================//
@@ -94,12 +91,13 @@ void Mesh::load_from_file(const String& path)
 
 //============================================================================//
 
-int8_t Mesh::get_sub_mesh_index(TinyString name) const
+uint8_t Mesh::get_sub_mesh_index(TinyString name) const
 {
     for (size_t i = 0u; i < mSubMeshes.size(); ++i)
-        if (name == mSubMeshes[i].name)
-            return int8_t(i);
-    return -1;
+        if (mSubMeshes[i].name == name)
+            return uint8_t(i);
+
+    SQEE_THROW("mesh has no subMesh named '{}'", name);
 }
 
 void Mesh::bind_buffers(vk::CommandBuffer cmdbuf) const
@@ -140,24 +138,36 @@ void Mesh::impl_load_text(String&& text)
 
     for (const auto& [line, num] : TokenisedFile::from_string(std::move(text)).lines)
     {
-        const auto& key = line.front();
+        const StringView& key = line.front();
 
         if (key.front() == '#') continue;
 
         if (key == "SECTION")
         {
-            if      (line[1] == "Header")   section = Section::Header;
-            else if (line[1] == "Vertices") section = Section::Vertices;
-            else if (line[1] == "Indices")  section = Section::Indices;
+            if (line[1] == "Header") section = Section::Header;
 
-            else SQEE_THROW("invalid section '{}'", line[1]);
+            else if (line[1] == "Vertices")
+            {
+                section = Section::Vertices;
+                vertexData.resize(mVertexTotal * mVertexSize);
+                vertexPtr = vertexData.data();
+            }
+
+            else if (line[1] == "Indices")
+            {
+                section = Section::Indices;
+                indexData.resize(mIndexTotal);
+                indexPtr = indexData.data();
+            }
+
+            else SQEE_THROW("{}: invalid section", num);
         }
 
         else if (section == Section::Header)
         {
             if (key == "Attributes")
             {
-                for (uint i = 1u; i < line.size(); ++i)
+                for (size_t i = 1u; i < line.size(); ++i)
                 {
                     if (line[i] == "TexCoords")
                     {
@@ -177,13 +187,11 @@ void Mesh::impl_load_text(String&& text)
                         mVertexSize += sizeof(uint32_t);
                         numValuesPerVertex += 4u;
                     }
-                    // todo: colour should have a few formats for different usages (srgb/linear, alpha)
-                    // current format is linear rgb compressed to 8bpc, which is very bad
                     else if (line[i] == "Colours")
                     {
                         mAttributes |= Attribute::Colours;
                         mVertexSize += sizeof(uint8_t[4]);
-                        numValuesPerVertex += 3u;
+                        numValuesPerVertex += 4u;
                     }
                     else if (line[i] == "Bones")
                     {
@@ -191,19 +199,18 @@ void Mesh::impl_load_text(String&& text)
                         mVertexSize += sizeof(int8_t[4]) + sizeof(uint8_t[4]);
                         numValuesPerVertex += 8u;
                     }
-
-                    else SQEE_THROW("unknown attribute '{}'", line[i]);
+                    else SQEE_THROW("{}: invalid attribute", num);
                 }
             }
 
             else if (key == "Origin")
-                parse_tokens(mBounds.origin, line[1], line[2], line[3]);
+                parse_numbers(mBounds.origin, line[1], line[2], line[3]);
 
             else if (key == "Extents")
-                parse_tokens(mBounds.extents, line[1], line[2], line[3]);
+                parse_numbers(mBounds.extents, line[1], line[2], line[3]);
 
             else if (key == "Radius")
-                parse_tokens(mBounds.radius, line[1]);
+                parse_number(mBounds.radius, line[1]);
 
             else if (key == "SubMesh")
             {
@@ -211,9 +218,9 @@ void Mesh::impl_load_text(String&& text)
 
                 sm.name = line[1];
                 sm.firstVertex = mVertexTotal;
-                sm.vertexCount = sv_to_u(line[2]);
+                parse_number(sm.vertexCount, line[2]);
                 sm.firstIndex = mIndexTotal;
-                sm.indexCount = sv_to_u(line[3]);
+                parse_number(sm.indexCount, line[3]);
 
                 mVertexTotal += sm.vertexCount;
                 mIndexTotal += sm.indexCount;
@@ -224,16 +231,10 @@ void Mesh::impl_load_text(String&& text)
 
         else if (section == Section::Vertices)
         {
-            if (vertexPtr == nullptr)
-            {
-                vertexData.resize(mVertexTotal * mVertexSize);
-                vertexPtr = vertexData.data();
-            }
-
             SQASSERT(vertexPtr < vertexData.data() + vertexData.size(), "too many vertices");
             SQASSERT(line.size() == numValuesPerVertex, "wrong number of values");
 
-            uint index = 0u;
+            size_t index = 0u;
 
             impl_ascii_append_float(vertexPtr, line[index++]);
             impl_ascii_append_float(vertexPtr, line[index++]);
@@ -267,7 +268,7 @@ void Mesh::impl_load_text(String&& text)
                 impl_ascii_append_unorm8(vertexPtr, line[index++]);
                 impl_ascii_append_unorm8(vertexPtr, line[index++]);
                 impl_ascii_append_unorm8(vertexPtr, line[index++]);
-                impl_ascii_append_unorm8(vertexPtr, "1.0");
+                impl_ascii_append_unorm8(vertexPtr, line[index++]);
             }
 
             if (mAttributes & Attribute::Bones)
@@ -286,18 +287,12 @@ void Mesh::impl_load_text(String&& text)
 
         else if (section == Section::Indices)
         {
-            if (indexPtr == nullptr)
-            {
-                indexData.resize(mIndexTotal);
-                indexPtr = indexData.data();
-            }
-
             SQASSERT(indexPtr < indexData.data() + indexData.size(), "too many indices");
             SQASSERT(line.size() == 3u, "wrong number of values");
 
-            *(indexPtr++) = sv_to_u(line[0]);
-            *(indexPtr++) = sv_to_u(line[1]);
-            *(indexPtr++) = sv_to_u(line[2]);
+            parse_number(*(indexPtr++), line[0]);
+            parse_number(*(indexPtr++), line[1]);
+            parse_number(*(indexPtr++), line[2]);
         }
 
         else SQEE_THROW("missing SECTION");
@@ -368,7 +363,6 @@ Mesh::VertexConfig::VertexConfig(vk::Flags<Attribute> flags, vk::Flags<Attribute
     if (flags & Attribute::Tangents & (ignored ^ Attribute::Tangents))
         attributes.push_back({3u, 0u, vk::Format::eA2R10G10B10SnormPack32, offsetTANG});
 
-    // todo: use eA2R10G10B10UnormPack32 if alpha is not needed
     if (flags & Attribute::Colours & (ignored ^ Attribute::Colours))
         attributes.push_back({4u, 0u, vk::Format::eR8G8B8A8Unorm, offsetCOLR});
 

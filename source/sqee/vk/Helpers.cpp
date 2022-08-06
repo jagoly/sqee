@@ -165,7 +165,7 @@ Swapper<vk::DescriptorSet> sq::vk_allocate_descriptor_set_swapper(const VulkanCo
 
     Swapper<vk::DescriptorSet> swapper;
 
-    const auto result = ctx.device.allocateDescriptorSets(&info, &swapper.front);
+    const auto result = ctx.device.allocateDescriptorSets(&info, reinterpret_cast<vk::DescriptorSet*>(&swapper));
     if (result != vk::Result::eSuccess)
         vk::throwResultException(result, "sq::vk_allocate_descriptor_set_swapper");
 

@@ -60,8 +60,8 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    /// Get the index of sub mesh by name, -1 on failure.
-    int8_t get_sub_mesh_index(TinyString name) const;
+    /// Get the index of sub mesh by name, throw on failure.
+    uint8_t get_sub_mesh_index(TinyString name) const;
 
     /// Bind vertex and index buffers.
     void bind_buffers(vk::CommandBuffer cmdbuf) const;

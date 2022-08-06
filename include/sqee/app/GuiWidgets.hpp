@@ -337,51 +337,90 @@ inline bool InputQuaternion(CStrView label, sq::maths::Quaternion<Type>& ref, de
 
 //----------------------------------------------------------------------------//
 
-/// C++ style API for combo boxes. If none is given, it will be listed as index -1.
-/// sq::to_c_string(Container::value_type) must be defined.
+/// C++ style API for combo boxes. If none is given, it can be selected to set the index to -1.
 template <class Container, class Index>
-inline bool Combo(CStrView label, const Container& container, Index& ref, CStrView none = nullptr, ImGuiComboFlags flags = 0)
+inline bool ComboIndex(CStrView label, const Container& container, Index& ref, CStrView none = nullptr, ImGuiComboFlags flags = 0)
 {
     // todo: unsigned types would be fine if none is not given
-    static_assert (std::is_signed_v<Index>, "index type must be signed");
+    static_assert(std::is_signed_v<Index>, "index type must be signed");
+    assert(ref >= -1 && ref < int(container.size()));
 
-    const Index oldValue = ref;
+    // return true if new selection is different to old selection
+    bool changed = false;
 
-    const auto currentItem = ref == -1 ? none.c_str() : sq::to_c_string(*std::next(container.begin(), ref));
+    const char* const currentItem = ref == -1 ? none.c_str() : container[ref].c_str();
     if (ImGui::BeginCombo(label, currentItem, flags))
     {
-        if (none != nullptr && ImGui::Selectable(none))
-            ref = -1;
+        if (none != nullptr)
+        {
+            const bool selected = (ref == -1);
+            if (ImGui::Selectable(none, selected) && !selected)
+                ref = -1, changed = true;
+        }
 
-        Index index = 0;
-        for (auto iter = container.begin(); iter != container.end(); ++iter, ++index)
-            if (ImGui::Selectable(sq::to_c_string(*iter)))
-                ref = index;
+        for (Index index = 0; index < container.size(); ++index)
+        {
+            const bool selected = (ref == index);
+            if (ImGui::Selectable(container[index].c_str(), selected) && !selected)
+                ref = index, changed = true;
+        }
 
         ImGui::EndCombo();
     }
 
-    // only return true if selection has changed, unlike ImGui::Combo
-    return ref != oldValue;
+    return changed;
+}
+
+/// C++ style API for combo boxes. If none is given, it can be selected to clear the value.
+template <class Container, class String>
+inline bool ComboString(CStrView label, const Container& container, String& ref, CStrView none = nullptr, ImGuiComboFlags flags = 0)
+{
+    // return true if new selection is different to old selection
+    bool changed = false;
+
+    if (ImGui::BeginCombo(label, ref.c_str(), flags))
+    {
+        if (none != nullptr)
+        {
+            const bool selected = ref.empty();
+            if (ImGui::Selectable(none, selected) && !selected)
+                ref.clear(), changed = true;
+        }
+
+        for (const auto& entry : container)
+        {
+            const bool selected = (ref == entry);
+            if (ImGui::Selectable(entry.c_str(), selected) && !selected)
+                ref = entry, changed = true;
+        }
+
+        ImGui::EndCombo();
+    }
+
+    return changed;
 }
 
 /// Combo box for an enum value. For use with the SQEE_ENUM_HELPER macro.
 template <class EnumType>
 inline bool ComboEnum(CStrView label, EnumType& ref, ImGuiComboFlags flags = 0)
 {
-    const EnumType oldValue = ref;
+    // return true if new selection is different to old selection
+    bool changed = false;
 
     if (ImGui::BeginCombo(label, sq::enum_to_string(ref), flags))
     {
-        for (EnumType e : sq::enum_items_v<EnumType>)
-            if (ImGui::Selectable(sq::enum_to_string(e)))
-                ref = e;
+        for (EnumType entry : sq::enum_items_v<EnumType>)
+        {
+            const bool selected = (ref == entry);
+
+            if (ImGui::Selectable(sq::enum_to_string(entry), selected) && !selected)
+                ref = entry, changed = true;
+        }
 
         ImGui::EndCombo();
     }
 
-    // only return true if selection has changed, unlike ImGui::Combo
-    return ref != oldValue;
+    return changed;
 }
 
 //----------------------------------------------------------------------------//

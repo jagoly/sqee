@@ -18,7 +18,7 @@ class ResourceCache final : private NonCopyable
 {
 public: //====================================================//
 
-    using Factory = std::function<std::unique_ptr<Type>(const Key&)>;
+    using Factory = std::function<Type(const Key&)>;
 
     /// Set the callable to use to create new resources.
     void assign_factory(Factory factory)
@@ -35,7 +35,7 @@ public: //====================================================//
             SQASSERT(mFactoryFunc != nullptr, "no factory assigned");
             iter->second.key = &iter->first;
             try {
-                iter->second.data = mFactoryFunc(key);
+                iter->second.data = std::make_unique<Type>(mFactoryFunc(key));
             }
             catch (const std::exception& ex) {
                 log_error_multiline("unhandled exception when loading resource\nkey:  {}\nwhat: {}", key, ex.what());
@@ -54,7 +54,7 @@ public: //====================================================//
             SQASSERT(mFactoryFunc != nullptr, "no factory assigned");
             iter->second.key = &iter->first;
             try {
-                iter->second.data = mFactoryFunc(key);
+                iter->second.data = std::make_unique<Type>(mFactoryFunc(key));
             }
             catch (const std::exception& ex) {
                 if (!silent) log_warning_multiline("exception when loading resource\nkey:  {}:\nwhat: {}", key, ex.what());
@@ -65,11 +65,11 @@ public: //====================================================//
         return Handle<Key, Type>(iter->second);
     }
 
-    /// Reload cached resources. Handles will remain valid.
+    /// Reload cached resources. Handles and pointers will remain valid.
     void reload_resources()
     {
         for (auto& [key, resource] : mResourceMap)
-            resource.data = mFactoryFunc(key);
+            *resource.data = mFactoryFunc(key);
     }
 
     /// Free resources that no longer have any handles.

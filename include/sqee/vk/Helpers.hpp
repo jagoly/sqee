@@ -116,6 +116,21 @@ struct DescriptorUniformBuffer
     vk::DescriptorBufferInfo front, back;
 };
 
+struct DescriptorStorageBuffer
+{
+    DescriptorStorageBuffer(uint _binding, uint _index, vk::DescriptorBufferInfo info)
+        : binding(_binding), index(_index), front(info), back(info) {}
+
+    DescriptorStorageBuffer(uint _binding, uint _index, vk::Buffer buffer, size_t offset, size_t range)
+        : binding(_binding), index(_index), front(buffer, offset, range), back(buffer, offset, range) {}
+
+    DescriptorStorageBuffer(uint _binding, uint _index, Swapper<vk::DescriptorBufferInfo> info)
+        : binding(_binding), index(_index), front(info.front), back(info.back) {}
+
+    uint binding, index;
+    vk::DescriptorBufferInfo front, back;
+};
+
 struct DescriptorImageSampler
 {
     DescriptorImageSampler(uint _binding, uint _index, vk::DescriptorImageInfo info)
@@ -154,6 +169,14 @@ inline vk::WriteDescriptorSet make_write_descriptor_set(vk::DescriptorSet dset, 
 {
     return vk::WriteDescriptorSet {
         dset, descriptor.binding, descriptor.index, 1u, vk::DescriptorType::eUniformBuffer,
+        nullptr, back ? &descriptor.back : &descriptor.front, nullptr
+    };
+}
+
+inline vk::WriteDescriptorSet make_write_descriptor_set(vk::DescriptorSet dset, const DescriptorStorageBuffer& descriptor, bool back)
+{
+    return vk::WriteDescriptorSet {
+        dset, descriptor.binding, descriptor.index, 1u, vk::DescriptorType::eStorageBuffer,
         nullptr, back ? &descriptor.back : &descriptor.front, nullptr
     };
 }

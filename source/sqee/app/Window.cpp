@@ -364,14 +364,35 @@ Window::Window(const char* title, Vec2U size, const char* appName, Vec3U version
             // check that device is supported
             {
                 if (!(physDev.getQueueFamilyProperties().front().queueFlags & vk::QueueFlagBits::eGraphics))
+                {
+                    log_debug("device does not have a graphics queue");
                     continue;
+                }
 
                 if (!physDev.getSurfaceSupportKHR(0u, mSurface))
+                {
+                    log_debug("device does not support the surface");
                     continue;
+                }
 
                 const auto formats = physDev.getSurfaceFormatsKHR(mSurface);
+
                 if (algo::none_of(formats, [](auto& f) { return f.format == vk::Format::eB8G8R8A8Srgb; }))
+                {
+                    log_debug("device does not support B8G8R8A8_SRGB surface");
                     continue;
+                }
+
+                const auto features = physDev.getFeatures2<vk::PhysicalDeviceFeatures2, vk::PhysicalDeviceDescriptorIndexingFeatures>();
+                const auto& indexFeatures = features.get<vk::PhysicalDeviceDescriptorIndexingFeatures>();
+
+                if (!indexFeatures.descriptorBindingPartiallyBound ||
+                    !indexFeatures.descriptorBindingVariableDescriptorCount ||
+                    !indexFeatures.runtimeDescriptorArray)
+                {
+                    log_debug("device does not support descriptor indexing");
+                    continue;
+                }
             }
 
             const auto preferredType = vk::PhysicalDeviceType::eDiscreteGpu;
@@ -398,15 +419,25 @@ Window::Window(const char* title, Vec2U size, const char* appName, Vec3U version
         auto queues = vk::DeviceQueueCreateInfo { {}, 0u, priorities };
         auto extensions = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
 
-        auto features = vk::PhysicalDeviceFeatures();
+        auto features2 = vk::PhysicalDeviceFeatures2();
+
+        auto& features = features2.features;
         features.fillModeNonSolid = true;
         features.samplerAnisotropy = true;
         features.wideLines = true;
         features.geometryShader = true;
         features.depthClamp = true;
 
+        auto indexFeatures = vk::PhysicalDeviceDescriptorIndexingFeatures();
+        indexFeatures.descriptorBindingPartiallyBound = true;
+        indexFeatures.descriptorBindingVariableDescriptorCount = true;
+        indexFeatures.runtimeDescriptorArray = true;
+
         mDevice = mPhysicalDevice.createDevice (
-            vk::DeviceCreateInfo { {}, queues, {}, extensions, &features }
+            vk::StructureChain {
+                vk::DeviceCreateInfo { {}, queues, {}, extensions, nullptr },
+                features2, indexFeatures
+            }.get()
         );
 
         mQueue = mDevice.getQueue(0u, 0u);

@@ -74,18 +74,25 @@ static vk::PipelineColorBlendAttachmentState impl_make_color_blend_state(const S
         return vk::PipelineColorBlendAttachmentState {
             false, {}, {}, {}, {}, {}, {}, vk::ColorComponentFlags(0b1111)
         };
-    if (colourBlend == "Accumulate") // TODO
+    if (colourBlend == "Accumulate")
         return vk::PipelineColorBlendAttachmentState {
-            false, {}, {}, {}, {}, {}, {}, vk::ColorComponentFlags(0b1111)
+            true, vk::BlendFactor::eSrcAlpha, vk::BlendFactor::eOne, vk::BlendOp::eAdd,
+            vk::BlendFactor::eSrcAlpha, vk::BlendFactor::eOne, vk::BlendOp::eAdd, vk::ColorComponentFlags(0b1111)
         };
     if (colourBlend == "Alpha")
         return vk::PipelineColorBlendAttachmentState {
             true, vk::BlendFactor::eSrcAlpha, vk::BlendFactor::eOneMinusSrcAlpha, vk::BlendOp::eAdd,
             vk::BlendFactor::eOne, vk::BlendFactor::eZero, vk::BlendOp::eAdd, vk::ColorComponentFlags(0b1111)
         };
-    if (colourBlend == "PremAlpha") // TODO
+    if (colourBlend == "PreAlpha")
         return vk::PipelineColorBlendAttachmentState {
-            false, {}, {}, {}, {}, {}, {}, vk::ColorComponentFlags(0b1111)
+            true, vk::BlendFactor::eSrcAlpha, vk::BlendFactor::eOneMinusSrcAlpha, vk::BlendOp::eAdd,
+            vk::BlendFactor::eOne, vk::BlendFactor::eOneMinusSrcColor, vk::BlendOp::eAdd, vk::ColorComponentFlags(0b1111)
+        };
+    if (colourBlend == "RevSubtract")
+        return vk::PipelineColorBlendAttachmentState {
+            true, vk::BlendFactor::eOne, vk::BlendFactor::eOne, vk::BlendOp::eReverseSubtract,
+            vk::BlendFactor::eOne, vk::BlendFactor::eOne, vk::BlendOp::eReverseSubtract, vk::ColorComponentFlags(0b1111)
         };
 
     SQEE_THROW("invalid pipeline colourBlend string '{}'", colourBlend);
@@ -100,17 +107,15 @@ Pipeline::Pipeline(Pipeline&& other)
 
 Pipeline& Pipeline::operator=(Pipeline&& other)
 {
-    std::swap(mMaterialSetLayout, other.mMaterialSetLayout);
-    std::swap(mPipelineLayout, other.mPipelineLayout);
     std::swap(mPipeline, other.mPipeline);
+    mPassConfig = other.mPassConfig;
+    mPushConstantMap = std::move(other.mPushConstantMap);
     return *this;
 }
 
 Pipeline::~Pipeline()
 {
     const auto& ctx = VulkanContext::get();
-    if (mMaterialSetLayout) ctx.device.destroy(mMaterialSetLayout);
-    if (mPipelineLayout) ctx.device.destroy(mPipelineLayout);
     if (mPipeline) ctx.device.destroy(mPipeline);
 }
 
@@ -134,140 +139,53 @@ void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes
 
     //--------------------------------------------------------//
 
-    std::array<std::vector<vk::DescriptorSetLayoutBinding>, DESCRIPTOR_SET_COUNT> setBindings;
-
-    const auto add_descriptor = [&setBindings](uint set, uint binding, vk::DescriptorType type, vk::ShaderStageFlagBits stage)
-    {
-        SQASSERT(set < DESCRIPTOR_SET_COUNT, "descriptor set index out of range");
-
-        if (setBindings[set].size() <= binding)
-            setBindings[set].resize(binding + 1u);
-
-        vk::DescriptorSetLayoutBinding& dslb = setBindings[set][binding];
-
-        if (dslb.descriptorCount != 0u)
-        {
-            SQASSERT(dslb.descriptorType == type, "descriptor mismatch between stages");
-            dslb.stageFlags |= stage;
-        }
-        else dslb = { binding, type, 1u, stage, nullptr };
-    };
-
-    //std::vector<vk::PushConstantRange> pushConstantRanges;
-
-    //--------------------------------------------------------//
-
-    const auto reflect_shader = [&](const std::vector<std::byte>& code, vk::ShaderStageFlagBits stage)
+    const auto reflect_shader = [&](const std::vector<std::byte>& code)
     {
         const auto compiler = cross::Compiler(reinterpret_cast<const uint32_t*>(code.data()), code.size() / 4u);
         const auto resources = compiler.get_shader_resources();
 
-        SQASSERT(resources.storage_buffers.empty(), "todo");
         SQASSERT(resources.subpass_inputs.empty(), "todo");
         SQASSERT(resources.storage_images.empty(), "todo");
-        SQASSERT(resources.storage_buffers.empty(), "todo");
         SQASSERT(resources.atomic_counters.empty(), "todo");
         SQASSERT(resources.acceleration_structures.empty(), "todo");
         SQASSERT(resources.separate_images.empty(), "todo");
         SQASSERT(resources.separate_samplers.empty(), "todo");
 
-        SQASSERT(resources.push_constant_buffers.empty(), "todo");
-        //for (const auto& pcb : resources.push_constant_buffers)
-        //{
-        //    const auto& blockType = compiler.get_type(pcb.type_id);
-        //
-        //    // for ease of use, this range includes members that aren't used
-        //    vk::PushConstantRange& range = pushConstantRanges.emplace_back(stage, 256u, 0u);
-        //
-        //    for (uint i = 0u; i < blockType.member_types.size(); ++i)
-        //    {
-        //        const auto& mt = compiler.get_type(blockType.member_types[i]);
-        //        SQASSERT(mt.array.empty(), "push constant block must not contain arrays");
-        //
-        //        PushConstantInfo& entry = mPushConstantMap[compiler.get_member_name(blockType.self, i)];
-        //        entry.type = [&mt]() -> TinyString {
-        //            if (mt.columns == 1u && mt.basetype == cross::SPIRType::Int && mt.vecsize == 1u) return "int";
-        //            if (mt.columns == 1u && mt.basetype == cross::SPIRType::Int && mt.vecsize == 2u) return "Vec2I";
-        //            if (mt.columns == 1u && mt.basetype == cross::SPIRType::Int && mt.vecsize == 3u) return "Vec3I";
-        //            if (mt.columns == 1u && mt.basetype == cross::SPIRType::Int && mt.vecsize == 4u) return "Vec4I";
-        //            if (mt.columns == 1u && mt.basetype == cross::SPIRType::Float && mt.vecsize == 1u) return "float";
-        //            if (mt.columns == 1u && mt.basetype == cross::SPIRType::Float && mt.vecsize == 2u) return "Vec2F";
-        //            if (mt.columns == 1u && mt.basetype == cross::SPIRType::Float && mt.vecsize == 3u) return "Vec3F";
-        //            if (mt.columns == 1u && mt.basetype == cross::SPIRType::Float && mt.vecsize == 4u) return "Vec4F";
-        //            if (mt.columns == 3u && mt.basetype == cross::SPIRType::Float && mt.vecsize == 4u) return "Mat34F";
-        //            if (mt.columns == 4u && mt.basetype == cross::SPIRType::Float && mt.vecsize == 4u) return "Mat4F";
-        //            SQASSERT(false, "push constant block member has invalid type"); return "";
-        //        }();
-        //        entry.stages = entry.stages | stage;
-        //        entry.offset = compiler.type_struct_member_offset(blockType, i);
-        //
-        //        range.offset = std::min(range.offset, entry.offset);
-        //        range.size = std::max(range.size, entry.offset + mt.columns * mt.vecsize * 4u);
-        //    }
-        //}
-
-        for (const auto& ubo : resources.uniform_buffers)
+        for (const auto& pcb : resources.push_constant_buffers)
         {
-            const uint set = compiler.get_decoration(ubo.id, spv::DecorationDescriptorSet);
-            const uint binding = compiler.get_decoration(ubo.id, spv::DecorationBinding);
-
-            add_descriptor(set, binding, vk::DescriptorType::eUniformBuffer, stage);
-
-            // only need to reflect the material param block
-            if (set != MATERIAL_SET_INDEX) continue;
-
-            // already found material block in another shader stage
-            if (mMaterialParamMap.empty() == false) continue;
-
-            SQASSERT(binding == 0u, "material block binding must be zero");
-
-            const auto& blockType = compiler.get_type(ubo.type_id);
-            mMaterialParamBlockSize = compiler.get_declared_struct_size(blockType);
+            const auto& blockType = compiler.get_type(pcb.type_id);
 
             for (uint i = 0u; i < blockType.member_types.size(); ++i)
             {
                 const auto& mt = compiler.get_type(blockType.member_types[i]);
-                SQASSERT(mt.array.empty(), "material block must not contain arrays");
-                SQASSERT(mt.columns == 1u, "material block must not contain matrices");
+                const auto& memberName = compiler.get_member_name(blockType.self, i);
 
-                MaterialParamInfo& entry = mMaterialParamMap[compiler.get_member_name(blockType.self, i)];
-                entry.type = [&mt]() -> TinyString {
-                    if (mt.basetype == cross::SPIRType::Int && mt.vecsize == 1u) return "int";
-                    if (mt.basetype == cross::SPIRType::Int && mt.vecsize == 2u) return "Vec2I";
-                    if (mt.basetype == cross::SPIRType::Int && mt.vecsize == 3u) return "Vec3I";
-                    if (mt.basetype == cross::SPIRType::Int && mt.vecsize == 4u) return "Vec4I";
-                    if (mt.basetype == cross::SPIRType::Float && mt.vecsize == 1u) return "float";
-                    if (mt.basetype == cross::SPIRType::Float && mt.vecsize == 2u) return "Vec2F";
-                    if (mt.basetype == cross::SPIRType::Float && mt.vecsize == 3u) return "Vec3F";
-                    if (mt.basetype == cross::SPIRType::Float && mt.vecsize == 4u) return "Vec4F";
-                    SQASSERT(false, "material block member has invalid type"); return "";
+                if (mt.array.empty() == false)
+                    SQEE_THROW("push constant '{}' is an array", memberName);
+
+                PushConstantInfo& entry = mPushConstantMap[memberName];
+
+                entry.type = [&]() -> PushConstantType {
+                    if (mt.columns == 1u && mt.basetype == cross::SPIRType::Int && mt.vecsize == 1u) return PushConstantType::Int;
+                    if (mt.columns == 1u && mt.basetype == cross::SPIRType::Int && mt.vecsize == 2u) return PushConstantType::Vec2I;
+                    if (mt.columns == 1u && mt.basetype == cross::SPIRType::Int && mt.vecsize == 3u) return PushConstantType::Vec3I;
+                    if (mt.columns == 1u && mt.basetype == cross::SPIRType::Int && mt.vecsize == 4u) return PushConstantType::Vec4I;
+                    if (mt.columns == 1u && mt.basetype == cross::SPIRType::UInt && mt.vecsize == 1u) return PushConstantType::Uint;
+                    if (mt.columns == 1u && mt.basetype == cross::SPIRType::UInt && mt.vecsize == 2u) return PushConstantType::Vec2U;
+                    if (mt.columns == 1u && mt.basetype == cross::SPIRType::UInt && mt.vecsize == 3u) return PushConstantType::Vec3U;
+                    if (mt.columns == 1u && mt.basetype == cross::SPIRType::UInt && mt.vecsize == 4u) return PushConstantType::Vec4U;
+                    if (mt.columns == 1u && mt.basetype == cross::SPIRType::Float && mt.vecsize == 1u) return PushConstantType::Float;
+                    if (mt.columns == 1u && mt.basetype == cross::SPIRType::Float && mt.vecsize == 2u) return PushConstantType::Vec2F;
+                    if (mt.columns == 1u && mt.basetype == cross::SPIRType::Float && mt.vecsize == 3u) return PushConstantType::Vec3F;
+                    if (mt.columns == 1u && mt.basetype == cross::SPIRType::Float && mt.vecsize == 4u) return PushConstantType::Vec4F;
+                    if (mt.columns == 2u && mt.basetype == cross::SPIRType::Float && mt.vecsize == 3u) return PushConstantType::Mat23F;
+                    if (mt.columns == 3u && mt.basetype == cross::SPIRType::Float && mt.vecsize == 4u) return PushConstantType::Mat34F;
+                    if (mt.columns == 4u && mt.basetype == cross::SPIRType::Float && mt.vecsize == 4u) return PushConstantType::Mat4F;
+                    SQEE_THROW("push constant '{}' has invalid type", memberName);
                 }();
-                entry.offset = compiler.type_struct_member_offset(blockType, i);
+
+                entry.offset = uint8_t(compiler.type_struct_member_offset(blockType, i));
             }
-        }
-
-        for (const auto& tex : resources.sampled_images)
-        {
-            const uint set = compiler.get_decoration(tex.id, spv::DecorationDescriptorSet);
-            const uint binding = compiler.get_decoration(tex.id, spv::DecorationBinding);
-
-            add_descriptor(set, binding, vk::DescriptorType::eCombinedImageSampler, stage);
-
-            // only need to reflect material set textures
-            if (set != MATERIAL_SET_INDEX) continue;
-
-            const auto& texType = compiler.get_type(tex.type_id);
-
-            // todo: array/cube textures
-            SQASSERT(texType.image.dim == spv::Dim::Dim2D, "unsupported texture in material set");
-            SQASSERT(texType.image.depth == false, "unsupported texture in material set");
-            SQASSERT(texType.image.arrayed == false, "unsupported texture in material set");
-            SQASSERT(texType.image.ms == false, "unsupported texture in material set");
-
-            const TinyString name = compiler.get_name(tex.id);
-            const TinyString type = "Texture2D";
-
-            mTextureMap[name] = TextureInfo { type, binding };
         }
     };
 
@@ -278,55 +196,35 @@ void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes
     const auto vertexShaderCode = read_bytes_from_file (
         build_string("shaders/", json.at("vertexShader").get_ref<const String&>(), ".vert.spv")
     );
-    reflect_shader(vertexShaderCode, vk::ShaderStageFlagBits::eVertex);
+    reflect_shader(vertexShaderCode);
 
     const auto fragmentShaderCode = read_bytes_from_file (
         build_string("shaders/", json.at("fragmentShader").get_ref<const String&>(), ".frag.spv")
     );
-    reflect_shader(fragmentShaderCode, vk::ShaderStageFlagBits::eFragment);
-
-    // make sure unused bindings have correct binding index
-    for (uint i = 0u; i < DESCRIPTOR_SET_COUNT; ++i)
-        for (uint j = 0u; j < setBindings[i].size(); ++j)
-            setBindings[i][j].binding = j;
-
-    // create descriptor set and pipeline layouts
-    {
-        std::array<vk::DescriptorSetLayout, DESCRIPTOR_SET_COUNT> setLayouts;
-
-        setLayouts[0] = mPassConfig->setLayout;
-
-        for (uint i = 1u; i < DESCRIPTOR_SET_COUNT; ++i)
-            setLayouts[i] = ctx.create_descriptor_set_layout(setBindings[i]);
-
-        mMaterialSetLayout = setLayouts[MATERIAL_SET_INDEX];
-        //mPipelineLayout = ctx.create_pipeline_layout(setLayouts, pushConstantRanges);
-        mPipelineLayout = ctx.create_pipeline_layout(setLayouts, nullptr);
-
-        for (uint i = 1u; i < DESCRIPTOR_SET_COUNT; ++i)
-            if (i != MATERIAL_SET_INDEX)
-                ctx.device.destroy(setLayouts[i]);
-    }
+    reflect_shader(fragmentShaderCode);
 
     //--------------------------------------------------------//
 
-    const auto& jsonAttributes = json.at("attributes").get_ref<const std::vector<JsonValue>&>();
+    const auto& jAttributes = json.at("attributes").get_ref<const JsonValue::array_t&>();
+
     Mesh::Attributes attributes = {};
     Mesh::Attributes ignoredAttributes = {};
 
-    for (const auto& jsonAttribute : jsonAttributes)
+    for (const auto& element : jAttributes)
     {
-        StringView sv = jsonAttribute.get_ref<const String&>();
+        StringView sv = element.get_ref<const String&>();
+
         const bool ignored = sv.front() == '#';
         if (ignored) sv.remove_prefix(1u);
 
-        Mesh::Attribute attribute;
-        if      (sv == "TexCoords") attribute = Mesh::Attribute::TexCoords;
-        else if (sv == "Normals")   attribute = Mesh::Attribute::Normals;
-        else if (sv == "Tangents")  attribute = Mesh::Attribute::Tangents;
-        else if (sv == "Colours")   attribute = Mesh::Attribute::Colours;
-        else if (sv == "Bones")     attribute = Mesh::Attribute::Bones;
-        else SQEE_THROW("invalid mesh attribute '{}'", sv);
+        const Mesh::Attribute attribute = [&]() {
+            if (sv == "TexCoords") return Mesh::Attribute::TexCoords;
+            if (sv == "Normals")   return Mesh::Attribute::Normals;
+            if (sv == "Tangents")  return Mesh::Attribute::Tangents;
+            if (sv == "Colours")   return Mesh::Attribute::Colours;
+            if (sv == "Bones")     return Mesh::Attribute::Bones;
+            SQEE_THROW("invalid mesh attribute '{}'", sv);
+        }();
 
         attributes |= attribute;
         if (ignored) ignoredAttributes |= attribute;
@@ -334,7 +232,19 @@ void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes
 
     const auto vertexConfig = Mesh::VertexConfig(attributes, ignoredAttributes);
 
-    // todo: constants from json
+    //--------------------------------------------------------//
+
+    const auto& jColourBlend = json.at("colourBlend").get_ref<const JsonValue::array_t&>();
+
+    std::vector<vk::PipelineColorBlendAttachmentState> colourBlendAttachments;
+    colourBlendAttachments.reserve(jColourBlend.size());
+
+    for (const auto& element : jColourBlend)
+        colourBlendAttachments.emplace_back(impl_make_color_blend_state(element.get_ref<const String&>()));
+
+    //--------------------------------------------------------//
+
+    // todo: spec constants from json
     const auto specialisation = SpecialisationConstants (
         0u, int(mPassConfig->viewport.x), 1u, int(mPassConfig->viewport.y), 2u, int(mPassConfig->samples), mPassConfig->constants
     );
@@ -345,17 +255,10 @@ void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes
         &specialisation.info
     );
 
-    const auto& jsonColourBlend = json.at("colourBlend").get_ref<const std::vector<JsonValue>&>();
-    std::vector<vk::PipelineColorBlendAttachmentState> colourBlendAttachments;
-    colourBlendAttachments.reserve(jsonColourBlend.size());
-
-    for (const JsonValue& element : jsonColourBlend)
-        colourBlendAttachments.emplace_back(impl_make_color_blend_state(element.get_ref<const String&>()));
-
     //--------------------------------------------------------//
 
     mPipeline = vk_create_graphics_pipeline (
-        ctx, mPipelineLayout, mPassConfig->renderPass, mPassConfig->subpass, shaderModules.stages, vertexConfig.state,
+        ctx, mPassConfig->pipelineLayout, mPassConfig->renderPass, mPassConfig->subpass, shaderModules.stages, vertexConfig.state,
         vk::PipelineInputAssemblyStateCreateInfo { {}, vk::PrimitiveTopology::eTriangleList, false },
         impl_make_rasterization_state(json.at("cullFace").get_ref<const String&>()),
         impl_make_multisample_state(mPassConfig->samples, json.at("alphaCoverage").get_ref<const String&>()),
@@ -371,4 +274,14 @@ void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes
 void Pipeline::bind(vk::CommandBuffer cmdbuf) const
 {
     cmdbuf.bindPipeline(vk::PipelineBindPoint::eGraphics, mPipeline);
+}
+
+//============================================================================//
+
+Pipeline::PushConstantInfo Pipeline::get_push_constant_info(SmallString name) const
+{
+    const auto iter = mPushConstantMap.find(name);
+    if (iter != mPushConstantMap.end()) return iter->second;
+
+    SQEE_THROW("pipeline does not have push constant '{}'", name);
 }

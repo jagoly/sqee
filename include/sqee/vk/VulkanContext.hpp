@@ -48,6 +48,10 @@ public: //====================================================//
         ArrayProxyRef<vk::DescriptorSetLayoutBinding> bindings
     ) const;
 
+    vk::DescriptorSetLayout create_descriptor_set_layout (
+        ArrayProxyRef<vk::DescriptorSetLayoutBinding> bindings, ArrayProxyRef<vk::DescriptorBindingFlags> bindingFlags
+    ) const;
+
     vk::PipelineLayout create_pipeline_layout (
         ArrayProxyRef<vk::DescriptorSetLayout> setLayouts, ArrayProxyRef<vk::PushConstantRange> pushConstantRanges
     ) const;
@@ -100,6 +104,20 @@ inline vk::DescriptorSetLayout VulkanContext::create_descriptor_set_layout(Array
         vk::DescriptorSetLayoutCreateInfo (
             {}, bindings.size(), bindings.data()
         )
+    );
+}
+
+inline vk::DescriptorSetLayout VulkanContext::create_descriptor_set_layout(ArrayProxyRef<vk::DescriptorSetLayoutBinding> bindings, ArrayProxyRef<vk::DescriptorBindingFlags> bindingFlags) const
+{
+    return device.createDescriptorSetLayout (
+        vk::StructureChain (
+            vk::DescriptorSetLayoutCreateInfo (
+                {}, bindings.size(), bindings.data()
+            ),
+            vk::DescriptorSetLayoutBindingFlagsCreateInfo (
+                bindingFlags.size(), bindingFlags.data()
+            )
+        ).get()
     );
 }
 

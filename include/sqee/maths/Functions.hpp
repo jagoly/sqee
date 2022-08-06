@@ -66,7 +66,7 @@ Matrix44<T> transform(Vector3<T> translation, Quaternion<T> rotation, Vector3<T>
 template <class T> constexpr
 Matrix44<T> transform(Vector3<T> translation, Quaternion<T> rotation, T scale)
 {
-    return maths::transform(translation, Matrix33<T>(rotation), Vec3F(scale));
+    return maths::transform(translation, Matrix33<T>(rotation), Vector3<T>(scale));
 }
 
 //============================================================================//
@@ -77,7 +77,6 @@ Matrix44<T> transform(Vector3<T> translation, Matrix33<T> rotation)
 {
     auto result = Matrix44<T> ( rotation );
     result[3] = Vector4<T> ( translation, T(1.0) );
-
     return result;
 }
 
@@ -106,7 +105,7 @@ Matrix44<T> transform(Vector3<T> translation, Vector3<T> scale)
 template <class T> constexpr
 Matrix44<T> transform(Vector3<T> translation, T scale)
 {
-    return maths::transform(translation, Vec3F(scale));
+    return maths::transform(translation, Vector3<T>(scale));
 }
 
 //============================================================================//

@@ -26,11 +26,14 @@ template <class T> struct Vector<2, T>
 
     constexpr explicit Vector(T s) : Vector(s, s) {}
 
-    // Uninitialise Constructor
-    constexpr Vector(std::nullptr_t) {}
+    // Uninitialised Constructor
+    Vector(std::nullptr_t) {}
 
-    // Copy Constructors
+    // Copy Constructor and Assignment
     constexpr Vector(const Vector& v) = default;
+    constexpr Vector& operator=(const Vector& v) = default;
+
+    // Conversion Constructor
     template<class U> explicit Vector(Vector2<U> v) : Vector(T(v.x), T(v.y)) {}
 
     // Swizzle Constructors
@@ -53,11 +56,14 @@ template <class T> struct Vector<3, T>
 
     constexpr explicit Vector(T s) : Vector(s, s, s) {}
 
-    // Uninitialise Constructor
-    constexpr Vector(std::nullptr_t) {}
+    // Uninitialised Constructor
+    Vector(std::nullptr_t) {}
 
-    // Copy Constructors
+    // Copy Constructor and Assignment
     constexpr Vector(const Vector& v) = default;
+    constexpr Vector& operator=(const Vector& v) = default;
+
+    // Conversion Constructor
     template<class U> explicit Vector(Vector3<U> v) : Vector(T(v.x), T(v.y), T(v.z)) {}
 
     // Swizzle Constructors
@@ -81,11 +87,14 @@ template <class T> struct Vector<4, T>
 
     constexpr explicit Vector(T s) : Vector(s, s, s, s) {}
 
-    // Uninitialise Constructor
-    constexpr Vector(std::nullptr_t) {}
+    // Uninitialised Constructor
+    Vector(std::nullptr_t) {}
 
-    // Copy Constructors
+    // Copy Constructor and Assignment
     constexpr Vector(const Vector& v) = default;
+    constexpr Vector& operator=(const Vector& v) = default;
+
+    // Conversion Constructor
     template<class U> explicit Vector(Vector4<U> v) : Vector(T(v.x), T(v.y), T(v.z), T(v.w)) {}
 
     // Swizzle Constructors

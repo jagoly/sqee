@@ -71,10 +71,24 @@ void WrenPlusVM::load_module(const char* module)
     if (source.has_value() == false)
         throw Exception("could not find module '{}'", module);
 
-    mErrorString.clear();
+    interpret(module, source->c_str());
+}
 
-    if (wrenInterpret(mWrenVM, module, source->c_str()) != WREN_RESULT_SUCCESS)
-        throw Exception(std::move(mErrorString));
+std::string WrenPlusVM::safe_load_module(const char* module)
+{
+    if (wrenHasModule(mWrenVM, module) == true)
+        return {}; // already loaded
+
+    std::optional<std::string> source;
+
+    for (const auto& dir : mModuleImportDirs)
+        if ((source = sq::try_read_text_from_file(fmt::format("{}/{}.wren", dir, module))))
+            break; // file found
+
+    if (source.has_value() == false)
+        return fmt::format("could not find module '{}'", module);
+
+    return safe_interpret(module, source->c_str());
 }
 
 void WrenPlusVM::validate_class_handle_cache()
@@ -83,6 +97,15 @@ void WrenPlusVM::validate_class_handle_cache()
 
     for (size_t index = 0u; index < mForeignClassHandles.size(); ++index)
         assert(mForeignClassHandles[index] != nullptr); // missing class registration for index
+}
+
+//============================================================================//
+
+WrenHandle* WrenPlusVM::get_variable(const char* module, const char* variable)
+{
+    wrenEnsureSlots(mWrenVM, 1);
+    wrenGetVariable(mWrenVM, module, variable, 0);
+    return wrenGetSlotHandle(mWrenVM, 0);
 }
 
 //============================================================================//

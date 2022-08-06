@@ -212,6 +212,7 @@ Texture& Texture::operator=(Texture&& other)
 {
     std::swap(mStuff, other.mStuff);
     std::swap(mSampler, other.mSampler);
+    mBindlessDescriptorIndex = other.mBindlessDescriptorIndex;
     return *this;
 }
 
@@ -675,4 +676,16 @@ size_t Texture::compute_buffer_size(Vec3U size, uint mipLevels, size_t pixelSize
     };
 
     return bufferTotalSize;
+}
+
+//============================================================================//
+
+void Texture::add_to_bindless_descriptor_set(vk::DescriptorSet descriptorSet, uint32_t index)
+{
+    SQASSERT(mBindlessDescriptorIndex.has_value() == false, "already added to bindless descriptor set");
+
+    const auto& ctx = VulkanContext::get();
+
+    vk_update_descriptor_set(ctx, descriptorSet, DescriptorImageSampler(0u, index, get_descriptor_info()));
+    mBindlessDescriptorIndex = index;
 }

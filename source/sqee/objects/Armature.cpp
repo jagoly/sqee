@@ -1,6 +1,5 @@
 ﻿#include <sqee/objects/Armature.hpp>
 
-#include <sqee/core/Algorithms.hpp>
 #include <sqee/debug/Assert.hpp>
 #include <sqee/debug/Logging.hpp>
 #include <sqee/maths/Functions.hpp>
@@ -10,57 +9,12 @@
 
 using namespace sq;
 
-using Animation = Armature::Animation;
-using Track = Armature::Animation::Track;
+// todo:
+//  Implement binary formats for armatures and animations. The purpose of these
+//  would be to reduce file size, and to allow much faster loading. Once I have
+//  those, I may want to obsolete the text based format entirely.
 
-// todo: Single component extra tracks are supported in the format, but
-// not properly implemented in SQEE or STS. I may just remove them since
-// supporting only vec4 simplifies things for a negligable space cost.
-
-//============================================================================//
-
-static inline std::tuple<float, uint, uint> impl_compute_blend_times(uint frameCount, float time)
-{
-    const float animTotalTime = float(frameCount);
-
-    time = std::fmod(time, animTotalTime);
-    if (std::signbit(time)) time += animTotalTime;
-
-    const float factor = std::modf(time, &time);
-
-    const uint frameA = uint(time);
-    const uint frameB = frameA+1u == frameCount ? 0u : frameA+1u;
-
-    return { factor, frameA, frameB };
-}
-
-template <class Type>
-static inline void impl_compute_blended_value(float factor, uint frameA, uint frameB, const Track& track, Type& ref)
-{
-    if (track.track.size() > sizeof(Type))
-    {
-        const Type& valueA = reinterpret_cast<const Type*>(track.track.data())[frameA];
-        const Type& valueB = reinterpret_cast<const Type*>(track.track.data())[frameB];
-
-        if constexpr (detail::is_quaternion_v<Type>)
-            ref = maths::slerp(valueA, valueB, factor);
-
-        else // scalar or vector
-            ref = maths::mix(valueA, valueB, factor);
-    }
-    else // track is constant
-        ref = *reinterpret_cast<const Type*>(track.track.data());
-}
-
-template <class Type>
-static inline void impl_compute_discrete_value(uint time, const Track& track, Type& ref)
-{
-    if (track.track.size() > sizeof(Type))
-        ref = reinterpret_cast<const Type*>(track.track.data())[time];
-
-    else // track is constant
-        ref = *reinterpret_cast<const Type*>(track.track.data());
-}
+thread_local std::vector<Mat4F> gTempMats;
 
 //============================================================================//
 
@@ -68,66 +22,214 @@ void Armature::load_from_file(const String& path)
 {
     const JsonValue json = sq::parse_json_from_file(path);
 
-    mRestPose.reserve(json.size());
+    const auto& jBones = json.at("bones").get_ref<const JsonValue::array_t&>();
+    const auto& jBlocks = json.at("blocks").get_ref<const JsonValue::object_t&>();
 
-    mBoneNames.reserve(json.size());
-    mBoneParents.reserve(json.size());
+    mRestSample.resize(size_t(json.at("animSampleSize")));
 
-    mBaseMats.reserve(json.size());
-    mInverseMats.reserve(json.size());
+    mBoneNames.reserve(jBones.size());
+    mBoneInfos.reserve(jBones.size());
 
-    for (const auto& jb : json)
+    mBaseMats.reserve(jBones.size());
+    mInverseMats.reserve(jBones.size());
+
+    mBlockNames.reserve(jBlocks.size());
+
+    uint32_t dataOffset = 0u;
+
+    //--------------------------------------------------------//
+
+    for (size_t boneIndex = 0u; boneIndex < jBones.size(); ++boneIndex)
     {
-        mBoneNames.emplace_back(jb.at("name").get_ref<const String&>());
+        const auto& jBone = jBones[boneIndex].get_ref<const JsonValue::object_t&>();
 
-        if (const auto& parent = jb.at("parent"); parent.is_null() == false)
+        mBoneNames.emplace_back(jBone.at("name").get_ref<const String&>());
+
+        BoneInfo& info = mBoneInfos.emplace_back();
+
+        info.parent = [&]()
         {
-            const auto iter = algo::find(mBoneNames, TinyString(parent));
-            SQASSERT(iter != mBoneNames.end(), "invalid parent");
-            mBoneParents.push_back(int8_t(std::distance(mBoneNames.begin(), iter)));
+            const auto& jParent = jBone.at("parent");
+
+            if (jParent.is_null() == true)
+                return int8_t(-1);
+
+            const auto& jParentStr = jParent.get_ref<const String&>();
+
+            // parent can be any bone with a lower index
+            for (size_t parentIndex = 0u; parentIndex < boneIndex; ++parentIndex)
+                if (mBoneNames[parentIndex] == jParentStr)
+                    return int8_t(parentIndex);
+
+            SQEE_THROW("invalid parent '{}'", jParentStr);
+        }();
+
+        for (const auto& jFlag : jBone.at("flags").get_ref<const JsonValue::array_t&>())
+        {
+            const auto& jFlagStr = jFlag.get_ref<const String&>();
+            if (jFlagStr == "Billboard") info.flags |= BoneFlag::Billboard;
+            else SQEE_THROW("invalid flag '{}'", jFlagStr);
         }
-        else mBoneParents.push_back(-1);
 
-        Bone& bone = mRestPose.emplace_back();
-        jb.at("offset").get_to(bone.offset);
-        jb.at("rotation").get_to(bone.rotation);
-        jb.at("scale").get_to(bone.scale);
+        Bone& restBone = *reinterpret_cast<Bone*>(mRestSample.data() + dataOffset);
 
-        bone.rotation = maths::normalize(bone.rotation);
+        mTrackNames.emplace_back("offset");
+        mTrackInfos.push_back({int8_t(boneIndex), int8_t(-1), TrackType::Float3, dataOffset});
+        dataOffset += sizeof(Vec3F);
 
-        mBaseMats.push_back(maths::transform(bone.offset, bone.rotation, bone.scale));
-        if (mBoneParents.back() >= 0)
-            mBaseMats.back() = mBaseMats[size_t(mBoneParents.back())] * mBaseMats.back();
+        mTrackNames.emplace_back("rotation");
+        mTrackInfos.push_back({int8_t(boneIndex), int8_t(-1), TrackType::Quaternion, dataOffset});
+        dataOffset += sizeof(QuatF);
 
-        mInverseMats.push_back(maths::affine_inverse(mBaseMats.back()));
+        mTrackNames.emplace_back("scale");
+        mTrackInfos.push_back({int8_t(boneIndex), int8_t(-1), TrackType::Float3, dataOffset});
+        dataOffset += sizeof(Vec3F);
+
+        jBone.at("offset").get_to(restBone.offset);
+        jBone.at("rotation").get_to(restBone.rotation);
+        jBone.at("scale").get_to(restBone.scale);
+
+        restBone.rotation = maths::normalize(restBone.rotation);
+
+        mBaseMats.emplace_back(maths::transform(restBone.offset, restBone.rotation, restBone.scale));
+        if (info.parent != -1)
+            mBaseMats.back() = mBaseMats[info.parent] * mBaseMats.back();
+
+        mInverseMats.emplace_back(maths::affine_inverse(mBaseMats.back()));
     }
+
+    //--------------------------------------------------------//
+
+    for (const auto& [jBlockKey, jBlock] : jBlocks)
+    {
+        const size_t blockIndex = mBlockNames.size();
+        mBlockNames.emplace_back(jBlockKey);
+
+        const auto& jTracks = jBlock.get_ref<const JsonValue::object_t&>();
+
+        for (const auto& [jTrackKey, jTrack] : jTracks)
+        {
+            mTrackNames.emplace_back(jTrackKey);
+
+            const auto& jTrackType = jTrack.at("type").get_ref<const String&>();
+            const auto& jTrackDefault = jTrack.at("default");
+
+            if (jTrackType == "Float")
+            {
+                mTrackInfos.push_back({int8_t(-1), int8_t(blockIndex), TrackType::Float, dataOffset});
+                jTrackDefault.at(0).get_to(*reinterpret_cast<float*>(mRestSample.data() + dataOffset));
+                dataOffset += sizeof(float);
+            }
+            else if (jTrackType == "Float2")
+            {
+                mTrackInfos.push_back({int8_t(-1), int8_t(blockIndex), TrackType::Float2, dataOffset});
+                jTrackDefault.get_to(*reinterpret_cast<Vec2F*>(mRestSample.data() + dataOffset));
+                dataOffset += sizeof(Vec2F);
+            }
+            else if (jTrackType == "Float3")
+            {
+                mTrackInfos.push_back({int8_t(-1), int8_t(blockIndex), TrackType::Float3, dataOffset});
+                jTrackDefault.get_to(*reinterpret_cast<Vec3F*>(mRestSample.data() + dataOffset));
+                dataOffset += sizeof(Vec3F);
+            }
+            else if (jTrackType == "Float4")
+            {
+                mTrackInfos.push_back({int8_t(-1), int8_t(blockIndex), TrackType::Float4, dataOffset});
+                jTrackDefault.get_to(*reinterpret_cast<Vec4F*>(mRestSample.data() + dataOffset));
+                dataOffset += sizeof(Vec4F);
+            }
+            else if (jTrackType == "Int")
+            {
+                mTrackInfos.push_back({int8_t(-1), int8_t(blockIndex), TrackType::Int, dataOffset});
+                jTrackDefault.at(0).get_to(*reinterpret_cast<int*>(mRestSample.data() + dataOffset));
+                dataOffset += sizeof(int);
+            }
+            else if (jTrackType == "Int2")
+            {
+                mTrackInfos.push_back({int8_t(-1), int8_t(blockIndex), TrackType::Int2, dataOffset});
+                jTrackDefault.get_to(*reinterpret_cast<Vec2I*>(mRestSample.data() + dataOffset));
+                dataOffset += sizeof(Vec2I);
+            }
+            else if (jTrackType == "Int3")
+            {
+                mTrackInfos.push_back({int8_t(-1), int8_t(blockIndex), TrackType::Int3, dataOffset});
+                jTrackDefault.get_to(*reinterpret_cast<Vec3I*>(mRestSample.data() + dataOffset));
+                dataOffset += sizeof(Vec3I);
+            }
+            else if (jTrackType == "Int4")
+            {
+                mTrackInfos.push_back({int8_t(-1), int8_t(blockIndex), TrackType::Int4, dataOffset});
+                jTrackDefault.get_to(*reinterpret_cast<Vec4I*>(mRestSample.data() + dataOffset));
+                dataOffset += sizeof(Vec4I);
+            }
+            else if (jTrackType == "Angle")
+            {
+                mTrackInfos.push_back({int8_t(-1), int8_t(blockIndex), TrackType::Angle, dataOffset});
+                jTrackDefault.at(0).get_to(*reinterpret_cast<float*>(mRestSample.data() + dataOffset));
+                dataOffset += sizeof(float);
+            }
+            else if (jTrackType == "Quaternion")
+            {
+                mTrackInfos.push_back({int8_t(-1), int8_t(blockIndex), TrackType::Quaternion, dataOffset});
+                jTrackDefault.get_to(*reinterpret_cast<QuatF*>(mRestSample.data() + dataOffset));
+                dataOffset += sizeof(QuatF);
+            }
+            else SQEE_THROW("invalid track type");
+        }
+    }
+
+    //--------------------------------------------------------//
+
+    mTrackNames.shrink_to_fit();
+    mTrackInfos.shrink_to_fit();
+
+    if (dataOffset != mRestSample.size())
+        SQEE_THROW("animSampleSize does not match tracks");
 }
 
 //============================================================================//
 
-TinyString Armature::get_bone_name(int8_t index) const
-{
-    if (index < 0 || size_t(index) >= mBoneNames.size())
-        return TinyString();
-
-    return mBoneNames[size_t(index)];
-}
-
-int8_t Armature::get_bone_index(TinyString name) const
+uint8_t Armature::get_bone_index(TinyString name) const
 {
     for (size_t i = 0u; i < mBoneNames.size(); ++i)
         if (mBoneNames[i] == name)
-            return int8_t(i);
+            return uint8_t(i);
 
-    return -1;
+    SQEE_THROW("armature has no bone named '{}'", name);
 }
 
-int8_t Armature::get_bone_parent(int8_t index) const
+uint8_t Armature::get_block_index(TinyString name) const
 {
-    if (index < 0 || size_t(index) > mBoneParents.size())
-        return -1;
+    for (size_t i = 0u; i < mBlockNames.size(); ++i)
+        if (mBlockNames[i] == name)
+            return uint8_t(i);
 
-    return mBoneParents[index];
+    SQEE_THROW("armature has no block named '{}'", name);
+}
+
+uint16_t Armature::get_block_track_index(uint8_t blockIndex, TinyString trackName) const
+{
+    SQASSERT(blockIndex < mBlockNames.size(), "invalid block index");
+
+    for (size_t i = 0u; i < mTrackInfos.size(); ++i)
+        if (mTrackInfos[i].blockIndex == int8_t(blockIndex) && mTrackNames[i] == trackName)
+            return uint16_t(i);
+
+    SQEE_THROW("armature block '{}' has no track named '{}'", mBlockNames[blockIndex], trackName);
+}
+
+//============================================================================//
+
+int8_t Armature::bone_from_json(const JsonValue& json) const
+{
+    if (json.is_null() == true) return int8_t(-1);
+    return int8_t(get_bone_index(json.get_ref<const String&>()));
+}
+
+JsonValue Armature::bone_to_json(int8_t index) const
+{
+    if (index == -1) return nullptr;
+    return StringView(mBoneNames.at(index));
 }
 
 //============================================================================//
@@ -147,166 +249,237 @@ Animation Armature::load_animation_from_file(const String& path) const
 
 Animation Armature::impl_load_animation_text(String&& text) const
 {
-    enum class Section { None, Header, BaseTracks, ExtraTracks };
+    Animation result;
+    result.tracks.reserve(mTrackInfos.size());
+
+    enum class Section { None, Header, BoneTracks, BlockTracks };
     Section section = Section::None;
 
-    enum class BaseTrack { None, Offset, Rotation, Scale };
-    BaseTrack baseTrack = BaseTrack::None;
-
-    enum class ExtraTrack { None, Float, Vec4F };
-    ExtraTrack extraTrack = ExtraTrack::None;
-
     Animation::Track* track = nullptr;
+    TrackType trackType = {};
 
-    Armature::Animation result;
+    std::byte* bytePtr = nullptr;
 
     //--------------------------------------------------------//
 
-    for (const auto& [line, num] : TokenisedFile::from_string(std::move(text)).lines)
+    const auto assert_num_tokens = [](const std::vector<std::string_view>& tokens, size_t lineNum, size_t expected)
     {
-        const auto& key = line.front();
+        if (tokens.size() != expected)
+            SQEE_THROW("{}: wrong number of tokens for track type", lineNum);
+    };
 
-        if (key.front() == '#') continue;
+    const auto initialise_track = [&](uint16_t trackIndex, const std::vector<std::string_view>& tokens, size_t lineNum)
+    {
+        if (size_t(trackIndex) != result.tracks.size())
+            SQEE_THROW("{}: tracks out of order", lineNum);
 
-        if (key == "SECTION")
+        trackType = mTrackInfos[trackIndex].type;
+
+        if (tokens.size() == 3u) // animated value
         {
-            if (line[1] == "Header") section = Section::Header;
-            else if (line[1] == "BaseTracks") section = Section::BaseTracks;
-            else if (line[1] == "ExtraTracks") section = Section::ExtraTracks;
-            else SQEE_THROW("{}: invalid section", num);
+            if      (trackType == TrackType::Float)      track = &result.tracks.emplace_back(bytePtr, result.frameCount * sizeof(float));
+            else if (trackType == TrackType::Float2)     track = &result.tracks.emplace_back(bytePtr, result.frameCount * sizeof(Vec2F));
+            else if (trackType == TrackType::Float3)     track = &result.tracks.emplace_back(bytePtr, result.frameCount * sizeof(Vec3F));
+            else if (trackType == TrackType::Float4)     track = &result.tracks.emplace_back(bytePtr, result.frameCount * sizeof(Vec4F));
+            else if (trackType == TrackType::Int)        track = &result.tracks.emplace_back(bytePtr, result.frameCount * sizeof(int));
+            else if (trackType == TrackType::Int2)       track = &result.tracks.emplace_back(bytePtr, result.frameCount * sizeof(Vec2I));
+            else if (trackType == TrackType::Int3)       track = &result.tracks.emplace_back(bytePtr, result.frameCount * sizeof(Vec3I));
+            else if (trackType == TrackType::Int4)       track = &result.tracks.emplace_back(bytePtr, result.frameCount * sizeof(Vec4I));
+            else if (trackType == TrackType::Angle)      track = &result.tracks.emplace_back(bytePtr, result.frameCount * sizeof(float));
+            else if (trackType == TrackType::Quaternion) track = &result.tracks.emplace_back(bytePtr, result.frameCount * sizeof(QuatF));
+            else    SQEE_UNREACHABLE();
+        }
+        else if (trackType == TrackType::Float)
+        {
+            assert_num_tokens(tokens, lineNum, 4u);
+            track = &result.tracks.emplace_back(bytePtr, sizeof(float));
+            parse_number(*(reinterpret_cast<float*&>(bytePtr)++), tokens[3]);
+        }
+        else if (trackType == TrackType::Float2)
+        {
+            assert_num_tokens(tokens, lineNum, 5u);
+            track = &result.tracks.emplace_back(bytePtr, sizeof(Vec2F));
+            parse_numbers(*(reinterpret_cast<Vec2F*&>(bytePtr)++), tokens[3], tokens[4]);
+        }
+        else if (trackType == TrackType::Float3)
+        {
+            assert_num_tokens(tokens, lineNum, 6u);
+            track = &result.tracks.emplace_back(bytePtr, sizeof(Vec3F));
+            parse_numbers(*(reinterpret_cast<Vec3F*&>(bytePtr)++), tokens[3], tokens[4], tokens[5]);
+        }
+        else if (trackType == TrackType::Float4)
+        {
+            assert_num_tokens(tokens, lineNum, 7u);
+            track = &result.tracks.emplace_back(bytePtr, sizeof(Vec4F));
+            parse_numbers(*(reinterpret_cast<Vec4F*&>(bytePtr)++), tokens[3], tokens[4], tokens[5], tokens[6]);
+        }
+        else if (trackType == TrackType::Int)
+        {
+            assert_num_tokens(tokens, lineNum, 4u);
+            track = &result.tracks.emplace_back(bytePtr, sizeof(int));
+            parse_number(*(reinterpret_cast<int*&>(bytePtr)++), tokens[3]);
+        }
+        else if (trackType == TrackType::Int2)
+        {
+            assert_num_tokens(tokens, lineNum, 5u);
+            track = &result.tracks.emplace_back(bytePtr, sizeof(Vec2I));
+            parse_numbers(*(reinterpret_cast<Vec2I*&>(bytePtr)++), tokens[3], tokens[4]);
+        }
+        else if (trackType == TrackType::Int3)
+        {
+            assert_num_tokens(tokens, lineNum, 6u);
+            track = &result.tracks.emplace_back(bytePtr, sizeof(Vec3I));
+            parse_numbers(*(reinterpret_cast<Vec3I*&>(bytePtr)++), tokens[3], tokens[4], tokens[5]);
+        }
+        else if (trackType == TrackType::Int4)
+        {
+            assert_num_tokens(tokens, lineNum, 7u);
+            track = &result.tracks.emplace_back(bytePtr, sizeof(Vec4I));
+            parse_numbers(*(reinterpret_cast<Vec4I*&>(bytePtr)++), tokens[3], tokens[4], tokens[5], tokens[6]);
+        }
+        else if (trackType == TrackType::Angle)
+        {
+            assert_num_tokens(tokens, lineNum, 4u);
+            track = &result.tracks.emplace_back(bytePtr, sizeof(float));
+            parse_number(*(reinterpret_cast<float*&>(bytePtr)++), tokens[3]);
+        }
+        else if (trackType == TrackType::Quaternion)
+        {
+            assert_num_tokens(tokens, lineNum, 7u);
+            track = &result.tracks.emplace_back(bytePtr, sizeof(QuatF));
+            parse_numbers_normalize(*(reinterpret_cast<QuatF*&>(bytePtr)++), tokens[3], tokens[4], tokens[5], tokens[6]);
+        }
+        else SQEE_UNREACHABLE();
+    };
+
+    const auto append_track_frame = [&](const std::vector<std::string_view>& tokens, size_t lineNum)
+    {
+        if (bytePtr >= track->data + track->size)
+            SQEE_THROW("{}: too many frames for track", lineNum);
+
+        switch (trackType) {
+
+        case TrackType::Float:
+            assert_num_tokens(tokens, lineNum, 1u);
+            parse_number(*(reinterpret_cast<float*&>(bytePtr)++), tokens[0]);
+            return;
+
+        case TrackType::Float2:
+            assert_num_tokens(tokens, lineNum, 2u);
+            parse_numbers(*(reinterpret_cast<Vec2F*&>(bytePtr)++), tokens[0], tokens[1]);
+            return;
+
+        case TrackType::Float3:
+            assert_num_tokens(tokens, lineNum, 3u);
+            parse_numbers(*(reinterpret_cast<Vec3F*&>(bytePtr)++), tokens[0], tokens[1], tokens[2]);
+            return;
+
+        case TrackType::Float4:
+            assert_num_tokens(tokens, lineNum, 4u);
+            parse_numbers(*(reinterpret_cast<Vec4F*&>(bytePtr)++), tokens[0], tokens[1], tokens[2], tokens[3]);
+            return;
+
+        case TrackType::Int:
+            assert_num_tokens(tokens, lineNum, 1u);
+            parse_number(*(reinterpret_cast<int*&>(bytePtr)++), tokens[0]);
+            return;
+
+        case TrackType::Int2:
+            assert_num_tokens(tokens, lineNum, 2u);
+            parse_numbers(*(reinterpret_cast<Vec2I*&>(bytePtr)++), tokens[0], tokens[1]);
+            return;
+
+        case TrackType::Int3:
+            assert_num_tokens(tokens, lineNum, 3u);
+            parse_numbers(*(reinterpret_cast<Vec3I*&>(bytePtr)++), tokens[0], tokens[1], tokens[2]);
+            return;
+
+        case TrackType::Int4:
+            assert_num_tokens(tokens, lineNum, 4u);
+            parse_numbers(*(reinterpret_cast<Vec4I*&>(bytePtr)++), tokens[0], tokens[1], tokens[2], tokens[3]);
+            return;
+
+        case TrackType::Angle:
+            assert_num_tokens(tokens, lineNum, 1u);
+            parse_number(*(reinterpret_cast<float*&>(bytePtr)++), tokens[0]);
+            return;
+
+        case TrackType::Quaternion:
+            assert_num_tokens(tokens, lineNum, 4u);
+            parse_numbers_normalize(*(reinterpret_cast<QuatF*&>(bytePtr)++), tokens[0], tokens[1], tokens[2], tokens[3]);
+            return;
+
+        } SQEE_UNREACHABLE();
+    };
+
+    //--------------------------------------------------------//
+
+    for (const auto& [tokens, lineNum] : TokenisedFile::from_string(std::move(text)).lines)
+    {
+        if (tokens[0].front() == '#') continue;
+
+        if (tokens[0] == "SECTION")
+        {
+            if      (tokens[1] == "Header")      section = Section::Header;
+            else if (tokens[1] == "BoneTracks")  section = Section::BoneTracks;
+            else if (tokens[1] == "BlockTracks") section = Section::BlockTracks;
+            else    SQEE_THROW("{}: invalid section", lineNum);
         }
 
         else if (section == Section::Header)
         {
-            if (key == "BoneCount")
+            if (tokens[0] == "BoneCount")
             {
-                result.boneCount = sv_to_u(line[1]);
-                if (result.boneCount != get_bone_count())
-                    SQEE_THROW("{}: bone count mismatch", num);
-                result.bones.resize(result.boneCount, {});
+                const auto boneCount = parse_number<size_t>(tokens[1]);
+                if (boneCount != get_bone_count())
+                    SQEE_THROW("{}: bone count mismatch", lineNum);
             }
 
-            else if (key == "FrameCount")
+            else if (tokens[0] == "BlockTrackCount")
             {
-                result.frameCount = sv_to_u(line[1]);
+                const auto blockTrackCount = parse_number<size_t>(tokens[1]);
+                if (get_bone_count() * 3u + blockTrackCount != mTrackInfos.size())
+                    SQEE_THROW("{}: block track count mismatch", lineNum);
             }
 
-            else SQEE_THROW("{}: invalid header key", num);
+            else if (tokens[0] == "ByteCount")
+            {
+                result.bytes = std::vector<std::byte>(parse_number<size_t>(tokens[1]));
+                bytePtr = result.bytes.data();
+            }
+
+            else if (tokens[0] == "FrameCount")
+                result.frameCount = parse_number<uint>(tokens[1]);
+
+            else SQEE_THROW("{}: invalid header key", lineNum);
         }
 
-        else if (section == Section::BaseTracks)
+        else if (section == Section::BoneTracks)
         {
-            if (key == "TRACK")
+            if (tokens[0] == "TRACK")
             {
-                const int8_t boneIndex = get_bone_index(line[1]);
-                if (boneIndex == -1)
-                    SQEE_THROW("{}: invalid bone name", num);
+                const uint8_t boneIndex = get_bone_index(tokens[1]);
 
-                if (line[2] == "offset") baseTrack = BaseTrack::Offset;
-                else if (line[2] == "rotation") baseTrack = BaseTrack::Rotation;
-                else if (line[2] == "scale") baseTrack = BaseTrack::Scale;
-                else SQEE_THROW("{}: unknown base track name", num);
-
-                track = &result.bones[size_t(boneIndex)].emplace_back();
-                track->key = line[2];
-
-                if (baseTrack == BaseTrack::Offset)
-                {
-                    if (line.size() == 6u)
-                    {
-                        track->track.resize(sizeof(Vec3F) * 1u, {});
-                        parse_tokens(*reinterpret_cast<Vec3F*>(track->track.data()), line[3], line[4], line[5]);
-                    }
-                    else track->track.resize(sizeof(Vec3F) * result.frameCount, {});
-                }
-
-                else if (baseTrack == BaseTrack::Rotation)
-                {
-                    if (line.size() == 7u)
-                    {
-                        track->track.resize(sizeof(QuatF) * 1u, {});
-                        parse_tokens_normalize(*reinterpret_cast<QuatF*>(track->track.data()), line[3], line[4], line[5], line[6]);
-                    }
-                    else track->track.resize(sizeof(QuatF) * result.frameCount, {});
-                }
-
-                else if (baseTrack == BaseTrack::Scale)
-                {
-                    if (line.size() == 6u)
-                    {
-                        track->track.resize(sizeof(Vec3F) * 1u, {});
-                        parse_tokens(*reinterpret_cast<Vec3F*>(track->track.data()), line[3], line[4], line[5]);
-
-                    }
-                    else track->track.resize(sizeof(Vec3F) * result.frameCount, {});
-                }
+                if      (tokens[2] == "offset")   initialise_track(uint16_t(boneIndex*3+0), tokens, lineNum);
+                else if (tokens[2] == "rotation") initialise_track(uint16_t(boneIndex*3+1), tokens, lineNum);
+                else if (tokens[2] == "scale")    initialise_track(uint16_t(boneIndex*3+2), tokens, lineNum);
+                else    SQEE_THROW("{}: invalid bone track", lineNum);
             }
 
-            else
-            {
-                const uint frame = sv_to_u(key);
-                if (frame > result.frameCount)
-                    SQEE_THROW("{}: frame out of range", num);
-
-                if (baseTrack == BaseTrack::Offset)
-                    parse_tokens(reinterpret_cast<Vec3F*>(track->track.data())[frame], line[1], line[2], line[3]);
-
-                else if (baseTrack == BaseTrack::Rotation)
-                    parse_tokens_normalize(reinterpret_cast<QuatF*>(track->track.data())[frame], line[1], line[2], line[3], line[4]);
-
-                else if (baseTrack == BaseTrack::Scale)
-                    parse_tokens(reinterpret_cast<Vec3F*>(track->track.data())[frame], line[1], line[2], line[3]);
-            }
+            else append_track_frame(tokens, lineNum);
         }
 
-        else if (section == Section::ExtraTracks)
+        else if (section == Section::BlockTracks)
         {
-            if (key == "TRACK")
+            if (tokens[0] == "TRACK")
             {
-                const int8_t boneIndex = get_bone_index(line[1]);
-                if (boneIndex == -1)
-                    SQEE_THROW("{}: invalid bone name", num);
+                const uint8_t blockIndex = get_block_index(tokens[1]);
+                const uint16_t trackIndex = get_block_track_index(uint8_t(blockIndex), tokens[2]);
 
-                if (line[3] == "Float") extraTrack = ExtraTrack::Float;
-                else if (line[3] == "Vec4F") extraTrack = ExtraTrack::Vec4F;
-                else SQEE_THROW("{}: unknown extra track type", num);
-
-                track = &result.bones[size_t(boneIndex)].emplace_back();
-                track->key = line[2];
-
-                if (extraTrack == ExtraTrack::Float)
-                {
-                    if (line.size() == 5u)
-                    {
-                        track->track.resize(sizeof(float) * 1u, {});
-                        parse_tokens(*reinterpret_cast<float*>(track->track.data()), line[4]);
-                    }
-                    else track->track.resize(sizeof(float) * result.frameCount, {});
-                }
-
-                else if (extraTrack == ExtraTrack::Vec4F)
-                {
-                    if (line.size() == 8u)
-                    {
-                        track->track.resize(sizeof(Vec4F) * 1u, {});
-                        parse_tokens(*reinterpret_cast<Vec4F*>(track->track.data()), line[4], line[5], line[6], line[7]);
-                    }
-                    else track->track.resize(sizeof(Vec4F) * result.frameCount, {});
-                }
+                initialise_track(trackIndex, tokens, lineNum);
             }
 
-            else
-            {
-                const uint frame = sv_to_u(key);
-                if (frame > result.frameCount)
-                    SQEE_THROW("{}: frame out of range", num);
-
-                if (extraTrack == ExtraTrack::Float)
-                    parse_tokens(reinterpret_cast<float*>(track->track.data())[frame], line[1]);
-
-                else if (extraTrack == ExtraTrack::Vec4F)
-                    parse_tokens(reinterpret_cast<Vec4F*>(track->track.data())[frame], line[1], line[2], line[3], line[4]);
-            }
+            else append_track_frame(tokens, lineNum);
         }
 
         else SQEE_THROW("missing SECTION");
@@ -319,31 +492,32 @@ Animation Armature::impl_load_animation_text(String&& text) const
 
 //============================================================================//
 
-Armature::Animation Armature::make_null_animation(uint length) const
+Animation Armature::make_null_animation(uint frameCount) const
 {
     Animation result;
 
-    result.boneCount = uint(get_bone_count());
-    result.frameCount = length;
+    result.frameCount = frameCount;
 
-    result.bones.resize(result.boneCount, {});
+    result.bytes = mRestSample;
+    result.tracks.reserve(mTrackInfos.size());
 
-    for (size_t index = 0u; index < get_bone_count(); ++index)
+    std::byte* bytePtr = result.bytes.data();
+
+    for (const TrackInfo& info : mTrackInfos)
     {
-        Animation::Track& offsetTrack = result.bones[index].emplace_back();
-        offsetTrack.key = "offset";
-        offsetTrack.track.resize(sizeof(Vec3F));
-        *reinterpret_cast<Vec3F*>(offsetTrack.track.data()) = mRestPose[index].offset;
+        if      (info.type == TrackType::Float)      result.tracks.emplace_back(bytePtr, sizeof(float));
+        else if (info.type == TrackType::Float2)     result.tracks.emplace_back(bytePtr, sizeof(Vec2F));
+        else if (info.type == TrackType::Float3)     result.tracks.emplace_back(bytePtr, sizeof(Vec3F));
+        else if (info.type == TrackType::Float4)     result.tracks.emplace_back(bytePtr, sizeof(Vec4F));
+        else if (info.type == TrackType::Int)        result.tracks.emplace_back(bytePtr, sizeof(int));
+        else if (info.type == TrackType::Int2)       result.tracks.emplace_back(bytePtr, sizeof(Vec2I));
+        else if (info.type == TrackType::Int3)       result.tracks.emplace_back(bytePtr, sizeof(Vec3I));
+        else if (info.type == TrackType::Int4)       result.tracks.emplace_back(bytePtr, sizeof(Vec4I));
+        else if (info.type == TrackType::Angle)      result.tracks.emplace_back(bytePtr, sizeof(float));
+        else if (info.type == TrackType::Quaternion) result.tracks.emplace_back(bytePtr, sizeof(QuatF));
+        else    SQEE_UNREACHABLE();
 
-        Animation::Track& rotationTrack = result.bones[index].emplace_back();
-        rotationTrack.key = "rotation";
-        rotationTrack.track.resize(sizeof(QuatF));
-        *reinterpret_cast<QuatF*>(rotationTrack.track.data()) = mRestPose[index].rotation;
-
-        Animation::Track& scaleTrack = result.bones[index].emplace_back();
-        scaleTrack.key = "scale";
-        scaleTrack.track.resize(sizeof(Vec3F));
-        *reinterpret_cast<Vec3F*>(scaleTrack.track.data()) = mRestPose[index].scale;
+        bytePtr += result.tracks.back().size;
     }
 
     return result;
@@ -351,17 +525,193 @@ Armature::Animation Armature::make_null_animation(uint length) const
 
 //============================================================================//
 
-Armature::Pose Armature::blend_poses(const Pose& a, const Pose& b, float factor)
+void Armature::compute_sample(const Animation& animation, float time, AnimSample& out) const
 {
-    SQASSERT(a.size() == b.size(), "bone count mismatch");
+    SQASSERT(animation.tracks.size() == mTrackInfos.size(), "track count mismatch");
+    SQASSERT(out.size() == mRestSample.size(), "sample size mismatch");
 
-    Pose result { a.size() };
+    const Animation::SampleTime sample = animation.compute_sample_time(time);
 
-    for (size_t index = 0u; index < a.size(); ++index)
+    for (size_t i = 0u; i < mTrackInfos.size(); ++i)
     {
-        result[index].offset = maths::mix(a[index].offset, b[index].offset, factor);
-        result[index].rotation = maths::slerp(a[index].rotation, b[index].rotation, factor);
-        result[index].scale = maths::mix(a[index].scale, b[index].scale, factor);
+        const TrackInfo& info = mTrackInfos[i];
+        const Animation::Track& track = animation.tracks[i];
+        std::byte* const ptr = out.data() + info.offset;
+
+        switch (info.type) {
+
+        case TrackType::Float:
+            *reinterpret_cast<float*>(ptr) = track.size == sizeof(float) ?
+                *reinterpret_cast<const float*>(track.data) :
+                maths::mix (
+                    reinterpret_cast<const float*>(track.data)[sample.frameA],
+                    reinterpret_cast<const float*>(track.data)[sample.frameB],
+                    sample.factor
+                );
+            continue;
+
+        case TrackType::Float2:
+            *reinterpret_cast<Vec2F*>(ptr) = track.size == sizeof(Vec2F) ?
+                *reinterpret_cast<const Vec2F*>(track.data) :
+                maths::mix (
+                    reinterpret_cast<const Vec2F*>(track.data)[sample.frameA],
+                    reinterpret_cast<const Vec2F*>(track.data)[sample.frameB],
+                    sample.factor
+                );
+            continue;
+
+        case TrackType::Float3:
+            *reinterpret_cast<Vec3F*>(ptr) = track.size == sizeof(Vec3F) ?
+                *reinterpret_cast<const Vec3F*>(track.data) :
+                maths::mix (
+                    reinterpret_cast<const Vec3F*>(track.data)[sample.frameA],
+                    reinterpret_cast<const Vec3F*>(track.data)[sample.frameB],
+                    sample.factor
+                );
+            continue;
+
+        case TrackType::Float4:
+            *reinterpret_cast<Vec4F*>(ptr) = track.size == sizeof(Vec4F) ?
+                *reinterpret_cast<const Vec4F*>(track.data) :
+                maths::mix (
+                    reinterpret_cast<const Vec4F*>(track.data)[sample.frameA],
+                    reinterpret_cast<const Vec4F*>(track.data)[sample.frameB],
+                    sample.factor
+                );
+            continue;
+
+        case TrackType::Int:
+            *reinterpret_cast<int*>(ptr) = track.size == sizeof(int) ?
+                *reinterpret_cast<const int*>(track.data) :
+                reinterpret_cast<const int*>(track.data)[sample.frameA];
+            continue;
+
+        case TrackType::Int2:
+            *reinterpret_cast<Vec2I*>(ptr) = track.size == sizeof(Vec2I) ?
+                *reinterpret_cast<const Vec2I*>(track.data) :
+                reinterpret_cast<const Vec2I*>(track.data)[sample.frameA];
+            continue;
+
+        case TrackType::Int3:
+            *reinterpret_cast<Vec3I*>(ptr) = track.size == sizeof(Vec3I) ?
+                *reinterpret_cast<const Vec3I*>(track.data) :
+                reinterpret_cast<const Vec3I*>(track.data)[sample.frameA];
+            continue;
+
+        case TrackType::Int4:
+            *reinterpret_cast<Vec4I*>(ptr) = track.size == sizeof(Vec4I) ?
+                *reinterpret_cast<const Vec4I*>(track.data) :
+                reinterpret_cast<const Vec4I*>(track.data)[sample.frameA];
+            continue;
+
+        case TrackType::Angle:
+            *reinterpret_cast<float*>(ptr) = track.size == sizeof(float) ?
+                *reinterpret_cast<const float*>(track.data) :
+                maths::mix_radians (
+                    reinterpret_cast<const float*>(track.data)[sample.frameA],
+                    reinterpret_cast<const float*>(track.data)[sample.frameB],
+                    sample.factor
+                );
+            continue;
+
+        case TrackType::Quaternion:
+            *reinterpret_cast<QuatF*>(ptr) = track.size == sizeof(QuatF) ?
+                *reinterpret_cast<const QuatF*>(track.data) :
+                maths::slerp (
+                    reinterpret_cast<const QuatF*>(track.data)[sample.frameA],
+                    reinterpret_cast<const QuatF*>(track.data)[sample.frameB],
+                    sample.factor
+                );
+            continue;
+
+        } SQEE_UNREACHABLE();
+    }
+}
+
+void Armature::blend_samples(const AnimSample& a, const AnimSample& b, float factor, AnimSample& out) const
+{
+    SQASSERT(a.size() == mRestSample.size(), "sample size mismatch");
+    SQASSERT(b.size() == mRestSample.size(), "sample size mismatch");
+    SQASSERT(out.size() == mRestSample.size(), "sample size mismatch");
+
+    for (const TrackInfo& info : mTrackInfos)
+    {
+        const std::byte* const ptrA = a.data() + info.offset;
+        const std::byte* const ptrB = b.data() + info.offset;
+        std::byte* const ptrOut = out.data() + info.offset;
+
+        switch (info.type) {
+
+        case TrackType::Float:
+            *reinterpret_cast<float*>(ptrOut) = maths::mix (
+                *reinterpret_cast<const float*>(ptrA), *reinterpret_cast<const float*>(ptrB), factor
+            );
+            continue;
+
+        case TrackType::Float2:
+            *reinterpret_cast<Vec2F*>(ptrOut) = maths::mix (
+                *reinterpret_cast<const Vec2F*>(ptrA), *reinterpret_cast<const Vec2F*>(ptrB), factor
+            );
+            continue;
+
+        case TrackType::Float3:
+            *reinterpret_cast<Vec3F*>(ptrOut) = maths::mix (
+                *reinterpret_cast<const Vec3F*>(ptrA), *reinterpret_cast<const Vec3F*>(ptrB), factor
+            );
+            continue;
+
+        case TrackType::Float4:
+            *reinterpret_cast<Vec4F*>(ptrOut) = maths::mix (
+                *reinterpret_cast<const Vec4F*>(ptrA), *reinterpret_cast<const Vec4F*>(ptrB), factor
+            );
+            continue;
+
+        case TrackType::Int:
+            *reinterpret_cast<int*>(ptrOut) = *reinterpret_cast<const int*>(ptrA);
+            continue;
+
+        case TrackType::Int2:
+            *reinterpret_cast<Vec2I*>(ptrOut) = *reinterpret_cast<const Vec2I*>(ptrA);
+            continue;
+
+        case TrackType::Int3:
+            *reinterpret_cast<Vec3I*>(ptrOut) = *reinterpret_cast<const Vec3I*>(ptrA);
+            continue;
+
+        case TrackType::Int4:
+            *reinterpret_cast<Vec4I*>(ptrOut) = *reinterpret_cast<const Vec4I*>(ptrA);
+            continue;
+
+        case TrackType::Angle:
+            *reinterpret_cast<float*>(ptrOut) = maths::mix_radians (
+                *reinterpret_cast<const float*>(ptrA), *reinterpret_cast<const float*>(ptrB), factor
+            );
+            continue;
+
+        case TrackType::Quaternion:
+            *reinterpret_cast<QuatF*>(ptrOut) = maths::slerp (
+                *reinterpret_cast<const QuatF*>(ptrA), *reinterpret_cast<const QuatF*>(ptrB), factor
+            );
+            continue;
+
+        } SQEE_UNREACHABLE();
+    }
+}
+
+//============================================================================//
+
+Mat4F Armature::compute_bone_matrix(const AnimSample& sample, uint8_t index) const
+{
+    SQASSERT(sample.size() == mRestSample.size(), "sample size mismatch");
+    SQASSERT(index < get_bone_count(), "invalid bone index");
+
+    const Bone& bone = reinterpret_cast<const Bone*>(sample.data())[index];
+    Mat4F result = maths::transform(bone.offset, bone.rotation, bone.scale);
+
+    for (int8_t pIndex = mBoneInfos[index].parent; pIndex != -1; pIndex = mBoneInfos[pIndex].parent)
+    {
+        const Bone& pBone = reinterpret_cast<const Bone*>(sample.data())[pIndex];
+        result = maths::transform(pBone.offset, pBone.rotation, pBone.scale) * result;
     }
 
     return result;
@@ -369,89 +719,21 @@ Armature::Pose Armature::blend_poses(const Pose& a, const Pose& b, float factor)
 
 //============================================================================//
 
-Armature::Pose Armature::compute_pose_continuous(const Animation& animation, float time)
+std::vector<Mat4F> Armature::compute_skeleton_matrices(const AnimSample& sample) const
 {
-    const auto [factor, frameA, frameB] = impl_compute_blend_times(animation.frameCount, time);
-
-    Pose result { animation.boneCount };
-
-    for (uint bone = 0u; bone < animation.boneCount; ++bone)
-    {
-        impl_compute_blended_value(factor, frameA, frameB, animation.bones[bone][0u], result[bone].offset);
-        impl_compute_blended_value(factor, frameA, frameB, animation.bones[bone][1u], result[bone].rotation);
-        impl_compute_blended_value(factor, frameA, frameB, animation.bones[bone][2u], result[bone].scale);
-    }
-
-    return result;
-}
-
-Armature::Pose Armature::compute_pose_discrete(const Animation& animation, uint time)
-{
-    SQASSERT(time < animation.frameCount, "discrete time out of range");
-
-    Pose result { animation.boneCount };
-
-    for (uint bone = 0u; bone < animation.boneCount; ++bone)
-    {
-        impl_compute_discrete_value(time, animation.bones[bone][0u], result[bone].offset);
-        impl_compute_discrete_value(time, animation.bones[bone][1u], result[bone].rotation);
-        impl_compute_discrete_value(time, animation.bones[bone][2u], result[bone].scale);
-    }
-
-    return result;
-}
-
-//============================================================================//
-
-void Armature::compute_extra_continuous(Vec4F& result, const Animation::Track& track, float time)
-{
-    const uint frameCount = uint(track.track.size() / sizeof(Vec4F));
-    const auto [factor, frameA, frameB] = impl_compute_blend_times(frameCount, time);
-
-    impl_compute_blended_value(factor, frameA, frameB, track, result);
-}
-
-void Armature::compute_extra_discrete(Vec4F& result, const Animation::Track& track, uint time)
-{
-    const uint frameCount = uint(track.track.size() / sizeof(Vec4F));
-    SQASSERT(frameCount == 1u || time < frameCount, "discrete time out of range");
-
-    impl_compute_discrete_value(time, track, result);
-}
-
-//============================================================================//
-
-Mat4F Armature::compute_bone_matrix(const Pose& pose, int8_t index) const
-{
-    SQASSERT(get_bone_count() == pose.size(), "bone count mismatch");
-    SQASSERT(index >= 0 && size_t(index) < pose.size(), "invalid bone index");
-
-    Mat4F result = maths::transform(pose[index].offset, pose[index].rotation, pose[index].scale);
-
-    for (int8_t parent = mBoneParents[index]; parent >= 0; parent = mBoneParents[parent])
-    {
-        const Bone& bone = pose[parent];
-        result = maths::transform(bone.offset, bone.rotation, bone.scale) * result;
-    }
-
-    return result;
-}
-
-//============================================================================//
-
-std::vector<Mat4F> Armature::compute_skeleton_matrices(const Pose& pose) const
-{
-    SQASSERT(get_bone_count() == pose.size(), "bone count mismatch");
+    SQASSERT(sample.size() == mRestSample.size(), "sample size mismatch");
 
     std::vector<Mat4F> result;
     result.reserve(get_bone_count());
 
     for (size_t i = 0u; i < get_bone_count(); ++i)
     {
-        const Bone& bone = pose[i];
-        const int8_t parentIndex = mBoneParents[i];
+        const Bone& bone = reinterpret_cast<const Bone*>(sample.data())[i];
+        const int8_t parentIndex = mBoneInfos[i].parent;
 
-        const Mat4F relMatrix = maths::transform(bone.offset, bone.rotation, bone.scale);
+        Mat4F relMatrix = maths::transform(bone.offset, bone.rotation, bone.scale);
+
+        // todo: billboards
 
         if (parentIndex < 0) result.push_back(relMatrix);
         else result.push_back(result[parentIndex] * relMatrix);
@@ -462,32 +744,71 @@ std::vector<Mat4F> Armature::compute_skeleton_matrices(const Pose& pose) const
 
 //============================================================================//
 
-void Armature::compute_ubo_data(const Pose& pose, Mat34F* out, size_t len) const
+Mat4F Armature::compute_model_matrix(const AnimSample& sample, Mat4F modelMatrix, uint8_t index) const
 {
-    SQASSERT(get_bone_count() == pose.size(), "bone count mismatch");
-    SQASSERT(get_bone_count() <= len, "too many bones for output buffer");
+    SQASSERT(sample.size() == mRestSample.size(), "sample size mismatch");
+    SQASSERT(index < get_bone_count(), "invalid index");
 
-    const std::vector<Mat4F> absMatrices = compute_skeleton_matrices(pose);
+    const auto bones = reinterpret_cast<const Bone*>(sample.data());
+
+    Mat4F result = maths::transform(bones[index].offset, bones[index].rotation, bones[index].scale);
+
+    // apply the transforms of all parents
+    for (int8_t i = mBoneInfos[index].parent; i != -1; i = mBoneInfos[i].parent)
+        result = maths::transform(bones[i].offset, bones[i].rotation, bones[i].scale) * result;
+
+    return modelMatrix * result * mInverseMats[index];
+}
+
+//============================================================================//
+
+void Armature::compute_model_matrices (
+    const AnimSample& sample, Mat4F viewMatrix, Mat4F invViewMatrix, Mat4F modelMatrix, Vec2F billboardScale, Mat34F* modelMats, size_t len
+) const
+{
+    SQASSERT(sample.size() == mRestSample.size(), "sample size mismatch");
+    SQASSERT(len == get_bone_count(), "bone count mismatch");
+
+    // cache matrices as we go for use as parents
+    gTempMats.clear();
+    gTempMats.reserve(get_bone_count());
 
     for (size_t i = 0u; i < get_bone_count(); ++i)
     {
-        const Mat4F skinMatrix = absMatrices[i] * mInverseMats[i];
-        out[i] = Mat34F(maths::transpose(skinMatrix));
+        const Bone& bone = reinterpret_cast<const Bone*>(sample.data())[i];
+        const auto& [parent, flags] = mBoneInfos[i];
+
+        const Mat4F localMatrix = maths::transform(bone.offset, bone.rotation, bone.scale);
+        const Mat4F& parentMatrix = parent == -1 ? modelMatrix : gTempMats[parent];
+
+        Mat4F matrix = gTempMats.emplace_back(parentMatrix * localMatrix) * mInverseMats[i];
+
+        if (flags & BoneFlag::Billboard)
+        {
+            // todo: make billboards properly handle non uniform scaling
+            const Mat3F rotateScale = Mat3F(matrix) * maths::transpose(Mat3F(modelMatrix));
+            const Vec3F translate = Vec3F((viewMatrix * matrix)[3]);
+
+            matrix = invViewMatrix * maths::transform(translate, rotateScale, Vec3F(billboardScale, -1.f));
+        }
+
+        modelMats[i] = Mat34F(maths::transpose(matrix));
     }
 }
 
 //============================================================================//
 
-const Armature::Animation::Track* Armature::Animation::find_extra(int8_t bone, TinyString key) const
+Animation::SampleTime Animation::compute_sample_time(float time) const
 {
-    SQASSERT(bone >= 0 && size_t(bone) < bones.size(), "invalid bone index");
+    const float animTotalTime = float(frameCount);
 
-    const std::vector<Track>& tracks = bones[size_t(bone)];
+    time = std::fmod(time, animTotalTime);
+    if (std::signbit(time)) time += animTotalTime;
 
-    // skip over pos/rot/sca tracks
-    for (size_t i = 3u; i < tracks.size(); ++i)
-        if (tracks[i].key == key)
-            return &tracks[i];
+    const uint frameA = uint(time);
+    const uint frameB = (frameA + 1u) == frameCount ? 0u : (frameA + 1u);
 
-    return nullptr;
+    const float factor = std::modf(time, &time);
+
+    return { frameA, frameB, factor };
 }

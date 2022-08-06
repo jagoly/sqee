@@ -87,13 +87,10 @@ TEST_CASE("WrenPlus General", "[wrenplus]")
     {
         wren::WrenPlusVM vm;
 
-        vm.register_method<&AlphaObject::wren_return_int>("return_int()");
-        vm.register_method<&AlphaObject::wren_pass_int>("pass_int(_)");
-        vm.register_method<wren::FieldGetter<&AlphaObject::betaPtr>>("beta");
-        vm.register_method<wren::FieldSetter<&AlphaObject::betaPtr>>("beta=(_)");
-
-        vm.register_method<wren::FieldGetter<&BetaObject::alphaPtr>>("alpha");
-        vm.register_method<wren::FieldSetter<&BetaObject::alphaPtr>>("alpha=(_)");
+        WRENPLUS_ADD_METHOD(vm, AlphaObject, wren_return_int, "return_int()");
+        WRENPLUS_ADD_METHOD(vm, AlphaObject, wren_pass_int, "pass_int(_)");
+        WRENPLUS_ADD_FIELD_RW(vm, AlphaObject, betaPtr, "beta");
+        WRENPLUS_ADD_FIELD_RW(vm, BetaObject, alphaPtr, "alpha");
 
         vm.interpret("test", SCRIPT);
         vm.cache_handles<AlphaObject, BetaObject>();
