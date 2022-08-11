@@ -35,7 +35,7 @@ jobs:
         cmake --build . --target install --config Debug --parallel
 
     - name: Checkout SQEE
-    - uses: actions/checkout@v3
+      uses: actions/checkout@v3
       with:
         path: sqee
         submodules: recursive
