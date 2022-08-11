@@ -4,12 +4,7 @@ on: [ push, pull_request ]
 jobs:
 
   build:
-  
     runs-on: ubuntu-22.04
-    env:
-      CMAKE_GENERATOR: "Ninja Multi-Config"
-      CMAKE_CONFIGURATION_TYPES: "Release;Debug"
-
     steps:
 
     - name: Install Vulkan SDK
@@ -34,8 +29,8 @@ jobs:
     - name: Configure and Build GLFW
       working-directory: glfw
       run: |
-        cmake . -DBUILD_SHARED_LIBS=OFF -DGLFW_BUILD_DOCS=OFF -DGLFW_BUILD_EXAMPLES=OFF -DGLFW_BUILD_TESTS=OFF
-        cmake --build . --target install --config Debug --parallel
+        cmake . -DCMAKE_BUILD_TYPE=DEBUG -DBUILD_SHARED_LIBS=OFF -DGLFW_BUILD_DOCS=OFF -DGLFW_BUILD_EXAMPLES=OFF -DGLFW_BUILD_TESTS=OFF
+        cmake --build . --target install --parallel
 
     - name: Checkout SQEE
       uses: actions/checkout@v3
@@ -47,8 +42,8 @@ jobs:
       working-directory: sqee
       run: |
         mkdir build && cd build
-        cmake .. -DSQEE_STATIC_LIB=ON
-        cmake --build . --config Debug --parallel
+        cmake .. -DCMAKE_BUILD_TYPE=DEBUG -DSQEE_STATIC_LIB=ON
+        cmake --build . --parallel
 
     #- name: Test
     #  working-directory: ${{github.workspace}}/build
