@@ -1,11 +1,14 @@
 name: Build
-
 on: [ push, pull_request ]
 
 jobs:
 
   build:
+  
     runs-on: ubuntu-22.04
+    env:
+      CMAKE_GENERATOR: "Ninja Multi-Config"
+      CMAKE_CONFIGURATION_TYPES: "Release;Debug"
 
     steps:
 
@@ -19,7 +22,7 @@ jobs:
     - name: Install GLFW Dependencies
       run: |
         sudo apt update
-        sudo apt install libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxext-dev wayland-protocols libwayland-dev libxkbcommon-dev
+        sudo apt install libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxext-dev
 
     - name: Checkout GLFW
       uses: actions/checkout@v3
@@ -29,9 +32,9 @@ jobs:
         ref: 3.3.8      
 
     - name: Configure and Build GLFW
-      working-directory: ./glfw
+      working-directory: glfw
       run: |
-        cmake . -DBUILD_SHARED_LIBS=ON -DGLFW_BUILD_DOCS=OFF -DGLFW_BUILD_EXAMPLES=OFF -DGLFW_BUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=.
+        cmake . -DBUILD_SHARED_LIBS=OFF -DGLFW_BUILD_DOCS=OFF -DGLFW_BUILD_EXAMPLES=OFF -DGLFW_BUILD_TESTS=OFF
         cmake --build . --target install --config Debug --parallel
 
     - name: Checkout SQEE
@@ -41,11 +44,11 @@ jobs:
         submodules: recursive
 
     - name: Configure and Build SQEE
-      working-directory: ./sqee
+      working-directory: sqee
       run: |
         mkdir build && cd build
-        cmake .. -DCMAKE_PREFIX_PATH=../glfw
-        cmake --build . --config Debug
+        cmake .. -DSQEE_STATIC_LIB=ON
+        cmake --build . --config Debug --parallel
 
     #- name: Test
     #  working-directory: ${{github.workspace}}/build
