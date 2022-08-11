@@ -29,7 +29,7 @@ jobs:
     - name: Configure and Build GLFW
       working-directory: glfw
       run: |
-        cmake . -DCMAKE_BUILD_TYPE=DEBUG -DBUILD_SHARED_LIBS=OFF -DGLFW_BUILD_DOCS=OFF -DGLFW_BUILD_EXAMPLES=OFF -DGLFW_BUILD_TESTS=OFF
+        cmake . -DCMAKE_BUILD_TYPE=DEBUG -DBUILD_SHARED_LIBS=OFF -DGLFW_BUILD_DOCS=OFF -DGLFW_BUILD_EXAMPLES=OFF -DGLFW_BUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=.
         cmake --build . --target install --parallel
 
     - name: Checkout SQEE
@@ -42,7 +42,7 @@ jobs:
       working-directory: sqee
       run: |
         mkdir build && cd build
-        cmake .. -DCMAKE_BUILD_TYPE=DEBUG -DSQEE_STATIC_LIB=ON
+        cmake .. -DCMAKE_BUILD_TYPE=DEBUG -DCMAKE_PREFIX_PATH=../glfw -DSQEE_STATIC_LIB=ON
         cmake --build . --parallel
 
     #- name: Test
