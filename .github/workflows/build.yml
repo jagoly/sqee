@@ -31,7 +31,7 @@ jobs:
     - name: Configure and Build GLFW
       working-directory: ./glfw
       run: |
-        cmake . -DBUILD_SHARED_LIBS=ON -DGLFW_BUILD_WAYLAND=ON -DGLFW_BUILD_DOCS=OFF -DGLFW_BUILD_EXAMPLES=OFF -DGLFW_BUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=.
+        cmake . -DBUILD_SHARED_LIBS=ON -DGLFW_BUILD_DOCS=OFF -DGLFW_BUILD_EXAMPLES=OFF -DGLFW_BUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=.
         cmake --build . --target install --config Debug --parallel
 
     - name: Checkout SQEE
