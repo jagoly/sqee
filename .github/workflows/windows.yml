@@ -1,0 +1,46 @@
+name: Windows
+on: [ push, pull_request ]
+
+jobs:
+
+  build:
+    runs-on: windows-2022
+    steps:
+
+    - name: Install Vulkan SDK
+      uses: humbletim/install-vulkan-sdk@v1.1.1
+      with:
+        version: latest
+        cache: true
+
+    - name: Checkout GLFW
+      uses: actions/checkout@v3
+      with:
+        path: glfw
+        repository: glfw/glfw
+        ref: 3.3.8      
+
+    - name: Configure and Build GLFW
+      working-directory: glfw
+      run: |
+        cmake . -DUSE_MSVC_RUNTIME_LIBRARY_DLL=OFF -DBUILD_SHARED_LIBS=OFF -DGLFW_BUILD_DOCS=OFF -DGLFW_BUILD_EXAMPLES=OFF -DGLFW_BUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=.
+        cmake --build . --config Debug --target install --parallel
+
+    - name: Checkout SQEE
+      uses: actions/checkout@v3
+      with:
+        path: sqee
+        submodules: recursive
+
+    - name: Configure and Build SQEE
+      working-directory: sqee
+      run: |
+        mkdir build && cd build
+        cmake .. -DCMAKE_PREFIX_PATH=../glfw -DSQEE_STATIC_LIB=ON
+        cmake --build . --config Debug --parallel
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: sqee-windows-debug
+        path: sqee/build/Debug
