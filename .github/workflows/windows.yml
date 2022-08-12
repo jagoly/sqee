@@ -36,7 +36,7 @@ jobs:
       working-directory: sqee
       run: |
         mkdir build && cd build
-        cmake .. -DCMAKE_PREFIX_PATH=..\glfw -DSQEE_STATIC_LIB=ON
+        cmake .. -DCMAKE_PREFIX_PATH=d:/a/sqee/sqee/glfw -DSQEE_STATIC_LIB=ON
         cmake --build . --config Debug --parallel
 
     - name: Upload Artifact
