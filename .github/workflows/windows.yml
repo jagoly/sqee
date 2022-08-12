@@ -36,6 +36,8 @@ jobs:
       working-directory: sqee
       run: |
         mkdir build && cd build
+        dir -Recurse d:/a/sqee/sqee/glfw
+        dir -Recurse /
         cmake .. -DCMAKE_PREFIX_PATH=d:/a/sqee/sqee/glfw -DSQEE_STATIC_LIB=ON
         cmake --build . --config Debug --parallel
 
