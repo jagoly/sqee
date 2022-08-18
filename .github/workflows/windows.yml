@@ -33,4 +33,4 @@ jobs:
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v3
-      with: { name: sqee-windows-debug, path: d:/sqee/Debug }
+      with: { name: sqee-windows-debug, path: "d:/sqee/Debug" }
