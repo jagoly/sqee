@@ -2,6 +2,7 @@
 
 #include <sqee/debug/Assert.hpp>
 #include <sqee/vk/VulkanContext.hpp>
+#include <sqee/vk/VulkanMemory.hpp>
 
 using namespace sq;
 

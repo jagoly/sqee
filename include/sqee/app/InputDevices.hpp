@@ -3,6 +3,7 @@
 #include <sqee/setup.hpp>
 
 #include <sqee/core/Types.hpp>
+#include <sqee/core/Utilities.hpp>
 
 //====== Forward Declarations ================================================//
 
@@ -19,7 +20,7 @@ struct GamepadState;
 //============================================================================//
 
 /// Access to Keyboard / Mouse / Gamepad state.
-class SQEE_API InputDevices final : private NonCopyable
+class SQEE_API InputDevices : NonCopyable
 {
 public: //====================================================//
 

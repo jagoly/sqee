@@ -2,6 +2,7 @@
 
 #include <sqee/setup.hpp>
 
+#include <sqee/core/Utilities.hpp>
 #include <sqee/vk/Vulkan.hpp>
 
 namespace sq {
@@ -10,7 +11,7 @@ namespace sq {
 
 class VulkanMemory;
 
-class SQEE_API VulkanAllocator : private NonCopyable
+class SQEE_API VulkanAllocator : NonCopyable
 {
 public: //====================================================//
 

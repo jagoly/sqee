@@ -10,9 +10,11 @@
 
 #include <wren.hpp> // IWYU pragma: export
 
-#include <fmt/format.h>
+#include <fmt/core.h>
 
 #include <cassert>
+#include <cmath>
+#include <cstddef>
 #include <exception>
 #include <functional>
 #include <map>
@@ -20,6 +22,8 @@
 #include <string>
 #include <string_view>
 #include <type_traits>
+#include <utility>
+#include <vector>
 
 namespace wren {
 

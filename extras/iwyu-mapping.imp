@@ -1,17 +1,18 @@
 [
+  { ref: "/usr/share/include-what-you-use/gcc.stl.headers.imp" },
+  { ref: "/usr/share/include-what-you-use/stl.c.headers.imp" },
 
-{ include: ["<SFML/System/Vector2.inl>", "private", "<SFML/System/Vector2.hpp>", "public"] },
-{ include: ["<ctime>", "public", "<fmt/chrono.h>", "public"] },
+  { include: ["<bits/chrono.h>", "private", "<chrono>", "public"] },
+  { include: ["<bits/utility.h>", "private", "<utility>", "public"] },
 
-{ symbol: ["fmt::print", "private", "<fmt/core.h>", "public"] },
-{ symbol: ["fmt::format", "private", "<fmt/core.h>", "public"] },
+  { include: ["<vulkan/vulkan.hpp>", "private", "<sqee/vk/Vulkan.hpp>", "public"] },
+  { include: ["<vulkan/vk_platform.h>", "private", "<sqee/vk/Vulkan.hpp>", "public"] },
+  { include: ["<vulkan/vulkan_core.h>", "private", "<sqee/vk/Vulkan.hpp>", "public"] },
 
-{ include: ["<bits/exception.h>", "private", "<exception>", "public"] },
-{ symbol: ["std::hash", "private", "<functional>", "public"] },
-{ symbol: ["std::stringstream", "private", "<sstream>", "public"] },
+  { include: ["<wren.h>", "private", "<wren.hpp>", "public"] },
 
-{ include: ["<cxxabi.h>", "public", "<sqee/setup.hpp>", "public"] },
-{ include: ["<ext/alloc_traits.h>", "private", "<sqee/setup.hpp>", "public"] },
-{ symbol: ["uint", "private", "<sqee/setup.hpp>", "public"] }
-
+  { symbol: ["fmt::print", "private", "<fmt/core.h>", "public"] },
+  { symbol: ["fmt::format", "private", "<fmt/core.h>", "public"] },
+  { symbol: ["fmt::format_to", "private", "<fmt/core.h>", "public"] },
+  { symbol: ["fmt::formatter", "private", "<fmt/core.h>", "public"] }
 ]

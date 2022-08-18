@@ -16,8 +16,6 @@
 
 #include <sqee/redist/json.hpp> // IWYU pragma: export
 
-#include <fmt/core.h>
-
 namespace sq {
 
 //============================================================================//

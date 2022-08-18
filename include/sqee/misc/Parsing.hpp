@@ -8,6 +8,7 @@
 #include <sqee/core/Types.hpp>
 
 #include <charconv>
+#include <system_error>
 
 namespace sq {
 

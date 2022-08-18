@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.22)
 project(SQEE CXX)
 
 ################################################################################
@@ -37,14 +37,14 @@ target_include_directories(sqee PUBLIC "${PROJECT_SOURCE_DIR}/include")
 # todo: makes these options so you don't have to change this file to enable them
 
 #set_property(TARGET sqee PROPERTY CXX_INCLUDE_WHAT_YOU_USE
-#    "iwyu;-Xiwyu;any;-Xiwyu;iwyu;-Xiwyu;--mapping_file=${PROJECT_SOURCE_DIR}/extras/iwyu-mapping.imp")
+#    "include-what-you-use;-Xiwyu;--mapping_file=${PROJECT_SOURCE_DIR}/extras/iwyu-mapping.imp")
 #target_include_directories(sqee SYSTEM PUBLIC "${PROJECT_SOURCE_DIR}/include")
 
 #target_precompile_headers(sqee PUBLIC <sqee/setup.hpp>)
 
 ################################################################################
 
-set_property(TARGET sqee PROPERTY CXX_STANDARD 17)
+set_property(TARGET sqee PROPERTY CXX_STANDARD 20)
 set_property(TARGET sqee PROPERTY CXX_STANDARD_REQUIRED True)
 
 target_compile_definitions(sqee PUBLIC $<$<CONFIG:Debug>:SQEE_DEBUG>)

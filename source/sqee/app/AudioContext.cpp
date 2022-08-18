@@ -1,6 +1,5 @@
 #include <sqee/app/AudioContext.hpp>
 
-#include <sqee/core/Algorithms.hpp>
 #include <sqee/debug/Assert.hpp>
 #include <sqee/debug/Logging.hpp>
 #include <sqee/objects/Sound.hpp>
@@ -50,7 +49,7 @@ void AudioContext::Implementation::data_callback(ma_device* pDevice, void* pOutp
     }
 
     const auto predicate = [](const ActiveSound& snd) { return snd.cursor == snd.frameCount; };
-    algo::erase_if(context->mActiveSounds, predicate);
+    std::erase_if(context->mActiveSounds, predicate);
 }
 
 //============================================================================//
@@ -131,27 +130,27 @@ void AudioContext::stop_sound(int32_t id)
 
 // todo: could optimise these, since the ranges are all sorted
 
-void AudioContext::set_sounds_paused(const int32_t* begin, const int32_t* end, bool paused)
+void AudioContext::set_sounds_paused(std::span<const int32_t> ids, bool paused)
 {
-    SQASSERT(std::all_of(begin, end, [this](int32_t id) { return id <= mCurrentId; }), "invalid id");
-    if (begin == end) return;
+    SQASSERT(ranges::all_of(ids, [this](int32_t id) { return id <= mCurrentId; }), "invalid id");
+    if (ids.empty()) return;
 
     const auto lock = std::lock_guard(impl->mutex);
 
     for (ActiveSound& snd : mActiveSounds)
-        if (std::find(begin, end, snd.id) != end)
+        if (ranges::find(ids, snd.id) != ids.end())
             snd.paused = paused;
 }
 
-void AudioContext::stop_sounds(const int32_t* begin, const int32_t* end)
+void AudioContext::stop_sounds(std::span<const int32_t> ids)
 {
-    SQASSERT(std::all_of(begin, end, [this](int32_t id) { return id <= mCurrentId; }), "invalid id");
-    if (begin == end) return;
+    SQASSERT(ranges::all_of(ids, [this](int32_t id) { return id <= mCurrentId; }), "invalid id");
+    if (ids.empty()) return;
 
     const auto lock = std::lock_guard(impl->mutex);
 
-    const auto predicate = [=](const ActiveSound& snd) { return std::find(begin, end, snd.id) != end; };
-    algo::erase_if(mActiveSounds, predicate);
+    const auto predicate = [&](const ActiveSound& snd) { return ranges::find(ids, snd.id) != ids.end(); };
+    std::erase_if(mActiveSounds, predicate);
 }
 
 //============================================================================//
@@ -174,8 +173,8 @@ void AudioContext::stop_groups(SoundGroups groups)
 {
     const auto lock = std::lock_guard(impl->mutex);
 
-    const auto predicate = [=](const ActiveSound& snd) { return uint8_t(snd.group) & groups.value; };
-    algo::erase_if(mActiveSounds, predicate);
+    const auto predicate = [&](const ActiveSound& snd) { return uint8_t(snd.group) & groups.value; };
+    std::erase_if(mActiveSounds, predicate);
 }
 
 //============================================================================//
@@ -185,5 +184,5 @@ void AudioContext::impl_destroy_sound(const Sound& sound)
     const auto lock = std::lock_guard(impl->mutex);
 
     const auto predicate = [&](const ActiveSound& snd) { return snd.frames == sound.mAudioFrames.data(); };
-    algo::erase_if(mActiveSounds, predicate);
+    std::erase_if(mActiveSounds, predicate);
 }

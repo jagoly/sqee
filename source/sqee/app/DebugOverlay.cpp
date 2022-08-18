@@ -1,7 +1,6 @@
 #include <sqee/app/DebugOverlay.hpp>
 
 #include <sqee/app/GuiWidgets.hpp>
-#include <sqee/core/Algorithms.hpp>
 
 using namespace sq;
 

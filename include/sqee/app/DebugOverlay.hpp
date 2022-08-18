@@ -7,6 +7,7 @@
 
 #include <sqee/app/Scene.hpp>
 #include <sqee/core/Types.hpp>
+#include <sqee/vk/Vulkan.hpp>
 
 namespace sq {
 
@@ -39,7 +40,7 @@ private: //===================================================//
 
     void integrate(double elapsed, float blend) override;
 
-    void populate_command_buffer(vk::CommandBuffer, vk::Framebuffer) override {};
+    void populate_command_buffer(vk::CommandBuffer, vk::Framebuffer) override {}
 
     struct Notification
     {

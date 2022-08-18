@@ -19,7 +19,7 @@ endif ()
 target_include_directories(dearimgui PUBLIC "${PROJECT_SOURCE_DIR}/include")
 target_include_directories(dearimgui PRIVATE "${PROJECT_SOURCE_DIR}/include/dearimgui")
 
-set_property(TARGET dearimgui PROPERTY CXX_STANDARD 17)
+set_property(TARGET dearimgui PROPERTY CXX_STANDARD 20)
 set_property(TARGET dearimgui PROPERTY CXX_STANDARD_REQUIRED True)
 
 ################################################################################

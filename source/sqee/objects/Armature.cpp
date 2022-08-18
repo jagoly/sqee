@@ -1,7 +1,6 @@
 ﻿#include <sqee/objects/Armature.hpp>
 
 #include <sqee/debug/Assert.hpp>
-#include <sqee/debug/Logging.hpp>
 #include <sqee/maths/Functions.hpp>
 #include <sqee/misc/Files.hpp>
 #include <sqee/misc/Json.hpp>
@@ -255,20 +254,20 @@ Animation Armature::impl_load_animation_text(String&& text) const
     enum class Section { None, Header, BoneTracks, BlockTracks };
     Section section = Section::None;
 
-    Animation::Track* track = nullptr;
+    std::span<const std::byte>* track = nullptr;
     TrackType trackType = {};
 
     std::byte* bytePtr = nullptr;
 
     //--------------------------------------------------------//
 
-    const auto assert_num_tokens = [](const std::vector<std::string_view>& tokens, size_t lineNum, size_t expected)
+    const auto assert_num_tokens = [](const std::vector<StringView>& tokens, size_t lineNum, size_t expected)
     {
         if (tokens.size() != expected)
             SQEE_THROW("{}: wrong number of tokens for track type", lineNum);
     };
 
-    const auto initialise_track = [&](uint16_t trackIndex, const std::vector<std::string_view>& tokens, size_t lineNum)
+    const auto initialise_track = [&](uint16_t trackIndex, const std::vector<StringView>& tokens, size_t lineNum)
     {
         if (size_t(trackIndex) != result.tracks.size())
             SQEE_THROW("{}: tracks out of order", lineNum);
@@ -352,9 +351,9 @@ Animation Armature::impl_load_animation_text(String&& text) const
         else SQEE_UNREACHABLE();
     };
 
-    const auto append_track_frame = [&](const std::vector<std::string_view>& tokens, size_t lineNum)
+    const auto append_track_frame = [&](const std::vector<StringView>& tokens, size_t lineNum)
     {
-        if (bytePtr >= track->data + track->size)
+        if (bytePtr >= track->data() + track->size())
             SQEE_THROW("{}: too many frames for track", lineNum);
 
         switch (trackType) {
@@ -517,7 +516,7 @@ Animation Armature::make_null_animation(uint frameCount) const
         else if (info.type == TrackType::Quaternion) result.tracks.emplace_back(bytePtr, sizeof(QuatF));
         else    SQEE_UNREACHABLE();
 
-        bytePtr += result.tracks.back().size;
+        bytePtr += result.tracks.back().size();
     }
 
     return result;
@@ -535,91 +534,91 @@ void Armature::compute_sample(const Animation& animation, float time, AnimSample
     for (size_t i = 0u; i < mTrackInfos.size(); ++i)
     {
         const TrackInfo& info = mTrackInfos[i];
-        const Animation::Track& track = animation.tracks[i];
+        const std::span<const std::byte>& track = animation.tracks[i];
         std::byte* const ptr = out.data() + info.offset;
 
         switch (info.type) {
 
         case TrackType::Float:
-            *reinterpret_cast<float*>(ptr) = track.size == sizeof(float) ?
-                *reinterpret_cast<const float*>(track.data) :
+            *reinterpret_cast<float*>(ptr) = track.size() == sizeof(float) ?
+                *reinterpret_cast<const float*>(track.data()) :
                 maths::mix (
-                    reinterpret_cast<const float*>(track.data)[sample.frameA],
-                    reinterpret_cast<const float*>(track.data)[sample.frameB],
+                    reinterpret_cast<const float*>(track.data())[sample.frameA],
+                    reinterpret_cast<const float*>(track.data())[sample.frameB],
                     sample.factor
                 );
             continue;
 
         case TrackType::Float2:
-            *reinterpret_cast<Vec2F*>(ptr) = track.size == sizeof(Vec2F) ?
-                *reinterpret_cast<const Vec2F*>(track.data) :
+            *reinterpret_cast<Vec2F*>(ptr) = track.size() == sizeof(Vec2F) ?
+                *reinterpret_cast<const Vec2F*>(track.data()) :
                 maths::mix (
-                    reinterpret_cast<const Vec2F*>(track.data)[sample.frameA],
-                    reinterpret_cast<const Vec2F*>(track.data)[sample.frameB],
+                    reinterpret_cast<const Vec2F*>(track.data())[sample.frameA],
+                    reinterpret_cast<const Vec2F*>(track.data())[sample.frameB],
                     sample.factor
                 );
             continue;
 
         case TrackType::Float3:
-            *reinterpret_cast<Vec3F*>(ptr) = track.size == sizeof(Vec3F) ?
-                *reinterpret_cast<const Vec3F*>(track.data) :
+            *reinterpret_cast<Vec3F*>(ptr) = track.size() == sizeof(Vec3F) ?
+                *reinterpret_cast<const Vec3F*>(track.data()) :
                 maths::mix (
-                    reinterpret_cast<const Vec3F*>(track.data)[sample.frameA],
-                    reinterpret_cast<const Vec3F*>(track.data)[sample.frameB],
+                    reinterpret_cast<const Vec3F*>(track.data())[sample.frameA],
+                    reinterpret_cast<const Vec3F*>(track.data())[sample.frameB],
                     sample.factor
                 );
             continue;
 
         case TrackType::Float4:
-            *reinterpret_cast<Vec4F*>(ptr) = track.size == sizeof(Vec4F) ?
-                *reinterpret_cast<const Vec4F*>(track.data) :
+            *reinterpret_cast<Vec4F*>(ptr) = track.size() == sizeof(Vec4F) ?
+                *reinterpret_cast<const Vec4F*>(track.data()) :
                 maths::mix (
-                    reinterpret_cast<const Vec4F*>(track.data)[sample.frameA],
-                    reinterpret_cast<const Vec4F*>(track.data)[sample.frameB],
+                    reinterpret_cast<const Vec4F*>(track.data())[sample.frameA],
+                    reinterpret_cast<const Vec4F*>(track.data())[sample.frameB],
                     sample.factor
                 );
             continue;
 
         case TrackType::Int:
-            *reinterpret_cast<int*>(ptr) = track.size == sizeof(int) ?
-                *reinterpret_cast<const int*>(track.data) :
-                reinterpret_cast<const int*>(track.data)[sample.frameA];
+            *reinterpret_cast<int*>(ptr) = track.size() == sizeof(int) ?
+                *reinterpret_cast<const int*>(track.data()) :
+                reinterpret_cast<const int*>(track.data())[sample.frameA];
             continue;
 
         case TrackType::Int2:
-            *reinterpret_cast<Vec2I*>(ptr) = track.size == sizeof(Vec2I) ?
-                *reinterpret_cast<const Vec2I*>(track.data) :
-                reinterpret_cast<const Vec2I*>(track.data)[sample.frameA];
+            *reinterpret_cast<Vec2I*>(ptr) = track.size() == sizeof(Vec2I) ?
+                *reinterpret_cast<const Vec2I*>(track.data()) :
+                reinterpret_cast<const Vec2I*>(track.data())[sample.frameA];
             continue;
 
         case TrackType::Int3:
-            *reinterpret_cast<Vec3I*>(ptr) = track.size == sizeof(Vec3I) ?
-                *reinterpret_cast<const Vec3I*>(track.data) :
-                reinterpret_cast<const Vec3I*>(track.data)[sample.frameA];
+            *reinterpret_cast<Vec3I*>(ptr) = track.size() == sizeof(Vec3I) ?
+                *reinterpret_cast<const Vec3I*>(track.data()) :
+                reinterpret_cast<const Vec3I*>(track.data())[sample.frameA];
             continue;
 
         case TrackType::Int4:
-            *reinterpret_cast<Vec4I*>(ptr) = track.size == sizeof(Vec4I) ?
-                *reinterpret_cast<const Vec4I*>(track.data) :
-                reinterpret_cast<const Vec4I*>(track.data)[sample.frameA];
+            *reinterpret_cast<Vec4I*>(ptr) = track.size() == sizeof(Vec4I) ?
+                *reinterpret_cast<const Vec4I*>(track.data()) :
+                reinterpret_cast<const Vec4I*>(track.data())[sample.frameA];
             continue;
 
         case TrackType::Angle:
-            *reinterpret_cast<float*>(ptr) = track.size == sizeof(float) ?
-                *reinterpret_cast<const float*>(track.data) :
+            *reinterpret_cast<float*>(ptr) = track.size() == sizeof(float) ?
+                *reinterpret_cast<const float*>(track.data()) :
                 maths::mix_radians (
-                    reinterpret_cast<const float*>(track.data)[sample.frameA],
-                    reinterpret_cast<const float*>(track.data)[sample.frameB],
+                    reinterpret_cast<const float*>(track.data())[sample.frameA],
+                    reinterpret_cast<const float*>(track.data())[sample.frameB],
                     sample.factor
                 );
             continue;
 
         case TrackType::Quaternion:
-            *reinterpret_cast<QuatF*>(ptr) = track.size == sizeof(QuatF) ?
-                *reinterpret_cast<const QuatF*>(track.data) :
+            *reinterpret_cast<QuatF*>(ptr) = track.size() == sizeof(QuatF) ?
+                *reinterpret_cast<const QuatF*>(track.data()) :
                 maths::slerp (
-                    reinterpret_cast<const QuatF*>(track.data)[sample.frameA],
-                    reinterpret_cast<const QuatF*>(track.data)[sample.frameB],
+                    reinterpret_cast<const QuatF*>(track.data())[sample.frameA],
+                    reinterpret_cast<const QuatF*>(track.data())[sample.frameB],
                     sample.factor
                 );
             continue;

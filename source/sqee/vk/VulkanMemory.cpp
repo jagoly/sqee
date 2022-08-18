@@ -1,6 +1,5 @@
 #include <sqee/vk/VulkanMemory.hpp>
 
-#include <sqee/core/Algorithms.hpp>
 #include <sqee/debug/Assert.hpp>
 
 // details:
@@ -146,8 +145,8 @@ void VulkanAllocator::free_empty_blocks()
         return false;
     };
 
-    algo::erase_if(mHostMemoryBlocks, predicate);
-    algo::erase_if(mDeviceMemoryBlocks, predicate);
+    std::erase_if(mHostMemoryBlocks, predicate);
+    std::erase_if(mDeviceMemoryBlocks, predicate);
 }
 
 size_t VulkanAllocator::get_memory_usage(bool host) const

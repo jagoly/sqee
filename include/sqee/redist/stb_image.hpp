@@ -1,4 +1,4 @@
-/* stb_image - v2.26 - public domain image loader - http://nothings.org/stb
+/* stb_image - v2.27 - public domain image loader - http://nothings.org/stb
                                   no warranty implied; use at your own risk
 
    Do this:
@@ -48,6 +48,7 @@ LICENSE
 
 RECENT REVISION HISTORY:
 
+      2.27  (2021-07-11) document stbi_info better, 16-bit PNM support, bug fixes
       2.26  (2020-07-13) many minor fixes
       2.25  (2020-02-02) fix warnings
       2.24  (2020-02-02) fix warnings; thread-local failure_reason and flip_vertically
@@ -89,7 +90,7 @@ RECENT REVISION HISTORY:
                                            Jeremy Sawicki (handle all ImageNet JPGs)
  Optimizations & bugfixes                  Mikhail Morozov (1-bit BMP)
     Fabian "ryg" Giesen                    Anael Seghezzi (is-16-bit query)
-    Arseny Kapoulkine
+    Arseny Kapoulkine                      Simon Breuss (16-bit PNM)
     John-Mark Allen
     Carmelo J Fdez-Aguera
 
@@ -102,7 +103,7 @@ RECENT REVISION HISTORY:
     Thomas Ruf              Ronny Chevalier                         github:rlyeh
     Janez Zemva             John Bartholomew   Michal Cichon        github:romigrou
     Jonathan Blow           Ken Hamada         Tero Hanninen        github:svdijk
-                            Laurent Gomila     Cort Stratton        github:snagar
+    Eugene Golushkov        Laurent Gomila     Cort Stratton        github:snagar
     Aruelien Pocheville     Sergio Gonzalez    Thibault Reuille     github:Zelex
     Cass Everitt            Ryamond Barbiero                        github:grim210
     Paul Du Bois            Engin Manap        Aldo Culquicondor    github:sammyhw
@@ -110,10 +111,12 @@ RECENT REVISION HISTORY:
     Josh Tobin                                 Matthew Gregan       github:poppolopoppo
     Julian Raschke          Gregory Mullen     Christian Floisand   github:darealshinji
     Baldur Karlsson         Kevin Schmidt      JR Smith             github:Michaelangel007
-                            Brad Weinberger    Matvey Cherevko      [reserved]
+                            Brad Weinberger    Matvey Cherevko      github:mosra
     Luca Sas                Alexander Veselov  Zack Middleton       [reserved]
     Ryan C. Gordon          [reserved]                              [reserved]
                      DO NOT ADD YOUR NAME HERE
+
+                     Jacko Dirks
 
   To add your name to the credits, pick a random blank space in the middle and fill it.
   80% of merge conflicts on stb PRs are due to people adding their name at the end
@@ -189,6 +192,32 @@ RECENT REVISION HISTORY:
 // more user-friendly ones.
 //
 // Paletted PNG, BMP, GIF, and PIC images are automatically depalettized.
+//
+// To query the width, height and component count of an image without having to
+// decode the full file, you can use the stbi_info family of functions:
+//
+//   int x,y,n,ok;
+//   ok = stbi_info(filename, &x, &y, &n);
+//   // returns ok=1 and sets x, y, n if image is a supported format,
+//   // 0 otherwise.
+//
+// Note that stb_image pervasively uses ints in its public API for sizes,
+// including sizes of memory buffers. This is now part of the API and thus
+// hard to change without causing breakage. As a result, the various image
+// loaders all have certain limits on image size; these differ somewhat
+// by format but generally boil down to either just under 2GB or just under
+// 1GB. When the decoded image would be larger than this, stb_image decoding
+// will fail.
+//
+// Additionally, stb_image will reject image files that have any of their
+// dimensions set to a larger value than the configurable STBI_MAX_DIMENSIONS,
+// which defaults to 2**24 = 16777216 pixels. Due to the above memory limit,
+// the only way to have an image with such dimensions load correctly
+// is for it to have a rather extreme aspect ratio. Either way, the
+// assumption here is that such larger images are likely to be malformed
+// or malicious. If you do need to load an image with individual dimensions
+// larger than that, and it still fits in the overall size limit, you can
+// #define STBI_MAX_DIMENSIONS on your own to be something larger.
 //
 // ===========================================================================
 //
@@ -295,11 +324,10 @@ RECENT REVISION HISTORY:
 //
 // iPhone PNG support:
 //
-// By default we convert iphone-formatted PNGs back to RGB, even though
-// they are internally encoded differently. You can disable this conversion
-// by calling stbi_convert_iphone_png_to_rgb(0), in which case
-// you will always just get the native iphone "format" through (which
-// is BGR stored in RGB).
+// We optionally support converting iPhone-formatted PNGs (which store
+// premultiplied BGRA) back to RGB, even though they're internally encoded
+// differently. To enable this conversion, call
+// stbi_convert_iphone_png_to_rgb(1).
 //
 // Call stbi_set_unpremultiply_on_load(1) as well to force a divide per
 // pixel to remove any premultiplied alpha *only* if the image file explicitly
@@ -503,6 +531,8 @@ STBIDEF void stbi_set_flip_vertically_on_load(int flag_true_if_should_flip);
 // as above, but only applies to images loaded on the thread that calls the function
 // this function is only available if your compiler supports thread-local variables;
 // calling it will fail to link if your compiler doesn't
+STBIDEF void stbi_set_unpremultiply_on_load_thread(int flag_true_if_should_unpremultiply);
+STBIDEF void stbi_convert_iphone_png_to_rgb_thread(int flag_true_if_should_convert);
 STBIDEF void stbi_set_flip_vertically_on_load_thread(int flag_true_if_should_flip);
 
 // ZLIB client - used by PNG, available for other purposes
@@ -520,4 +550,7 @@ STBIDEF int   stbi_zlib_decode_noheader_buffer(char *obuffer, int olen, const ch
 }
 #endif
 
+//
+//
+////   end header file   /////////////////////////////////////////////////////
 #endif // STBI_INCLUDE_STB_IMAGE_H

@@ -1,14 +1,12 @@
 ﻿#pragma once
 
-#include <sqee/export.hpp>
+#include <sqee/setup.hpp>
 
+#include <sqee/core/Types.hpp>
 #include <sqee/core/Utilities.hpp>
-
-#include <sqee/vk/Swapper.hpp>
+#include <sqee/vk/Vulkan.hpp>
 #include <sqee/vk/VulkanContext.hpp>
 #include <sqee/vk/VulkanMemory.hpp>
-
-#include <sqee/vk/Vulkan.hpp>
 
 namespace sq {
 

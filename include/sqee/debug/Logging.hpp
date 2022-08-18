@@ -3,9 +3,13 @@
 
 #pragma once
 
-#include <sqee/setup.hpp>
+#include <sqee/export.hpp>
 
-#include <fmt/core.h> // IWYU pragma: export
+#include <fmt/core.h>
+
+#include <cstdio>
+#include <cstdlib>
+#include <string_view>
 
 namespace sq {
 

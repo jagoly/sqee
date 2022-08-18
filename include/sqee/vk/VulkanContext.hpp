@@ -1,11 +1,10 @@
 #pragma once
 
-#include <sqee/export.hpp>
+#include <sqee/setup.hpp>
 
 #include <sqee/core/Types.hpp>
-
+#include <sqee/core/Utilities.hpp>
 #include <sqee/vk/Vulkan.hpp>
-#include <sqee/vk/Wrappers.hpp>
 
 namespace sq {
 
@@ -14,9 +13,12 @@ namespace sq {
 class VulkanAllocator;
 class Window;
 
+template <class T>
+using ArrayProxyRef = const vk::ArrayProxy<const T>&;
+
 //============================================================================//
 
-class SQEE_API VulkanContext final : NonCopyable
+class SQEE_API VulkanContext : NonCopyable
 {
 public: //====================================================//
 

@@ -1,13 +1,12 @@
 #include <sqee/objects/Pipeline.hpp>
 
-#include <sqee/core/Algorithms.hpp>
-#include <sqee/core/Utilities.hpp>
+#include <sqee/core/Strings.hpp>
 #include <sqee/debug/Assert.hpp>
-#include <sqee/debug/Logging.hpp>
 #include <sqee/misc/Files.hpp>
 #include <sqee/misc/Json.hpp>
 #include <sqee/objects/Mesh.hpp>
 #include <sqee/vk/Helpers.hpp>
+#include <sqee/vk/VulkanContext.hpp>
 
 #include <spirv_cross.hpp>
 

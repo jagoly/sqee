@@ -1,7 +1,7 @@
 #include <sqee/objects/DrawItem.hpp>
 
+#include <sqee/debug/Assert.hpp>
 #include <sqee/misc/Json.hpp>
-
 #include <sqee/objects/Armature.hpp>
 #include <sqee/objects/Mesh.hpp>
 #include <sqee/objects/Pipeline.hpp>

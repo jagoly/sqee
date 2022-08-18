@@ -5,6 +5,7 @@
 
 #include <sqee/setup.hpp>
 
+#include <sqee/core/Utilities.hpp>
 #include <sqee/vk/Vulkan.hpp>
 
 namespace sq {
@@ -16,7 +17,7 @@ struct Event;
 //============================================================================//
 
 /// The SQEE Scene base class.
-class SQEE_API Scene : private NonCopyable
+class SQEE_API Scene : NonCopyable
 {
 public: //====================================================//
 

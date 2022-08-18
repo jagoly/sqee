@@ -11,7 +11,7 @@ target_set_output_directory(sqee-testing "testing")
 
 ################################################################################
 
-set_property(TARGET sqee-testing PROPERTY CXX_STANDARD 17)
+set_property(TARGET sqee-testing PROPERTY CXX_STANDARD 20)
 set_property(TARGET sqee-testing PROPERTY CXX_STANDARD_REQUIRED True)
 
 if (SQEE_GNU OR SQEE_CLANG)

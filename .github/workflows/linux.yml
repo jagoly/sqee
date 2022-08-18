@@ -9,9 +9,7 @@ jobs:
 
     - name: Install Vulkan SDK
       uses: humbletim/install-vulkan-sdk@v1.1.1
-      with:
-        version: latest
-        cache: true
+      with: { version: latest, cache: true }
 
     - name: Install GLFW Dependencies
       run: |
@@ -20,30 +18,24 @@ jobs:
 
     - name: Checkout GLFW
       uses: actions/checkout@v3
-      with:
-        path: glfw
-        repository: glfw/glfw
-        ref: 3.3.8      
+      with: { path: glfw, repository: glfw/glfw, ref: 3.3.8 }
 
     - name: Configure and Build GLFW
       working-directory: glfw
       run: |
-        cmake -DCMAKE_BUILD_TYPE=DEBUG -DBUILD_SHARED_LIBS=OFF -DGLFW_BUILD_DOCS=OFF -DGLFW_BUILD_EXAMPLES=OFF -DGLFW_BUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=.
-        cmake --build . --target install --parallel
+        cmake -B build -DCMAKE_BUILD_TYPE=DEBUG -DBUILD_SHARED_LIBS=OFF -DGLFW_BUILD_DOCS=OFF -DGLFW_BUILD_EXAMPLES=OFF -DGLFW_BUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=build
+        cmake --build build --target install
 
     - name: Checkout SQEE
       uses: actions/checkout@v3
-      with:
-        path: sqee
-        submodules: recursive
+      with: { path: sqee, submodules: recursive }
 
     - name: Configure and Build SQEE
       working-directory: sqee
       run: |
-        cmake -B build -DCMAKE_BUILD_TYPE=DEBUG -DCMAKE_PREFIX_PATH=../glfw -DSQEE_STATIC_LIB=ON
-        cmake --build build --parallel
+        cmake -B build -DCMAKE_BUILD_TYPE=DEBUG -DCMAKE_PREFIX_PATH=../glfw/build -DSQEE_STATIC_LIB=ON
+        cmake --build build
 
-    - uses: actions/upload-artifact@v3
-      with:
-        name: sqee-linux-debug
-        path: sqee/build/out
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with: { name: sqee-linux-debug, path: sqee/build/out }

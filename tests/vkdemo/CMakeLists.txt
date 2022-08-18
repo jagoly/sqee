@@ -22,7 +22,7 @@ target_link_or_copy_directory(sqee-vkdemo "assets")
 
 ################################################################################
 
-set_property(TARGET sqee-vkdemo PROPERTY CXX_STANDARD 17)
+set_property(TARGET sqee-vkdemo PROPERTY CXX_STANDARD 20)
 set_property(TARGET sqee-vkdemo PROPERTY CXX_STANDARD_REQUIRED True)
 
 if (SQEE_GNU OR SQEE_CLANG)

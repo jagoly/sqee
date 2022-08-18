@@ -1,7 +1,6 @@
 #include <sqee/app/Window.hpp>
 
 #include <sqee/app/Event.hpp>
-#include <sqee/core/Algorithms.hpp>
 #include <sqee/debug/Assert.hpp>
 #include <sqee/debug/Logging.hpp>
 #include <sqee/vk/VulkanContext.hpp>
@@ -377,7 +376,7 @@ Window::Window(const char* title, Vec2U size, const char* appName, Vec3U version
 
                 const auto formats = physDev.getSurfaceFormatsKHR(mSurface);
 
-                if (algo::none_of(formats, [](auto& f) { return f.format == vk::Format::eB8G8R8A8Srgb; }))
+                if (ranges::none_of(formats, [](auto& f) { return f.format == vk::Format::eB8G8R8A8Srgb; }))
                 {
                     log_debug("device does not support B8G8R8A8_SRGB surface");
                     continue;

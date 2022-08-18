@@ -15,7 +15,7 @@ endif ()
 
 target_include_directories(format PUBLIC "${PROJECT_SOURCE_DIR}/include")
 
-set_property(TARGET format PROPERTY CXX_STANDARD 17)
+set_property(TARGET format PROPERTY CXX_STANDARD 20)
 set_property(TARGET format PROPERTY CXX_STANDARD_REQUIRED True)
 
 ################################################################################

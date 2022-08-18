@@ -5,6 +5,8 @@
 
 #include <sqee/setup.hpp>
 
+#include <sqee/core/Utilities.hpp>
+#include <sqee/debug/Assert.hpp>
 #include <sqee/debug/Logging.hpp>
 #include <sqee/misc/ResourceHandle.hpp>
 
@@ -14,7 +16,7 @@ namespace sq {
 
 /// Class that provides caching of a type of resource.
 template <class Key, class Type>
-class ResourceCache final : private NonCopyable
+class ResourceCache final : NonCopyable
 {
 public: //====================================================//
 

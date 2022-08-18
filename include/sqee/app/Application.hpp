@@ -5,6 +5,7 @@
 
 #include <sqee/setup.hpp>
 
+#include <sqee/core/Utilities.hpp>
 #include <sqee/core/Types.hpp>
 
 namespace sq {
@@ -12,7 +13,7 @@ namespace sq {
 //============================================================================//
 
 /// The SQEE Application base class.
-class SQEE_API Application : private NonCopyable
+class SQEE_API Application : NonCopyable
 {
 public: //====================================================//
 

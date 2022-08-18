@@ -5,7 +5,7 @@
 
 #include <sqee/setup.hpp>
 
-#include <sqee/vk/Swapper.hpp>
+#include <sqee/core/Utilities.hpp>
 #include <sqee/vk/Vulkan.hpp>
 #include <sqee/vk/Wrappers.hpp>
 
@@ -13,7 +13,7 @@ namespace sq {
 
 //============================================================================//
 
-class SQEE_API SwapBuffer final : private MoveOnly
+class SQEE_API SwapBuffer : MoveOnly
 {
 public: //====================================================//
 

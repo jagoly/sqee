@@ -98,7 +98,7 @@ public: //====================================================//
     Type& emplace_back(Args&&... args)
     {
         assert(!full());
-        Type& result = *(new (end()) Type(std::forward<Args>(args)...));
+        Type& result = *std::construct_at(end(), std::forward<Args>(args)...);
         ++mSize;
         return result;
     }
@@ -120,7 +120,7 @@ public: //====================================================//
     {
         assert(!full() && iter >= begin() && iter <= end());
         std::move_backward(iter, end(), end()+1);
-        new (iter) Type(std::forward<Args>(args)...);
+        std::construct_at(iter, std::forward<Args>(args)...);
         ++mSize;
         return iter;
     }
@@ -237,14 +237,14 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
+    auto operator<=>(const StackVector& other) const
+    {
+        return std::lexicographical_compare_three_way(begin(), end(), other.begin(), other.end());
+    }
+
     bool operator==(const StackVector& other) const
     {
         return std::equal(begin(), end(), other.begin(), other.end());
-    }
-
-    bool operator!=(const StackVector& other) const
-    {
-        return !std::equal(begin(), end(), other.begin(), other.end());
     }
 
 private: //===================================================//
@@ -255,8 +255,6 @@ private: //===================================================//
 };
 
 //============================================================================//
-
-namespace algo {
 
 template <class Type, size_t Capacity, class Value>
 inline auto erase(StackVector<Type, Capacity>& container, const Value& value)
@@ -275,8 +273,6 @@ inline auto erase_if(StackVector<Type, Capacity>& container, Predicate pred)
     container.erase(iter, container.end());
     return distance;
 }
-
-} // namespace algo
 
 //============================================================================//
 

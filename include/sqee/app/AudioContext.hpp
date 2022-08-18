@@ -5,7 +5,7 @@
 
 #include <sqee/setup.hpp>
 
-#include <sqee/core/Types.hpp>
+#include <sqee/core/Utilities.hpp>
 
 namespace sq {
 
@@ -37,7 +37,7 @@ constexpr SoundGroups operator|(SoundGroup a, SoundGroup b) { return SoundGroups
 //============================================================================//
 
 /// Handles the initialisation and playback of audio.
-class SQEE_API AudioContext final : private NonCopyable
+class SQEE_API AudioContext : NonCopyable
 {
 public: //====================================================//
 
@@ -60,13 +60,11 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    // todo: c++20 span
-
     /// Pause or resume zero or more sounds.
-    void set_sounds_paused(const int32_t* begin, const int32_t* end, bool pause);
+    void set_sounds_paused(std::span<const int32_t> ids, bool pause);
 
     /// Remove zero or more sounds.
-    void stop_sounds(const int32_t* begin, const int32_t* end);
+    void stop_sounds(std::span<const int32_t> ids);
 
     //--------------------------------------------------------//
 

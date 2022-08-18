@@ -3,9 +3,11 @@
 #include <sqee/setup.hpp>
 
 #include <sqee/app/Event.hpp>
-#include <sqee/core/Types.hpp>
 
-#include <sqee/vk/Swapper.hpp>
+#include <sqee/core/Types.hpp>
+#include <sqee/core/Utilities.hpp>
+
+#include <sqee/vk/Vulkan.hpp>
 #include <sqee/vk/VulkanMemory.hpp>
 
 //====== Forward Declarations ================================================//
@@ -16,7 +18,7 @@ namespace sq {
 
 //============================================================================//
 
-class SQEE_API Window final : private NonCopyable
+class SQEE_API Window : NonCopyable
 {
 public: //====================================================//
 
@@ -100,7 +102,7 @@ private: //===================================================//
     vk::RenderPass mRenderPass;
 
     vk::SwapchainKHR mSwapchain;
-    std::vector<vk::Image> mSwapchainImages;    
+    std::vector<vk::Image> mSwapchainImages;
     std::vector<vk::ImageView> mSwapchainImageViews;
     std::vector<vk::Framebuffer> mSwapchainFramebuffers;
 

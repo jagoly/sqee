@@ -5,7 +5,9 @@
 
 #include <sqee/setup.hpp>
 
+#include <sqee/core/EnumHelper.hpp>
 #include <sqee/core/Types.hpp>
+#include <sqee/core/Utilities.hpp>
 
 #include <sqee/vk/Vulkan.hpp> // Flags
 
@@ -14,16 +16,8 @@ namespace sq {
 //============================================================================//
 
 /// A set of tracks that can be used to get an AnimSample.
-struct SQEE_API Animation
+struct SQEE_API Animation : MoveOnly
 {
-    struct Track
-    {
-        // todo: replace with std::span
-        Track(const std::byte* data, size_t size) : data(data), size(size) {}
-        const std::byte* data;
-        size_t size;
-    };
-
     struct SampleTime
     {
         uint frameA;  ///< Index of the first frame.
@@ -35,7 +29,7 @@ struct SQEE_API Animation
     //uint flags = 0u;
 
     std::vector<std::byte> bytes;
-    std::vector<Track> tracks;
+    std::vector<std::span<const std::byte>> tracks;
 
     SampleTime compute_sample_time(float time) const;
 };
@@ -46,7 +40,7 @@ using AnimSample = std::vector<std::byte>;
 //============================================================================//
 
 /// Asset defining bones and other animation tracks.
-class SQEE_API Armature : private MoveOnly
+class SQEE_API Armature : MoveOnly
 {
 public: //====================================================//
 
@@ -181,3 +175,11 @@ private: //===================================================//
 //============================================================================//
 
 } // namespace sq
+
+SQEE_ENUM_HELPER
+(
+    sq::Armature::TrackType,
+    Float, Float2, Float3, Float4,
+    Int, Int2, Int3, Int4,
+    Angle, Quaternion
+)

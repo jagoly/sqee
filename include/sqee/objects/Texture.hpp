@@ -3,6 +3,7 @@
 #include <sqee/setup.hpp>
 
 #include <sqee/core/Types.hpp>
+#include <sqee/core/Utilities.hpp>
 
 #include <sqee/vk/Vulkan.hpp>
 #include <sqee/vk/Wrappers.hpp>
@@ -13,10 +14,10 @@ namespace sq {
 
 /// Image and Sampler, with metadata loaded from JSON.
 ///
-/// Supports 2D, Array, and Cube textures,
+/// Supports 2D, Array, and Cube textures.
 /// Will automatically generate mipmaps if requested.
 ///
-class SQEE_API Texture : private MoveOnly
+class SQEE_API Texture : MoveOnly
 {
 public: //====================================================//
 

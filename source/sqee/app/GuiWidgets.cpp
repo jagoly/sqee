@@ -1,5 +1,7 @@
 #include <sqee/app/GuiWidgets.hpp>
 
+#include <sqee/core/Macros.hpp>
+
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <dearimgui/imgui_internal.h>
 #include <dearimgui/imgui.h>

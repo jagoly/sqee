@@ -5,6 +5,7 @@
 
 #include <sqee/setup.hpp>
 
+#include <sqee/core/Utilities.hpp>
 #include <sqee/debug/Assert.hpp>
 
 namespace sq {
@@ -13,7 +14,7 @@ namespace sq {
 
 /// For internal use by ResourceCache and Handle.
 template <class Key, class Type>
-struct Resource final : private NonCopyable
+struct Resource final : NonCopyable
 {
     const Key* key;
     std::unique_ptr<Type> data;

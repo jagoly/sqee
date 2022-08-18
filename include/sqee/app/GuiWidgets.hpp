@@ -7,9 +7,12 @@
 
 #include <sqee/core/EnumHelper.hpp>
 #include <sqee/core/Types.hpp>
+#include <sqee/core/Utilities.hpp>
 
 #include <dearimgui/imconfig.h> // IWYU pragma: export
 #include <dearimgui/imgui.h> // IWYU pragma: export
+
+#include <cassert>
 
 //============================================================================//
 

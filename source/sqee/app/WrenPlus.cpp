@@ -3,6 +3,10 @@
 // for use without sqee, replace with your own file loading
 #include <sqee/misc/Files.hpp>
 
+#include <cstdio>
+#include <cstring>
+#include <iterator>
+
 using namespace wren;
 
 //============================================================================//

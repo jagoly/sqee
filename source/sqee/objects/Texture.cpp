@@ -1,11 +1,12 @@
 #include <sqee/objects/Texture.hpp>
 
 #include <sqee/debug/Assert.hpp>
-#include <sqee/debug/Logging.hpp>
 #include <sqee/maths/Colours.hpp>
 #include <sqee/misc/Files.hpp>
 #include <sqee/misc/Json.hpp>
 #include <sqee/vk/Helpers.hpp>
+#include <sqee/vk/VulkanContext.hpp>
+#include <sqee/vk/VulkanMemory.hpp>
 
 #include <sqee/redist/stb_image.hpp>
 #include <lz4frame.h>

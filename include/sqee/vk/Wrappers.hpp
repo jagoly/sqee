@@ -1,18 +1,19 @@
 #pragma once
 
-#include <sqee/core/Types.hpp>
+#include <sqee/setup.hpp>
 
-#include <sqee/vk/VulkanMemory.hpp>
+#include <sqee/core/Types.hpp>
 #include <sqee/vk/Vulkan.hpp>
+#include <sqee/vk/VulkanMemory.hpp>
 
 namespace sq {
 
 //============================================================================//
 
+class VulkanContext;
+
 template <class T>
 using ArrayProxyRef = const vk::ArrayProxy<const T>&;
-
-class VulkanContext;
 
 //============================================================================//
 

@@ -6,6 +6,7 @@
 #include <sqee/setup.hpp>
 
 #include <sqee/core/Types.hpp>
+#include <sqee/core/Utilities.hpp>
 
 #include <sqee/vk/Vulkan.hpp>
 #include <sqee/vk/Wrappers.hpp>
@@ -15,7 +16,7 @@ namespace sq {
 //============================================================================//
 
 /// Asset with vertex layouts, bounding info, and sub meshes.
-class SQEE_API Mesh final : private MoveOnly
+class SQEE_API Mesh : MoveOnly
 {
 public: //====================================================//
 

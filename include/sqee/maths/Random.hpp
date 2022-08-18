@@ -7,7 +7,7 @@
 
 #include <fmt/format.h>
 
-#include <random>
+#include <random> // IWYU pragma: export
 
 namespace sq { namespace maths {
 

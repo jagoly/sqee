@@ -5,6 +5,8 @@
 
 #include <sqee/export.hpp> // IWYU pragma: export
 
+#include <fmt/core.h> // IWYU pragma: export
+
 #include <cctype> // IWYU pragma: export
 #include <cfloat> // IWYU pragma: export
 #include <climits> // IWYU pragma: export
@@ -15,6 +17,7 @@
 #include <cstdlib> // IWYU pragma: export
 #include <cstring> // IWYU pragma: export
 
+#include <algorithm> // IWYU pragma: export
 #include <array> // IWYU pragma: export
 #include <exception> // IWYU pragma: export
 #include <functional> // IWYU pragma: export
@@ -25,15 +28,17 @@
 #include <memory> // IWYU pragma: export
 #include <numeric> // IWYU pragma: export
 #include <optional> // IWYU pragma: export
+#include <ranges> // IWYU pragma: export
 #include <set> // IWYU pragma: export
+#include <span> // IWYU pragma: export
 #include <stdexcept> // IWYU pragma: export
+#include <string> // IWYU pragma: export
+#include <string_view> // IWYU pragma: export
 #include <tuple> // IWYU pragma: export
 #include <type_traits> // IWYU pragma: export
-#include <typeindex> // IWYU pragma: export
 #include <unordered_map> // IWYU pragma: export
 #include <unordered_set> // IWYU pragma: export
 #include <utility> // IWYU pragma: export
-#include <variant> // IWYU pragma: export
 #include <vector> // IWYU pragma: export
 
 //============================================================================//
@@ -60,46 +65,13 @@ typedef unsigned int ImGuiID;
 
 namespace sq {
 
-//============================================================================//
-
-/// Base for objects that can't be copied or moved.
-struct NonCopyable
-{
-    NonCopyable() = default;
-
-    NonCopyable(const NonCopyable&) = delete;
-    NonCopyable& operator=(const NonCopyable&) = delete;
-
-    NonCopyable(NonCopyable&&) = delete;
-    NonCopyable& operator=(NonCopyable&&) = delete;
-};
-
-//----------------------------------------------------------------------------//
-
-/// Base for objects that can be moved but not copied.
-struct MoveOnly
-{
-    MoveOnly() = default;
-
-    MoveOnly(const MoveOnly&) = delete;
-    MoveOnly& operator=(const MoveOnly&) = delete;
-
-    MoveOnly(MoveOnly&&) = default;
-    MoveOnly& operator=(MoveOnly&&) = default;
-};
-
-//----------------------------------------------------------------------------//
-
-/// Some very basic generic algorithms.
-namespace algo {}
-
 /// Mathematical classes and functions.
 namespace maths {}
 
 /// A set of core types that get used everywhere.
 namespace coretypes {}
 
-//============================================================================//
+namespace ranges = std::ranges;
 
 } // namespace sq
 

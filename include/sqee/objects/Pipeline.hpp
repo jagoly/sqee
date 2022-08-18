@@ -2,7 +2,9 @@
 
 #include <sqee/setup.hpp>
 
+#include <sqee/core/EnumHelper.hpp>
 #include <sqee/core/Types.hpp>
+#include <sqee/core/Utilities.hpp>
 
 #include <sqee/vk/PassConfig.hpp>
 #include <sqee/vk/Vulkan.hpp>
@@ -18,7 +20,7 @@ namespace sq {
 /// constant range for all shader stages, regardless of what the shaders
 /// actually use. This is to maintain layout compatibility.
 ///
-class SQEE_API Pipeline : private MoveOnly
+class SQEE_API Pipeline : MoveOnly
 {
 public: //====================================================//
 
@@ -73,3 +75,12 @@ protected: //=================================================//
 //============================================================================//
 
 } // namespace sq
+
+SQEE_ENUM_HELPER
+(
+    sq::Pipeline::PushConstantType,
+    Int, Vec2I, Vec3I, Vec4I,
+    Uint, Vec2U, Vec3U, Vec4U,
+    Float, Vec2F, Vec3F, Vec4F,
+    Mat23F, Mat34F, Mat4F
+)

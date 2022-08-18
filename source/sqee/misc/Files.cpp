@@ -1,7 +1,5 @@
 #include <sqee/misc/Files.hpp>
 
-#include <sqee/debug/Logging.hpp>
-
 using namespace sq;
 
 //============================================================================//

@@ -1,12 +1,11 @@
 #include <sqee/objects/Mesh.hpp>
 
-#include <sqee/core/Utilities.hpp>
 #include <sqee/debug/Assert.hpp>
-#include <sqee/debug/Logging.hpp>
 #include <sqee/misc/Files.hpp>
 #include <sqee/misc/Parsing.hpp>
-
 #include <sqee/vk/Helpers.hpp>
+#include <sqee/vk/VulkanContext.hpp>
+#include <sqee/vk/VulkanMemory.hpp>
 
 using namespace sq;
 
