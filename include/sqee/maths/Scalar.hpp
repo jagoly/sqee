@@ -7,6 +7,9 @@
 
 #include <cmath>
 
+typedef unsigned char uchar;
+typedef unsigned int uint;
+
 namespace sq::maths {
 
 //============================================================================//
