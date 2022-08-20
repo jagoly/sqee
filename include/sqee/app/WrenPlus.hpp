@@ -35,7 +35,12 @@ struct Exception final : public std::exception
     Exception(std::string str) : message(std::move(str)) {}
 
     template <class... Args>
+    // todo: temporary workaround for an internal compiler error
+    #ifdef SQEE_MSVC
+    Exception(std::string_view str, Args&&... args) : message(fmt::format(fmt::runtime(str), std::forward<Args>(args)...)) {}
+    #else
     Exception(fmt::format_string<Args...> str, Args&&... args) : message(fmt::format(str, std::forward<Args>(args)...)) {}
+    #endif
 
     const char* what() const noexcept override { return message.c_str(); }
 
