@@ -5,7 +5,7 @@
 
 #include <sqee/misc/StackString.hpp>
 
-#include <fmt/core.h>
+#include <fmt/format.h>
 
 #include <cstring>
 #include <iterator>
@@ -69,6 +69,7 @@ inline size_t string_length(const CharT* const& cstr)
 template <class... Args>
 inline std::string build_string(Args&&... args)
 {
+    // todo: this is definitely using forward wrong
     std::string result;
     result.reserve((string_length(std::forward<Args>(args)) + ...));
     ((result += args), ...);
@@ -79,9 +80,9 @@ inline std::string build_string(Args&&... args)
 
 /// Slightly more ergonomic wrapper around fmt::format_to.
 template <class... Args>
-inline std::string& format_append(std::string& output, std::string_view str, const Args&... args)
+inline std::string& format_append(std::string& output, fmt::format_string<Args...> str, Args&&... args)
 {
-    fmt::format_to(std::back_inserter(output), str, args...);
+    fmt::format_to(std::back_inserter(output), str, std::forward<Args>(args)...);
     return output;
 }
 

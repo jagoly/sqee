@@ -331,12 +331,12 @@ void Texture::load_from_file_array(const String& path)
     if (config.mipmaps == MipmapsMode::Load)
         SQEE_THROW("mipmaps can only be loaded from lz4 archives");
 
-    const auto formatStr = config.format == vk::Format::eE5B9G9R9UfloatPack32 ? "{}/{:0>{}}.hdr" : "{}/{:0>{}}.png";
+    const auto extension = config.format == vk::Format::eE5B9G9R9UfloatPack32 ? "hdr" : "png";
     const uint digits = config.size.z > 10u ? config.size.z > 100u ? 3u : 2u : 1u;
 
     for (uint layer = 0u; layer < config.size.z; ++layer)
     {
-        const auto image = impl_load_image(config.format, fmt::format(formatStr, path, layer, digits));
+        const auto image = impl_load_image(config.format, fmt::format("{}/{:0>{}}.{}", path, layer, digits, extension));
 
         if (image.size != Vec2U(config.size))
             SQEE_THROW("layer {}: image size does not match json", layer);
@@ -393,12 +393,12 @@ void Texture::load_from_file_cube(const String& path)
     if (config.mipmaps == MipmapsMode::Load)
         SQEE_THROW("mipmaps can only be loaded from lz4 archives");
 
-    const auto formatStr = config.format == vk::Format::eE5B9G9R9UfloatPack32 ? "{}/{}.hdr" : "{}/{}.png";
+    const auto extension = config.format == vk::Format::eE5B9G9R9UfloatPack32 ? "hdr" : "png";
     const auto faceNames = std::array { "0_right", "1_left", "2_down", "3_up", "4_forward", "5_back"};
 
     for (uint face = 0u; face < 6u; ++face)
     {
-        const auto image = impl_load_image(config.format, fmt::format(formatStr, path, faceNames[face]));
+        const auto image = impl_load_image(config.format, fmt::format("{}/{}.{}", path, faceNames[face], extension));
 
         if (image.size != Vec2U(config.size))
             SQEE_THROW("face {}: image size does not match json", face);

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <sqee/setup.hpp>
+
 #include <sqee/core/Types.hpp>
 #include <sqee/maths/Approx.hpp>
 

@@ -155,11 +155,25 @@ target_link_libraries(sqee PRIVATE spirv-cross-core)
 
 ################################################################################
 
+# fmt doesn't have proper options for these so have to set globally
+set(CMAKE_CXX_STANDARD 20 CACHE STRING "" FORCE)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+
+add_subdirectory(libs/fmt)
+target_set_msvc_options(fmt)
+
+if (SQEE_STATIC_LIB)
+    set_property(TARGET fmt PROPERTY POSITION_INDEPENDENT_CODE OFF)
+else ()
+    set_property(TARGET fmt PROPERTY POSITION_INDEPENDENT_CODE ON)
+endif ()
+
+target_link_libraries(sqee PUBLIC fmt)
+
+################################################################################
+
 add_subdirectory(libs/dearimgui)
 target_link_libraries(sqee PUBLIC dearimgui)
-
-add_subdirectory(libs/format)
-target_link_libraries(sqee PUBLIC format)
 
 add_subdirectory(libs/lz4f)
 target_link_libraries(sqee PUBLIC lz4f)
@@ -169,7 +183,6 @@ target_link_libraries(sqee PUBLIC wren)
 
 if (NOT SQEE_STATIC_LIB)
     target_set_output_directory(dearimgui "")
-    target_set_output_directory(format "")
     target_set_output_directory(lz4f "")
     target_set_output_directory(wren "")
 endif ()
@@ -185,7 +198,7 @@ write_basic_package_version_file (
 )
 
 export (
-    TARGETS sqee spirv-cross-core dearimgui format lz4f wren
+    TARGETS sqee spirv-cross-core fmt dearimgui lz4f wren
     FILE "${CMAKE_CURRENT_BINARY_DIR}/sqee-exports.cmake"
 )
 

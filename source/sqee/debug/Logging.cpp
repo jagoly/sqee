@@ -32,7 +32,14 @@ void sq::detail::log_time_debug()
 
 //============================================================================//
 
-void sq::detail::log_multiline(std::string_view str)
+void sq::log_raw(std::string_view str)
+{
+    std::fwrite(str.data(), 1u, str.size(), stdout);
+    std::fputc('\n', stdout);
+    std::fflush(stdout);
+}
+
+void sq::log_raw_multiline(std::string_view str)
 {
     size_t lineEnd = str.find('\n', 0u);
 

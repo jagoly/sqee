@@ -10,7 +10,7 @@
 
 #include <wren.hpp> // IWYU pragma: export
 
-#include <fmt/core.h>
+#include <fmt/format.h>
 
 #include <cassert>
 #include <cmath>
@@ -35,7 +35,7 @@ struct Exception final : public std::exception
     Exception(std::string str) : message(std::move(str)) {}
 
     template <class... Args>
-    Exception(std::string_view sv, Args&&... args) : message(fmt::format(sv, std::forward<Args>(args)...)) {}
+    Exception(fmt::format_string<Args...> str, Args&&... args) : message(fmt::format(str, std::forward<Args>(args)...)) {}
 
     const char* what() const noexcept override { return message.c_str(); }
 
@@ -307,14 +307,14 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     /// Abort the current wren fiber with a formatted error message.
-    template <class... Args>
-    void abort(std::string_view str, const Args&... args) noexcept
-    {
-        const std::string message = fmt::format(str, args...);
-        wrenEnsureSlots(mWrenVM, 1);
-        wrenSetSlotBytes(mWrenVM, 0, message.data(), message.length());
-        wrenAbortFiber(mWrenVM, 0);
-    }
+    //template <class... Args>
+    //void abort(fmt::format_string<Args...> str, Args&&... args) noexcept
+    //{
+    //    const std::string message = fmt::format(str, std::forward<Args>(args)...);
+    //    wrenEnsureSlots(mWrenVM, 1);
+    //    wrenSetSlotBytes(mWrenVM, 0, message.data(), message.length());
+    //    wrenAbortFiber(mWrenVM, 0);
+    //}
 
 private: //===================================================//
 

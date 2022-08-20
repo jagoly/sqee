@@ -3,13 +3,15 @@
 # set some basic option that we always want when using MSVC
 function (target_set_msvc_options TARGET)
 
-    if (SQEE_STATIC_LIB)
-        set_property(TARGET ${TARGET} PROPERTY MSVC_RUNTIME_LIBRARY MultiThreaded$<$<CONFIG:Debug>:Debug>)
-    else ()
-        set_property(TARGET ${TARGET} PROPERTY MSVC_RUNTIME_LIBRARY MultiThreaded$<$<CONFIG:Debug>:Debug>DLL)
-    endif ()
+    if (SQEE_MSVC)
+        if (SQEE_STATIC_LIB)
+            set_property(TARGET ${TARGET} PROPERTY MSVC_RUNTIME_LIBRARY MultiThreaded$<$<CONFIG:Debug>:Debug>)
+        else ()
+            set_property(TARGET ${TARGET} PROPERTY MSVC_RUNTIME_LIBRARY MultiThreaded$<$<CONFIG:Debug>:Debug>DLL)
+        endif ()
 
-    target_link_options(${TARGET} PRIVATE /INCREMENTAL:NO)
+        target_link_options(${TARGET} PRIVATE /INCREMENTAL:NO)
+    endif ()
 
 endfunction ()
 

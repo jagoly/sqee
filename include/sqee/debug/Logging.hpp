@@ -5,7 +5,7 @@
 
 #include <sqee/export.hpp>
 
-#include <fmt/core.h>
+#include <fmt/format.h>
 
 #include <cstdio>
 #include <cstdlib>
@@ -22,112 +22,159 @@ SQEE_API void log_time_warning();
 SQEE_API void log_time_error();
 SQEE_API void log_time_debug();
 
-SQEE_API void log_multiline(std::string_view str);
-
 } // namespace detail
 
 //============================================================================//
 
-/// Write a formatted string to the log.
-template <class... Args>
-inline void log_raw(std::string_view str, const Args&... args)
-{
-    if constexpr (sizeof...(args) == 0) std::fwrite(str.data(), 1u, str.size(), stdout);
-    else fmt::print(stdout, str, args...);
+SQEE_API void log_raw(std::string_view str);
 
+SQEE_API void log_raw_multiline(std::string_view str);
+
+template <class... Args>
+inline void log_raw(fmt::format_string<Args...> str, Args&&... args)
+{
+    fmt::print(stdout, str, std::forward<Args>(args)...);
     std::fputc('\n', stdout);
     std::fflush(stdout);
 }
 
-/// Write a formatted multiline string to the log.
 template <class... Args>
-inline void log_raw_multiline(std::string_view str, const Args&... args)
+inline void log_raw_multiline(fmt::format_string<Args...> str, Args&&... args)
 {
-    if constexpr (sizeof...(args) == 0) detail::log_multiline(str);
-    else detail::log_multiline(fmt::format(str, args...));
+    log_raw_multiline (
+        fmt::format(str, std::forward<Args>(args)...)
+    );
 }
 
 //============================================================================//
 
-/// Log a formatted INFO message.
-template <class... Args>
-inline void log_info(std::string_view str, const Args&... args)
+inline void log_info(std::string_view str)
 {
     detail::log_time_info();
-    log_raw(str, args...);
+    log_raw(str);
 }
 
-/// Log a formatted multiline INFO message.
-template <class... Args>
-inline void log_info_multiline(std::string_view str, const Args&... args)
+inline void log_info_multiline(std::string_view str)
 {
     detail::log_time_info();
-    log_raw_multiline(str, args...);
+    log_raw_multiline(str);
+}
+
+template <class... Args>
+inline void log_info(fmt::format_string<Args...> str, Args&&... args)
+{
+    detail::log_time_info();
+    log_raw(str, std::forward<Args>(args)...);
+}
+
+template <class... Args>
+inline void log_info_multiline(fmt::format_string<Args...> str, Args&&... args)
+{
+    detail::log_time_info();
+    log_raw_multiline(str, std::forward<Args>(args)...);
 }
 
 //============================================================================//
 
-/// Log a formatted WARNING message.
-template <class... Args>
-inline void log_warning(std::string_view str, const Args&... args)
+inline void log_warning(std::string_view str)
 {
     detail::log_time_warning();
-    log_raw(str, args...);
+    log_raw(str);
 }
 
-/// Log a formatted multiline WARNING message.
-template <class... Args>
-inline void log_warning_multiline(std::string_view str, const Args&... args)
+inline void log_warning_multiline(std::string_view str)
 {
     detail::log_time_warning();
-    log_raw_multiline(str, args...);
+    log_raw_multiline(str);
+}
+
+template <class... Args>
+inline void log_warning(fmt::format_string<Args...> str, Args&&... args)
+{
+    detail::log_time_warning();
+    log_raw(str, std::forward<Args>(args)...);
+}
+
+template <class... Args>
+inline void log_warning_multiline(fmt::format_string<Args...> str, Args&&... args)
+{
+    detail::log_time_warning();
+    log_raw_multiline(str, std::forward<Args>(args)...);
 }
 
 //============================================================================//
 
-/// Log a formatted ERROR message, then abort.
-template <class... Args> [[noreturn]]
-inline void log_error(std::string_view str, const Args&... args)
+[[noreturn]] inline void log_error(std::string_view str)
 {
     detail::log_time_error();
-    log_raw(str, args...);
+    log_raw(str);
     std::abort();
 }
 
-/// Log a formatted multiline ERROR message, then abort.
-template <class... Args> [[noreturn]]
-inline void log_error_multiline(std::string_view str, const Args&... args)
+[[noreturn]] inline void log_error_multiline(std::string_view str)
 {
     detail::log_time_error();
-    log_raw_multiline(str, args...);
+    log_raw_multiline(str);
+    std::abort();
+}
+
+template <class... Args>
+[[noreturn]] inline void log_error(fmt::format_string<Args...> str, Args&&... args)
+{
+    detail::log_time_error();
+    log_raw(str, std::forward<Args>(args)...);
+    std::abort();
+}
+
+template <class... Args>
+[[noreturn]] inline void log_error_multiline(fmt::format_string<Args...> str, Args&&... args)
+{
+    detail::log_time_error();
+    log_raw_multiline(str, std::forward<Args>(args)...);
     std::abort();
 }
 
 //============================================================================//
 
-/// If in debug mode, log a formatted DEBUG message.
-template <class... Args>
-inline void log_debug(std::string_view str, const Args&... args)
+inline void log_debug(std::string_view str)
 {
   #ifdef SQEE_DEBUG
     detail::log_time_debug();
-    log_raw(str, args...);
+    log_raw(str);
   #else
-    (void)str;
-    ((void)args, ...);
+    (void)str; ((void)args, ...);
   #endif
 }
 
-/// If in debug mode, log a formatted multiline DEBUG message.
-template <class... Args>
-inline void log_debug_multiline(std::string_view str, const Args&... args)
+inline void log_debug_multiline(std::string_view str)
 {
   #ifdef SQEE_DEBUG
     detail::log_time_debug();
-    log_raw_multiline(str, args...);
+    log_raw_multiline(str);
   #else
-    (void)str;
-    ((void)args, ...);
+    (void)str; ((void)args, ...);
+  #endif
+}
+
+template <class... Args>
+inline void log_debug(fmt::format_string<Args...> str, Args&&... args)
+{
+  #ifdef SQEE_DEBUG
+    detail::log_time_debug();
+    log_raw(str, std::forward<Args>(args)...);
+  #else
+    (void)str; ((void)args, ...);
+  #endif
+}
+
+template <class... Args>
+inline void log_debug_multiline(fmt::format_string<Args...> str, Args&&... args)
+{
+  #ifdef SQEE_DEBUG
+    detail::log_time_debug();
+    log_raw_multiline(str, std::forward<Args>(args)...);
+  #else
+    (void)str; ((void)args, ...);
   #endif
 }
 

@@ -5,7 +5,7 @@
 
 #include <sqee/export.hpp> // IWYU pragma: export
 
-#include <fmt/core.h> // IWYU pragma: export
+#include <fmt/format.h> // IWYU pragma: export
 
 #include <cctype> // IWYU pragma: export
 #include <cfloat> // IWYU pragma: export
@@ -34,6 +34,7 @@
 #include <stdexcept> // IWYU pragma: export
 #include <string> // IWYU pragma: export
 #include <string_view> // IWYU pragma: export
+#include <system_error> // IWYU pragma: export
 #include <tuple> // IWYU pragma: export
 #include <type_traits> // IWYU pragma: export
 #include <unordered_map> // IWYU pragma: export
