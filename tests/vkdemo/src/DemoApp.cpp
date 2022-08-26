@@ -69,21 +69,13 @@ DemoApp::~DemoApp()
 
 void DemoApp::update(double elapsed)
 {
-    if (mWindow->has_focus())
-    {
-        for (const auto& event : mWindow->fetch_events())
-            if (!mGuiSystem->handle_event(event))
-                handle_event(event);
+    const bool hasFocus = mWindow->has_focus();
 
-        mGuiSystem->finish_handle_events(true);
-    }
-    else
-    {
-        // need to always call glfwPollEvents
-        void(mWindow->fetch_events());
+    for (const auto& event : mWindow->fetch_events())
+        if (mGuiSystem->handle_event(event) == false && hasFocus == true)
+            handle_event(event);
 
-        mGuiSystem->finish_handle_events(false);
-    }
+    mGuiSystem->finish_handle_events();
 
     mWindow->begin_frame();
 

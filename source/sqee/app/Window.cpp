@@ -210,6 +210,17 @@ struct Window::Implementation
 
     static void cb_key(GLFWwindow* window, int key, int /*scancode*/, int action, int mods)
     {
+        // workaround for https://github.com/glfw/glfw/issues/1630
+        if (action != GLFW_REPEAT)
+        {
+            const int mod = (key == GLFW_KEY_LEFT_SHIFT || key == GLFW_KEY_RIGHT_SHIFT) ? GLFW_MOD_SHIFT :
+                            (key == GLFW_KEY_LEFT_CONTROL || key == GLFW_KEY_RIGHT_CONTROL) ? GLFW_MOD_CONTROL :
+                            (key == GLFW_KEY_LEFT_ALT || key == GLFW_KEY_RIGHT_ALT) ? GLFW_MOD_ALT :
+                            (key == GLFW_KEY_LEFT_SUPER || key == GLFW_KEY_RIGHT_SUPER) ? GLFW_MOD_SUPER :
+                            0;
+            if (mod != 0) mods = (action == GLFW_PRESS) ? (mods | mod) : (mods & ~mod);
+        }
+
         Event event;
         event.type = Event::Type(int(Event::Type::Keyboard_Release) + action);
         event.data.keyboard.key = impl_glfw_key_to_sqee(key);

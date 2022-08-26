@@ -205,31 +205,6 @@ GuiSystem::GuiSystem(Window& window, InputDevices& inputDevices)
 
     ImGuiIO& io = ImGui::GetIO();
 
-    io.KeyMap[ImGuiKey_Tab]         = int(Keyboard_Key::Tab);
-    io.KeyMap[ImGuiKey_LeftArrow]   = int(Keyboard_Key::Arrow_Left);
-    io.KeyMap[ImGuiKey_RightArrow]  = int(Keyboard_Key::Arrow_Right);
-    io.KeyMap[ImGuiKey_UpArrow]     = int(Keyboard_Key::Arrow_Up);
-    io.KeyMap[ImGuiKey_DownArrow]   = int(Keyboard_Key::Arrow_Down);
-    io.KeyMap[ImGuiKey_PageUp]      = int(Keyboard_Key::PageUp);
-    io.KeyMap[ImGuiKey_PageDown]    = int(Keyboard_Key::PageDown);
-    io.KeyMap[ImGuiKey_Home]        = int(Keyboard_Key::Home);
-    io.KeyMap[ImGuiKey_End]         = int(Keyboard_Key::End);
-    io.KeyMap[ImGuiKey_Insert]      = int(Keyboard_Key::Insert);
-    io.KeyMap[ImGuiKey_Delete]      = int(Keyboard_Key::Delete);
-    io.KeyMap[ImGuiKey_Backspace]   = int(Keyboard_Key::BackSpace);
-    io.KeyMap[ImGuiKey_Space]       = int(Keyboard_Key::Space);
-    io.KeyMap[ImGuiKey_Enter]       = int(Keyboard_Key::Return);
-    io.KeyMap[ImGuiKey_Escape]      = int(Keyboard_Key::Escape);
-    io.KeyMap[ImGuiKey_KeyPadEnter] = int(Keyboard_Key::Pad_Return);
-    io.KeyMap[ImGuiKey_A]           = int(Keyboard_Key::A);
-    io.KeyMap[ImGuiKey_C]           = int(Keyboard_Key::C);
-    io.KeyMap[ImGuiKey_V]           = int(Keyboard_Key::V);
-    io.KeyMap[ImGuiKey_X]           = int(Keyboard_Key::X);
-    io.KeyMap[ImGuiKey_Y]           = int(Keyboard_Key::Y);
-    io.KeyMap[ImGuiKey_Z]           = int(Keyboard_Key::Z);
-
-    //--------------------------------------------------------//
-
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     io.BackendFlags = ImGuiBackendFlags_HasMouseCursors;
 
@@ -237,8 +212,6 @@ GuiSystem::GuiSystem(Window& window, InputDevices& inputDevices)
     io.ConfigWindowsResizeFromEdges = true;
 
     window.set_cursor_hidden(true);
-
-    //--------------------------------------------------------//
 
     load_ubuntu_fonts();
 
@@ -382,43 +355,170 @@ bool GuiSystem::handle_event(Event event)
 {
     ImGuiIO& io = ImGui::GetIO();
 
+    constexpr ImGuiKey sqee_to_imgui[enum_count_v<Keyboard_Key>]
+    {
+        ImGuiKey_0,  // Num_0
+        ImGuiKey_1,  // Num_1
+        ImGuiKey_2,  // Num_2
+        ImGuiKey_3,  // Num_3
+        ImGuiKey_4,  // Num_4
+        ImGuiKey_5,  // Num_5
+        ImGuiKey_6,  // Num_6
+        ImGuiKey_7,  // Num_7
+        ImGuiKey_8,  // Num_8
+        ImGuiKey_9,  // Num_9
+
+        ImGuiKey_A,  // A
+        ImGuiKey_B,  // B
+        ImGuiKey_C,  // C
+        ImGuiKey_D,  // D
+        ImGuiKey_E,  // E
+        ImGuiKey_F,  // F
+        ImGuiKey_G,  // G
+        ImGuiKey_H,  // H
+        ImGuiKey_I,  // I
+        ImGuiKey_J,  // J
+        ImGuiKey_K,  // K
+        ImGuiKey_L,  // L
+        ImGuiKey_M,  // M
+        ImGuiKey_N,  // N
+        ImGuiKey_O,  // O
+        ImGuiKey_P,  // P
+        ImGuiKey_Q,  // Q
+        ImGuiKey_R,  // R
+        ImGuiKey_S,  // S
+        ImGuiKey_T,  // T
+        ImGuiKey_U,  // U
+        ImGuiKey_V,  // V
+        ImGuiKey_W,  // W
+        ImGuiKey_X,  // X
+        ImGuiKey_Y,  // Y
+        ImGuiKey_Z,  // Z
+
+        ImGuiKey_GraveAccent,   // Grave
+        ImGuiKey_Minus,         // Dash
+        ImGuiKey_Period,        // Equal
+        ImGuiKey_LeftBracket,   // LeftBracket
+        ImGuiKey_RightBracket,  // RightBracket
+        ImGuiKey_Backslash,     // BackSlash
+
+        ImGuiKey_Semicolon,   // SemiColon
+        ImGuiKey_Apostrophe,  // Apostrophe
+        ImGuiKey_Comma,       // Comma
+        ImGuiKey_Period,      // Period
+        ImGuiKey_Slash,       // Slash
+
+        ImGuiKey_LeftShift,   // Shift_L
+        ImGuiKey_RightShift,  // Shift_R
+        ImGuiKey_LeftCtrl,    // Control_L
+        ImGuiKey_RightCtrl,   // Control_R
+        ImGuiKey_LeftAlt,     // Alt_L
+        ImGuiKey_RightAlt,    // Alt_R
+        ImGuiKey_LeftSuper,   // Super_L
+        ImGuiKey_RightSuper,  // Super_R
+
+        ImGuiKey_Menu,       // Menu
+        ImGuiKey_Backspace,  // BackSpace
+        ImGuiKey_Tab,        // Tab
+        ImGuiKey_Enter,      // Return
+        ImGuiKey_Space,      // Space
+        ImGuiKey_Escape,     // Escape
+
+        ImGuiKey_Insert,    // Insert
+        ImGuiKey_Delete,    // Delete
+        ImGuiKey_Home,      // Home
+        ImGuiKey_End,       // End
+        ImGuiKey_PageUp,    // PageUp
+        ImGuiKey_PageDown,  // PageDown
+
+        ImGuiKey_LeftArrow,   // Arrow_Left
+        ImGuiKey_UpArrow,     // Arrow_Up
+        ImGuiKey_RightArrow,  // Arrow_Right
+        ImGuiKey_DownArrow,   // Arrow_Down
+
+        ImGuiKey_Keypad0,  // Pad_0
+        ImGuiKey_Keypad1,  // Pad_1
+        ImGuiKey_Keypad2,  // Pad_2
+        ImGuiKey_Keypad3,  // Pad_3
+        ImGuiKey_Keypad4,  // Pad_4
+        ImGuiKey_Keypad5,  // Pad_5
+        ImGuiKey_Keypad6,  // Pad_6
+        ImGuiKey_Keypad7,  // Pad_7
+        ImGuiKey_Keypad8,  // Pad_8
+        ImGuiKey_Keypad9,  // Pad_9
+
+        ImGuiKey_KeypadDecimal,   // Pad_Decimal
+        ImGuiKey_KeypadAdd,       // Pad_Plus
+        ImGuiKey_KeypadSubtract,  // Pad_Minus
+        ImGuiKey_KeypadMultiply,  // Pad_Multiply
+        ImGuiKey_KeypadDivide,    // Pad_Divide
+        ImGuiKey_KeypadEnter,     // Pad_Return
+
+        ImGuiKey_F1,   // F1
+        ImGuiKey_F2,   // F2
+        ImGuiKey_F3,   // F3
+        ImGuiKey_F4,   // F4
+        ImGuiKey_F5,   // F5
+        ImGuiKey_F6,   // F6
+        ImGuiKey_F7,   // F7
+        ImGuiKey_F8,   // F8
+        ImGuiKey_F9,   // F9
+        ImGuiKey_F10,  // F10
+        ImGuiKey_F11,  // F11
+        ImGuiKey_F12,  // F12
+    };
+
+    const auto add_modifier_events = [&](const auto& data)
+    {
+        io.AddKeyEvent(ImGuiKey_ModCtrl, data.ctrl);
+        io.AddKeyEvent(ImGuiKey_ModShift, data.shift);
+        io.AddKeyEvent(ImGuiKey_ModAlt, data.alt);
+        io.AddKeyEvent(ImGuiKey_ModSuper, data.super);
+    };
+
+    //--------------------------------------------------------//
+
     SWITCH ( event.type ) {
+
+    CASE ( Window_Unfocus, Window_Focus )
+    {
+        io.AddFocusEvent(event.type == Event::Type::Window_Focus);
+
+        return false;
+    }
 
     CASE ( Keyboard_Release, Keyboard_Press )
     {
-        const auto& data = event.data.keyboard;
-
-        io.KeysDown[int(data.key)] = (event.type == Event::Type::Keyboard_Press);
-
-        io.KeyShift = data.shift; io.KeyCtrl = data.ctrl;
-        io.KeyAlt = data.alt; io.KeySuper = data.super;
+        if (event.data.keyboard.key != Keyboard_Key::Unknown)
+        {
+            add_modifier_events(event.data.keyboard);
+            io.AddKeyEvent(sqee_to_imgui[int(event.data.keyboard.key)], event.type == Event::Type::Keyboard_Press);
+        }
 
         return io.WantCaptureKeyboard;
     }
 
-    CASE ( Mouse_Press )
+    CASE ( Mouse_Release, Mouse_Press )
     {
-        const auto& data = event.data.mouse;
-
-        io.MouseDown[int(data.button)] = true;
+        if (event.data.mouse.button != Mouse_Button::Unknown)
+        {
+            add_modifier_events(event.data.mouse);
+            io.AddMouseButtonEvent(int(event.data.mouse.button), event.type == Event::Type::Mouse_Press);
+        }
 
         return io.WantCaptureMouse;
     }
 
     CASE ( Mouse_Scroll )
     {
-        io.MouseWheel += event.data.scroll.delta.y;
-        io.MouseWheelH += event.data.scroll.delta.x;
+        io.AddMouseWheelEvent(float(event.data.scroll.delta.x), float(event.data.scroll.delta.y));
 
         return io.WantCaptureMouse;
     }
 
     CASE ( Text_Entry )
     {
-        const uint32_t code = event.data.text.unicode;
-
-        if (code < 128u && std::isprint(char(code)))
-            io.AddInputCharacter(static_cast<ImWchar>(code));
+        io.AddInputCharacter(event.data.text.unicode);
 
         return io.WantTextInput;
     }
@@ -430,41 +530,17 @@ bool GuiSystem::handle_event(Event event)
 
 //============================================================================//
 
-void GuiSystem::finish_handle_events(bool focus)
+void GuiSystem::finish_handle_events()
 {
     ImGuiIO& io = ImGui::GetIO();
 
     const auto displaySize = Vec2F(window.get_size());
     io.DisplaySize = ImVec2(displaySize.x, displaySize.y);
 
+    // todo: update mouse movement with events
     const auto mousePos = Vec2F(input.get_cursor_location(false));
-    io.MousePos = ImVec2(mousePos.x, mousePos.y);
-
-    if (focus == true)
-    {
-        io.MouseDown[0] |= input.is_pressed(Mouse_Button::Left);
-        io.MouseDown[1] |= input.is_pressed(Mouse_Button::Right);
-        io.MouseDown[2] |= input.is_pressed(Mouse_Button::Middle);
-        io.MouseDown[3] |= input.is_pressed(Mouse_Button::ExtraA);
-        io.MouseDown[4] |= input.is_pressed(Mouse_Button::ExtraB);
-
-        io.KeyShift |= input.is_pressed(Keyboard_Key::Shift_L);
-        io.KeyShift |= input.is_pressed(Keyboard_Key::Shift_R);
-
-        io.KeyCtrl |= input.is_pressed(Keyboard_Key::Control_L);
-        io.KeyCtrl |= input.is_pressed(Keyboard_Key::Control_R);
-
-        io.KeyAlt |= input.is_pressed(Keyboard_Key::Alt_L);
-        io.KeyAlt |= input.is_pressed(Keyboard_Key::Alt_R);
-
-        io.KeySuper |= input.is_pressed(Keyboard_Key::Super_L);
-        io.KeySuper |= input.is_pressed(Keyboard_Key::Super_R);
-    }
-    else
-    {
-        // ugly hack to fix stuck keys when losing focus
-        std::fill_n(io.KeysDown, sq::enum_count_v<Keyboard_Key>, false);
-    }
+    if (mousePos != Vec2F(io.MousePos.x, io.MousePos.y))
+        io.AddMousePosEvent(mousePos.x, mousePos.y);
 
     ImGui::NewFrame();
 }
@@ -478,9 +554,6 @@ void GuiSystem::finish_scene_update(double elapsed)
     ImGui::Render();
 
     io.DeltaTime = float(elapsed);
-    io.MouseDown[0] = io.MouseDown[1] = io.MouseDown[2] = io.MouseDown[3] = io.MouseDown[4] = false;
-    io.MouseWheel = io.MouseWheelH = 0.f;
-    io.KeyShift = io.KeyCtrl = io.KeyAlt = io.KeySuper = false;
 }
 
 //============================================================================//
@@ -533,9 +606,9 @@ void GuiSystem::render_gui(vk::CommandBuffer cmdbuf)
         {
             for (const ImDrawCmd& cmd : drawData.CmdLists[n]->CmdBuffer)
             {
-                if (cmd.TextureId != boundTexture)
+                if (cmd.GetTexID() != boundTexture)
                 {
-                    boundTexture = static_cast<const vk::DescriptorSet*>(cmd.TextureId);
+                    boundTexture = static_cast<const vk::DescriptorSet*>(cmd.GetTexID());
                     cmdbuf.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, mPipelineLayout, 0u, *boundTexture, {});
                 }
 
