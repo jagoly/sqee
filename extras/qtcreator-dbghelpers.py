@@ -1,68 +1,86 @@
 from dumper import Children
-import stdtypes
 
 ################################################################################
-#   some fixes for aliases that qtcreator seems to have trouble with           #
-################################################################################
-
-# std::tuple currently lacks a qtcreator printer
-#def qdump__sq__Tuple(d, value):
-#    return stdtypes.qdump__std__tuple(d, value)
-
-#def qdump__sq__Pair(d, value):
-#    return stdtypes.qdump__std__pair(d, value)
-
-#def qform__sq__Array():
-#    return stdtypes.qform__std__array()
-#def qdump__sq__Array(d, value):
-#    return stdtypes.qdump__std__array(d, value)
-
-#def qform__sq__Vector():
-#    return stdtypes.qform__std__vector()
-#def qdump__sq__Vector(d, value):
-#    return stdtypes.qdump__std__vector(d, value)
-
-#def qdump__sq__Optional(d, value):
-#    return stdtypes.qdump__std__optional(d, value)
-
-# std::unique_ptr has a qtcreator printer, but it isn't used
-#def qdump__sq__UniquePtr(d, value):
-#    return stdtypes.qdump__std__unique_ptr(d, value)
-
-#def qdump__sq__InitList(d, value):
-#    return stdtypes.qdump__std__initializer_list(d, value)
-
-def qform__sq__String():
-    return stdtypes.qform__std__string()
-def qdump__sq__String(d, value):
-    return stdtypes.qdump__std__string(d, value)
-
-# std::string_view currently lacks a qtcreator printer
-#def qform__sq__StringView():
-#    return stdtypes.qform__std__string_view()
-#def qdump__sq__StringView(d, value):
-#    return stdtypes.qdump__std__string_view(d, value)
-
-################################################################################
-#   special printers for sqee maths types, could be improved                   #
-################################################################################
-
-LETTERS = [ 'x', 'y', 'z', 'w' ]
 
 def qdump__sq__maths__Vector(d, value):
-    d.putValue(value.type.name)
-    data, size = value["data"], value.type[0]
+    size = value.type[0]
+    keys = ["x", "y", "z", "w"][:size]
+    d.putValue("[ " + ", ".join([str(value[key].value()) for key in keys]) + " ]")
     d.putNumChild(size)
     if d.isExpanded():
+        with Children(d, size):
+            for key in keys:
+                d.putSubItem(key, value[key])
+
+def qdump__sq__maths__Matrix(d, value):
+    w = value.type[0]
+    h = value.type[1]
+    data = value["data"]
+    d.putValue("Matrix%dx%d" % (w, h))
+    d.putNumChild(w * h)
+    if d.isExpanded():
         with Children(d):
-            for i in range(size):
-                d.putSubItem(LETTERS[i], data[i])
+            for x in range(w):
+                for y in range(h):
+                    d.putSubItem("[%d][%d]" % (x, y), data[x*w+y])
 
 def qdump__sq__maths__Quaternion(d, value):
-    d.putValue(value.type.name)
-    data = value["data"]
+    keys = ["x", "y", "z", "w"]
+    d.putValue("[ " + ", ".join([str(value[key].value()) for key in keys]) + " ]")
     d.putNumChild(4)
     if d.isExpanded():
         with Children(d):
-            for i in range(4):
-                d.putSubItem(LETTERS[i], data[i])
+            for key in keys:
+                d.putSubItem(key, value[key])
+
+def qdump__sq__maths__RandomRange(d, value):
+    size = value.type[0]
+    keys = ["min", "max"]
+    d.putValue("[ " + ", ".join([str(value[key].value()) for key in keys]) + " ]")
+    d.putNumChild(2)
+    if d.isExpanded():
+        with Children(d):
+            for key in keys:
+                d.putSubItem(key, value[key])
+
+################################################################################
+
+def qdump__sq__StackString(d, value):
+    d.putSimpleCharArray(value["mData"].address())
+
+def qdump__sq__StackVector(d, value):
+    data = value["mData"].address()
+    size = value["mSize"].integer()
+    d.putItemCount(size)
+    d.putPlotData(data, size, value.type[0])
+
+################################################################################
+
+def qdump__nlohmann__json_abi_v3_11_2__basic_json(d, value):
+    mtype = value["m_type"].integer()
+    mvalue = value["m_value"]
+    if mtype == 0:
+        d.putValue("null")
+    elif mtype == 1:
+        d.putItem(mvalue["object"])
+        d.putValue("object")
+    elif mtype == 2:
+        d.putItem(mvalue["array"])
+        d.putValue("array")
+    elif mtype == 3:
+        d.putItem(mvalue["string"])
+    elif mtype == 4:
+        d.putItem(mvalue["boolean"])
+    elif mtype == 5:
+        d.putItem(mvalue["number_integer"])
+    elif mtype == 6:
+        d.putItem(mvalue["number_unsigned"])
+    elif mtype == 7:
+        d.putItem(mvalue["number_float"])
+    elif mtype == 8:
+        d.putItem(mvalue["binary"])
+    elif mtype == 9:
+        d.putItem(mvalue["discarded"])
+    else:
+        d.putValue("invalid type")
+    d.putBetterType("sq::JsonValue")

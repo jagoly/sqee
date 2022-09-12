@@ -79,7 +79,7 @@ public: //====================================================//
     bool try_load_from_compressed(const String& path, const Config& config);
 
     /// Save image data to a binary file compressed with lz4.
-    void save_as_compressed(const String& path, vk::Format format, Vec3U size, uint mipLevels);
+    void save_as_compressed(const String& path, vk::Format format, Vec3U size, uint mipLevels) const;
 
     //--------------------------------------------------------//
 

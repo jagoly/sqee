@@ -598,7 +598,7 @@ bool Texture::try_load_from_compressed(const String& path, const Config& config)
 
 //============================================================================//
 
-void Texture::save_as_compressed(const String& path, vk::Format format, Vec3U size, uint mipLevels)
+void Texture::save_as_compressed(const String& path, vk::Format format, Vec3U size, uint mipLevels) const
 {
     const auto& ctx = VulkanContext::get();
 

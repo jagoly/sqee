@@ -185,13 +185,3 @@ _Pragma("GCC diagnostic pop")
 #define CASE(...) break; SQEE_FOR_EACH(SQEE_CASE_INNER, __VA_ARGS__)
 
 #define CASE_DEFAULT break; default:
-
-//============================================================================//
-
-#define TRY_IF try { if
-
-#define TRY_FOR try { for
-
-#define TRY_WHILE try { while
-
-#define CATCH } catch

@@ -8,11 +8,7 @@
 #include <sqee/core/EnumHelper.hpp>
 #include <sqee/core/Types.hpp>
 
-// sqee doesn't use iostreams anywhere
-#define JSON_NO_IO 1
-
-// implicit conversions don't play nice with fmtlib
-#define JSON_USE_IMPLICIT_CONVERSIONS 0
+#include <sqee/misc/JsonFwd.hpp> // IWYU pragma: export
 
 #include <sqee/redist/json.hpp> // IWYU pragma: export
 

@@ -19,6 +19,8 @@ thread_local std::vector<Mat4F> gTempMats;
 
 void Armature::load_from_file(const String& path)
 {
+    SQASSERT(mRestSample.empty(), "armature already loaded");
+
     const JsonValue json = sq::parse_json_from_file(path);
 
     const auto& jBones = json.at("bones").get_ref<const JsonValue::array_t&>();

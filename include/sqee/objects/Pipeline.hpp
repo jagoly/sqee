@@ -59,6 +59,8 @@ public: //====================================================//
 
     const PassConfig* get_pass_config() const { return mPassConfig; }
 
+    bool check_pass_enabled() const { return bool(mPassConfig->renderPass); }
+
     vk::Pipeline get_pipeline() const { return mPipeline; }
 
     PushConstantInfo get_push_constant_info(SmallString name) const;

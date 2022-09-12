@@ -498,6 +498,12 @@ bool GuiSystem::handle_event(Event event)
         return io.WantCaptureKeyboard;
     }
 
+    CASE ( Keyboard_Repeat )
+    {
+        // ImGui generates key repeats automatically
+        return io.WantCaptureKeyboard;
+    }
+
     CASE ( Mouse_Release, Mouse_Press )
     {
         if (event.data.mouse.button != Mouse_Button::Unknown)
@@ -614,10 +620,10 @@ void GuiSystem::render_gui(vk::CommandBuffer cmdbuf)
 
                 if (cmd.UserCallback == nullptr)
                 {
-                    const auto clipX = int32_t(cmd.ClipRect.x);
-                    const auto clipY = int32_t(cmd.ClipRect.y);
-                    const auto clipW = uint32_t(cmd.ClipRect.z - cmd.ClipRect.x);
-                    const auto clipH = uint32_t(cmd.ClipRect.w - cmd.ClipRect.y);
+                    const auto clipX = std::max(int32_t(cmd.ClipRect.x), 0);
+                    const auto clipY = std::max(int32_t(cmd.ClipRect.y), 0);
+                    const auto clipW = std::min(uint32_t(cmd.ClipRect.z - cmd.ClipRect.x), window.get_size().x);
+                    const auto clipH = std::min(uint32_t(cmd.ClipRect.w - cmd.ClipRect.y), window.get_size().y);
 
                     cmdbuf.setScissor(0u, vk::Rect2D({clipX, clipY}, {clipW, clipH}));
                     cmdbuf.drawIndexed(cmd.ElemCount, 1u, indexOffset+cmd.IdxOffset, vertexOffset+cmd.VtxOffset, 0u);

@@ -508,6 +508,13 @@ void if_Menu(CStrView label, bool enabled, Body body)
     if (ImGui::BeginMenu(label, enabled)) { body(); ImGui::EndMenu(); }
 }
 
+/// Wrapper for TreeNode, TreePop.
+template <class Body> inline
+void if_TreeNode(CStrView label, Body body)
+{
+    if (ImGui::TreeNode(label)) { body(); ImGui::TreePop(); }
+}
+
 //----------------------------------------------------------------------------//
 
 /// Variant of TabItem that puts contents in a child window.
@@ -583,9 +590,10 @@ struct ScopeStyleVec final : sq::NonCopyable
 
 //----------------------------------------------------------------------------//
 
+using Style_FramePadding = ScopeStyleVec<ImGuiStyleVar_FramePadding>;
+using Style_ItemSpacing = ScopeStyleVec<ImGuiStyleVar_ItemSpacing>;
 using Style_ButtonTextAlign = ScopeStyleVec<ImGuiStyleVar_ButtonTextAlign>;
 using Style_SelectableTextAlign = ScopeStyleVec<ImGuiStyleVar_SelectableTextAlign>;
-using Style_FramePadding = ScopeStyleVec<ImGuiStyleVar_FramePadding>;
 
 //============================================================================//
 

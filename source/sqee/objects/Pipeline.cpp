@@ -124,21 +124,15 @@ Pipeline::~Pipeline()
 
 void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes)
 {
-    // setup pass config, with a useful error message
-    {
-        const auto& key = json.at("pass").get_ref<const String&>();
-        const auto iter = passes.find(key);
-
-        if (iter != passes.end()) mPassConfig = &iter->second;
-        else SQEE_THROW("unknown pass config '{}'", key);
-
-        if (bool(mPassConfig->renderPass) == false)
-            return; // disabled render pass
-    }
+    SQASSERT(mPassConfig == nullptr, "pipeline already loaded");
 
     //--------------------------------------------------------//
 
-    const auto reflect_shader = [&](const std::vector<std::byte>& code)
+    // Note that we always reflect push constants, so that we can create DrawItems for a
+    // pass even if the pass is disabled. The offsets won't ever change, so DrawItems don't
+    // need to be reloaded if the pass gets enabled later.
+
+    const auto reflect_shader = [this](const std::vector<std::byte>& code)
     {
         const auto compiler = cross::Compiler(reinterpret_cast<const uint32_t*>(code.data()), code.size() / 4u);
         const auto resources = compiler.get_shader_resources();
@@ -188,10 +182,6 @@ void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes
         }
     };
 
-    //--------------------------------------------------------//
-
-    const auto& ctx = VulkanContext::get();
-
     const auto vertexShaderCode = read_bytes_from_file (
         build_string("shaders/", json.at("vertexShader").get_ref<const String&>(), ".vert.spv")
     );
@@ -201,6 +191,20 @@ void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes
         build_string("shaders/", json.at("fragmentShader").get_ref<const String&>(), ".frag.spv")
     );
     reflect_shader(fragmentShaderCode);
+
+    //--------------------------------------------------------//
+
+    // setup pass config, with a useful error message
+    {
+        const auto& key = json.at("pass").get_ref<const String&>();
+        const auto iter = passes.find(key);
+
+        if (iter != passes.end()) mPassConfig = &iter->second;
+        else SQEE_THROW("unknown pass config '{}'", key);
+
+        if (check_pass_enabled() == false)
+            return;
+    }
 
     //--------------------------------------------------------//
 
@@ -242,6 +246,8 @@ void Pipeline::load_from_json(const JsonValue& json, const PassConfigMap& passes
         colourBlendAttachments.emplace_back(impl_make_color_blend_state(element.get_ref<const String&>()));
 
     //--------------------------------------------------------//
+
+    const auto& ctx = VulkanContext::get();
 
     // todo: spec constants from json
     const auto specialisation = SpecialisationConstants (

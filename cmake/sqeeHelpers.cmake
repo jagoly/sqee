@@ -75,6 +75,8 @@ function (target_link_or_copy_directory TARGET DIR)
     get_target_property(OUTPUT_DIR ${TARGET} OUTPUT_DIR)
 
     # usually don't have permission to create symlinks on windows
+    # todo: see if we can use junction links https://stackoverflow.com/a/61244115/3326595
+    #       copies are no good, because then the sts editor can't save
     if (SQEE_WINDOWS)
         add_custom_command( TARGET ${TARGET} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E
                             rm -rf "${OUTPUT_DIR}/${DIR}" )

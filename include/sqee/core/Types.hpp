@@ -10,8 +10,8 @@
 #include <sqee/maths/Vectors.hpp> // IWYU pragma: export
 #include <sqee/maths/Matrices.hpp> // IWYU pragma: export
 #include <sqee/maths/Quaternion.hpp> // IWYU pragma: export
+#include <sqee/misc/JsonFwd.hpp> // IWYU pragma: export
 #include <sqee/misc/StackString.hpp> // IWYU pragma: export
-#include <sqee/redist/json_fwd.hpp> // IWYU pragma: export
 
 #include <cstdint> // IWYU pragma: export
 #include <map> // IWYU pragma: export
@@ -49,8 +49,6 @@ using Mat34F = maths::Matrix<3, 4, float>;
 using Mat4F = maths::Matrix<4, 4, float>;
 
 using QuatF = maths::Quaternion<float>;
-
-using JsonValue = nlohmann::basic_json<std::map, std::vector, std::string, bool, int32_t, uint32_t, float>;
 
 } // namespace sq
 

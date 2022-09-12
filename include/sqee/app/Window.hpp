@@ -62,8 +62,6 @@ public: //====================================================//
 
     void set_vsync_enabled(bool enabled);
 
-    void set_key_repeat(bool /*repeat*/) {} // todo
-
     //--------------------------------------------------------//
 
     const String& get_title() const { return mTitle; };
