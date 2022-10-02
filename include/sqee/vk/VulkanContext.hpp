@@ -3,7 +3,6 @@
 #include <sqee/setup.hpp>
 
 #include <sqee/core/Types.hpp>
-#include <sqee/core/Utilities.hpp>
 #include <sqee/vk/Vulkan.hpp>
 
 namespace sq {
@@ -18,9 +17,12 @@ using ArrayProxyRef = const vk::ArrayProxy<const T>&;
 
 //============================================================================//
 
-class SQEE_API VulkanContext : NonCopyable
+class SQEE_API VulkanContext
 {
 public: //====================================================//
+
+    SQEE_COPY_DELETE(VulkanContext)
+    SQEE_MOVE_DELETE(VulkanContext)
 
     /// Access the static VulkanContext instance.
     static const VulkanContext& get();

@@ -5,7 +5,6 @@
 
 #include <sqee/setup.hpp>
 
-#include <sqee/core/Utilities.hpp>
 #include <sqee/debug/Assert.hpp>
 #include <sqee/debug/Logging.hpp>
 #include <sqee/misc/ResourceHandle.hpp>
@@ -16,11 +15,16 @@ namespace sq {
 
 /// Class that provides caching of a type of resource.
 template <class Key, class Type>
-class ResourceCache final : NonCopyable
+class ResourceCache final
 {
 public: //====================================================//
 
     using Factory = std::function<Type(const Key&)>;
+
+    ResourceCache() = default;
+
+    SQEE_COPY_DELETE(ResourceCache)
+    SQEE_MOVE_DELETE(ResourceCache)
 
     /// Set the callable to use to create new resources.
     void assign_factory(Factory factory)

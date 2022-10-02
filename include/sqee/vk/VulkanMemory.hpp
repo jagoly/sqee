@@ -2,7 +2,6 @@
 
 #include <sqee/setup.hpp>
 
-#include <sqee/core/Utilities.hpp>
 #include <sqee/vk/Vulkan.hpp>
 
 namespace sq {
@@ -11,7 +10,7 @@ namespace sq {
 
 class VulkanMemory;
 
-class SQEE_API VulkanAllocator : NonCopyable
+class SQEE_API VulkanAllocator
 {
 public: //====================================================//
 
@@ -19,6 +18,13 @@ public: //====================================================//
     constexpr static size_t MIN_ALIGNMENT = 256u;
 
     static_assert(MIN_BLOCK_SIZE % MIN_ALIGNMENT == 0u, "");
+
+    //--------------------------------------------------------//
+
+    VulkanAllocator() = default;
+
+    SQEE_COPY_DELETE(VulkanAllocator)
+    SQEE_MOVE_DELETE(VulkanAllocator)
 
     //--------------------------------------------------------//
 

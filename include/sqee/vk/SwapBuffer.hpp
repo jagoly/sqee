@@ -13,14 +13,15 @@ namespace sq {
 
 //============================================================================//
 
-class SQEE_API SwapBuffer : MoveOnly
+class SQEE_API SwapBuffer
 {
 public: //====================================================//
 
     SwapBuffer() = default;
 
-    SwapBuffer(SwapBuffer&& other);
+    SQEE_COPY_DELETE(SwapBuffer)
 
+    SwapBuffer(SwapBuffer&& other);
     SwapBuffer& operator=(SwapBuffer&& other);
 
     ~SwapBuffer();

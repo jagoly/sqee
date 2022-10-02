@@ -5,7 +5,6 @@
 
 #include <sqee/setup.hpp>
 
-#include <sqee/core/Utilities.hpp>
 #include <sqee/objects/Texture.hpp>
 #include <sqee/vk/SwapBuffer.hpp>
 #include <sqee/vk/Vulkan.hpp>
@@ -20,11 +19,14 @@ class Window;
 
 //============================================================================//
 
-class SQEE_API GuiSystem : NonCopyable
+class SQEE_API GuiSystem
 {
 public: //====================================================//
 
     GuiSystem(Window& window, InputDevices& inputDevices);
+
+    SQEE_COPY_DELETE(GuiSystem)
+    SQEE_MOVE_DELETE(GuiSystem)
 
     ~GuiSystem();
 

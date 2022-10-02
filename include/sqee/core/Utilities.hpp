@@ -9,34 +9,6 @@ namespace sq {
 
 //============================================================================//
 
-/// Base for objects that can't be copied or moved.
-struct NonCopyable
-{
-    NonCopyable() = default;
-
-    NonCopyable(const NonCopyable&) = delete;
-    NonCopyable& operator=(const NonCopyable&) = delete;
-
-    NonCopyable(NonCopyable&&) = delete;
-    NonCopyable& operator=(NonCopyable&&) = delete;
-};
-
-//============================================================================//
-
-/// Base for objects that can be moved but not copied.
-struct MoveOnly
-{
-    MoveOnly() = default;
-
-    MoveOnly(const MoveOnly&) = delete;
-    MoveOnly& operator=(const MoveOnly&) = delete;
-
-    MoveOnly(MoveOnly&&) = default;
-    MoveOnly& operator=(MoveOnly&&) = default;
-};
-
-//============================================================================//
-
 template <class...> struct Structure;
 
 template <class Element> struct Structure<Element>

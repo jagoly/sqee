@@ -18,11 +18,14 @@ namespace sq {
 
 //============================================================================//
 
-class SQEE_API Window : NonCopyable
+class SQEE_API Window
 {
 public: //====================================================//
 
     Window(const char* title, Vec2U size, const char* appName, Vec3U version);
+
+    SQEE_COPY_DELETE(Window)
+    SQEE_MOVE_DELETE(Window)
 
     ~Window();
 

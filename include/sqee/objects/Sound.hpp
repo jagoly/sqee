@@ -5,7 +5,6 @@
 
 #include <sqee/setup.hpp>
 
-#include <sqee/core/Utilities.hpp>
 #include <sqee/core/Types.hpp>
 
 namespace sq {
@@ -17,11 +16,13 @@ class AudioContext;
 //============================================================================//
 
 /// A sound buffer loaded from a file.
-class SQEE_API Sound : MoveOnly
+class SQEE_API Sound
 {
 public: //====================================================//
 
     Sound(AudioContext& context);
+
+    SQEE_COPY_DELETE(Sound)
 
     Sound(Sound&& other);
     Sound& operator=(Sound&& other);

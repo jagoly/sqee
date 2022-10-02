@@ -62,6 +62,12 @@ typedef unsigned int ImGuiID;
 // mostly just to save on typing
 #define SQEE_THROW(...) throw std::runtime_error(fmt::format(__VA_ARGS__))
 
+// for reducing noise in class definitions
+#define SQEE_COPY_DELETE(Class) Class(const Class&) = delete; Class& operator=(const Class&) = delete;
+#define SQEE_MOVE_DELETE(Class) Class(Class&&) = delete; Class& operator=(Class&&) = delete;
+#define SQEE_COPY_DEFAULT(Class) Class(const Class&) = default; Class& operator=(const Class&) = default;
+#define SQEE_MOVE_DEFAULT(Class) Class(Class&&) = default; Class& operator=(Class&&) = default;
+
 //============================================================================//
 
 namespace sq {

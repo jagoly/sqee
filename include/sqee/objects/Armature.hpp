@@ -7,7 +7,6 @@
 
 #include <sqee/core/EnumHelper.hpp>
 #include <sqee/core/Types.hpp>
-#include <sqee/core/Utilities.hpp>
 
 #include <sqee/vk/Vulkan.hpp> // Flags
 
@@ -16,7 +15,7 @@ namespace sq {
 //============================================================================//
 
 /// A set of tracks that can be used to get an AnimSample.
-struct SQEE_API Animation : MoveOnly
+struct SQEE_API Animation
 {
     struct SampleTime
     {
@@ -24,6 +23,11 @@ struct SQEE_API Animation : MoveOnly
         uint frameB;  ///< Index of the second frame.
         float factor; ///< Mix factor between the frames.
     };
+
+    Animation() = default;
+
+    SQEE_COPY_DELETE(Animation)
+    SQEE_MOVE_DEFAULT(Animation)
 
     uint frameCount = 0u;
     //uint flags = 0u;
@@ -40,7 +44,7 @@ using AnimSample = std::vector<std::byte>;
 //============================================================================//
 
 /// Asset defining bones and other animation tracks.
-class SQEE_API Armature : MoveOnly
+class SQEE_API Armature
 {
 public: //====================================================//
 
@@ -83,6 +87,9 @@ public: //====================================================//
 
     Armature() = default;
     Armature(const String& path) { load_from_file(path); }
+
+    SQEE_COPY_DELETE(Armature)
+    SQEE_MOVE_DEFAULT(Armature)
 
     /// Load the armature from JSON.
     void load_from_file(const String& path);

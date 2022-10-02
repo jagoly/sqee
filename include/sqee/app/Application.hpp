@@ -5,7 +5,6 @@
 
 #include <sqee/setup.hpp>
 
-#include <sqee/core/Utilities.hpp>
 #include <sqee/core/Types.hpp>
 
 namespace sq {
@@ -13,14 +12,15 @@ namespace sq {
 //============================================================================//
 
 /// The SQEE Application base class.
-class SQEE_API Application : NonCopyable
+class SQEE_API Application
 {
 public: //====================================================//
 
-    /// Constructor.
     Application() = default;
 
-    /// Virtual Destructor.
+    SQEE_COPY_DELETE(Application)
+    SQEE_MOVE_DELETE(Application)
+
     virtual ~Application() = default;
 
     //--------------------------------------------------------//

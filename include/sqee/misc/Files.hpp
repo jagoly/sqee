@@ -6,7 +6,6 @@
 #include <sqee/setup.hpp>
 
 #include <sqee/core/Types.hpp>
-#include <sqee/core/Utilities.hpp>
 
 // Note that all file paths in sqee are unix style, don't try to use dos paths.
 // Windows is kind enough to work just fine with unix paths, so there's no need
@@ -37,8 +36,13 @@ SQEE_API void write_bytes_to_file(const String& path, const void* bytes, size_t 
 //============================================================================//
 
 /// A file or string that has been split by spaces and newlines.
-struct SQEE_API TokenisedFile : MoveOnly
+struct SQEE_API TokenisedFile
 {
+    TokenisedFile() = default;
+
+    SQEE_COPY_DELETE(TokenisedFile)
+    SQEE_MOVE_DEFAULT(TokenisedFile)
+
     /// Load a text file and tokenise it.
     static TokenisedFile from_file(const String& path);
 

@@ -251,6 +251,15 @@ constexpr ImGuiDataType_ get_data_type()
 
 SQEE_API bool is_temp_input_open();
 
+struct ScopeBase
+{
+    ScopeBase() = default;
+    ScopeBase(const ScopeBase&) = delete;
+    ScopeBase& operator=(const ScopeBase&) = delete;
+    ScopeBase(ScopeBase&&) = delete;
+    ScopeBase& operator=(ScopeBase&&) = delete;
+};
+
 } // namespace detail
 
 //----------------------------------------------------------------------------//
@@ -441,7 +450,7 @@ inline bool RadioButton(CStrView label, Type& ref, Type value)
 //----------------------------------------------------------------------------//
 
 /// Wrapper for Begin, End.
-struct ScopeWindow final : sq::NonCopyable
+struct ScopeWindow final : detail::ScopeBase
 {
     bool show;
     ScopeWindow(CStrView name, ImGuiWindowFlags flags) : show(ImGui::Begin(name, nullptr, flags)) {}
@@ -449,7 +458,7 @@ struct ScopeWindow final : sq::NonCopyable
 };
 
 /// Wrapper for Begin, End with a close button.
-struct ScopeWindowClosable final : sq::NonCopyable
+struct ScopeWindowClosable final : detail::ScopeBase
 {
     bool open = true; bool show;
     ScopeWindowClosable(CStrView name, ImGuiWindowFlags flags) : show(ImGui::Begin(name, &open, flags)) {}
@@ -532,7 +541,7 @@ void if_TabItemChild(CStrView label, ImGuiTabItemFlags flags, Body body)
 //----------------------------------------------------------------------------//
 
 /// Wrapper for PushID, PopID.
-struct ScopeID final : sq::NonCopyable
+struct ScopeID final : detail::ScopeBase
 {
     ScopeID(const char* cstr_id) { ImGui::PushID(cstr_id); }
     ScopeID(std::string_view sv_id) { ImGui::PushID(sv_id.data(), sv_id.data() + sv_id.length()); }
@@ -542,14 +551,14 @@ struct ScopeID final : sq::NonCopyable
 };
 
 /// Wrapper for PushItemWidth, PopItemWidth.
-struct ScopeItemWidth final : sq::NonCopyable
+struct ScopeItemWidth final : detail::ScopeBase
 {
     ScopeItemWidth(float width) { ImGui::PushItemWidth(width); }
     ~ScopeItemWidth() { ImGui::PopItemWidth(); }
 };
 
 /// Wrapper for Indent, Unindent.
-struct ScopeIndent final : sq::NonCopyable
+struct ScopeIndent final : detail::ScopeBase
 {
     ScopeIndent(float width = 0.f) : width(width) { ImGui::Indent(width); }
     ~ScopeIndent() { ImGui::Unindent(width); }
@@ -557,7 +566,7 @@ struct ScopeIndent final : sq::NonCopyable
 };
 
 /// Wrapper for Unindent, Indent.
-struct ScopeUnindent final : sq::NonCopyable
+struct ScopeUnindent final : detail::ScopeBase
 {
     ScopeUnindent(float width = 0.f) : width(width) { ImGui::Unindent(width); }
     ~ScopeUnindent() { ImGui::Indent(width); }
@@ -565,7 +574,7 @@ struct ScopeUnindent final : sq::NonCopyable
 };
 
 /// Wrapper for PushFont, PopFont.
-struct ScopeFont final : sq::NonCopyable
+struct ScopeFont final : detail::ScopeBase
 {
     ScopeFont(ImFont* font) { ImGui::PushFont(font); }
     ScopeFont(int fontIndex) { ImPlus::PushFont(fontIndex); }
@@ -574,7 +583,7 @@ struct ScopeFont final : sq::NonCopyable
 
 /// Wrapper for PushStyleVar(float), PopStyleVar.
 template <ImGuiStyleVar_ StyleVar>
-struct ScopeStyleFloat final : sq::NonCopyable
+struct ScopeStyleFloat final : detail::ScopeBase
 {
     ScopeStyleFloat(float value) { ImGui::PushStyleVar(StyleVar, value); }
     ~ScopeStyleFloat() { ImGui::PopStyleVar(); }
@@ -582,7 +591,7 @@ struct ScopeStyleFloat final : sq::NonCopyable
 
 /// Wrapper for PushStyleVar(ImVec2), PopStyleVar.
 template <ImGuiStyleVar_ StyleVar>
-struct ScopeStyleVec final : sq::NonCopyable
+struct ScopeStyleVec final : detail::ScopeBase
 {
     ScopeStyleVec(float x, float y) { ImGui::PushStyleVar(StyleVar, {x, y}); }
     ~ScopeStyleVec() { ImGui::PopStyleVar(); }

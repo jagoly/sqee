@@ -3,7 +3,6 @@
 #include <sqee/setup.hpp>
 
 #include <sqee/core/Types.hpp>
-#include <sqee/core/Utilities.hpp>
 
 #include <sqee/vk/Vulkan.hpp>
 #include <sqee/vk/Wrappers.hpp>
@@ -17,7 +16,7 @@ namespace sq {
 /// Supports 2D, Array, and Cube textures.
 /// Will automatically generate mipmaps if requested.
 ///
-class SQEE_API Texture : MoveOnly
+class SQEE_API Texture
 {
 public: //====================================================//
 
@@ -41,6 +40,8 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     Texture() = default;
+
+    SQEE_COPY_DELETE(Texture)
 
     Texture(Texture&& other);
     Texture& operator=(Texture&& other);

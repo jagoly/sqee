@@ -5,8 +5,6 @@
 
 #include <sqee/setup.hpp>
 
-#include <sqee/core/Utilities.hpp>
-
 namespace sq {
 
 //====== Forward Declarations and Enums ======================================//
@@ -37,11 +35,14 @@ constexpr SoundGroups operator|(SoundGroup a, SoundGroup b) { return SoundGroups
 //============================================================================//
 
 /// Handles the initialisation and playback of audio.
-class SQEE_API AudioContext : NonCopyable
+class SQEE_API AudioContext
 {
 public: //====================================================//
 
     AudioContext();
+
+    SQEE_COPY_DELETE(AudioContext)
+    SQEE_MOVE_DELETE(AudioContext)
 
     ~AudioContext();
 

@@ -19,9 +19,13 @@ using MeshHandle = sq::Handle<String, sq::Mesh>;
 using TextureHandle = sq::Handle<String, sq::Texture>;
 using PipelineHandle = sq::Handle<JsonValue, sq::Pipeline>;
 
-struct ResourceCaches final : sq::NonCopyable
+struct ResourceCaches final
 {
     ResourceCaches();
+
+    SQEE_COPY_DELETE(ResourceCaches)
+    SQEE_MOVE_DELETE(ResourceCaches)
+
     ~ResourceCaches();
 
     MeshCache meshes;
