@@ -31,6 +31,9 @@ public: //====================================================//
     /// Close the application.
     void quit() { mReturnCode = 0; }
 
+    /// Reset timer for going into inactive mode.
+    void reset_inactivity() { mElapsedSinceActivity = 0.0; }
+
 protected: //=================================================//
 
     /// Called once before the main loop starts.
@@ -40,6 +43,15 @@ protected: //=================================================//
     virtual void update(double elapsed) = 0;
 
     //--------------------------------------------------------//
+
+    /// How long to go without user input before limiting update rate.
+    double mMaxInactivePeriod = INFINITY;
+
+    /// How often should we update when inactive.
+    double mMinSleepUpdatePeriod = 0.0;
+
+    /// Set to zero when the user interacts with the application.
+    double mElapsedSinceActivity = 0.0;
 
     /// Set to a non-negative value to quit.
     int mReturnCode = -1;

@@ -5,7 +5,7 @@
 
 #include <sqee/setup.hpp>
 
-#include <sqee/debug/Assert.hpp>
+#include <cassert>
 
 namespace sq {
 
@@ -21,7 +21,8 @@ struct Resource final
     SQEE_MOVE_DELETE(Resource)
 
     const Key* key;
-    std::unique_ptr<Type> data;
+    std::unique_ptr<Type> value;
+    std::string error;
     size_t count;
 };
 
@@ -33,30 +34,30 @@ class Handle final
 {
 public: //====================================================//
 
-    Handle(std::nullptr_t = nullptr)
+    Handle(std::nullptr_t = nullptr) noexcept
     {
         mResourcePtr = nullptr;
     }
 
-    Handle(Resource<Key, Type>& resource)
+    Handle(Resource<Key, Type>& resource) noexcept
     {
         mResourcePtr = &resource;
         ++mResourcePtr->count;
     }
 
-    Handle(const Handle& other)
+    Handle(const Handle& other) noexcept
     {
         mResourcePtr = other.mResourcePtr;
         if (mResourcePtr) ++mResourcePtr->count;
     }
 
-    Handle(Handle&& other)
+    Handle(Handle&& other) noexcept
     {
         mResourcePtr = other.mResourcePtr;
         other.mResourcePtr = nullptr;
     }
 
-    Handle& operator=(const Handle& other)
+    Handle& operator=(const Handle& other) noexcept
     {
         if (mResourcePtr) --mResourcePtr->count;
         mResourcePtr = other.mResourcePtr;
@@ -64,7 +65,7 @@ public: //====================================================//
         return *this;
     }
 
-    Handle& operator=(Handle&& other)
+    Handle& operator=(Handle&& other) noexcept
     {
         if (mResourcePtr) --mResourcePtr->count;
         mResourcePtr = other.mResourcePtr;
@@ -72,42 +73,52 @@ public: //====================================================//
         return *this;
     }
 
-    ~Handle()
+    ~Handle() noexcept
     {
         if (mResourcePtr) --mResourcePtr->count;
     }
 
     //--------------------------------------------------------//
 
-    const Type* operator->() const
+    bool good() const noexcept
     {
-        SQASSERT(mResourcePtr, "null handle error");
-        return mResourcePtr->data.get();
+        assert(mResourcePtr);
+        return mResourcePtr->value != nullptr;
     }
 
-    const Type& operator*() const
+    const Key& key() const noexcept
     {
-        SQASSERT(mResourcePtr, "null handle error");
-        return *mResourcePtr->data;
-    }
-
-    const Type& get() const
-    {
-        SQASSERT(mResourcePtr, "null handle error");
-        return *mResourcePtr->data;
-    }
-
-    const Key& get_key() const
-    {
-        SQASSERT(mResourcePtr, "null handle error");
+        assert(mResourcePtr);
         return *mResourcePtr->key;
     }
 
+    const Type* operator->() const noexcept
+    {
+        assert(mResourcePtr && mResourcePtr->value);
+        return mResourcePtr->value.get();
+    }
+
+    const Type& operator*() const noexcept
+    {
+        assert(mResourcePtr && mResourcePtr->value);
+        return *mResourcePtr->value;
+    }
+
+    const Type& value() const noexcept
+    {
+        assert(mResourcePtr && mResourcePtr->value);
+        return *mResourcePtr->value;
+    }
+
+    const std::string& error() const noexcept
+    {
+        assert(mResourcePtr && !mResourcePtr->value);
+        return mResourcePtr->error;
+    }
+
     //--------------------------------------------------------//
 
-    bool operator==(const Handle& other) const { return mResourcePtr == other.mResourcePtr; }
-
-    bool operator!=(const Handle& other) const { return mResourcePtr != other.mResourcePtr; }
+    bool operator==(const Handle& other) const noexcept { return mResourcePtr == other.mResourcePtr; }
 
 private: //===================================================//
 

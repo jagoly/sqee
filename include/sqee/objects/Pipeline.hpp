@@ -31,10 +31,12 @@ public: //====================================================//
         Mat23F, Mat34F, Mat4F
     };
 
-    struct PushConstantInfo
+    struct PushConstant
     {
+        SmallString name;
         PushConstantType type;
         uint8_t offset;
+        bool vertex, fragment;
     };
 
     //--------------------------------------------------------//
@@ -50,8 +52,8 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    /// Load the pipeline from a json object.
-    void load_from_json(const JsonValue& json, const PassConfigMap& passes);
+    /// Load the pipeline from a minified json string.
+    void load_from_minified_json(const String& minified, const PassConfigMap& passes);
 
     /// Bind the pipeline for rendering.
     void bind(vk::CommandBuffer cmdbuf) const;
@@ -64,7 +66,7 @@ public: //====================================================//
 
     vk::Pipeline get_pipeline() const { return mPipeline; }
 
-    PushConstantInfo get_push_constant_info(SmallString name) const;
+    const std::vector<PushConstant>& get_push_constants() const { return mPushConstants; }
 
 protected: //=================================================//
 
@@ -72,7 +74,7 @@ protected: //=================================================//
 
     vk::Pipeline mPipeline;
 
-    std::map<SmallString, PushConstantInfo> mPushConstantMap;
+    std::vector<PushConstant> mPushConstants;
 };
 
 //============================================================================//

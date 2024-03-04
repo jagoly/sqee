@@ -58,7 +58,7 @@ do { \
 #if defined(SQEE_GNU) || defined(SQEE_CLANG)
   #define SQEE_UNREACHABLE() __builtin_unreachable()
 #elif defined(SQEE_MSVC)
-  #define UNREACHABLE() __assume(0)
+  #define SQEE_UNREACHABLE() __assume(0)
 #endif
 
 #endif

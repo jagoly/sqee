@@ -5,33 +5,14 @@
 
 #include <sqee/misc/StackString.hpp>
 
+#include <fmt/compile.h>
 #include <fmt/format.h>
 
-#include <cstring>
-#include <iterator>
+#include <concepts>
 #include <string>
 #include <string_view>
-#include <type_traits>
 
 namespace sq {
-
-//============================================================================//
-
-inline const char* to_c_string(const char* arg)
-{
-    return arg;
-}
-
-inline const char* to_c_string(const std::string& arg)
-{
-    return arg.c_str();
-}
-
-template <size_t Capacity>
-inline const char* to_c_string(const StackString<Capacity>& arg)
-{
-    return arg.c_str();
-}
 
 //============================================================================//
 
@@ -47,7 +28,7 @@ constexpr size_t string_length(const StackString<Capacity>& ss)
     return ss.length();
 }
 
-constexpr size_t string_length(char)
+constexpr size_t string_length(const char&)
 {
     return 1u;
 }
@@ -57,33 +38,52 @@ constexpr size_t string_length(const std::string_view& sv)
     return sv.length();
 }
 
-template <class CharT, class = std::enable_if_t<std::is_same_v<CharT, char>>>
-inline size_t string_length(const CharT* const& cstr)
+template <std::same_as<char> CharT>
+constexpr size_t string_length(const CharT* const& cstr)
 {
-    return std::strlen(cstr);
+    return std::char_traits<char>::length(cstr);
 }
 
-//============================================================================//
-
-/// Function to join a bunch of strings with a single allocation.
+/// Concatenate a bunch of strings with a single allocation.
 template <class... Args>
-inline std::string build_string(Args&&... args)
+inline std::string string_concat(const Args&... args)
 {
-    // todo: this is definitely using forward wrong
     std::string result;
-    result.reserve((string_length(std::forward<Args>(args)) + ...));
+    result.reserve((string_length(args) + ...));
     ((result += args), ...);
     return result;
 }
 
 //============================================================================//
 
-/// Slightly more ergonomic wrapper around fmt::format_to.
-template <class... Args>
-inline std::string& format_append(std::string& output, fmt::format_string<Args...> str, Args&&... args)
+template <StackString fstr, const auto... args>
+consteval auto format_consteval()
 {
-    fmt::format_to(std::back_inserter(output), str, std::forward<Args>(args)...);
-    return output;
+    constexpr auto cfstr = FMT_COMPILE(std::string_view(fstr));
+    StackString<fmt::formatted_size(cfstr, args...)> result;
+    fmt::format_to(result.data(), cfstr, args...);
+    return result;
+};
+
+//============================================================================//
+
+/// Only perform formatting if arguments are given.
+template <class... Args>
+using FmtStrIfArgs = std::conditional_t<sizeof...(Args) != 0, fmt::format_string<Args...>, fmt::string_view>;
+
+/// Version of vformat_to that only does formatting if args is not empty.
+template <class OutputIt>
+inline OutputIt vformat_to_if_args(OutputIt out, fmt::string_view fstr, fmt::format_args args)
+{
+    auto&& buf = fmt::detail::get_buffer<char>(out);
+
+    // check if there are any arguments by checking if desc_ has been set
+    if (reinterpret_cast<const unsigned long long&>(args) != 0)
+        fmt::detail::vformat_to(buf, fstr, args, {});
+    else
+        buf.append(fstr.data(), fstr.data() + fstr.size());
+
+    return fmt::detail::get_iterator(buf, out);
 }
 
 //============================================================================//

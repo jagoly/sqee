@@ -2,8 +2,12 @@
 
 #include <sqee/setup.hpp> // IWYU pragma: export
 
-#include <sqee/core/Types.hpp> // IWYU pragma: export
+#include <sqee/core/TypeAliases.hpp> // IWYU pragma: export
 #include <sqee/core/Utilities.hpp> // IWYU pragma: export
+
+#include <sqee/maths/Vectors.hpp> // IWYU pragma: export
+#include <sqee/maths/Matrices.hpp> // IWYU pragma: export
+#include <sqee/maths/Quaternion.hpp> // IWYU pragma: export
 
 namespace demo {
 

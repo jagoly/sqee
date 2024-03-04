@@ -7,6 +7,7 @@
 
 #include <sqee/debug/Assert.hpp>
 #include <sqee/debug/Logging.hpp>
+
 #include <sqee/misc/ResourceHandle.hpp>
 
 namespace sq {
@@ -41,7 +42,7 @@ public: //====================================================//
             SQASSERT(mFactoryFunc != nullptr, "no factory assigned");
             iter->second.key = &iter->first;
             try {
-                iter->second.data = std::make_unique<Type>(mFactoryFunc(key));
+                iter->second.value = std::make_unique<Type>(mFactoryFunc(key));
             }
             catch (const std::exception& ex) {
                 log_error_multiline("unhandled exception when loading resource\nkey:  {}\nwhat: {}", key, ex.what());
@@ -51,8 +52,8 @@ public: //====================================================//
         return Handle<Key, Type>(iter->second);
     }
 
-    /// Try to acquire a resource. Return a null handle on failure.
-    Handle<Key, Type> try_acquire(const Key& key, bool silent = false)
+    /// Try to acquire a resource. Return a handle to an error resource if creation fails.
+    Handle<Key, Type> acquire_safe(const Key& key) noexcept
     {
         const auto [iter, created] = mResourceMap.try_emplace(key);
         if (created == true)
@@ -60,11 +61,10 @@ public: //====================================================//
             SQASSERT(mFactoryFunc != nullptr, "no factory assigned");
             iter->second.key = &iter->first;
             try {
-                iter->second.data = std::make_unique<Type>(mFactoryFunc(key));
+                iter->second.value = std::make_unique<Type>(mFactoryFunc(key));
             }
             catch (const std::exception& ex) {
-                if (!silent) log_warning_multiline("exception when loading resource\nkey:  {}:\nwhat: {}", key, ex.what());
-                mResourceMap.erase(iter); return nullptr;
+                iter->second.error = ex.what();
             }
             iter->second.count = 0u;
         }
@@ -75,7 +75,11 @@ public: //====================================================//
     void reload_resources()
     {
         for (auto& [key, resource] : mResourceMap)
-            *resource.data = mFactoryFunc(key);
+        {
+            // todo: how should we handle error resources?
+            if (resource.value != nullptr)
+                *resource.value = mFactoryFunc(key);
+        }
     }
 
     /// Free resources that no longer have any handles.

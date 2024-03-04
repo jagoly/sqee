@@ -39,27 +39,32 @@ void Sound::load_from_file(const String& path)
     ma_decoder decoder;
 
     // resample all waves to match our output device
-    const auto decoderConfig = ma_decoder_config_init(ma_format_f32, 1u, 48000u);
+    ma_decoder_config decoderConfig = ma_decoder_config_init(ma_format_f32, 1u, 48000u);
 
     std::optional<std::vector<std::byte>> bytes;
-    ma_result ec;
 
     if ((bytes = try_read_bytes_from_file(path + ".wav")))
-        ec = ma_decoder_init_memory_wav(bytes->data(), bytes->size(), &decoderConfig, &decoder);
+        decoderConfig.encodingFormat = ma_encoding_format_wav;
 
     else if ((bytes = try_read_bytes_from_file(path + ".flac")))
-        ec = ma_decoder_init_memory_flac(bytes->data(), bytes->size(), &decoderConfig, &decoder);
+        decoderConfig.encodingFormat = ma_encoding_format_flac;
 
     else if ((bytes = try_read_bytes_from_file(path)))
-        ec = ma_decoder_init_memory(bytes->data(), bytes->size(), &decoderConfig, &decoder);
+        decoderConfig.encodingFormat = ma_encoding_format_unknown;
 
     else SQEE_THROW("could not find sound '{}'", path);
 
-    if (ec != MA_SUCCESS)
-        SQEE_THROW("sound load failure: {}", ma_result_description(ec));
+    if (auto ec = ma_decoder_init_memory(bytes->data(), bytes->size(), &decoderConfig, &decoder))
+        SQEE_THROW("ma_decoder_init_memory: {}", ma_result_description(ec));
 
-    mAudioFrames.resize(ma_decoder_get_length_in_pcm_frames(&decoder));
-    ma_decoder_read_pcm_frames(&decoder, mAudioFrames.data(), mAudioFrames.size());
+    ma_uint64 numFrames;
+    if (auto ec = ma_decoder_get_length_in_pcm_frames(&decoder, &numFrames))
+        SQEE_THROW("ma_decoder_get_length_in_pcm_frames: {}", ma_result_description(ec));
+
+    mAudioFrames.resize(size_t(numFrames));
+
+    if (auto ec = ma_decoder_read_pcm_frames(&decoder, mAudioFrames.data(), mAudioFrames.size(), nullptr))
+        SQEE_THROW("ma_decoder_read_pcm_frames: {}", ma_result_description(ec));
 
     ma_decoder_uninit(&decoder);
 }

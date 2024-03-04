@@ -5,7 +5,7 @@
 
 #include <sqee/setup.hpp>
 
-#include <sqee/core/Types.hpp>
+#include <sqee/core/TypeAliases.hpp>
 
 // Note that all file paths in sqee are unix style, don't try to use dos paths.
 // Windows is kind enough to work just fine with unix paths, so there's no need

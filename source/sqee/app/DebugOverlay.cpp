@@ -67,49 +67,40 @@ void DebugOverlay::show_imgui_widgets()
     const ImGuiStyle& style = ImGui::GetStyle();
     const ImVec2 displaySize = ImGui::GetIO().DisplaySize;
 
-    ImFont* fontRegular = ImGui::GetIO().Fonts->Fonts[ImPlus::FONT_REGULAR];
     ImDrawList* drawList = ImGui::GetForegroundDrawList();
 
     // show FPS display in bottom left corner
     {
-        fontRegular->Scale = 3.f;
-        const ImPlus::ScopeFont font = fontRegular;
-
-        const char* fpsEnd = mFpsString.data() + mFpsString.length();
+        IMPLUS_WITH(Scope_FontScale) = { ImPlus::FONT_REGULAR, 3.f };
 
         // inefficent but simple way to do text shadow, fine for just a few characters
-        drawList->AddText(ImVec2(14, ImPlus::FromScreenBottom(58)), IM_COL32_BLACK, mFpsString.data(), fpsEnd);
-        drawList->AddText(ImVec2(16, ImPlus::FromScreenBottom(60)), IM_COL32_BLACK, mFpsString.data(), fpsEnd);
-        drawList->AddText(ImVec2(16, ImPlus::FromScreenBottom(60)), IM_COL32_WHITE, mFpsString.data(), fpsEnd);
-
-        fontRegular->Scale = 1.f;
+        drawList->AddText(ImVec2(14, ImPlus::FromScreenBottom(58)), IM_COL32_BLACK, mFpsString);
+        drawList->AddText(ImVec2(16, ImPlus::FromScreenBottom(60)), IM_COL32_BLACK, mFpsString);
+        drawList->AddText(ImVec2(16, ImPlus::FromScreenBottom(60)), IM_COL32_WHITE, mFpsString);
     }
 
     // show frame sub timers above FPS
     if (mFrameSubTimers.empty() == false)
     {
-        const ImPlus::ScopeFont font = ImGui::GetIO().Fonts->Fonts[ImPlus::FONT_MONO];
+        IMPLUS_WITH(Scope_Font) = ImPlus::FONT_MONO;
 
         for (size_t lineNum = 0u; lineNum < mFrameSubTimers.size(); ++lineNum)
         {
             const auto& display = mFrameSubTimers[mFrameSubTimers.size() - lineNum - 1u].display;
-            const char* strEnd = display.data() + display.length();
-            drawList->AddText(ImVec2(15, ImPlus::FromScreenBottom(float(95 + lineNum * 16))), IM_COL32_BLACK, display.data(), strEnd);
-            drawList->AddText(ImVec2(16, ImPlus::FromScreenBottom(float(96 + lineNum * 16))), IM_COL32_BLACK, display.data(), strEnd);
-            drawList->AddText(ImVec2(16, ImPlus::FromScreenBottom(float(96 + lineNum * 16))), IM_COL32_WHITE, display.data(), strEnd);
+            drawList->AddText(ImVec2(15, ImPlus::FromScreenBottom(float(95 + lineNum * 16))), IM_COL32_BLACK, display);
+            drawList->AddText(ImVec2(16, ImPlus::FromScreenBottom(float(96 + lineNum * 16))), IM_COL32_BLACK, display);
+            drawList->AddText(ImVec2(16, ImPlus::FromScreenBottom(float(96 + lineNum * 16))), IM_COL32_WHITE, display);
         }
 
-        const char* strEnd = mFrameSubTimerTotalDisplay.data() + mFrameSubTimerTotalDisplay.length();
-        drawList->AddText(ImVec2(15, ImPlus::FromScreenBottom(79)), IM_COL32_BLACK, mFrameSubTimerTotalDisplay.data(), strEnd);
-        drawList->AddText(ImVec2(16, ImPlus::FromScreenBottom(80)), IM_COL32_BLACK, mFrameSubTimerTotalDisplay.data(), strEnd);
-        drawList->AddText(ImVec2(16, ImPlus::FromScreenBottom(80)), IM_COL32_WHITE, mFrameSubTimerTotalDisplay.data(), strEnd);
+        drawList->AddText(ImVec2(15, ImPlus::FromScreenBottom(79)), IM_COL32_BLACK, mFrameSubTimerTotalDisplay);
+        drawList->AddText(ImVec2(16, ImPlus::FromScreenBottom(80)), IM_COL32_BLACK, mFrameSubTimerTotalDisplay);
+        drawList->AddText(ImVec2(16, ImPlus::FromScreenBottom(80)), IM_COL32_WHITE, mFrameSubTimerTotalDisplay);
     }
 
     // show notification window in bottom right corner
     if (mNotifications.empty() == false)
     {
-        fontRegular->Scale = 2.f;
-        const ImPlus::ScopeFont font = fontRegular;
+        IMPLUS_WITH(Scope_FontScale) = { ImPlus::FONT_REGULAR, 2.f };
 
         float maxWidth = 0.f;
         for (const auto& item : mNotifications)
@@ -125,12 +116,9 @@ void DebugOverlay::show_imgui_widgets()
 
             const float x = displaySize.x - 10.f - width;
             const float y = displaySize.y - 8.f - 32.f * float(mNotifications.size() - lineNum);
-            const char* messageEnd = message.data() + message.length();
 
-            drawList->AddText(ImVec2(x, y), IM_COL32_WHITE, message.data(), messageEnd);
+            drawList->AddText(ImVec2(x, y), IM_COL32_WHITE, message);
         }
-
-        fontRegular->Scale = 1.f;
     }
 }
 
@@ -143,7 +131,7 @@ void DebugOverlay::notify(String message)
         Notification& entry = mNotifications.emplace_back();
 
         entry.timeRemaining = 8u;
-        entry.width = ImGui::CalcTextSize(message.data(), message.data() + message.length()).x * 2.f;
+        entry.width = ImGui::CalcTextSize(message).x * 2.f;
         entry.message = std::move(message);
     }
 }

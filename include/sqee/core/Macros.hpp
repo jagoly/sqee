@@ -185,3 +185,11 @@ _Pragma("GCC diagnostic pop")
 #define CASE(...) break; SQEE_FOR_EACH(SQEE_CASE_INNER, __VA_ARGS__)
 
 #define CASE_DEFAULT break; default:
+
+//============================================================================//
+
+#define SQEE_COUNT_ARGS_INNER(Arg) +1
+#define SQEE_COUNT_ARGS(First, ...) (1 SQEE_FOR_EACH(SQEE_COUNT_ARGS_INNER, __VA_ARGS__))
+
+#define SQEE_STRINGIFY_ARGS_INNER(Arg) ,#Arg
+#define SQEE_STRINGIFY_ARGS(First, ...) #First SQEE_FOR_EACH(SQEE_STRINGIFY_ARGS_INNER, __VA_ARGS__)

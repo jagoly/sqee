@@ -1,4 +1,4 @@
-/* stb_image - v2.27 - public domain image loader - http://nothings.org/stb
+/* stb_image - v2.28 - public domain image loader - http://nothings.org/stb
                                   no warranty implied; use at your own risk
 
    Do this:
@@ -48,6 +48,7 @@ LICENSE
 
 RECENT REVISION HISTORY:
 
+      2.28  (2023-01-29) many error fixes, security errors, just tons of stuff
       2.27  (2021-07-11) document stbi_info better, 16-bit PNM support, bug fixes
       2.26  (2020-07-13) many minor fixes
       2.25  (2020-02-02) fix warnings
@@ -108,7 +109,7 @@ RECENT REVISION HISTORY:
     Cass Everitt            Ryamond Barbiero                        github:grim210
     Paul Du Bois            Engin Manap        Aldo Culquicondor    github:sammyhw
     Philipp Wiesemann       Dale Weiler        Oriol Ferrer Mesia   github:phprus
-    Josh Tobin                                 Matthew Gregan       github:poppolopoppo
+    Josh Tobin              Neil Bickford      Matthew Gregan       github:poppolopoppo
     Julian Raschke          Gregory Mullen     Christian Floisand   github:darealshinji
     Baldur Karlsson         Kevin Schmidt      JR Smith             github:Michaelangel007
                             Brad Weinberger    Matvey Cherevko      github:mosra
@@ -125,20 +126,7 @@ RECENT REVISION HISTORY:
 
 #ifndef STBI_INCLUDE_STB_IMAGE_H
 #define STBI_INCLUDE_STB_IMAGE_H
-
-#define STBI_NO_STDIO
-
-#define STBI_NO_JPEG
-//#define STBI_NO_PNG
-#define STBI_NO_BMP
-#define STBI_NO_PSD
-#define STBI_NO_TGA
-#define STBI_NO_GIF
-//#define STBI_NO_HDR
-#define STBI_NO_PIC
-#define STBI_NO_PNM
-
-#define STBI_FAILURE_USERMSG
+#include <sqee/redist/stb_image_config.hpp>
 
 // DOCUMENTATION
 //
@@ -154,7 +142,7 @@ RECENT REVISION HISTORY:
 //    // ... x = width, y = height, n = # 8-bit components per pixel ...
 //    // ... replace '0' with '1'..'4' to force that many components per pixel
 //    // ... but 'n' will always be the number that it would have been if you said 0
-//    stbi_image_free(data)
+//    stbi_image_free(data);
 //
 // Standard parameters:
 //    int *x                 -- outputs image width in pixels

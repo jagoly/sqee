@@ -5,4 +5,8 @@
 [submodule "libs/fmt"]
 	path = libs/fmt
 	url = https://github.com/fmtlib/fmt
-	branch = 9.0.0
+	branch = 10.1.1
+[submodule "libs/yyjson"]
+	path = libs/yyjson
+	url = https://github.com/ibireme/yyjson.git
+	branch = master

@@ -5,15 +5,14 @@
 
 #include <algorithm>
 #include <cassert>
+#include <compare>
 #include <cstdint>
 #include <iterator>
 #include <limits>
 #include <memory>
 #include <type_traits>
 
-namespace sq {
-
-//============================================================================//
+namespace sq { //###############################################################
 
 namespace detail {
 
@@ -29,20 +28,15 @@ template <size_t Capacity> using capacity_size_t =
     std::conditional_t<Capacity <= std::numeric_limits<uint32_t>::max(), uint32_t,
     size_t>>>;
 
-template <class Type, size_t Capacity>
-using stackvector_size_t = std::conditional_t <
-    sizeof(alignment_size_t<Type>) >= sizeof(capacity_size_t<Capacity>),
-    alignment_size_t<Type>, capacity_size_t<Capacity> >;
-
 } // namespace detail
 
-//============================================================================//
+//==============================================================================
 
 /// Dynamically-resizable fixed-capacity vector.
 template <class Type, size_t Capacity>
-struct StackVector final
+class StackVector final
 {
-public: //====================================================//
+public: //======================================================
 
     static_assert(Capacity != 0u, "capacity must be non-zero");
 
@@ -58,11 +52,13 @@ public: //====================================================//
     using reverse_iterator       = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-    using size_type = detail::stackvector_size_t<Type, Capacity>;
+    using size_type = std::conditional_t <
+        sizeof(detail::alignment_size_t<Type>) >= sizeof(detail::capacity_size_t<Capacity>),
+        detail::alignment_size_t<Type>, detail::capacity_size_t<Capacity> >;
 
     static size_type capacity() { return Capacity; }
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     Type* data() { return reinterpret_cast<Type*>(mData); }
 
@@ -74,7 +70,7 @@ public: //====================================================//
 
     bool full() const { return mSize == Capacity; }
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     iterator begin() { return data(); }
     const_iterator begin() const { return data(); }
@@ -92,7 +88,7 @@ public: //====================================================//
     const_reverse_iterator rend() const { return const_reverse_iterator(begin()); }
     const_reverse_iterator crend() const { return rend(); }
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     template <class... Args>
     Type& emplace_back(Args&&... args)
@@ -113,7 +109,7 @@ public: //====================================================//
         emplace_back(std::move(value));
     }
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     template <class... Args>
     iterator emplace(iterator iter, Args&&... args)
@@ -135,7 +131,7 @@ public: //====================================================//
         return emplace(iter, std::move(value));
     }
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     void pop_back()
     {
@@ -162,7 +158,7 @@ public: //====================================================//
         return first;
     }
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     Type& operator[](size_type pos) { assert(pos < size()); return data()[pos]; }
     const Type& operator[](size_type pos) const { assert(pos < size()); return data()[pos]; }
@@ -173,21 +169,23 @@ public: //====================================================//
     Type& back() { assert(!empty()); return data()[size()-1]; }
     const Type& back() const { assert(!empty()); return data()[size()-1]; }
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     StackVector() noexcept = default;
 
-    StackVector(const StackVector& other)
+    StackVector(const StackVector& other) noexcept(std::is_nothrow_copy_constructible_v<Type>)
     {
         std::uninitialized_copy_n(other.data(), other.size(), data());
         mSize = other.size();
     }
 
-    StackVector(StackVector&& other)
+    StackVector(StackVector&& other) noexcept(std::is_nothrow_move_constructible_v<Type>)
     {
         std::uninitialized_move_n(other.data(), other.size(), data());
         mSize = other.mSize; other.mSize = 0u;
     }
+
+    //----------------------------------------------------------
 
     StackVector(std::initializer_list<Type> il)
     {
@@ -204,9 +202,9 @@ public: //====================================================//
             emplace_back(*iter);
     }
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
-    ~StackVector()
+    ~StackVector() noexcept
     {
         std::destroy_n(data(), size());
     }
@@ -217,9 +215,9 @@ public: //====================================================//
         mSize = 0u;
     }
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
-    StackVector& operator=(const StackVector& other)
+    StackVector& operator=(const StackVector& other) noexcept(std::is_nothrow_copy_constructible_v<Type>)
     {
         std::destroy_n(data(), size());
         std::uninitialized_copy_n(other.data(), other.size(), data());
@@ -227,7 +225,7 @@ public: //====================================================//
         return *this;
     }
 
-    StackVector& operator=(StackVector&& other)
+    StackVector& operator=(StackVector&& other) noexcept(std::is_nothrow_move_constructible_v<Type>)
     {
         std::destroy_n(data(), size());
         std::uninitialized_move_n(other.data(), other.size(), data());
@@ -235,26 +233,38 @@ public: //====================================================//
         return *this;
     }
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
-    auto operator<=>(const StackVector& other) const
+    auto operator<=>(const StackVector& other) const requires std::three_way_comparable<Type>
     {
+      // not supported by libc++ as of december 2023
+      #ifdef __cpp_lib_three_way_comparison
         return std::lexicographical_compare_three_way(begin(), end(), other.begin(), other.end());
+      #else
+        for (auto iterA = begin(), iterB = other.begin();;)
+        {
+            using Order = std::compare_three_way_result<Type>;
+            if (iterA == end() && iterB == other.end()) return Order::equivalent;
+            if (iterA == end()) return Order::less;
+            if (iterB == end()) return Order::greater;
+            if (Order cmp = *(iterA++) <=> *(iterB++); cmp != 0) return cmp;
+        }
+      #endif
     }
 
-    bool operator==(const StackVector& other) const
+    bool operator==(const StackVector& other) const requires std::equality_comparable<Type>
     {
         return std::equal(begin(), end(), other.begin(), other.end());
     }
 
-private: //===================================================//
+private: //=====================================================
 
     size_type mSize = 0u;
 
-    std::aligned_storage_t<sizeof(Type), alignof(Type)> mData[Capacity];
+    alignas(Type) std::byte mData[sizeof(Type) * Capacity];
 };
 
-//============================================================================//
+//==============================================================================
 
 template <class Type, size_t Capacity, class Value>
 inline auto erase(StackVector<Type, Capacity>& container, const Value& value)
@@ -274,6 +284,4 @@ inline auto erase_if(StackVector<Type, Capacity>& container, Predicate pred)
     return distance;
 }
 
-//============================================================================//
-
-} // namespace sq
+} // namespace sq ##############################################################

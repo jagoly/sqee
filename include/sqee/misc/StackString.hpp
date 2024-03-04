@@ -3,29 +3,26 @@
 
 #pragma once
 
-#include <functional>
 #include <stdexcept>
 #include <string>
 #include <string_view>
 #include <type_traits>
 
-namespace sq {
-
-//============================================================================//
+namespace sq { //###############################################################
 
 /// Fast stack only string type, useful for keys.
 template <size_t Capacity>
 class StackString final
 {
-public: //====================================================//
+public: //======================================================
 
     using Traits = std::char_traits<char>;
 
     static constexpr size_t capacity() { return Capacity; }
 
-    static constexpr size_t buffer_size() { return Capacity + 1u; }
+    static constexpr size_t buffer_size() { return Capacity + 1; }
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     constexpr char* data() { return mData; }
 
@@ -39,7 +36,11 @@ public: //====================================================//
 
     constexpr void clear() { *this = StackString(); }
 
-    //--------------------------------------------------------//
+    constexpr const char* begin() const { return data(); }
+
+    constexpr const char* end() const { return data() + length(); }
+
+    //----------------------------------------------------------
 
     constexpr StackString() noexcept = default;
 
@@ -49,17 +50,17 @@ public: //====================================================//
     constexpr StackString& operator=(const StackString&) noexcept = default;
     constexpr StackString& operator=(StackString&&) noexcept = default;
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     template <size_t BufSize>
     constexpr StackString(const char(&chars)[BufSize]) noexcept
     {
         static_assert(BufSize <= buffer_size(), "literal too long");
 
-        Traits::copy(mData, chars, BufSize - 1u);
+        Traits::copy(mData, chars, BufSize - 1);
     }
 
-    template <class CharT, class = std::enable_if_t<std::is_same_v<CharT, char>>>
+    template <std::same_as<char> CharT>
     constexpr StackString(const CharT* const& cstr)
     {
         const size_t numChars = Traits::length(cstr);
@@ -86,7 +87,7 @@ public: //====================================================//
         Traits::copy(mData, str.data(), str.length());
     }
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     constexpr int compare(const StackString& other) const
     {
@@ -100,7 +101,7 @@ public: //====================================================//
         return Traits::compare(mData, chars, n);
     }
 
-    template <class CharT, class = std::enable_if_t<std::is_same_v<CharT, char>>>
+    template <std::same_as<char> CharT>
     constexpr int compare(const CharT* const& cstr) const
     {
         // simplified strcmp
@@ -137,7 +138,7 @@ public: //====================================================//
         return compare(str.c_str());
     }
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     constexpr auto operator<=>(const StackString& other) const { return compare(other) <=> 0; }
     constexpr bool operator==(const StackString& other) const { return compare(other) == 0; }
@@ -147,9 +148,9 @@ public: //====================================================//
     template <size_t BufSize>
     constexpr bool operator==(const char(&chars)[BufSize]) const { return compare(chars) == 0; }
 
-    template <class CharT, class = std::enable_if_t<std::is_same_v<CharT, char>>>
+    template <std::same_as<char> CharT>
     constexpr auto operator<=>(const CharT* const& cstr) const { return compare(cstr) <=> 0; }
-    template <class CharT, class = std::enable_if_t<std::is_same_v<CharT, char>>>
+    template <std::same_as<char> CharT>
     constexpr bool operator==(const CharT* const& cstr) const { return compare(cstr) == 0; }
 
     constexpr auto operator<=>(const std::string_view& sv) const { return compare(sv) <=> 0; }
@@ -158,7 +159,7 @@ public: //====================================================//
     constexpr auto operator<=>(const std::string& str) const { return compare(str) <=> 0; }
     constexpr bool operator==(const std::string& str) const { return compare(str) == 0; }
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     constexpr bool starts_with(std::string_view prefix) const
     {
@@ -172,37 +173,48 @@ public: //====================================================//
         return Traits::compare(mData + Capacity - suffix.length(), suffix.data(), suffix.length()) == 0;
     }
 
-    //constexpr std::string_view substr(size_t pos, size_t count) const
-    //{
-    //    // let string_view do the bounds checking for us
-    //    return std::string_view(mData, length()).substr(pos, count);
-    //}
-
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     constexpr operator std::string_view() const noexcept
     {
         return std::string_view(mData, length());
     }
 
-private: //===================================================//
+    //----------------------------------------------------------
 
-    char mData[buffer_size()] {}; // initialise with zeros
+    // public so that the class is structural, and thus usable for non-type template params
+    char mData[buffer_size()] {};
 };
 
-//============================================================================//
+//==============================================================================
+
+// deduction guide for compile time string stuff
+template <size_t BufSize>
+StackString(const char(&chars)[BufSize]) -> StackString<BufSize-1>;
+
+} // namespace sq ##############################################################
+
+#include <fmt/format.h>
 
 template <size_t Capacity>
-constexpr const char* type_to_string(StackString<Capacity>)
+struct fmt::formatter<sq::StackString<Capacity>>
 {
-    if constexpr (Capacity == 15u) return "TinyString";
-    if constexpr (Capacity == 23u) return "SmallString";
-    return "StackString";
-}
+    fmt::formatter<fmt::string_view> base;
 
-//============================================================================//
+    template <class ParseContext>
+    constexpr ParseContext::iterator parse(ParseContext& ctx)
+    {
+        return base.parse(ctx);
+    }
 
-} // namespace sq
+    template <class FormatContext>
+    constexpr FormatContext::iterator format(const sq::StackString<Capacity>& ss, FormatContext& ctx) const
+    {
+        return base.format(fmt::string_view(ss.data(), ss.length()), ctx);
+    }
+};
+
+#include <functional>
 
 template <size_t Capacity>
 struct std::hash<sq::StackString<Capacity>>

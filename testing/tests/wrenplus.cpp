@@ -1,6 +1,6 @@
-#include "../catch.hpp"
-
 #include <sqee/app/WrenPlus.hpp>
+
+#include "Common.hpp"
 
 //============================================================================//
 

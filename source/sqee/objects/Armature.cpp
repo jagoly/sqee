@@ -12,6 +12,13 @@ using namespace sq;
 //  Implement binary formats for armatures and animations. The purpose of these
 //  would be to reduce file size, and to allow much faster loading. Once I have
 //  those, I may want to obsolete the text based format entirely.
+//
+// alternate todo:
+//  Look into replacing the sqee formats with glTF. I'd need to make use of
+//  https://github.com/KhronosGroup/glTF-Blender-IO/pull/2061 for the
+//  KHR_animation_pointer extension, which has not yet been made an official
+//  extension, but if I can get to the point where I don't have to maintain my
+//  own export scripts for blender, that'd be ideal.
 
 thread_local std::vector<Mat4F> gTempMats;
 
@@ -21,12 +28,13 @@ void Armature::load_from_file(const String& path)
 {
     SQASSERT(mRestSample.empty(), "armature already loaded");
 
-    const JsonValue json = sq::parse_json_from_file(path);
+    const auto document = JsonDocument::parse_file(path);
+    const auto json = document.root().as<JsonObject>();
 
-    const auto& jBones = json.at("bones").get_ref<const JsonValue::array_t&>();
-    const auto& jBlocks = json.at("blocks").get_ref<const JsonValue::object_t&>();
+    const auto jBones = json["bones"].as<JsonArray>();
+    const auto jBlocks = json["blocks"].as<JsonObject>();
 
-    mRestSample.resize(size_t(json.at("animSampleSize")));
+    mRestSample.resize(json["animSampleSize"].as<size_t>());
 
     mBoneNames.reserve(jBones.size());
     mBoneInfos.reserve(jBones.size());
@@ -40,36 +48,34 @@ void Armature::load_from_file(const String& path)
 
     //--------------------------------------------------------//
 
-    for (size_t boneIndex = 0u; boneIndex < jBones.size(); ++boneIndex)
+    for (const auto [boneIndex, jBone] : jBones | views::json_as<JsonObject>)
     {
-        const auto& jBone = jBones[boneIndex].get_ref<const JsonValue::object_t&>();
-
-        mBoneNames.emplace_back(jBone.at("name").get_ref<const String&>());
+        mBoneNames.emplace_back(jBone["name"].as<TinyString>());
 
         BoneInfo& info = mBoneInfos.emplace_back();
 
         info.parent = [&]()
         {
-            const auto& jParent = jBone.at("parent");
+            const auto jParent = jBone["parent"];
 
             if (jParent.is_null() == true)
                 return int8_t(-1);
 
-            const auto& jParentStr = jParent.get_ref<const String&>();
+            const auto parentName = jParent.as<TinyString>();
 
             // parent can be any bone with a lower index
             for (size_t parentIndex = 0u; parentIndex < boneIndex; ++parentIndex)
-                if (mBoneNames[parentIndex] == jParentStr)
+                if (mBoneNames[parentIndex] == parentName)
                     return int8_t(parentIndex);
 
-            SQEE_THROW("invalid parent '{}'", jParentStr);
+            jParent.throw_with_context("invalid parent name");
         }();
 
-        for (const auto& jFlag : jBone.at("flags").get_ref<const JsonValue::array_t&>())
+        for (const auto [flagIndex, jFlag] : jBone["flags"].as<JsonArray>())
         {
-            const auto& jFlagStr = jFlag.get_ref<const String&>();
-            if (jFlagStr == "Billboard") info.flags |= BoneFlag::Billboard;
-            else SQEE_THROW("invalid flag '{}'", jFlagStr);
+            const auto flagName = jFlag.as<StringView>();
+            if (flagName == "Billboard") info.flags |= BoneFlag::Billboard;
+            else jFlag.throw_with_context("invalid flag");
         }
 
         Bone& restBone = *reinterpret_cast<Bone*>(mRestSample.data() + dataOffset);
@@ -86,9 +92,9 @@ void Armature::load_from_file(const String& path)
         mTrackInfos.push_back({int8_t(boneIndex), int8_t(-1), TrackType::Float3, dataOffset});
         dataOffset += sizeof(Vec3F);
 
-        jBone.at("offset").get_to(restBone.offset);
-        jBone.at("rotation").get_to(restBone.rotation);
-        jBone.at("scale").get_to(restBone.scale);
+        restBone.offset = jBone["offset"].as<Vec3F>();
+        restBone.rotation = jBone["rotation"].as<QuatF>();
+        restBone.scale = jBone["scale"].as<Vec3F>();
 
         restBone.rotation = maths::normalize(restBone.rotation);
 
@@ -101,81 +107,81 @@ void Armature::load_from_file(const String& path)
 
     //--------------------------------------------------------//
 
-    for (const auto& [jBlockKey, jBlock] : jBlocks)
+    for (const auto [blockName, jBlock] : jBlocks | views::json_as<JsonObject>)
     {
         const size_t blockIndex = mBlockNames.size();
-        mBlockNames.emplace_back(jBlockKey);
+        mBlockNames.emplace_back(blockName);
 
-        const auto& jTracks = jBlock.get_ref<const JsonValue::object_t&>();
-
-        for (const auto& [jTrackKey, jTrack] : jTracks)
+        for (const auto [trackName, jTrack] : jBlock | views::json_as<JsonObject>)
         {
-            mTrackNames.emplace_back(jTrackKey);
+            mTrackNames.emplace_back(trackName);
 
-            const auto& jTrackType = jTrack.at("type").get_ref<const String&>();
-            const auto& jTrackDefault = jTrack.at("default");
+            const auto jTrackType = jTrack["type"];
+            const auto jTrackDefault = jTrack["default"];
 
-            if (jTrackType == "Float")
+            const auto trackTypeName = jTrackType.as<StringView>();
+
+            if (trackTypeName == "Float")
             {
                 mTrackInfos.push_back({int8_t(-1), int8_t(blockIndex), TrackType::Float, dataOffset});
-                jTrackDefault.at(0).get_to(*reinterpret_cast<float*>(mRestSample.data() + dataOffset));
+                *reinterpret_cast<float*>(mRestSample.data() + dataOffset) = jTrackDefault.as<JsonArray>()[0].as<float>();
                 dataOffset += sizeof(float);
             }
-            else if (jTrackType == "Float2")
+            else if (trackTypeName == "Float2")
             {
                 mTrackInfos.push_back({int8_t(-1), int8_t(blockIndex), TrackType::Float2, dataOffset});
-                jTrackDefault.get_to(*reinterpret_cast<Vec2F*>(mRestSample.data() + dataOffset));
+                *reinterpret_cast<Vec2F*>(mRestSample.data() + dataOffset) = jTrackDefault.as<Vec2F>();
                 dataOffset += sizeof(Vec2F);
             }
-            else if (jTrackType == "Float3")
+            else if (trackTypeName == "Float3")
             {
                 mTrackInfos.push_back({int8_t(-1), int8_t(blockIndex), TrackType::Float3, dataOffset});
-                jTrackDefault.get_to(*reinterpret_cast<Vec3F*>(mRestSample.data() + dataOffset));
+                *reinterpret_cast<Vec3F*>(mRestSample.data() + dataOffset) = jTrackDefault.as<Vec3F>();
                 dataOffset += sizeof(Vec3F);
             }
-            else if (jTrackType == "Float4")
+            else if (trackTypeName == "Float4")
             {
                 mTrackInfos.push_back({int8_t(-1), int8_t(blockIndex), TrackType::Float4, dataOffset});
-                jTrackDefault.get_to(*reinterpret_cast<Vec4F*>(mRestSample.data() + dataOffset));
+                *reinterpret_cast<Vec4F*>(mRestSample.data() + dataOffset) = jTrackDefault.as<Vec4F>();
                 dataOffset += sizeof(Vec4F);
             }
-            else if (jTrackType == "Int")
+            else if (trackTypeName == "Int")
             {
                 mTrackInfos.push_back({int8_t(-1), int8_t(blockIndex), TrackType::Int, dataOffset});
-                jTrackDefault.at(0).get_to(*reinterpret_cast<int*>(mRestSample.data() + dataOffset));
+                *reinterpret_cast<int*>(mRestSample.data() + dataOffset) = jTrackDefault.as<JsonArray>()[0].as<int>();
                 dataOffset += sizeof(int);
             }
-            else if (jTrackType == "Int2")
+            else if (trackTypeName == "Int2")
             {
                 mTrackInfos.push_back({int8_t(-1), int8_t(blockIndex), TrackType::Int2, dataOffset});
-                jTrackDefault.get_to(*reinterpret_cast<Vec2I*>(mRestSample.data() + dataOffset));
+                *reinterpret_cast<Vec2I*>(mRestSample.data() + dataOffset) = jTrackDefault.as<Vec2I>();
                 dataOffset += sizeof(Vec2I);
             }
-            else if (jTrackType == "Int3")
+            else if (trackTypeName == "Int3")
             {
                 mTrackInfos.push_back({int8_t(-1), int8_t(blockIndex), TrackType::Int3, dataOffset});
-                jTrackDefault.get_to(*reinterpret_cast<Vec3I*>(mRestSample.data() + dataOffset));
+                *reinterpret_cast<Vec3I*>(mRestSample.data() + dataOffset) = jTrackDefault.as<Vec3I>();
                 dataOffset += sizeof(Vec3I);
             }
-            else if (jTrackType == "Int4")
+            else if (trackTypeName == "Int4")
             {
                 mTrackInfos.push_back({int8_t(-1), int8_t(blockIndex), TrackType::Int4, dataOffset});
-                jTrackDefault.get_to(*reinterpret_cast<Vec4I*>(mRestSample.data() + dataOffset));
+                *reinterpret_cast<Vec4I*>(mRestSample.data() + dataOffset) = jTrackDefault.as<Vec4I>();
                 dataOffset += sizeof(Vec4I);
             }
-            else if (jTrackType == "Angle")
+            else if (trackTypeName == "Angle")
             {
                 mTrackInfos.push_back({int8_t(-1), int8_t(blockIndex), TrackType::Angle, dataOffset});
-                jTrackDefault.at(0).get_to(*reinterpret_cast<float*>(mRestSample.data() + dataOffset));
+                *reinterpret_cast<float*>(mRestSample.data() + dataOffset) = jTrackDefault.as<JsonArray>()[0].as<float>();
                 dataOffset += sizeof(float);
             }
-            else if (jTrackType == "Quaternion")
+            else if (trackTypeName == "Quaternion")
             {
                 mTrackInfos.push_back({int8_t(-1), int8_t(blockIndex), TrackType::Quaternion, dataOffset});
-                jTrackDefault.get_to(*reinterpret_cast<QuatF*>(mRestSample.data() + dataOffset));
+                *reinterpret_cast<QuatF*>(mRestSample.data() + dataOffset) = jTrackDefault.as<QuatF>();
                 dataOffset += sizeof(QuatF);
             }
-            else SQEE_THROW("invalid track type");
+            else jTrackType.throw_with_context("invalid track type");
         }
     }
 
@@ -190,47 +196,43 @@ void Armature::load_from_file(const String& path)
 
 //============================================================================//
 
-uint8_t Armature::get_bone_index(TinyString name) const
+int8_t Armature::get_bone_index(TinyString name) const noexcept
 {
     for (size_t i = 0u; i < mBoneNames.size(); ++i)
         if (mBoneNames[i] == name)
-            return uint8_t(i);
-
-    SQEE_THROW("armature has no bone named '{}'", name);
+            return int8_t(i);
+    return -1;
 }
 
-uint8_t Armature::get_block_index(TinyString name) const
+int8_t Armature::get_block_index(TinyString name) const noexcept
 {
     for (size_t i = 0u; i < mBlockNames.size(); ++i)
         if (mBlockNames[i] == name)
-            return uint8_t(i);
-
-    SQEE_THROW("armature has no block named '{}'", name);
+            return int8_t(i);
+    return -1;
 }
 
-uint16_t Armature::get_block_track_index(uint8_t blockIndex, TinyString trackName) const
+int16_t Armature::get_block_track_index(TinyString blockName, TinyString trackName) const noexcept
 {
-    SQASSERT(blockIndex < mBlockNames.size(), "invalid block index");
-
-    for (size_t i = 0u; i < mTrackInfos.size(); ++i)
-        if (mTrackInfos[i].blockIndex == int8_t(blockIndex) && mTrackNames[i] == trackName)
-            return uint16_t(i);
-
-    SQEE_THROW("armature block '{}' has no track named '{}'", mBlockNames[blockIndex], trackName);
+    if (int8_t blockIndex = get_block_index(blockName); blockIndex >= 0)
+        for (size_t i = 0u; i < mTrackInfos.size(); ++i)
+            if (mTrackInfos[i].blockIndex == blockIndex && mTrackNames[i] == trackName)
+                return int16_t(i);
+    return -1;
 }
 
-//============================================================================//
-
-int8_t Armature::bone_from_json(const JsonValue& json) const
+int8_t Armature::json_as_bone_index(JsonAny json) const
 {
-    if (json.is_null() == true) return int8_t(-1);
-    return int8_t(get_bone_index(json.get_ref<const String&>()));
+    if (json.is_null()) return -1;
+    if (auto index = get_bone_index(json.as<TinyString>()); index >= 0) return index;
+    json.throw_with_context("invalid bone name");
 }
 
-JsonValue Armature::bone_to_json(int8_t index) const
+JsonMutAny Armature::json_from_bone_index(JsonMutDocument& document, int8_t index) const noexcept
 {
-    if (index == -1) return nullptr;
-    return StringView(mBoneNames.at(index));
+    SQASSERT(index >= -1 && index < int8_t(mBoneNames.size()), "invalid bone index");
+    if (index >= 0) return JsonMutAny(document, mBoneNames[index]);
+    return JsonMutAny(document, nullptr);
 }
 
 //============================================================================//
@@ -474,8 +476,7 @@ Animation Armature::impl_load_animation_text(String&& text) const
         {
             if (tokens[0] == "TRACK")
             {
-                const uint8_t blockIndex = get_block_index(tokens[1]);
-                const uint16_t trackIndex = get_block_track_index(uint8_t(blockIndex), tokens[2]);
+                const uint16_t trackIndex = get_block_track_index(tokens[1], tokens[2]);
 
                 initialise_track(trackIndex, tokens, lineNum);
             }
@@ -706,6 +707,8 @@ Mat4F Armature::compute_bone_matrix(const AnimSample& sample, uint8_t index) con
     SQASSERT(sample.size() == mRestSample.size(), "sample size mismatch");
     SQASSERT(index < get_bone_count(), "invalid bone index");
 
+    // todo: billboards
+
     const Bone& bone = reinterpret_cast<const Bone*>(sample.data())[index];
     Mat4F result = maths::transform(bone.offset, bone.rotation, bone.scale);
 
@@ -720,9 +723,11 @@ Mat4F Armature::compute_bone_matrix(const AnimSample& sample, uint8_t index) con
 
 //============================================================================//
 
-std::vector<Mat4F> Armature::compute_skeleton_matrices(const AnimSample& sample) const
+std::vector<Mat4F> Armature::compute_bone_matrices(const AnimSample& sample) const
 {
     SQASSERT(sample.size() == mRestSample.size(), "sample size mismatch");
+
+    // todo: billboards
 
     std::vector<Mat4F> result;
     result.reserve(get_bone_count());
@@ -730,14 +735,12 @@ std::vector<Mat4F> Armature::compute_skeleton_matrices(const AnimSample& sample)
     for (size_t i = 0u; i < get_bone_count(); ++i)
     {
         const Bone& bone = reinterpret_cast<const Bone*>(sample.data())[i];
-        const int8_t parentIndex = mBoneInfos[i].parent;
+        const auto& [parent, flags] = mBoneInfos[i];
 
         Mat4F relMatrix = maths::transform(bone.offset, bone.rotation, bone.scale);
 
-        // todo: billboards
-
-        if (parentIndex < 0) result.push_back(relMatrix);
-        else result.push_back(result[parentIndex] * relMatrix);
+        if (parent < 0) result.push_back(relMatrix);
+        else result.push_back(result[parent] * relMatrix);
     }
 
     return result;
@@ -750,13 +753,19 @@ Mat4F Armature::compute_model_matrix(const AnimSample& sample, Mat4F modelMatrix
     SQASSERT(sample.size() == mRestSample.size(), "sample size mismatch");
     SQASSERT(index < get_bone_count(), "invalid index");
 
+    // todo: billboards
+
     const auto bones = reinterpret_cast<const Bone*>(sample.data());
 
     Mat4F result = maths::transform(bones[index].offset, bones[index].rotation, bones[index].scale);
 
     // apply the transforms of all parents
     for (int8_t i = mBoneInfos[index].parent; i != -1; i = mBoneInfos[i].parent)
-        result = maths::transform(bones[i].offset, bones[i].rotation, bones[i].scale) * result;
+    {
+        const Bone& bone = bones[i];
+
+        result = maths::transform(bone.offset, bone.rotation, bone.scale) * result;
+    }
 
     return modelMatrix * result * mInverseMats[index];
 }

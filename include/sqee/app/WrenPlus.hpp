@@ -30,21 +30,14 @@ namespace wren {
 //============================================================================//
 
 /// General exception to throw from functions bound to wren.
-struct Exception final : public std::exception
+struct Exception final : public std::runtime_error
 {
-    Exception(std::string str) : message(std::move(str)) {}
+    Exception(const char* cstr) : std::runtime_error(cstr) {}
+    Exception(const std::string& str) : std::runtime_error(str) {}
 
     template <class... Args>
-    // todo: temporary workaround for an internal compiler error
-    #ifdef SQEE_MSVC
-    Exception(std::string_view str, Args&&... args) : message(fmt::format(fmt::runtime(str), std::forward<Args>(args)...)) {}
-    #else
-    Exception(fmt::format_string<Args...> str, Args&&... args) : message(fmt::format(str, std::forward<Args>(args)...)) {}
-    #endif
-
-    const char* what() const noexcept override { return message.c_str(); }
-
-    std::string message;
+    Exception(fmt::format_string<Args...> fstr, Args&&... args)
+        : std::runtime_error(fmt::vformat(fstr, fmt::make_format_args(args...))) {}
 };
 
 /// Minimal either type used for returning errors as strings.
@@ -238,7 +231,7 @@ public: //====================================================//
         mErrorString.clear();
 
         if (wrenCall(mWrenVM, method) != WREN_RESULT_SUCCESS)
-            throw Exception(std::move(mErrorString));
+            throw Exception(mErrorString);
 
         return get_slot<Result>(mWrenVM, 0);
     }
@@ -251,14 +244,14 @@ public: //====================================================//
         mErrorString.clear();
 
         if (wrenCall(mWrenVM, method) != WREN_RESULT_SUCCESS)
-            throw Exception(std::move(mErrorString));
+            throw Exception(mErrorString);
     }
 
     //--------------------------------------------------------//
 
     /// Call a wren method with the given arguments and return the result or any errors.
     template <class Result, class Receiver, class... Args>
-    SafeResult<Result> safe_call[[nodiscard]](WrenHandle* method, Receiver receiver, const Args&... args) noexcept
+    [[nodiscard]] SafeResult<Result> safe_call(WrenHandle* method, Receiver receiver, const Args&... args) noexcept
     {
         set_call_slots<Receiver, Args...>(mWrenVM, receiver, args...);
         mErrorString.clear();
@@ -276,7 +269,7 @@ public: //====================================================//
 
     /// Call a wren method with the given arguments and return any errors.
     template <class Receiver, class... Args>
-    std::string safe_call_void[[nodiscard]](WrenHandle* method, Receiver receiver, const Args&... args) noexcept
+    [[nodiscard]] std::string safe_call_void(WrenHandle* method, Receiver receiver, const Args&... args) noexcept
     {
         set_call_slots<Receiver, Args...>(mWrenVM, receiver, args...);
         mErrorString.clear();
@@ -293,13 +286,13 @@ public: //====================================================//
     void interpret(const char* module, const char* source);
 
     /// Same as interpret, but return errors as a string.
-    std::string safe_interpret[[nodiscard]](const char* module, const char* source);
+    [[nodiscard]] std::string safe_interpret(const char* module, const char* source);
 
     /// Interpret a module from file, as if using import.
     void load_module(const char* module);
 
     /// Same as load_module, but return errors as a string.
-    std::string safe_load_module(const char* module);
+    [[nodiscard]] std::string safe_load_module(const char* module);
 
     /// Makes sure that no foreign class indices are missing.
     void validate_class_handle_cache();
@@ -307,19 +300,7 @@ public: //====================================================//
     //--------------------------------------------------------//
 
     /// Lookup a variable that is known to exist.
-    WrenHandle* get_variable(const char* module, const char* variable);
-
-    //--------------------------------------------------------//
-
-    /// Abort the current wren fiber with a formatted error message.
-    //template <class... Args>
-    //void abort(fmt::format_string<Args...> str, Args&&... args) noexcept
-    //{
-    //    const std::string message = fmt::format(str, std::forward<Args>(args)...);
-    //    wrenEnsureSlots(mWrenVM, 1);
-    //    wrenSetSlotBytes(mWrenVM, 0, message.data(), message.length());
-    //    wrenAbortFiber(mWrenVM, 0);
-    //}
+    [[nodiscard]] WrenHandle* get_variable(const char* module, const char* variable);
 
 private: //===================================================//
 
@@ -351,7 +332,7 @@ private: //===================================================//
 
     std::vector<std::string> mModuleImportDirs;
 
-    std::map<std::string, WrenForeignMethodFn> mForiegnMethods;
+    std::map<std::string, WrenForeignMethodFn> mForeignMethods;
 
     std::vector<WrenHandle*> mForeignClassHandles;
 
@@ -406,6 +387,41 @@ struct MethodWrapper<Result(*)(Object*, Args...), FnPtr>
     }
 };
 
+/// Internal data for foreign objects.
+struct TaggedPointer
+{
+    void* ptr;
+    size_t index;
+};
+
+template <class BaseType, class Type, class... Types>
+inline BaseType* base_class_slot_helper_get_inner(const TaggedPointer& data)
+{
+    if (data.index == Traits<Type>::index)
+        return static_cast<BaseType*>(data.ptr);
+
+    if constexpr (sizeof...(Types) != 0)
+        return base_class_slot_helper_get_inner<BaseType, Types...>(data);
+
+    throw Exception("slot holds different type of Object");
+}
+
+template <class BaseType, class Type, class... Types>
+inline void base_class_slot_helper_set_inner(WrenVM* vm, int slot, BaseType* ptr)
+{
+    if (dynamic_cast<Type*>(ptr) != nullptr)
+    {
+        wrenSetSlotHandle(vm, slot, WrenPlusVM::access(vm).get_class_handle<Type>());
+        auto& data = *static_cast<TaggedPointer*>(wrenSetSlotNewForeign(vm, slot, slot, sizeof(TaggedPointer)));
+        data = { ptr, Traits<Type>::index };
+    }
+
+    else if constexpr (sizeof...(Types) != 0)
+        base_class_slot_helper_set_inner<BaseType, Types...>(vm, slot, ptr);
+
+    else throw Exception("dynamic_cast failed for base ptr");
+}
+
 } // namespace detail
 
 } // namespace wren
@@ -426,16 +442,16 @@ struct wren::SlotHelper<std::nullptr_t>
 template <class Object>
 struct wren::SlotHelper<Object*, std::enable_if_t<wren::has_traits_v<Object>>>
 {
-    struct TaggedPointer { Object* ptr; size_t index; };
-
     static Object* get(WrenVM* vm, int slot, WrenType slotType)
     {
         if (slotType == WREN_TYPE_FOREIGN)
         {
-            const auto& data = *static_cast<TaggedPointer*>(wrenGetSlotForeign(vm, slot));
-            if (data.index != Traits<Object>::index)
-                throw Exception("slot holds different type of Object");
-            return data.ptr;
+            const auto& data = *static_cast<detail::TaggedPointer*>(wrenGetSlotForeign(vm, slot));
+
+            if (data.index == Traits<Object>::index)
+                return static_cast<Object*>(data.ptr);
+
+            throw Exception("slot holds different type of Object");
         }
 
         if (slotType == WREN_TYPE_NULL)
@@ -449,7 +465,7 @@ struct wren::SlotHelper<Object*, std::enable_if_t<wren::has_traits_v<Object>>>
         if (ptr != nullptr)
         {
             wrenSetSlotHandle(vm, slot, WrenPlusVM::access(vm).get_class_handle<Object>());
-            auto& data = *static_cast<TaggedPointer*>(wrenSetSlotNewForeign(vm, slot, slot, sizeof(TaggedPointer)));
+            auto& data = *static_cast<detail::TaggedPointer*>(wrenSetSlotNewForeign(vm, slot, slot, sizeof(detail::TaggedPointer)));
             data = { ptr, Traits<Object>::index };
         }
         else wrenSetSlotNull(vm, slot);
@@ -656,8 +672,8 @@ struct wren::SlotHelper<std::vector<Type>>
 #include <sqee/core/EnumHelper.hpp>
 
 /// Specialisation for the sqee enum helper.
-template <class Enum>
-struct wren::SlotHelper<Enum, std::enable_if_t<sq::has_enum_traits_v<Enum>>>
+template <sq::HasEnumHelper Enum>
+struct wren::SlotHelper<Enum>
 {
     static Enum get(WrenVM* vm, int slot, WrenType slotType)
     {

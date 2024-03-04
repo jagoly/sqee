@@ -34,6 +34,7 @@ void GuiSystem::set_style_widgets_default()
     ImGuiStyle& style = ImGui::GetStyle();
 
     style.Alpha                     = 1.f;
+    style.DisabledAlpha             = 0.6f;
     style.WindowPadding             = { 8.f, 8.f };
     style.WindowRounding            = 0.f;
     style.WindowBorderSize          = 1.f;
@@ -55,17 +56,23 @@ void GuiSystem::set_style_widgets_default()
     style.ColumnsMinSpacing         = 6.f;
     style.ScrollbarSize             = 14.f;
     style.ScrollbarRounding         = 9.f;
-    style.GrabMinSize               = 10.f;
+    style.GrabMinSize               = 12.f;
     style.GrabRounding              = 0.f;
     style.LogSliderDeadzone         = 4.f;
     style.TabRounding               = 4.f;
     style.TabBorderSize             = 0.f;
     style.TabMinWidthForCloseButton = 0.f;
+    style.TabBarBorderSize          = 1.f;
+    style.TableAngledHeadersAngle   = 35.f * (3.14159265358979323846f / 180.f);
     style.ColorButtonPosition       = ImGuiDir_Right;
     style.ButtonTextAlign           = { 0.5f, 0.5f };
     style.SelectableTextAlign       = { 0.f, 0.f };
+    style.SeparatorTextBorderSize   = 3.f;
+    style.SeparatorTextAlign        = { 0.f, 0.5f };
+    style.SeparatorTextPadding      = { 20.f, 3.f };
     style.DisplayWindowPadding      = { 19.f, 19.f };
     style.DisplaySafeAreaPadding    = { 3.f, 3.f };
+    style.DockingSeparatorSize      = 2.f;
     style.MouseCursorScale          = 1.f;
 }
 
@@ -74,6 +81,7 @@ void GuiSystem::set_style_widgets_supertux()
     ImGuiStyle& style = ImGui::GetStyle();
 
     style.Alpha                     = 1.f;
+    style.DisabledAlpha             = 0.6f;
     style.WindowPadding             = { 6.f, 6.f };
     style.WindowRounding            = 8.f;
     style.WindowBorderSize          = 0.f;
@@ -95,17 +103,23 @@ void GuiSystem::set_style_widgets_supertux()
     style.ColumnsMinSpacing         = 6.f;
     style.ScrollbarSize             = 16.f;
     style.ScrollbarRounding         = 8.f;
-    style.GrabMinSize               = 8.f;
+    style.GrabMinSize               = 12.f;
     style.GrabRounding              = 4.f;
     style.LogSliderDeadzone         = 4.f;
     style.TabRounding               = 4.f;
     style.TabBorderSize             = 0.f;
     style.TabMinWidthForCloseButton = 0.f;
+    style.TabBarBorderSize          = 1.f;
+    style.TableAngledHeadersAngle   = 35.f * (3.14159265358979323846f / 180.f);
     style.ColorButtonPosition       = ImGuiDir_Right;
     style.ButtonTextAlign           = { 0.5f, 0.5f };
     style.SelectableTextAlign       = { 0.f, 0.f };
+    style.SeparatorTextBorderSize   = 4.f;
+    style.SeparatorTextAlign        = { 0.f, 0.5f };
+    style.SeparatorTextPadding      = { 24.f, 4.f };
     style.DisplayWindowPadding      = { 20.f, 20.f };
     style.DisplaySafeAreaPadding    = { 4.f, 4.f };
+    style.DockingSeparatorSize      = 2.f;
     style.MouseCursorScale          = 1.f;
 }
 
@@ -183,8 +197,8 @@ void GuiSystem::set_style_colours_supertux()
     colors[ImGuiCol_TableHeaderBg]          = ImVec4(0.40f, 0.30f, 0.20f, 0.40f);
     colors[ImGuiCol_TableBorderStrong]      = ImVec4(0.80f, 0.80f, 0.80f, 1.00f);
     colors[ImGuiCol_TableBorderLight]       = ImVec4(0.80f, 0.80f, 0.80f, 0.80f);
-    colors[ImGuiCol_TableRowBg]             = ImVec4(0.00f, 0.00f, 0.00f, 0.01f);
-    colors[ImGuiCol_TableRowBgAlt]          = ImVec4(1.00f, 1.00f, 1.00f, 0.01f);
+    colors[ImGuiCol_TableRowBg]             = ImVec4(0.00f, 0.00f, 0.00f, 0.30f);
+    colors[ImGuiCol_TableRowBgAlt]          = ImVec4(0.20f, 0.20f, 0.20f, 0.30f);
     colors[ImGuiCol_TextSelectedBg]         = ImVec4(0.30f, 0.50f, 0.70f, 0.40f);
     colors[ImGuiCol_DragDropTarget]         = ImVec4(1.00f, 1.00f, 0.00f, 0.90f);
     colors[ImGuiCol_NavHighlight]           = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
@@ -201,6 +215,8 @@ void GuiSystem::set_style_colours_supertux()
 GuiSystem::GuiSystem(Window& window, InputDevices& inputDevices)
     : window(window), input(inputDevices)
 {
+    IMGUI_CHECKVERSION();
+
     ImGui::SetCurrentContext(ImGui::CreateContext());
 
     ImGuiIO& io = ImGui::GetIO();
@@ -470,10 +486,10 @@ bool GuiSystem::handle_event(Event event)
 
     const auto add_modifier_events = [&](const auto& data)
     {
-        io.AddKeyEvent(ImGuiKey_ModCtrl, data.ctrl);
-        io.AddKeyEvent(ImGuiKey_ModShift, data.shift);
-        io.AddKeyEvent(ImGuiKey_ModAlt, data.alt);
-        io.AddKeyEvent(ImGuiKey_ModSuper, data.super);
+        io.AddKeyEvent(ImGuiMod_Ctrl, data.ctrl);
+        io.AddKeyEvent(ImGuiMod_Shift, data.shift);
+        io.AddKeyEvent(ImGuiMod_Alt, data.alt);
+        io.AddKeyEvent(ImGuiMod_Super, data.super);
     };
 
     //--------------------------------------------------------//

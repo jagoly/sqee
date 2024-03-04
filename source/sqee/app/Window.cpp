@@ -8,8 +8,6 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
-#include <fmt/chrono.h>
-
 using namespace sq;
 
 //============================================================================//
@@ -24,13 +22,10 @@ VKAPI_ATTR VkBool32 VKAPI_CALL impl_vulkan_debug_callback (
     if (StringView("/usr/lib32/libvulkan_intel.so: wrong ELF class: ELFCLASS32") == pCallbackData->pMessage)
         return VK_FALSE;
 
-    std::time_t now = std::time(nullptr);
-
-    log_raw_multiline("{:%H:%M:%S} Vulkan: Severity = {} | Type = {}\n{}",
-                      fmt::localtime(now),
-                      vk::to_string(vk::DebugUtilsMessageSeverityFlagBitsEXT(messageSeverity)),
-                      vk::to_string(vk::DebugUtilsMessageTypeFlagsEXT(messageType)),
-                      pCallbackData->pMessage);
+    log_custom_multiline("VULKAN", "Severity = {} | Type = {}\n{}",
+                         vk::to_string(vk::DebugUtilsMessageSeverityFlagBitsEXT(messageSeverity)),
+                         vk::to_string(vk::DebugUtilsMessageTypeFlagsEXT(messageType)),
+                         pCallbackData->pMessage);
 
     return VK_FALSE;
 }
@@ -294,20 +289,18 @@ Window::Window(const char* title, Vec2U size, const char* appName, Vec3U version
             VK_API_VERSION_1_2
         };
 
-        const std::vector<const char*> layers = []()
-        {
+        const std::vector<const char*> layers = []() {
             const char* layerName = "VK_LAYER_KHRONOS_validation";
 
             for (const auto& layer : vk::enumerateInstanceLayerProperties())
-                if (StringView(layer.layerName) == layerName)
+                if (StringView(layer.layerName.data()) == layerName)
                     return std::vector { layerName };
 
             log_warning("vulkan validation layer could not be loaded");
             return std::vector<const char*>();
         }();
 
-        const std::vector<const char*> extensions = []()
-        {
+        const std::vector<const char*> extensions = []() {
             uint32_t count = 0u;
             const char** names = glfwGetRequiredInstanceExtensions(&count);
 
@@ -367,7 +360,7 @@ Window::Window(const char* title, Vec2U size, const char* appName, Vec3U version
         for (const auto& physDev : physicalDevices)
         {
             log_debug_multiline("Vulkan Physical Device Info\nName:    {} \nQueues:  {}\nPresent: {}",
-                                physDev.getProperties().deviceName,
+                                physDev.getProperties().deviceName.data(),
                                 vk::to_string(physDev.getQueueFamilyProperties().front().queueFlags),
                                 bool(physDev.getSurfaceSupportKHR(0u, mSurface)));
 
@@ -420,7 +413,7 @@ Window::Window(const char* title, Vec2U size, const char* appName, Vec3U version
         if (!mPhysicalDevice)
             log_error("GPU(s) found, but none are useable");
 
-        log_info("Using Vulkan Device '{}'", mPhysicalDevice.getProperties().deviceName);
+        log_info("Using Vulkan Device '{}'", mPhysicalDevice.getProperties().deviceName.data());
     }
 
     // setup logical device and queue
@@ -561,6 +554,11 @@ Window::Window(const char* title, Vec2U size, const char* appName, Vec3U version
             context.limits.maxAnisotropy = limits.maxSamplerAnisotropy;
             context.limits.timestampPeriod = limits.timestampPeriod;
         }
+
+        // set debug names
+        context.set_debug_object_name(mCommandPool, "window.commandPool");
+        context.set_debug_object_name(mDesciptorPool, "window.descriptorPool");
+        context.set_debug_object_name(mRenderPass, "window.renderPass");
     }
 }
 

@@ -3,6 +3,7 @@
 #include <sqee/debug/Assert.hpp>
 #include <sqee/misc/Files.hpp>
 #include <sqee/misc/Parsing.hpp>
+#include <sqee/misc/Json.hpp>
 #include <sqee/vk/Helpers.hpp>
 #include <sqee/vk/VulkanContext.hpp>
 #include <sqee/vk/VulkanMemory.hpp>
@@ -90,14 +91,22 @@ void Mesh::load_from_file(const String& path)
 
 //============================================================================//
 
-uint8_t Mesh::get_sub_mesh_index(TinyString name) const
+int8_t Mesh::get_sub_mesh_index(TinyString name) const noexcept
 {
     for (size_t i = 0u; i < mSubMeshes.size(); ++i)
         if (mSubMeshes[i].name == name)
-            return uint8_t(i);
-
-    SQEE_THROW("mesh has no subMesh named '{}'", name);
+            return int8_t(i);
+    return -1;
 }
+
+int8_t Mesh::json_as_sub_mesh_index(JsonAny json) const
+{
+    if (json.is_null()) return -1;
+    if (auto index = get_sub_mesh_index(json.as<TinyString>()); index >= 0) return index;
+    json.throw_with_context("invalid sub mesh name");
+}
+
+//============================================================================//
 
 void Mesh::bind_buffers(vk::CommandBuffer cmdbuf) const
 {

@@ -15,44 +15,48 @@ using namespace sq;
 
 //============================================================================//
 
-static vk::Format impl_string_to_format(const String& arg)
+static vk::Format impl_json_to_format(JsonAny json)
 {
     // one and two channel srgb textures don't support image blit
     // this means we can't easily generate mipmaps for them
     // this is fine, you want unorm for non-colour values anyway
 
-    if (arg == "4x8_Srgb") return vk::Format::eR8G8B8A8Srgb;
+    const auto sv = json.as<StringView>();
 
-    if (arg == "1x8_Unorm") return vk::Format::eR8Unorm;
-    if (arg == "2x8_Unorm") return vk::Format::eR8G8Unorm;
-    if (arg == "4x8_Unorm") return vk::Format::eR8G8B8A8Unorm;
+    if (sv == "4x8_Srgb") return vk::Format::eR8G8B8A8Srgb;
 
-    if (arg == "1x8_Snorm") return vk::Format::eR8Snorm;
-    if (arg == "2x8_Snorm") return vk::Format::eR8G8Snorm;
-    if (arg == "4x8_Snorm") return vk::Format::eR8G8B8A8Snorm;
+    if (sv == "1x8_Unorm") return vk::Format::eR8Unorm;
+    if (sv == "2x8_Unorm") return vk::Format::eR8G8Unorm;
+    if (sv == "4x8_Unorm") return vk::Format::eR8G8B8A8Unorm;
 
-    if (arg == "1x16_Unorm") return vk::Format::eR16Unorm;
-    if (arg == "2x16_Unorm") return vk::Format::eR16G16Unorm;
-    if (arg == "4x16_Unorm") return vk::Format::eR16G16B16A16Unorm;
+    if (sv == "1x8_Snorm") return vk::Format::eR8Snorm;
+    if (sv == "2x8_Snorm") return vk::Format::eR8G8Snorm;
+    if (sv == "4x8_Snorm") return vk::Format::eR8G8B8A8Snorm;
 
-    if (arg == "5999_Hdr") return vk::Format::eE5B9G9R9UfloatPack32;
+    if (sv == "1x16_Unorm") return vk::Format::eR16Unorm;
+    if (sv == "2x16_Unorm") return vk::Format::eR16G16Unorm;
+    if (sv == "4x16_Unorm") return vk::Format::eR16G16B16A16Unorm;
 
-    SQEE_THROW("invalid texture format string '{}'", arg);
+    if (sv == "5999_Hdr") return vk::Format::eE5B9G9R9UfloatPack32;
+
+    json.throw_with_context("invalid image format");
 }
 
-static vk::SamplerAddressMode impl_string_to_wrap(const String& arg)
+static vk::SamplerAddressMode impl_json_to_wrap(JsonAny json)
 {
-    if (arg == "Repeat") return vk::SamplerAddressMode::eRepeat;
-    if (arg == "MirrorRepeat") return vk::SamplerAddressMode::eMirroredRepeat;
-    if (arg == "Clamp") return vk::SamplerAddressMode::eClampToEdge;
-    if (arg == "MirrorClamp") return vk::SamplerAddressMode::eMirrorClampToEdge;
+    const auto sv = json.as<StringView>();
 
-    SQEE_THROW("invalid texture wrap string '{}'", arg);
+    if (sv == "Repeat") return vk::SamplerAddressMode::eRepeat;
+    if (sv == "MirrorRepeat") return vk::SamplerAddressMode::eMirroredRepeat;
+    if (sv == "Clamp") return vk::SamplerAddressMode::eClampToEdge;
+    if (sv == "MirrorClamp") return vk::SamplerAddressMode::eMirrorClampToEdge;
+
+    json.throw_with_context("invalid wrap mode");
 }
 
-static vk::ComponentMapping impl_string_to_swizzle(const String& arg)
+static vk::ComponentMapping impl_json_to_swizzle(JsonAny json)
 {
-    const auto char_to_swizzle = [](char c)
+    const auto char_to_swizzle = [&](char c)
     {
         if (c == '0') return vk::ComponentSwizzle::eZero;
         if (c == '1') return vk::ComponentSwizzle::eOne;
@@ -61,36 +65,42 @@ static vk::ComponentMapping impl_string_to_swizzle(const String& arg)
         if (c == 'B') return vk::ComponentSwizzle::eB;
         if (c == 'A') return vk::ComponentSwizzle::eA;
 
-        SQEE_THROW("invalid texture swizzle char '{}'", c);
+        json.throw_with_context("invalid swizzle char");
     };
 
-    if (arg.size() != 4u)
-        SQEE_THROW("invalid texture swizzle string '{}'", arg);
+    const auto sv = json.as<StringView>();
 
-    const auto swizzleR = char_to_swizzle(arg[0]);
-    const auto swizzleG = char_to_swizzle(arg[1]);
-    const auto swizzleB = char_to_swizzle(arg[2]);
-    const auto swizzleA = char_to_swizzle(arg[3]);
+    if (sv.length() != 4u)
+        json.throw_with_context("invalid swizzle string");
+
+    const auto swizzleR = char_to_swizzle(sv[0]);
+    const auto swizzleG = char_to_swizzle(sv[1]);
+    const auto swizzleB = char_to_swizzle(sv[2]);
+    const auto swizzleA = char_to_swizzle(sv[3]);
 
     return { swizzleR, swizzleG, swizzleB, swizzleA };
 }
 
-static Texture::FilterMode impl_string_to_filter(const String& arg)
+static Texture::FilterMode impl_json_to_filter(JsonAny json)
 {
-    if (arg == "Nearest") return Texture::FilterMode::Nearest;
-    if (arg == "Linear") return Texture::FilterMode::Linear;
-    if (arg == "Anisotropic") return Texture::FilterMode::Anisotropic;
+    const auto sv = json.as<StringView>();
 
-    SQEE_THROW("invalid texture mipmaps string '{}'", arg);
+    if (sv == "Nearest") return Texture::FilterMode::Nearest;
+    if (sv == "Linear") return Texture::FilterMode::Linear;
+    if (sv == "Anisotropic") return Texture::FilterMode::Anisotropic;
+
+    json.throw_with_context("invalid filter mode");
 }
 
-static Texture::MipmapsMode impl_string_to_mipmaps(const String& arg)
+static Texture::MipmapsMode impl_json_to_mipmaps(JsonAny json)
 {
-    if (arg == "Disable") return Texture::MipmapsMode::Disable;
-    if (arg == "Generate") return Texture::MipmapsMode::Generate;
-    if (arg == "Load") return Texture::MipmapsMode::Load;
+    const auto sv = json.as<StringView>();
 
-    SQEE_THROW("invalid texture mipmaps string '{}'", arg);
+    if (sv == "Disable") return Texture::MipmapsMode::Disable;
+    if (sv == "Generate") return Texture::MipmapsMode::Generate;
+    if (sv == "Load") return Texture::MipmapsMode::Load;
+
+    json.throw_with_context("invalid mipmaps mode");
 }
 
 //============================================================================//
@@ -246,22 +256,22 @@ void Texture::initialise_2D(const Config& config)
 
 void Texture::load_from_file_2D(const String& path)
 {
-    const JsonValue json = parse_json_from_file(path + ".json");
+    const auto document = JsonDocument::parse_file(path + ".json");
+    const auto json = document.root().as<JsonObject>();
 
     Config config;
-    config.format = impl_string_to_format(json.at("format").get_ref<const String&>());
-    config.wrapX = impl_string_to_wrap(json.at("wrapX").get_ref<const String&>());
-    config.wrapY = impl_string_to_wrap(json.at("wrapY").get_ref<const String&>());
+    config.format = impl_json_to_format(json["format"]);
+    config.wrapX = impl_json_to_wrap(json["wrapX"]);
+    config.wrapY = impl_json_to_wrap(json["wrapY"]);
     config.wrapZ = vk::SamplerAddressMode::eRepeat;
-    config.swizzle = impl_string_to_swizzle(json.at("swizzle").get_ref<const String&>());
-    config.filter = impl_string_to_filter(json.at("filter").get_ref<const String&>());
-    config.mipmaps = impl_string_to_mipmaps(json.at("mipmaps").get_ref<const String&>());
-    config.size = Vec3U(Vec2U(json.at("size")), 1u);
+    config.swizzle = impl_json_to_swizzle(json["swizzle"]);
+    config.filter = impl_json_to_filter(json["filter"]);
+    config.mipmaps = impl_json_to_mipmaps(json["mipmaps"]);
+    config.size = Vec3U(json["size"].as<Vec2U>(), 1u);
 
     if (config.mipmaps != MipmapsMode::Disable)
     {
-        const auto iter = json.find("mipLevels");
-        if (iter != json.end()) config.mipLevels = uint(*iter);
+        if (const auto jMipLevels = json.get_safe("mipLevels")) config.mipLevels = jMipLevels->as<uint>();
         else config.mipLevels = 1u + uint(std::log2(std::max(config.size.x, config.size.y)));
     }
     else config.mipLevels = 1u;
@@ -272,12 +282,12 @@ void Texture::load_from_file_2D(const String& path)
         return; // success
 
     if (config.mipmaps == MipmapsMode::Load)
-        SQEE_THROW("mipmaps can only be loaded from lz4 archives");
+        json.throw_with_context("mipmaps can only be loaded from lz4 archives");
 
     const auto image = impl_load_image(config.format, path + ".png");
 
     if (image.size != Vec2U(config.size))
-        SQEE_THROW("image size does not match json");
+        json.throw_with_context("size does not match loaded image");
 
     load_from_memory(image.data, image.length, 0u, 0u, config);
 }
@@ -303,22 +313,22 @@ void Texture::initialise_array(const Config& config)
 
 void Texture::load_from_file_array(const String& path)
 {
-    const JsonValue json = parse_json_from_file(path + ".json");
+    const auto document = JsonDocument::parse_file(path + ".json");
+    const auto json = document.root().as<JsonObject>();
 
     Config config;
-    config.format = impl_string_to_format(json.at("format").get_ref<const String&>());
-    config.wrapX = impl_string_to_wrap(json.at("wrapX").get_ref<const String&>());
-    config.wrapY = impl_string_to_wrap(json.at("wrapY").get_ref<const String&>());
-    config.wrapZ = impl_string_to_wrap(json.at("wrapZ").get_ref<const String&>());
-    config.swizzle = impl_string_to_swizzle(json.at("swizzle").get_ref<const String&>());
-    config.filter = impl_string_to_filter(json.at("filter").get_ref<const String&>());
-    config.mipmaps = impl_string_to_mipmaps(json.at("mipmaps").get_ref<const String&>());
-    config.size = Vec3U(json.at("size"));
+    config.format = impl_json_to_format(json["format"]);
+    config.wrapX = impl_json_to_wrap(json["wrapX"]);
+    config.wrapY = impl_json_to_wrap(json["wrapY"]);
+    config.wrapZ = impl_json_to_wrap(json["wrapZ"]);
+    config.swizzle = impl_json_to_swizzle(json["swizzle"]);
+    config.filter = impl_json_to_filter(json["filter"]);
+    config.mipmaps = impl_json_to_mipmaps(json["mipmaps"]);
+    config.size = json["size"].as<Vec3U>();
 
     if (config.mipmaps != MipmapsMode::Disable)
     {
-        const auto iter = json.find("mipLevels");
-        if (iter != json.end()) config.mipLevels = uint(*iter);
+        if (const auto jMipLevels = json.get_safe("mipLevels")) config.mipLevels = jMipLevels->as<uint>();
         else config.mipLevels = 1u + uint(std::log2(std::max(config.size.x, config.size.y)));
     }
     else config.mipLevels = 1u;
@@ -329,7 +339,7 @@ void Texture::load_from_file_array(const String& path)
         return; // success
 
     if (config.mipmaps == MipmapsMode::Load)
-        SQEE_THROW("mipmaps can only be loaded from lz4 archives");
+        json.throw_with_context("mipmaps can only be loaded from lz4 archives");
 
     const auto extension = config.format == vk::Format::eE5B9G9R9UfloatPack32 ? "hdr" : "png";
     const uint digits = config.size.z > 10u ? config.size.z > 100u ? 3u : 2u : 1u;
@@ -339,7 +349,7 @@ void Texture::load_from_file_array(const String& path)
         const auto image = impl_load_image(config.format, fmt::format("{}/{:0>{}}.{}", path, layer, digits, extension));
 
         if (image.size != Vec2U(config.size))
-            SQEE_THROW("layer {}: image size does not match json", layer);
+            json.throw_with_context("size does not match loaded image for layer {}", layer);
 
         load_from_memory(image.data, image.length, 0u, layer, config);
     }
@@ -366,21 +376,22 @@ void Texture::initialise_cube(const Config& config)
 
 void Texture::load_from_file_cube(const String& path)
 {
-    const JsonValue json = parse_json_from_file(path + ".json");
+    const auto document = JsonDocument::parse_file(path + ".json");
+    const auto json = document.root().as<JsonObject>();
 
     Config config;
-    config.format = impl_string_to_format(json.at("format").get_ref<const String&>());
-    config.wrapX = config.wrapY = vk::SamplerAddressMode::eClampToEdge;
+    config.format = impl_json_to_format(json["format"]);
+    config.wrapX = vk::SamplerAddressMode::eClampToEdge;
+    config.wrapY = vk::SamplerAddressMode::eClampToEdge;
     config.wrapZ = vk::SamplerAddressMode::eRepeat;
-    config.swizzle = impl_string_to_swizzle(json.at("swizzle").get_ref<const String&>());
-    config.filter = impl_string_to_filter(json.at("filter").get_ref<const String&>());
-    config.mipmaps = impl_string_to_mipmaps(json.at("mipmaps").get_ref<const String&>());
-    config.size = Vec3U(Vec2U(uint(json.at("size"))), 6u);
+    config.swizzle = impl_json_to_swizzle(json["swizzle"]);
+    config.filter = impl_json_to_filter(json["filter"]);
+    config.mipmaps = impl_json_to_mipmaps(json["mipmaps"]);
+    config.size = Vec3U(Vec2U(json["size"].as<uint>()), 6u);
 
     if (config.mipmaps != MipmapsMode::Disable)
     {
-        const auto iter = json.find("mipLevels");
-        if (iter != json.end()) config.mipLevels = uint(*iter);
+        if (const auto jMipLevels = json.get_safe("mipLevels")) config.mipLevels = jMipLevels->as<uint>();
         else config.mipLevels = 1u + uint(std::log2(config.size.x));
     }
     else config.mipLevels = 1u;
@@ -391,7 +402,7 @@ void Texture::load_from_file_cube(const String& path)
         return; // success
 
     if (config.mipmaps == MipmapsMode::Load)
-        SQEE_THROW("mipmaps can only be loaded from lz4 archives");
+        json.throw_with_context("mipmaps can only be loaded from lz4 archives");
 
     const auto extension = config.format == vk::Format::eE5B9G9R9UfloatPack32 ? "hdr" : "png";
     const auto faceNames = std::array { "0_right", "1_left", "2_down", "3_up", "4_forward", "5_back"};
@@ -401,7 +412,7 @@ void Texture::load_from_file_cube(const String& path)
         const auto image = impl_load_image(config.format, fmt::format("{}/{}.{}", path, faceNames[face], extension));
 
         if (image.size != Vec2U(config.size))
-            SQEE_THROW("face {}: image size does not match json", face);
+            json.throw_with_context("size does not match loaded image for face {}", face);
 
         load_from_memory(image.data, image.length, 0u, face, config);
     }

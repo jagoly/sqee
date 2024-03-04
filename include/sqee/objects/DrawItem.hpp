@@ -25,11 +25,11 @@ class Texture;
 struct SQEE_API DrawItem
 {
     using MeshCache = ResourceCache<String, Mesh>;
-    using PipelineCache = ResourceCache<JsonValue, Pipeline>;
+    using PipelineCache = ResourceCache<String, Pipeline>;
     using TextureCache = ResourceCache<String, Texture>;
 
     using MeshHandle = Handle<String, Mesh>;
-    using PipelineHandle = Handle<JsonValue, Pipeline>;
+    using PipelineHandle = Handle<String, Pipeline>;
     using TextureHandle = Handle<String, Texture>;
 
     /// Type of a push constant block member, and how to compute it.
@@ -37,11 +37,20 @@ struct SQEE_API DrawItem
     {
         ConstFloat, ConstFloat2, ConstFloat3, ConstFloat4, // float / vec2 / vec3 / vec4
         ConstInt, ConstInt2, ConstInt3, ConstInt4,         // int / ivec2 / ivec3 / ivec4
-        ModelMatrixIndex, NormalMatrixIndex,               // uint / uint
+        ConstPackedBits,                                   // uint
+        ModelMatIndex, NormalMatIndex,                     // uint / uint
         TextureIndex,                                      // uint
         AnimFloat, AnimFloat2, AnimFloat3, AnimFloat4,     // float / vec2 / vec3 / vec4
         AnimInt, AnimInt2, AnimInt3, AnimInt4,             // int / ivec2 / ivec3 / ivec4
-        AnimTextureTransform,                              // mat2x3
+        ConstTexTransform, AnimTexTransform,               // mat2x3 / mat2x3
+    };
+
+    /// Type of sample value to use for visibility.
+    enum class VisDataType : uint8_t
+    {
+        None,  // always visible
+        Float, // 0.0 == not visible
+        Int,   // 0 == not visible
     };
 
     /// Data needed to compute one member of a push constant block.
@@ -53,7 +62,8 @@ struct SQEE_API DrawItem
         {
             float constFloat; Vec2F constFloat2; Vec3F constFloat3; Vec4F constFloat4;
             int constInt; Vec2I constInt2; Vec3I constInt3; Vec4I constInt4;
-            uint matrixIndex; TextureHandle texture; uint sampleOffset; uint sampleOffsets[3];
+            uint32_t constPackedBits; uint matrixIndex; TextureHandle texture;
+            uint sampleOffset; float constFloat2x3[2][3]; uint sampleOffsets[3];
         };
 
         Param()
@@ -95,13 +105,17 @@ struct SQEE_API DrawItem
         }
     };
 
-    // todo: move defs into named groups that can be enabled or disabled in wren
     TinyString condition;
 
     MeshHandle mesh;
     PipelineHandle pipeline;
 
+    int16_t order = 0;
+
     int8_t subMesh = -1;
+
+    VisDataType visDataType = {};
+    uint visSampleOffset = 0u;
 
     std::vector<Param> params;
 
@@ -109,6 +123,9 @@ struct SQEE_API DrawItem
     static std::vector<DrawItem> load_from_json (
         const String& path, const Armature& armature, MeshCache& meshes, PipelineCache& pipelines, TextureCache& textures
     );
+
+    /// Check if the draw item should be drawn.
+    bool check_visibility(const AnimSample& sample) const;
 
     /// Extract params from an animation sample for use as push constants.
     void compute_push_constants (
@@ -125,9 +142,10 @@ SQEE_ENUM_HELPER
     sq::DrawItem::ParamType,
     ConstFloat, ConstFloat2, ConstFloat3, ConstFloat4,
     ConstInt, ConstInt2, ConstInt3, ConstInt4,
-    ModelMatrixIndex, NormalMatrixIndex,
+    ConstPackedBits,
+    ModelMatIndex, NormalMatIndex,
     TextureIndex,
     AnimFloat, AnimFloat2, AnimFloat3, AnimFloat4,
     AnimInt, AnimInt2, AnimInt3, AnimInt4,
-    AnimTextureTransform
+    ConstTexTransform, AnimTexTransform
 )

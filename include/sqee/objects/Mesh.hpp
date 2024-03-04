@@ -62,8 +62,13 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    /// Get the index of sub mesh by name, throw on failure.
-    uint8_t get_sub_mesh_index(TinyString name) const;
+    /// Get the index of a sub mesh by name, or -1 if not found.
+    int8_t get_sub_mesh_index(TinyString name) const noexcept;
+
+    /// Get the index of a sub mesh by name, or -1 if the json is null.
+    int8_t json_as_sub_mesh_index(JsonAny json) const;
+
+    //--------------------------------------------------------//
 
     /// Bind vertex and index buffers.
     void bind_buffers(vk::CommandBuffer cmdbuf) const;

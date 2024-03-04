@@ -2,67 +2,95 @@
 
 #include <fmt/chrono.h>
 
+#include <cstdio>
+#include <ctime>
+#include <string>
+
 using namespace sq;
 
 //============================================================================//
 
-void sq::detail::log_time_info()
+inline void impl_append_time_and_category(std::string_view category, fmt::memory_buffer& buffer)
 {
-    std::time_t now = std::time(nullptr);
-    fmt::print(stdout, "{:%H:%M:%S} INFO: ", fmt::localtime(now));
+    if (category.empty()) return;
+
+    const std::time_t now = std::time(nullptr);
+    fmt::format_to(fmt::appender(buffer), "{:%H:%M:%S} {}: ", fmt::localtime(now), category);
 }
 
-void sq::detail::log_time_warning()
+inline void impl_write_multiline(const fmt::memory_buffer& buffer, FILE* file)
 {
-    std::time_t now = std::time(nullptr);
-    fmt::print(stdout, "{:%H:%M:%S} WARNING: ", fmt::localtime(now));
-}
+    using Traits = std::char_traits<char>;
 
-void sq::detail::log_time_error()
-{
-    std::time_t now = std::time(nullptr);
-    fmt::print(stdout, "{:%H:%M:%S} ERROR: ", fmt::localtime(now));
-}
+    const char* const bufferEnd = buffer.end();
 
-void sq::detail::log_time_debug()
-{
-    std::time_t now = std::time(nullptr);
-    fmt::print(stdout, "{:%H:%M:%S} DEBUG: ", fmt::localtime(now));
+    const char* lineStart = buffer.begin();
+    const char* lineEnd = Traits::find(lineStart, size_t(bufferEnd - lineStart), '\n') + 1;
+
+    std::fwrite(lineStart, 1u, size_t(lineEnd - lineStart), file);
+
+    while (lineEnd != bufferEnd)
+    {
+        lineStart = lineEnd;
+        lineEnd = Traits::find(lineStart, size_t(bufferEnd - lineStart), '\n') + 1;
+
+        std::fwrite("  > ", 1u, 4u, file);
+        std::fwrite(lineStart, 1u, size_t(lineEnd - lineStart), file);
+    }
 }
 
 //============================================================================//
 
-void sq::log_raw(std::string_view str)
+void sq::detail::log(std::string_view category, std::string_view str)
 {
-    std::fwrite(str.data(), 1u, str.size(), stdout);
-    std::fputc('\n', stdout);
+    fmt::memory_buffer buffer;
+
+    impl_append_time_and_category(category, buffer);
+
+    buffer.append(str);
+    buffer.push_back('\n');
+
+    std::fwrite(buffer.data(), 1u, buffer.size(), stdout);
     std::fflush(stdout);
 }
 
-void sq::log_raw_multiline(std::string_view str)
+void sq::detail::log_multiline(std::string_view category, std::string_view str)
 {
-    size_t lineEnd = str.find('\n', 0u);
+    fmt::memory_buffer buffer;
 
-    #ifdef SQEE_DEBUG
-    if (lineEnd == 0u || lineEnd == std::string_view::npos)
-        log_error("invalid multiline string");
-    #endif
+    impl_append_time_and_category(category, buffer);
 
-    std::fwrite(str.data(), 1u, lineEnd, stdout);
-    size_t lineStart = lineEnd + 1u;
+    buffer.append(str);
+    buffer.push_back('\n');
 
-    while (lineStart < str.size())
-    {
-        std::fputs("\n  > ", stdout);
+    impl_write_multiline(buffer, stdout);
+    std::fflush(stdout);
+}
 
-        lineEnd = str.find('\n', lineStart);
-        auto line = str.substr(lineStart, lineEnd - lineStart);
-        std::fwrite(line.data(), 1u, line.size(), stdout);
+//============================================================================//
 
-        if (lineEnd == std::string_view::npos) break;
-        lineStart = lineEnd + 1u;
-    }
+void sq::detail::log(std::string_view category, fmt::string_view fstr, fmt::format_args args)
+{
+    fmt::memory_buffer buffer;
 
-    std::fputc('\n', stdout);
+    impl_append_time_and_category(category, buffer);
+
+    fmt::vformat_to(fmt::appender(buffer), fstr, args);
+    buffer.push_back('\n');
+
+    std::fwrite(buffer.data(), 1u, buffer.size(), stdout);
+    std::fflush(stdout);
+}
+
+void sq::detail::log_multiline(std::string_view category, fmt::string_view fstr, fmt::format_args args)
+{
+    fmt::memory_buffer buffer;
+
+    impl_append_time_and_category(category, buffer);
+
+    fmt::vformat_to(fmt::appender(buffer), fstr, args);
+    buffer.push_back('\n');
+
+    impl_write_multiline(buffer, stdout);
     std::fflush(stdout);
 }

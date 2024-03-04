@@ -39,7 +39,7 @@ vk::DescriptorSet VulkanContext::allocate_descriptor_set(vk::DescriptorPool pool
 
     const auto result = device.allocateDescriptorSets(&info, &descriptorSet);
     if (result != vk::Result::eSuccess)
-        vk::throwResultException(result, "VulkanContext::allocate_descriptor_set");
+        vk::detail::throwResultException(result, "VulkanContext::allocate_descriptor_set");
 
     return descriptorSet;
 }

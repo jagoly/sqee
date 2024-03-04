@@ -1,7 +1,6 @@
-#include "../../catch.hpp"
-#include "../../Common.hpp"
-
 #include <sqee/misc/StackVector.hpp>
+
+#include "Common.hpp"
 
 //============================================================================//
 

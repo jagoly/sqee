@@ -90,8 +90,11 @@ endif ()
 
 if (SQEE_GNU OR SQEE_CLANG)
 
-    target_compile_options(sqee PRIVATE -Wall -Wextra)
-    #target_compile_options(sqee PRIVATE -Wall -Wextra -Wpedantic)
+    target_compile_options(sqee PRIVATE -Wall -Wextra -Wpedantic)
+
+    if (SQEE_GNU)
+        target_compile_options(sqee PRIVATE -fconcepts-diagnostics-depth=2)
+    endif ()
 
     if (NOT SQEE_STATIC_LIB)
         target_compile_options(sqee PRIVATE -fvisibility=hidden)

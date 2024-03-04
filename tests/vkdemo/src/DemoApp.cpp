@@ -216,7 +216,7 @@ void DemoApp::initialise_models()
         model.texDiffuse = mCaches->textures.acquire("textures/Dice_diff");
         model.texSpecular = mCaches->textures.acquire("textures/Gray60");
         model.texNormal = mCaches->textures.acquire("textures/Dice_norm");
-        model.pipeline = mCaches->pipelines.acquire(sq::parse_json_from_file("assets/pipelines/Dice.json"));
+        model.pipeline = mCaches->pipelines.acquire(sq::JsonDocument::parse_file("assets/pipelines/Dice.json").root().dump(false));
     }
 }
 

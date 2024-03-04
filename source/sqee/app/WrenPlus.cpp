@@ -126,7 +126,7 @@ void WrenPlusVM::impl_error_fn(WrenVM* vm, WrenErrorType type, const char* modul
     {
         assert(module != NULL && line != -1);
         fmt::format_to (
-            std::back_inserter(WrenPlusVM::access(vm).mErrorString),
+            std::back_insert_iterator(WrenPlusVM::access(vm).mErrorString),
             "COMPILE | {}:{} | {}\n", module, line, message
         );
     }
@@ -134,7 +134,7 @@ void WrenPlusVM::impl_error_fn(WrenVM* vm, WrenErrorType type, const char* modul
     {
         assert(module == NULL && line == -1);
         fmt::format_to (
-            std::back_inserter(WrenPlusVM::access(vm).mErrorString),
+            std::back_insert_iterator(WrenPlusVM::access(vm).mErrorString),
             "RUNTIME | {}\n", message
         );
     }
@@ -142,7 +142,7 @@ void WrenPlusVM::impl_error_fn(WrenVM* vm, WrenErrorType type, const char* modul
     {
         assert(module != NULL && line != -1);
         fmt::format_to (
-            std::back_inserter(WrenPlusVM::access(vm).mErrorString),
+            std::back_insert_iterator(WrenPlusVM::access(vm).mErrorString),
             "STACKTRACE | {}:{} | {}\n", module, line, message
         );
     }
@@ -165,9 +165,9 @@ WrenForeignMethodFn WrenPlusVM::impl_bind_foreign_method_fn(WrenVM* vm, const ch
     WrenPlusVM& pvm = WrenPlusVM::access(vm);
 
     const auto key = fmt::format("{}.{}.{}", module, className, signature);
-    const auto iter = pvm.mForiegnMethods.find(key);
+    const auto iter = pvm.mForeignMethods.find(key);
 
-    return iter != pvm.mForiegnMethods.end() ? iter->second : nullptr;
+    return iter != pvm.mForeignMethods.end() ? iter->second : nullptr;
 }
 
 //============================================================================//
@@ -205,7 +205,7 @@ void WrenPlusVM::impl_register_method(const char* module, const char* className,
 {
     auto key = fmt::format("{}.{}.{}", module, className, signature);
 
-    const auto [iter, ok] = mForiegnMethods.try_emplace(std::move(key), func);
+    const auto [iter, ok] = mForeignMethods.try_emplace(std::move(key), func);
     (void)(iter); (void)(ok);
 
     assert(ok == true); // method already registered with key
@@ -227,29 +227,23 @@ void WrenPlusVM::impl_cache_handle(const char* module, const char* className, si
 
 void WrenPlusVM::impl_pointer_equality_operator(WrenVM* vm)
 {
-    struct TaggedPointer { void* ptr; size_t index; };
-
     if (wrenGetSlotType(vm, 1) == WREN_TYPE_FOREIGN)
     {
-        const auto& lhs = *static_cast<TaggedPointer*>(wrenGetSlotForeign(vm, 0));
-        const auto& rhs = *static_cast<TaggedPointer*>(wrenGetSlotForeign(vm, 1));
+        const auto& lhs = *static_cast<detail::TaggedPointer*>(wrenGetSlotForeign(vm, 0));
+        const auto& rhs = *static_cast<detail::TaggedPointer*>(wrenGetSlotForeign(vm, 1));
         if (lhs.ptr == rhs.ptr) { wrenSetSlotBool(vm, 0, true); return; }
     }
-
     wrenSetSlotBool(vm, 0, false);
 }
 
 void WrenPlusVM::impl_pointer_inequality_operator(WrenVM* vm)
 {
-    struct TaggedPointer { void* ptr; size_t index; };
-
     if (wrenGetSlotType(vm, 1) == WREN_TYPE_FOREIGN)
     {
-        const auto& lhs = *static_cast<TaggedPointer*>(wrenGetSlotForeign(vm, 0));
-        const auto& rhs = *static_cast<TaggedPointer*>(wrenGetSlotForeign(vm, 1));
+        const auto& lhs = *static_cast<detail::TaggedPointer*>(wrenGetSlotForeign(vm, 0));
+        const auto& rhs = *static_cast<detail::TaggedPointer*>(wrenGetSlotForeign(vm, 1));
         if (lhs.ptr == rhs.ptr) { wrenSetSlotBool(vm, 0, false); return; }
     }
-
     wrenSetSlotBool(vm, 0, true);
 }
 

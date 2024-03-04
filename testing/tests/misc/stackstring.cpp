@@ -1,7 +1,6 @@
-#include "../../catch.hpp"
-#include "../../Common.hpp"
-
 #include <sqee/misc/StackString.hpp>
+
+#include "Common.hpp"
 
 //============================================================================//
 
@@ -13,20 +12,20 @@ TEST_CASE("StackString", "[misc]")
     {
         constexpr TinyString strJunkC = CHAR_ARRAY;
 
-        static_assert (strJunkC == TinyString(CHAR_ARRAY), "");
-        static_assert (strJunkC == TinyString("abcdefghijklmno"), "");
-        static_assert (strJunkC < TinyString("bbcdefghijklmno"), "");
-        static_assert (strJunkC > TinyString("abcdefghijklmn"), "");
+        static_assert(strJunkC == TinyString(CHAR_ARRAY), "");
+        static_assert(strJunkC == TinyString("abcdefghijklmno"), "");
+        static_assert(strJunkC < TinyString("bbcdefghijklmno"), "");
+        static_assert(strJunkC > TinyString("abcdefghijklmn"), "");
 
-        static_assert (strJunkC == CHAR_ARRAY, "");
-        static_assert (strJunkC == "abcdefghijklmno", "");
-        static_assert (strJunkC < "abcdefghijklmnoo", "");
-        static_assert (strJunkC > "abcdefghijklmn", "");
+        static_assert(strJunkC == CHAR_ARRAY, "");
+        static_assert(strJunkC == "abcdefghijklmno", "");
+        static_assert(strJunkC < "abcdefghijklmnoo", "");
+        static_assert(strJunkC > "abcdefghijklmn", "");
 
-        static_assert (StringView(CHAR_ARRAY) == strJunkC, "");
-        static_assert (StringView("abcdefghijklmno") == strJunkC, "");
-        static_assert (StringView("abcdefghijklmnoo") > strJunkC, "");
-        static_assert (StringView("abcdefghijklmn") < strJunkC, "");
+        static_assert(StringView(CHAR_ARRAY) == strJunkC, "");
+        static_assert(StringView("abcdefghijklmno") == strJunkC, "");
+        static_assert(StringView("abcdefghijklmnoo") > strJunkC, "");
+        static_assert(StringView("abcdefghijklmn") < strJunkC, "");
 
         TinyString strDefault;
         TinyString strEmpty = "";

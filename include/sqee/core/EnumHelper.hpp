@@ -4,6 +4,8 @@
 #pragma once
 
 #include <sqee/core/Macros.hpp>
+#include <sqee/core/TypeTraits.hpp>
+#include <sqee/misc/StackString.hpp>
 
 #include <fmt/format.h>
 
@@ -12,62 +14,49 @@
 #include <optional>
 #include <stdexcept>
 #include <string_view>
-#include <type_traits>
 
 namespace sq {
 
 //============================================================================//
 
-/// Specialise using the SQEE_ENUM_HELPER macro.
-template <class T> struct EnumTraits : std::false_type {};
+/// Try to convert an enum to a string.
+template <HasEnumHelper Type>
+constexpr std::optional<const char*> enum_to_string_safe(Type arg) noexcept
+{
+    for (size_t i = 0u; i < enum_values_v<Type>.size(); ++i)
+        if (arg == enum_values_v<Type>[i])
+            return enum_strings_v<Type>[i];
 
-/// Check if EnumTraits has been specialised for a given enum type.
-template <class T> constexpr bool has_enum_traits_v = EnumTraits<T>::value;
-
-/// An iterable containing all enumeration values.
-template <class T> constexpr auto enum_items_v = EnumTraits<T>::items;
-
-/// The underlying value of the first enum.
-template <class T> constexpr auto enum_first_v = EnumTraits<T>::first;
-
-/// The number of enum values, excluding the first if it is -1.
-template <class T> constexpr auto enum_count_v = EnumTraits<T>::count;
-
-//============================================================================//
+    return std::nullopt;
+}
 
 /// Convert an enum to a string.
-template <class Type>
-constexpr const char* enum_to_string(Type value)
+template <HasEnumHelper Type>
+constexpr const char* enum_to_string(Type arg)
 {
-    return EnumTraits<Type>::to_string(value);
-}
+    if (auto opt = enum_to_string_safe<Type>(arg)) return *opt;
 
-/// Try to convert an enum to a string.
-template <class Type>
-constexpr std::optional<const char*> enum_to_string_safe(Type value)
-{
-    return EnumTraits<Type>::to_string_safe(value);
-}
-
-/// Convert a string to an enum.
-template <class Type>
-constexpr Type enum_from_string(std::string_view sv)
-{
-    return EnumTraits<Type>::from_string(sv);
+    throw std::runtime_error(fmt::format("enum_to_string<{}>({})", type_name_v<Type>.c_str(), std::underlying_type_t<Type>(arg)));
 }
 
 /// Try to convert a string to an enum.
-template <class Type>
-constexpr std::optional<Type> enum_from_string_safe(std::string_view sv)
+template <HasEnumHelper Type>
+constexpr std::optional<Type> enum_from_string_safe(std::string_view arg) noexcept
 {
-    return EnumTraits<Type>::from_string_safe(sv);
+    for (size_t i = 0u; i < enum_strings_v<Type>.size(); ++i)
+        if (arg == enum_strings_v<Type>[i])
+            return enum_values_v<Type>[i];
+
+    return std::nullopt;
 }
 
-/// SFINAE overload for converting enums to c strings.
-template <class Type>
-std::enable_if_t<has_enum_traits_v<Type>, const char*> to_c_string(Type arg)
+/// Convert a string to an enum.
+template <HasEnumHelper Type>
+constexpr Type enum_from_string(std::string_view arg)
 {
-    return enum_to_string(arg);
+    if (auto opt = enum_from_string_safe<Type>(arg)) return *opt;
+
+    throw std::runtime_error(fmt::format("enum_from_string<{}>({})", type_name_v<Type>.c_str(), arg));
 }
 
 //============================================================================//
@@ -76,51 +65,21 @@ std::enable_if_t<has_enum_traits_v<Type>, const char*> to_c_string(Type arg)
 
 //============================================================================//
 
-#define SQEE_ENUM_ITEMS_INNER(Case) ,enum_type::Case
-
-#define SQEE_ENUM_TO_STRING_INNER(Case) case enum_type::Case: return #Case;
-
-#define SQEE_ENUM_FROM_STRING_INNER(Case) if (sv == #Case) return enum_type::Case;
-
 #define SQEE_ENUM_HELPER(Type, First, ...) \
-template<> struct sq::EnumTraits<Type> : std::true_type \
-{ \
-    using enum_type = Type; \
-    using base_type = std::underlying_type_t<Type>; \
-    static constexpr auto items = std::array { Type::First SQEE_FOR_EACH(SQEE_ENUM_ITEMS_INNER, __VA_ARGS__) }; \
-    static constexpr auto first = base_type(items.front()); \
-    static_assert(first == 0 || first == -1, "unsupported first value"); \
-    static constexpr auto count = base_type(items.size()) + first; \
-    static constexpr const char* to_string(Type value) \
-    { \
-        switch (value) { SQEE_FOR_EACH(SQEE_ENUM_TO_STRING_INNER, First, __VA_ARGS__) } \
-        throw std::runtime_error(fmt::format("enum " #Type " to string: {}", base_type(value))); \
-    } \
-    static constexpr Type from_string(std::string_view sv) \
-    { \
-        SQEE_FOR_EACH(SQEE_ENUM_FROM_STRING_INNER, First, __VA_ARGS__) \
-        throw std::runtime_error(fmt::format("enum " #Type " from string: '{}'", sv)); \
-    } \
-    static constexpr std::optional<const char*> to_string_safe(Type value) \
-    { \
-        switch (value) { SQEE_FOR_EACH(SQEE_ENUM_TO_STRING_INNER, First, __VA_ARGS__) } \
-        return std::nullopt; \
-    } \
-    static constexpr std::optional<Type> from_string_safe(std::string_view sv) \
-    { \
-        SQEE_FOR_EACH(SQEE_ENUM_FROM_STRING_INNER, First, __VA_ARGS__) \
-        return std::nullopt; \
-    } \
-};
+template <> inline constexpr auto sq::type_name_v<Type> = StackString(#Type); \
+template <> inline constexpr auto sq::enum_first_v<Type> = std::underlying_type_t<Type>(Type::First); \
+template <> inline constexpr auto sq::enum_count_v<Type> = std::underlying_type_t<Type>(int(Type::First) + SQEE_COUNT_ARGS(First, __VA_ARGS__)); \
+template <> inline constexpr auto sq::enum_values_v<Type> = []() { using enum Type; return std::array { First, __VA_ARGS__ }; }(); \
+template <> inline constexpr auto sq::enum_strings_v<Type> = []() { return std::array { SQEE_STRINGIFY_ARGS(First, __VA_ARGS__) }; }();
 
 //============================================================================//
 
-template <class Type>
-struct fmt::formatter<Type, char, std::enable_if_t<sq::has_enum_traits_v<Type>>> : fmt::formatter<const char*>
+template <sq::HasEnumHelper Type>
+struct fmt::formatter<Type> : fmt::formatter<const char*>
 {
     template <class FormatContext>
-    auto format(const Type& value, FormatContext& ctx)
+    constexpr auto format(const Type& value, FormatContext& ctx) const
     {
-        return formatter<const char*>::format(sq::enum_to_string(value), ctx);
+        return fmt::formatter<const char*>::format(sq::enum_to_string(value), ctx);
     }
 };

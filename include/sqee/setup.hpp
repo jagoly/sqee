@@ -52,6 +52,9 @@ typedef std::size_t size_t;
 static_assert(sizeof(int) == 4);
 static_assert(sizeof(size_t) == 8);
 
+// implementation defined, but true for all supported platforms
+static_assert(sizeof(bool) == 1);
+
 // these are not standard c++ so make sure they are defined
 typedef unsigned char uchar;
 typedef unsigned int uint;
@@ -78,7 +81,8 @@ namespace maths {}
 /// A set of core types that get used everywhere.
 namespace coretypes {}
 
-namespace ranges = std::ranges;
+namespace ranges { using namespace std::ranges; }
+namespace views { using namespace std::ranges::views; }
 
 } // namespace sq
 

@@ -6,7 +6,11 @@
 #include <sqee/setup.hpp>
 
 #include <sqee/core/EnumHelper.hpp>
-#include <sqee/core/Types.hpp>
+#include <sqee/core/TypeAliases.hpp>
+
+#include <sqee/maths/Vectors.hpp>
+#include <sqee/maths/Matrices.hpp>
+#include <sqee/maths/Quaternion.hpp>
 
 #include <sqee/vk/Vulkan.hpp> // Flags
 
@@ -112,20 +116,20 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
-    /// Get the index of a bone by name, throw on failure.
-    uint8_t get_bone_index(TinyString name) const;
+    /// Get the index of a bone by name, or -1 if not found.
+    int8_t get_bone_index(TinyString name) const noexcept;
 
-    /// Get the index of a block by name, throw on failure.
-    uint8_t get_block_index(TinyString name) const;
+    /// Get the index of a block by name, or -1 if not found.
+    int8_t get_block_index(TinyString name) const noexcept;
 
-    /// Get the index of a block's track by name, throw on failure.
-    uint16_t get_block_track_index(uint8_t blockIndex, TinyString trackName) const;
+    /// Get the index of a block track by name, or -1 if not found.
+    int16_t get_block_track_index(TinyString blockName, TinyString trackName) const noexcept;
 
-    //--------------------------------------------------------//
+    /// Get the index of a bone by name, or -1 if the json is null.
+    int8_t json_as_bone_index(JsonAny json) const;
 
-    int8_t bone_from_json(const JsonValue& json) const;
-
-    JsonValue bone_to_json(int8_t bone) const;
+    /// Get the name of a bone by index, or null if the index is -1.
+    JsonMutAny json_from_bone_index(JsonMutDocument& document, int8_t index) const noexcept;
 
     //--------------------------------------------------------//
 
@@ -145,16 +149,25 @@ public: //====================================================//
 
     //--------------------------------------------------------//
 
+    // Bone matrices are absolute transforms. Used to transform objects not
+    // bound to this armature, or for drawing a skeleton.
+    //
+    // Model matrices are relative to each bone's rest transform. Mainly used to
+    // transform the vertices of a mesh (vertex skinning).
+    //
+    // todo: Are there better terms for these? Using the same terms as blender
+    //       would probably be a good idea.
+
     /// Compute the absolute transform of a bone.
     Mat4F compute_bone_matrix(const AnimSample& sample, uint8_t index) const;
 
-    /// Compute the absolute transforms for all bones.
-    std::vector<Mat4F> compute_skeleton_matrices(const AnimSample& sample) const;
+    /// Compute the absolute transforms of all bones.
+    std::vector<Mat4F> compute_bone_matrices(const AnimSample& sample) const;
 
-    /// Compute the model matrix of a single bone.
+    /// Compute the transform of a bone.
     Mat4F compute_model_matrix(const AnimSample& sample, Mat4F modelMatrix, uint8_t index) const;
 
-    /// Compute model matrices for all bones, transposed for shaders.
+    /// Compute the transforms of all bones, transposed for shaders.
     void compute_model_matrices (
         const AnimSample& sample, Mat4F viewMatrix, Mat4F invViewMatrix, Mat4F modelMatrix, Vec2F billboardScale, Mat34F* modelMats, size_t len
     ) const;

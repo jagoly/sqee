@@ -1,5 +1,6 @@
-#include "../../catch.hpp"
-#include "../../Common.hpp"
+#include <sqee/maths/Vectors.hpp>
+
+#include "Common.hpp"
 
 //============================================================================//
 
@@ -138,44 +139,44 @@ TEST_CASE("vector function tests", "[maths]")
     SECTION("linear mix")
     {
         constexpr auto lower = Vec2F(-10, -20);
-        constexpr auto  upper = Vec2F(+10, +20);
+        constexpr auto upper = Vec2F(+10, +20);
 
-        REQUIRE(maths::mix(lower, upper, 0.5f) == Approx(Vec2F(0, 0)));
-        REQUIRE(maths::mix(lower, upper, 0.25f) == Approx(Vec2F(-5, -10)));
-        REQUIRE(maths::mix(lower, upper, 0.75f) == Approx(Vec2F(+5, +10)));
+        REQUIRE_THAT(maths::mix(lower, upper, 0.5f), WithinAbs(Vec2F(0, 0)));
+        REQUIRE_THAT(maths::mix(lower, upper, 0.25f), WithinAbs(Vec2F(-5, -10)));
+        REQUIRE_THAT(maths::mix(lower, upper, 0.75f), WithinAbs(Vec2F(+5, +10)));
 
-        REQUIRE(maths::mix(lower, upper, 0.0f) == Approx(lower));
-        REQUIRE(maths::mix(lower, upper, 1.0f) == Approx(upper));
+        REQUIRE_THAT(maths::mix(lower, upper, 0.0f), WithinAbs(lower));
+        REQUIRE_THAT(maths::mix(lower, upper, 1.0f), WithinAbs(upper));
     }
 
     SECTION("dot product")
     {
-        REQUIRE(maths::dot(Vec2F(3, 2), Vec2F(5, 4)) == Approx(23.0f));
-        REQUIRE(maths::dot(Vec3F(4, 3, 2), Vec3F(7, 6, 5)) == Approx(56.0f));
-        REQUIRE(maths::dot(Vec4F(5, 4, 3, 2), Vec4F(9, 8, 7, 6)) == Approx(110.0f));
+        REQUIRE_THAT(maths::dot(Vec2F(3, 2), Vec2F(5, 4)), WithinAbs(23.0f));
+        REQUIRE_THAT(maths::dot(Vec3F(4, 3, 2), Vec3F(7, 6, 5)), WithinAbs(56.0f));
+        REQUIRE_THAT(maths::dot(Vec4F(5, 4, 3, 2), Vec4F(9, 8, 7, 6)), WithinAbs(110.0f));
     }
 
     SECTION("length")
     {
-        REQUIRE(maths::length(Vec2F(1.0f, 0.0f)) == Approx(1.0f));
-        REQUIRE(maths::length(Vec2F(0.0f, 1.0f)) == Approx(1.0f));
-        REQUIRE(maths::length(Vec2F(1.0f, 1.0f)) == Approx(1.414214f));
+        REQUIRE_THAT(maths::length(Vec2F(1.0f, 0.0f)), WithinAbs(1.0f));
+        REQUIRE_THAT(maths::length(Vec2F(0.0f, 1.0f)), WithinAbs(1.0f));
+        REQUIRE_THAT(maths::length(Vec2F(1.0f, 1.0f)), WithinAbs(1.414214f));
 
-        REQUIRE(maths::length(Vec3F(0.5f, 0.0f, 0.0f)) == Approx(0.5f));
-        REQUIRE(maths::length(Vec3F(0.5f, 0.5f, 0.0f)) == Approx(0.707107f));
-        REQUIRE(maths::length(Vec3F(0.5f, 0.5f, 0.5f)) == Approx(0.866025f));
+        REQUIRE_THAT(maths::length(Vec3F(0.5f, 0.0f, 0.0f)), WithinAbs(0.5f));
+        REQUIRE_THAT(maths::length(Vec3F(0.5f, 0.5f, 0.0f)), WithinAbs(0.707107f));
+        REQUIRE_THAT(maths::length(Vec3F(0.5f, 0.5f, 0.5f)), WithinAbs(0.866025f));
 
-        REQUIRE(maths::length(Vec4F(0.2f, 0.4f, 0.6f, 0.8f)) == Approx(1.095445f));
-        REQUIRE(maths::length(Vec4F(4.4f, 3.3f, 2.2f, 1.1f)) == Approx(6.024948f));
+        REQUIRE_THAT(maths::length(Vec4F(0.2f, 0.4f, 0.6f, 0.8f)), WithinAbs(1.095445f));
+        REQUIRE_THAT(maths::length(Vec4F(4.4f, 3.3f, 2.2f, 1.1f)), WithinAbs(6.024948f));
     }
 
     SECTION("normalize")
     {
-        REQUIRE(maths::normalize(Vec2F(0.5, 0.0)) == Approx(Vec2F(1.0, 0.0)));
-        REQUIRE(maths::normalize(Vec3F(0.0, 1.0, 0.0)) == Approx(Vec3F(0.0, 1.0, 0.0)));
-        REQUIRE(maths::normalize(Vec4F(0.0, 0.0, 1.5, 0.0)) == Approx(Vec4F(0.0, 0.0, 1.0, 0.0)));
+        REQUIRE_THAT(maths::normalize(Vec2F(0.5, 0.0)), WithinAbs(Vec2F(1.0, 0.0)));
+        REQUIRE_THAT(maths::normalize(Vec3F(0.0, 1.0, 0.0)), WithinAbs(Vec3F(0.0, 1.0, 0.0)));
+        REQUIRE_THAT(maths::normalize(Vec4F(0.0, 0.0, 1.5, 0.0)), WithinAbs(Vec4F(0.0, 0.0, 1.0, 0.0)));
 
-        REQUIRE(maths::normalize(Vec2F(3.3f, 5.5f)) == Approx(Vec2F(0.514496f, 0.857493f)));
+        REQUIRE_THAT(maths::normalize(Vec2F(3.3f, 5.5f)), WithinAbs(Vec2F(0.514496f, 0.857493f)));
     }
 
     SECTION("reflect")
@@ -183,11 +184,11 @@ TEST_CASE("vector function tests", "[maths]")
         const auto pNormA = Vec3F(-1.0f, 0.0f, 0.0f);
         const auto pNormB = Vec3F(0.0f, 0.707107f, 0.707107f);
 
-        REQUIRE(maths::reflect(Vec3F(1.0f, 0.0f, 0.0f), pNormA) == Approx(Vec3F(-1.0f, 0.0f, 0.0f)));
-        REQUIRE(maths::reflect(Vec3F(1.0f, 0.0f, 1.0f), pNormA) == Approx(Vec3F(-1.0f, 0.0f, 1.0f)));
+        REQUIRE_THAT(maths::reflect(Vec3F(1.0f, 0.0f, 0.0f), pNormA), WithinAbs(Vec3F(-1.0f, 0.0f, 0.0f)));
+        REQUIRE_THAT(maths::reflect(Vec3F(1.0f, 0.0f, 1.0f), pNormA), WithinAbs(Vec3F(-1.0f, 0.0f, 1.0f)));
 
-        REQUIRE(maths::reflect(Vec3F(0.0f, 0.0f, -1.0f), pNormB) == Approx(Vec3F(0.0f, 1.0f, 0.0f)));
-        REQUIRE(maths::reflect(Vec3F(0.0f, -1.0f, 0.0f), pNormB) == Approx(Vec3F(0.0f, 0.0f, 1.0f)));
+        REQUIRE_THAT(maths::reflect(Vec3F(0.0f, 0.0f, -1.0f), pNormB), WithinAbs(Vec3F(0.0f, 1.0f, 0.0f)));
+        REQUIRE_THAT(maths::reflect(Vec3F(0.0f, -1.0f, 0.0f), pNormB), WithinAbs(Vec3F(0.0f, 0.0f, 1.0f)));
     }
 
     SECTION("cross product")
@@ -196,29 +197,29 @@ TEST_CASE("vector function tests", "[maths]")
         const auto tangent = Vec3F(0.0f, 1.0f, 0.0f);
         const auto bitangent = Vec3F(0.0f, 0.0f, 1.0f);
 
-        REQUIRE(maths::normalize(maths::cross(normal, tangent)) == Approx(bitangent));
-        REQUIRE(maths::normalize(maths::cross(tangent, bitangent)) == Approx(normal));
-        REQUIRE(maths::normalize(maths::cross(bitangent, normal)) == Approx(tangent));
+        REQUIRE_THAT(maths::normalize(maths::cross(normal, tangent)), WithinAbs(bitangent));
+        REQUIRE_THAT(maths::normalize(maths::cross(tangent, bitangent)), WithinAbs(normal));
+        REQUIRE_THAT(maths::normalize(maths::cross(bitangent, normal)), WithinAbs(tangent));
 
-        REQUIRE(maths::normalize(maths::cross(tangent, normal)) == Approx(-bitangent));
-        REQUIRE(maths::normalize(maths::cross(bitangent, tangent)) == Approx(-normal));
-        REQUIRE(maths::normalize(maths::cross(normal, bitangent)) == Approx(-tangent));
+        REQUIRE_THAT(maths::normalize(maths::cross(tangent, normal)), WithinAbs(-bitangent));
+        REQUIRE_THAT(maths::normalize(maths::cross(bitangent, tangent)), WithinAbs(-normal));
+        REQUIRE_THAT(maths::normalize(maths::cross(normal, bitangent)), WithinAbs(-tangent));
     }
 
     SECTION("rotate along axis")
     {
         const auto vec = Vec3F(1.0, 2.0, 3.0);
 
-        REQUIRE(maths::rotate_x(vec, 0.25f) == Approx(Vec3F(1.0, -3.0, 2.0)));
-        REQUIRE(maths::rotate_x(vec, -0.5f) == Approx(Vec3F(1.0, -2.0, -3.0)));
-        REQUIRE(maths::rotate_x(vec, 0.75f) == Approx(Vec3F(1.0, 3.0, -2.0)));
+        REQUIRE_THAT(maths::rotate_x(vec, 0.25f), WithinAbs(Vec3F(1.0, -3.0, 2.0)));
+        REQUIRE_THAT(maths::rotate_x(vec, -0.5f), WithinAbs(Vec3F(1.0, -2.0, -3.0)));
+        REQUIRE_THAT(maths::rotate_x(vec, 0.75f), WithinAbs(Vec3F(1.0, 3.0, -2.0)));
 
-        REQUIRE(maths::rotate_y(vec, 0.25f) == Approx(Vec3F(3.0, 2.0, -1.0)));
-        REQUIRE(maths::rotate_y(vec, -0.5f) == Approx(Vec3F(-1.0, 2.0, -3.0)));
-        REQUIRE(maths::rotate_y(vec, 0.75f) == Approx(Vec3F(-3.0, 2.0, 1.0)));
+        REQUIRE_THAT(maths::rotate_y(vec, 0.25f), WithinAbs(Vec3F(3.0, 2.0, -1.0)));
+        REQUIRE_THAT(maths::rotate_y(vec, -0.5f), WithinAbs(Vec3F(-1.0, 2.0, -3.0)));
+        REQUIRE_THAT(maths::rotate_y(vec, 0.75f), WithinAbs(Vec3F(-3.0, 2.0, 1.0)));
 
-        REQUIRE(maths::rotate_z(vec, 0.25f) == Approx(Vec3F(-2.0, 1.0, 3.0)));
-        REQUIRE(maths::rotate_z(vec, -0.5f) == Approx(Vec3F(-1.0, -2.0, 3.0)));
-        REQUIRE(maths::rotate_z(vec, 0.75f) == Approx(Vec3F(2.0, -1.0, 3.0)));
+        REQUIRE_THAT(maths::rotate_z(vec, 0.25f), WithinAbs(Vec3F(-2.0, 1.0, 3.0)));
+        REQUIRE_THAT(maths::rotate_z(vec, -0.5f), WithinAbs(Vec3F(-1.0, -2.0, 3.0)));
+        REQUIRE_THAT(maths::rotate_z(vec, 0.75f), WithinAbs(Vec3F(2.0, -1.0, 3.0)));
     }
 }

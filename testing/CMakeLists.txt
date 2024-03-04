@@ -9,6 +9,8 @@ add_executable(sqee-testing ${HEADERS} ${SOURCES})
 
 target_set_output_directory(sqee-testing "testing")
 
+target_include_directories(sqee-testing PRIVATE "${PROJECT_SOURCE_DIR}")
+
 ################################################################################
 
 set_property(TARGET sqee-testing PROPERTY CXX_STANDARD 20)

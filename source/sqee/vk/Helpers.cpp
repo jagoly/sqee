@@ -138,7 +138,7 @@ vk::Pipeline sq::vk_create_graphics_pipeline(const VulkanContext& ctx, vk::Pipel
     );
 
     if (result.result != vk::Result::eSuccess)
-        vk::throwResultException(result.result, "sq::vk_create_graphics_pipeline");
+        vk::detail::throwResultException(result.result, "sq::vk_create_graphics_pipeline");
 
     return result.value;
 }
@@ -153,7 +153,7 @@ vk::DescriptorSet sq::vk_allocate_descriptor_set(const VulkanContext& ctx, vk::D
 
     const auto result = ctx.device.allocateDescriptorSets(&info, &descriptorSet);
     if (result != vk::Result::eSuccess)
-        vk::throwResultException(result, "sq::vk_allocate_descriptor_set");
+        vk::detail::throwResultException(result, "sq::vk_allocate_descriptor_set");
 
     return descriptorSet;
 }
@@ -167,7 +167,7 @@ Swapper<vk::DescriptorSet> sq::vk_allocate_descriptor_set_swapper(const VulkanCo
 
     const auto result = ctx.device.allocateDescriptorSets(&info, reinterpret_cast<vk::DescriptorSet*>(&swapper));
     if (result != vk::Result::eSuccess)
-        vk::throwResultException(result, "sq::vk_allocate_descriptor_set_swapper");
+        vk::detail::throwResultException(result, "sq::vk_allocate_descriptor_set_swapper");
 
     return swapper;
 }

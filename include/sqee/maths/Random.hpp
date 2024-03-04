@@ -5,132 +5,109 @@
 
 #include <sqee/maths/Vectors.hpp>
 
-#include <fmt/format.h>
-
 #include <random> // IWYU pragma: export
 
-namespace sq { namespace maths {
+namespace sq::maths { //########################################################
 
-//============================================================================//
+using RandNumGen = std::mt19937;
 
 /// Callable object for generating random values within a range.
 template <class T> struct RandomRange
 {
-    static_assert (
-        std::is_same_v<T, int16_t> || std::is_same_v<T, int32_t> ||
-        std::is_same_v<T, uint16_t> || std::is_same_v<T, uint32_t> ||
-        std::is_same_v<T, float> || std::is_same_v<T, double> ||
-        detail::is_vector_v<T>, "unsupported type"
-    );
-
-    constexpr RandomRange() : data { T(0), T(0) } {}
+    constexpr RandomRange() : min(T(0)), max(T(0)) {}
     constexpr RandomRange(T min, T max) : min(min), max(max) {}
 
-    template <class Generator>
-    T operator()(Generator& gen) const
+    T operator()(RandNumGen& gen) const requires std::integral<T>
     {
-        if (min == max)
+        if (min == max) { gen.discard(1); return min; }
+        return std::uniform_int_distribution(min, max)(gen);
+    };
+
+    T operator()(RandNumGen& gen) const requires std::floating_point<T>
+    {
+        if (min == max) { gen.discard(1); return min; }
+        return std::uniform_real_distribution(min, max)(gen);
+    };
+
+    T operator()(RandNumGen& gen) const requires AnyVector<T>
+    {
+        return [&]<int VecS, class VecT>(Vector<VecS, VecT> result)
         {
-            if constexpr (std::is_arithmetic_v<T>)
-                gen.discard(1u);
-
-            if constexpr (detail::is_vector_v<T>)
-                gen.discard(detail::vector_size_v<T>);
-
-            return min;
-        }
-
-        if constexpr (std::is_integral_v<T>)
-            return std::uniform_int_distribution(min, max)(gen);
-
-        if constexpr (std::is_floating_point_v<T>)
-            return std::uniform_real_distribution(min, max)(gen);
-
-        if constexpr (detail::is_vector_v<T>)
-        {
-            T result(nullptr);
-            for (int i = 0; i < detail::vector_size_v<T>; ++i)
-                result[i] = RandomRange<detail::vector_type_t<T>>(min[i], max[i])(gen);
+            for (int i = 0; i < VecS; ++i)
+                result[i] = RandomRange<VecT>(min[i], max[i])(gen);
             return result;
         }
-    }
+        (T(nullptr));
+    };
 
     constexpr bool operator==(const RandomRange& other) const
-    { return min == other.min && max == other.max; }
+    {
+        return min == other.min && max == other.max;
+    }
 
-    constexpr bool operator!=(const RandomRange& other) const
-    { return min != other.min || max != other.max; }
-
-    union { T data[2]; struct { T min, max; }; };
+    T min, max;
 };
 
-//============================================================================//
+} // namespace sq::maths #######################################################
 
-} // namespace maths
+#include <sqee/core/TypeNames.hpp>
 
-template <class T>
-constexpr const char* type_to_string(maths::RandomRange<T>)
-{
-    if constexpr (std::is_same_v<T, int16_t>) return "RandRangeInt16";
-    if constexpr (std::is_same_v<T, uint16_t>) return "RandRangeUInt16";
-    if constexpr (std::is_same_v<T, int32_t>) return "RandRangeInt32";
-    if constexpr (std::is_same_v<T, uint32_t>) return "RandRangeUInt32";
-    if constexpr (std::is_same_v<T, float>) return "RandRangeFloat";
-    if constexpr (std::is_same_v<T, double>) return "RandRangeDouble";
-    if constexpr (std::is_same_v<T, maths::Vector<2, int>>) return "RandRangeVec2I";
-    if constexpr (std::is_same_v<T, maths::Vector<3, int>>) return "RandRangeVec3I";
-    if constexpr (std::is_same_v<T, maths::Vector<4, int>>) return "RandRangeVec4I";
-    if constexpr (std::is_same_v<T, maths::Vector<2, uint>>) return "RandRangeVec2U";
-    if constexpr (std::is_same_v<T, maths::Vector<3, uint>>) return "RandRangeVec3U";
-    if constexpr (std::is_same_v<T, maths::Vector<4, uint>>) return "RandRangeVec4U";
-    if constexpr (std::is_same_v<T, maths::Vector<2, float>>) return "RandRangeVec2F";
-    if constexpr (std::is_same_v<T, maths::Vector<3, float>>) return "RandRangeVec3F";
-    if constexpr (std::is_same_v<T, maths::Vector<4, float>>) return "RandRangeVec4F";
-    return "RandomRange<T>";
-}
-
-} // namespace sq
-
-//============================================================================//
+#include <fmt/format.h>
 
 template <class T>
-struct fmt::formatter<sq::maths::RandomRange<T>> : fmt::formatter<T>
+struct fmt::formatter<sq::maths::RandomRange<T>>
 {
-    template <class FormatContext>
-    auto format(const sq::maths::RandomRange<T>& range, FormatContext& ctx)
+    fmt::formatter<T> base;
+
+    template <class ParseContext>
+    constexpr ParseContext::iterator parse(ParseContext& ctx)
     {
-        fmt::format_to(ctx.out(), "{}(", sq::type_to_string(sq::maths::RandomRange<T>()));
-        formatter<T>::format(range.min, ctx);
-        fmt::format_to(ctx.out(), ", ");
-        formatter<T>::format(range.max, ctx);
-        return fmt::format_to(ctx.out(), ")");
+        return base.parse(ctx);
+    }
+
+    template <class FormatContext>
+    FormatContext::iterator format(const sq::maths::RandomRange<T>& rr, FormatContext& ctx) const
+    {
+        ctx.advance_to(fmt::detail::write(ctx.out(), sq::type_name_v<sq::maths::RandomRange<T>>.c_str()));
+        ctx.advance_to(fmt::detail::write(ctx.out(), '('));
+        ctx.advance_to(base.format(rr.min, ctx));
+        ctx.advance_to(fmt::detail::write(ctx.out(), ", "));
+        ctx.advance_to(base.format(rr.max, ctx));
+        return fmt::detail::write(ctx.out(), ')');
     }
 };
 
 template <int S, class T>
-struct fmt::formatter<sq::maths::RandomRange<sq::maths::Vector<S, T>>> : fmt::formatter<T>
+struct fmt::formatter<sq::maths::RandomRange<sq::maths::Vector<S, T>>>
 {
-    using VectorST = sq::maths::Vector<S, T>;
+    fmt::formatter<T> base;
+
+    template <class ParseContext>
+    constexpr ParseContext::iterator parse(ParseContext& ctx)
+    {
+        return base.parse(ctx);
+    }
 
     template <class FormatContext>
-    auto format(const sq::maths::RandomRange<VectorST>& range, FormatContext& ctx)
+    FormatContext::iterator format(const sq::maths::RandomRange<sq::maths::Vector<S, T>>& rr, FormatContext& ctx) const
     {
-        fmt::format_to(ctx.out(), "{}((", sq::type_to_string(sq::maths::RandomRange<VectorST>()));
-        formatter<T>::format(range.min.x, ctx);
-        fmt::format_to(ctx.out(), ", ");
-        formatter<T>::format(range.min.y, ctx);
-        if constexpr (S >= 3) fmt::format_to(ctx.out(), ", ");
-        if constexpr (S >= 3) formatter<T>::format(range.min.z, ctx);
-        if constexpr (S == 4) fmt::format_to(ctx.out(), ", ");
-        if constexpr (S == 4) formatter<T>::format(range.min.w, ctx);
-        fmt::format_to(ctx.out(), "), (");
-        formatter<T>::format(range.max.x, ctx);
-        fmt::format_to(ctx.out(), ", ");
-        formatter<T>::format(range.max.y, ctx);
-        if constexpr (S >= 3) fmt::format_to(ctx.out(), ", ");
-        if constexpr (S >= 3) formatter<T>::format(range.max.z, ctx);
-        if constexpr (S == 4) fmt::format_to(ctx.out(), ", ");
-        if constexpr (S == 4) formatter<T>::format(range.max.w, ctx);
-        return fmt::format_to(ctx.out(), "))");
-     }
+        ctx.advance_to(fmt::detail::write(ctx.out(), sq::type_name_v<sq::maths::RandomRange<sq::maths::Vector<S, T>>>.c_str()));
+        ctx.advance_to(fmt::detail::write(ctx.out(), "(("));
+        ctx.advance_to(base.format(rr.min[0], ctx));
+        ctx.advance_to(fmt::detail::write(ctx.out(), ", "));
+        ctx.advance_to(base.format(rr.min[1], ctx));
+        if constexpr (S >= 3) ctx.advance_to(fmt::detail::write(ctx.out(), ", "));
+        if constexpr (S >= 3) ctx.advance_to(base.format(rr.min[2], ctx));
+        if constexpr (S == 4) ctx.advance_to(fmt::detail::write(ctx.out(), ", "));
+        if constexpr (S == 4) ctx.advance_to(base.format(rr.min[3], ctx));
+        ctx.advance_to(fmt::detail::write(ctx.out(), "), ("));
+        ctx.advance_to(base.format(rr.max[0], ctx));
+        ctx.advance_to(fmt::detail::write(ctx.out(), ", "));
+        ctx.advance_to(base.format(rr.max[1], ctx));
+        if constexpr (S >= 3) ctx.advance_to(fmt::detail::write(ctx.out(), ", "));
+        if constexpr (S >= 3) ctx.advance_to(base.format(rr.max[2], ctx));
+        if constexpr (S == 4) ctx.advance_to(fmt::detail::write(ctx.out(), ", "));
+        if constexpr (S == 4) ctx.advance_to(base.format(rr.max[3], ctx));
+        return fmt::detail::write(ctx.out(), "))");
+    }
 };

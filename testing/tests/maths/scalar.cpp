@@ -1,5 +1,6 @@
-#include "../../catch.hpp"
-#include "../../Common.hpp"
+#include <sqee/maths/Scalar.hpp>
+
+#include "Common.hpp"
 
 //============================================================================//
 
@@ -34,20 +35,20 @@ TEST_CASE("scalar function tests", "[maths]")
 
     SECTION("linear mix")
     {
-        REQUIRE(maths::mix(-10.0f, +10.0f, 0.5f) == Approx(0.0f));
-        REQUIRE(maths::mix(-10.0f, +10.0f, 0.25f) == Approx(-5.0f));
-        REQUIRE(maths::mix(-10.0f, +10.0f, 0.75f) == Approx(+5.0f));
+        REQUIRE_THAT(maths::mix(-10.0f, +10.0f, 0.5f), WithinAbs(0.0f));
+        REQUIRE_THAT(maths::mix(-10.0f, +10.0f, 0.25f), WithinAbs(-5.0f));
+        REQUIRE_THAT(maths::mix(-10.0f, +10.0f, 0.75f), WithinAbs(+5.0f));
     }
 
     SECTION("convert to radians")
     {
-        REQUIRE(maths::radians(0.0f) == Approx(0.0f));
-        REQUIRE(maths::radians(0.5f) == Approx(PI));
+        REQUIRE_THAT(maths::radians(0.0f), WithinAbs(0.0f));
+        REQUIRE_THAT(maths::radians(0.5f), WithinAbs(PI));
     }
 
     SECTION("convert to cycles")
     {
-        REQUIRE(maths::cycles(0.0f) == Approx(0.0f));
-        REQUIRE(maths::cycles(PI) == Approx(0.5f));
+        REQUIRE_THAT(maths::cycles(0.0f), WithinAbs(0.0f));
+        REQUIRE_THAT(maths::cycles(PI), WithinAbs(0.5f));
     }
 }
