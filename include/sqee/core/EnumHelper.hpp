@@ -66,7 +66,7 @@ constexpr Type enum_from_string(std::string_view arg)
 //============================================================================//
 
 #define SQEE_ENUM_HELPER(Type, First, ...) \
-template <> inline constexpr auto sq::type_name_v<Type> = StackString(#Type); \
+template <> inline constexpr auto sq::type_name_v<Type> = sq::StackString(#Type); \
 template <> inline constexpr auto sq::enum_first_v<Type> = std::underlying_type_t<Type>(Type::First); \
 template <> inline constexpr auto sq::enum_count_v<Type> = std::underlying_type_t<Type>(int(Type::First) + SQEE_COUNT_ARGS(First, __VA_ARGS__)); \
 template <> inline constexpr auto sq::enum_values_v<Type> = []() { using enum Type; return std::array { First, __VA_ARGS__ }; }(); \

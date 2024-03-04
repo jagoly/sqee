@@ -4,6 +4,8 @@
 
 #include <sqee/redist/yyjson.hpp>
 
+#include <cassert>
+
 using namespace sq;
 
 //==============================================================================

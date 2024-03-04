@@ -57,7 +57,7 @@ inline constexpr auto type_name_v<maths::Quaternion<Type>> = format_consteval<"Q
 template <> inline constexpr auto type_name_v<maths::Quaternion<float>> = StackString("QuatF");
 
 template <class Type>
-inline constexpr auto type_name_v<class maths::RandomRange<Type>> = format_consteval<"RandomRange<{}>", type_name_v<Type>>();
+inline constexpr auto type_name_v<maths::RandomRange<Type>> = format_consteval<"RandomRange<{}>", type_name_v<Type>>();
 
 template <> inline constexpr auto type_name_v<JsonAny> = StackString("JsonAny");
 template <> inline constexpr auto type_name_v<JsonArray> = StackString("JsonArray");
