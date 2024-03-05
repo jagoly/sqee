@@ -43,6 +43,7 @@ public: //====================================================//
     {
         float maxAnisotropy;
         float timestampPeriod;
+        vk::Format depthStencilFormat;
     }
     limits;
 
