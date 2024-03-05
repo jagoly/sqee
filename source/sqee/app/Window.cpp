@@ -557,7 +557,7 @@ Window::Window(const char* title, Vec2U size, const char* appName, Vec3U version
             constexpr auto requiredFeats = vk::FormatFeatureFlagBits::eDepthStencilAttachment | vk::FormatFeatureFlagBits::eBlitDst;
             const auto d24feats = mPhysicalDevice.getFormatProperties(vk::Format::eD24UnormS8Uint).optimalTilingFeatures;
 
-            if (d24feats & requiredFeats) context.limits.depthStencilFormat = vk::Format::eD24UnormS8Uint;
+            if ((d24feats & requiredFeats) == requiredFeats) context.limits.depthStencilFormat = vk::Format::eD24UnormS8Uint;
             else context.limits.depthStencilFormat = vk::Format::eD32SfloatS8Uint;
 
             log_info("Using Depth/Stencil Format '{}'", vk::to_string(context.limits.depthStencilFormat));
