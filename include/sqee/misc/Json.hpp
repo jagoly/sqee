@@ -167,7 +167,7 @@ public: //======================================================
 
     struct PointerFacade final { IndexValue item; IndexValue* operator->() noexcept { return &item; } };
 
-    struct Iterator final
+    struct SQEE_API Iterator final
     {
         size_t iterIdx; yyjson_val* iterCur; const JsonArray* array;
 
@@ -219,7 +219,7 @@ public: //======================================================
 
     struct PointerFacade final { KeyValue item; KeyValue* operator->() noexcept { return &item; } };
 
-    struct Iterator final
+    struct SQEE_API Iterator final
     {
         size_t iterIdx; yyjson_val* iterCur; const JsonObject* object;
 
@@ -493,7 +493,7 @@ template <> struct JsonTraits<double>
 
 template <> struct JsonTraits<float>
 {
-    inline static std::optional<double> as(JsonAny json) noexcept
+    inline static std::optional<float> as(JsonAny json) noexcept
     {
         // automatically round or clamp double to float
         if (detail::json_check_tag(json.mVal, detail::JSON_TYPE_NUM, detail::JSON_SUBTYPE_REAL))
