@@ -5,7 +5,9 @@
 
 #include <sqee/setup.hpp>
 
-#include <sqee/core/Types.hpp>
+#include <sqee/core/TypeAliases.hpp>
+#include <sqee/maths/Vectors.hpp>
+#include <sqee/maths/Matrices.hpp>
 
 namespace sq::maths {
 

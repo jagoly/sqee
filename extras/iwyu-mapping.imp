@@ -5,14 +5,17 @@
   { include: ["<bits/chrono.h>", "private", "<chrono>", "public"] },
   { include: ["<bits/utility.h>", "private", "<utility>", "public"] },
 
-  { include: ["<vulkan/vulkan.hpp>", "private", "<sqee/vk/Vulkan.hpp>", "public"] },
-  { include: ["<vulkan/vk_platform.h>", "private", "<sqee/vk/Vulkan.hpp>", "public"] },
-  { include: ["<vulkan/vulkan_core.h>", "private", "<sqee/vk/Vulkan.hpp>", "public"] },
+  { include: ["@<vulkan/.*>", "private", "<sqee/vk/Vulkan.hpp>", "public"] },
 
   { include: ["<wren.h>", "private", "<wren.hpp>", "public"] },
+  
+  { include: ["@\"fmt/.*\"", "private", "<fmt/format.h>", "public"] },
+  { include: ["@\"dearimgui/.*\"", "private", "<dearimgui/imgui.h>", "public"] },
+  { include: ["@<dearimgui/.*>", "private", "<dearimgui/imgui.h>", "public"] },
+  { include: ["@\"spirv_/.*\"", "private", "<spirv_cross.h>", "public"] },
 
-  { symbol: ["fmt::print", "private", "<fmt/core.h>", "public"] },
-  { symbol: ["fmt::format", "private", "<fmt/core.h>", "public"] },
-  { symbol: ["fmt::format_to", "private", "<fmt/core.h>", "public"] },
-  { symbol: ["fmt::formatter", "private", "<fmt/core.h>", "public"] }
+  { symbol: ["uint", "private", "<sqee/setup.hpp>", "public"] },
+  { symbol: ["uint", "private", "<sqee/core/TypeAliases.hpp>", "public"] },
+  { symbol: ["uchar", "private", "<sqee/setup.hpp>", "public"] },
+  { symbol: ["uchar", "private", "<sqee/core/TypeAliases.hpp>", "public"] }
 ]

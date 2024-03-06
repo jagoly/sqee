@@ -6,8 +6,8 @@
 #include <sqee/setup.hpp>
 
 #include <sqee/core/EnumHelper.hpp>
+#include <sqee/core/TypeAliases.hpp>
 #include <sqee/core/TypeTraits.hpp>
-#include <sqee/core/Types.hpp>
 
 // defined here instead of in imconfig.h so that we have access to StackString
 #define IM_STRV_CLASS_EXTRA \

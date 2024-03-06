@@ -1,5 +1,6 @@
 ﻿#include <sqee/vk/Wrappers.hpp>
 
+#include <sqee/maths/Vectors.hpp>
 #include <sqee/vk/VulkanContext.hpp>
 
 using namespace sq;

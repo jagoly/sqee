@@ -6,7 +6,7 @@
 #include <sqee/setup.hpp>
 
 #include <sqee/app/Scene.hpp>
-#include <sqee/core/Types.hpp>
+#include <sqee/core/TypeAliases.hpp>
 #include <sqee/vk/Vulkan.hpp>
 
 namespace sq {

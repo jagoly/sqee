@@ -5,6 +5,10 @@
 #include <sqee/redist/yyjson.hpp>
 
 #include <cassert>
+#include <cstdlib>
+#include <memory>
+#include <stdexcept>
+#include <vector>
 
 using namespace sq;
 

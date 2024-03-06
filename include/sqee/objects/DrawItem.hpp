@@ -3,10 +3,11 @@
 #include <sqee/setup.hpp>
 
 #include <sqee/core/EnumHelper.hpp>
-#include <sqee/core/Types.hpp>
-
+#include <sqee/core/TypeAliases.hpp>
+#include <sqee/maths/Vectors.hpp>
 #include <sqee/misc/ResourceCache.hpp>
 #include <sqee/misc/ResourceHandle.hpp>
+#include <sqee/misc/StackString.hpp>
 
 namespace sq {
 

@@ -3,8 +3,8 @@
 #include <sqee/setup.hpp>
 
 #include <sqee/core/EnumHelper.hpp>
-#include <sqee/core/Types.hpp>
-
+#include <sqee/core/TypeAliases.hpp>
+#include <sqee/misc/StackString.hpp>
 #include <sqee/vk/PassConfig.hpp>
 #include <sqee/vk/Vulkan.hpp>
 

@@ -4,9 +4,10 @@
 #include <sqee/app/InputDevices.hpp>
 #include <sqee/app/Window.hpp>
 #include <sqee/core/Macros.hpp>
-#include <sqee/core/Types.hpp>
+#include <sqee/core/TypeAliases.hpp>
 #include <sqee/data/BuiltinShaders.hpp>
 #include <sqee/data/UbuntuMinimal.hpp>
+#include <sqee/maths/Vectors.hpp>
 #include <sqee/maths/Colours.hpp>
 #include <sqee/vk/Helpers.hpp>
 #include <sqee/vk/VulkanContext.hpp>

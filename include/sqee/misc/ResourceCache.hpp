@@ -7,7 +7,6 @@
 
 #include <sqee/debug/Assert.hpp>
 #include <sqee/debug/Logging.hpp>
-
 #include <sqee/misc/ResourceHandle.hpp>
 
 namespace sq {

@@ -6,7 +6,8 @@
 #include <sqee/setup.hpp>
 
 #include <sqee/core/EnumHelper.hpp>
-#include <sqee/core/Types.hpp>
+#include <sqee/core/TypeAliases.hpp>
+#include <sqee/maths/Vectors.hpp>
 
 namespace sq {
 

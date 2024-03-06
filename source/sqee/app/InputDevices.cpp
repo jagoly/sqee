@@ -4,6 +4,7 @@
 #include <sqee/app/Gamepad.hpp>
 #include <sqee/app/Window.hpp>
 #include <sqee/debug/Assert.hpp>
+#include <sqee/maths/Vectors.hpp>
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>

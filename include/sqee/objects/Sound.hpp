@@ -5,7 +5,7 @@
 
 #include <sqee/setup.hpp>
 
-#include <sqee/core/Types.hpp>
+#include <sqee/core/TypeAliases.hpp>
 
 namespace sq {
 

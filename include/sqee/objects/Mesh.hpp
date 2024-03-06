@@ -5,8 +5,9 @@
 
 #include <sqee/setup.hpp>
 
-#include <sqee/core/Types.hpp>
-
+#include <sqee/core/TypeAliases.hpp>
+#include <sqee/misc/StackString.hpp>
+#include <sqee/maths/Vectors.hpp>
 #include <sqee/vk/Vulkan.hpp>
 #include <sqee/vk/Wrappers.hpp>
 

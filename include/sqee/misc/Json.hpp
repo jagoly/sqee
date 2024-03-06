@@ -5,11 +5,16 @@
 
 #include <sqee/export.hpp>
 
+#include <sqee/core/Strings.hpp>
 #include <sqee/core/TypeAliases.hpp>
 #include <sqee/core/TypeNames.hpp>
 #include <sqee/core/TypeTraits.hpp>
 
+#include <cstddef>
+#include <iterator>
+#include <limits>
 #include <ranges>
+#include <utility>
 
 //==============================================================================
 

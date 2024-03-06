@@ -1,6 +1,7 @@
 ﻿#include <sqee/objects/Armature.hpp>
 
 #include <sqee/debug/Assert.hpp>
+#include <sqee/maths/Scalar.hpp>
 #include <sqee/maths/Functions.hpp>
 #include <sqee/misc/Files.hpp>
 #include <sqee/misc/Json.hpp>

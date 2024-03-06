@@ -4,7 +4,6 @@
 #pragma once
 
 #include <sqee/core/TypeAliases.hpp>
-
 #include <sqee/maths/Scalar.hpp>
 #include <sqee/maths/Vectors.hpp>
 

@@ -1,6 +1,7 @@
 #include <sqee/app/GuiWidgets.hpp>
 
 #include <sqee/core/Macros.hpp>
+#include <sqee/maths/Vectors.hpp>
 
 #include <dearimgui/imgui_internal.h>
 

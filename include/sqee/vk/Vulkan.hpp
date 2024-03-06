@@ -10,7 +10,4 @@
 #define VULKAN_HPP_NO_SMART_HANDLE
 #define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 
-// https://github.com/KhronosGroup/Vulkan-Hpp/issues/1405
-#include <algorithm>
-
 #include <vulkan/vulkan.hpp>

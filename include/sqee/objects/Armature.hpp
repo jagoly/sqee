@@ -7,11 +7,10 @@
 
 #include <sqee/core/EnumHelper.hpp>
 #include <sqee/core/TypeAliases.hpp>
-
 #include <sqee/maths/Vectors.hpp>
 #include <sqee/maths/Matrices.hpp>
 #include <sqee/maths/Quaternion.hpp>
-
+#include <sqee/misc/StackString.hpp>
 #include <sqee/vk/Vulkan.hpp> // Flags
 
 namespace sq {

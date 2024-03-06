@@ -3,10 +3,9 @@
 #include <sqee/setup.hpp>
 
 #include <sqee/app/Event.hpp>
-
-#include <sqee/core/Types.hpp>
+#include <sqee/core/TypeAliases.hpp>
 #include <sqee/core/Utilities.hpp>
-
+#include <sqee/maths/Vectors.hpp>
 #include <sqee/vk/Vulkan.hpp>
 #include <sqee/vk/VulkanMemory.hpp>
 
