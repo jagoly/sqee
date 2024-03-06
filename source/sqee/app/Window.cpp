@@ -10,7 +10,7 @@
 
 using namespace sq;
 
-//============================================================================//
+//==============================================================================
 
 VKAPI_ATTR VkBool32 VKAPI_CALL impl_vulkan_debug_callback (
         VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -30,7 +30,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL impl_vulkan_debug_callback (
     return VK_FALSE;
 }
 
-//============================================================================//
+//==============================================================================
 
 constexpr Keyboard_Key impl_glfw_key_to_sqee(int key)
 {
@@ -163,7 +163,7 @@ constexpr Keyboard_Key impl_glfw_key_to_sqee(int key)
     } // switch(key)
 }
 
-//============================================================================//
+//==============================================================================
 
 constexpr Mouse_Button impl_glfw_mouse_button_to_sqee(int button)
 {
@@ -180,7 +180,7 @@ constexpr Mouse_Button impl_glfw_mouse_button_to_sqee(int button)
     } // switch(button)
 }
 
-//============================================================================//
+//==============================================================================
 
 struct Window::Implementation
 {
@@ -256,7 +256,7 @@ struct Window::Implementation
     }
 };
 
-//============================================================================//
+//==============================================================================
 
 Window::Window(const char* title, Vec2U size, const char* appName, Vec3U version)
 {
@@ -570,7 +570,7 @@ Window::Window(const char* title, Vec2U size, const char* appName, Vec3U version
     }
 }
 
-//============================================================================//
+//==============================================================================
 
 Window::~Window()
 {
@@ -603,7 +603,7 @@ Window::~Window()
     glfwTerminate();
 }
 
-//============================================================================//
+//==============================================================================
 
 void Window::set_size_limits(std::optional<Vec2U> minimum, std::optional<Vec2U> maximum)
 {
@@ -615,7 +615,7 @@ void Window::set_size_limits(std::optional<Vec2U> minimum, std::optional<Vec2U> 
     glfwSetWindowSizeLimits(mGlfwWindow, signedMin.x, signedMin.y, signedMax.x, signedMax.y);
 }
 
-//============================================================================//
+//==============================================================================
 
 void Window::create_swapchain_and_friends()
 {
@@ -666,7 +666,7 @@ void Window::create_swapchain_and_friends()
     mPendingResize = false;
 }
 
-//============================================================================//
+//==============================================================================
 
 void Window::destroy_swapchain_and_friends()
 {
@@ -684,7 +684,7 @@ void Window::destroy_swapchain_and_friends()
     mSwapchainImageViews.clear();
 }
 
-//============================================================================//
+//==============================================================================
 
 const std::vector<Event>& Window::fetch_events()
 {
@@ -709,7 +709,7 @@ const std::vector<Event>& Window::fetch_events()
     return mEventsOld;
 }
 
-//============================================================================//
+//==============================================================================
 
 void Window::begin_frame()
 {
@@ -717,7 +717,7 @@ void Window::begin_frame()
     SQASSERT(waitResult == vk::Result::eSuccess, "");
 }
 
-//============================================================================//
+//==============================================================================
 
 std::tuple<vk::CommandBuffer, vk::Framebuffer> Window::acquire_image()
 {
@@ -750,7 +750,7 @@ std::tuple<vk::CommandBuffer, vk::Framebuffer> Window::acquire_image()
     return { mCommandBuffer.front, mSwapchainFramebuffers[mImageIndex] };
 }
 
-//============================================================================//
+//==============================================================================
 
 void Window::submit_present_swap()
 {
@@ -786,7 +786,7 @@ void Window::submit_present_swap()
     mRenderFinishedFence.swap();
 }
 
-//============================================================================//
+//==============================================================================
 
 void Window::set_title(String title)
 {
@@ -809,7 +809,7 @@ void Window::set_vsync_enabled(bool enabled)
     mVsyncEnabled = enabled;
 }
 
-//============================================================================//
+//==============================================================================
 
 bool Window::has_focus() const
 {

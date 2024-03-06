@@ -1,13 +1,8 @@
-// Copyright(c) 2020 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 #pragma once
 
 #include <sqee/setup.hpp>
 
-namespace sq {
-
-//====== Forward Declarations and Enums ======================================//
+namespace sq { //###############################################################
 
 class Sound;
 
@@ -32,12 +27,12 @@ struct SoundGroups
 /// Bitwise OR operator for enum class type.
 constexpr SoundGroups operator|(SoundGroup a, SoundGroup b) { return SoundGroups(uint8_t(a) | uint8_t(b)); }
 
-//============================================================================//
+//==============================================================================
 
 /// Handles the initialisation and playback of audio.
 class SQEE_API AudioContext
 {
-public: //====================================================//
+public: //======================================================
 
     AudioContext();
 
@@ -46,12 +41,12 @@ public: //====================================================//
 
     ~AudioContext();
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     /// Play a sound using the next available id.
     int32_t play_sound(const Sound& sound, SoundGroup group, float volume, bool loop);
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     /// Pause or resume an individual sound.
     void set_sound_paused(int32_t id, bool pause);
@@ -59,7 +54,7 @@ public: //====================================================//
     /// Remove an individual sound.
     void stop_sound(int32_t id);
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     /// Pause or resume zero or more sounds.
     void set_sounds_paused(std::span<const int32_t> ids, bool pause);
@@ -67,7 +62,7 @@ public: //====================================================//
     /// Remove zero or more sounds.
     void stop_sounds(std::span<const int32_t> ids);
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     /// Do not start sounds from one or more groups.
     void set_groups_ignored(SoundGroups groups, bool ignore);
@@ -78,7 +73,7 @@ public: //====================================================//
     /// Remove all sounds in the specified groups.
     void stop_groups(SoundGroups groups);
 
-private: //===================================================//
+private: //=====================================================
 
     struct ActiveSound
     {
@@ -107,6 +102,4 @@ private: //===================================================//
     friend Sound;
 };
 
-//============================================================================//
-
-} // namespace sq
+} // namespace sq ##############################################################

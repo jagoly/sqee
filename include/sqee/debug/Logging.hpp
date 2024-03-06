@@ -1,6 +1,3 @@
-// Copyright(c) 2020 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 #pragma once
 
 #include <sqee/export.hpp>
@@ -10,9 +7,7 @@
 #include <cstdlib>
 #include <string_view>
 
-namespace sq {
-
-//============================================================================//
+namespace sq { //###############################################################
 
 namespace detail {
 
@@ -26,7 +21,7 @@ SQEE_API void log_multiline(std::string_view category, fmt::string_view fstr, fm
 
 } // namespace detail
 
-//============================================================================//
+//==============================================================================
 
 inline void log_info(std::string_view str)
 {
@@ -50,7 +45,7 @@ inline void log_info_multiline(fmt::format_string<Args...> fstr, Args&&... args)
     detail::log_multiline("INFO", fstr, fmt::make_format_args(args...));
 }
 
-//============================================================================//
+//==============================================================================
 
 inline void log_warning(std::string_view str)
 {
@@ -74,7 +69,7 @@ inline void log_warning_multiline(fmt::format_string<Args...> fstr, Args&&... ar
     detail::log_multiline("WARNING", fstr, fmt::make_format_args(args...));
 }
 
-//============================================================================//
+//==============================================================================
 
 [[noreturn]] inline void log_error(std::string_view str)
 {
@@ -102,7 +97,7 @@ template <class... Args>
     std::abort();
 }
 
-//============================================================================//
+//==============================================================================
 
 inline void log_debug(std::string_view str)
 {
@@ -142,7 +137,7 @@ inline void log_debug_multiline(fmt::format_string<Args...> fstr, Args&&... args
   #endif
 }
 
-//============================================================================//
+//==============================================================================
 
 inline void log_custom(std::string_view category, std::string_view str)
 {
@@ -166,6 +161,4 @@ inline void log_custom_multiline(std::string_view category, fmt::format_string<A
     detail::log_multiline(category, fstr, fmt::make_format_args(args...));
 }
 
-//============================================================================//
-
-} // namespace sq
+} // namespace sq ##############################################################

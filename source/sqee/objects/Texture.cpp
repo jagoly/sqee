@@ -13,7 +13,7 @@
 
 using namespace sq;
 
-//============================================================================//
+//==============================================================================
 
 static vk::Format impl_json_to_format(JsonAny json)
 {
@@ -103,7 +103,7 @@ static Texture::MipmapsMode impl_json_to_mipmaps(JsonAny json)
     json.throw_with_context("invalid mipmaps mode");
 }
 
-//============================================================================//
+//==============================================================================
 
 static auto impl_get_format_info(vk::Format format)
 {
@@ -130,7 +130,7 @@ static auto impl_get_format_info(vk::Format format)
     SQEE_THROW("invalid format '{}'", vk::to_string(format));
 }
 
-//============================================================================//
+//==============================================================================
 
 static auto impl_load_image(vk::Format format, const String& path)
 {
@@ -198,7 +198,7 @@ static auto impl_load_image(vk::Format format, const String& path)
     }
 }
 
-//============================================================================//
+//==============================================================================
 
 static vk::Sampler impl_create_sampler(const VulkanContext& ctx, const Texture::Config& config)
 {
@@ -212,7 +212,7 @@ static vk::Sampler impl_create_sampler(const VulkanContext& ctx, const Texture::
     );
 }
 
-//============================================================================//
+//==============================================================================
 
 Texture::Texture(Texture&& other)
 {
@@ -235,7 +235,7 @@ Texture::~Texture()
     ctx.device.destroy(mSampler);
 }
 
-//============================================================================//
+//==============================================================================
 
 void Texture::initialise_2D(const Config& config)
 {
@@ -252,7 +252,7 @@ void Texture::initialise_2D(const Config& config)
     mSampler = impl_create_sampler(ctx, config);
 }
 
-//============================================================================//
+//==============================================================================
 
 void Texture::load_from_file_2D(const String& path)
 {
@@ -292,7 +292,7 @@ void Texture::load_from_file_2D(const String& path)
     load_from_memory(image.data, image.length, 0u, 0u, config);
 }
 
-//============================================================================//
+//==============================================================================
 
 void Texture::initialise_array(const Config& config)
 {
@@ -309,7 +309,7 @@ void Texture::initialise_array(const Config& config)
     mSampler = impl_create_sampler(ctx, config);
 }
 
-//============================================================================//
+//==============================================================================
 
 void Texture::load_from_file_array(const String& path)
 {
@@ -355,7 +355,7 @@ void Texture::load_from_file_array(const String& path)
     }
 }
 
-//============================================================================//
+//==============================================================================
 
 void Texture::initialise_cube(const Config& config)
 {
@@ -372,7 +372,7 @@ void Texture::initialise_cube(const Config& config)
     mSampler = impl_create_sampler(ctx, config);
 }
 
-//============================================================================//
+//==============================================================================
 
 void Texture::load_from_file_cube(const String& path)
 {
@@ -418,7 +418,7 @@ void Texture::load_from_file_cube(const String& path)
     }
 }
 
-//============================================================================//
+//==============================================================================
 
 void Texture::load_from_memory(const void* data, size_t length, uint level, uint layer, const Config& config)
 {
@@ -468,7 +468,7 @@ void Texture::load_from_memory(const void* data, size_t length, uint level, uint
         return; // no mipmap generation
     }
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     Vec2I sourceSize = Vec2I(config.size.x, config.size.y);
 
@@ -515,7 +515,7 @@ void Texture::load_from_memory(const void* data, size_t length, uint level, uint
     );
 }
 
-//============================================================================//
+//==============================================================================
 
 void Texture::load_from_memory(const void* data, size_t length, const Config& config)
 {
@@ -569,7 +569,7 @@ void Texture::load_from_memory(const void* data, size_t length, const Config& co
     );
 }
 
-//============================================================================//
+//==============================================================================
 
 bool Texture::try_load_from_compressed(const String& path, const Config& config)
 {
@@ -607,7 +607,7 @@ bool Texture::try_load_from_compressed(const String& path, const Config& config)
     return true;
 }
 
-//============================================================================//
+//==============================================================================
 
 void Texture::save_as_compressed(const String& path, vk::Format format, Vec3U size, uint mipLevels) const
 {
@@ -674,7 +674,7 @@ void Texture::save_as_compressed(const String& path, vk::Format format, Vec3U si
     }
 }
 
-//============================================================================//
+//==============================================================================
 
 size_t Texture::compute_buffer_size(Vec3U size, uint mipLevels, size_t pixelSize)
 {
@@ -690,7 +690,7 @@ size_t Texture::compute_buffer_size(Vec3U size, uint mipLevels, size_t pixelSize
     return bufferTotalSize;
 }
 
-//============================================================================//
+//==============================================================================
 
 void Texture::add_to_bindless_descriptor_set(vk::DescriptorSet descriptorSet, uint32_t index)
 {

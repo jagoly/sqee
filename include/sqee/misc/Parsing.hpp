@@ -1,6 +1,3 @@
-// Copyright(c) 2020 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 #pragma once
 
 #include <sqee/setup.hpp>
@@ -11,9 +8,7 @@
 
 #include <charconv>
 
-namespace sq {
-
-//============================================================================//
+namespace sq { //###############################################################
 
 /// Split a string into a fixed number of segments. Check for success with `!result.back().empty()`.
 template <char... Delimiters>
@@ -35,7 +30,7 @@ constexpr std::array<StringView, sizeof...(Delimiters)+1> split_string(StringVie
     return result;
 }
 
-//============================================================================//
+//==============================================================================
 
 /// Split a StringView into a vector of tokens.
 SQEE_API std::vector<StringView> tokenise_string(StringView sv, char dlm);
@@ -46,7 +41,7 @@ SQEE_API void tokenise_string(StringView sv, char dlm, std::vector<StringView>& 
 /// Split a StringView into lines, keeping empty lines.
 SQEE_API std::vector<StringView> tokenise_string_lines(StringView sv);
 
-//============================================================================//
+//==============================================================================
 
 template <class Number>
 inline Number parse_number(StringView sv)
@@ -79,7 +74,7 @@ inline void parse_number(Number& out, StringView sv) requires std::floating_poin
 }
 #endif
 
-//============================================================================//
+//==============================================================================
 
 template <class T>
 inline void parse_numbers(maths::Vector<2, T>& out, StringView x, StringView y)
@@ -114,7 +109,7 @@ inline void parse_numbers(maths::Quaternion<T>& out, StringView x, StringView y,
     parse_number(out.w, w);
 }
 
-//============================================================================//
+//==============================================================================
 
 template <class T>
 inline void parse_numbers_normalize(maths::Vector<2, T>& out, StringView x, StringView y)
@@ -144,6 +139,4 @@ inline void parse_numbers_normalize(maths::Quaternion<T>& out, StringView x, Str
     out = maths::normalize(out);
 }
 
-//============================================================================//
-
-} // namespace sq
+} // namespace sq ##############################################################

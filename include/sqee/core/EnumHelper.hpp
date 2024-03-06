@@ -1,6 +1,3 @@
-// Copyright(c) 2020 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 #pragma once
 
 #include <sqee/core/Macros.hpp>
@@ -15,9 +12,7 @@
 #include <stdexcept>
 #include <string_view>
 
-namespace sq {
-
-//============================================================================//
+namespace sq { //###############################################################
 
 /// Try to convert an enum to a string.
 template <HasEnumHelper Type>
@@ -59,11 +54,7 @@ constexpr Type enum_from_string(std::string_view arg)
     throw std::runtime_error(fmt::format("enum_from_string<{}>({})", type_name_v<Type>.c_str(), arg));
 }
 
-//============================================================================//
-
-} // namespace sq
-
-//============================================================================//
+} // namespace sq ##############################################################
 
 #define SQEE_ENUM_HELPER(Type, First, ...) \
 template <> inline constexpr auto sq::type_name_v<Type> = sq::StackString(#Type); \
@@ -72,7 +63,7 @@ template <> inline constexpr auto sq::enum_count_v<Type> = std::underlying_type_
 template <> inline constexpr auto sq::enum_values_v<Type> = []() { using enum Type; return std::array { First, __VA_ARGS__ }; }(); \
 template <> inline constexpr auto sq::enum_strings_v<Type> = []() { return std::array { SQEE_STRINGIFY_ARGS(First, __VA_ARGS__) }; }();
 
-//============================================================================//
+//==============================================================================
 
 template <sq::HasEnumHelper Type>
 struct fmt::formatter<Type> : fmt::formatter<const char*>

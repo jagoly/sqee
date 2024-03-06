@@ -7,7 +7,7 @@
 
 DISABLE_WARNING_OLD_STYLE_CAST()
 
-//============================================================================//
+//==============================================================================
 
 namespace ImPlus::detail {
 
@@ -87,7 +87,7 @@ bool ImPlus::detail::is_temp_input_open()
     return GImGui->TempInputId != 0;
 }
 
-//============================================================================//
+//==============================================================================
 
 bool ImGui::DragScalarRange2(ImStrv label, ImGuiDataType data_type, void* p_current_min, void* p_current_max, float v_speed, const void* p_min, const void* p_max, const char* format, const char* format_max, ImGuiSliderFlags flags)
 {
@@ -156,7 +156,7 @@ bool ImGui::DragScalarRange2(ImStrv label, ImGuiDataType data_type, void* p_curr
     return value_changed;
 }
 
-//============================================================================//
+//==============================================================================
 
 float ImPlus::FromScreenRight(float offset)
 {
@@ -185,7 +185,7 @@ void ImPlus::AutoArrange(float minItemWidth)
         ImGui::SameLine(prevItemMin + itemWidth - window.Pos.x);
 }
 
-//----------------------------------------------------------------------------//
+//------------------------------------------------------------------------------
 
 bool ImPlus::InputString(ImStrv label, std::string& str, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* userData)
 {
@@ -203,7 +203,7 @@ bool ImPlus::InputStringMultiline(ImStrv label, std::string& str, ImVec2 size, I
     return ImGui::InputTextEx(label, ImStrv(), str.data(), int(str.capacity()) + 1, size, flags, detail::input_string_callback, &cbUserData);
 }
 
-//----------------------------------------------------------------------------//
+//------------------------------------------------------------------------------
 
 bool ImPlus::InputColour(ImStrv label, sq::Vec3F& colour, ImGuiColorEditFlags flags)
 {
@@ -223,7 +223,7 @@ bool ImPlus::InputColour(ImStrv label, sq::Vec4F& colour, ImGuiColorEditFlags fl
     return changed;
 }
 
-//----------------------------------------------------------------------------//
+//------------------------------------------------------------------------------
 
 ImPlus::DialogResult ImPlus::DialogConfirmation(ImStrv title, std::string_view message)
 {
@@ -259,7 +259,7 @@ ImPlus::DialogResult ImPlus::DialogConfirmation(ImStrv title, std::string_view m
     return result;
 }
 
-//----------------------------------------------------------------------------//
+//------------------------------------------------------------------------------
 
 void ImPlus::HoverTooltipV(bool delay, ImGuiDir dir, fmt::string_view fstr, fmt::format_args args)
 {
@@ -292,7 +292,7 @@ void ImPlus::HoverTooltipV(bool delay, ImGuiDir dir, fmt::string_view fstr, fmt:
     ImPlus::SetTooltip(text);
 }
 
-//----------------------------------------------------------------------------//
+//------------------------------------------------------------------------------
 
 // These are exact copies of the ImGui versions of these functions, but taking
 // std::string_views instead of a c format string and va_args. This is to allow

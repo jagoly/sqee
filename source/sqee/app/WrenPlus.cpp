@@ -9,7 +9,7 @@
 
 using namespace wren;
 
-//============================================================================//
+//==============================================================================
 
 WrenPlusVM::WrenPlusVM()
 {
@@ -29,7 +29,7 @@ WrenPlusVM::WrenPlusVM()
     mWrenVM = wrenNewVM(&config);
 }
 
-//============================================================================//
+//==============================================================================
 
 WrenPlusVM::~WrenPlusVM()
 {
@@ -41,7 +41,7 @@ WrenPlusVM::~WrenPlusVM()
     mWrenVM = nullptr;
 }
 
-//============================================================================//
+//==============================================================================
 
 void WrenPlusVM::interpret(const char* module, const char* source)
 {
@@ -103,7 +103,7 @@ void WrenPlusVM::validate_class_handle_cache()
         assert(mForeignClassHandles[index] != nullptr); // missing class registration for index
 }
 
-//============================================================================//
+//==============================================================================
 
 WrenHandle* WrenPlusVM::get_variable(const char* module, const char* variable)
 {
@@ -112,7 +112,7 @@ WrenHandle* WrenPlusVM::get_variable(const char* module, const char* variable)
     return wrenGetSlotHandle(mWrenVM, 0);
 }
 
-//============================================================================//
+//==============================================================================
 
 void WrenPlusVM::impl_write_fn(WrenVM* /*vm*/, const char* text)
 {
@@ -148,7 +148,7 @@ void WrenPlusVM::impl_error_fn(WrenVM* vm, WrenErrorType type, const char* modul
     }
 }
 
-//============================================================================//
+//==============================================================================
 
 WrenForeignClassMethods WrenPlusVM::impl_bind_foreign_class_fn(WrenVM* /*vm*/, const char* /*module*/, const char* /*className*/)
 {
@@ -170,7 +170,7 @@ WrenForeignMethodFn WrenPlusVM::impl_bind_foreign_method_fn(WrenVM* vm, const ch
     return iter != pvm.mForeignMethods.end() ? iter->second : nullptr;
 }
 
-//============================================================================//
+//==============================================================================
 
 WrenLoadModuleResult WrenPlusVM::impl_load_module_fn(WrenVM* vm, const char* module)
 {
@@ -199,7 +199,7 @@ WrenLoadModuleResult WrenPlusVM::impl_load_module_fn(WrenVM* vm, const char* mod
     return result;
 }
 
-//============================================================================//
+//==============================================================================
 
 void WrenPlusVM::impl_register_method(const char* module, const char* className, const char* signature, WrenForeignMethodFn func)
 {
@@ -223,7 +223,7 @@ void WrenPlusVM::impl_cache_handle(const char* module, const char* className, si
     mForeignClassHandles[index] = wrenGetSlotHandle(mWrenVM, 0);
 }
 
-//============================================================================//
+//==============================================================================
 
 void WrenPlusVM::impl_pointer_equality_operator(WrenVM* vm)
 {
@@ -247,7 +247,7 @@ void WrenPlusVM::impl_pointer_inequality_operator(WrenVM* vm)
     wrenSetSlotBool(vm, 0, true);
 }
 
-//============================================================================//
+//==============================================================================
 
 size_t wren::detail::generate_type_index() noexcept
 {

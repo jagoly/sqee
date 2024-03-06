@@ -1,24 +1,19 @@
-// Copyright(c) 2020 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 #pragma once
 
 #include <sqee/setup.hpp>
 
 #include <sqee/vk/Vulkan.hpp>
 
-namespace sq {
-
-//====== Forward Declarations ================================================//
+namespace sq { //###############################################################
 
 struct Event;
 
-//============================================================================//
+//==============================================================================
 
 /// The SQEE Scene base class.
 class SQEE_API Scene
 {
-public: //====================================================//
+public: //======================================================
 
     Scene(double tickTime);
 
@@ -27,12 +22,12 @@ public: //====================================================//
 
     virtual ~Scene() = default;
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     /// Call to update and then integrate the scene.
     void update_and_integrate(double elapsed);
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     /// Optionally implement for event handling.
     virtual void handle_event(Event event);
@@ -46,12 +41,12 @@ public: //====================================================//
     /// Optionally implement for ImGui widgets.
     virtual void show_imgui_widgets();
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     /// Call between cmdbuf.begin() and cmdbuf.end() for drawing commands.
     virtual void populate_command_buffer(vk::CommandBuffer cmdbuf, vk::Framebuffer framebuf) = 0;
 
-protected: //=================================================//
+protected: //===================================================
 
     /// Implement to simulate one tick.
     virtual void update() = 0;
@@ -59,7 +54,7 @@ protected: //=================================================//
     /// Implement to prepare for render.
     virtual void integrate(double elapsed, float blend) = 0;
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     double mTickTime;
 
@@ -69,6 +64,4 @@ protected: //=================================================//
     bool mJustLoaded = true;
 };
 
-//============================================================================//
-
-} // namespace sq
+} // namespace sq ##############################################################

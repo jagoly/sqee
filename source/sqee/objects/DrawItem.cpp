@@ -12,7 +12,7 @@
 
 using namespace sq;
 
-//============================================================================//
+//==============================================================================
 
 std::vector<DrawItem> DrawItem::load_from_json(const String& path, const Armature& armature, MeshCache& meshes, PipelineCache& pipelines, TextureCache& textures)
 {
@@ -56,7 +56,7 @@ std::vector<DrawItem> DrawItem::load_from_json(const String& path, const Armatur
     const auto jsonMeshes = jsonAssets["meshes"].as<JsonObject>();
     const auto jsonPipelines = jsonAssets["pipelines"].as<JsonObject>();
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     const auto jsonItems = json["items"].as<JsonArray>();
 
@@ -254,7 +254,7 @@ std::vector<DrawItem> DrawItem::load_from_json(const String& path, const Armatur
     return result;
 }
 
-//============================================================================//
+//==============================================================================
 
 bool DrawItem::check_visibility(const AnimSample& sample) const
 {
@@ -272,7 +272,7 @@ bool DrawItem::check_visibility(const AnimSample& sample) const
     } SQEE_UNREACHABLE();
 }
 
-//============================================================================//
+//==============================================================================
 
 void DrawItem::compute_push_constants(const AnimSample& sample, uint modelMatsIndex, uint normalMatsIndex, std::array<std::byte, 128u>& out) const
 {

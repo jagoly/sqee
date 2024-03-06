@@ -13,7 +13,7 @@
 using namespace sq;
 namespace cross = spirv_cross;
 
-//============================================================================//
+//==============================================================================
 
 inline vk::PipelineRasterizationStateCreateInfo impl_make_rasterization_state(JsonAny jCullFace)
 {
@@ -103,7 +103,7 @@ inline vk::PipelineColorBlendAttachmentState impl_make_color_blend_state(JsonAny
     jBlendMode.throw_with_context("invalid colour blend mode");
 }
 
-//============================================================================//
+//==============================================================================
 
 Pipeline::Pipeline(Pipeline&& other)
 {
@@ -124,7 +124,7 @@ Pipeline::~Pipeline()
     if (mPipeline) ctx.device.destroy(mPipeline);
 }
 
-//============================================================================//
+//==============================================================================
 
 // todo: remove asserts relating to shaders, to support live editing
 
@@ -135,7 +135,7 @@ void Pipeline::load_from_minified_json(const String& minified, const PassConfigM
     const auto document = JsonDocument::parse_string(minified, "Pipeline");
     const auto json = document.root().as<JsonObject>();
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     // because the minified json is used as a resource key, pipeline json must be in a consistent order
     // we ensure this by iterating through the object instead of doing lookups
@@ -150,7 +150,7 @@ void Pipeline::load_from_minified_json(const String& minified, const PassConfigM
         return value;
     };
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     // Note that we always reflect push constants, so that we can create DrawItems for a
     // pass even if the pass is disabled. The offsets won't ever change, so DrawItems don't
@@ -242,7 +242,7 @@ void Pipeline::load_from_minified_json(const String& minified, const PassConfigM
     reflect_shader(*vertexShaderCode, false);
     reflect_shader(*fragmentShaderCode, true);
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     const auto jPass = next_element("pass");
 
@@ -254,7 +254,7 @@ void Pipeline::load_from_minified_json(const String& minified, const PassConfigM
     // if the pass is disabled, then we only need to do reflection
     if (check_pass_enabled() == false) return;
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     const auto jAttributes = next_element("attributes");
 
@@ -286,7 +286,7 @@ void Pipeline::load_from_minified_json(const String& minified, const PassConfigM
 
     const auto vertexConfig = Mesh::VertexConfig(attributes, ignoredAttributes);
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     const auto jCullFace = next_element("cullFace");
     const auto jAlphaCoverage = next_element("alphaCoverage");
@@ -300,7 +300,7 @@ void Pipeline::load_from_minified_json(const String& minified, const PassConfigM
     for (const auto [_, jBlendMode] : jBlendModes)
         colourBlendAttachments.emplace_back(impl_make_color_blend_state(jBlendMode));
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     const auto& ctx = VulkanContext::get();
 
@@ -315,7 +315,7 @@ void Pipeline::load_from_minified_json(const String& minified, const PassConfigM
         &specialisation.info
     );
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     if (jsonRootIter != json.end()) jsonRootIter->second.throw_with_context("unrecognised extra key");
 
@@ -331,7 +331,7 @@ void Pipeline::load_from_minified_json(const String& minified, const PassConfigM
     );
 }
 
-//============================================================================//
+//==============================================================================
 
 void Pipeline::bind(vk::CommandBuffer cmdbuf) const
 {

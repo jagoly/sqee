@@ -1,6 +1,3 @@
-// Copyright(c) 2020 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 #pragma once
 
 #include <sqee/setup.hpp>
@@ -9,13 +6,11 @@
 #include <sqee/vk/Vulkan.hpp>
 #include <sqee/vk/Wrappers.hpp>
 
-namespace sq {
-
-//============================================================================//
+namespace sq { //###############################################################
 
 class SQEE_API SwapBuffer
 {
-public: //====================================================//
+public: //======================================================
 
     SwapBuffer() = default;
 
@@ -26,12 +21,12 @@ public: //====================================================//
 
     ~SwapBuffer();
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     /// Create and allocate buffers.
     void initialise(size_t size, vk::BufferUsageFlags usage);
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     /// Swap front and back buffers.
     void swap_only() { mStuff.swap(); mPointer.swap(); }
@@ -45,7 +40,7 @@ public: //====================================================//
     /// Swap front and back, then map front.
     std::byte* swap_map() { swap_only(); return map_only(); };
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     /// Access the front buffer object.
     vk::Buffer front() const { return mStuff.front.buffer; }
@@ -59,7 +54,7 @@ public: //====================================================//
         return { {mStuff.front.buffer, 0u, mSize}, {mStuff.back.buffer, 0u, mSize} };
     }
 
-private: //===================================================//
+private: //=====================================================
 
     Swapper<BufferStuff> mStuff;
     Swapper<std::byte*> mPointer;
@@ -67,6 +62,4 @@ private: //===================================================//
     size_t mSize = 0u;
 };
 
-//============================================================================//
-
-} // namespace sq
+} // namespace sq ##############################################################

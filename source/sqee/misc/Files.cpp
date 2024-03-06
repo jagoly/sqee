@@ -2,7 +2,7 @@
 
 using namespace sq;
 
-//============================================================================//
+//==============================================================================
 
 String sq::read_text_from_file(const String& path)
 {
@@ -22,7 +22,7 @@ String sq::read_text_from_file(const String& path)
     return String(buffer.data(), stringSize);
 }
 
-//============================================================================//
+//==============================================================================
 
 std::vector<std::byte> sq::read_bytes_from_file(const String& path)
 {
@@ -42,7 +42,7 @@ std::vector<std::byte> sq::read_bytes_from_file(const String& path)
     return buffer;
 }
 
-//============================================================================//
+//==============================================================================
 
 std::optional<String> sq::try_read_text_from_file(const String& path)
 {
@@ -62,7 +62,7 @@ std::optional<String> sq::try_read_text_from_file(const String& path)
     return String(buffer.data(), stringSize);
 }
 
-//============================================================================//
+//==============================================================================
 
 std::optional<std::vector<std::byte>> sq::try_read_bytes_from_file(const String& path)
 {
@@ -82,7 +82,7 @@ std::optional<std::vector<std::byte>> sq::try_read_bytes_from_file(const String&
     return buffer;
 }
 
-//============================================================================//
+//==============================================================================
 
 void sq::write_text_to_file(const String& path, StringView text, bool endNewLine)
 {
@@ -99,7 +99,7 @@ void sq::write_text_to_file(const String& path, StringView text, bool endNewLine
     std::fclose(file);
 }
 
-//============================================================================//
+//==============================================================================
 
 void sq::write_bytes_to_file(const String& path, const void* bytes, size_t size)
 {
@@ -112,14 +112,14 @@ void sq::write_bytes_to_file(const String& path, const void* bytes, size_t size)
     std::fclose(file);
 }
 
-//============================================================================//
+//==============================================================================
 
 TokenisedFile TokenisedFile::from_file(const String& path)
 {
     return from_string(read_text_from_file(path));
 }
 
-//============================================================================//
+//==============================================================================
 
 TokenisedFile TokenisedFile::from_string(String&& text)
 {

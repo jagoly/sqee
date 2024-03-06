@@ -7,9 +7,7 @@
 #include <sqee/vk/Vulkan.hpp>
 #include <sqee/vk/Wrappers.hpp>
 
-namespace sq {
-
-//============================================================================//
+namespace sq { //###############################################################
 
 /// Image and Sampler, with metadata loaded from JSON.
 ///
@@ -18,7 +16,7 @@ namespace sq {
 ///
 class SQEE_API Texture
 {
-public: //====================================================//
+public: //======================================================
 
     enum class FilterMode : int8_t { Nearest, Linear, Anisotropic };
 
@@ -37,7 +35,7 @@ public: //====================================================//
         uint mipLevels;
     };
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     Texture() = default;
 
@@ -48,25 +46,25 @@ public: //====================================================//
 
     ~Texture();
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     void initialise_2D(const Config& config);
 
     void load_from_file_2D(const String& path);
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     void initialise_array(const Config& config);
 
     void load_from_file_array(const String& path);
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     void initialise_cube(const Config& config);
 
     void load_from_file_cube(const String& path);
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     /// Upload data to one layer of one level of the image. Will generate mipmaps if requested.
     void load_from_memory(const void* data, size_t length, uint level, uint layer, const Config& config);
@@ -74,7 +72,7 @@ public: //====================================================//
     /// Upload the entire image's data all at once.
     void load_from_memory(const void* data, size_t length, const Config& config);
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     /// Load image data from a compressed binary file. Return false if file does not exist.
     bool try_load_from_compressed(const String& path, const Config& config);
@@ -82,7 +80,7 @@ public: //====================================================//
     /// Save image data to a binary file compressed with lz4.
     void save_as_compressed(const String& path, vk::Format format, Vec3U size, uint mipLevels) const;
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     /// Get info needed to update a descriptor set.
     vk::DescriptorImageInfo get_descriptor_info() const
@@ -98,12 +96,12 @@ public: //====================================================//
 
     std::optional<uint32_t> get_bindless_descriptor_index() const { return mBindlessDescriptorIndex; }
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     /// Compute the total size of a texture, in bytes.
     static size_t compute_buffer_size(Vec3U size, uint mipLevels, size_t pixelSize);
 
-protected: //=================================================//
+protected: //===================================================
 
     ImageStuff mStuff;
     vk::Sampler mSampler;
@@ -111,6 +109,4 @@ protected: //=================================================//
     std::optional<uint32_t> mBindlessDescriptorIndex;
 };
 
-//============================================================================//
-
-} // namespace sq
+} // namespace sq ##############################################################

@@ -6,9 +6,7 @@
 #include <sqee/maths/Vectors.hpp>
 #include <sqee/vk/Vulkan.hpp>
 
-namespace sq {
-
-//====== Forward Declarations ================================================//
+namespace sq { //###############################################################
 
 class VulkanAllocator;
 class Window;
@@ -16,11 +14,11 @@ class Window;
 template <class T>
 using ArrayProxyRef = const vk::ArrayProxy<const T>&;
 
-//============================================================================//
+//==============================================================================
 
 class SQEE_API VulkanContext
 {
-public: //====================================================//
+public: //======================================================
 
     SQEE_COPY_DELETE(VulkanContext)
     SQEE_MOVE_DELETE(VulkanContext)
@@ -28,7 +26,7 @@ public: //====================================================//
     /// Access the static VulkanContext instance.
     static const VulkanContext& get();
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     VulkanAllocator& allocator;
 
@@ -37,7 +35,7 @@ public: //====================================================//
     vk::CommandPool commandPool;
     vk::DescriptorPool descriptorPool;
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     /// Relevant hardware limits from device.
     struct
@@ -48,7 +46,7 @@ public: //====================================================//
     }
     limits;
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     vk::DescriptorSetLayout create_descriptor_set_layout (
         ArrayProxyRef<vk::DescriptorSetLayoutBinding> bindings
@@ -82,13 +80,13 @@ public: //====================================================//
         vk::DescriptorPool pool, vk::DescriptorSetLayout layout
     ) const;
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     /// Give an object a human readable name for debugging.
     template <class Object>
     void set_debug_object_name(Object object, const char* name) const;
 
-private: //===================================================//
+private: //=====================================================
 
     VulkanContext(VulkanAllocator& allocator);
 
@@ -102,7 +100,7 @@ private: //===================================================//
     friend Window;
 };
 
-//============================================================================//
+//==============================================================================
 
 inline vk::DescriptorSetLayout VulkanContext::create_descriptor_set_layout(ArrayProxyRef<vk::DescriptorSetLayoutBinding> bindings) const
 {
@@ -172,7 +170,7 @@ inline vk::Framebuffer VulkanContext::create_framebuffer(vk::RenderPass renderPa
     );
 }
 
-//============================================================================//
+//==============================================================================
 
 template <class Object>
 inline void VulkanContext::set_debug_object_name(Object object [[maybe_unused]], const char* name [[maybe_unused]]) const
@@ -183,6 +181,4 @@ inline void VulkanContext::set_debug_object_name(Object object [[maybe_unused]],
   #endif
 }
 
-//============================================================================//
-
-} // namespace sq
+} // namespace sq ##############################################################

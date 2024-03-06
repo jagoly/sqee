@@ -10,7 +10,7 @@
 
 using namespace sq;
 
-//============================================================================//
+//==============================================================================
 
 int Application::run(int argc, char** argv)
 {
@@ -44,7 +44,7 @@ int Application::run(int argc, char** argv)
 
     initialise(std::vector<String>(argv, argv + argc));
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     // seconds stored as a double
     using Seconds = std::chrono::duration<double>;
@@ -71,7 +71,7 @@ int Application::run(int argc, char** argv)
             std::this_thread::sleep_for(Seconds(mMinSleepUpdatePeriod) - elapsed);
     }
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     return mReturnCode;
 }

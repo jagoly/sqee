@@ -1,15 +1,10 @@
-// Copyright(c) 2020 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 #pragma once
 
 #include <sqee/setup.hpp>
 
 #include <sqee/core/EnumHelper.hpp>
 
-namespace sq {
-
-//============================================================================//
+namespace sq { //###############################################################
 
 enum class Gamepad_Button : int8_t
 {
@@ -30,7 +25,7 @@ enum class Gamepad_Axis : int8_t
     RightTrigger
 };
 
-//============================================================================//
+//==============================================================================
 
 /// The raw state of a gamepad.
 struct GamepadState
@@ -78,9 +73,7 @@ struct Gamepad : public GamepadState
     }
 };
 
-//============================================================================//
-
-} // namespace sq
+} // namespace sq ##############################################################
 
 SQEE_ENUM_HELPER
 (

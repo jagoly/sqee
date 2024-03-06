@@ -16,7 +16,7 @@
 
 using namespace sq;
 
-//============================================================================//
+//==============================================================================
 
 static void impl_make_colors_linear(ImVec4* colors)
 {
@@ -28,7 +28,7 @@ static void impl_make_colors_linear(ImVec4* colors)
     }
 }
 
-//============================================================================//
+//==============================================================================
 
 void GuiSystem::set_style_widgets_default()
 {
@@ -124,7 +124,7 @@ void GuiSystem::set_style_widgets_supertux()
     style.MouseCursorScale          = 1.f;
 }
 
-//============================================================================//
+//==============================================================================
 
 void GuiSystem::set_style_colours_classic()
 {
@@ -211,7 +211,7 @@ void GuiSystem::set_style_colours_supertux()
     impl_make_colors_linear(colors);
 }
 
-//============================================================================//
+//==============================================================================
 
 GuiSystem::GuiSystem(Window& window, InputDevices& inputDevices)
     : window(window), input(inputDevices)
@@ -236,7 +236,7 @@ GuiSystem::GuiSystem(Window& window, InputDevices& inputDevices)
     create_pipeline();
 }
 
-//============================================================================//
+//==============================================================================
 
 GuiSystem::~GuiSystem()
 {
@@ -249,7 +249,7 @@ GuiSystem::~GuiSystem()
     ctx.device.destroy(mPipelineLayout);
 }
 
-//============================================================================//
+//==============================================================================
 
 void GuiSystem::load_ubuntu_fonts()
 {
@@ -273,7 +273,7 @@ void GuiSystem::load_ubuntu_fonts()
     io.Fonts->AddFontFromMemoryCompressedTTF(sqee_UbuntuMonoRegular, sqee_UbuntuMonoRegular_size, 16.f, &fontConfig);
 }
 
-//============================================================================//
+//==============================================================================
 
 void GuiSystem::create_objects()
 {
@@ -311,7 +311,7 @@ void GuiSystem::create_objects()
     ImGui::GetIO().Fonts->TexID = &mDescriptorSet;
 }
 
-//============================================================================//
+//==============================================================================
 
 void GuiSystem::create_pipeline()
 {
@@ -366,7 +366,7 @@ void GuiSystem::create_pipeline()
     }
 }
 
-//============================================================================//
+//==============================================================================
 
 bool GuiSystem::handle_event(Event event)
 {
@@ -493,7 +493,7 @@ bool GuiSystem::handle_event(Event event)
         io.AddKeyEvent(ImGuiMod_Super, data.super);
     };
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     SWITCH ( event.type ) {
 
@@ -551,7 +551,7 @@ bool GuiSystem::handle_event(Event event)
     } SWITCH_END;
 }
 
-//============================================================================//
+//==============================================================================
 
 void GuiSystem::finish_handle_events()
 {
@@ -568,7 +568,7 @@ void GuiSystem::finish_handle_events()
     ImGui::NewFrame();
 }
 
-//============================================================================//
+//==============================================================================
 
 void GuiSystem::finish_scene_update(double elapsed)
 {
@@ -579,13 +579,13 @@ void GuiSystem::finish_scene_update(double elapsed)
     io.DeltaTime = float(elapsed);
 }
 
-//============================================================================//
+//==============================================================================
 
 void GuiSystem::render_gui(vk::CommandBuffer cmdbuf)
 {
     const auto& drawData = *ImGui::GetDrawData();
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     // copy all vertices/indices into same pair of buffers
     {
@@ -604,7 +604,7 @@ void GuiSystem::render_gui(vk::CommandBuffer cmdbuf)
         }
     }
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     cmdbuf.bindPipeline(vk::PipelineBindPoint::eGraphics, mPipeline);
 
@@ -618,7 +618,7 @@ void GuiSystem::render_gui(vk::CommandBuffer cmdbuf)
 
     const vk::DescriptorSet* boundTexture = nullptr;
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     // submit drawing commands using offsets into buffers
     {
@@ -654,6 +654,6 @@ void GuiSystem::render_gui(vk::CommandBuffer cmdbuf)
     }
 }
 
-//============================================================================//
+//==============================================================================
 
 void GuiSystem::show_imgui_demo() { ImGui::ShowDemoWindow(); }

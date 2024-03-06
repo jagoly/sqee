@@ -1,9 +1,6 @@
-// Copyright(c) 2020 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 #pragma once
 
-//============================================================================//
+//==============================================================================
 
 #if defined(SQEE_GNU) || defined(SQEE_CLANG)
 
@@ -31,7 +28,7 @@ _Pragma("GCC diagnostic pop")
 
 #endif
 
-//============================================================================//
+//==============================================================================
 
 #define SQEE_EXPAND(Arg) Arg // needed to work around an MSVC bug
 
@@ -48,7 +45,7 @@ _Pragma("GCC diagnostic pop")
   _90, _91, _92, _93, _94, _95, _96, _97, _98, _99, \
   Name, ...) Name
 
-//============================================================================//
+//==============================================================================
 
 #define SQEE_FOR_EACH_00(Functor, Arg) Functor(Arg)
 #define SQEE_FOR_EACH_01(Functor, Arg, ...) Functor(Arg) SQEE_EXPAND(SQEE_FOR_EACH_00(Functor, __VA_ARGS__))
@@ -174,7 +171,7 @@ _Pragma("GCC diagnostic pop")
   SQEE_FOR_EACH_04, SQEE_FOR_EACH_03, SQEE_FOR_EACH_02, SQEE_FOR_EACH_01, SQEE_FOR_EACH_00, \
 ) ( Functor, __VA_ARGS__ ) )
 
-//============================================================================//
+//==============================================================================
 
 #define SWITCH(Value) do { using SwitchValueT = std::decay_t<decltype(Value)>; switch (Value)
 
@@ -186,7 +183,7 @@ _Pragma("GCC diagnostic pop")
 
 #define CASE_DEFAULT break; default:
 
-//============================================================================//
+//==============================================================================
 
 #define SQEE_COUNT_ARGS_INNER(Arg) +1
 #define SQEE_COUNT_ARGS(First, ...) (1 SQEE_FOR_EACH(SQEE_COUNT_ARGS_INNER, __VA_ARGS__))

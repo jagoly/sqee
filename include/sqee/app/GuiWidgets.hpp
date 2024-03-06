@@ -1,7 +1,4 @@
-﻿// Copyright(c) 2020 James Gangur
-// Part of https://github.com/jagoly/sqee
-
-#pragma once
+﻿#pragma once
 
 #include <sqee/setup.hpp>
 
@@ -21,7 +18,7 @@
 
 #include <cassert>
 
-//============================================================================//
+//==============================================================================
 
 namespace ImGui {
 
@@ -31,11 +28,7 @@ SQEE_API bool DragScalarRange2(ImStrv label, ImGuiDataType data_type, void* p_cu
 
 } // namespace ImGui
 
-//============================================================================//
-
-namespace ImPlus {
-
-//----------------------------------------------------------------------------//
+namespace ImPlus { //###########################################################
 
 constexpr const int FONT_REGULAR = 0;
 constexpr const int FONT_BOLD    = 1;
@@ -51,7 +44,7 @@ enum class DialogResult { None, Confirm, Cancel };
 template <class... Args>
 using FormatString = std::conditional_t<sizeof...(Args) != 0, fmt::format_string<Args...>, fmt::string_view>;
 
-//----------------------------------------------------------------------------//
+//------------------------------------------------------------------------------
 
 inline void Text(std::string_view text) { ImGui::TextUnformatted(text); }
 
@@ -67,7 +60,7 @@ SQEE_API void BulletText(std::string_view text);
 
 SQEE_API void SetTooltip(std::string_view text);
 
-//----------------------------------------------------------------------------//
+//------------------------------------------------------------------------------
 
 /// DisplaySize.x - offset
 SQEE_API float FromScreenRight(float offset);
@@ -96,7 +89,7 @@ SQEE_API bool InputColour(ImStrv label, sq::Vec4F& colour, ImGuiColorEditFlags f
 /// Show a dialog prompting the user for confirmation.
 SQEE_API DialogResult DialogConfirmation(ImStrv title, std::string_view message = {});
 
-//----------------------------------------------------------------------------//
+//------------------------------------------------------------------------------
 
 SQEE_API void HoverTooltipV(bool delay, ImGuiDir dir, fmt::string_view fstr, fmt::format_args args);
 
@@ -108,7 +101,7 @@ inline void HoverTooltip(bool delay, ImGuiDir dir, FormatString<Args...> fstr, A
 template <class... Args>
 inline void HoverTooltip(FormatString<Args...> fstr, Args&&... args) { HoverTooltipV(true, ImGuiDir_None, fstr, fmt::make_format_args(args...)); }
 
-//----------------------------------------------------------------------------//
+//------------------------------------------------------------------------------
 
 namespace detail {
 
@@ -140,7 +133,7 @@ SQEE_API bool is_temp_input_open();
 
 } // namespace detail
 
-//----------------------------------------------------------------------------//
+//------------------------------------------------------------------------------
 
 template <class Type>
 inline bool InputValue(ImStrv label, Type& ref, decltype(Type()) step, const char* format = nullptr)
@@ -186,7 +179,7 @@ inline bool DragValueRange2(ImStrv label, Type& refMin, Type& refMax, float spee
     return changed;
 }
 
-//----------------------------------------------------------------------------//
+//------------------------------------------------------------------------------
 
 template <int Size, class Type>
 inline bool InputVector(ImStrv label, sq::maths::Vector<Size, Type>& ref, decltype(Type()) step, const char* format = nullptr)
@@ -222,7 +215,7 @@ inline bool InputQuaternion(ImStrv label, sq::maths::Quaternion<Type>& ref, decl
     return changed;
 }
 
-//----------------------------------------------------------------------------//
+//------------------------------------------------------------------------------
 
 /// C++ style API for combo boxes. If none is given, it can be selected to set the index to -1.
 template <class Container, class Index>
@@ -308,7 +301,7 @@ inline bool ComboEnum(ImStrv label, Enum& ref, ImGuiComboFlags flags = 0)
     return changed;
 }
 
-//----------------------------------------------------------------------------//
+//------------------------------------------------------------------------------
 
 /// Assign ref to value when pressed.
 template <class Type>
@@ -319,7 +312,7 @@ inline bool RadioButton(ImStrv label, Type& ref, Type value)
     return pressed;
 }
 
-//----------------------------------------------------------------------------//
+//------------------------------------------------------------------------------
 
 /// Wrapper for Begin, End.
 struct Scope_Window final : detail::ScopeBase
@@ -337,7 +330,7 @@ struct Scope_WindowClosable final : detail::ScopeBase
     ~Scope_WindowClosable() { ImGui::End(); }
 };
 
-//----------------------------------------------------------------------------//
+//------------------------------------------------------------------------------
 
 /// Wrapper for BeginChild, EndChild.
 template <class Body>
@@ -415,7 +408,7 @@ inline void if_Table(ImStrv id, int columns, ImGuiTableFlags flags, ImVec2 outer
     if (ImGui::BeginTable(id, columns, flags, outerSize, innerWidth)) { body(); ImGui::EndTable(); }
 }
 
-//----------------------------------------------------------------------------//
+//------------------------------------------------------------------------------
 
 /// Wrapper for PushID, PopID.
 struct Scope_ID final : detail::ScopeBase
@@ -465,7 +458,7 @@ struct Scope_FontScale final : detail::ScopeBase
     ~Scope_FontScale() { font->Scale = scale; ImGui::PopFont(); }
 };
 
-//----------------------------------------------------------------------------//
+//------------------------------------------------------------------------------
 
 /// Wrapper for PushStyleVar(float), PopStyleVar.
 template <ImGuiStyleVar_ StyleVar>
@@ -491,14 +484,10 @@ using Style_CellPadding = Scope_StyleVec<ImGuiStyleVar_CellPadding>;
 using Style_ButtonTextAlign = Scope_StyleVec<ImGuiStyleVar_ButtonTextAlign>;
 using Style_SelectableTextAlign = Scope_StyleVec<ImGuiStyleVar_SelectableTextAlign>;
 
-//----------------------------------------------------------------------------//
+} // namespace ImPlus ##########################################################
 
 #define IMPLUS_WITH_CONCAT_INNER(a, b) a##b
 #define IMPLUS_WITH_CONCAT(a, b) IMPLUS_WITH_CONCAT_INNER(a, b)
 
 /// Declare a variable with a generated name of the given ImPlus class.
 #define IMPLUS_WITH(Class) const ImPlus::Class IMPLUS_WITH_CONCAT(implus_with_, __LINE__)
-
-//============================================================================//
-
-} // namespace ImPlus

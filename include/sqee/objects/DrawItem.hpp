@@ -9,9 +9,7 @@
 #include <sqee/misc/ResourceHandle.hpp>
 #include <sqee/misc/StackString.hpp>
 
-namespace sq {
-
-//====== Forward Declarations ================================================//
+namespace sq { //###############################################################
 
 using AnimSample = std::vector<std::byte>;
 
@@ -20,7 +18,7 @@ class Mesh;
 class Pipeline;
 class Texture;
 
-//============================================================================//
+//==============================================================================
 
 /// Used to generate a draw call each frame.
 struct SQEE_API DrawItem
@@ -134,9 +132,7 @@ struct SQEE_API DrawItem
     ) const;
 };
 
-//============================================================================//
-
-} // namespace sq
+} // namespace sq ##############################################################
 
 SQEE_ENUM_HELPER
 (

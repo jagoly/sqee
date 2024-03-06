@@ -6,9 +6,7 @@
 #include <sqee/maths/Vectors.hpp>
 #include <sqee/vk/Vulkan.hpp>
 
-namespace sq {
-
-//============================================================================//
+namespace sq { //###############################################################
 
 /// A set of constants to freeze when compiling a Pipeline.
 ///
@@ -60,7 +58,7 @@ struct SpecialisationConstants final
     vk::SpecializationInfo info;
 };
 
-//============================================================================//
+//==============================================================================
 
 /// Information about a RenderPass, for use by Pipelines.
 struct PassConfig final
@@ -78,6 +76,4 @@ struct PassConfig final
 
 using PassConfigMap = std::map<TinyString, PassConfig>;
 
-//============================================================================//
-
-} // namespace sq
+} // namespace sq ##############################################################

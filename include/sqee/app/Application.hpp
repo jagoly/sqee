@@ -1,20 +1,15 @@
-// Copyright(c) 2020 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 #pragma once
 
 #include <sqee/setup.hpp>
 
 #include <sqee/core/TypeAliases.hpp>
 
-namespace sq {
-
-//============================================================================//
+namespace sq { //###############################################################
 
 /// The SQEE Application base class.
 class SQEE_API Application
 {
-public: //====================================================//
+public: //======================================================
 
     Application() = default;
 
@@ -23,7 +18,7 @@ public: //====================================================//
 
     virtual ~Application() = default;
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     /// Launch the main application loop.
     int run(int argc, char** argv);
@@ -34,7 +29,7 @@ public: //====================================================//
     /// Reset timer for going into inactive mode.
     void reset_inactivity() { mElapsedSinceActivity = 0.0; }
 
-protected: //=================================================//
+protected: //===================================================
 
     /// Called once before the main loop starts.
     virtual void initialise(std::vector<String> args) = 0;
@@ -42,7 +37,7 @@ protected: //=================================================//
     /// Called continuously while running.
     virtual void update(double elapsed) = 0;
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     /// How long to go without user input before limiting update rate.
     double mMaxInactivePeriod = INFINITY;
@@ -60,6 +55,4 @@ protected: //=================================================//
     std::function<void()> mCallNextFrame = nullptr;
 };
 
-//============================================================================//
-
-} // namespace sq
+} // namespace sq ##############################################################

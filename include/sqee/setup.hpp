@@ -1,6 +1,3 @@
-// Copyright(c) 2020 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 #pragma once
 
 #include <sqee/export.hpp> // IWYU pragma: export
@@ -42,7 +39,7 @@
 #include <utility> // IWYU pragma: export
 #include <vector> // IWYU pragma: export
 
-//============================================================================//
+//==============================================================================
 
 // without these, IWYU sometimes reccomends stddef.h
 typedef std::ptrdiff_t ptrdiff_t;
@@ -71,7 +68,7 @@ typedef unsigned int ImGuiID;
 #define SQEE_COPY_DEFAULT(Class) Class(const Class&) = default; Class& operator=(const Class&) = default;
 #define SQEE_MOVE_DEFAULT(Class) Class(Class&&) = default; Class& operator=(Class&&) = default;
 
-//============================================================================//
+//==============================================================================
 
 namespace sq {
 
@@ -86,7 +83,7 @@ namespace views { using namespace std::ranges::views; }
 
 } // namespace sq
 
-//============================================================================//
+//==============================================================================
 
 /// @namespace sq
 /// @brief The primary SQEE namespace.

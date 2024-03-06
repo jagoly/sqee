@@ -8,7 +8,7 @@
 
 using namespace sq;
 
-//============================================================================//
+//==============================================================================
 
 inline void impl_append_time_and_category(std::string_view category, fmt::memory_buffer& buffer)
 {
@@ -39,7 +39,7 @@ inline void impl_write_multiline(const fmt::memory_buffer& buffer, FILE* file)
     }
 }
 
-//============================================================================//
+//==============================================================================
 
 void sq::detail::log(std::string_view category, std::string_view str)
 {
@@ -67,7 +67,7 @@ void sq::detail::log_multiline(std::string_view category, std::string_view str)
     std::fflush(stdout);
 }
 
-//============================================================================//
+//==============================================================================
 
 void sq::detail::log(std::string_view category, fmt::string_view fstr, fmt::format_args args)
 {

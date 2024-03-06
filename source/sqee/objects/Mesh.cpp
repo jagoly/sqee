@@ -10,7 +10,7 @@
 
 using namespace sq;
 
-//============================================================================//
+//==============================================================================
 
 inline void impl_ascii_append_normal(std::byte*& ptr, StringView svx, StringView svy, StringView svz, StringView svw)
 {
@@ -46,7 +46,7 @@ inline void impl_ascii_append_int8(std::byte*& ptr, StringView sv)
     ptr += sizeof(int8_t);
 }
 
-//============================================================================//
+//==============================================================================
 
 Mesh::Mesh(Mesh&& other)
 {
@@ -74,7 +74,7 @@ Mesh::~Mesh()
     mIndexBuffer.destroy(ctx);
 }
 
-//============================================================================//
+//==============================================================================
 
 void Mesh::load_from_file(const String& path)
 {
@@ -89,7 +89,7 @@ void Mesh::load_from_file(const String& path)
     else SQEE_THROW("could not find mesh '{}'", path);
 }
 
-//============================================================================//
+//==============================================================================
 
 int8_t Mesh::get_sub_mesh_index(TinyString name) const noexcept
 {
@@ -106,7 +106,7 @@ int8_t Mesh::json_as_sub_mesh_index(JsonAny json) const
     json.throw_with_context("invalid sub mesh name");
 }
 
-//============================================================================//
+//==============================================================================
 
 void Mesh::bind_buffers(vk::CommandBuffer cmdbuf) const
 {
@@ -125,7 +125,7 @@ void Mesh::draw(vk::CommandBuffer cmdbuf, int8_t subMesh) const
     else cmdbuf.drawIndexed(mIndexTotal, 1u, 0u, 0, 0u);
 }
 
-//============================================================================//
+//==============================================================================
 
 void Mesh::impl_load_text(String&& text)
 {
@@ -142,7 +142,7 @@ void Mesh::impl_load_text(String&& text)
     mVertexSize = sizeof(float[3]);
     size_t numValuesPerVertex = 3u;
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     for (const auto& [line, num] : TokenisedFile::from_string(std::move(text)).lines)
     {
@@ -306,7 +306,7 @@ void Mesh::impl_load_text(String&& text)
         else SQEE_THROW("missing SECTION");
     }
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     SQASSERT(vertexPtr == vertexData.data() + vertexData.size(), "not enough vertices");
     SQASSERT(indexPtr == indexData.data() + indexData.size(), "not enough indices");
@@ -314,7 +314,7 @@ void Mesh::impl_load_text(String&& text)
     impl_load_final(vertexData, indexData);
 }
 
-//============================================================================//
+//==============================================================================
 
 void Mesh::impl_load_final(std::vector<std::byte>& vertexData, std::vector<uint32_t>& indexData)
 {
@@ -337,7 +337,7 @@ void Mesh::impl_load_final(std::vector<std::byte>& vertexData, std::vector<uint3
     setup_buffer(mIndexBuffer, vk::BufferUsageFlagBits::eIndexBuffer, indexData.data(), indexData.size() * sizeof(uint32_t));
 }
 
-//============================================================================//
+//==============================================================================
 
 Mesh::VertexConfig::VertexConfig(vk::Flags<Attribute> flags, vk::Flags<Attribute> ignored)
 {

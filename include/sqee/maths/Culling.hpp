@@ -1,6 +1,3 @@
-// Copyright(c) 2020 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 #include <sqee/setup.hpp>
 
 #include <sqee/maths/Volumes.hpp>
@@ -18,9 +15,7 @@
 //   - for frustum culling
 //   - written ages ago, might miss some edge cases
 
-namespace sq::maths {
-
-//============================================================================//
+namespace sq::maths { //########################################################
 
 /// Check for intersection between a @ref Sphere and a @ref Sphere.
 ///
@@ -45,7 +40,7 @@ inline int8_t test_inout_sphere_sphere(Sphere first, Sphere second)
     return 0; // intersects
 }
 
-//============================================================================//
+//==============================================================================
 
 /// Check for intersection between a @ref Sphere and a @ref Capsule.
 ///
@@ -74,7 +69,7 @@ inline int8_t test_inout_sphere_capsule(Sphere sphere, Capsule capsule)
     return 0; // intersects
 }
 
-//============================================================================//
+//==============================================================================
 
 /// Check for intersection between a @ref Sphere and an @ref Ortho2D.
 ///
@@ -113,7 +108,7 @@ inline int8_t test_inout_sphere_ortho(Sphere sphere, Ortho2D ortho)
     return +1; // fully inside
 }
 
-//============================================================================//
+//==============================================================================
 
 /// Check for intersection between a @ref Capsule and a @ref Capsule.
 ///
@@ -188,7 +183,7 @@ inline bool intersect_capsule_capsule(Capsule capsuleA, Capsule capsuleB)
     return distSquare <= radiusSum * radiusSum;
 }
 
-//============================================================================//
+//==============================================================================
 
 /// Check if a @ref Sphere and a @ref Sphere do not intersect.
 ///
@@ -205,7 +200,7 @@ inline bool cull_sphere_sphere(Sphere first, Sphere second)
     return distSquare > radiusSum * radiusSum;
 }
 
-//============================================================================//
+//==============================================================================
 
 /// Check if a @ref Box and a @ref Sphere do not intersect.
 ///
@@ -234,7 +229,7 @@ inline bool cull_box_sphere(Box box, Sphere sphere)
     return false;
 }
 
-//============================================================================//
+//==============================================================================
 
 /// Check if a @ref Sphere and an @ref Ortho2D do not intersect.
 ///
@@ -258,7 +253,7 @@ inline bool cull_sphere_ortho(Sphere sphere, Ortho2D ortho)
     return dotZ + ortho.planeZ.offset >= sphere.radius;
 }
 
-//============================================================================//
+//==============================================================================
 
 /// Check if a @ref Box and an @ref Ortho2D do not intersect.
 ///
@@ -272,7 +267,7 @@ inline bool cull_box_ortho(Box box, Ortho2D ortho)
     const int8_t sphereTest = test_inout_sphere_ortho({box.origin, box.radius}, ortho);
     if (sphereTest != 0) return sphereTest < 0; // early exit if fully out or in
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     const Vec3F sideOffsetX = box.basis[0] * box.extents.x;
     const Vec3F sideOffsetY = box.basis[1] * box.extents.y;
@@ -290,7 +285,7 @@ inline bool cull_box_ortho(Box box, Ortho2D ortho)
         box.origin + sideOffsetX + sideOffsetY + sideOffsetZ
     };
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     uint8_t bitsPosX = 0u, bitsNegX = 0u;
 
@@ -303,7 +298,7 @@ inline bool cull_box_ortho(Box box, Ortho2D ortho)
 
     if (bitsPosX == 0u || bitsNegX == 0u) return true;
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     uint8_t bitsPosY = 0u, bitsNegY = 0u;
 
@@ -316,7 +311,7 @@ inline bool cull_box_ortho(Box box, Ortho2D ortho)
 
     if (bitsPosY == 0u || bitsNegY == 0u) return true;
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     uint8_t bitsFar = 0u;
 
@@ -328,7 +323,7 @@ inline bool cull_box_ortho(Box box, Ortho2D ortho)
 
     if (bitsFar == 0u) return true;
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     return false;
 
@@ -410,7 +405,7 @@ inline bool cull_box_ortho(Box box, Ortho2D ortho)
     */
 }
 
-//============================================================================//
+//==============================================================================
 
 /// Check if a @ref Sphere and a @ref Frustum do not intersect.
 ///
@@ -439,7 +434,7 @@ inline bool cull_sphere_frustum(Sphere sphere, Frustum frustum)
     return false;
 }
 
-//============================================================================//
+//==============================================================================
 
 /// Check if a @ref Box and a @ref Frustum do not intersect.
 ///
@@ -452,7 +447,7 @@ inline bool cull_box_frustum(Box box, Frustum frustum)
 {
     if (cull_sphere_frustum({box.origin, box.radius}, frustum)) return true;
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     const Vec3F offsetX = box.basis[0] * box.extents.x;
     const Vec3F offsetY = box.basis[1] * box.extents.y;
@@ -467,7 +462,7 @@ inline bool cull_box_frustum(Box box, Frustum frustum)
     const Vec3F pointG = box.origin + offsetX + offsetY - offsetZ;
     const Vec3F pointH = box.origin + offsetX + offsetY + offsetZ;
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     const auto test_points_plane = [&](Plane plane) -> uint8_t
     {
@@ -485,7 +480,7 @@ inline bool cull_box_frustum(Box box, Frustum frustum)
         return result;
     };
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     if (test_points_plane(frustum.planes[0]) == 0u) return true;
     if (test_points_plane(frustum.planes[1]) == 0u) return true;
@@ -496,6 +491,4 @@ inline bool cull_box_frustum(Box box, Frustum frustum)
     return false;
 }
 
-//============================================================================//
-
-} // namespace sq::maths
+} // namespace sq::maths #######################################################

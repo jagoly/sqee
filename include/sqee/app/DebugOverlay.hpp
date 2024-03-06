@@ -1,6 +1,3 @@
-// Copyright(c) 2020 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 #pragma once
 
 #include <sqee/setup.hpp>
@@ -9,14 +6,12 @@
 #include <sqee/core/TypeAliases.hpp>
 #include <sqee/vk/Vulkan.hpp>
 
-namespace sq {
-
-//============================================================================//
+namespace sq { //###############################################################
 
 /// The SQEE Debugging Overlay.
 class SQEE_API DebugOverlay final : public Scene
 {
-public: //====================================================//
+public: //======================================================
 
     DebugOverlay();
 
@@ -34,7 +29,7 @@ public: //====================================================//
     /// Check if the overlay is drawn.
     bool check_active() const { return mActive; }
 
-private: //===================================================//
+private: //=====================================================
 
     void update() override;
 
@@ -65,6 +60,4 @@ private: //===================================================//
     String mFrameSubTimerTotalDisplay;
 };
 
-//============================================================================//
-
-} // namespace sq
+} // namespace sq ##############################################################

@@ -4,7 +4,7 @@
 
 using namespace sq;
 
-//============================================================================//
+//==============================================================================
 
 StagingBuffer::StagingBuffer(const VulkanContext& _ctx, bool source, bool destination, size_t size)
     : ctx(_ctx)
@@ -28,7 +28,7 @@ StagingBuffer::~StagingBuffer()
     memory.free();
 }
 
-//============================================================================//
+//==============================================================================
 
 OneTimeCommands::OneTimeCommands(const VulkanContext& _ctx)
     : ctx(_ctx)
@@ -56,7 +56,7 @@ OneTimeCommands::~OneTimeCommands()
     ctx.device.free(ctx.commandPool, cmdbuf);
 }
 
-//============================================================================//
+//==============================================================================
 
 ShaderModules::ShaderModules(const VulkanContext& _ctx, const String& vertex, const String& geometry, const String& fragment, const vk::SpecializationInfo* specialisation)
     : ctx(_ctx)
@@ -112,7 +112,7 @@ ShaderModules::~ShaderModules()
         ctx.device.destroy(module);
 }
 
-//============================================================================//
+//==============================================================================
 
 vk::Pipeline sq::vk_create_graphics_pipeline(const VulkanContext& ctx, vk::PipelineLayout layout, vk::RenderPass renderPass, uint32_t subpass, ArrayProxyRef<vk::PipelineShaderStageCreateInfo> stages, const vk::PipelineVertexInputStateCreateInfo& vertexInputState, const vk::PipelineInputAssemblyStateCreateInfo& inputAssemblyState, const vk::PipelineRasterizationStateCreateInfo& rasterizationState, const vk::PipelineMultisampleStateCreateInfo& multisampleState, const vk::PipelineDepthStencilStateCreateInfo& depthStencilState, ArrayProxyRef<vk::Viewport> viewports, ArrayProxyRef<vk::Rect2D> scissors, ArrayProxyRef<vk::PipelineColorBlendAttachmentState> colorBlendAttachments, ArrayProxyRef<vk::DynamicState> dynamicStates)
 {
@@ -143,7 +143,7 @@ vk::Pipeline sq::vk_create_graphics_pipeline(const VulkanContext& ctx, vk::Pipel
     return result.value;
 }
 
-//============================================================================//
+//==============================================================================
 
 vk::DescriptorSet sq::vk_allocate_descriptor_set(const VulkanContext& ctx, vk::DescriptorSetLayout layout)
 {

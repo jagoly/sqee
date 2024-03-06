@@ -4,11 +4,11 @@
 
 #include <sqee/core/TypeAliases.hpp>
 
-//====== Forward Declarations ================================================//
+//==============================================================================
 
 extern "C" { typedef struct GLFWwindow GLFWwindow; }
 
-namespace sq {
+namespace sq { //###############################################################
 
 enum class Keyboard_Key : int8_t;
 enum class Mouse_Button : int8_t;
@@ -16,24 +16,24 @@ enum class Mouse_Button : int8_t;
 class Window;
 struct GamepadState;
 
-//============================================================================//
+//==============================================================================
 
 /// Access to Keyboard/Mouse/Gamepad state.
 class SQEE_API InputDevices
 {
-public: //====================================================//
+public: //======================================================
 
     InputDevices(Window& window);
 
     SQEE_COPY_DELETE(InputDevices)
     SQEE_MOVE_DELETE(InputDevices)
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     /// Check if the given key is pressed.
     bool is_pressed(Keyboard_Key key) const;
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     /// Get the location of the cursor.
     Vec2I get_cursor_location(bool flipY) const;
@@ -44,7 +44,7 @@ public: //====================================================//
     /// Move the cursor to the window centre.
     Vec2I cursor_to_centre();
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     /// Check if a gamepad is connected.
     bool check_gamepad_connected(int port) const;
@@ -52,11 +52,9 @@ public: //====================================================//
     /// Get the current state of a gamepad.
     GamepadState poll_gamepad_state(int port) const;
 
-private: //===================================================//
+private: //=====================================================
 
     GLFWwindow* const mGlfwWindow;
 };
 
-//============================================================================//
-
-} // namespace sq
+} // namespace sq ##############################################################

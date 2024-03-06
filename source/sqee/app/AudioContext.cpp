@@ -10,7 +10,7 @@
 
 using namespace sq;
 
-//============================================================================//
+//==============================================================================
 
 struct AudioContext::Implementation
 {
@@ -22,7 +22,7 @@ struct AudioContext::Implementation
     static void data_callback(ma_device* pevice, void* pOutput, const void* pInput, ma_uint32 frameCount);
 };
 
-//============================================================================//
+//==============================================================================
 
 void AudioContext::Implementation::data_callback(ma_device* pDevice, void* pOutput, const void* /*pInput*/, ma_uint32 frameCount)
 {
@@ -52,7 +52,7 @@ void AudioContext::Implementation::data_callback(ma_device* pDevice, void* pOutp
     std::erase_if(context->mActiveSounds, predicate);
 }
 
-//============================================================================//
+//==============================================================================
 
 AudioContext::AudioContext() : impl(std::make_unique<Implementation>())
 {
@@ -73,14 +73,14 @@ AudioContext::AudioContext() : impl(std::make_unique<Implementation>())
     ma_device_start(&impl->device);
 }
 
-//============================================================================//
+//==============================================================================
 
 AudioContext::~AudioContext()
 {
     ma_device_uninit(&impl->device);
 }
 
-//============================================================================//
+//==============================================================================
 
 int32_t AudioContext::play_sound(const Sound& sound, SoundGroup group, float volume, bool loop)
 {
@@ -102,7 +102,7 @@ int32_t AudioContext::play_sound(const Sound& sound, SoundGroup group, float vol
     return mCurrentId;
 }
 
-//============================================================================//
+//==============================================================================
 
 void AudioContext::set_sound_paused(int32_t id, bool paused)
 {
@@ -126,7 +126,7 @@ void AudioContext::stop_sound(int32_t id)
         if (iter->id == id) { mActiveSounds.erase(iter); break; }
 }
 
-//============================================================================//
+//==============================================================================
 
 // todo: could optimise these, since the ranges are all sorted
 
@@ -153,7 +153,7 @@ void AudioContext::stop_sounds(std::span<const int32_t> ids)
     std::erase_if(mActiveSounds, predicate);
 }
 
-//============================================================================//
+//==============================================================================
 
 void AudioContext::set_groups_ignored(SoundGroups groups, bool ignore)
 {
@@ -177,7 +177,7 @@ void AudioContext::stop_groups(SoundGroups groups)
     std::erase_if(mActiveSounds, predicate);
 }
 
-//============================================================================//
+//==============================================================================
 
 void AudioContext::impl_destroy_sound(const Sound& sound)
 {

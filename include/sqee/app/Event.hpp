@@ -1,6 +1,3 @@
-// Copyright(c) 2020 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 #pragma once
 
 #include <sqee/setup.hpp>
@@ -9,9 +6,7 @@
 #include <sqee/core/TypeAliases.hpp>
 #include <sqee/maths/Vectors.hpp>
 
-namespace sq {
-
-//============================================================================//
+namespace sq { //###############################################################
 
 enum class Keyboard_Key : int8_t
 {
@@ -36,7 +31,7 @@ enum class Mouse_Button : int8_t
     ExtraA, ExtraB
 };
 
-//============================================================================//
+//==============================================================================
 
 struct Event final
 {
@@ -69,9 +64,7 @@ struct Event final
     Data data {};
 };
 
-//============================================================================//
-
-} // namespace sq
+} // namespace sq ##############################################################
 
 SQEE_ENUM_HELPER
 (

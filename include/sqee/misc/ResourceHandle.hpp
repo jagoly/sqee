@@ -1,15 +1,10 @@
-// Copyright(c) 2020 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 #pragma once
 
 #include <sqee/setup.hpp>
 
 #include <cassert>
 
-namespace sq {
-
-//============================================================================//
+namespace sq { //###############################################################
 
 /// For internal use by ResourceCache and Handle.
 template <class Key, class Type>
@@ -26,13 +21,13 @@ struct Resource final
     size_t count;
 };
 
-//============================================================================//
+//==============================================================================
 
 /// Provides reference counted access to a resource.
 template <class Key, class Type>
 class Handle final
 {
-public: //====================================================//
+public: //======================================================
 
     Handle(std::nullptr_t = nullptr) noexcept
     {
@@ -78,7 +73,7 @@ public: //====================================================//
         if (mResourcePtr) --mResourcePtr->count;
     }
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     bool good() const noexcept
     {
@@ -116,15 +111,13 @@ public: //====================================================//
         return mResourcePtr->error;
     }
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     bool operator==(const Handle& other) const noexcept { return mResourcePtr == other.mResourcePtr; }
 
-private: //===================================================//
+private: //=====================================================
 
     Resource<Key, Type>* mResourcePtr;
 };
 
-//============================================================================//
-
-} // namespace sq
+} // namespace sq ##############################################################

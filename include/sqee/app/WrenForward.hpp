@@ -1,12 +1,9 @@
-// Copyright(c) 2020 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 #pragma once
 
 #include <cstddef>
 #include <type_traits>
 
-//============================================================================//
+//==============================================================================
 
 // to use without sqee, replace this stuff with your own macros
 
@@ -18,7 +15,7 @@
   #define WRENPLUS_DEBUG
 #endif
 
-//============================================================================//
+//==============================================================================
 
 extern "C" {
 
@@ -27,7 +24,7 @@ typedef struct WrenHandle WrenHandle;
 
 } // extern "C"
 
-//============================================================================//
+//==============================================================================
 
 namespace wren {
 
@@ -44,7 +41,7 @@ class WrenPlusVM;
 
 } // namespace wren
 
-//============================================================================//
+//==============================================================================
 
 #define WRENPLUS_TRAITS_HEADER(Type) \
 template<> struct wren::Traits<Type> : std::true_type \
@@ -59,7 +56,7 @@ const char* const wren::Traits<Type>::module = Module; \
 const char* const wren::Traits<Type>::className = ClassName; \
 const size_t wren::Traits<Type>::index = wren::detail::generate_type_index();
 
-//============================================================================//
+//==============================================================================
 
 #define WRENPLUS_BASE_CLASS_HEADER(BaseType) \
 template <> \
@@ -89,7 +86,7 @@ void wren::SlotHelper<BaseType*>::set(WrenVM* vm, int slot, BaseType* ptr) \
         wrenSetSlotNull(vm, slot); \
 }
 
-//============================================================================//
+//==============================================================================
 
 #define WRENPLUS_ADD_METHOD(Pvm, Class, Method, Signature) \
   Pvm.register_method<&Class::Method, Class>(Signature)

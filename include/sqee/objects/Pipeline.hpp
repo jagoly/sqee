@@ -8,9 +8,7 @@
 #include <sqee/vk/PassConfig.hpp>
 #include <sqee/vk/Vulkan.hpp>
 
-namespace sq {
-
-//============================================================================//
+namespace sq { //###############################################################
 
 /// A Vulkan Pipeline defined in JSON, with reflection data.
 ///
@@ -21,7 +19,7 @@ namespace sq {
 ///
 class SQEE_API Pipeline
 {
-public: //====================================================//
+public: //======================================================
 
     enum class PushConstantType : uint8_t
     {
@@ -39,7 +37,7 @@ public: //====================================================//
         bool vertex, fragment;
     };
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     Pipeline() = default;
 
@@ -50,7 +48,7 @@ public: //====================================================//
 
     ~Pipeline();
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     /// Load the pipeline from a minified json string.
     void load_from_minified_json(const String& minified, const PassConfigMap& passes);
@@ -58,7 +56,7 @@ public: //====================================================//
     /// Bind the pipeline for rendering.
     void bind(vk::CommandBuffer cmdbuf) const;
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     const PassConfig* get_pass_config() const { return mPassConfig; }
 
@@ -68,7 +66,7 @@ public: //====================================================//
 
     const std::vector<PushConstant>& get_push_constants() const { return mPushConstants; }
 
-protected: //=================================================//
+protected: //===================================================
 
     const PassConfig* mPassConfig = nullptr;
 
@@ -77,9 +75,7 @@ protected: //=================================================//
     std::vector<PushConstant> mPushConstants;
 };
 
-//============================================================================//
-
-} // namespace sq
+} // namespace sq ##############################################################
 
 SQEE_ENUM_HELPER
 (

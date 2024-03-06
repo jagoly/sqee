@@ -4,13 +4,13 @@
 
 using namespace sq;
 
-//============================================================================//
+//==============================================================================
 
 static VulkanContext* gContextPtr = nullptr;
 
 const VulkanContext& VulkanContext::get() { return *gContextPtr; }
 
-//============================================================================//
+//==============================================================================
 
 VulkanContext::VulkanContext(VulkanAllocator& _allocator) : allocator(_allocator) {}
 
@@ -29,7 +29,7 @@ void VulkanContext::destruct()
 
 VulkanContext& VulkanContext::get_mutable() { return *gContextPtr; }
 
-//============================================================================//
+//==============================================================================
 
 vk::DescriptorSet VulkanContext::allocate_descriptor_set(vk::DescriptorPool pool, vk::DescriptorSetLayout layout) const
 {

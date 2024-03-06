@@ -4,7 +4,7 @@
 
 using namespace sq;
 
-//============================================================================//
+//==============================================================================
 
 std::vector<StringView> sq::tokenise_string(StringView sv, char dlm)
 {
@@ -23,7 +23,7 @@ std::vector<StringView> sq::tokenise_string(StringView sv, char dlm)
     return result;
 }
 
-//============================================================================//
+//==============================================================================
 
 void sq::tokenise_string(StringView sv, char dlm, std::vector<StringView>& out)
 {
@@ -40,7 +40,7 @@ void sq::tokenise_string(StringView sv, char dlm, std::vector<StringView>& out)
     }
 }
 
-//============================================================================//
+//==============================================================================
 
 std::vector<StringView> sq::tokenise_string_lines(StringView sv)
 {

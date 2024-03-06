@@ -1,6 +1,3 @@
-// Copyright(c) 2020 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 #pragma once
 
 #include <sqee/setup.hpp>
@@ -9,15 +6,13 @@
 #include <sqee/debug/Logging.hpp>
 #include <sqee/misc/ResourceHandle.hpp>
 
-namespace sq {
-
-//============================================================================//
+namespace sq { //###############################################################
 
 /// Class that provides caching of a type of resource.
 template <class Key, class Type>
 class ResourceCache final
 {
-public: //====================================================//
+public: //======================================================
 
     using Factory = std::function<Type(const Key&)>;
 
@@ -92,7 +87,7 @@ public: //====================================================//
         }
     }
 
-private: //===================================================//
+private: //=====================================================
 
     // todo: experiment with using unordered_map instead
     std::map<Key, Resource<Key, Type>> mResourceMap;
@@ -101,6 +96,4 @@ private: //===================================================//
     Factory mFactoryFunc;
 };
 
-//============================================================================//
-
-} // namespace sq
+} // namespace sq ##############################################################

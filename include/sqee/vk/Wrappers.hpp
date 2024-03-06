@@ -6,16 +6,14 @@
 #include <sqee/vk/Vulkan.hpp>
 #include <sqee/vk/VulkanMemory.hpp>
 
-namespace sq {
-
-//============================================================================//
+namespace sq { //###############################################################
 
 class VulkanContext;
 
 template <class T>
 using ArrayProxyRef = const vk::ArrayProxy<const T>&;
 
-//============================================================================//
+//==============================================================================
 
 struct SQEE_API BufferStuff
 {
@@ -29,7 +27,7 @@ struct SQEE_API BufferStuff
     void destroy(const VulkanContext& ctx);
 };
 
-//============================================================================//
+//==============================================================================
 
 struct SQEE_API ImageStuff
 {
@@ -52,7 +50,7 @@ struct SQEE_API ImageStuff
     void destroy(const VulkanContext& ctx);
 };
 
-//============================================================================//
+//==============================================================================
 
 struct SQEE_API RenderPassStuff
 {
@@ -66,6 +64,4 @@ struct SQEE_API RenderPassStuff
     void destroy(const VulkanContext& ctx);
 };
 
-//============================================================================//
-
-} // namespace sq
+} // namespace sq ##############################################################

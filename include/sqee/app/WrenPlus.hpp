@@ -1,6 +1,3 @@
-// Copyright(c) 2020 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 // some parts based on https://github.com/Nelarius/wrenpp
 // should work without sqee with a few small changes
 
@@ -26,9 +23,7 @@
 #include <utility>
 #include <vector>
 
-namespace wren {
-
-//============================================================================//
+namespace wren { //#############################################################
 
 /// General exception to throw from functions bound to wren.
 struct Exception final : public std::runtime_error
@@ -68,7 +63,7 @@ struct GetVar
     const char* const name;
 };
 
-//============================================================================//
+//==============================================================================
 
 namespace detail {
 
@@ -95,7 +90,7 @@ struct FieldHelper<FieldPtr>
 
 } // namespace detail
 
-//============================================================================//
+//==============================================================================
 
 /// Create a new SafeResult with either a value or an error.
 template <class Type, bool Ok, class Arg>
@@ -142,18 +137,18 @@ template <auto FieldPtr> constexpr auto FieldGetter = &detail::FieldHelper<Field
 /// Wrap a member object pointer for use with WrenPlusVM::register_method.
 template <auto FieldPtr> constexpr auto FieldSetter = &detail::FieldHelper<FieldPtr>::set;
 
-//============================================================================//
+//==============================================================================
 
 /// RAII wrapper for WrenVM, with some nice extra features.
 class WRENPLUS_API WrenPlusVM
 {
-public: //====================================================//
+public: //======================================================
 
     WrenPlusVM();
 
     ~WrenPlusVM();
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     WrenPlusVM(const WrenPlusVM&) = delete;
     WrenPlusVM& operator=(const WrenPlusVM&) = delete;
@@ -161,7 +156,7 @@ public: //====================================================//
     WrenPlusVM(WrenPlusVM&&) = delete;
     WrenPlusVM& operator=(WrenPlusVM&&) = delete;
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     /// Allows WrenPlusVM& instead of WrenVM* with the wren api.
     operator WrenVM*() { return mWrenVM; }
@@ -179,7 +174,7 @@ public: //====================================================//
         return mForeignClassHandles[Traits<Object>::index];
     }
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     /// Set the list of directories in which wren should search for modules.
     void set_module_import_dirs(std::vector<std::string> dirs)
@@ -222,7 +217,7 @@ public: //====================================================//
         (impl_cache_handle(Traits<Objects>::module, Traits<Objects>::className, Traits<Objects>::index), ...);
     }
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     /// Call a wren method with the given arguments and return the result.
     template <class Result, class Receiver, class... Args>
@@ -248,7 +243,7 @@ public: //====================================================//
             throw Exception(mErrorString);
     }
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     /// Call a wren method with the given arguments and return the result or any errors.
     template <class Result, class Receiver, class... Args>
@@ -281,7 +276,7 @@ public: //====================================================//
         return std::string();
     }
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     /// Wrapper for wrenInterpret that throws.
     void interpret(const char* module, const char* source);
@@ -298,12 +293,12 @@ public: //====================================================//
     /// Makes sure that no foreign class indices are missing.
     void validate_class_handle_cache();
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     /// Lookup a variable that is known to exist.
     [[nodiscard]] WrenHandle* get_variable(const char* module, const char* variable);
 
-private: //===================================================//
+private: //=====================================================
 
     static void impl_write_fn(WrenVM*, const char*);
 
@@ -315,19 +310,19 @@ private: //===================================================//
 
     static WrenLoadModuleResult impl_load_module_fn(WrenVM*, const char*);
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     void impl_register_method(const char* module, const char* className, const char* signature, WrenForeignMethodFn func);
 
     void impl_cache_handle(const char* module, const char* className, size_t index);
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     static void impl_pointer_equality_operator(WrenVM* vm);
 
     static void impl_pointer_inequality_operator(WrenVM* vm);
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     WrenVM* mWrenVM = nullptr;
 
@@ -340,7 +335,7 @@ private: //===================================================//
     std::string mErrorString;
 };
 
-//============================================================================//
+//==============================================================================
 
 namespace detail {
 
@@ -425,9 +420,9 @@ inline void base_class_slot_helper_set_inner(WrenVM* vm, int slot, BaseType* ptr
 
 } // namespace detail
 
-} // namespace wren
+} // namespace wren ############################################################
 
-//===== STANDARD SLOT HELPERS ================================================//
+// STANDARD SLOT HELPERS =======================================================
 
 /// Specialisation for compile-time null.
 template <>
@@ -668,7 +663,7 @@ struct wren::SlotHelper<std::vector<Type>>
     //}
 };
 
-//===== SQEE SLOT HELPERS ====================================================//
+// SQEE SLOT HELPERS ===========================================================
 
 #include <sqee/core/EnumHelper.hpp>
 

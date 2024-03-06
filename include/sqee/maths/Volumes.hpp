@@ -1,6 +1,3 @@
-// Copyright(c) 2020 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 #pragma once
 
 #include <sqee/setup.hpp>
@@ -9,9 +6,7 @@
 #include <sqee/maths/Vectors.hpp>
 #include <sqee/maths/Matrices.hpp>
 
-namespace sq::maths {
-
-//============================================================================//
+namespace sq::maths { //########################################################
 
 struct Plane
 {
@@ -69,7 +64,7 @@ struct Frustum
     Plane planes[5]; // near, L, R, B, T
 };
 
-//============================================================================//
+//==============================================================================
 
 inline Frustum make_frustum(Mat4F matrix, Vec3F origin, Vec3F direction, float radius)
 {
@@ -100,7 +95,7 @@ inline Frustum make_frustum(Mat4F matrix, Vec3F origin, Vec3F direction, float r
     return result;
 }
 
-//============================================================================//
+//==============================================================================
 
 /// Check if a point is inside of a @ref Sphere.
 ///
@@ -118,7 +113,7 @@ inline bool point_in_sphere(Vec3F point, Sphere sphere, float scale = 1.f)
     return dist < radius;
 }
 
-//============================================================================//
+//==============================================================================
 
 /// Check if a point is inside of a @ref Cone.
 ///
@@ -140,7 +135,7 @@ inline bool point_in_cone(Vec3F point, Cone cone, float scale = 1.f)
     return circleDist < circleRadius;
 }
 
-//============================================================================//
+//==============================================================================
 
 /// Check if a point is inside of a @ref Plane.
 ///
@@ -154,7 +149,7 @@ inline bool point_in_plane(Vec3F point, Plane plane)
     return maths::dot(point, plane.normal) < plane.offset;
 }
 
-//============================================================================//
+//==============================================================================
 
 /// Check if a point is inside of an @ref Ortho2D.
 ///
@@ -174,6 +169,4 @@ inline bool point_in_ortho(Vec3F point, Ortho2D ortho)
     return true;
 }
 
-//============================================================================//
-
-} // namespace sq::maths
+} // namespace sq::maths #######################################################

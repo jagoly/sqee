@@ -1,6 +1,3 @@
-// Copyright(c) 2020 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 #pragma once
 
 #include <sqee/setup.hpp>
@@ -11,9 +8,7 @@
 // Windows is kind enough to work just fine with unix paths, so there's no need
 // for anything platform specific.
 
-namespace sq {
-
-//============================================================================//
+namespace sq { //###############################################################
 
 /// Load a text file into a string.
 SQEE_API String read_text_from_file(const String& path);
@@ -33,7 +28,7 @@ SQEE_API void write_text_to_file(const String& path, StringView text, bool endNe
 /// Save some bytes to a binary file.
 SQEE_API void write_bytes_to_file(const String& path, const void* bytes, size_t size);
 
-//============================================================================//
+//==============================================================================
 
 /// A file or string that has been split by spaces and newlines.
 struct SQEE_API TokenisedFile
@@ -49,7 +44,7 @@ struct SQEE_API TokenisedFile
     /// Take ownership of a string and tokenise it.
     static TokenisedFile from_string(String&& text);
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     using Tokens = std::vector<StringView>;
     struct Line { Tokens tokens; size_t lineNum; };
@@ -58,6 +53,4 @@ struct SQEE_API TokenisedFile
     std::vector<Line> lines;
 };
 
-//============================================================================//
-
-} // namespace sq
+} // namespace sq ##############################################################

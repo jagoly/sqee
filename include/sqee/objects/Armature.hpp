@@ -1,6 +1,3 @@
-// Copyright(c) 2020 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 #pragma once
 
 #include <sqee/setup.hpp>
@@ -13,9 +10,7 @@
 #include <sqee/misc/StackString.hpp>
 #include <sqee/vk/Vulkan.hpp> // Flags
 
-namespace sq {
-
-//============================================================================//
+namespace sq { //###############################################################
 
 /// A set of tracks that can be used to get an AnimSample.
 struct SQEE_API Animation
@@ -44,12 +39,12 @@ struct SQEE_API Animation
 /// A sample from every bone and block track in an armature.
 using AnimSample = std::vector<std::byte>;
 
-//============================================================================//
+//==============================================================================
 
 /// Asset defining bones and other animation tracks.
 class SQEE_API Armature
 {
-public: //====================================================//
+public: //======================================================
 
     enum class TrackType : uint8_t
     {
@@ -86,7 +81,7 @@ public: //====================================================//
         Vec3F scale;
     };
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     Armature() = default;
     Armature(const String& path) { load_from_file(path); }
@@ -97,7 +92,7 @@ public: //====================================================//
     /// Load the armature from JSON.
     void load_from_file(const String& path);
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     size_t get_bone_count() const { return mBoneInfos.size(); }
 
@@ -113,7 +108,7 @@ public: //====================================================//
 
     const std::vector<TinyString>& get_track_names() const { return mBlockNames; }
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     /// Get the index of a bone by name, or -1 if not found.
     int8_t get_bone_index(TinyString name) const noexcept;
@@ -130,7 +125,7 @@ public: //====================================================//
     /// Get the name of a bone by index, or null if the index is -1.
     JsonMutAny json_from_bone_index(JsonMutDocument& document, int8_t index) const noexcept;
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     /// Load an associated animation from an SQA file.
     Animation load_animation_from_file(const String& path) const;
@@ -138,7 +133,7 @@ public: //====================================================//
     /// Generate an animation contaning N frames of the rest pose.
     Animation make_null_animation(uint frameCount) const;
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     /// Sample an animation at the given time.
     void compute_sample(const Animation& animation, float time, AnimSample& out) const;
@@ -146,7 +141,7 @@ public: //====================================================//
     /// Blend between two animation samples.
     void blend_samples(const AnimSample& a, const AnimSample& b, float factor, AnimSample& out) const;
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     // Bone matrices are absolute transforms. Used to transform objects not
     // bound to this armature, or for drawing a skeleton.
@@ -171,7 +166,7 @@ public: //====================================================//
         const AnimSample& sample, Mat4F viewMatrix, Mat4F invViewMatrix, Mat4F modelMatrix, Vec2F billboardScale, Mat34F* modelMats, size_t len
     ) const;
 
-private: //===================================================//
+private: //=====================================================
 
     AnimSample mRestSample;
 
@@ -186,14 +181,12 @@ private: //===================================================//
     std::vector<TinyString> mBlockNames;
     std::vector<TinyString> mTrackNames;
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     Animation impl_load_animation_text(String&& text) const;
 };
 
-//============================================================================//
-
-} // namespace sq
+} // namespace sq ##############################################################
 
 SQEE_ENUM_HELPER
 (

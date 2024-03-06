@@ -15,14 +15,14 @@
 
 using namespace sq;
 
-//============================================================================//
+//==============================================================================
 
 inline size_t impl_round_up(size_t size, size_t alignment)
 {
     return ((size + alignment - 1u) / alignment) * alignment;
 }
 
-//============================================================================//
+//==============================================================================
 
 void VulkanAllocator::initialise(vk::Device device, uint32_t memTypeHost, uint32_t memTypeDevice, size_t maxItems)
 {
@@ -59,7 +59,7 @@ void VulkanAllocator::destroy()
     }
 }
 
-//============================================================================//
+//==============================================================================
 
 VulkanMemory VulkanAllocator::allocate(size_t alignment, size_t size, bool host)
 {
@@ -131,7 +131,7 @@ VulkanMemory VulkanAllocator::allocate(const vk::MemoryRequirements& requirement
     return allocate(requirements.alignment, requirements.size, host);
 }
 
-//============================================================================//
+//==============================================================================
 
 void VulkanAllocator::free_empty_blocks()
 {
@@ -159,7 +159,7 @@ size_t VulkanAllocator::get_memory_usage(bool host) const
     return result;
 }
 
-//============================================================================//
+//==============================================================================
 
 VulkanAllocator::Chunk* VulkanAllocator::impl_find_usable_chunk(size_t size, Chunk& chunk)
 {
@@ -201,7 +201,7 @@ void VulkanAllocator::impl_delete_chunk(Chunk* ptr)
     }
 }
 
-//============================================================================//
+//==============================================================================
 
 std::byte* VulkanMemory::map()
 {
@@ -235,7 +235,7 @@ void VulkanMemory::unmap()
     chunk->mapped = false;
 }
 
-//============================================================================//
+//==============================================================================
 
 void VulkanMemory::free()
 {

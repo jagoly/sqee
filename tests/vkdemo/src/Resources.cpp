@@ -7,7 +7,7 @@
 
 using namespace demo;
 
-//============================================================================//
+//==============================================================================
 
 ResourceCaches::ResourceCaches()
 {
@@ -20,7 +20,7 @@ ResourceCaches::ResourceCaches()
 
     bindlessTextureSet = ctx.allocate_descriptor_set(ctx.descriptorPool, bindlessTextureSetLayout);
 
-    //-- Assign Factory Functions ----------------------------//
+    // Assign Factory Functions --------------------------------
 
     meshes.assign_factory([](const String& key)
     {

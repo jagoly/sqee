@@ -1,11 +1,10 @@
-// Copyright(c) 2020 James Gangur
-// Part of https://github.com/jagoly/sqee
+#pragma once
 
 #include <sqee/export.hpp>
 
 #include <cstdint>
 
-//============================================================================//
+//==============================================================================
 
 // cone scale = 1.00864
 

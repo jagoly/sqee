@@ -23,7 +23,7 @@ using namespace sq;
 
 thread_local std::vector<Mat4F> gTempMats;
 
-//============================================================================//
+//==============================================================================
 
 void Armature::load_from_file(const String& path)
 {
@@ -47,7 +47,7 @@ void Armature::load_from_file(const String& path)
 
     uint32_t dataOffset = 0u;
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     for (const auto [boneIndex, jBone] : jBones | views::json_as<JsonObject>)
     {
@@ -106,7 +106,7 @@ void Armature::load_from_file(const String& path)
         mInverseMats.emplace_back(maths::affine_inverse(mBaseMats.back()));
     }
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     for (const auto [blockName, jBlock] : jBlocks | views::json_as<JsonObject>)
     {
@@ -186,7 +186,7 @@ void Armature::load_from_file(const String& path)
         }
     }
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     mTrackNames.shrink_to_fit();
     mTrackInfos.shrink_to_fit();
@@ -195,7 +195,7 @@ void Armature::load_from_file(const String& path)
         SQEE_THROW("animSampleSize does not match tracks");
 }
 
-//============================================================================//
+//==============================================================================
 
 int8_t Armature::get_bone_index(TinyString name) const noexcept
 {
@@ -236,7 +236,7 @@ JsonMutAny Armature::json_from_bone_index(JsonMutDocument& document, int8_t inde
     return JsonMutAny(document, nullptr);
 }
 
-//============================================================================//
+//==============================================================================
 
 Animation Armature::load_animation_from_file(const String& path) const
 {
@@ -249,7 +249,7 @@ Animation Armature::load_animation_from_file(const String& path) const
     else SQEE_THROW("could not find animation '{}'", path);
 }
 
-//============================================================================//
+//==============================================================================
 
 Animation Armature::impl_load_animation_text(String&& text) const
 {
@@ -264,7 +264,7 @@ Animation Armature::impl_load_animation_text(String&& text) const
 
     std::byte* bytePtr = nullptr;
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     const auto assert_num_tokens = [](const std::vector<StringView>& tokens, size_t lineNum, size_t expected)
     {
@@ -416,7 +416,7 @@ Animation Armature::impl_load_animation_text(String&& text) const
         } SQEE_UNREACHABLE();
     };
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     for (const auto& [tokens, lineNum] : TokenisedFile::from_string(std::move(text)).lines)
     {
@@ -488,12 +488,12 @@ Animation Armature::impl_load_animation_text(String&& text) const
         else SQEE_THROW("missing SECTION");
     }
 
-    //--------------------------------------------------------//
+    //----------------------------------------------------------
 
     return result;
 }
 
-//============================================================================//
+//==============================================================================
 
 Animation Armature::make_null_animation(uint frameCount) const
 {
@@ -526,7 +526,7 @@ Animation Armature::make_null_animation(uint frameCount) const
     return result;
 }
 
-//============================================================================//
+//==============================================================================
 
 void Armature::compute_sample(const Animation& animation, float time, AnimSample& out) const
 {
@@ -701,7 +701,7 @@ void Armature::blend_samples(const AnimSample& a, const AnimSample& b, float fac
     }
 }
 
-//============================================================================//
+//==============================================================================
 
 Mat4F Armature::compute_bone_matrix(const AnimSample& sample, uint8_t index) const
 {
@@ -722,7 +722,7 @@ Mat4F Armature::compute_bone_matrix(const AnimSample& sample, uint8_t index) con
     return result;
 }
 
-//============================================================================//
+//==============================================================================
 
 std::vector<Mat4F> Armature::compute_bone_matrices(const AnimSample& sample) const
 {
@@ -747,7 +747,7 @@ std::vector<Mat4F> Armature::compute_bone_matrices(const AnimSample& sample) con
     return result;
 }
 
-//============================================================================//
+//==============================================================================
 
 Mat4F Armature::compute_model_matrix(const AnimSample& sample, Mat4F modelMatrix, uint8_t index) const
 {
@@ -771,7 +771,7 @@ Mat4F Armature::compute_model_matrix(const AnimSample& sample, Mat4F modelMatrix
     return modelMatrix * result * mInverseMats[index];
 }
 
-//============================================================================//
+//==============================================================================
 
 void Armature::compute_model_matrices (
     const AnimSample& sample, Mat4F viewMatrix, Mat4F invViewMatrix, Mat4F modelMatrix, Vec2F billboardScale, Mat34F* modelMats, size_t len
@@ -807,7 +807,7 @@ void Armature::compute_model_matrices (
     }
 }
 
-//============================================================================//
+//==============================================================================
 
 Animation::SampleTime Animation::compute_sample_time(float time) const
 {

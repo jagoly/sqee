@@ -9,9 +9,7 @@
 #include <sqee/maths/Matrices.hpp> // IWYU pragma: export
 #include <sqee/maths/Quaternion.hpp> // IWYU pragma: export
 
-namespace demo {
-
-//============================================================================//
+namespace demo { //#############################################################
 
 using namespace sq::coretypes;
 
@@ -21,6 +19,4 @@ namespace maths = sq::maths;
 class DemoApp;
 struct ResourceCaches;
 
-//============================================================================//
-
-} // namespace sts
+} // namespace demo ############################################################

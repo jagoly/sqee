@@ -1,13 +1,8 @@
-// Copyright(c) 2020 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 #pragma once
 
 #include <utility>
 
-namespace sq {
-
-//============================================================================//
+namespace sq { //###############################################################
 
 template <class...> struct Structure;
 
@@ -27,7 +22,7 @@ template <class Element, class... Others> struct Structure<Element, Others...>
 
 template<class... Elements> Structure(const Elements&...) -> Structure<Elements...>;
 
-//============================================================================//
+//==============================================================================
 
 /// Holds two values of the same type.
 template <class Type>
@@ -38,6 +33,4 @@ struct Swapper
     Type front, back;
 };
 
-//============================================================================//
-
-} // namespace sq
+} // namespace sq ##############################################################

@@ -8,14 +8,12 @@
 #include <sqee/vk/VulkanContext.hpp>
 #include <sqee/vk/VulkanMemory.hpp>
 
-namespace sq {
-
-//============================================================================//
+namespace sq { //###############################################################
 
 template <class T>
 using ArrayProxyRef = const vk::ArrayProxy<const T>&;
 
-//============================================================================//
+//==============================================================================
 
 struct SQEE_API StagingBuffer
 {
@@ -46,7 +44,7 @@ struct SQEE_API ShaderModules
     std::vector<vk::PipelineShaderStageCreateInfo> stages;
 };
 
-//============================================================================//
+//==============================================================================
 
 template <class... Values> struct SpecialisationInfo
 {
@@ -71,7 +69,7 @@ template <class... Values> struct SpecialisationInfo
 
 template<class... Values> SpecialisationInfo(Values...) -> SpecialisationInfo<Values...>;
 
-//============================================================================//
+//==============================================================================
 
 SQEE_API vk::Pipeline vk_create_graphics_pipeline (
     const VulkanContext& ctx, vk::PipelineLayout layout, vk::RenderPass renderPass, uint32_t subpass,
@@ -87,7 +85,7 @@ SQEE_API vk::Pipeline vk_create_graphics_pipeline (
     ArrayProxyRef<vk::DynamicState> dynamicStates
 );
 
-//============================================================================//
+//==============================================================================
 
 SQEE_API vk::DescriptorSet vk_allocate_descriptor_set (
     const VulkanContext& ctx, vk::DescriptorSetLayout layout
@@ -97,7 +95,7 @@ SQEE_API Swapper<vk::DescriptorSet> vk_allocate_descriptor_set_swapper (
     const VulkanContext& ctx, vk::DescriptorSetLayout layout
 );
 
-//============================================================================//
+//==============================================================================
 
 struct DescriptorUniformBuffer
 {
@@ -159,7 +157,7 @@ struct DescriptorInputAttachment
     vk::DescriptorImageInfo front, back;
 };
 
-//============================================================================//
+//==============================================================================
 
 namespace detail {
 
@@ -197,7 +195,7 @@ inline vk::WriteDescriptorSet make_write_descriptor_set(vk::DescriptorSet dset, 
 
 } // namespace detail
 
-//============================================================================//
+//==============================================================================
 
 template <class... Descriptors>
 inline void vk_update_descriptor_set(const VulkanContext& ctx, vk::DescriptorSet dset, Descriptors... descriptors)
@@ -224,7 +222,7 @@ inline void vk_update_descriptor_set_swapper(const VulkanContext& ctx, Swapper<v
     );
 }
 
-//============================================================================//
+//==============================================================================
 
 inline void vk_pipeline_barrier_image_memory (
     vk::CommandBuffer cmdbuf, vk::Image image, vk::DependencyFlags dependencyFlags, vk::PipelineStageFlags srcStageMask, vk::PipelineStageFlags dstStageMask, vk::AccessFlags srcAccessMask, vk::AccessFlags dstAccessMask, vk::ImageLayout oldLayout, vk::ImageLayout newLayout, vk::ImageAspectFlags aspectMask, uint baseMipLevel, uint levelCount, uint baseArrayLayer, uint layerCount
@@ -238,6 +236,4 @@ inline void vk_pipeline_barrier_image_memory (
     );
 }
 
-//============================================================================//
-
-} // namespace sq
+} // namespace sq ##############################################################

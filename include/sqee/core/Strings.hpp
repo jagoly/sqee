@@ -1,6 +1,3 @@
-// Copyright(c) 2020 James Gangur
-// Part of https://github.com/jagoly/sqee
-
 #pragma once
 
 #include <sqee/misc/StackString.hpp>
@@ -12,9 +9,7 @@
 #include <string>
 #include <string_view>
 
-namespace sq {
-
-//============================================================================//
+namespace sq { //###############################################################
 
 template <size_t Size>
 constexpr size_t string_length(const char(&)[Size])
@@ -54,7 +49,7 @@ inline std::string string_concat(const Args&... args)
     return result;
 }
 
-//============================================================================//
+//==============================================================================
 
 template <StackString fstr, const auto... args>
 consteval auto format_consteval()
@@ -65,7 +60,7 @@ consteval auto format_consteval()
     return result;
 };
 
-//============================================================================//
+//==============================================================================
 
 /// Only perform formatting if arguments are given.
 template <class... Args>
@@ -86,6 +81,4 @@ inline OutputIt vformat_to_if_args(OutputIt out, fmt::string_view fstr, fmt::for
     return fmt::detail::get_iterator(buf, out);
 }
 
-//============================================================================//
-
-} // namespace sq
+} // namespace sq ##############################################################

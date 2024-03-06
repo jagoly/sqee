@@ -5,7 +5,7 @@
 
 using namespace sq;
 
-//============================================================================//
+//==============================================================================
 
 void BufferStuff::initialise(const VulkanContext& ctx, size_t size, vk::BufferUsageFlags usage, bool host)
 {
@@ -19,7 +19,7 @@ void BufferStuff::initialise(const VulkanContext& ctx, size_t size, vk::BufferUs
     ctx.device.bindBufferMemory(buffer, memory.get_memory(), memory.get_offset());
 }
 
-//============================================================================//
+//==============================================================================
 
 void ImageStuff::initialise_2D(const VulkanContext& ctx, vk::Format format, Vec2U size, uint mipLevels, vk::SampleCountFlagBits samples, vk::ImageUsageFlags usage, bool host, vk::ComponentMapping swizzle, vk::ImageAspectFlags aspect)
 {
@@ -40,7 +40,7 @@ void ImageStuff::initialise_2D(const VulkanContext& ctx, vk::Format format, Vec2
     );
 }
 
-//============================================================================//
+//==============================================================================
 
 void ImageStuff::initialise_array(const VulkanContext& ctx, vk::Format format, Vec3U size, uint mipLevels, vk::SampleCountFlagBits samples, vk::ImageUsageFlags usage, bool host, vk::ComponentMapping swizzle, vk::ImageAspectFlags aspect)
 {
@@ -61,7 +61,7 @@ void ImageStuff::initialise_array(const VulkanContext& ctx, vk::Format format, V
     );
 }
 
-//============================================================================//
+//==============================================================================
 
 void ImageStuff::initialise_cube(const VulkanContext& ctx, vk::Format format, uint size, uint mipLevels, vk::SampleCountFlagBits samples, vk::ImageUsageFlags usage, bool host, vk::ComponentMapping swizzle, vk::ImageAspectFlags aspect)
 {
@@ -82,7 +82,7 @@ void ImageStuff::initialise_cube(const VulkanContext& ctx, vk::Format format, ui
     );
 }
 
-//============================================================================//
+//==============================================================================
 
 void RenderPassStuff::initialise(const VulkanContext& ctx, ArrayProxyRef<vk::AttachmentDescription> attachments, ArrayProxyRef<vk::SubpassDescription> subpasses, ArrayProxyRef<vk::SubpassDependency> dependencies, Vec2U imageSize, uint layers, ArrayProxyRef<vk::ImageView> imageViews)
 {
@@ -99,7 +99,7 @@ void RenderPassStuff::initialise(const VulkanContext& ctx, ArrayProxyRef<vk::Att
     );
 }
 
-//============================================================================//
+//==============================================================================
 
 void BufferStuff::destroy(const VulkanContext& ctx)
 {

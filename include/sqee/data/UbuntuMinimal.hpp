@@ -1,11 +1,10 @@
-// Copyright(c) 2020 James Gangur
-// Part of https://github.com/jagoly/sqee
+#pragma once
 
 #include <sqee/export.hpp>
 
 #include <cstdint>
 
-//============================================================================//
+//==============================================================================
 
 SQEE_API extern const int32_t sqee_UbuntuRegular_size;
 SQEE_API extern const uint32_t sqee_UbuntuRegular[23180/4];

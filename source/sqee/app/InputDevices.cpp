@@ -11,12 +11,12 @@
 
 using namespace sq;
 
-//============================================================================//
+//==============================================================================
 
 InputDevices::InputDevices(Window& window)
     : mGlfwWindow(window.get_glfw_window()) {}
 
-//============================================================================//
+//==============================================================================
 
 bool InputDevices::is_pressed(Keyboard_Key key) const
 {
@@ -138,7 +138,7 @@ bool InputDevices::is_pressed(Keyboard_Key key) const
     return bool(glfwGetKey(mGlfwWindow, sqee_to_glfw[int(key)]));
 }
 
-//============================================================================//
+//==============================================================================
 
 Vec2I InputDevices::get_cursor_location(bool flipY) const
 {
@@ -185,7 +185,7 @@ Vec2I InputDevices::cursor_to_centre()
 //    return { centre.x - position.x, centre.y - position.y };
 }
 
-//============================================================================//
+//==============================================================================
 
 bool InputDevices::check_gamepad_connected(int port) const
 {
