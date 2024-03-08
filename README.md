@@ -26,7 +26,7 @@ SQEE intergrates a few third party libraries. In no particular order, they are:
 
 ### Building SQEE
 
-To build SQEE, you will need [GLFW >= 3.3](https://github.com/glfw/glfw/releases). Everything else is included in the repo. On linux, you can grab GFLW from your distro's repos, if available and up to date. Otherwise, you can build it manually from the link above.
+To build SQEE, you will need [GLFW >= 3.4](https://github.com/glfw/glfw/releases). Everything else is included in the repo. On linux, you can grab GFLW from your distro's repos, if available and up to date. Otherwise, you can build it manually from the link above.
 
 A C++20 capable compiler is required. Building SQEE is fairly simple, have a look at [linux.yml](https://github.com/jagoly/sqee/blob/master/.github/workflows/linux.yml) and [windows.yml](https://github.com/jagoly/sqee/blob/master/.github/workflows/windows.yml) for how.
 

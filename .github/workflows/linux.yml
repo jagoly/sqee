@@ -19,7 +19,7 @@ jobs:
     - name: Install GLFW Dependencies
       run: |
         sudo apt update
-        sudo apt install libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxext-dev
+        sudo apt install libwayland-dev libxkbcommon-dev xorg-dev
 
     - name: Checkout GLFW
       uses: actions/checkout@v3

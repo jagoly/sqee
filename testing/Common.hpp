@@ -124,7 +124,8 @@ public:
     }
 
 private:
-    maths::Quaternion<T> m_target; T m_margin;
+    maths::Quaternion<T> m_target;
+    double m_margin;
 };
 
 //==============================================================================
