@@ -15,6 +15,14 @@ extern "C" { typedef struct GLFWwindow GLFWwindow; }
 
 namespace sq { //###############################################################
 
+enum class CursorMode : int
+{
+    Normal   = 0x00034001, ///< visible, able to leave window
+    Hidden   = 0x00034002, ///< hidden, able to leave window
+    Disabled = 0x00034003, ///< hidden, locked to window, unrestricted range
+    Captured = 0x00034004, ///< visible, locked to window, clamp to window bounds
+};
+
 class SQEE_API Window
 {
 public: //======================================================
@@ -56,17 +64,15 @@ public: //======================================================
 
     //----------------------------------------------------------
 
-    void set_title(String title);
+    void set_title(const String& title);
 
-    void set_cursor_hidden(bool hidden);
+    const String get_title() const;
+
+    void set_cursor_mode(CursorMode mode);
+
+    CursorMode get_cursor_mode() const;
 
     void set_vsync_enabled(bool enabled);
-
-    //----------------------------------------------------------
-
-    const String& get_title() const { return mTitle; };
-
-    bool get_cursor_hidden() const { return mCursorHidden; };
 
     bool get_vsync_enabled() const { return mVsyncEnabled; };
 
@@ -111,8 +117,6 @@ private: //=====================================================
 
     //----------------------------------------------------------
 
-    String mTitle;
-    bool mCursorHidden = false;
     bool mVsyncEnabled = false;
 
     bool mPendingResize = true;

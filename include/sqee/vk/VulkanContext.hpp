@@ -86,6 +86,10 @@ public: //======================================================
     template <class Object>
     void set_debug_object_name(Object object, const char* name) const;
 
+    /// Give an object a human readable name for debugging.
+    template <class Object, class... Args>
+    void set_debug_object_name(Object object, fmt::format_string<Args...> fstr, Args&&... args) const;
+
 private: //=====================================================
 
     VulkanContext(VulkanAllocator& allocator);
@@ -178,6 +182,16 @@ inline void VulkanContext::set_debug_object_name(Object object [[maybe_unused]],
   #ifdef SQEE_DEBUG
     auto handle = reinterpret_cast<uint64_t>(static_cast<typename Object::CType>(object));
     device.setDebugUtilsObjectNameEXT({object.objectType, handle, name});
+  #endif
+}
+
+template <class Object, class... Args>
+inline void VulkanContext::set_debug_object_name(Object object [[maybe_unused]], fmt::format_string<Args...> fstr [[maybe_unused]], Args&&... args [[maybe_unused]]) const
+{
+    static_assert(sizeof...(Args) != 0, "please use the const char* overload");
+  #ifdef SQEE_DEBUG
+    auto handle = reinterpret_cast<uint64_t>(static_cast<typename Object::CType>(object));
+    device.setDebugUtilsObjectNameEXT({object.objectType, handle, fmt::vformat(fstr, fmt::make_format_args(args...)).c_str()});
   #endif
 }
 

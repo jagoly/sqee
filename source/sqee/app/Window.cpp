@@ -262,6 +262,10 @@ Window::Window(const char* title, Vec2U size, const char* appName, Vec3U version
 {
     // create glfw window
     {
+        int versionMajor, versionMinor, versionRev;
+        glfwGetVersion(&versionMajor, &versionMinor, &versionRev);
+        log_info("GLFW Version: {}.{}.{}", versionMajor, versionMinor, versionRev);
+
         glfwInit();
 
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -503,17 +507,15 @@ Window::Window(const char* title, Vec2U size, const char* appName, Vec3U version
             {}, vk::PipelineBindPoint::eGraphics, {}, colorAttachments, {}, nullptr, {}
         };
 
-//        auto dependencies = std::array {
-//            vk::SubpassDependency {
-//                VK_SUBPASS_EXTERNAL, 0u,
-//                vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eFragmentShader,
-//                vk::AccessFlagBits::eColorAttachmentWrite, vk::AccessFlagBits::eShaderRead,
-//                vk::DependencyFlagBits::eByRegion
-//            }
-//        };
+       auto dependencies = vk::SubpassDependency {
+           VK_SUBPASS_EXTERNAL, 0u,
+           vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eColorAttachmentOutput,
+           vk::AccessFlagBits::eNone, vk::AccessFlagBits::eColorAttachmentWrite,
+           vk::DependencyFlagBits::eByRegion
+       };
 
         mRenderPass = mDevice.createRenderPass (
-            vk::RenderPassCreateInfo { {}, attachments, subpasses, {}/*dependencies*/ }
+            vk::RenderPassCreateInfo { {}, attachments, subpasses, dependencies }
         );
     }
 
@@ -788,19 +790,24 @@ void Window::submit_present_swap()
 
 //==============================================================================
 
-void Window::set_title(String title)
+void Window::set_title(const String& title)
 {
-    mTitle = std::move(title);
-    glfwSetWindowTitle(mGlfwWindow, mTitle.c_str());
+    glfwSetWindowTitle(mGlfwWindow, title.c_str());
 }
 
-// todo: GLFW supports proper raw mouse movement, unlike SFML
-void Window::set_cursor_hidden(bool hidden)
+const String Window::get_title() const
 {
-    if (mCursorHidden == hidden) return;
+    return String(glfwGetWindowTitle(mGlfwWindow));
+}
 
-    mCursorHidden = hidden;
-    glfwSetInputMode(mGlfwWindow, GLFW_CURSOR, hidden ? GLFW_CURSOR_HIDDEN : GLFW_CURSOR_NORMAL);
+void Window::set_cursor_mode(CursorMode mode)
+{
+    glfwSetInputMode(mGlfwWindow, GLFW_CURSOR, int(mode));
+}
+
+CursorMode Window::get_cursor_mode() const
+{
+    return CursorMode(glfwGetInputMode(mGlfwWindow, GLFW_CURSOR));
 }
 
 // todo: Vulkan supports freesync/gsync refresh, unline OpenGL

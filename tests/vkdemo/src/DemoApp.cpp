@@ -252,6 +252,21 @@ void DemoApp::create_render_targets()
 
     // create ms render pass
     {
+        const auto dependencies = std::array {
+            vk::SubpassDependency {
+                VK_SUBPASS_EXTERNAL, 0u,
+                vk::PipelineStageFlagBits::eFragmentShader, vk::PipelineStageFlagBits::eColorAttachmentOutput,
+                vk::AccessFlagBits::eShaderRead, vk::AccessFlagBits::eColorAttachmentWrite,
+                vk::DependencyFlagBits::eByRegion
+            },
+            vk::SubpassDependency {
+                0u, VK_SUBPASS_EXTERNAL,
+                vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eFragmentShader,
+                vk::AccessFlagBits::eColorAttachmentWrite, vk::AccessFlagBits::eShaderRead,
+                vk::DependencyFlagBits::eByRegion
+            }
+        };
+
         if (mMultisampleMode > vk::SampleCountFlagBits::e1)
         {
             const auto attachments = std::array {
@@ -276,15 +291,8 @@ void DemoApp::create_render_targets()
                 {}, vk::PipelineBindPoint::eGraphics, nullptr, colourReference, resolveReference, nullptr, nullptr
             };
 
-            const auto dependency = vk::SubpassDependency {
-                0u, VK_SUBPASS_EXTERNAL,
-                vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eFragmentShader,
-                vk::AccessFlagBits::eColorAttachmentWrite, vk::AccessFlagBits::eShaderRead,
-                vk::DependencyFlagBits::eByRegion
-            };
-
             mMsRenderPass.initialise (
-                ctx, attachments, subpass, dependency, mWindow->get_size(), 1u, { mMsColourImage.view, mResolveColourImage.view }
+                ctx, attachments, subpass, dependencies, mWindow->get_size(), 1u, { mMsColourImage.view, mResolveColourImage.view }
             );
         }
         else // no multisample
@@ -304,15 +312,8 @@ void DemoApp::create_render_targets()
                 {}, vk::PipelineBindPoint::eGraphics, nullptr, colourReference, nullptr, nullptr, nullptr
             };
 
-            const auto dependency = vk::SubpassDependency {
-                0u, VK_SUBPASS_EXTERNAL,
-                vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eFragmentShader,
-                vk::AccessFlagBits::eColorAttachmentWrite, vk::AccessFlagBits::eShaderRead,
-                vk::DependencyFlagBits::eByRegion
-            };
-
             mMsRenderPass.initialise (
-                ctx, attachments, subpass, dependency, mWindow->get_size(), 1u, mResolveColourImage.view
+                ctx, attachments, subpass, dependencies, mWindow->get_size(), 1u, mResolveColourImage.view
             );
         }
     }

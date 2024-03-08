@@ -228,7 +228,7 @@ GuiSystem::GuiSystem(Window& window, InputDevices& inputDevices)
     io.MouseDrawCursor = true;
     io.ConfigWindowsResizeFromEdges = true;
 
-    window.set_cursor_hidden(true);
+    window.set_cursor_mode(CursorMode::Hidden);
 
     load_ubuntu_fonts();
 
